@@ -1,1 +1,1 @@
-export { vueAdapter } from './adapter';
+export { vueAdapter } from './adapter'

@@ -1,19 +1,8 @@
 {
   "name": "@moluoxixi/config-form",
-  "version": "0.0.1",
   "type": "module",
+  "version": "0.0.1",
   "packageManager": "pnpm@10.8.0",
-  "scripts": {
-    "lint:eslint": "eslint . --fix",
-    "submodule:update": "cd .cursor && git pull && cd .. && git submodule update --init --recursive --remote",
-    "lint-staged": "lint-staged",
-    "commit": "git add . && git-cz"
-  },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "eslint --fix --no-warn-ignored"
-    ]
-  },
   "config": {
     "commitizen": {
       "path": "cz-customizable"
@@ -21,6 +10,11 @@
     "cz-customizable": {
       "config": ".cz-config.cjs"
     }
+  },
+  "author": "1983531544@qq.com",
+  "license": "MIT",
+  "repository": {
+    "type": "git"
   },
   "keywords": [
     "vite",
@@ -31,17 +25,19 @@
     "scaffold",
     "create-vue"
   ],
-  "author": "1983531544@qq.com",
-  "license": "MIT",
-  "repository": {
-    "type": "git"
+  "engines": {
+    "node": ">=20.18.0"
+  },
+  "scripts": {
+    "lint:eslint": "eslint . --fix && pnpm lint:eslint:vue && pnpm lint:eslint:react",
+    "lint:eslint:vue": "pnpm --filter @moluoxixi/playground-vue lint:eslint",
+    "lint:eslint:react": "pnpm --filter @moluoxixi/playground-react lint:eslint",
+    "submodule:update": "cd .cursor && git pull && cd .. && git submodule update --init --recursive --remote",
+    "lint-staged": "lint-staged",
+    "commit": "git add . && git-cz"
   },
   "dependencies": {
-    "chalk": "catalog:build",
-    "commander": "catalog:build",
-    "fs-extra": "catalog:build",
-    "inquirer": "catalog:build",
-    "ora": "catalog:build"
+    "vue": "catalog:build"
   },
   "devDependencies": {
     "@commitlint/cli": "catalog:dev",
@@ -54,12 +50,15 @@
     "commitizen": "catalog:dev",
     "cz-customizable": "catalog:dev",
     "eslint": "catalog:dev",
+    "eslint-plugin-format": "catalog:dev",
     "husky": "catalog:dev",
     "lint-staged": "catalog:dev",
-    "tsx": "catalog:dev",
-    "typescript": "catalog:dev"
+    "tsx": "catalog:type",
+    "typescript": "catalog:type"
   },
-  "engines": {
-    "node": ">=20.18.0"
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix --no-warn-ignored"
+    ]
   }
 }

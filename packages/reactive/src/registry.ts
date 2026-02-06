@@ -1,7 +1,7 @@
-import type { ReactiveAdapter } from './types';
+import type { ReactiveAdapter } from './types'
 
 /** 当前激活的适配器 */
-let currentAdapter: ReactiveAdapter | null = null;
+let currentAdapter: ReactiveAdapter | null = null
 
 /**
  * 设置全局响应式适配器
@@ -11,7 +11,7 @@ let currentAdapter: ReactiveAdapter | null = null;
  * - Vue 项目：setReactiveAdapter(vueAdapter)
  */
 export function setReactiveAdapter(adapter: ReactiveAdapter): void {
-  currentAdapter = adapter;
+  currentAdapter = adapter
 }
 
 /**
@@ -21,24 +21,24 @@ export function setReactiveAdapter(adapter: ReactiveAdapter): void {
 export function getReactiveAdapter(): ReactiveAdapter {
   if (!currentAdapter) {
     throw new Error(
-      '[ConfigForm] 未设置响应式适配器。请在应用初始化时调用 setReactiveAdapter()。\n' +
-      '  React 项目: import { mobxAdapter } from "@moluoxixi/reactive-mobx"\n' +
-      '  Vue 项目:   import { vueAdapter } from "@moluoxixi/reactive-vue"',
-    );
+      '[ConfigForm] 未设置响应式适配器。请在应用初始化时调用 setReactiveAdapter()。\n'
+      + '  React 项目: import { mobxAdapter } from "@moluoxixi/reactive-mobx"\n'
+      + '  Vue 项目:   import { vueAdapter } from "@moluoxixi/reactive-vue"',
+    )
   }
-  return currentAdapter;
+  return currentAdapter
 }
 
 /**
  * 检查是否已设置适配器
  */
 export function hasReactiveAdapter(): boolean {
-  return currentAdapter !== null;
+  return currentAdapter !== null
 }
 
 /**
  * 重置适配器（仅用于测试）
  */
 export function resetReactiveAdapter(): void {
-  currentAdapter = null;
+  currentAdapter = null
 }

@@ -4,10 +4,10 @@
     "lib": [
       "ESNext"
     ],
-    "outDir": "./dist",
     "rootDir": "./src",
-    "noEmit": false,
     "allowImportingTsExtensions": true,
+    "noEmit": false,
+    "outDir": "./dist",
     "rewriteRelativeImportExtensions": true
   },
   "include": [

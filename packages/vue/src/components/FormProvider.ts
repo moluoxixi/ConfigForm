@@ -1,9 +1,9 @@
-import { defineComponent, provide, h, computed } from 'vue';
-import type { PropType } from 'vue';
-import type { FormInstance } from '@moluoxixi/core';
-import type { ComponentType } from '@moluoxixi/shared';
-import { FormSymbol, ComponentRegistrySymbol } from '../context';
-import { getGlobalRegistry } from '../registry';
+import type { FormInstance } from '@moluoxixi/core'
+import type { ComponentType } from '@moluoxixi/shared'
+import type { PropType } from 'vue'
+import { computed, defineComponent, provide } from 'vue'
+import { ComponentRegistrySymbol, FormSymbol } from '../context'
+import { getGlobalRegistry } from '../registry'
 
 /**
  * 表单提供者组件
@@ -28,29 +28,29 @@ export const FormProvider = defineComponent({
     },
   },
   setup(props, { slots }) {
-    provide(FormSymbol, props.form);
+    provide(FormSymbol, props.form)
 
     const registry = computed(() => {
-      const global = getGlobalRegistry();
-      const components = new Map(global.components);
-      const wrappers = new Map(global.wrappers);
+      const global = getGlobalRegistry()
+      const components = new Map(global.components)
+      const wrappers = new Map(global.wrappers)
 
       if (props.components) {
         for (const [name, comp] of Object.entries(props.components)) {
-          components.set(name, comp);
+          components.set(name, comp)
         }
       }
       if (props.wrappers) {
         for (const [name, wrapper] of Object.entries(props.wrappers)) {
-          wrappers.set(name, wrapper);
+          wrappers.set(name, wrapper)
         }
       }
 
-      return { components, wrappers };
-    });
+      return { components, wrappers }
+    })
 
-    provide(ComponentRegistrySymbol, registry.value);
+    provide(ComponentRegistrySymbol, registry.value)
 
-    return () => slots.default?.();
+    return () => slots.default?.()
   },
-});
+})

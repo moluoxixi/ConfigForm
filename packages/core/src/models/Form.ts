@@ -1,23 +1,23 @@
-import type { Disposer, Feedback, FieldPattern } from '@moluoxixi/shared';
-import { FormPath, uid, deepClone, deepMerge } from '@moluoxixi/shared';
-import type { ValidationFeedback, ValidationTrigger } from '@moluoxixi/validator';
-import { getReactiveAdapter } from '@moluoxixi/reactive';
+import type { Disposer, Feedback, FieldPattern } from '@moluoxixi/shared'
+import type { ValidationFeedback, ValidationTrigger } from '@moluoxixi/validator'
 import type {
+  ArrayFieldInstance,
+  ArrayFieldProps,
+  FieldInstance,
+  FieldProps,
   FormConfig,
   FormInstance,
-  FieldProps,
-  FieldInstance,
-  ArrayFieldProps,
-  ArrayFieldInstance,
-  VoidFieldProps,
-  VoidFieldInstance,
   ResetOptions,
   SubmitResult,
-} from '../types';
-import { Field } from './Field';
-import { ArrayField } from './ArrayField';
-import { VoidField } from './VoidField';
-import { ReactionEngine } from '../reaction/engine';
+  VoidFieldInstance,
+  VoidFieldProps,
+} from '../types'
+import { getReactiveAdapter } from '@moluoxixi/reactive'
+import { deepClone, deepMerge, FormPath, uid } from '@moluoxixi/shared'
+import { ReactionEngine } from '../reaction/engine'
+import { ArrayField } from './ArrayField'
+import { Field } from './Field'
+import { VoidField } from './VoidField'
 
 /**
  * 表单模型
@@ -32,71 +32,72 @@ import { ReactionEngine } from '../reaction/engine';
  * 它会正确处理响应式代理的创建和返回。
  */
 export class Form<Values extends Record<string, unknown> = Record<string, unknown>>
-  implements FormInstance<Values>
-{
-  readonly id: string;
-  values: Values;
-  initialValues: Values;
-  submitting: boolean;
-  validating: boolean;
-  pattern: FieldPattern;
-  validateTrigger: ValidationTrigger | ValidationTrigger[];
-  labelPosition: 'top' | 'left' | 'right';
-  labelWidth: number | string;
+implements FormInstance<Values> {
+  readonly id: string
+  values: Values
+  initialValues: Values
+  submitting: boolean
+  validating: boolean
+  pattern: FieldPattern
+  validateTrigger: ValidationTrigger | ValidationTrigger[]
+  labelPosition: 'top' | 'left' | 'right'
+  labelWidth: number | string
 
   /** 字段注册表（path → Field 响应式代理） */
-  private fields = new Map<string, Field>();
+  private fields = new Map<string, Field>()
   /** 数组字段注册表 */
-  private arrayFields = new Map<string, ArrayField>();
+  private arrayFields = new Map<string, ArrayField>()
   /** 虚拟字段注册表 */
-  private voidFields = new Map<string, VoidField>();
+  private voidFields = new Map<string, VoidField>()
   /** 值变化回调 */
-  private valuesChangeHandlers: Array<(values: Values) => void> = [];
+  private valuesChangeHandlers: Array<(values: Values) => void> = []
   /** 字段值变化回调 */
-  private fieldValueChangeHandlers = new Map<string, Array<(value: unknown) => void>>();
+  private fieldValueChangeHandlers = new Map<string, Array<(value: unknown) => void>>()
   /** 联动引擎 */
-  private reactionEngine: ReactionEngine;
+  private reactionEngine: ReactionEngine
   /** 释放器 */
-  private disposers: Disposer[] = [];
+  private disposers: Disposer[] = []
 
   constructor(config: FormConfig<Values> = {}) {
-    this.id = uid('form');
-    this.values = (config.initialValues ? deepClone(config.initialValues) : {}) as Values;
-    this.initialValues = (config.initialValues ? deepClone(config.initialValues) : {}) as Values;
-    this.submitting = false;
-    this.validating = false;
-    this.pattern = config.pattern ?? 'editable';
-    this.validateTrigger = config.validateTrigger ?? 'change';
-    this.labelPosition = config.labelPosition ?? 'right';
-    this.labelWidth = config.labelWidth ?? 'auto';
+    this.id = uid('form')
+    this.values = (config.initialValues ? deepClone(config.initialValues) : {}) as Values
+    this.initialValues = (config.initialValues ? deepClone(config.initialValues) : {}) as Values
+    this.submitting = false
+    this.validating = false
+    this.pattern = config.pattern ?? 'editable'
+    this.validateTrigger = config.validateTrigger ?? 'change'
+    this.labelPosition = config.labelPosition ?? 'right'
+    this.labelWidth = config.labelWidth ?? 'auto'
 
-    this.reactionEngine = new ReactionEngine(this as unknown as FormInstance);
+    this.reactionEngine = new ReactionEngine(this as unknown as FormInstance)
 
     /* 执行用户定义的 effects */
     if (config.effects) {
-      config.effects(this as unknown as FormInstance);
+      config.effects(this as unknown as FormInstance)
     }
   }
 
   /** 表单是否被修改 */
   get modified(): boolean {
     for (const field of this.fields.values()) {
-      if (field.modified) return true;
+      if (field.modified)
+        return true
     }
-    return false;
+    return false
   }
 
   /** 表单是否验证通过 */
   get valid(): boolean {
     for (const field of this.fields.values()) {
-      if (!field.valid) return false;
+      if (!field.valid)
+        return false
     }
-    return true;
+    return true
   }
 
   /** 所有错误 */
   get errors(): Feedback[] {
-    const result: Feedback[] = [];
+    const result: Feedback[] = []
     for (const field of this.fields.values()) {
       for (const err of field.errors) {
         result.push({
@@ -104,15 +105,15 @@ export class Form<Values extends Record<string, unknown> = Record<string, unknow
           message: err.message,
           type: 'error',
           code: err.ruleName,
-        });
+        })
       }
     }
-    return result;
+    return result
   }
 
   /** 所有警告 */
   get warnings(): Feedback[] {
-    const result: Feedback[] = [];
+    const result: Feedback[] = []
     for (const field of this.fields.values()) {
       for (const warn of field.warnings) {
         result.push({
@@ -120,318 +121,327 @@ export class Form<Values extends Record<string, unknown> = Record<string, unknow
           message: warn.message,
           type: 'warning',
           code: warn.ruleName,
-        });
+        })
       }
     }
-    return result;
+    return result
   }
 
   /** 创建普通字段 */
   createField<V = unknown>(props: FieldProps<V>): FieldInstance<V> {
-    const adapter = getReactiveAdapter();
-    const rawField = new Field<V>(this as unknown as FormInstance, props);
+    const adapter = getReactiveAdapter()
+    const rawField = new Field<V>(this as unknown as FormInstance, props)
 
     /* 使字段变为响应式，存储并返回代理 */
-    const field = adapter.makeObservable(rawField);
-    this.fields.set(field.path, field as unknown as Field);
+    const field = adapter.makeObservable(rawField)
+    this.fields.set(field.path, field as unknown as Field)
 
     /* 注册联动 */
     if (field.reactions.length > 0) {
       this.reactionEngine.registerFieldReactions(
         field as unknown as FieldInstance,
         field.reactions,
-      );
+      )
     }
 
-    return field as unknown as FieldInstance<V>;
+    return field as unknown as FieldInstance<V>
   }
 
   /** 创建数组字段 */
   createArrayField<V extends unknown[] = unknown[]>(
     props: ArrayFieldProps<V>,
   ): ArrayFieldInstance<V> {
-    const adapter = getReactiveAdapter();
-    const rawField = new ArrayField<V>(this as unknown as FormInstance, props);
+    const adapter = getReactiveAdapter()
+    const rawField = new ArrayField<V>(this as unknown as FormInstance, props)
 
-    const field = adapter.makeObservable(rawField);
-    this.arrayFields.set(field.path, field as unknown as ArrayField);
-    this.fields.set(field.path, field as unknown as Field);
+    const field = adapter.makeObservable(rawField)
+    this.arrayFields.set(field.path, field as unknown as ArrayField)
+    this.fields.set(field.path, field as unknown as Field)
 
     if (field.reactions.length > 0) {
       this.reactionEngine.registerFieldReactions(
         field as unknown as FieldInstance,
         field.reactions,
-      );
+      )
     }
 
-    return field as unknown as ArrayFieldInstance<V>;
+    return field as unknown as ArrayFieldInstance<V>
   }
 
   /** 创建虚拟字段 */
   createVoidField(props: VoidFieldProps): VoidFieldInstance {
-    const adapter = getReactiveAdapter();
-    const rawField = new VoidField(this as unknown as FormInstance, props);
+    const adapter = getReactiveAdapter()
+    const rawField = new VoidField(this as unknown as FormInstance, props)
 
-    const field = adapter.makeObservable(rawField);
-    this.voidFields.set(field.path, field);
+    const field = adapter.makeObservable(rawField)
+    this.voidFields.set(field.path, field)
 
     if (field.reactions.length > 0) {
       this.reactionEngine.registerFieldReactions(
         field as unknown as FieldInstance,
         field.reactions,
-      );
+      )
     }
 
-    return field;
+    return field
   }
 
   /** 获取字段 */
   getField(path: string): FieldInstance | undefined {
-    return this.fields.get(path) as unknown as FieldInstance | undefined;
+    return this.fields.get(path) as unknown as FieldInstance | undefined
   }
 
   /** 获取数组字段 */
   getArrayField(path: string): ArrayFieldInstance | undefined {
-    return this.arrayFields.get(path) as unknown as ArrayFieldInstance | undefined;
+    return this.arrayFields.get(path) as unknown as ArrayFieldInstance | undefined
   }
 
   /** 移除字段 */
   removeField(path: string): void {
-    const field = this.fields.get(path);
+    const field = this.fields.get(path)
     if (field) {
-      field.dispose();
-      this.fields.delete(path);
-      this.arrayFields.delete(path);
-      this.reactionEngine.removeFieldReactions(path);
+      field.dispose()
+      this.fields.delete(path)
+      this.arrayFields.delete(path)
+      this.reactionEngine.removeFieldReactions(path)
     }
-    const voidField = this.voidFields.get(path);
+    const voidField = this.voidFields.get(path)
     if (voidField) {
-      voidField.dispose();
-      this.voidFields.delete(path);
+      voidField.dispose()
+      this.voidFields.delete(path)
     }
   }
 
   /** 通过模式匹配查询字段 */
   queryFields(pattern: string): FieldInstance[] {
-    const result: FieldInstance[] = [];
+    const result: FieldInstance[] = []
     for (const [path, field] of this.fields) {
       if (FormPath.match(pattern, path)) {
-        result.push(field as unknown as FieldInstance);
+        result.push(field as unknown as FieldInstance)
       }
     }
-    return result;
+    return result
   }
 
   /** 获取所有注册的字段 */
   getAllFields(): Map<string, Field> {
-    return this.fields;
+    return this.fields
   }
 
   /** 获取所有虚拟字段 */
   getAllVoidFields(): Map<string, VoidField> {
-    return this.voidFields;
+    return this.voidFields
   }
 
   /** 设置表单值 */
   setValues(values: Partial<Values>, strategy: 'merge' | 'shallow' | 'replace' = 'merge'): void {
-    const adapter = getReactiveAdapter();
+    const adapter = getReactiveAdapter()
     adapter.batch(() => {
       switch (strategy) {
         case 'replace':
-          this.values = adapter.observable({ ...values } as Values);
-          break;
+          this.values = adapter.observable({ ...values } as Values)
+          break
         case 'shallow':
-          Object.assign(this.values, values);
-          break;
+          Object.assign(this.values, values)
+          break
         case 'merge':
         default:
-          deepMerge(this.values as Record<string, unknown>, values as Record<string, unknown>);
-          break;
+          deepMerge(this.values as Record<string, unknown>, values as Record<string, unknown>)
+          break
       }
-    });
-    this.notifyValuesChange();
+    })
+    this.notifyValuesChange()
   }
 
   /** 设置单个字段值 */
   setFieldValue(path: string, value: unknown): void {
-    FormPath.setIn(this.values as Record<string, unknown>, path, value);
-    this.notifyFieldValueChange(path, value);
-    this.notifyValuesChange();
+    FormPath.setIn(this.values as Record<string, unknown>, path, value)
+    this.notifyFieldValueChange(path, value)
+    this.notifyValuesChange()
   }
 
   /** 获取字段值 */
   getFieldValue(path: string): unknown {
-    return FormPath.getIn(this.values, path);
+    return FormPath.getIn(this.values, path)
   }
 
   /** 重置表单 */
   reset(options?: ResetOptions): void {
-    const adapter = getReactiveAdapter();
+    const adapter = getReactiveAdapter()
     adapter.batch(() => {
       if (options?.fields) {
         for (const path of options.fields) {
-          const field = this.fields.get(path);
-          if (field) field.reset();
-        }
-      } else {
-        if (options?.forceClear) {
-          const keys = Object.keys(this.values);
-          for (const key of keys) {
-            (this.values as Record<string, unknown>)[key] = undefined;
-          }
-        } else {
-          const cloned = deepClone(this.initialValues);
-          Object.assign(this.values, cloned);
-        }
-        for (const field of this.fields.values()) {
-          field.errors = [];
-          field.warnings = [];
-          field.active = false;
-          field.visited = false;
+          const field = this.fields.get(path)
+          if (field)
+            field.reset()
         }
       }
-    });
+      else {
+        if (options?.forceClear) {
+          const keys = Object.keys(this.values)
+          for (const key of keys) {
+            (this.values as Record<string, unknown>)[key] = undefined
+          }
+        }
+        else {
+          const cloned = deepClone(this.initialValues)
+          Object.assign(this.values, cloned)
+        }
+        for (const field of this.fields.values()) {
+          field.errors = []
+          field.warnings = []
+          field.active = false
+          field.visited = false
+        }
+      }
+    })
 
     if (options?.validate) {
-      this.validate().catch(() => { /* 忽略 */ });
+      this.validate().catch(() => { /* 忽略 */ })
     }
   }
 
   /** 提交表单 */
   async submit(): Promise<SubmitResult<Values>> {
-    this.submitting = true;
+    this.submitting = true
     try {
-      const { valid, errors, warnings } = await this.validate();
+      const { valid, errors, warnings } = await this.validate()
       if (!valid) {
         /* 聚焦到第一个错误字段 */
         if (errors.length > 0) {
-          const firstErrorField = this.fields.get(errors[0].path);
-          firstErrorField?.focus();
+          const firstErrorField = this.fields.get(errors[0].path)
+          firstErrorField?.focus()
         }
-        return { values: this.values, errors, warnings };
+        return { values: this.values, errors, warnings }
       }
 
       /* 收集提交数据（处理隐藏字段排除、路径映射、值转换） */
-      const submitValues = this.collectSubmitValues();
-      return { values: submitValues as Values, errors: [], warnings };
-    } finally {
-      this.submitting = false;
+      const submitValues = this.collectSubmitValues()
+      return { values: submitValues as Values, errors: [], warnings }
+    }
+    finally {
+      this.submitting = false
     }
   }
 
   /** 验证全部或部分字段 */
   async validate(
     pattern?: string,
-  ): Promise<{ valid: boolean; errors: ValidationFeedback[]; warnings: ValidationFeedback[] }> {
-    this.validating = true;
-    const allErrors: ValidationFeedback[] = [];
-    const allWarnings: ValidationFeedback[] = [];
+  ): Promise<{ valid: boolean, errors: ValidationFeedback[], warnings: ValidationFeedback[] }> {
+    this.validating = true
+    const allErrors: ValidationFeedback[] = []
+    const allWarnings: ValidationFeedback[] = []
 
     try {
       const fieldsToValidate = pattern
         ? this.queryFields(pattern)
-        : Array.from(this.fields.values()) as unknown as FieldInstance[];
+        : Array.from(this.fields.values()) as unknown as FieldInstance[]
 
       const promises = fieldsToValidate.map(async (field) => {
-        if (!field.visible) return;
-        const errors = await field.validate('submit');
-        allErrors.push(...errors);
-        allWarnings.push(...field.warnings);
-      });
+        if (!field.visible)
+          return
+        const errors = await field.validate('submit')
+        allErrors.push(...errors)
+        allWarnings.push(...field.warnings)
+      })
 
-      await Promise.all(promises);
+      await Promise.all(promises)
 
       return {
         valid: allErrors.length === 0,
         errors: allErrors,
         warnings: allWarnings,
-      };
-    } finally {
-      this.validating = false;
+      }
+    }
+    finally {
+      this.validating = false
     }
   }
 
   /** 监听值变化 */
   onValuesChange(handler: (values: Values) => void): Disposer {
-    this.valuesChangeHandlers.push(handler);
+    this.valuesChangeHandlers.push(handler)
     return () => {
-      const idx = this.valuesChangeHandlers.indexOf(handler);
-      if (idx !== -1) this.valuesChangeHandlers.splice(idx, 1);
-    };
+      const idx = this.valuesChangeHandlers.indexOf(handler)
+      if (idx !== -1)
+        this.valuesChangeHandlers.splice(idx, 1)
+    }
   }
 
   /** 监听特定字段值变化 */
   onFieldValueChange(path: string, handler: (value: unknown) => void): Disposer {
     if (!this.fieldValueChangeHandlers.has(path)) {
-      this.fieldValueChangeHandlers.set(path, []);
+      this.fieldValueChangeHandlers.set(path, [])
     }
-    this.fieldValueChangeHandlers.get(path)!.push(handler);
+    this.fieldValueChangeHandlers.get(path)!.push(handler)
     return () => {
-      const handlers = this.fieldValueChangeHandlers.get(path);
+      const handlers = this.fieldValueChangeHandlers.get(path)
       if (handlers) {
-        const idx = handlers.indexOf(handler);
-        if (idx !== -1) handlers.splice(idx, 1);
+        const idx = handlers.indexOf(handler)
+        if (idx !== -1)
+          handlers.splice(idx, 1)
       }
-    };
+    }
   }
 
   /** 批量操作 */
   batch(fn: () => void): void {
-    const adapter = getReactiveAdapter();
-    adapter.batch(fn);
+    const adapter = getReactiveAdapter()
+    adapter.batch(fn)
   }
 
   /** 销毁表单 */
   dispose(): void {
-    this.reactionEngine.dispose();
+    this.reactionEngine.dispose()
     for (const field of this.fields.values()) {
-      field.dispose();
+      field.dispose()
     }
     for (const voidField of this.voidFields.values()) {
-      voidField.dispose();
+      voidField.dispose()
     }
     for (const disposer of this.disposers) {
-      disposer();
+      disposer()
     }
-    this.fields.clear();
-    this.arrayFields.clear();
-    this.voidFields.clear();
-    this.valuesChangeHandlers = [];
-    this.fieldValueChangeHandlers.clear();
-    this.disposers = [];
+    this.fields.clear()
+    this.arrayFields.clear()
+    this.voidFields.clear()
+    this.valuesChangeHandlers = []
+    this.fieldValueChangeHandlers.clear()
+    this.disposers = []
   }
 
   /** 收集提交数据 */
   private collectSubmitValues(): Record<string, unknown> {
-    const result: Record<string, unknown> = {};
+    const result: Record<string, unknown> = {}
 
     for (const [path, field] of this.fields) {
       /* 隐藏字段排除 */
-      if (!field.visible && field.excludeWhenHidden) continue;
+      if (!field.visible && field.excludeWhenHidden)
+        continue
 
-      const value = field.value;
-      const finalValue = field.transform ? field.transform(value) : value;
-      const submitPath = field.submitPath ?? path;
+      const value = field.value
+      const finalValue = field.transform ? field.transform(value) : value
+      const submitPath = field.submitPath ?? path
 
-      FormPath.setIn(result, submitPath, finalValue);
+      FormPath.setIn(result, submitPath, finalValue)
     }
 
-    return result;
+    return result
   }
 
   /** 通知值变化 */
   private notifyValuesChange(): void {
     for (const handler of this.valuesChangeHandlers) {
-      handler(this.values);
+      handler(this.values)
     }
   }
 
   /** 通知字段值变化 */
   private notifyFieldValueChange(path: string, value: unknown): void {
-    const handlers = this.fieldValueChangeHandlers.get(path);
+    const handlers = this.fieldValueChangeHandlers.get(path)
     if (handlers) {
       for (const handler of handlers) {
-        handler(value);
+        handler(value)
       }
     }
   }

@@ -1,4 +1,43 @@
+<template>
+  <div>
+    <h2 style="margin-bottom: 8px;">
+      Element Plus 纯配置 - 基础表单
+    </h2>
+    <p style="color: #909399; margin-bottom: 20px; font-size: 14px;">
+      所有字段通过 Schema 配置驱动，覆盖 Input / Password / Textarea / InputNumber / Select / RadioGroup / CheckboxGroup / Switch / DatePicker
+    </p>
+
+    <ConfigForm
+      :schema="schema"
+      :initial-values="{ username: '', password: '', email: '', age: 25, gender: 'male', skills: [], isRemote: false }"
+      @submit="handleSubmit"
+      @submit-failed="handleSubmitFailed"
+    >
+      <template #default="{ form }">
+        <div style="margin-top: 20px; display: flex; gap: 12px;">
+          <el-button type="primary" native-type="submit">
+            提交
+          </el-button>
+          <el-button @click="form.reset()">
+            重置
+          </el-button>
+        </div>
+      </template>
+    </ConfigForm>
+
+    <el-card v-if="submitResult" style="margin-top: 20px;" shadow="never">
+      <template #header>
+        <strong>提交结果</strong>
+      </template>
+      <pre style="margin: 0; white-space: pre-wrap; font-size: 13px;">{{ submitResult }}</pre>
+    </el-card>
+  </div>
+</template>
+
 <script setup lang="ts">
+import type { FormSchema } from '@moluoxixi/schema'
+import { setupElementPlus } from '@moluoxixi/ui-element-plus'
+import { ConfigForm } from '@moluoxixi/vue'
 /**
  * Element Plus 纯配置模式 - 基础表单
  *
@@ -8,14 +47,11 @@
  * - 格式验证（email）
  * - 字符串长度 / 数值范围
  */
-import { ref } from 'vue';
-import { ConfigForm } from '@moluoxixi/vue';
-import { setupElementPlus } from '@moluoxixi/ui-element-plus';
-import type { FormSchema } from '@moluoxixi/schema';
-import 'element-plus/dist/index.css';
+import { ref } from 'vue'
+import 'element-plus/dist/index.css'
 
 /* 注册 Element Plus 全套组件 */
-setupElementPlus();
+setupElementPlus()
 
 /** 表单 Schema 定义 */
 const schema: FormSchema = {
@@ -118,45 +154,17 @@ const schema: FormSchema = {
       placeholder: '请选择日期',
     },
   },
-};
+}
 
-const submitResult = ref<string>('');
+const submitResult = ref<string>('')
 
 /** 提交成功回调 */
 function handleSubmit(values: Record<string, unknown>): void {
-  submitResult.value = JSON.stringify(values, null, 2);
+  submitResult.value = JSON.stringify(values, null, 2)
 }
 
 /** 提交失败回调 */
 function handleSubmitFailed(errors: unknown[]): void {
-  submitResult.value = '验证失败:\n' + JSON.stringify(errors, null, 2);
+  submitResult.value = `验证失败:\n${JSON.stringify(errors, null, 2)}`
 }
 </script>
-
-<template>
-  <div>
-    <h2 style="margin-bottom: 8px;">Element Plus 纯配置 - 基础表单</h2>
-    <p style="color: #909399; margin-bottom: 20px; font-size: 14px;">
-      所有字段通过 Schema 配置驱动，覆盖 Input / Password / Textarea / InputNumber / Select / RadioGroup / CheckboxGroup / Switch / DatePicker
-    </p>
-
-    <ConfigForm
-      :schema="schema"
-      :initial-values="{ username: '', password: '', email: '', age: 25, gender: 'male', skills: [], isRemote: false }"
-      @submit="handleSubmit"
-      @submit-failed="handleSubmitFailed"
-    >
-      <template #default="{ form }">
-        <div style="margin-top: 20px; display: flex; gap: 12px;">
-          <el-button type="primary" native-type="submit">提交</el-button>
-          <el-button @click="form.reset()">重置</el-button>
-        </div>
-      </template>
-    </ConfigForm>
-
-    <el-card v-if="submitResult" style="margin-top: 20px;" shadow="never">
-      <template #header><strong>提交结果</strong></template>
-      <pre style="margin: 0; white-space: pre-wrap; font-size: 13px;">{{ submitResult }}</pre>
-    </el-card>
-  </div>
-</template>

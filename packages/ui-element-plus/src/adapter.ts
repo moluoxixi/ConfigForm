@@ -1,22 +1,20 @@
-import { h, defineComponent } from 'vue';
-import type { PropType } from 'vue';
+import type { DataSourceItem } from '@moluoxixi/shared'
+import type { ValidationFeedback } from '@moluoxixi/validator'
+import type { PropType } from 'vue'
 import {
-  ElInput,
-  ElInputNumber,
-  ElSelect,
-  ElOption,
-  ElSwitch,
-  ElCheckboxGroup,
   ElCheckbox,
-  ElRadioGroup,
-  ElRadio,
+  ElCheckboxGroup,
   ElDatePicker,
   ElFormItem,
-  ElRate,
-  ElSlider,
-} from 'element-plus';
-import type { ValidationFeedback } from '@moluoxixi/validator';
-import type { DataSourceItem } from '@moluoxixi/shared';
+  ElInput,
+  ElInputNumber,
+  ElOption,
+  ElRadio,
+  ElRadioGroup,
+  ElSelect,
+  ElSwitch,
+} from 'element-plus'
+import { defineComponent, h } from 'vue'
 
 /* ========== 输入适配 ========== */
 
@@ -32,17 +30,17 @@ export const Input = defineComponent({
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => h(ElInput, {
-      modelValue: String(props.modelValue ?? ''),
-      placeholder: props.placeholder,
-      disabled: props.disabled,
-      readonly: props.readonly,
-      type: props.type,
+      'modelValue': String(props.modelValue ?? ''),
+      'placeholder': props.placeholder,
+      'disabled': props.disabled,
+      'readonly': props.readonly,
+      'type': props.type,
       'onUpdate:modelValue': (v: string) => emit('update:modelValue', v),
-      onFocus: () => emit('focus'),
-      onBlur: () => emit('blur'),
-    });
+      'onFocus': () => emit('focus'),
+      'onBlur': () => emit('blur'),
+    })
   },
-});
+})
 
 export const Password = defineComponent({
   name: 'CfPassword',
@@ -50,17 +48,17 @@ export const Password = defineComponent({
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => h(ElInput, {
-      modelValue: props.modelValue,
-      placeholder: props.placeholder,
-      disabled: props.disabled,
-      type: 'password',
-      showPassword: true,
+      'modelValue': props.modelValue,
+      'placeholder': props.placeholder,
+      'disabled': props.disabled,
+      'type': 'password',
+      'showPassword': true,
       'onUpdate:modelValue': (v: string) => emit('update:modelValue', v),
-      onFocus: () => emit('focus'),
-      onBlur: () => emit('blur'),
-    });
+      'onFocus': () => emit('focus'),
+      'onBlur': () => emit('blur'),
+    })
   },
-});
+})
 
 export const Textarea = defineComponent({
   name: 'CfTextarea',
@@ -68,17 +66,17 @@ export const Textarea = defineComponent({
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => h(ElInput, {
-      modelValue: props.modelValue,
-      placeholder: props.placeholder,
-      disabled: props.disabled,
-      type: 'textarea',
-      rows: props.rows,
+      'modelValue': props.modelValue,
+      'placeholder': props.placeholder,
+      'disabled': props.disabled,
+      'type': 'textarea',
+      'rows': props.rows,
       'onUpdate:modelValue': (v: string) => emit('update:modelValue', v),
-      onFocus: () => emit('focus'),
-      onBlur: () => emit('blur'),
-    });
+      'onFocus': () => emit('focus'),
+      'onBlur': () => emit('blur'),
+    })
   },
-});
+})
 
 export const InputNumber = defineComponent({
   name: 'CfInputNumber',
@@ -86,20 +84,20 @@ export const InputNumber = defineComponent({
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => h(ElInputNumber, {
-      modelValue: props.modelValue,
-      placeholder: props.placeholder,
-      disabled: props.disabled,
-      min: props.min,
-      max: props.max,
-      step: props.step,
-      style: 'width: 100%',
-      controlsPosition: 'right',
+      'modelValue': props.modelValue,
+      'placeholder': props.placeholder,
+      'disabled': props.disabled,
+      'min': props.min,
+      'max': props.max,
+      'step': props.step,
+      'style': 'width: 100%',
+      'controlsPosition': 'right',
       'onUpdate:modelValue': (v: number) => emit('update:modelValue', v),
-      onFocus: () => emit('focus'),
-      onBlur: () => emit('blur'),
-    });
+      'onFocus': () => emit('focus'),
+      'onBlur': () => emit('blur'),
+    })
   },
-});
+})
 
 /* ========== 选择适配 ========== */
 
@@ -116,25 +114,25 @@ export const Select = defineComponent({
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => h(ElSelect, {
-      modelValue: props.modelValue,
-      placeholder: props.placeholder,
-      disabled: props.disabled,
-      loading: props.loading,
-      multiple: props.multiple,
-      style: 'width: 100%',
+      'modelValue': props.modelValue,
+      'placeholder': props.placeholder,
+      'disabled': props.disabled,
+      'loading': props.loading,
+      'multiple': props.multiple,
+      'style': 'width: 100%',
       'onUpdate:modelValue': (v: unknown) => emit('update:modelValue', v),
-      onFocus: () => emit('focus'),
-      onBlur: () => emit('blur'),
-    }, () => props.dataSource.map((item) =>
+      'onFocus': () => emit('focus'),
+      'onBlur': () => emit('blur'),
+    }, () => props.dataSource.map(item =>
       h(ElOption, {
         key: String(item.value),
         label: item.label,
         value: item.value,
         disabled: item.disabled,
       }),
-    ));
+    ))
   },
-});
+})
 
 export const RadioGroup = defineComponent({
   name: 'CfRadioGroup',
@@ -146,14 +144,14 @@ export const RadioGroup = defineComponent({
   emits: ['update:modelValue'],
   setup(props, { emit }) {
     return () => h(ElRadioGroup, {
-      modelValue: props.modelValue,
-      disabled: props.disabled,
+      'modelValue': props.modelValue,
+      'disabled': props.disabled,
       'onUpdate:modelValue': (v: unknown) => emit('update:modelValue', v),
-    }, () => props.dataSource.map((item) =>
+    }, () => props.dataSource.map(item =>
       h(ElRadio, { key: String(item.value), value: item.value }, () => item.label),
-    ));
+    ))
   },
-});
+})
 
 export const CheckboxGroup = defineComponent({
   name: 'CfCheckboxGroup',
@@ -165,14 +163,14 @@ export const CheckboxGroup = defineComponent({
   emits: ['update:modelValue'],
   setup(props, { emit }) {
     return () => h(ElCheckboxGroup, {
-      modelValue: props.modelValue,
-      disabled: props.disabled,
+      'modelValue': props.modelValue,
+      'disabled': props.disabled,
       'onUpdate:modelValue': (v: unknown) => emit('update:modelValue', v),
-    }, () => props.dataSource.map((item) =>
+    }, () => props.dataSource.map(item =>
       h(ElCheckbox, { key: String(item.value), value: item.value }, () => item.label),
-    ));
+    ))
   },
-});
+})
 
 /* ========== 开关 ========== */
 
@@ -182,12 +180,12 @@ export const Switch = defineComponent({
   emits: ['update:modelValue'],
   setup(props, { emit }) {
     return () => h(ElSwitch, {
-      modelValue: props.modelValue,
-      disabled: props.disabled,
+      'modelValue': props.modelValue,
+      'disabled': props.disabled,
       'onUpdate:modelValue': (v: boolean) => emit('update:modelValue', v),
-    });
+    })
   },
-});
+})
 
 /* ========== 日期 ========== */
 
@@ -197,17 +195,17 @@ export const DatePicker = defineComponent({
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => h(ElDatePicker, {
-      modelValue: props.modelValue,
-      placeholder: props.placeholder,
-      disabled: props.disabled,
-      style: 'width: 100%',
-      valueFormat: 'YYYY-MM-DD',
+      'modelValue': props.modelValue,
+      'placeholder': props.placeholder,
+      'disabled': props.disabled,
+      'style': 'width: 100%',
+      'valueFormat': 'YYYY-MM-DD',
       'onUpdate:modelValue': (v: string) => emit('update:modelValue', v),
-      onFocus: () => emit('focus'),
-      onBlur: () => emit('blur'),
-    });
+      'onFocus': () => emit('focus'),
+      'onBlur': () => emit('blur'),
+    })
   },
-});
+})
 
 /* ========== FormItem 装饰器 ========== */
 
@@ -222,8 +220,8 @@ export const FormItem = defineComponent({
   },
   setup(props, { slots }) {
     return () => {
-      const errorMsg = props.errors.length > 0 ? props.errors[0].message : '';
-      const warningMsg = props.warnings.length > 0 ? props.warnings[0].message : '';
+      const errorMsg = props.errors.length > 0 ? props.errors[0].message : ''
+      const warningMsg = props.warnings.length > 0 ? props.warnings[0].message : ''
 
       return h(ElFormItem, {
         label: props.label,
@@ -235,7 +233,7 @@ export const FormItem = defineComponent({
           warningMsg ? h('div', { style: 'color: #e6a23c; font-size: 12px; margin-top: 2px;' }, warningMsg) : null,
           props.description && !errorMsg ? h('div', { style: 'color: #909399; font-size: 12px; margin-top: 2px;' }, props.description) : null,
         ],
-      });
-    };
+      })
+    }
   },
-});
+})

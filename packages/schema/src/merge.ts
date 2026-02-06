@@ -1,5 +1,5 @@
-import { deepMerge, isObject } from '@moluoxixi/shared';
-import type { FormSchema, FieldSchema } from './types';
+import type { FieldSchema, FormSchema } from './types'
+import { deepMerge, isObject } from '@moluoxixi/shared'
 
 /**
  * 合并两个 FormSchema
@@ -16,19 +16,20 @@ export function mergeSchema(
   base: FormSchema,
   override: Partial<FormSchema>,
 ): FormSchema {
-  const mergedFields: Record<string, FieldSchema> = { ...base.fields };
+  const mergedFields: Record<string, FieldSchema> = { ...base.fields }
 
   /* 逐字段合并（深度合并） */
   if (override.fields) {
     for (const [name, fieldOverride] of Object.entries(override.fields)) {
-      const baseField = mergedFields[name];
+      const baseField = mergedFields[name]
       if (baseField && isObject(fieldOverride)) {
         mergedFields[name] = deepMerge(
           { ...baseField } as Record<string, unknown>,
           fieldOverride as Record<string, unknown>,
-        ) as unknown as FieldSchema;
-      } else {
-        mergedFields[name] = fieldOverride;
+        ) as unknown as FieldSchema
+      }
+      else {
+        mergedFields[name] = fieldOverride
       }
     }
   }
@@ -43,5 +44,5 @@ export function mergeSchema(
       ...(base.reactions ?? []),
       ...(override.reactions ?? []),
     ],
-  };
+  }
 }

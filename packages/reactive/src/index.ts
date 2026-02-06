@@ -1,7 +1,7 @@
-export type { ReactiveAdapter, ComputedRef, ReactionOptions } from './types';
 export {
-  setReactiveAdapter,
   getReactiveAdapter,
   hasReactiveAdapter,
   resetReactiveAdapter,
-} from './registry';
+  setReactiveAdapter,
+} from './registry'
+export type { ComputedRef, ReactionOptions, ReactiveAdapter } from './types'

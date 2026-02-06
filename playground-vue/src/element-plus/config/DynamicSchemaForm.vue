@@ -1,4 +1,68 @@
+<template>
+  <div>
+    <h2 style="margin-bottom: 8px;">
+      Element Plus 纯配置 - 动态 Schema
+    </h2>
+    <p style="color: #909399; margin-bottom: 20px; font-size: 14px;">
+      模拟后端下发不同 Schema / 运行时切换热更新 / 基础 Schema 继承合并 / 条件字段
+    </p>
+
+    <!-- 场景切换 -->
+    <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+      <span style="font-weight: 600; color: #303133;">业务场景：</span>
+      <ElButtonGroup>
+        <ElButton
+          v-for="s in scenarioButtons" :key="s.key"
+          :type="currentScenario === s.key ? 'primary' : 'default'"
+          @click="switchScenario(s.key)"
+        >
+          {{ s.label }}
+        </ElButton>
+      </ElButtonGroup>
+    </div>
+
+    <ElAlert
+      :title="`当前场景「${currentScenario}」：基础 Schema（姓名+邮箱+手机）+ 场景扩展字段，通过 mergeSchema 合并`"
+      type="info" :closable="false" show-icon style="margin-bottom: 20px;"
+    />
+
+    <!-- 使用 key 强制重建表单实例 -->
+    <ConfigForm
+      :key="currentScenario"
+      :schema="finalSchema"
+      @submit="handleSubmit"
+    >
+      <template #default>
+        <div style="margin-top: 20px;">
+          <ElButton type="primary" native-type="submit">
+            提交
+          </ElButton>
+        </div>
+      </template>
+    </ConfigForm>
+
+    <!-- 展示合并后 Schema -->
+    <details style="margin-top: 20px;">
+      <summary style="cursor: pointer; color: #409eff; font-size: 14px;">
+        查看当前合并后的 Schema
+      </summary>
+      <ElCard shadow="never" style="margin-top: 8px;">
+        <pre style="margin: 0; font-size: 12px; overflow-x: auto;">{{ JSON.stringify(finalSchema, null, 2) }}</pre>
+      </ElCard>
+    </details>
+
+    <ElCard v-if="submitResult" style="margin-top: 20px;" shadow="never">
+      <pre style="margin: 0; white-space: pre-wrap; font-size: 13px;">{{ submitResult }}</pre>
+    </ElCard>
+  </div>
+</template>
+
 <script setup lang="ts">
+import type { FormSchema } from '@moluoxixi/schema'
+import { mergeSchema } from '@moluoxixi/schema'
+import { setupElementPlus } from '@moluoxixi/ui-element-plus'
+import { ConfigForm } from '@moluoxixi/vue'
+import { ElAlert, ElButton, ElButtonGroup, ElCard } from 'element-plus'
 /**
  * Element Plus 纯配置模式 - 动态 Schema
  *
@@ -8,15 +72,10 @@
  * - Schema 合并/继承（基础 Schema + 覆盖）
  * - 组件动态切换
  */
-import { ref, computed } from 'vue';
-import { ConfigForm } from '@moluoxixi/vue';
-import { setupElementPlus } from '@moluoxixi/ui-element-plus';
-import { mergeSchema } from '@moluoxixi/schema';
-import type { FormSchema } from '@moluoxixi/schema';
-import { ElButton, ElButtonGroup, ElCard, ElAlert } from 'element-plus';
-import 'element-plus/dist/index.css';
+import { computed, ref } from 'vue'
+import 'element-plus/dist/index.css'
 
-setupElementPlus();
+setupElementPlus()
 
 /** 基础 Schema（所有场景共享） */
 const baseSchema: FormSchema = {
@@ -45,7 +104,7 @@ const baseSchema: FormSchema = {
       placeholder: '请输入手机号',
     },
   },
-};
+}
 
 /** 模拟不同后端场景下发的 Schema */
 const scenarioSchemas: Record<string, Partial<FormSchema>> = {
@@ -146,7 +205,7 @@ const scenarioSchemas: Record<string, Partial<FormSchema>> = {
         reactions: [
           {
             watch: 'category',
-            when: (values) => values[0] === '软件',
+            when: values => values[0] === '软件',
             fulfill: { state: { visible: false } },
             otherwise: { state: { visible: true } },
           },
@@ -161,83 +220,30 @@ const scenarioSchemas: Record<string, Partial<FormSchema>> = {
       },
     },
   },
-};
+}
 
-type ScenarioKey = 'employee' | 'customer' | 'supplier';
-const currentScenario = ref<ScenarioKey>('employee');
-const submitResult = ref('');
+type ScenarioKey = 'employee' | 'customer' | 'supplier'
+const currentScenario = ref<ScenarioKey>('employee')
+const submitResult = ref('')
 
 /** 动态合并生成最终 Schema */
 const finalSchema = computed<FormSchema>(() => {
-  const override = scenarioSchemas[currentScenario.value] ?? {};
-  return mergeSchema(baseSchema, override);
-});
+  const override = scenarioSchemas[currentScenario.value] ?? {}
+  return mergeSchema(baseSchema, override)
+})
 
-const scenarioButtons: { key: ScenarioKey; label: string }[] = [
+const scenarioButtons: { key: ScenarioKey, label: string }[] = [
   { key: 'employee', label: '员工' },
   { key: 'customer', label: '客户' },
   { key: 'supplier', label: '供应商' },
-];
+]
 
 function switchScenario(key: ScenarioKey): void {
-  currentScenario.value = key;
-  submitResult.value = '';
+  currentScenario.value = key
+  submitResult.value = ''
 }
 
 function handleSubmit(values: Record<string, unknown>): void {
-  submitResult.value = `场景: ${currentScenario.value}\n${JSON.stringify(values, null, 2)}`;
+  submitResult.value = `场景: ${currentScenario.value}\n${JSON.stringify(values, null, 2)}`
 }
 </script>
-
-<template>
-  <div>
-    <h2 style="margin-bottom: 8px;">Element Plus 纯配置 - 动态 Schema</h2>
-    <p style="color: #909399; margin-bottom: 20px; font-size: 14px;">
-      模拟后端下发不同 Schema / 运行时切换热更新 / 基础 Schema 继承合并 / 条件字段
-    </p>
-
-    <!-- 场景切换 -->
-    <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
-      <span style="font-weight: 600; color: #303133;">业务场景：</span>
-      <ElButtonGroup>
-        <ElButton
-          v-for="s in scenarioButtons" :key="s.key"
-          :type="currentScenario === s.key ? 'primary' : 'default'"
-          @click="switchScenario(s.key)"
-        >
-          {{ s.label }}
-        </ElButton>
-      </ElButtonGroup>
-    </div>
-
-    <ElAlert
-      :title="`当前场景「${currentScenario}」：基础 Schema（姓名+邮箱+手机）+ 场景扩展字段，通过 mergeSchema 合并`"
-      type="info" :closable="false" show-icon style="margin-bottom: 20px;"
-    />
-
-    <!-- 使用 key 强制重建表单实例 -->
-    <ConfigForm
-      :key="currentScenario"
-      :schema="finalSchema"
-      @submit="handleSubmit"
-    >
-      <template #default>
-        <div style="margin-top: 20px;">
-          <ElButton type="primary" native-type="submit">提交</ElButton>
-        </div>
-      </template>
-    </ConfigForm>
-
-    <!-- 展示合并后 Schema -->
-    <details style="margin-top: 20px;">
-      <summary style="cursor: pointer; color: #409eff; font-size: 14px;">查看当前合并后的 Schema</summary>
-      <el-card shadow="never" style="margin-top: 8px;">
-        <pre style="margin: 0; font-size: 12px; overflow-x: auto;">{{ JSON.stringify(finalSchema, null, 2) }}</pre>
-      </el-card>
-    </details>
-
-    <el-card v-if="submitResult" style="margin-top: 20px;" shadow="never">
-      <pre style="margin: 0; white-space: pre-wrap; font-size: 13px;">{{ submitResult }}</pre>
-    </el-card>
-  </div>
-</template>

@@ -1,33 +1,33 @@
 {
   "name": "@moluoxixi/reactive-vue",
-  "version": "0.0.1",
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "version": "0.0.1",
   "exports": {
     ".": {
       "types": "./src/index.ts",
       "import": "./src/index.ts"
     }
   },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "files": [
-    "src",
-    "dist"
+    "dist",
+    "src"
   ],
-  "dependencies": {
-    "@moluoxixi/reactive": "workspace:*",
-    "@moluoxixi/shared": "workspace:*"
-  },
-  "peerDependencies": {
-    "@vue/reactivity": ">=3.5.0"
-  },
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts",
     "dev": "tsup src/index.ts --format esm,cjs --dts --watch"
   },
+  "peerDependencies": {
+    "@vue/reactivity": ">=3.5.0"
+  },
+  "dependencies": {
+    "@moluoxixi/reactive": "workspace:*",
+    "@moluoxixi/shared": "workspace:*"
+  },
   "devDependencies": {
-    "@vue/reactivity": "^3.5.0",
-    "tsup": "^8.4.0",
-    "typescript": "~5.8.0"
+    "@vue/reactivity": "catalog:build",
+    "tsup": "catalog:type",
+    "typescript": "catalog:type"
   }
 }

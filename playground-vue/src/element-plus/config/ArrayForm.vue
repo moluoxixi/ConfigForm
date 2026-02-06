@@ -1,74 +1,8 @@
-<script setup lang="ts">
-/**
- * Element Plus 纯配置模式 - 数组字段
- *
- * 覆盖场景：
- * - 基础增删（push / remove）
- * - 排序（moveUp / moveDown）
- * - 复制项（duplicate）
- * - 最大/最小数量限制
- * - 数组项模板
- * - 项内联动（数量 × 单价 = 小计）
- * - 数组级汇总（总金额）
- */
-import { ref } from 'vue';
-import { FormProvider, FormField, FormArrayField, useCreateForm } from '@moluoxixi/vue';
-import { setupElementPlus } from '@moluoxixi/ui-element-plus';
-import { ElInput, ElInputNumber, ElSwitch, ElButton, ElCard, ElTag } from 'element-plus';
-import 'element-plus/dist/index.css';
-
-setupElementPlus();
-
-const form = useCreateForm({
-  initialValues: {
-    orderName: '',
-    items: [
-      { name: '商品A', quantity: 2, price: 99.9, discount: false, discountRate: 0 },
-    ],
-  },
-});
-
-/* 订单名 */
-form.createField({ name: 'orderName', label: '订单名称', required: true });
-
-/* 数组字段 */
-form.createArrayField({
-  name: 'items',
-  label: '订单项',
-  minItems: 1,
-  maxItems: 10,
-  itemTemplate: () => ({ name: '', quantity: 1, price: 0, discount: false, discountRate: 0 }),
-});
-
-const submitResult = ref('');
-
-async function handleSubmit(): Promise<void> {
-  const result = await form.submit();
-  if (result.errors.length > 0) {
-    submitResult.value = '验证失败: ' + result.errors.map((e) => e.message).join(', ');
-  } else {
-    submitResult.value = JSON.stringify(result.values, null, 2);
-  }
-}
-
-/** 计算小计 */
-function getSubtotal(item: Record<string, unknown>): number {
-  const qty = Number(item.quantity) || 0;
-  const price = Number(item.price) || 0;
-  const discount = item.discount ? (Number(item.discountRate) || 0) / 100 : 0;
-  return Math.round(qty * price * (1 - discount) * 100) / 100;
-}
-
-/** 计算总金额 */
-function getTotal(): number {
-  const items = (form.values.items ?? []) as Record<string, unknown>[];
-  return Math.round(items.reduce((sum, item) => sum + getSubtotal(item), 0) * 100) / 100;
-}
-</script>
-
 <template>
   <div>
-    <h2 style="margin-bottom: 8px;">Element Plus 纯配置 - 数组字段</h2>
+    <h2 style="margin-bottom: 8px;">
+      Element Plus 纯配置 - 数组字段
+    </h2>
     <p style="color: #909399; margin-bottom: 20px; font-size: 14px;">
       增删改 / 排序 / 复制 / 最大10项最小1项 / 项内联动（勾选折扣显示折扣率）/ 汇总金额
     </p>
@@ -76,19 +10,19 @@ function getTotal(): number {
     <FormProvider :form="form">
       <form @submit.prevent="handleSubmit">
         <!-- 订单名 -->
-        <FormField name="orderName" v-slot="{ field }">
+        <FormField v-slot="{ field }" name="orderName">
           <el-form-item :label="field.label" required :error="field.errors.length > 0 ? field.errors[0].message : ''">
             <ElInput
               :model-value="(field.value as string)"
-              @update:model-value="field.setValue($event)"
               placeholder="请输入订单名称"
+              @update:model-value="field.setValue($event)"
             />
           </el-form-item>
         </FormField>
 
         <!-- 数组字段 -->
-        <FormArrayField name="items" v-slot="{ field: arrayField }">
-          <el-card shadow="never" style="margin-bottom: 20px;">
+        <FormArrayField v-slot="{ field: arrayField }" name="items">
+          <ElCard shadow="never" style="margin-bottom: 20px;">
             <template #header>
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-weight: 600;">
@@ -97,7 +31,7 @@ function getTotal(): number {
                     {{ (arrayField.value as unknown[])?.length ?? 0 }} / 10
                   </ElTag>
                 </span>
-                <ElButton type="primary" size="small" @click="arrayField.push()" :disabled="!arrayField.canAdd">
+                <ElButton type="primary" size="small" :disabled="!arrayField.canAdd" @click="arrayField.push()">
                   + 添加
                 </ElButton>
               </div>
@@ -117,20 +51,20 @@ function getTotal(): number {
               <ElInput
                 size="small"
                 :model-value="(item.name as string)"
-                @update:model-value="arrayField.replace(index, { ...item, name: $event })"
                 placeholder="商品名"
+                @update:model-value="arrayField.replace(index, { ...item, name: $event })"
               />
               <ElInputNumber
                 size="small"
                 :model-value="(item.quantity as number)"
-                @update:model-value="arrayField.replace(index, { ...item, quantity: $event ?? 1 })"
-                :min="1" controls-position="right"
+                :min="1"
+                controls-position="right" @update:model-value="arrayField.replace(index, { ...item, quantity: $event ?? 1 })"
               />
               <ElInputNumber
                 size="small"
                 :model-value="(item.price as number)"
-                @update:model-value="arrayField.replace(index, { ...item, price: $event ?? 0 })"
-                :min="0" :step="0.1" :precision="2" controls-position="right"
+                :min="0"
+                :step="0.1" :precision="2" controls-position="right" @update:model-value="arrayField.replace(index, { ...item, price: $event ?? 0 })"
               />
               <ElSwitch
                 :model-value="!!item.discount"
@@ -141,18 +75,26 @@ function getTotal(): number {
                 v-if="item.discount"
                 size="small"
                 :model-value="(item.discountRate as number)"
-                @update:model-value="arrayField.replace(index, { ...item, discountRate: $event ?? 0 })"
-                :min="0" :max="100" controls-position="right"
+                :min="0"
+                :max="100" controls-position="right" @update:model-value="arrayField.replace(index, { ...item, discountRate: $event ?? 0 })"
               />
               <span v-else style="color: #c0c4cc; text-align: center;">—</span>
               <!-- 小计 -->
               <span style="font-weight: 600; color: #409eff;">¥{{ getSubtotal(item) }}</span>
               <!-- 操作 -->
               <div style="display: flex; gap: 4px;">
-                <ElButton size="small" @click="arrayField.duplicate(index)" :disabled="!arrayField.canAdd">复制</ElButton>
-                <ElButton size="small" @click="arrayField.moveUp(index)" :disabled="index === 0">↑</ElButton>
-                <ElButton size="small" @click="arrayField.moveDown(index)" :disabled="index === (arrayField.value as unknown[]).length - 1">↓</ElButton>
-                <ElButton size="small" type="danger" @click="arrayField.remove(index)" :disabled="!arrayField.canRemove">删除</ElButton>
+                <ElButton size="small" :disabled="!arrayField.canAdd" @click="arrayField.duplicate(index)">
+                  复制
+                </ElButton>
+                <ElButton size="small" :disabled="index === 0" @click="arrayField.moveUp(index)">
+                  ↑
+                </ElButton>
+                <ElButton size="small" :disabled="index === (arrayField.value as unknown[]).length - 1" @click="arrayField.moveDown(index)">
+                  ↓
+                </ElButton>
+                <ElButton size="small" type="danger" :disabled="!arrayField.canRemove" @click="arrayField.remove(index)">
+                  删除
+                </ElButton>
               </div>
             </div>
 
@@ -160,15 +102,86 @@ function getTotal(): number {
             <div style="text-align: right; padding: 16px 0 4px; font-size: 18px; font-weight: 700; color: #f56c6c;">
               总金额: ¥{{ getTotal() }}
             </div>
-          </el-card>
+          </ElCard>
         </FormArrayField>
 
-        <ElButton type="primary" native-type="submit">提交订单</ElButton>
+        <ElButton type="primary" native-type="submit">
+          提交订单
+        </ElButton>
       </form>
     </FormProvider>
 
-    <el-card v-if="submitResult" style="margin-top: 20px;" shadow="never">
+    <ElCard v-if="submitResult" style="margin-top: 20px;" shadow="never">
       <pre style="margin: 0; white-space: pre-wrap; font-size: 13px;">{{ submitResult }}</pre>
-    </el-card>
+    </ElCard>
   </div>
 </template>
+
+<script setup lang="ts">
+import { setupElementPlus } from '@moluoxixi/ui-element-plus'
+import { FormArrayField, FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
+import { ElButton, ElCard, ElInput, ElInputNumber, ElSwitch, ElTag } from 'element-plus'
+/**
+ * Element Plus 纯配置模式 - 数组字段
+ *
+ * 覆盖场景：
+ * - 基础增删（push / remove）
+ * - 排序（moveUp / moveDown）
+ * - 复制项（duplicate）
+ * - 最大/最小数量限制
+ * - 数组项模板
+ * - 项内联动（数量 × 单价 = 小计）
+ * - 数组级汇总（总金额）
+ */
+import { ref } from 'vue'
+import 'element-plus/dist/index.css'
+
+setupElementPlus()
+
+const form = useCreateForm({
+  initialValues: {
+    orderName: '',
+    items: [
+      { name: '商品A', quantity: 2, price: 99.9, discount: false, discountRate: 0 },
+    ],
+  },
+})
+
+/* 订单名 */
+form.createField({ name: 'orderName', label: '订单名称', required: true })
+
+/* 数组字段 */
+form.createArrayField({
+  name: 'items',
+  label: '订单项',
+  minItems: 1,
+  maxItems: 10,
+  itemTemplate: () => ({ name: '', quantity: 1, price: 0, discount: false, discountRate: 0 }),
+})
+
+const submitResult = ref('')
+
+async function handleSubmit(): Promise<void> {
+  const result = await form.submit()
+  if (result.errors.length > 0) {
+    submitResult.value = `验证失败: ${result.errors.map(e => e.message).join(', ')}`
+  }
+  else {
+    submitResult.value = JSON.stringify(result.values, null, 2)
+  }
+}
+
+/** 计算小计 */
+function getSubtotal(item: Record<string, unknown>): number {
+  const qty = Number(item.quantity) || 0
+  const price = Number(item.price) || 0
+  const discount = item.discount ? (Number(item.discountRate) || 0) / 100 : 0
+  return Math.round(qty * price * (1 - discount) * 100) / 100
+}
+
+/** 计算总金额 */
+function getTotal(): number {
+  const items = (form.values.items ?? []) as Record<string, unknown>[]
+  return Math.round(items.reduce((sum, item) => sum + getSubtotal(item), 0) * 100) / 100
+}
+</script>

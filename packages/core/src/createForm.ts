@@ -1,6 +1,6 @@
-import { getReactiveAdapter } from '@moluoxixi/reactive';
-import type { FormConfig, FormInstance } from './types';
-import { Form } from './models/Form';
+import type { FormConfig, FormInstance } from './types'
+import { getReactiveAdapter } from '@moluoxixi/reactive'
+import { Form } from './models/Form'
 
 /**
  * 创建表单实例
@@ -21,15 +21,15 @@ import { Form } from './models/Form';
 export function createForm<
   Values extends Record<string, unknown> = Record<string, unknown>,
 >(config: FormConfig<Values> = {}): FormInstance<Values> {
-  const adapter = getReactiveAdapter();
-  const form = new Form<Values>(config);
+  const adapter = getReactiveAdapter()
+  const form = new Form<Values>(config)
 
   /* 先让数据对象变为深度响应式 */
-  form.values = adapter.observable(form.values);
-  form.initialValues = adapter.observable(form.initialValues);
+  form.values = adapter.observable(form.values)
+  form.initialValues = adapter.observable(form.initialValues)
 
   /* 让整个 Form 实例变为响应式，返回代理 */
-  const reactiveForm = adapter.makeObservable(form);
+  const reactiveForm = adapter.makeObservable(form)
 
-  return reactiveForm as unknown as FormInstance<Values>;
+  return reactiveForm as unknown as FormInstance<Values>
 }

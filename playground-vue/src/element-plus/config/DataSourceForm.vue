@@ -1,4 +1,33 @@
+<template>
+  <div>
+    <h2 style="margin-bottom: 8px;">
+      Element Plus 纯配置 - 数据源
+    </h2>
+    <p style="color: #909399; margin-bottom: 20px; font-size: 14px;">
+      静态枚举 / 远程加载（Mock 延迟 600ms）/ 级联依赖参数 / 字段映射 / 缓存 / VIP 联动
+    </p>
+
+    <ConfigForm :schema="schema" @submit="handleSubmit">
+      <template #default>
+        <div style="margin-top: 20px;">
+          <el-button type="primary" native-type="submit">
+            提交
+          </el-button>
+        </div>
+      </template>
+    </ConfigForm>
+
+    <el-card v-if="submitResult" style="margin-top: 20px;" shadow="never">
+      <pre style="margin: 0; white-space: pre-wrap; font-size: 13px;">{{ submitResult }}</pre>
+    </el-card>
+  </div>
+</template>
+
 <script setup lang="ts">
+import type { FormSchema } from '@moluoxixi/schema'
+import { registerRequestAdapter } from '@moluoxixi/core'
+import { setupElementPlus } from '@moluoxixi/ui-element-plus'
+import { ConfigForm } from '@moluoxixi/vue'
 /**
  * Element Plus 纯配置模式 - 数据源
  *
@@ -10,14 +39,10 @@
  * - 数据源缓存
  * - Loading 状态
  */
-import { ref } from 'vue';
-import { ConfigForm } from '@moluoxixi/vue';
-import { registerRequestAdapter } from '@moluoxixi/core';
-import { setupElementPlus } from '@moluoxixi/ui-element-plus';
-import type { FormSchema } from '@moluoxixi/schema';
-import 'element-plus/dist/index.css';
+import { ref } from 'vue'
+import 'element-plus/dist/index.css'
 
-setupElementPlus();
+setupElementPlus()
 
 /** 模拟后端数据 */
 const MOCK_DATA: Record<string, unknown[]> = {
@@ -39,21 +64,22 @@ const MOCK_DATA: Record<string, unknown[]> = {
     { id: 301, title: '咖啡', price: 39 },
     { id: 302, title: '巧克力', price: 25 },
   ],
-};
+}
 
 /** 注册模拟请求适配器 */
 registerRequestAdapter('mock', {
   async request(config) {
     /* 模拟网络延迟 600ms */
-    await new Promise((resolve) => setTimeout(resolve, 600));
+    await new Promise(resolve => setTimeout(resolve, 600))
     const key = config.params
       ? `${config.url}?${Object.entries(config.params).map(([k, v]) => `${k}=${v}`).join('&')}`
-      : config.url;
-    const data = MOCK_DATA[key];
-    if (!data) throw new Error(`Mock 数据不存在: ${key}`);
-    return data;
+      : config.url
+    const data = MOCK_DATA[key]
+    if (!data)
+      throw new Error(`Mock 数据不存在: ${key}`)
+    return data
   },
-});
+})
 
 const schema: FormSchema = {
   fields: {
@@ -102,15 +128,15 @@ const schema: FormSchema = {
           watch: 'category',
           fulfill: {
             run: async (field, ctx) => {
-              const categoryId = ctx.values.category;
+              const categoryId = ctx.values.category
               if (!categoryId) {
-                field.setDataSource([]);
-                field.setValue('');
-                return;
+                field.setDataSource([])
+                field.setValue('')
+                return
               }
-              field.loading = true;
+              field.loading = true
               try {
-                const { fetchDataSource } = await import('@moluoxixi/core');
+                const { fetchDataSource } = await import('@moluoxixi/core')
                 const items = await fetchDataSource(
                   {
                     url: '/api/products',
@@ -120,14 +146,16 @@ const schema: FormSchema = {
                     valueField: 'id',
                   },
                   ctx.values,
-                );
-                field.setDataSource(items);
-              } catch {
-                field.setDataSource([]);
-              } finally {
-                field.loading = false;
+                )
+                field.setDataSource(items)
               }
-              field.setValue('');
+              catch {
+                field.setDataSource([])
+              }
+              finally {
+                field.loading = false
+              }
+              field.setValue('')
             },
           },
         },
@@ -173,39 +201,18 @@ const schema: FormSchema = {
       reactions: [
         {
           watch: 'isVip',
-          when: (values) => values[0] === true,
+          when: values => values[0] === true,
           fulfill: { state: { visible: true } },
           otherwise: { state: { visible: false } },
         },
       ],
     },
   },
-};
+}
 
-const submitResult = ref('');
+const submitResult = ref('')
 
 function handleSubmit(values: Record<string, unknown>): void {
-  submitResult.value = JSON.stringify(values, null, 2);
+  submitResult.value = JSON.stringify(values, null, 2)
 }
 </script>
-
-<template>
-  <div>
-    <h2 style="margin-bottom: 8px;">Element Plus 纯配置 - 数据源</h2>
-    <p style="color: #909399; margin-bottom: 20px; font-size: 14px;">
-      静态枚举 / 远程加载（Mock 延迟 600ms）/ 级联依赖参数 / 字段映射 / 缓存 / VIP 联动
-    </p>
-
-    <ConfigForm :schema="schema" @submit="handleSubmit">
-      <template #default>
-        <div style="margin-top: 20px;">
-          <el-button type="primary" native-type="submit">提交</el-button>
-        </div>
-      </template>
-    </ConfigForm>
-
-    <el-card v-if="submitResult" style="margin-top: 20px;" shadow="never">
-      <pre style="margin: 0; white-space: pre-wrap; font-size: 13px;">{{ submitResult }}</pre>
-    </el-card>
-  </div>
-</template>

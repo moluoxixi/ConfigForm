@@ -1,17 +1,17 @@
-import { inject, onUnmounted } from 'vue';
-import type { FormInstance, FormConfig } from '@moluoxixi/core';
-import { createForm } from '@moluoxixi/core';
-import { FormSymbol } from '../context';
+import type { FormConfig, FormInstance } from '@moluoxixi/core'
+import { createForm } from '@moluoxixi/core'
+import { inject, onUnmounted } from 'vue'
+import { FormSymbol } from '../context'
 
 /**
  * 获取当前表单上下文
  */
 export function useForm<Values extends Record<string, unknown> = Record<string, unknown>>(): FormInstance<Values> {
-  const form = inject(FormSymbol);
+  const form = inject(FormSymbol)
   if (!form) {
-    throw new Error('[ConfigForm] useForm 必须在 <FormProvider> 内部使用');
+    throw new Error('[ConfigForm] useForm 必须在 <FormProvider> 内部使用')
   }
-  return form as FormInstance<Values>;
+  return form as FormInstance<Values>
 }
 
 /**
@@ -22,11 +22,11 @@ export function useForm<Values extends Record<string, unknown> = Record<string, 
 export function useCreateForm<
   Values extends Record<string, unknown> = Record<string, unknown>,
 >(config: FormConfig<Values> = {}): FormInstance<Values> {
-  const form = createForm<Values>(config);
+  const form = createForm<Values>(config)
 
   onUnmounted(() => {
-    form.dispose();
-  });
+    form.dispose()
+  })
 
-  return form;
+  return form
 }

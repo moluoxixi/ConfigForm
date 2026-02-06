@@ -1,4 +1,38 @@
+<template>
+  <div>
+    <h2 style="margin-bottom: 8px;">
+      Element Plus 纯配置 - 字段联动
+    </h2>
+    <p style="color: #909399; margin-bottom: 20px; font-size: 14px;">
+      切换「用户类型」查看个人/企业字段显隐；开关「通知」控制多个字段联动
+    </p>
+
+    <ConfigForm :schema="schema" @submit="handleSubmit">
+      <template #default="{ form }">
+        <div style="margin-top: 20px; display: flex; gap: 12px;">
+          <el-button type="primary" native-type="submit">
+            提交
+          </el-button>
+          <el-button @click="form.reset()">
+            重置
+          </el-button>
+        </div>
+      </template>
+    </ConfigForm>
+
+    <el-card v-if="submitResult" style="margin-top: 20px;" shadow="never">
+      <template #header>
+        <strong>提交结果（隐藏字段已排除）</strong>
+      </template>
+      <pre style="margin: 0; white-space: pre-wrap; font-size: 13px;">{{ submitResult }}</pre>
+    </el-card>
+  </div>
+</template>
+
 <script setup lang="ts">
+import type { FormSchema } from '@moluoxixi/schema'
+import { setupElementPlus } from '@moluoxixi/ui-element-plus'
+import { ConfigForm } from '@moluoxixi/vue'
 /**
  * Element Plus 纯配置模式 - 字段联动
  *
@@ -7,13 +41,10 @@
  * - 一对多联动（一个字段影响多个字段）
  * - 联动切换组件 props
  */
-import { ref } from 'vue';
-import { ConfigForm } from '@moluoxixi/vue';
-import { setupElementPlus } from '@moluoxixi/ui-element-plus';
-import type { FormSchema } from '@moluoxixi/schema';
-import 'element-plus/dist/index.css';
+import { ref } from 'vue'
+import 'element-plus/dist/index.css'
 
-setupElementPlus();
+setupElementPlus()
 
 const schema: FormSchema = {
   fields: {
@@ -42,7 +73,7 @@ const schema: FormSchema = {
       reactions: [
         {
           watch: 'userType',
-          when: (values) => values[0] === 'business',
+          when: values => values[0] === 'business',
           fulfill: { state: { visible: false } },
           otherwise: { state: { visible: true } },
         },
@@ -58,7 +89,7 @@ const schema: FormSchema = {
       reactions: [
         {
           watch: 'userType',
-          when: (values) => values[0] === 'business',
+          when: values => values[0] === 'business',
           fulfill: { state: { visible: false } },
           otherwise: { state: { visible: true } },
         },
@@ -77,7 +108,7 @@ const schema: FormSchema = {
       reactions: [
         {
           watch: 'userType',
-          when: (values) => values[0] === 'business',
+          when: values => values[0] === 'business',
           fulfill: { state: { visible: true } },
           otherwise: { state: { visible: false } },
         },
@@ -94,7 +125,7 @@ const schema: FormSchema = {
       reactions: [
         {
           watch: 'userType',
-          when: (values) => values[0] === 'business',
+          when: values => values[0] === 'business',
           fulfill: { state: { visible: true } },
           otherwise: { state: { visible: false } },
         },
@@ -115,7 +146,7 @@ const schema: FormSchema = {
       reactions: [
         {
           watch: 'userType',
-          when: (values) => values[0] === 'business',
+          when: values => values[0] === 'business',
           fulfill: { state: { visible: true } },
           otherwise: { state: { visible: false } },
         },
@@ -155,7 +186,7 @@ const schema: FormSchema = {
       reactions: [
         {
           watch: 'enableNotification',
-          when: (values) => values[0] === true,
+          when: values => values[0] === true,
           fulfill: { state: { visible: true } },
           otherwise: { state: { visible: false } },
         },
@@ -176,41 +207,18 @@ const schema: FormSchema = {
       reactions: [
         {
           watch: 'enableNotification',
-          when: (values) => values[0] === true,
+          when: values => values[0] === true,
           fulfill: { state: { visible: true } },
           otherwise: { state: { visible: false } },
         },
       ],
     },
   },
-};
+}
 
-const submitResult = ref('');
+const submitResult = ref('')
 
 function handleSubmit(values: Record<string, unknown>): void {
-  submitResult.value = JSON.stringify(values, null, 2);
+  submitResult.value = JSON.stringify(values, null, 2)
 }
 </script>
-
-<template>
-  <div>
-    <h2 style="margin-bottom: 8px;">Element Plus 纯配置 - 字段联动</h2>
-    <p style="color: #909399; margin-bottom: 20px; font-size: 14px;">
-      切换「用户类型」查看个人/企业字段显隐；开关「通知」控制多个字段联动
-    </p>
-
-    <ConfigForm :schema="schema" @submit="handleSubmit">
-      <template #default="{ form }">
-        <div style="margin-top: 20px; display: flex; gap: 12px;">
-          <el-button type="primary" native-type="submit">提交</el-button>
-          <el-button @click="form.reset()">重置</el-button>
-        </div>
-      </template>
-    </ConfigForm>
-
-    <el-card v-if="submitResult" style="margin-top: 20px;" shadow="never">
-      <template #header><strong>提交结果（隐藏字段已排除）</strong></template>
-      <pre style="margin: 0; white-space: pre-wrap; font-size: 13px;">{{ submitResult }}</pre>
-    </el-card>
-  </div>
-</template>

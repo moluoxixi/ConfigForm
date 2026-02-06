@@ -1,1 +1,1 @@
-export { mobxAdapter } from './adapter';
+export { mobxAdapter } from './adapter'

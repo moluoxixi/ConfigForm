@@ -1,3 +1,7 @@
+shellEmulator: true
+
+trustPolicy: no-downgrade
+
 # pnpm workspace 配置
 # ConfigForm monorepo
 
@@ -6,30 +10,39 @@ registry: https://registry.npmjs.org/
 
 packages:
   - 'packages/*'
-  - 'playground-vue'
-  - 'playground-react'
+  - playground-vue
+  - playground-react
 catalogs:
   build:
-    chalk: ^5.4.0
-    commander: ^13.1.0
-    fs-extra: ^11.2.0
-    inquirer: ^12.4.0
-    ora: ^8.2.0
+    '@vue/reactivity': ^3.5.0
+    ant-design-vue: ^4.2.0
+    antd: ^5.22.0
+    element-plus: ^2.9.0
+    mobx: ^6.13.0
+    mobx-react-lite: ^4.1.0
+    react: ^18.3.0
+    react-dom: ^18.3.0
+    vue: ^3.5.0
   dev:
     '@commitlint/cli': ^19.8.0
     '@commitlint/config-conventional': ^19.8.0
     '@moluoxixi/eslint-config': latest
+    '@vitejs/plugin-vue': ^5.2.0
     commitizen: ^4.3.1
     cz-customizable: ^7.4.0
     eslint: ^9.5.0
+    eslint-plugin-format: ^1.2.0
     husky: ^9.1.7
-    jiti: ^2.4.2
     lint-staged: ^15.5.1
-    tsx: ^4.20.5
-    typescript: ~5.8.0
     vite: ^6.2.4
+    vue-tsc: ^2.2.0
   type:
     '@types/fs-extra': ^11.0.4
     '@types/inquirer': ^9.0.7
     '@types/node': ^22.14.0
+    '@types/react': ^18.3.0
+    '@types/react-dom': ^18.3.0
     '@vue-macros/volar': ^3.0.0-beta.15
+    tsup: ^8.4.0
+    tsx: ^4.20.5
+    typescript: ~5.8.0

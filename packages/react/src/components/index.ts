@@ -1,10 +1,10 @@
-export { FormProvider } from './FormProvider';
-export type { FormProviderProps } from './FormProvider';
-export { FormField } from './FormField';
-export type { FormFieldProps } from './FormField';
-export { FormArrayField } from './FormArrayField';
-export type { FormArrayFieldComponentProps } from './FormArrayField';
-export { SchemaField } from './SchemaField';
-export type { SchemaFieldProps } from './SchemaField';
-export { ConfigForm } from './ConfigForm';
-export type { ConfigFormProps } from './ConfigForm';
+export { ConfigForm } from './ConfigForm'
+export type { ConfigFormProps } from './ConfigForm'
+export { FormArrayField } from './FormArrayField'
+export type { FormArrayFieldComponentProps } from './FormArrayField'
+export { FormField } from './FormField'
+export type { FormFieldProps } from './FormField'
+export { FormProvider } from './FormProvider'
+export type { FormProviderProps } from './FormProvider'
+export { SchemaField } from './SchemaField'
+export type { SchemaFieldProps } from './SchemaField'

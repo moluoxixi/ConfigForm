@@ -1,35 +1,35 @@
-/* 类型导出 */
-export type {
-  FieldProps,
-  ArrayFieldProps,
-  VoidFieldProps,
-  ReactionRule,
-  ReactionContext,
-  ReactionEffect,
-  DataSourceConfig,
-  FormConfig,
-  FormInstance,
-  FieldInstance,
-  ArrayFieldInstance,
-  VoidFieldInstance,
-  ResetOptions,
-  SubmitResult,
-  RequestAdapter,
-  RequestConfig,
-  FieldStateUpdate,
-} from './types';
-
-/* 模型 */
-export { Form } from './models/Form';
-export { Field } from './models/Field';
-export { ArrayField } from './models/ArrayField';
-export { VoidField } from './models/VoidField';
-
 /* 工厂函数 */
-export { createForm } from './createForm';
-
-/* 联动引擎 */
-export { ReactionEngine } from './reaction/engine';
+export { createForm } from './createForm'
 
 /* 数据源 */
-export { fetchDataSource, clearDataSourceCache, registerRequestAdapter } from './datasource/manager';
+export { clearDataSourceCache, fetchDataSource, registerRequestAdapter } from './datasource/manager'
+export { ArrayField } from './models/ArrayField'
+export { Field } from './models/Field'
+/* 模型 */
+export { Form } from './models/Form'
+
+export { VoidField } from './models/VoidField'
+
+/* 联动引擎 */
+export { ReactionEngine } from './reaction/engine'
+
+/* 类型导出 */
+export type {
+  ArrayFieldInstance,
+  ArrayFieldProps,
+  DataSourceConfig,
+  FieldInstance,
+  FieldProps,
+  FieldStateUpdate,
+  FormConfig,
+  FormInstance,
+  ReactionContext,
+  ReactionEffect,
+  ReactionRule,
+  RequestAdapter,
+  RequestConfig,
+  ResetOptions,
+  SubmitResult,
+  VoidFieldInstance,
+  VoidFieldProps,
+} from './types'

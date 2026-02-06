@@ -1,5 +1,5 @@
-export { FormProvider } from './FormProvider';
-export { FormField } from './FormField';
-export { FormArrayField } from './FormArrayField';
-export { SchemaField } from './SchemaField';
-export { ConfigForm } from './ConfigForm';
+export { ConfigForm } from './ConfigForm'
+export { FormArrayField } from './FormArrayField'
+export { FormField } from './FormField'
+export { FormProvider } from './FormProvider'
+export { SchemaField } from './SchemaField'

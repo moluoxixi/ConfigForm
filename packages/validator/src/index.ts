@@ -1,13 +1,13 @@
+export { getFormatValidator, hasFormat, registerFormat } from './formats'
+export { getMessage, getValidationLocale, registerMessages, setValidationLocale } from './messages'
 export type {
-  ValidationRule,
-  ValidatorContext,
-  ValidationResult,
-  ValidationFeedback,
-  ValidationTrigger,
   BuiltinFormat,
   FormatValidator,
+  ValidationFeedback,
   ValidationMessages,
-} from './types';
-export { validate, validateSync } from './validator';
-export { registerFormat, getFormatValidator, hasFormat } from './formats';
-export { registerMessages, setValidationLocale, getValidationLocale, getMessage } from './messages';
+  ValidationResult,
+  ValidationRule,
+  ValidationTrigger,
+  ValidatorContext,
+} from './types'
+export { validate, validateSync } from './validator'

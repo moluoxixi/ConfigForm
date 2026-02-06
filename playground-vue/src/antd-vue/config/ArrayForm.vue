@@ -1,71 +1,8 @@
-<script setup lang="ts">
-/**
- * Ant Design Vue 纯配置模式 - 数组字段
- *
- * 覆盖场景：
- * - 基础增删（push / remove）
- * - 排序（moveUp / moveDown）
- * - 复制项（duplicate）
- * - 最大/最小数量限制
- * - 项内联动（数量 × 单价 = 小计）
- * - 数组级汇总（总金额）
- */
-import { ref } from 'vue';
-import { FormProvider, FormField, FormArrayField, useCreateForm } from '@moluoxixi/vue';
-import { setupAntdVue } from '@moluoxixi/ui-antd-vue';
-
-setupAntdVue();
-
-const form = useCreateForm({
-  initialValues: {
-    orderName: '',
-    items: [
-      { name: '商品A', quantity: 2, price: 99.9, discount: false, discountRate: 0 },
-    ],
-  },
-});
-
-/* 订单名 */
-form.createField({ name: 'orderName', label: '订单名称', required: true });
-
-/* 数组字段 */
-form.createArrayField({
-  name: 'items',
-  label: '订单项',
-  minItems: 1,
-  maxItems: 10,
-  itemTemplate: () => ({ name: '', quantity: 1, price: 0, discount: false, discountRate: 0 }),
-});
-
-const submitResult = ref('');
-
-async function handleSubmit(): Promise<void> {
-  const result = await form.submit();
-  if (result.errors.length > 0) {
-    submitResult.value = '验证失败: ' + result.errors.map((e) => e.message).join(', ');
-  } else {
-    submitResult.value = JSON.stringify(result.values, null, 2);
-  }
-}
-
-/** 计算小计 */
-function getSubtotal(item: Record<string, unknown>): number {
-  const qty = Number(item.quantity) || 0;
-  const price = Number(item.price) || 0;
-  const discount = item.discount ? (Number(item.discountRate) || 0) / 100 : 0;
-  return Math.round(qty * price * (1 - discount) * 100) / 100;
-}
-
-/** 计算总金额 */
-function getTotal(): number {
-  const items = (form.values.items ?? []) as Record<string, unknown>[];
-  return Math.round(items.reduce((sum, item) => sum + getSubtotal(item), 0) * 100) / 100;
-}
-</script>
-
 <template>
   <div>
-    <h2 style="margin-bottom: 8px;">Ant Design Vue 纯配置 - 数组字段</h2>
+    <h2 style="margin-bottom: 8px;">
+      Ant Design Vue 纯配置 - 数组字段
+    </h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 20px; font-size: 14px;">
       增删改 / 排序 / 复制 / 最大10项最小1项 / 项内联动（勾选折扣显示折扣率）/ 汇总金额
     </p>
@@ -73,34 +10,34 @@ function getTotal(): number {
     <FormProvider :form="form">
       <form @submit.prevent="handleSubmit">
         <!-- 订单名 -->
-        <FormField name="orderName" v-slot="{ field }">
-          <a-form-item
+        <FormField v-slot="{ field }" name="orderName">
+          <AFormItem
             :label="field.label" required
             :validate-status="field.errors.length > 0 ? 'error' : ''"
             :help="field.errors[0]?.message"
           >
-            <a-input
+            <AInput
               :value="(field.value as string)"
-              @update:value="field.setValue($event)"
               placeholder="请输入订单名称"
+              @update:value="field.setValue($event)"
             />
-          </a-form-item>
+          </AFormItem>
         </FormField>
 
         <!-- 数组字段 -->
-        <FormArrayField name="items" v-slot="{ field: arrayField }">
-          <a-card style="margin-bottom: 20px;">
+        <FormArrayField v-slot="{ field: arrayField }" name="items">
+          <ACard style="margin-bottom: 20px;">
             <template #title>
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span>
                   订单项
-                  <a-tag color="blue" style="margin-left: 8px;">
+                  <ATag color="blue" style="margin-left: 8px;">
                     {{ (arrayField.value as unknown[])?.length ?? 0 }} / 10
-                  </a-tag>
+                  </ATag>
                 </span>
-                <a-button type="primary" size="small" @click="arrayField.push()" :disabled="!arrayField.canAdd">
+                <AButton type="primary" size="small" :disabled="!arrayField.canAdd" @click="arrayField.push()">
                   + 添加
-                </a-button>
+                </AButton>
               </div>
             </template>
 
@@ -115,45 +52,53 @@ function getTotal(): number {
               :key="index"
               style="display: grid; grid-template-columns: 2fr 100px 120px 70px 100px 100px 180px; gap: 8px; align-items: center; padding: 10px 0; border-bottom: 1px solid #fafafa; font-size: 13px;"
             >
-              <a-input
+              <AInput
                 size="small"
                 :value="(item.name as string)"
-                @update:value="arrayField.replace(index, { ...item, name: $event })"
                 placeholder="商品名"
+                @update:value="arrayField.replace(index, { ...item, name: $event })"
               />
-              <a-input-number
+              <AInputNumber
                 size="small"
                 :value="(item.quantity as number)"
-                @update:value="arrayField.replace(index, { ...item, quantity: $event ?? 1 })"
-                :min="1" style="width: 100%;"
+                :min="1"
+                style="width: 100%;" @update:value="arrayField.replace(index, { ...item, quantity: $event ?? 1 })"
               />
-              <a-input-number
+              <AInputNumber
                 size="small"
                 :value="(item.price as number)"
-                @update:value="arrayField.replace(index, { ...item, price: $event ?? 0 })"
-                :min="0" :step="0.1" :precision="2" style="width: 100%;"
+                :min="0"
+                :step="0.1" :precision="2" style="width: 100%;" @update:value="arrayField.replace(index, { ...item, price: $event ?? 0 })"
               />
-              <a-switch
+              <ASwitch
                 :checked="!!item.discount"
                 @update:checked="arrayField.replace(index, { ...item, discount: $event, discountRate: 0 })"
               />
               <!-- 条件显示：勾选折扣才显示折扣率 -->
-              <a-input-number
+              <AInputNumber
                 v-if="item.discount"
                 size="small"
                 :value="(item.discountRate as number)"
-                @update:value="arrayField.replace(index, { ...item, discountRate: $event ?? 0 })"
-                :min="0" :max="100" style="width: 100%;"
+                :min="0"
+                :max="100" style="width: 100%;" @update:value="arrayField.replace(index, { ...item, discountRate: $event ?? 0 })"
               />
               <span v-else style="color: rgba(0,0,0,0.25); text-align: center;">—</span>
               <!-- 小计 -->
               <span style="font-weight: 600; color: #1677ff;">¥{{ getSubtotal(item) }}</span>
               <!-- 操作 -->
               <div style="display: flex; gap: 4px;">
-                <a-button size="small" @click="arrayField.duplicate(index)" :disabled="!arrayField.canAdd">复制</a-button>
-                <a-button size="small" @click="arrayField.moveUp(index)" :disabled="index === 0">↑</a-button>
-                <a-button size="small" @click="arrayField.moveDown(index)" :disabled="index === (arrayField.value as unknown[]).length - 1">↓</a-button>
-                <a-button size="small" danger @click="arrayField.remove(index)" :disabled="!arrayField.canRemove">删除</a-button>
+                <AButton size="small" :disabled="!arrayField.canAdd" @click="arrayField.duplicate(index)">
+                  复制
+                </AButton>
+                <AButton size="small" :disabled="index === 0" @click="arrayField.moveUp(index)">
+                  ↑
+                </AButton>
+                <AButton size="small" :disabled="index === (arrayField.value as unknown[]).length - 1" @click="arrayField.moveDown(index)">
+                  ↓
+                </AButton>
+                <AButton size="small" danger :disabled="!arrayField.canRemove" @click="arrayField.remove(index)">
+                  删除
+                </AButton>
               </div>
             </div>
 
@@ -161,15 +106,84 @@ function getTotal(): number {
             <div style="text-align: right; padding: 16px 0 4px; font-size: 18px; font-weight: 700; color: #ff4d4f;">
               总金额: ¥{{ getTotal() }}
             </div>
-          </a-card>
+          </ACard>
         </FormArrayField>
 
-        <a-button type="primary" html-type="submit">提交订单</a-button>
+        <AButton type="primary" html-type="submit">
+          提交订单
+        </AButton>
       </form>
     </FormProvider>
 
-    <a-card v-if="submitResult" style="margin-top: 20px;">
+    <ACard v-if="submitResult" style="margin-top: 20px;">
       <pre style="margin: 0; white-space: pre-wrap; font-size: 13px;">{{ submitResult }}</pre>
-    </a-card>
+    </ACard>
   </div>
 </template>
+
+<script setup lang="ts">
+import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
+import { FormArrayField, FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
+import { Button as AButton, Card as ACard, FormItem as AFormItem, Input as AInput, InputNumber as AInputNumber, Switch as ASwitch, Tag as ATag } from 'ant-design-vue'
+/**
+ * Ant Design Vue 纯配置模式 - 数组字段
+ *
+ * 覆盖场景：
+ * - 基础增删（push / remove）
+ * - 排序（moveUp / moveDown）
+ * - 复制项（duplicate）
+ * - 最大/最小数量限制
+ * - 项内联动（数量 × 单价 = 小计）
+ * - 数组级汇总（总金额）
+ */
+import { ref } from 'vue'
+
+setupAntdVue()
+
+const form = useCreateForm({
+  initialValues: {
+    orderName: '',
+    items: [
+      { name: '商品A', quantity: 2, price: 99.9, discount: false, discountRate: 0 },
+    ],
+  },
+})
+
+/* 订单名 */
+form.createField({ name: 'orderName', label: '订单名称', required: true })
+
+/* 数组字段 */
+form.createArrayField({
+  name: 'items',
+  label: '订单项',
+  minItems: 1,
+  maxItems: 10,
+  itemTemplate: () => ({ name: '', quantity: 1, price: 0, discount: false, discountRate: 0 }),
+})
+
+const submitResult = ref('')
+
+async function handleSubmit(): Promise<void> {
+  const result = await form.submit()
+  if (result.errors.length > 0) {
+    submitResult.value = `验证失败: ${result.errors.map(e => e.message).join(', ')}`
+  }
+  else {
+    submitResult.value = JSON.stringify(result.values, null, 2)
+  }
+}
+
+/** 计算小计 */
+function getSubtotal(item: Record<string, unknown>): number {
+  const qty = Number(item.quantity) || 0
+  const price = Number(item.price) || 0
+  const discount = item.discount ? (Number(item.discountRate) || 0) / 100 : 0
+  return Math.round(qty * price * (1 - discount) * 100) / 100
+}
+
+/** 计算总金额 */
+function getTotal(): number {
+  const items = (form.values.items ?? []) as Record<string, unknown>[]
+  return Math.round(items.reduce((sum, item) => sum + getSubtotal(item), 0) * 100) / 100
+}
+</script>

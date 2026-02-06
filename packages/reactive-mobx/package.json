@@ -1,29 +1,33 @@
 {
   "name": "@moluoxixi/reactive-mobx",
-  "version": "0.0.1",
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "version": "0.0.1",
   "exports": {
     ".": {
       "types": "./src/index.ts",
       "import": "./src/index.ts"
     }
   },
-  "files": ["src", "dist"],
-  "dependencies": {
-    "@moluoxixi/reactive": "workspace:*"
-  },
-  "peerDependencies": {
-    "mobx": ">=6.0.0"
-  },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts",
     "dev": "tsup src/index.ts --format esm,cjs --dts --watch"
   },
+  "peerDependencies": {
+    "mobx": ">=6.0.0"
+  },
+  "dependencies": {
+    "@moluoxixi/reactive": "workspace:*",
+    "@moluoxixi/shared": "workspace:*"
+  },
   "devDependencies": {
-    "mobx": "^6.13.0",
-    "tsup": "^8.4.0",
-    "typescript": "~5.8.0"
+    "mobx": "catalog:build",
+    "tsup": "catalog:type",
+    "typescript": "catalog:type"
   }
 }

@@ -1,28 +1,28 @@
-/* 类型导出 */
-export type {
-  FormSchema,
-  FormSchemaConfig,
-  FieldSchema,
-  FieldSchemaType,
-  LayoutSchema,
-  GridLayout,
-  GridArea,
-  StepLayout,
-  StepItem,
-  TabLayout,
-  TabItem,
-  GroupLayout,
-  GroupItem,
-  CompiledSchema,
-  CompiledField,
-  CompileOptions,
-} from './types';
-
 /* 编译 */
-export { compileSchema } from './compiler';
-
-/* 转换 */
-export { toFieldProps, toArrayFieldProps, toVoidFieldProps, transformSchema } from './transform';
+export { compileSchema } from './compiler'
 
 /* 合并 */
-export { mergeSchema } from './merge';
+export { mergeSchema } from './merge'
+
+/* 转换 */
+export { toArrayFieldProps, toFieldProps, toVoidFieldProps, transformSchema } from './transform'
+
+/* 类型导出 */
+export type {
+  CompiledField,
+  CompiledSchema,
+  CompileOptions,
+  FieldSchema,
+  FieldSchemaType,
+  FormSchema,
+  FormSchemaConfig,
+  GridArea,
+  GridLayout,
+  GroupItem,
+  GroupLayout,
+  LayoutSchema,
+  StepItem,
+  StepLayout,
+  TabItem,
+  TabLayout,
+} from './types'

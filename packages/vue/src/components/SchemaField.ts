@@ -1,10 +1,10 @@
-import { defineComponent, inject, h, computed } from 'vue';
-import type { PropType } from 'vue';
-import type { FormSchema, CompileOptions } from '@moluoxixi/schema';
-import { compileSchema, toFieldProps, toArrayFieldProps } from '@moluoxixi/schema';
-import { FormSymbol } from '../context';
-import { FormField } from './FormField';
-import { FormArrayField } from './FormArrayField';
+import type { CompileOptions, FormSchema } from '@moluoxixi/schema'
+import type { PropType } from 'vue'
+import { compileSchema, toArrayFieldProps, toFieldProps } from '@moluoxixi/schema'
+import { computed, defineComponent, h, inject } from 'vue'
+import { FormSymbol } from '../context'
+import { FormArrayField } from './FormArrayField'
+import { FormField } from './FormField'
 
 /**
  * Schema 驱动的字段渲染器
@@ -22,39 +22,39 @@ export const SchemaField = defineComponent({
     },
   },
   setup(props) {
-    const form = inject(FormSymbol);
+    const form = inject(FormSymbol)
     if (!form) {
-      throw new Error('[ConfigForm] <SchemaField> 必须在 <FormProvider> 内部使用');
+      throw new Error('[ConfigForm] <SchemaField> 必须在 <FormProvider> 内部使用')
     }
 
-    const compiled = computed(() => compileSchema(props.schema, props.compileOptions));
+    const compiled = computed(() => compileSchema(props.schema, props.compileOptions))
 
     return () => {
       const topLevelFields = Array.from(compiled.value.fields.entries()).filter(
         ([path]) => !path.includes('.'),
-      );
+      )
 
       return topLevelFields.map(([path, compiledField]) => {
         if (compiledField.isVoid) {
-          return null;
+          return null
         }
 
         if (compiledField.isArray) {
-          const fieldProps = toArrayFieldProps(compiledField);
+          const fieldProps = toArrayFieldProps(compiledField)
           return h(FormArrayField, {
             key: path,
             name: path,
             fieldProps,
-          });
+          })
         }
 
-        const fieldProps = toFieldProps(compiledField);
+        const fieldProps = toFieldProps(compiledField)
         return h(FormField, {
           key: path,
           name: path,
           fieldProps,
-        });
-      });
-    };
+        })
+      })
+    }
   },
-});
+})

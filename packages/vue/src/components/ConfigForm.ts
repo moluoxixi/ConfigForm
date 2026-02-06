@@ -1,11 +1,11 @@
-import { defineComponent, h } from 'vue';
-import type { PropType } from 'vue';
-import type { FormConfig } from '@moluoxixi/core';
-import type { FormSchema } from '@moluoxixi/schema';
-import type { ComponentType } from '@moluoxixi/shared';
-import { useCreateForm } from '../composables/useForm';
-import { FormProvider } from './FormProvider';
-import { SchemaField } from './SchemaField';
+import type { FormConfig } from '@moluoxixi/core'
+import type { FormSchema } from '@moluoxixi/schema'
+import type { ComponentType } from '@moluoxixi/shared'
+import type { PropType } from 'vue'
+import { defineComponent, h } from 'vue'
+import { useCreateForm } from '../composables/useForm'
+import { FormProvider } from './FormProvider'
+import { SchemaField } from './SchemaField'
 
 /**
  * 开箱即用的配置化表单组件
@@ -56,25 +56,26 @@ export const ConfigForm = defineComponent({
     const internalForm = useCreateForm({
       ...props.formConfig,
       initialValues: props.initialValues ?? props.formConfig?.initialValues,
-    });
-    const form = props.form ?? internalForm;
+    })
+    const form = props.form ?? internalForm
 
     /* 监听值变化 */
     form.onValuesChange((values) => {
-      emit('valuesChange', values);
-    });
+      emit('valuesChange', values)
+    })
 
     const handleSubmit = async (e: Event) => {
-      e.preventDefault();
-      e.stopPropagation();
+      e.preventDefault()
+      e.stopPropagation()
 
-      const result = await form.submit();
+      const result = await form.submit()
       if (result.errors.length > 0) {
-        emit('submitFailed', result.errors);
-      } else {
-        emit('submit', result.values);
+        emit('submitFailed', result.errors)
       }
-    };
+      else {
+        emit('submit', result.values)
+      }
+    }
 
     return () => {
       return h(FormProvider, {
@@ -88,8 +89,7 @@ export const ConfigForm = defineComponent({
         }, [
           props.schema ? h(SchemaField, { schema: props.schema }) : null,
           slots.default?.({ form }),
-        ]),
-      );
-    };
+        ]))
+    }
   },
-});
+})

@@ -1,7 +1,7 @@
-import { defineComponent, provide, inject, h } from 'vue';
-import type { PropType, Component } from 'vue';
-import type { FieldProps } from '@moluoxixi/core';
-import { FormSymbol, FieldSymbol, ComponentRegistrySymbol } from '../context';
+import type { FieldProps } from '@moluoxixi/core'
+import type { Component, PropType } from 'vue'
+import { defineComponent, h, inject, provide } from 'vue'
+import { ComponentRegistrySymbol, FieldSymbol, FormSymbol } from '../context'
 
 /**
  * 表单字段组件
@@ -26,64 +26,66 @@ export const FormField = defineComponent({
     },
   },
   setup(props, { slots }) {
-    const form = inject(FormSymbol);
-    const registry = inject(ComponentRegistrySymbol);
+    const form = inject(FormSymbol)
+    const registry = inject(ComponentRegistrySymbol)
 
     if (!form) {
-      throw new Error('[ConfigForm] <FormField> 必须在 <FormProvider> 内部使用');
+      throw new Error('[ConfigForm] <FormField> 必须在 <FormProvider> 内部使用')
     }
 
     /* 获取或创建字段 */
-    let field = form.getField(props.name);
+    let field = form.getField(props.name)
     if (!field) {
-      field = form.createField({ name: props.name, ...props.fieldProps });
+      field = form.createField({ name: props.name, ...props.fieldProps })
     }
 
-    provide(FieldSymbol, field);
+    provide(FieldSymbol, field)
 
     return () => {
-      if (!field!.visible) return null;
+      if (!field!.visible)
+        return null
 
       /* 自定义插槽渲染 */
       if (slots.default) {
-        return slots.default({ field });
+        return slots.default({ field })
       }
 
       /* 自动组件渲染 */
-      const componentName = props.component ?? field!.component;
-      let Component: Component | undefined;
+      const componentName = props.component ?? field!.component
+      let Component: Component | undefined
 
       if (typeof componentName === 'string') {
-        Component = registry?.components.get(componentName) as Component | undefined;
-      } else {
-        Component = componentName as Component;
+        Component = registry?.components.get(componentName) as Component | undefined
+      }
+      else {
+        Component = componentName as Component
       }
 
       if (!Component) {
-        console.warn(`[ConfigForm] 字段 "${props.name}" 未找到组件 "${String(componentName)}"`);
-        return null;
+        console.warn(`[ConfigForm] 字段 "${props.name}" 未找到组件 "${String(componentName)}"`)
+        return null
       }
 
-      const wrapperName = field!.wrapper;
-      let Wrapper: Component | undefined;
+      const wrapperName = field!.wrapper
+      let Wrapper: Component | undefined
       if (typeof wrapperName === 'string' && wrapperName) {
-        Wrapper = registry?.wrappers.get(wrapperName) as Component | undefined;
+        Wrapper = registry?.wrappers.get(wrapperName) as Component | undefined
       }
 
       const fieldElement = h(Component as Component, {
-        modelValue: field!.value,
+        'modelValue': field!.value,
         'onUpdate:modelValue': (val: unknown) => field!.setValue(val),
-        onFocus: () => field!.focus(),
-        onBlur: () => {
-          field!.blur();
-          field!.validate('blur').catch(() => {});
+        'onFocus': () => field!.focus(),
+        'onBlur': () => {
+          field!.blur()
+          field!.validate('blur').catch(() => {})
         },
-        disabled: field!.disabled,
-        readonly: field!.readOnly,
-        loading: field!.loading,
-        dataSource: field!.dataSource,
+        'disabled': field!.disabled,
+        'readonly': field!.readOnly,
+        'loading': field!.loading,
+        'dataSource': field!.dataSource,
         ...field!.componentProps,
-      });
+      })
 
       if (Wrapper) {
         return h(Wrapper as Component, {
@@ -93,10 +95,10 @@ export const FormField = defineComponent({
           warnings: field!.warnings,
           description: field!.description,
           ...field!.wrapperProps,
-        }, () => fieldElement);
+        }, () => fieldElement)
       }
 
-      return fieldElement;
-    };
+      return fieldElement
+    }
   },
-});
+})

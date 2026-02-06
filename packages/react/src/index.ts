@@ -1,38 +1,38 @@
 /* 组件 */
 export {
-  FormProvider,
-  FormField,
-  FormArrayField,
-  SchemaField,
   ConfigForm,
-} from './components';
+  FormArrayField,
+  FormField,
+  FormProvider,
+  SchemaField,
+} from './components'
 export type {
-  FormProviderProps,
-  FormFieldProps,
-  FormArrayFieldComponentProps,
-  SchemaFieldProps,
   ConfigFormProps,
-} from './components';
+  FormArrayFieldComponentProps,
+  FormFieldProps,
+  FormProviderProps,
+  SchemaFieldProps,
+} from './components'
+
+/* 上下文（高级用法） */
+export { ComponentRegistryContext, FieldContext, FormContext } from './context'
 
 /* Hooks */
 export {
-  useForm,
   useCreateForm,
   useField,
   useFieldByPath,
-  useFormValues,
-  useFormValid,
+  useForm,
   useFormSubmitting,
-} from './hooks';
+  useFormValid,
+  useFormValues,
+} from './hooks'
 
 /* 注册 */
 export {
-  registerComponent,
-  registerWrapper,
-  registerComponents,
   getComponent,
   getWrapper,
-} from './registry';
-
-/* 上下文（高级用法） */
-export { FormContext, FieldContext, ComponentRegistryContext } from './context';
+  registerComponent,
+  registerComponents,
+  registerWrapper,
+} from './registry'

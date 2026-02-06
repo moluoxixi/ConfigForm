@@ -1,14 +1,14 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
+    "composite": true,
     "lib": [
       "DOM",
       "ESNext"
     ],
     "types": [
       "vite/client"
-    ],
-    "composite": true
+    ]
   },
   "vueCompilerOptions": {
     "plugins": [

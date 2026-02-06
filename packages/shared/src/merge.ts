@@ -1,4 +1,4 @@
-import { isArray, isPlainObject } from './is';
+import { isArray, isPlainObject } from './is'
 
 /**
  * 深度合并对象
@@ -11,25 +11,28 @@ export function deepMerge<T extends Record<string, unknown>>(
   ...sources: Partial<T>[]
 ): T {
   for (const source of sources) {
-    if (!isPlainObject(source)) continue;
-    const keys = Object.keys(source) as (keyof T & string)[];
+    if (!isPlainObject(source))
+      continue
+    const keys = Object.keys(source) as (keyof T & string)[]
     for (const key of keys) {
-      const targetVal = target[key];
-      const sourceVal = source[key];
+      const targetVal = target[key]
+      const sourceVal = source[key]
 
       if (isPlainObject(targetVal) && isPlainObject(sourceVal)) {
         target[key] = deepMerge(
           { ...(targetVal as Record<string, unknown>) },
           sourceVal as Record<string, unknown>,
-        ) as T[typeof key];
-      } else if (isArray(sourceVal)) {
-        target[key] = [...sourceVal] as T[typeof key];
-      } else if (sourceVal !== undefined) {
-        target[key] = sourceVal as T[typeof key];
+        ) as T[typeof key]
+      }
+      else if (isArray(sourceVal)) {
+        target[key] = [...sourceVal] as T[typeof key]
+      }
+      else if (sourceVal !== undefined) {
+        target[key] = sourceVal as T[typeof key]
       }
     }
   }
-  return target;
+  return target
 }
 
 /**
@@ -39,5 +42,5 @@ export function shallowMerge<T extends Record<string, unknown>>(
   target: T,
   ...sources: Partial<T>[]
 ): T {
-  return Object.assign(target, ...sources);
+  return Object.assign(target, ...sources)
 }

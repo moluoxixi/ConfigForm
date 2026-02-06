@@ -1,23 +1,19 @@
-import { h, defineComponent } from 'vue';
-import type { PropType, Component } from 'vue';
+import type { DataSourceItem } from '@moluoxixi/shared'
+import type { ValidationFeedback } from '@moluoxixi/validator'
+import type { PropType } from 'vue'
 import {
+  Checkbox as ACheckbox,
+  DatePicker as ADatePicker,
+  FormItem as AFormItem,
   Input as AInput,
   InputNumber as AInputNumber,
   InputPassword as AInputPassword,
-  Textarea as ATextarea,
+  Radio as ARadio,
   Select as ASelect,
   Switch as ASwitch,
-  Checkbox as ACheckbox,
-  Radio as ARadio,
-  DatePicker as ADatePicker,
-  RangePicker as ARangePicker,
-  FormItem as AFormItem,
-  Rate as ARate,
-  Slider as ASlider,
-  TimePicker as ATimePicker,
-} from 'ant-design-vue';
-import type { ValidationFeedback } from '@moluoxixi/validator';
-import type { DataSourceItem } from '@moluoxixi/shared';
+  Textarea as ATextarea,
+} from 'ant-design-vue'
+import { defineComponent, h } from 'vue'
 
 /* ========== 输入适配 ========== */
 
@@ -33,16 +29,16 @@ export const Input = defineComponent({
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => h(AInput, {
-      value: props.modelValue,
-      placeholder: props.placeholder,
-      disabled: props.disabled,
-      readonly: props.readonly,
+      'value': props.modelValue,
+      'placeholder': props.placeholder,
+      'disabled': props.disabled,
+      'readonly': props.readonly,
       'onUpdate:value': (v: string) => emit('update:modelValue', v),
-      onFocus: () => emit('focus'),
-      onBlur: () => emit('blur'),
-    });
+      'onFocus': () => emit('focus'),
+      'onBlur': () => emit('blur'),
+    })
   },
-});
+})
 
 export const Password = defineComponent({
   name: 'CfPassword',
@@ -50,15 +46,15 @@ export const Password = defineComponent({
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => h(AInputPassword, {
-      value: props.modelValue,
-      placeholder: props.placeholder,
-      disabled: props.disabled,
+      'value': props.modelValue,
+      'placeholder': props.placeholder,
+      'disabled': props.disabled,
       'onUpdate:value': (v: string) => emit('update:modelValue', v),
-      onFocus: () => emit('focus'),
-      onBlur: () => emit('blur'),
-    });
+      'onFocus': () => emit('focus'),
+      'onBlur': () => emit('blur'),
+    })
   },
-});
+})
 
 export const Textarea = defineComponent({
   name: 'CfTextarea',
@@ -66,16 +62,16 @@ export const Textarea = defineComponent({
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => h(ATextarea, {
-      value: props.modelValue,
-      placeholder: props.placeholder,
-      disabled: props.disabled,
-      rows: props.rows,
+      'value': props.modelValue,
+      'placeholder': props.placeholder,
+      'disabled': props.disabled,
+      'rows': props.rows,
       'onUpdate:value': (v: string) => emit('update:modelValue', v),
-      onFocus: () => emit('focus'),
-      onBlur: () => emit('blur'),
-    });
+      'onFocus': () => emit('focus'),
+      'onBlur': () => emit('blur'),
+    })
   },
-});
+})
 
 export const InputNumber = defineComponent({
   name: 'CfInputNumber',
@@ -83,19 +79,19 @@ export const InputNumber = defineComponent({
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => h(AInputNumber, {
-      value: props.modelValue,
-      placeholder: props.placeholder,
-      disabled: props.disabled,
-      min: props.min,
-      max: props.max,
-      step: props.step,
-      style: 'width: 100%',
+      'value': props.modelValue,
+      'placeholder': props.placeholder,
+      'disabled': props.disabled,
+      'min': props.min,
+      'max': props.max,
+      'step': props.step,
+      'style': 'width: 100%',
       'onUpdate:value': (v: number) => emit('update:modelValue', v),
-      onFocus: () => emit('focus'),
-      onBlur: () => emit('blur'),
-    });
+      'onFocus': () => emit('focus'),
+      'onBlur': () => emit('blur'),
+    })
   },
-});
+})
 
 /* ========== 选择适配 ========== */
 
@@ -112,23 +108,23 @@ export const Select = defineComponent({
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => h(ASelect, {
-      value: props.modelValue,
-      placeholder: props.placeholder,
-      disabled: props.disabled,
-      loading: props.loading,
-      mode: props.mode,
-      style: 'width: 100%',
-      options: props.dataSource.map((item) => ({
+      'value': props.modelValue,
+      'placeholder': props.placeholder,
+      'disabled': props.disabled,
+      'loading': props.loading,
+      'mode': props.mode,
+      'style': 'width: 100%',
+      'options': props.dataSource.map(item => ({
         label: item.label,
         value: item.value,
         disabled: item.disabled,
       })),
       'onUpdate:value': (v: unknown) => emit('update:modelValue', v),
-      onFocus: () => emit('focus'),
-      onBlur: () => emit('blur'),
-    });
+      'onFocus': () => emit('focus'),
+      'onBlur': () => emit('blur'),
+    })
   },
-});
+})
 
 export const RadioGroup = defineComponent({
   name: 'CfRadioGroup',
@@ -140,13 +136,13 @@ export const RadioGroup = defineComponent({
   emits: ['update:modelValue'],
   setup(props, { emit }) {
     return () => h(ARadio.Group, {
-      value: props.modelValue,
-      disabled: props.disabled,
-      options: props.dataSource.map((item) => ({ label: item.label, value: item.value })),
+      'value': props.modelValue,
+      'disabled': props.disabled,
+      'options': props.dataSource.map(item => ({ label: item.label, value: item.value })),
       'onUpdate:value': (v: unknown) => emit('update:modelValue', v),
-    });
+    })
   },
-});
+})
 
 export const CheckboxGroup = defineComponent({
   name: 'CfCheckboxGroup',
@@ -158,13 +154,13 @@ export const CheckboxGroup = defineComponent({
   emits: ['update:modelValue'],
   setup(props, { emit }) {
     return () => h(ACheckbox.Group, {
-      value: props.modelValue,
-      disabled: props.disabled,
-      options: props.dataSource.map((item) => ({ label: item.label, value: item.value })),
+      'value': props.modelValue,
+      'disabled': props.disabled,
+      'options': props.dataSource.map(item => ({ label: item.label, value: item.value })),
       'onUpdate:value': (v: unknown) => emit('update:modelValue', v),
-    });
+    })
   },
-});
+})
 
 /* ========== 开关 ========== */
 
@@ -174,12 +170,12 @@ export const Switch = defineComponent({
   emits: ['update:modelValue'],
   setup(props, { emit }) {
     return () => h(ASwitch, {
-      checked: props.modelValue,
-      disabled: props.disabled,
+      'checked': props.modelValue,
+      'disabled': props.disabled,
       'onUpdate:checked': (v: boolean) => emit('update:modelValue', v),
-    });
+    })
   },
-});
+})
 
 /* ========== 日期 ========== */
 
@@ -189,15 +185,15 @@ export const DatePicker = defineComponent({
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => h(ADatePicker, {
-      value: props.modelValue,
-      placeholder: props.placeholder,
-      disabled: props.disabled,
-      style: 'width: 100%',
-      valueFormat: 'YYYY-MM-DD',
+      'value': props.modelValue,
+      'placeholder': props.placeholder,
+      'disabled': props.disabled,
+      'style': 'width: 100%',
+      'valueFormat': 'YYYY-MM-DD',
       'onUpdate:value': (v: string) => emit('update:modelValue', v),
-    });
+    })
   },
-});
+})
 
 /* ========== FormItem 装饰器 ========== */
 
@@ -216,19 +212,19 @@ export const FormItem = defineComponent({
         ? 'error'
         : props.warnings.length > 0
           ? 'warning'
-          : undefined;
+          : undefined
       const helpMsg = props.errors.length > 0
         ? props.errors[0].message
         : props.warnings.length > 0
           ? props.warnings[0].message
-          : props.description;
+          : props.description
 
       return h(AFormItem, {
         label: props.label,
         required: props.required,
         validateStatus,
         help: helpMsg,
-      }, () => slots.default?.());
-    };
+      }, () => slots.default?.())
+    }
   },
-});
+})

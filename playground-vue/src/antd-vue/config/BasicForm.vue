@@ -1,4 +1,44 @@
+<template>
+  <div>
+    <h2 style="margin-bottom: 8px;">
+      Ant Design Vue 纯配置 - 基础表单
+    </h2>
+    <p style="color: rgba(0,0,0,0.45); margin-bottom: 20px; font-size: 14px;">
+      所有字段通过 Schema 配置驱动，覆盖 Input / Password / Textarea / InputNumber / Select / RadioGroup / Switch / DatePicker
+    </p>
+
+    <ConfigForm
+      :schema="schema"
+      :initial-values="{ username: '', password: '', email: '', age: 25, gender: 'male', isRemote: false }"
+      @submit="handleSubmit"
+      @submit-failed="handleSubmitFailed"
+    >
+      <template #default="{ form }">
+        <div style="margin-top: 20px; display: flex; gap: 12px;">
+          <AButton type="primary" html-type="submit">
+            提交
+          </AButton>
+          <AButton @click="form.reset()">
+            重置
+          </AButton>
+        </div>
+      </template>
+    </ConfigForm>
+
+    <ACard v-if="submitResult" style="margin-top: 20px;">
+      <template #title>
+        <strong>提交结果</strong>
+      </template>
+      <pre style="margin: 0; white-space: pre-wrap; font-size: 13px;">{{ submitResult }}</pre>
+    </ACard>
+  </div>
+</template>
+
 <script setup lang="ts">
+import type { FormSchema } from '@moluoxixi/schema'
+import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
+import { ConfigForm } from '@moluoxixi/vue'
+import { Button as AButton, Card as ACard } from 'ant-design-vue'
 /**
  * Ant Design Vue 纯配置模式 - 基础表单
  *
@@ -8,13 +48,10 @@
  * - 格式验证（email）
  * - 字符串长度 / 数值范围
  */
-import { ref } from 'vue';
-import { ConfigForm } from '@moluoxixi/vue';
-import { setupAntdVue } from '@moluoxixi/ui-antd-vue';
-import type { FormSchema } from '@moluoxixi/schema';
+import { ref } from 'vue'
 
 /* 注册 Ant Design Vue 全套组件 */
-setupAntdVue();
+setupAntdVue()
 
 /** 表单 Schema 定义 */
 const schema: FormSchema = {
@@ -102,45 +139,17 @@ const schema: FormSchema = {
       placeholder: '请选择日期',
     },
   },
-};
+}
 
-const submitResult = ref<string>('');
+const submitResult = ref<string>('')
 
 /** 提交成功回调 */
 function handleSubmit(values: Record<string, unknown>): void {
-  submitResult.value = JSON.stringify(values, null, 2);
+  submitResult.value = JSON.stringify(values, null, 2)
 }
 
 /** 提交失败回调 */
 function handleSubmitFailed(errors: unknown[]): void {
-  submitResult.value = '验证失败:\n' + JSON.stringify(errors, null, 2);
+  submitResult.value = `验证失败:\n${JSON.stringify(errors, null, 2)}`
 }
 </script>
-
-<template>
-  <div>
-    <h2 style="margin-bottom: 8px;">Ant Design Vue 纯配置 - 基础表单</h2>
-    <p style="color: rgba(0,0,0,0.45); margin-bottom: 20px; font-size: 14px;">
-      所有字段通过 Schema 配置驱动，覆盖 Input / Password / Textarea / InputNumber / Select / RadioGroup / Switch / DatePicker
-    </p>
-
-    <ConfigForm
-      :schema="schema"
-      :initial-values="{ username: '', password: '', email: '', age: 25, gender: 'male', isRemote: false }"
-      @submit="handleSubmit"
-      @submit-failed="handleSubmitFailed"
-    >
-      <template #default="{ form }">
-        <div style="margin-top: 20px; display: flex; gap: 12px;">
-          <a-button type="primary" html-type="submit">提交</a-button>
-          <a-button @click="form.reset()">重置</a-button>
-        </div>
-      </template>
-    </ConfigForm>
-
-    <a-card v-if="submitResult" style="margin-top: 20px;">
-      <template #title><strong>提交结果</strong></template>
-      <pre style="margin: 0; white-space: pre-wrap; font-size: 13px;">{{ submitResult }}</pre>
-    </a-card>
-  </div>
-</template>

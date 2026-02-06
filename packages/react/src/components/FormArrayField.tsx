@@ -1,13 +1,13 @@
-import React, { useContext, useRef } from 'react';
-import { observer } from 'mobx-react-lite';
-import type { ArrayFieldInstance, ArrayFieldProps } from '@moluoxixi/core';
-import { FormContext, FieldContext } from '../context';
-import type { ReactNode } from 'react';
+import type { ArrayFieldInstance, ArrayFieldProps } from '@moluoxixi/core'
+import type { ReactNode } from 'react'
+import { observer } from 'mobx-react-lite'
+import React, { useContext, useRef } from 'react'
+import { FieldContext, FormContext } from '../context'
 
 export interface FormArrayFieldComponentProps {
-  name: string;
-  fieldProps?: Partial<ArrayFieldProps>;
-  children: (field: ArrayFieldInstance) => ReactNode;
+  name: string
+  fieldProps?: Partial<ArrayFieldProps>
+  children: (field: ArrayFieldInstance) => ReactNode
 }
 
 /**
@@ -34,28 +34,29 @@ export interface FormArrayFieldComponentProps {
  */
 export const FormArrayField = observer<FormArrayFieldComponentProps>(
   ({ name, fieldProps, children }) => {
-    const form = useContext(FormContext);
+    const form = useContext(FormContext)
 
     if (!form) {
-      throw new Error('[ConfigForm] <FormArrayField> 必须在 <FormProvider> 内部使用');
+      throw new Error('[ConfigForm] <FormArrayField> 必须在 <FormProvider> 内部使用')
     }
 
-    const fieldRef = useRef<ArrayFieldInstance | null>(null);
+    const fieldRef = useRef<ArrayFieldInstance | null>(null)
     if (!fieldRef.current) {
-      let field = form.getArrayField(name);
+      let field = form.getArrayField(name)
       if (!field) {
-        field = form.createArrayField({ name, ...fieldProps });
+        field = form.createArrayField({ name, ...fieldProps })
       }
-      fieldRef.current = field;
+      fieldRef.current = field
     }
-    const field = fieldRef.current;
+    const field = fieldRef.current
 
-    if (!field.visible) return null;
+    if (!field.visible)
+      return null
 
     return (
       <FieldContext.Provider value={field}>
         {children(field)}
       </FieldContext.Provider>
-    );
+    )
   },
-);
+)

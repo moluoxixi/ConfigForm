@@ -1,16 +1,16 @@
-import { registerComponent, registerWrapper } from '@moluoxixi/react';
+import { registerComponent, registerWrapper } from '@moluoxixi/react'
 import {
-  Input,
-  Password,
-  Textarea,
-  InputNumber,
-  Select,
-  RadioGroup,
   CheckboxGroup,
-  Switch,
   DatePicker,
   FormItem,
-} from './adapter';
+  Input,
+  InputNumber,
+  Password,
+  RadioGroup,
+  Select,
+  Switch,
+  Textarea,
+} from './adapter'
 
 /**
  * 注册 Ant Design (React) 全套组件到 ConfigForm
@@ -22,28 +22,28 @@ import {
  * ```
  */
 export function setupAntd(): void {
-  registerComponent('Input', Input);
-  registerComponent('Password', Password);
-  registerComponent('Textarea', Textarea);
-  registerComponent('InputNumber', InputNumber);
-  registerComponent('Select', Select);
-  registerComponent('RadioGroup', RadioGroup);
-  registerComponent('CheckboxGroup', CheckboxGroup);
-  registerComponent('Switch', Switch);
-  registerComponent('DatePicker', DatePicker);
+  registerComponent('Input', Input)
+  registerComponent('Password', Password)
+  registerComponent('Textarea', Textarea)
+  registerComponent('InputNumber', InputNumber)
+  registerComponent('Select', Select)
+  registerComponent('RadioGroup', RadioGroup)
+  registerComponent('CheckboxGroup', CheckboxGroup)
+  registerComponent('Switch', Switch)
+  registerComponent('DatePicker', DatePicker)
 
-  registerWrapper('FormItem', FormItem);
+  registerWrapper('FormItem', FormItem)
 }
 
 export {
-  Input,
-  Password,
-  Textarea,
-  InputNumber,
-  Select,
-  RadioGroup,
   CheckboxGroup,
-  Switch,
   DatePicker,
   FormItem,
-} from './adapter';
+  Input,
+  InputNumber,
+  Password,
+  RadioGroup,
+  Select,
+  Switch,
+  Textarea,
+} from './adapter'

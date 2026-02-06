@@ -1,31 +1,31 @@
 {
   "name": "@moluoxixi/vue",
-  "version": "0.0.1",
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "version": "0.0.1",
   "exports": {
     ".": {
       "types": "./src/index.ts",
       "import": "./src/index.ts"
     }
   },
-  "files": ["src", "dist"],
-  "dependencies": {
-    "@moluoxixi/core": "workspace:*",
-    "@moluoxixi/schema": "workspace:*",
-    "@moluoxixi/reactive-vue": "workspace:*"
-  },
-  "peerDependencies": {
-    "vue": ">=3.5.0"
-  },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "files": ["dist", "src"],
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts",
     "dev": "tsup src/index.ts --format esm,cjs --dts --watch"
   },
+  "peerDependencies": {
+    "vue": ">=3.5.0"
+  },
+  "dependencies": {
+    "@moluoxixi/core": "workspace:*",
+    "@moluoxixi/reactive-vue": "workspace:*",
+    "@moluoxixi/schema": "workspace:*"
+  },
   "devDependencies": {
-    "vue": "^3.5.0",
-    "tsup": "^8.4.0",
-    "typescript": "~5.8.0"
+    "tsup": "catalog:type",
+    "typescript": "catalog:type",
+    "vue": "catalog:build"
   }
 }

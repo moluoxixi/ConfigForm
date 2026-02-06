@@ -1,23 +1,23 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
+    "composite": true,
+    "baseUrl": ".",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
       "@test/*": ["./__test__/helpers/*"]
     },
-    "noEmit": false,
+    "types": ["vitest/globals", "node"],
     "allowImportingTsExtensions": true,
-    "rewriteRelativeImportExtensions": true,
-    "composite": true,
-    "types": ["vitest/globals", "node"]
+    "noEmit": false,
+    "rewriteRelativeImportExtensions": true
   },
   "include": [
-    "__test__/**/*.ts",
+    "__test__/**/*.ts"
   ],
   "exclude": [
-    "node_modules",
+    "node_modules"
   ]
 }

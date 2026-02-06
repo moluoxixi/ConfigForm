@@ -1,12 +1,12 @@
-import { isFunction } from '@moluoxixi/shared';
-import type { FieldProps, ArrayFieldProps, VoidFieldProps } from '@moluoxixi/core';
-import type { CompiledField, CompiledSchema } from './types';
+import type { ArrayFieldProps, FieldProps, VoidFieldProps } from '@moluoxixi/core'
+import type { CompiledField, CompiledSchema } from './types'
+import { isFunction } from '@moluoxixi/shared'
 
 /**
  * 将编译后的字段转为 FieldProps
  */
 export function toFieldProps(compiled: CompiledField): FieldProps {
-  const { schema, path } = compiled;
+  const { schema, path } = compiled
 
   const props: FieldProps = {
     name: path.includes('.') ? path.split('.').pop()! : path,
@@ -29,38 +29,38 @@ export function toFieldProps(compiled: CompiledField): FieldProps {
     pattern: schema.pattern,
     submitPath: schema.submitPath,
     excludeWhenHidden: schema.excludeWhenHidden,
-  };
+  }
 
   /* 处理数据源 */
   if (schema.dataSource) {
-    props.dataSource = schema.dataSource;
+    props.dataSource = schema.dataSource
   }
 
   /* 处理数据转换函数 */
   if (schema.format && isFunction(schema.format)) {
-    props.format = schema.format as (value: unknown) => unknown;
+    props.format = schema.format as (value: unknown) => unknown
   }
   if (schema.parse && isFunction(schema.parse)) {
-    props.parse = schema.parse as (value: unknown) => unknown;
+    props.parse = schema.parse as (value: unknown) => unknown
   }
   if (schema.transform && isFunction(schema.transform)) {
-    props.transform = schema.transform as (value: unknown) => unknown;
+    props.transform = schema.transform as (value: unknown) => unknown
   }
 
   /* 必填规则 */
-  if (schema.required && !props.rules!.some((r) => r.required)) {
-    props.rules!.unshift({ required: true });
+  if (schema.required && !props.rules!.some(r => r.required)) {
+    props.rules!.unshift({ required: true })
   }
 
-  return props;
+  return props
 }
 
 /**
  * 将编译后的字段转为 ArrayFieldProps
  */
 export function toArrayFieldProps(compiled: CompiledField): ArrayFieldProps {
-  const base = toFieldProps(compiled);
-  const { schema } = compiled;
+  const base = toFieldProps(compiled)
+  const { schema } = compiled
 
   return {
     ...base,
@@ -68,14 +68,14 @@ export function toArrayFieldProps(compiled: CompiledField): ArrayFieldProps {
     maxItems: schema.maxItems,
     itemTemplate: schema.itemTemplate,
     initialValue: base.initialValue ?? [],
-  } as ArrayFieldProps;
+  } as ArrayFieldProps
 }
 
 /**
  * 将编译后的字段转为 VoidFieldProps
  */
 export function toVoidFieldProps(compiled: CompiledField): VoidFieldProps {
-  const { schema, path } = compiled;
+  const { schema, path } = compiled
 
   return {
     name: path.includes('.') ? path.split('.').pop()! : path,
@@ -85,7 +85,7 @@ export function toVoidFieldProps(compiled: CompiledField): VoidFieldProps {
     componentProps: schema.componentProps,
     reactions: schema.reactions,
     pattern: schema.pattern,
-  };
+  }
 }
 
 /**
@@ -94,34 +94,37 @@ export function toVoidFieldProps(compiled: CompiledField): VoidFieldProps {
 export function transformSchema(
   compiledSchema: CompiledSchema,
 ): {
-  fields: Array<{ path: string; props: FieldProps; type: 'field' | 'array' | 'void' }>;
+  fields: Array<{ path: string, props: FieldProps, type: 'field' | 'array' | 'void' }>
 } {
-  const fields: Array<{ path: string; props: FieldProps; type: 'field' | 'array' | 'void' }> = [];
+  const fields: Array<{ path: string, props: FieldProps, type: 'field' | 'array' | 'void' }> = []
 
   for (const [path, compiled] of compiledSchema.fields) {
     /* 跳过通配符项（数组内部项由 ArrayField 处理） */
-    if (path.includes('.*')) continue;
+    if (path.includes('.*'))
+      continue
 
     if (compiled.isVoid) {
       fields.push({
         path,
         props: toVoidFieldProps(compiled) as unknown as FieldProps,
         type: 'void',
-      });
-    } else if (compiled.isArray) {
+      })
+    }
+    else if (compiled.isArray) {
       fields.push({
         path,
         props: toArrayFieldProps(compiled),
         type: 'array',
-      });
-    } else {
+      })
+    }
+    else {
       fields.push({
         path,
         props: toFieldProps(compiled),
         type: 'field',
-      });
+      })
     }
   }
 
-  return { fields };
+  return { fields }
 }
