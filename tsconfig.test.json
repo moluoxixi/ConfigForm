@@ -16,12 +16,8 @@
   },
   "include": [
     "__test__/**/*.ts",
-    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "coverage",
-    "__test__/node_modules"
   ]
 }

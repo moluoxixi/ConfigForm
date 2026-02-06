@@ -10,7 +10,5 @@
     "composite": true
   },
   "include": [
-    "templates/**/vite.config.ts",
-    "templates/**/vite/**/*.ts"
   ]
 }

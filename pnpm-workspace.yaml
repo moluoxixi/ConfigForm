@@ -1,13 +1,20 @@
 # pnpm workspace 配置
-# 用于管理 CLI 项目依赖版本
+# ConfigForm monorepo
 
 gitChecks: false
 registry: https://registry.npmjs.org/
 
 packages:
   - 'packages/*'
+  - 'playground-vue'
+  - 'playground-react'
 catalogs:
   build:
+    chalk: ^5.4.0
+    commander: ^13.1.0
+    fs-extra: ^11.2.0
+    inquirer: ^12.4.0
+    ora: ^8.2.0
   dev:
     '@commitlint/cli': ^19.8.0
     '@commitlint/config-conventional': ^19.8.0

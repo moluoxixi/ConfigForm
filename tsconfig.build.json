@@ -11,6 +11,5 @@
     "rewriteRelativeImportExtensions": true
   },
   "include": [
-    "src/**/*.ts"
   ]
 }
