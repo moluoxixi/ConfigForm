@@ -6,7 +6,7 @@
     <FormProvider :form="form">
       <form @submit.prevent="handleSubmit" novalidate>
         <FormField v-for="name in FIELDS" :key="name" v-slot="{ field }" :name="name"><AFormItem :label="field.label" :help="field.description"><ASpace><AInput :value="String(field.value ?? '')" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" style="width: 300px" /><ATag color="blue">原始: {{ JSON.stringify(field.value) }}</ATag></ASpace></AFormItem></FormField>
-        <AButton v-if="mode === 'editable'" type="primary" html-type="submit" style="margin-top: 8px">提交（查看转换结果）</AButton>
+        <ASpace v-if="mode === 'editable'" style="margin-top: 8px"><AButton type="primary" html-type="submit">提交（查看转换结果）</AButton><AButton @click="form.reset()">重置</AButton></ASpace>
       </form>
     </FormProvider>
     <AAlert v-if="rawValues" type="info" message="表单原始值" style="margin-top: 16px"><template #description><pre style="margin: 0; white-space: pre-wrap">{{ rawValues }}</pre></template></AAlert>

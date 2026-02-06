@@ -10,7 +10,7 @@
           <div v-if="mode === 'readOnly'" style="display: flex; flex-wrap: wrap; gap: 4px"><ATag v-for="k in targetKeys" :key="k" color="blue">{{ PERMISSIONS.find(p => p.key === k)?.title ?? k }}</ATag></div>
           <ATransfer v-else :data-source="PERMISSIONS" :target-keys="targetKeys" :render="(item: any) => item.title" show-search :list-style="{ width: '320px', height: '340px' }" :titles="['可选权限', '已选权限']" :disabled="mode === 'disabled'" :filter-option="(input: string, item: any) => item.title.includes(input)" @change="handleTransferChange" />
         </AFormItem>
-        <AButton v-if="mode === 'editable'" type="primary" html-type="submit">提交</AButton>
+        <ASpace v-if="mode === 'editable'"><AButton type="primary" html-type="submit">提交</AButton><AButton @click="form.reset()">重置</AButton></ASpace>
       </form>
     </FormProvider>
     <AAlert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" message="提交结果" style="margin-top: 16px"><template #description><pre style="margin: 0; white-space: pre-wrap">{{ result }}</pre></template></AAlert>
@@ -20,7 +20,7 @@
 import { ref, onMounted } from 'vue'
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
-import { Button as AButton, Alert as AAlert, Segmented as ASegmented, Input as AInput, FormItem as AFormItem, Transfer as ATransfer, Tag as ATag } from 'ant-design-vue'
+import { Button as AButton, Space as ASpace, Alert as AAlert, Segmented as ASegmented, Input as AInput, FormItem as AFormItem, Transfer as ATransfer, Tag as ATag } from 'ant-design-vue'
 import type { FieldPattern } from '@moluoxixi/shared'
 setupAntdVue()
 const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅读态', value: 'readOnly' }, { label: '禁用态', value: 'disabled' }]

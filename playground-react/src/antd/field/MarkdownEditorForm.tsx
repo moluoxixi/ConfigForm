@@ -11,7 +11,7 @@ import React, { useState, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
 import { setupAntd } from '@moluoxixi/ui-antd';
-import { Button, Typography, Alert, Segmented, Form, Input, Row, Col } from 'antd';
+import { Button, Typography, Alert, Segmented, Form, Input, Row, Col, Space } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
 import type { FieldPattern } from '@moluoxixi/shared';
 
@@ -128,7 +128,7 @@ export const MarkdownEditorForm = observer((): React.ReactElement => {
             )}
           </FormField>
 
-          {mode === 'editable' && <Button type="primary" htmlType="submit">提交</Button>}
+          {mode === 'editable' && (<Space><Button type="primary" htmlType="submit">提交</Button><Button onClick={() => form.reset()}>重置</Button></Space>)}
         </form>
       </FormProvider>
 

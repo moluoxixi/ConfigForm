@@ -10,7 +10,7 @@
         <FormField v-slot="{ field }" name="title"><el-form-item :label="field.label"><el-input :model-value="(field.value as string) ?? ''" @update:model-value="field.setValue($event)" :disabled="mode === 'disabled'" /></el-form-item></FormField>
         <el-form-item label="附件上传"><el-upload v-model:file-list="fileList" :disabled="mode !== 'editable'" :auto-upload="false"><el-button v-if="mode === 'editable'">选择文件</el-button></el-upload></el-form-item>
         <el-form-item label="图片上传"><el-upload v-model:file-list="imageList" list-type="picture-card" :disabled="mode !== 'editable'" :auto-upload="false" :limit="6"><el-icon v-if="mode === 'editable' && imageList.length < 6"><Plus /></el-icon></el-upload></el-form-item>
-        <el-button v-if="mode === 'editable'" type="primary" native-type="submit">提交</el-button>
+        <el-space v-if="mode === 'editable'"><el-button type="primary" native-type="submit">提交</el-button><el-button @click="form.reset()">重置</el-button></el-space>
       </form>
     </FormProvider>
     <el-alert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" :description="result" show-icon style="margin-top: 16px" />
@@ -21,7 +21,7 @@
 import { ref, onMounted } from 'vue'
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
 import { setupElementPlus } from '@moluoxixi/ui-element-plus'
-import { ElButton, ElAlert, ElRadioGroup, ElRadioButton, ElInput, ElFormItem, ElUpload, ElIcon } from 'element-plus'
+import { ElButton, ElSpace, ElAlert, ElRadioGroup, ElRadioButton, ElInput, ElFormItem, ElUpload, ElIcon } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import type { FieldPattern } from '@moluoxixi/shared'
 

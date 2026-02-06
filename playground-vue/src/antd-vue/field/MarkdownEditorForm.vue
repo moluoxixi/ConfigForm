@@ -10,7 +10,7 @@
           <ARow v-if="mode === 'editable'" :gutter="16"><ACol :span="12"><div style="font-size: 12px; color: #999; margin-bottom: 4px">编辑区</div><ATextarea :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :rows="16" :style="{ fontFamily: 'Consolas, Monaco, monospace', fontSize: '13px' }" /></ACol><ACol :span="12"><div style="font-size: 12px; color: #999; margin-bottom: 4px">预览区</div><div style="border: 1px solid #d9d9d9; border-radius: 6px; padding: 12px; min-height: 380px; overflow: auto; background: #fafafa" v-html="simpleRender((field.value as string) ?? '')" /></ACol></ARow>
           <div v-else style="border: 1px solid #d9d9d9; border-radius: 6px; padding: 16px; background: #fafafa" :style="{ opacity: mode === 'disabled' ? 0.6 : 1 }" v-html="simpleRender((field.value as string) ?? '')" />
         </AFormItem></FormField>
-        <AButton v-if="mode === 'editable'" type="primary" html-type="submit">提交</AButton>
+        <ASpace v-if="mode === 'editable'"><AButton type="primary" html-type="submit">提交</AButton><AButton @click="form.reset()">重置</AButton></ASpace>
       </form>
     </FormProvider>
     <AAlert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" message="提交结果" style="margin-top: 16px"><template #description><pre style="margin: 0; white-space: pre-wrap">{{ result }}</pre></template></AAlert>
@@ -20,7 +20,7 @@
 import { ref, onMounted } from 'vue'
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
-import { Button as AButton, Alert as AAlert, Segmented as ASegmented, Input as AInput, FormItem as AFormItem, Textarea as ATextarea, Row as ARow, Col as ACol } from 'ant-design-vue'
+import { Button as AButton, Space as ASpace, Alert as AAlert, Segmented as ASegmented, Input as AInput, FormItem as AFormItem, Textarea as ATextarea, Row as ARow, Col as ACol } from 'ant-design-vue'
 import type { FieldPattern } from '@moluoxixi/shared'
 setupAntdVue()
 const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅读态', value: 'readOnly' }, { label: '禁用态', value: 'disabled' }]

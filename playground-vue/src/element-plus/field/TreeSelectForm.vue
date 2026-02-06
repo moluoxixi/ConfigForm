@@ -10,7 +10,7 @@
         <FormField v-slot="{ field }" name="memberName"><el-form-item :label="field.label"><el-input :model-value="(field.value as string) ?? ''" @update:model-value="field.setValue($event)" :disabled="mode === 'disabled'" style="width: 300px" /></el-form-item></FormField>
         <FormField v-slot="{ field }" name="department"><el-form-item :label="field.label"><el-tag v-if="mode === 'readOnly'" type="primary">{{ field.value ?? '—' }}</el-tag><el-tree-select v-else :model-value="(field.value as string)" @update:model-value="field.setValue($event)" :data="TREE" placeholder="请选择部门" style="width: 300px" default-expand-all :disabled="mode === 'disabled'" /></el-form-item></FormField>
         <FormField v-slot="{ field }" name="accessDepts"><el-form-item :label="field.label"><el-space v-if="mode === 'readOnly'" wrap><el-tag v-for="v in ((field.value as string[]) ?? [])" :key="v" type="success">{{ v }}</el-tag></el-space><el-tree-select v-else :model-value="(field.value as string[]) ?? []" @update:model-value="field.setValue($event)" :data="TREE" placeholder="多选可访问部门" style="width: 100%" default-expand-all multiple :disabled="mode === 'disabled'" /></el-form-item></FormField>
-        <el-button v-if="mode === 'editable'" type="primary" native-type="submit">提交</el-button>
+        <el-space v-if="mode === 'editable'"><el-button type="primary" native-type="submit">提交</el-button><el-button @click="form.reset()">重置</el-button></el-space>
       </form>
     </FormProvider>
     <el-alert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" :description="result" show-icon style="margin-top: 16px" />

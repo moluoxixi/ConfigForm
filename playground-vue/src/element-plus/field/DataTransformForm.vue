@@ -8,7 +8,7 @@
     <FormProvider :form="form">
       <form @submit.prevent="handleSubmit" novalidate>
         <FormField v-for="name in FIELDS" :key="name" v-slot="{ field }" :name="name"><el-form-item :label="field.label" :help="field.description"><el-space><el-input :model-value="String(field.value ?? '')" @update:model-value="field.setValue($event)" :disabled="mode === 'disabled'" style="width: 300px" /><el-tag type="primary">原始: {{ JSON.stringify(field.value) }}</el-tag></el-space></el-form-item></FormField>
-        <el-button v-if="mode === 'editable'" type="primary" native-type="submit" style="margin-top: 8px">提交（查看转换结果）</el-button>
+        <el-space v-if="mode === 'editable'" style="margin-top: 8px"><el-button type="primary" native-type="submit">提交（查看转换结果）</el-button><el-button @click="form.reset()">重置</el-button></el-space>
       </form>
     </FormProvider>
     <el-alert v-if="rawValues" type="info" title="表单原始值" style="margin-top: 16px" :description="rawValues" show-icon />

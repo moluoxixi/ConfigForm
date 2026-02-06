@@ -107,7 +107,7 @@ export const DataTransformForm = observer((): React.ReactElement => {
             </FormField>
           ))}
 
-          {mode === 'editable' && <Button type="primary" htmlType="submit" style={{ marginTop: 8 }}>提交（查看转换结果）</Button>}
+          {mode === 'editable' && (<Space style={{ marginTop: 8 }}><Button type="primary" htmlType="submit">提交（查看转换结果）</Button><Button onClick={() => form.reset()}>重置</Button></Space>)}
         </form>
       </FormProvider>
 

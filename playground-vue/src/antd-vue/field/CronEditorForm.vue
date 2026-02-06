@@ -12,7 +12,7 @@
           <div v-if="mode === 'editable'" style="margin-top: 8px"><span style="color: #999; font-size: 12px">快捷预设：</span><ASpace wrap><ATag v-for="p in PRESETS" :key="p.value" :color="field.value === p.value ? 'blue' : 'default'" style="cursor: pointer" @click="field.setValue(p.value)">{{ p.label }}</ATag></ASpace></div>
           <div style="background: #f6f8fa; padding: 8px; border-radius: 4px; font-size: 12px; margin-top: 8px; color: #999">格式：分 时 日 月 周 | 示例：<code>0 8 * * 1-5</code> = 工作日 8:00</div>
         </AFormItem></FormField>
-        <AButton v-if="mode === 'editable'" type="primary" html-type="submit">提交</AButton>
+        <ASpace v-if="mode === 'editable'"><AButton type="primary" html-type="submit">提交</AButton><AButton @click="form.reset()">重置</AButton></ASpace>
       </form>
     </FormProvider>
     <AAlert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" message="提交结果" style="margin-top: 16px"><template #description><pre style="margin: 0; white-space: pre-wrap">{{ result }}</pre></template></AAlert>

@@ -14,7 +14,7 @@
             <el-input v-else type="textarea" :model-value="(field.value as string) ?? ''" @update:model-value="field.setValue($event)" :rows="8" placeholder="输入 HTML 内容（实际项目可接入 @wangeditor/editor-for-vue）" />
           </el-form-item>
         </FormField>
-        <el-button v-if="mode === 'editable'" type="primary" native-type="submit">提交</el-button>
+        <el-space v-if="mode === 'editable'"><el-button type="primary" native-type="submit">提交</el-button><el-button @click="form.reset()">重置</el-button></el-space>
       </form>
     </FormProvider>
     <el-alert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" :description="result" show-icon style="margin-top: 16px" />
@@ -25,7 +25,7 @@
 import { ref, onMounted } from 'vue'
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
 import { setupElementPlus } from '@moluoxixi/ui-element-plus'
-import { ElButton, ElAlert, ElRadioGroup, ElRadioButton, ElInput, ElFormItem } from 'element-plus'
+import { ElButton, ElSpace, ElAlert, ElRadioGroup, ElRadioButton, ElInput, ElFormItem } from 'element-plus'
 import type { FieldPattern } from '@moluoxixi/shared'
 
 setupElementPlus()

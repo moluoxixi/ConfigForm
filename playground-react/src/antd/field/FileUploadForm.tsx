@@ -13,7 +13,7 @@ import React, { useState, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
 import { setupAntd } from '@moluoxixi/ui-antd';
-import { Button, Typography, Alert, Segmented, Form, Input, Upload, message } from 'antd';
+import { Button, Typography, Alert, Segmented, Form, Input, Upload, message, Space } from 'antd';
 import { UploadOutlined, PlusOutlined } from '@ant-design/icons';
 import type { FieldInstance } from '@moluoxixi/core';
 import type { FieldPattern } from '@moluoxixi/shared';
@@ -116,7 +116,7 @@ export const FileUploadForm = observer((): React.ReactElement => {
             </Upload>
           </Form.Item>
 
-          {mode === 'editable' && <Button type="primary" htmlType="submit">提交</Button>}
+          {mode === 'editable' && (<Space><Button type="primary" htmlType="submit">提交</Button><Button onClick={() => form.reset()}>重置</Button></Space>)}
         </form>
       </FormProvider>
 

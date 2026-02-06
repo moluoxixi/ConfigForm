@@ -12,7 +12,7 @@
           <el-row v-if="mode === 'editable'" :gutter="16"><el-col :span="12"><div style="font-size: 12px; color: #999; margin-bottom: 4px">编辑区</div><el-input type="textarea" :model-value="(field.value as string) ?? ''" @update:model-value="field.setValue($event)" :rows="16" :style="{ fontFamily: 'Consolas, Monaco, monospace', fontSize: '13px' }" /></el-col><el-col :span="12"><div style="font-size: 12px; color: #999; margin-bottom: 4px">预览区</div><div style="border: 1px solid #dcdfe6; border-radius: 4px; padding: 12px; min-height: 380px; overflow: auto; background: #f5f7fa" v-html="simpleRender((field.value as string) ?? '')" /></el-col></el-row>
           <div v-else style="border: 1px solid #dcdfe6; border-radius: 4px; padding: 16px; background: #f5f7fa" :style="{ opacity: mode === 'disabled' ? 0.6 : 1 }" v-html="simpleRender((field.value as string) ?? '')" />
         </el-form-item></FormField>
-        <el-button v-if="mode === 'editable'" type="primary" native-type="submit">提交</el-button>
+        <el-space v-if="mode === 'editable'"><el-button type="primary" native-type="submit">提交</el-button><el-button @click="form.reset()">重置</el-button></el-space>
       </form>
     </FormProvider>
     <el-alert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" :description="result" show-icon style="margin-top: 16px" />
@@ -22,7 +22,7 @@
 import { ref, onMounted } from 'vue'
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
 import { setupElementPlus } from '@moluoxixi/ui-element-plus'
-import { ElButton, ElAlert, ElRadioGroup, ElRadioButton, ElInput, ElFormItem, ElRow, ElCol } from 'element-plus'
+import { ElButton, ElSpace, ElAlert, ElRadioGroup, ElRadioButton, ElInput, ElFormItem, ElRow, ElCol } from 'element-plus'
 import type { FieldPattern } from '@moluoxixi/shared'
 setupElementPlus()
 const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅读态', value: 'readOnly' }, { label: '禁用态', value: 'disabled' }]

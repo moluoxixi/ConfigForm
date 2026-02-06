@@ -155,7 +155,7 @@ export const CronEditorForm = observer((): React.ReactElement => {
             )}
           </FormField>
 
-          {mode === 'editable' && <Button type="primary" htmlType="submit">提交</Button>}
+          {mode === 'editable' && (<Space><Button type="primary" htmlType="submit">提交</Button><Button onClick={() => form.reset()}>重置</Button></Space>)}
         </form>
       </FormProvider>
 

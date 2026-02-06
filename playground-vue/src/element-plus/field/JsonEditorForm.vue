@@ -16,7 +16,7 @@
             <div v-if="jsonError" style="color: #f56c6c; font-size: 12px; margin-top: 4px">{{ jsonError }}</div>
           </el-form-item>
         </FormField>
-        <el-button v-if="mode === 'editable'" type="primary" native-type="submit">提交</el-button>
+        <el-space v-if="mode === 'editable'"><el-button type="primary" native-type="submit">提交</el-button><el-button @click="form.reset()">重置</el-button></el-space>
       </form>
     </FormProvider>
     <el-alert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" :description="result" show-icon style="margin-top: 16px" />

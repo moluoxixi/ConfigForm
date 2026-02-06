@@ -12,7 +12,7 @@
           <div v-if="mode === 'readOnly'" style="display: flex; flex-wrap: wrap; gap: 4px"><el-tag v-for="k in targetKeys" :key="k" type="primary">{{ PERMISSIONS.find(p => p.key === k)?.label ?? k }}</el-tag></div>
           <el-transfer v-else v-model="targetKeys" :data="PERMISSIONS" :titles="['可选权限', '已选权限']" :button-texts="['移除', '添加']" :disabled="mode === 'disabled'" filterable :filter-method="(query: string, item: any) => item.label.includes(query)" />
         </el-form-item>
-        <el-button v-if="mode === 'editable'" type="primary" native-type="submit">提交</el-button>
+        <el-space v-if="mode === 'editable'"><el-button type="primary" native-type="submit">提交</el-button><el-button @click="form.reset()">重置</el-button></el-space>
       </form>
     </FormProvider>
     <el-alert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" :description="result" show-icon style="margin-top: 16px" />
@@ -22,7 +22,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
 import { setupElementPlus } from '@moluoxixi/ui-element-plus'
-import { ElButton, ElAlert, ElRadioGroup, ElRadioButton, ElInput, ElFormItem, ElTransfer, ElTag } from 'element-plus'
+import { ElButton, ElSpace, ElAlert, ElRadioGroup, ElRadioButton, ElInput, ElFormItem, ElTransfer, ElTag } from 'element-plus'
 import type { FieldPattern } from '@moluoxixi/shared'
 setupElementPlus()
 const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅读态', value: 'readOnly' }, { label: '禁用态', value: 'disabled' }]

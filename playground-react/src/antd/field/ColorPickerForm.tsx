@@ -169,7 +169,7 @@ export const ColorPickerForm = observer((): React.ReactElement => {
             </button>
           </div>
 
-          {mode === 'editable' && <Button type="primary" htmlType="submit">提交</Button>}
+          {mode === 'editable' && (<Space><Button type="primary" htmlType="submit">提交</Button><Button onClick={() => form.reset()}>重置</Button></Space>)}
         </form>
       </FormProvider>
 

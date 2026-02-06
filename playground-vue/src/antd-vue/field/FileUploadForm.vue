@@ -8,7 +8,7 @@
         <FormField v-slot="{ field }" name="title"><AFormItem :label="field.label"><AInput :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" /></AFormItem></FormField>
         <AFormItem label="附件上传"><AUpload :file-list="fileList" :before-upload="() => false" @change="(info: any) => fileList = info.fileList" :disabled="mode !== 'editable'"><AButton v-if="mode === 'editable'">选择文件</AButton></AUpload></AFormItem>
         <AFormItem label="图片上传"><AUpload list-type="picture-card" :file-list="imageList" :before-upload="() => false" @change="(info: any) => imageList = info.fileList" :disabled="mode !== 'editable'"><div v-if="mode === 'editable' && imageList.length < 6"><span>+</span><div style="margin-top: 4px">上传</div></div></AUpload></AFormItem>
-        <AButton v-if="mode === 'editable'" type="primary" html-type="submit">提交</AButton>
+        <ASpace v-if="mode === 'editable'"><AButton type="primary" html-type="submit">提交</AButton><AButton @click="form.reset()">重置</AButton></ASpace>
       </form>
     </FormProvider>
     <AAlert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" message="提交结果" style="margin-top: 16px"><template #description><pre style="margin: 0; white-space: pre-wrap">{{ result }}</pre></template></AAlert>
@@ -19,7 +19,7 @@
 import { ref, onMounted } from 'vue'
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
-import { Button as AButton, Alert as AAlert, Segmented as ASegmented, Input as AInput, FormItem as AFormItem, Upload as AUpload } from 'ant-design-vue'
+import { Button as AButton, Space as ASpace, Alert as AAlert, Segmented as ASegmented, Input as AInput, FormItem as AFormItem, Upload as AUpload } from 'ant-design-vue'
 import type { FieldPattern } from '@moluoxixi/shared'
 
 setupAntdVue()
