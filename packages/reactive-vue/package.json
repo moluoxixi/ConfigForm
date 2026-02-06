@@ -10,9 +10,13 @@
       "import": "./src/index.ts"
     }
   },
-  "files": ["src", "dist"],
+  "files": [
+    "src",
+    "dist"
+  ],
   "dependencies": {
-    "@moluoxixi/reactive": "workspace:*"
+    "@moluoxixi/reactive": "workspace:*",
+    "@moluoxixi/shared": "workspace:*"
   },
   "peerDependencies": {
     "@vue/reactivity": ">=3.5.0"

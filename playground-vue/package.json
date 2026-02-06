@@ -13,6 +13,7 @@
     "@moluoxixi/schema": "workspace:*",
     "@moluoxixi/vue": "workspace:*",
     "@moluoxixi/reactive-vue": "workspace:*",
+    "@moluoxixi/reactive": "workspace:*",
     "@moluoxixi/ui-antd-vue": "workspace:*",
     "@moluoxixi/ui-element-plus": "workspace:*",
     "ant-design-vue": "^4.2.0",
