@@ -1,170 +1,75 @@
 <template>
   <div>
-    <h2 style="margin-bottom: 8px;">
-      Element Plus 纯配置 - 基础表单
-    </h2>
-    <p style="color: #909399; margin-bottom: 20px; font-size: 14px;">
-      所有字段通过 Schema 配置驱动，覆盖 Input / Password / Textarea / InputNumber / Select / RadioGroup / CheckboxGroup / Switch / DatePicker
+    <h2>基础表单</h2>
+    <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">
+      Input / Password / Textarea / InputNumber / Select / RadioGroup / CheckboxGroup / Switch / DatePicker
     </p>
 
+    <el-radio-group v-model="mode" size="small" style="margin-bottom: 16px">
+      <el-radio-button v-for="opt in MODE_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</el-radio-button>
+    </el-radio-group>
+
     <ConfigForm
+      :key="mode"
       :schema="schema"
-      :initial-values="{ username: '', password: '', email: '', age: 25, gender: 'male', skills: [], isRemote: false }"
-      @submit="handleSubmit"
-      @submit-failed="handleSubmitFailed"
+      :initial-values="savedValues"
+      @values-change="(v: Record<string, unknown>) => savedValues = v"
+      @submit="(v: Record<string, unknown>) => result = JSON.stringify(v, null, 2)"
+      @submit-failed="(e: any[]) => result = '验证失败:\n' + e.map((x: any) => `[${x.path}] ${x.message}`).join('\n')"
     >
       <template #default="{ form }">
-        <div style="margin-top: 20px; display: flex; gap: 12px;">
-          <el-button type="primary" native-type="submit">
-            提交
-          </el-button>
-          <el-button @click="form.reset()">
-            重置
-          </el-button>
-        </div>
+        <el-space v-if="mode === 'editable'" style="margin-top: 16px">
+          <el-button type="primary" native-type="submit">提交</el-button>
+          <el-button @click="form.reset()">重置</el-button>
+        </el-space>
       </template>
     </ConfigForm>
 
-    <el-card v-if="submitResult" style="margin-top: 20px;" shadow="never">
-      <template #header>
-        <strong>提交结果</strong>
-      </template>
-      <pre style="margin: 0; white-space: pre-wrap; font-size: 13px;">{{ submitResult }}</pre>
-    </el-card>
+    <el-alert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" :title="result.startsWith('验证失败') ? '验证失败' : '提交成功'" :description="result" show-icon style="margin-top: 16px" />
   </div>
 </template>
 
 <script setup lang="ts">
-import type { FormSchema } from '@moluoxixi/schema'
-import { setupElementPlus } from '@moluoxixi/ui-element-plus'
-import { ConfigForm } from '@moluoxixi/vue'
 /**
- * Element Plus 纯配置模式 - 基础表单
+ * 场景 1：基础表单（Element Plus）
  *
- * 演示：通过 ConfigForm + Schema 配置驱动，使用 Element Plus 全套组件
- * - 各类型字段：Input / Password / Textarea / InputNumber / Select / RadioGroup / CheckboxGroup / Switch / DatePicker
- * - required 必填验证
- * - 格式验证（email）
- * - 字符串长度 / 数值范围
+ * 覆盖全部注册组件类型 + 三种模式切换
  */
-import { ref } from 'vue'
-import 'element-plus/dist/index.css'
+import { computed, ref } from 'vue'
+import { ConfigForm } from '@moluoxixi/vue'
+import { setupElementPlus } from '@moluoxixi/ui-element-plus'
+import type { FormSchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
 
-/* 注册 Element Plus 全套组件 */
 setupElementPlus()
 
-/** 表单 Schema 定义 */
-const schema: FormSchema = {
+const MODE_OPTIONS = [
+  { label: '编辑态', value: 'editable' },
+  { label: '阅读态', value: 'readOnly' },
+  { label: '禁用态', value: 'disabled' },
+]
+
+const mode = ref<FieldPattern>('editable')
+const result = ref('')
+const savedValues = ref<Record<string, unknown>>({
+  username: '', password: '', email: '', phone: '', age: 18,
+  gender: undefined, marital: 'single', hobbies: [], notification: true, birthday: '', bio: '',
+})
+
+const schema = computed<FormSchema>(() => ({
+  form: { labelPosition: 'right', labelWidth: '120px', pattern: mode.value },
   fields: {
-    username: {
-      type: 'string',
-      label: '用户名',
-      component: 'Input',
-      wrapper: 'FormItem',
-      required: true,
-      placeholder: '请输入用户名',
-      rules: [
-        { minLength: 2, maxLength: 20, message: '用户名 2-20 个字符' },
-      ],
-    },
-    password: {
-      type: 'string',
-      label: '密码',
-      component: 'Password',
-      wrapper: 'FormItem',
-      required: true,
-      rules: [{ minLength: 6, message: '密码至少 6 位' }],
-    },
-    email: {
-      type: 'string',
-      label: '邮箱',
-      component: 'Input',
-      wrapper: 'FormItem',
-      required: true,
-      placeholder: '请输入邮箱地址',
-      rules: [{ format: 'email' }],
-    },
-    bio: {
-      type: 'string',
-      label: '个人简介',
-      component: 'Textarea',
-      wrapper: 'FormItem',
-      placeholder: '简单介绍一下自己...',
-      rules: [{ maxLength: 200, message: '简介不超过 200 字' }],
-    },
-    age: {
-      type: 'number',
-      label: '年龄',
-      component: 'InputNumber',
-      wrapper: 'FormItem',
-      defaultValue: 25,
-      rules: [{ min: 1, max: 150, message: '年龄范围 1-150' }],
-    },
-    gender: {
-      type: 'string',
-      label: '性别',
-      component: 'RadioGroup',
-      wrapper: 'FormItem',
-      enum: [
-        { label: '男', value: 'male' },
-        { label: '女', value: 'female' },
-        { label: '保密', value: 'secret' },
-      ],
-      defaultValue: 'male',
-    },
-    department: {
-      type: 'string',
-      label: '部门',
-      component: 'Select',
-      wrapper: 'FormItem',
-      required: true,
-      placeholder: '请选择部门',
-      enum: [
-        { label: '技术部', value: 'tech' },
-        { label: '产品部', value: 'product' },
-        { label: '设计部', value: 'design' },
-        { label: '市场部', value: 'marketing' },
-      ],
-    },
-    skills: {
-      type: 'array',
-      label: '技能标签',
-      component: 'CheckboxGroup',
-      wrapper: 'FormItem',
-      enum: [
-        { label: 'Vue', value: 'vue' },
-        { label: 'React', value: 'react' },
-        { label: 'TypeScript', value: 'ts' },
-        { label: 'Node.js', value: 'node' },
-      ],
-      defaultValue: [],
-    },
-    isRemote: {
-      type: 'boolean',
-      label: '远程办公',
-      component: 'Switch',
-      wrapper: 'FormItem',
-      defaultValue: false,
-    },
-    joinDate: {
-      type: 'string',
-      label: '入职日期',
-      component: 'DatePicker',
-      wrapper: 'FormItem',
-      placeholder: '请选择日期',
-    },
+    username: { type: 'string', label: '用户名', required: true, component: 'Input', wrapper: 'FormItem', placeholder: '请输入用户名', rules: [{ minLength: 3, maxLength: 20, message: '3-20 个字符' }] },
+    password: { type: 'string', label: '密码', required: true, component: 'Password', wrapper: 'FormItem', placeholder: '请输入密码', rules: [{ minLength: 8, message: '至少 8 字符' }] },
+    email: { type: 'string', label: '邮箱', required: true, component: 'Input', wrapper: 'FormItem', placeholder: '请输入邮箱', rules: [{ format: 'email', message: '无效邮箱' }] },
+    phone: { type: 'string', label: '手机号', component: 'Input', wrapper: 'FormItem', placeholder: '请输入手机号', rules: [{ format: 'phone', message: '无效手机号' }] },
+    age: { type: 'number', label: '年龄', required: true, component: 'InputNumber', wrapper: 'FormItem', defaultValue: 18, componentProps: { min: 0, max: 150 } },
+    gender: { type: 'string', label: '性别', component: 'Select', wrapper: 'FormItem', placeholder: '请选择', enum: [{ label: '男', value: 'male' }, { label: '女', value: 'female' }] },
+    marital: { type: 'string', label: '婚姻状况', component: 'RadioGroup', wrapper: 'FormItem', defaultValue: 'single', enum: [{ label: '未婚', value: 'single' }, { label: '已婚', value: 'married' }] },
+    hobbies: { type: 'array', label: '爱好', component: 'CheckboxGroup', wrapper: 'FormItem', defaultValue: [], enum: [{ label: '阅读', value: 'reading' }, { label: '运动', value: 'sports' }, { label: '编程', value: 'coding' }] },
+    notification: { type: 'boolean', label: '接收通知', component: 'Switch', wrapper: 'FormItem', defaultValue: true },
+    birthday: { type: 'string', label: '生日', component: 'DatePicker', wrapper: 'FormItem', placeholder: '请选择日期' },
+    bio: { type: 'string', label: '个人简介', component: 'Textarea', wrapper: 'FormItem', placeholder: '不超过 200 字', rules: [{ maxLength: 200, message: '不超过 200 字' }] },
   },
-}
-
-const submitResult = ref<string>('')
-
-/** 提交成功回调 */
-function handleSubmit(values: Record<string, unknown>): void {
-  submitResult.value = JSON.stringify(values, null, 2)
-}
-
-/** 提交失败回调 */
-function handleSubmitFailed(errors: unknown[]): void {
-  submitResult.value = `验证失败:\n${JSON.stringify(errors, null, 2)}`
-}
+}))
 </script>

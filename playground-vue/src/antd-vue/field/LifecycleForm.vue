@@ -1,236 +1,56 @@
 <template>
   <div>
-    <h2 style="margin-bottom: 8px;">
-      Ant Design Vue Field 组件 - 生命周期
-    </h2>
-    <p style="color: rgba(0,0,0,0.45); margin-bottom: 20px; font-size: 14px;">
-      值变化监听 / 单字段监听 / 自动保存 LocalStorage / 脏检测 / 离开提示 / 事件日志
-    </p>
-
-    <!-- 状态栏 -->
-    <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
-      <ATag :color="isDirty ? 'orange' : 'green'">
-        {{ isDirty ? '未保存' : '无修改' }}
-      </ATag>
-      <ATag v-if="lastSaved" color="blue">
-        上次自动保存: {{ lastSaved }}
-      </ATag>
-      <ATag v-if="wasRestored" color="orange">
-        已从本地恢复数据
-      </ATag>
-    </div>
-
-    <div style="display: grid; grid-template-columns: 1fr 340px; gap: 24px;">
-      <!-- 表单 -->
-      <div>
-        <FormProvider :form="form">
-          <form @submit.prevent="handleSubmit">
-            <FormField v-slot="{ field }" name="title">
-              <AFormItem :label="field.label" required :validate-status="field.errors.length > 0 ? 'error' : ''" :help="field.errors[0]?.message">
-                <AInput
-                  :value="(field.value as string)" placeholder="请输入标题"
-                  @update:value="field.setValue($event)" @focus="field.focus(); log('title 聚焦')"
-                  @blur="field.blur(); field.validate('blur'); log('title 失焦')"
-                >
-                  <template v-if="field.active" #suffix>
-                    <ATag color="blue" style="margin: 0;">
-                      聚焦中
-                    </ATag>
-                  </template>
-                </AInput>
-              </AFormItem>
-            </FormField>
-
-            <FormField v-slot="{ field }" name="content">
-              <AFormItem :label="field.label" required :validate-status="field.errors.length > 0 ? 'error' : ''" :help="field.errors[0]?.message">
-                <ATextarea
-                  :value="(field.value as string)" :rows="4"
-                  placeholder="请输入内容..." @update:value="field.setValue($event)" @focus="field.focus()" @blur="field.blur(); field.validate('blur')"
-                />
-              </AFormItem>
-            </FormField>
-
-            <FormField v-slot="{ field }" name="category">
-              <AFormItem :label="field.label">
-                <ASelect
-                  :value="(field.value as string)" style="width: 100%;" :options="field.dataSource.map((item) => ({ label: item.label, value: item.value }))"
-                  @update:value="field.setValue($event)"
-                />
-              </AFormItem>
-            </FormField>
-
-            <FormField v-slot="{ field }" name="published">
-              <AFormItem :label="field.label">
-                <ASwitch :checked="!!field.value" checked-children="发布" un-checked-children="草稿" @update:checked="field.setValue($event)" />
-              </AFormItem>
-            </FormField>
-
-            <div style="display: flex; gap: 12px;">
-              <AButton type="primary" html-type="submit">
-                提交
-              </AButton>
-              <AButton @click="handleReset">
-                重置 + 清除存储
-              </AButton>
-            </div>
-          </form>
-        </FormProvider>
-
-        <ACard v-if="submitResult" style="margin-top: 20px;">
-          <pre style="margin: 0; white-space: pre-wrap; font-size: 13px;">{{ submitResult }}</pre>
-        </ACard>
+    <h2>生命周期钩子</h2>
+    <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">onMount / onChange / onSubmit / onReset / 自动保存</p>
+    <ASegmented v-model:value="mode" :options="MODE_OPTIONS" style="margin-bottom: 16px" />
+    <div style="display: flex; gap: 16px">
+      <div style="flex: 1">
+        <ASpace style="margin-bottom: 12px"><span>自动保存：</span><ASwitch v-model:checked="autoSave" /></ASpace>
+        <FormProvider :form="form"><form @submit.prevent="handleSubmit" novalidate>
+          <FormField v-for="n in FIELDS" :key="n" v-slot="{ field }" :name="n"><AFormItem :label="field.label">
+            <AInputNumber v-if="n === 'price'" :value="(field.value as number)" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" style="width: 100%" />
+            <ATextarea v-else-if="n === 'description'" :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" :rows="3" />
+            <AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" />
+          </AFormItem></FormField>
+          <ASpace v-if="mode === 'editable'"><AButton type="primary" html-type="submit">提交</AButton><AButton @click="handleReset">重置</AButton></ASpace>
+        </form></FormProvider>
       </div>
-
-      <!-- 事件日志 -->
-      <ACard style="height: fit-content;">
-        <template #title>
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <strong>事件日志</strong>
-            <AButton size="small" type="link" @click="eventLog = []">
-              清空
-            </AButton>
-          </div>
-        </template>
-        <div style="font-family: monospace; font-size: 12px; max-height: 400px; overflow-y: auto; color: rgba(0,0,0,0.65);">
-          <div v-for="(entry, i) in eventLog" :key="i" style="padding: 3px 0; border-bottom: 1px solid #fafafa; line-height: 1.6;">
-            {{ entry }}
-          </div>
-          <div v-if="eventLog.length === 0" style="color: rgba(0,0,0,0.25); text-align: center; padding: 20px 0;">
-            等待事件...
-          </div>
-        </div>
+      <ACard :title="`事件日志 (${logs.length})`" size="small" style="width: 360px"><template #extra><AButton size="small" @click="logs = []">清空</AButton></template>
+        <div style="max-height: 400px; overflow: auto; font-size: 12px"><div v-for="log in logs" :key="log.id" style="padding: 2px 0; border-bottom: 1px solid #f0f0f0"><ATag :color="typeColors[log.type]" style="font-size: 10px">{{ log.type }}</ATag><span style="color: #999">{{ log.time }}</span><div style="color: #555; margin-top: 2px">{{ log.message }}</div></div></div>
       </ACard>
     </div>
+    <AAlert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" message="提交结果" style="margin-top: 16px"><template #description><pre style="margin: 0; white-space: pre-wrap">{{ result }}</pre></template></AAlert>
   </div>
 </template>
-
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue'
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
-import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
-import { Button as AButton, Card as ACard, FormItem as AFormItem, Input as AInput, Select as ASelect, Switch as ASwitch, Tag as ATag, Textarea as ATextarea, message } from 'ant-design-vue'
-/**
- * Ant Design Vue Field 组件模式 - 生命周期
- *
- * 覆盖场景：
- * - localStorage 自动保存（防抖 1.5s）
- * - 值变化事件（全量 + 单字段）
- * - 事件日志面板
- * - 离开提示（beforeunload）
- * - 表单脏检测
- */
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-
+import { Button as AButton, Space as ASpace, Alert as AAlert, Segmented as ASegmented, Input as AInput, InputNumber as AInputNumber, FormItem as AFormItem, Card as ACard, Textarea as ATextarea, Tag as ATag, Switch as ASwitch } from 'ant-design-vue'
+import type { FieldPattern } from '@moluoxixi/shared'
 setupAntdVue()
-
-/** 自动保存存储 Key */
-const STORAGE_KEY = 'configform_antd_autosave_demo'
-
-/** 尝试从 LocalStorage 恢复数据 */
-function loadSavedValues(): Record<string, unknown> | undefined {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved)
-      return JSON.parse(saved)
-  }
-  catch { /* 忽略解析错误 */ }
-  return undefined
-}
-
-const savedValues = loadSavedValues()
-const wasRestored = ref(!!savedValues)
-
-const form = useCreateForm({
-  initialValues: savedValues ?? { title: '', content: '', category: 'tech', published: false },
-})
-
-form.createField({ name: 'title', label: '标题', required: true, rules: [{ minLength: 2, message: '标题至少 2 个字符' }] })
-form.createField({ name: 'content', label: '内容', required: true })
-form.createField({
-  name: 'category',
-  label: '分类',
-  dataSource: [{ label: '技术', value: 'tech' }, { label: '生活', value: 'life' }, { label: '随笔', value: 'essay' }],
-})
-form.createField({ name: 'published', label: '立即发布' })
-
-/* 事件日志 */
-const eventLog = ref<string[]>([])
-function log(msg: string): void {
-  const time = new Date().toLocaleTimeString()
-  eventLog.value.unshift(`[${time}] ${msg}`)
-  if (eventLog.value.length > 30)
-    eventLog.value.pop()
-}
-
-/* 监听全局值变化 */
-form.onValuesChange(() => {
-  log('onValuesChange 触发')
-})
-
-/* 监听单字段变化 */
-form.onFieldValueChange('title', (value) => {
-  log(`title 值变化: "${value}"`)
-})
-
-/* 自动保存（防抖 1.5s） */
-let saveTimer: ReturnType<typeof setTimeout> | null = null
-const lastSaved = ref('')
-
-form.onValuesChange((values) => {
-  if (saveTimer)
-    clearTimeout(saveTimer)
-  saveTimer = setTimeout(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(values))
-      lastSaved.value = new Date().toLocaleTimeString()
-      log('自动保存到 LocalStorage')
-    }
-    catch { /* 忽略写入错误 */ }
-  }, 1500)
-})
-
-/* 离开页面前提示 */
-function handleBeforeUnload(e: BeforeUnloadEvent): void {
-  if (form.modified) {
-    e.preventDefault()
-    e.returnValue = ''
-  }
-}
+const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅读态', value: 'readOnly' }, { label: '禁用态', value: 'disabled' }]
+const mode = ref<FieldPattern>('editable')
+const result = ref('')
+const autoSave = ref(true)
+const FIELDS = ['title', 'price', 'description']
+interface Log { id: number; time: string; type: string; message: string }
+const logs = ref<Log[]>([])
+let logId = 0
+const typeColors: Record<string, string> = { mount: 'purple', change: 'blue', submit: 'green', reset: 'orange', 'auto-save': 'cyan' }
+function addLog(type: string, msg: string): void { logId++; logs.value = [{ id: logId, time: new Date().toLocaleTimeString(), type, message: msg }, ...logs.value].slice(0, 50) }
+const form = useCreateForm({ initialValues: { title: '生命周期测试', price: 99, description: '' } })
+let timer: ReturnType<typeof setTimeout> | null = null
 onMounted(() => {
-  window.addEventListener('beforeunload', handleBeforeUnload)
-  log('表单已挂载')
+  form.createField({ name: 'title', label: '标题', required: true }); form.createField({ name: 'price', label: '价格' }); form.createField({ name: 'description', label: '描述' })
+  addLog('mount', '表单已挂载')
+  form.onValuesChange((v: Record<string, unknown>) => {
+    addLog('change', `值变化：${JSON.stringify(v).slice(0, 80)}...`)
+    if (timer) clearTimeout(timer)
+    if (autoSave.value) { timer = setTimeout(() => { addLog('auto-save', '自动保存到 localStorage'); try { localStorage.setItem('vue-lifecycle-auto', JSON.stringify(v)) } catch { /* */ } }, 1500) }
+  })
 })
-onBeforeUnmount(() => {
-  window.removeEventListener('beforeunload', handleBeforeUnload)
-  if (saveTimer)
-    clearTimeout(saveTimer)
-})
-
-const isDirty = computed(() => form.modified)
-const submitResult = ref('')
-
-async function handleSubmit(): Promise<void> {
-  log('提交开始...')
-  const result = await form.submit()
-  if (result.errors.length > 0) {
-    log(`提交失败: ${result.errors.map(e => e.message).join(', ')}`)
-    submitResult.value = '验证失败'
-    message.error('表单验证失败，请检查输入')
-  }
-  else {
-    log('提交成功')
-    submitResult.value = JSON.stringify(result.values, null, 2)
-    localStorage.removeItem(STORAGE_KEY)
-    lastSaved.value = ''
-    message.success('提交成功！')
-  }
-}
-
-function handleReset(): void {
-  form.reset()
-  localStorage.removeItem(STORAGE_KEY)
-  lastSaved.value = ''
-  wasRestored.value = false
-  log('表单已重置')
-  message.info('表单已重置')
-}
+onUnmounted(() => { if (timer) clearTimeout(timer) })
+function handleReset(): void { addLog('reset', '表单已重置'); form.reset() }
+async function handleSubmit(): Promise<void> { addLog('submit', '提交开始'); const res = await form.submit(); if (res.errors.length > 0) { addLog('submit', '提交失败'); result.value = '验证失败: ' + res.errors.map(e => e.message).join(', ') } else { addLog('submit', '提交成功'); result.value = JSON.stringify(res.values, null, 2) } }
 </script>

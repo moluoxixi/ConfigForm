@@ -1,249 +1,48 @@
 <template>
   <div>
-    <h2 style="margin-bottom: 8px;">
-      Element Plus 纯配置 - 动态 Schema
-    </h2>
-    <p style="color: #909399; margin-bottom: 20px; font-size: 14px;">
-      模拟后端下发不同 Schema / 运行时切换热更新 / 基础 Schema 继承合并 / 条件字段
-    </p>
-
-    <!-- 场景切换 -->
-    <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
-      <span style="font-weight: 600; color: #303133;">业务场景：</span>
-      <ElButtonGroup>
-        <ElButton
-          v-for="s in scenarioButtons" :key="s.key"
-          :type="currentScenario === s.key ? 'primary' : 'default'"
-          @click="switchScenario(s.key)"
-        >
-          {{ s.label }}
-        </ElButton>
-      </ElButtonGroup>
-    </div>
-
-    <ElAlert
-      :title="`当前场景「${currentScenario}」：基础 Schema（姓名+邮箱+手机）+ 场景扩展字段，通过 mergeSchema 合并`"
-      type="info" :closable="false" show-icon style="margin-bottom: 20px;"
-    />
-
-    <!-- 使用 key 强制重建表单实例 -->
-    <ConfigForm
-      :key="currentScenario"
-      :schema="finalSchema"
-      @submit="handleSubmit"
-    >
-      <template #default>
-        <div style="margin-top: 20px;">
-          <ElButton type="primary" native-type="submit">
-            提交
-          </ElButton>
-        </div>
-      </template>
+    <h2>动态 Schema</h2>
+    <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">mergeSchema 合并 / 场景切换 / 热更新</p>
+    <el-space direction="vertical" :style="{ width: '100%', marginBottom: '16px' }">
+      <el-radio-group v-model="mode" size="small">
+        <el-radio-button v-for="opt in MODE_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</el-radio-button>
+      </el-radio-group>
+      <el-radio-group v-model="scenario" size="small" @change="result = ''">
+        <el-radio-button v-for="opt in scenarioOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</el-radio-button>
+      </el-radio-group>
+    </el-space>
+    <el-tag type="success" style="margin-bottom: 12px">当前：{{ SCENARIOS[scenario].label }} | 字段数：{{ Object.keys(mergedSchema.fields).length }}</el-tag>
+    <ConfigForm :key="`${scenario}-${mode}`" :schema="mergedSchema" @submit="(v: Record<string, unknown>) => result = JSON.stringify(v, null, 2)" @submit-failed="(e: any[]) => result = '验证失败:\n' + e.map((x: any) => `[${x.path}] ${x.message}`).join('\n')">
+      <template #default="{ form }"><el-space v-if="mode === 'editable'" style="margin-top: 16px"><el-button type="primary" native-type="submit">提交</el-button><el-button @click="form.reset()">重置</el-button></el-space></template>
     </ConfigForm>
-
-    <!-- 展示合并后 Schema -->
-    <details style="margin-top: 20px;">
-      <summary style="cursor: pointer; color: #409eff; font-size: 14px;">
-        查看当前合并后的 Schema
-      </summary>
-      <ElCard shadow="never" style="margin-top: 8px;">
-        <pre style="margin: 0; font-size: 12px; overflow-x: auto;">{{ JSON.stringify(finalSchema, null, 2) }}</pre>
-      </ElCard>
-    </details>
-
-    <ElCard v-if="submitResult" style="margin-top: 20px;" shadow="never">
-      <pre style="margin: 0; white-space: pre-wrap; font-size: 13px;">{{ submitResult }}</pre>
-    </ElCard>
+    <el-alert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" :description="result" show-icon style="margin-top: 16px" />
   </div>
 </template>
-
 <script setup lang="ts">
-import type { FormSchema } from '@moluoxixi/schema'
+import { computed, ref } from 'vue'
+import { ConfigForm } from '@moluoxixi/vue'
 import { mergeSchema } from '@moluoxixi/schema'
 import { setupElementPlus } from '@moluoxixi/ui-element-plus'
-import { ConfigForm } from '@moluoxixi/vue'
-import { ElAlert, ElButton, ElButtonGroup, ElCard } from 'element-plus'
-/**
- * Element Plus 纯配置模式 - 动态 Schema
- *
- * 覆盖场景：
- * - 服务端下发 Schema（模拟后端返回不同配置）
- * - Schema 热更新（运行时切换 Schema）
- * - Schema 合并/继承（基础 Schema + 覆盖）
- * - 组件动态切换
- */
-import { computed, ref } from 'vue'
-import 'element-plus/dist/index.css'
-
+import type { FormSchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
 setupElementPlus()
+const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅读态', value: 'readOnly' }, { label: '禁用态', value: 'disabled' }]
+const mode = ref<FieldPattern>('editable')
+const result = ref('')
 
-/** 基础 Schema（所有场景共享） */
-const baseSchema: FormSchema = {
-  fields: {
-    name: {
-      type: 'string',
-      label: '姓名',
-      component: 'Input',
-      wrapper: 'FormItem',
-      required: true,
-      placeholder: '请输入姓名',
-    },
-    email: {
-      type: 'string',
-      label: '邮箱',
-      component: 'Input',
-      wrapper: 'FormItem',
-      rules: [{ format: 'email' }],
-      placeholder: '请输入邮箱',
-    },
-    phone: {
-      type: 'string',
-      label: '手机号',
-      component: 'Input',
-      wrapper: 'FormItem',
-      placeholder: '请输入手机号',
-    },
-  },
+type ScenarioKey = 'individual' | 'enterprise' | 'student'
+const scenario = ref<ScenarioKey>('individual')
+const scenarioOptions = [{ label: '个人用户', value: 'individual' }, { label: '企业用户', value: 'enterprise' }, { label: '学生认证', value: 'student' }]
+
+const BASE: FormSchema = { form: { labelPosition: 'right', labelWidth: '120px' }, fields: { name: { type: 'string', label: '姓名', required: true, component: 'Input', wrapper: 'FormItem', order: 1 }, phone: { type: 'string', label: '手机号', required: true, component: 'Input', wrapper: 'FormItem', rules: [{ format: 'phone', message: '无效手机号' }], order: 2 }, email: { type: 'string', label: '邮箱', component: 'Input', wrapper: 'FormItem', rules: [{ format: 'email', message: '无效邮箱' }], order: 3 }, remark: { type: 'string', label: '备注', component: 'Textarea', wrapper: 'FormItem', order: 99 } } }
+
+const SCENARIOS: Record<ScenarioKey, { label: string; override: Partial<FormSchema> }> = {
+  individual: { label: '个人用户', override: { fields: { idCard: { type: 'string', label: '身份证', required: true, component: 'Input', wrapper: 'FormItem', rules: [{ pattern: /^\d{17}[\dXx]$/, message: '无效身份证' }], order: 4 }, city: { type: 'string', label: '城市', component: 'Select', wrapper: 'FormItem', enum: [{ label: '北京', value: 'bj' }, { label: '上海', value: 'sh' }], order: 5 } } } },
+  enterprise: { label: '企业用户', override: { fields: { name: { type: 'string', label: '联系人', required: true, component: 'Input', wrapper: 'FormItem', order: 1 }, companyName: { type: 'string', label: '公司名称', required: true, component: 'Input', wrapper: 'FormItem', order: 4 }, creditCode: { type: 'string', label: '信用代码', required: true, component: 'Input', wrapper: 'FormItem', rules: [{ pattern: /^[0-9A-Z]{18}$/, message: '18 位信用代码' }], order: 5 } } } },
+  student: { label: '学生认证', override: { fields: { school: { type: 'string', label: '学校', required: true, component: 'Input', wrapper: 'FormItem', order: 4 }, studentId: { type: 'string', label: '学号', required: true, component: 'Input', wrapper: 'FormItem', rules: [{ pattern: /^\d{8,14}$/, message: '8-14 位数字' }], order: 5 }, major: { type: 'string', label: '专业', required: true, component: 'Input', wrapper: 'FormItem', order: 6 } } } },
 }
 
-/** 模拟不同后端场景下发的 Schema */
-const scenarioSchemas: Record<string, Partial<FormSchema>> = {
-  employee: {
-    fields: {
-      department: {
-        type: 'string',
-        label: '部门',
-        component: 'Select',
-        wrapper: 'FormItem',
-        required: true,
-        enum: ['技术部', '产品部', '设计部', '市场部', '人力资源'],
-      },
-      level: {
-        type: 'string',
-        label: '职级',
-        component: 'Select',
-        wrapper: 'FormItem',
-        enum: ['P5', 'P6', 'P7', 'P8', 'P9'],
-      },
-      hireDate: {
-        type: 'string',
-        label: '入职日期',
-        component: 'DatePicker',
-        wrapper: 'FormItem',
-        placeholder: '请选择入职日期',
-      },
-      isRemote: {
-        type: 'boolean',
-        label: '远程办公',
-        component: 'Switch',
-        wrapper: 'FormItem',
-      },
-    },
-  },
-  customer: {
-    fields: {
-      company: {
-        type: 'string',
-        label: '公司名称',
-        component: 'Input',
-        wrapper: 'FormItem',
-        required: true,
-        placeholder: '请输入公司名称',
-      },
-      industry: {
-        type: 'string',
-        label: '行业',
-        component: 'Select',
-        wrapper: 'FormItem',
-        enum: ['互联网', '金融', '制造业', '教育', '医疗', '零售'],
-      },
-      budget: {
-        type: 'number',
-        label: '预算（万元）',
-        component: 'InputNumber',
-        wrapper: 'FormItem',
-        rules: [{ min: 0 }],
-      },
-      source: {
-        type: 'string',
-        label: '来源渠道',
-        component: 'RadioGroup',
-        wrapper: 'FormItem',
-        enum: [
-          { label: '官网', value: 'website' },
-          { label: '转介绍', value: 'referral' },
-          { label: '广告', value: 'ad' },
-        ],
-      },
-    },
-  },
-  supplier: {
-    fields: {
-      company: {
-        type: 'string',
-        label: '供应商名称',
-        component: 'Input',
-        wrapper: 'FormItem',
-        required: true,
-        placeholder: '请输入供应商全称',
-      },
-      category: {
-        type: 'string',
-        label: '供应类别',
-        component: 'Select',
-        wrapper: 'FormItem',
-        enum: ['原材料', '设备', '服务', '软件'],
-      },
-      licenseNumber: {
-        type: 'string',
-        label: '许可证号',
-        component: 'Input',
-        wrapper: 'FormItem',
-        required: true,
-        placeholder: '请输入营业执照号',
-        /* 组件动态切换：软件类别无需许可证 */
-        reactions: [
-          {
-            watch: 'category',
-            when: values => values[0] === '软件',
-            fulfill: { state: { visible: false } },
-            otherwise: { state: { visible: true } },
-          },
-        ],
-      },
-      cooperationDate: {
-        type: 'string',
-        label: '合作开始日期',
-        component: 'DatePicker',
-        wrapper: 'FormItem',
-        placeholder: '请选择日期',
-      },
-    },
-  },
-}
-
-type ScenarioKey = 'employee' | 'customer' | 'supplier'
-const currentScenario = ref<ScenarioKey>('employee')
-const submitResult = ref('')
-
-/** 动态合并生成最终 Schema */
-const finalSchema = computed<FormSchema>(() => {
-  const override = scenarioSchemas[currentScenario.value] ?? {}
-  return mergeSchema(baseSchema, override)
+const mergedSchema = computed<FormSchema>(() => {
+  const merged = mergeSchema(BASE, SCENARIOS[scenario.value].override)
+  return { ...merged, form: { ...merged.form, pattern: mode.value } }
 })
-
-const scenarioButtons: { key: ScenarioKey, label: string }[] = [
-  { key: 'employee', label: '员工' },
-  { key: 'customer', label: '客户' },
-  { key: 'supplier', label: '供应商' },
-]
-
-function switchScenario(key: ScenarioKey): void {
-  currentScenario.value = key
-  submitResult.value = ''
-}
-
-function handleSubmit(values: Record<string, unknown>): void {
-  submitResult.value = `场景: ${currentScenario.value}\n${JSON.stringify(values, null, 2)}`
-}
 </script>

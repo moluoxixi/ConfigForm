@@ -1,300 +1,39 @@
 <template>
   <div>
-    <h2 style="margin-bottom: 8px;">
-      Element Plus Field 组件 - 多表单协作
-    </h2>
-    <p style="color: #909399; margin-bottom: 20px; font-size: 14px;">
-      两个独立表单联合提交 / 跨表单联动 / el-dialog 弹窗表单
-    </p>
-
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
-      <!-- 表单 1：基本信息 -->
-      <ElCard shadow="never">
-        <template #header>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-weight: 600;">基本信息表单</span>
-            <ElTag size="small" type="primary">
-              表单 A
-            </ElTag>
-          </div>
-        </template>
-        <FormProvider :form="basicForm">
-          <FormField v-slot="{ field }" name="name">
-            <ElFormItem :label="field.label" required :error="field.errors.length > 0 ? field.errors[0].message : ''">
-              <ElInput
-                :model-value="(field.value as string)"
-                placeholder="请输入姓名"
-                @update:model-value="field.setValue($event)"
-                @blur="field.blur(); field.validate('blur')"
-              />
-            </ElFormItem>
-          </FormField>
-          <FormField v-slot="{ field }" name="email">
-            <ElFormItem :label="field.label" required :error="field.errors.length > 0 ? field.errors[0].message : ''">
-              <ElInput
-                :model-value="(field.value as string)"
-                placeholder="请输入邮箱"
-                @update:model-value="field.setValue($event)"
-                @blur="field.blur(); field.validate('blur')"
-              />
-            </ElFormItem>
-          </FormField>
-          <FormField v-slot="{ field }" name="phone">
-            <ElFormItem :label="field.label" :error="field.errors.length > 0 ? field.errors[0].message : ''">
-              <ElInput
-                :model-value="(field.value as string)"
-                placeholder="选填"
-                @update:model-value="field.setValue($event)"
-                @blur="field.blur(); field.validate('blur')"
-              />
-            </ElFormItem>
-          </FormField>
-        </FormProvider>
-      </ElCard>
-
-      <!-- 表单 2：地址信息 -->
-      <ElCard shadow="never">
-        <template #header>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-weight: 600;">地址信息表单</span>
-            <ElTag size="small" type="success">
-              表单 B
-            </ElTag>
-          </div>
-        </template>
-        <FormProvider :form="addressForm">
-          <FormField v-slot="{ field }" name="province">
-            <ElFormItem :label="field.label" required :error="field.errors.length > 0 ? field.errors[0].message : ''">
-              <ElSelect
-                :model-value="(field.value as string)"
-                placeholder="请选择省份"
-                style="width: 100%;" @update:model-value="field.setValue($event)"
-              >
-                <ElOption v-for="item in field.dataSource" :key="String(item.value)" :label="item.label" :value="item.value" />
-              </ElSelect>
-            </ElFormItem>
-          </FormField>
-          <FormField v-slot="{ field }" name="city">
-            <ElFormItem :label="field.label" required :error="field.errors.length > 0 ? field.errors[0].message : ''">
-              <ElInput
-                :model-value="(field.value as string)"
-                placeholder="切换省份会自动清空"
-                @update:model-value="field.setValue($event)"
-                @blur="field.blur(); field.validate('blur')"
-              />
-            </ElFormItem>
-          </FormField>
-          <FormField v-slot="{ field }" name="detail">
-            <ElFormItem :label="field.label" required :error="field.errors.length > 0 ? field.errors[0].message : ''">
-              <ElInput
-                :model-value="(field.value as string)"
-                placeholder="请输入详细地址"
-                @update:model-value="field.setValue($event)"
-                @blur="field.blur(); field.validate('blur')"
-              />
-            </ElFormItem>
-          </FormField>
-        </FormProvider>
-      </ElCard>
-    </div>
-
-    <!-- 操作按钮 -->
-    <div style="display: flex; gap: 12px; margin-bottom: 20px;">
-      <ElButton type="primary" @click="handleCombinedSubmit">
-        联合提交两个表单
-      </ElButton>
-      <ElButton type="warning" @click="openDialog">
-        打开弹窗表单
-      </ElButton>
-    </div>
-
-    <!-- el-dialog 弹窗表单 -->
-    <ElDialog v-model="showDialog" title="弹窗表单" width="500px" destroy-on-close>
-      <FormProvider :form="dialogForm">
-        <FormField v-slot="{ field }" name="note">
-          <ElFormItem :label="field.label" required :error="field.errors.length > 0 ? field.errors[0].message : ''">
-            <ElInput
-              type="textarea" :rows="3"
-              :model-value="(field.value as string)"
-              placeholder="请输入备注（至少 5 个字符）"
-              @update:model-value="field.setValue($event)"
-            />
-          </ElFormItem>
-        </FormField>
-        <FormField v-slot="{ field }" name="priority">
-          <ElFormItem :label="field.label">
-            <ElSelect
-              :model-value="(field.value as string)"
-              style="width: 100%;"
-              @update:model-value="field.setValue($event)"
-            >
-              <ElOption v-for="item in field.dataSource" :key="String(item.value)" :label="item.label" :value="item.value" />
-            </ElSelect>
-          </ElFormItem>
-        </FormField>
-        <FormField v-slot="{ field }" name="assignee">
-          <ElFormItem :label="field.label">
-            <ElInput
-              :model-value="(field.value as string)"
-              placeholder="请输入负责人姓名"
-              @update:model-value="field.setValue($event)"
-            />
-          </ElFormItem>
-        </FormField>
-      </FormProvider>
-      <template #footer>
-        <ElButton @click="showDialog = false">
-          取消
-        </ElButton>
-        <ElButton type="primary" @click="handleDialogSubmit">
-          确定
-        </ElButton>
-      </template>
-    </ElDialog>
-
-    <!-- 弹窗结果 -->
-    <ElCard v-if="dialogResult" shadow="never" style="margin-bottom: 20px;">
-      <template #header>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <strong>弹窗表单结果</strong>
-          <ElTag size="small" type="warning">
-            Dialog
-          </ElTag>
-        </div>
-      </template>
-      <pre style="margin: 0; font-size: 13px;">{{ dialogResult }}</pre>
-    </ElCard>
-
-    <!-- 联合提交结果 -->
-    <ElCard v-if="submitResult" shadow="never">
-      <template #header>
-        <strong>联合提交结果</strong>
-      </template>
-      <pre style="margin: 0; white-space: pre-wrap; font-size: 13px;">{{ submitResult }}</pre>
-    </ElCard>
+    <h2>多表单协作</h2>
+    <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">两个独立表单 / 联合提交 / 弹窗表单</p>
+    <el-radio-group v-model="mode" size="small" style="margin-bottom: 16px">
+      <el-radio-button v-for="opt in MODE_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</el-radio-button>
+    </el-radio-group>
+    <el-row :gutter="16">
+      <el-col :span="12"><el-card title="主表单 - 订单信息" shadow="never"><FormProvider :form="mainForm"><FormField v-for="n in ['orderName','customer','total']" :key="n" v-slot="{ field }" :name="n"><el-form-item :label="field.label"><el-input-number v-if="n === 'total'" :model-value="(field.value as number)" @update:model-value="field.setValue($event)" :disabled="mode === 'disabled'" :min="0" style="width: 100%" /><el-input v-else :model-value="(field.value as string) ?? ''" @update:model-value="field.setValue($event)" :disabled="mode === 'disabled'" /></el-form-item></FormField><el-button v-if="mode === 'editable'" type="info" @click="modalOpen = true">从弹窗填写联系人</el-button></FormProvider></el-card></el-col>
+      <el-col :span="12"><el-card title="子表单 - 联系人" shadow="never"><FormProvider :form="subForm"><FormField v-for="n in ['contactName','contactPhone','contactEmail']" :key="n" v-slot="{ field }" :name="n"><el-form-item :label="field.label" :required="field.required" :error="field.errors[0]?.message"><el-input :model-value="(field.value as string) ?? ''" @update:model-value="field.setValue($event)" @blur="field.blur(); field.validate('blur').catch(() => {})" :disabled="mode === 'disabled'" /></el-form-item></FormField></FormProvider></el-card></el-col>
+    </el-row>
+    <el-button v-if="mode === 'editable'" type="primary" style="margin-top: 16px" @click="jointSubmit">联合提交</el-button>
+    <el-dialog v-model="modalOpen" title="编辑联系人">
+      <FormProvider :form="subForm"><FormField v-for="n in ['contactName','contactPhone','contactEmail']" :key="n" v-slot="{ field }" :name="n"><el-form-item :label="field.label"><el-input :model-value="(field.value as string) ?? ''" @update:model-value="field.setValue($event)" /></el-form-item></FormField></FormProvider>
+      <template #footer><el-button @click="modalOpen = false">取消</el-button><el-button type="primary" @click="modalOk">确定</el-button></template>
+    </el-dialog>
+    <el-alert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" title="联合提交结果" style="margin-top: 16px" :description="result" show-icon />
   </div>
 </template>
-
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
 import { setupElementPlus } from '@moluoxixi/ui-element-plus'
-import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
-import {
-  ElButton,
-  ElCard,
-  ElDialog,
-  ElFormItem,
-  ElInput,
-  ElMessage,
-  ElOption,
-  ElSelect,
-  ElTag,
-} from 'element-plus'
-/**
- * Element Plus Field 组件模式 - 多表单协作
- *
- * 覆盖场景：
- * - 子表单（独立验证 + 值汇总）
- * - 多表单联合提交
- * - 跨表单联动（表单A的值影响表单B）
- * - el-dialog 弹窗表单
- */
-import { ref } from 'vue'
-import 'element-plus/dist/index.css'
-
+import { ElButton, ElAlert, ElRadioGroup, ElRadioButton, ElInput, ElInputNumber, ElFormItem, ElCard, ElRow, ElCol, ElDialog } from 'element-plus'
+import type { FieldPattern } from '@moluoxixi/shared'
 setupElementPlus()
-
-/* ======== 表单 1：基本信息 ======== */
-const basicForm = useCreateForm({
-  initialValues: { name: '', email: '', phone: '' },
+const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅读态', value: 'readOnly' }, { label: '禁用态', value: 'disabled' }]
+const mode = ref<FieldPattern>('editable')
+const result = ref('')
+const modalOpen = ref(false)
+const mainForm = useCreateForm({ initialValues: { orderName: '', customer: '', total: 0 } })
+const subForm = useCreateForm({ initialValues: { contactName: '', contactPhone: '', contactEmail: '' } })
+onMounted(() => {
+  mainForm.createField({ name: 'orderName', label: '订单名称', required: true }); mainForm.createField({ name: 'customer', label: '客户', required: true }); mainForm.createField({ name: 'total', label: '金额', required: true })
+  subForm.createField({ name: 'contactName', label: '联系人', required: true }); subForm.createField({ name: 'contactPhone', label: '电话', required: true, rules: [{ format: 'phone', message: '无效手机号' }] }); subForm.createField({ name: 'contactEmail', label: '邮箱', rules: [{ format: 'email', message: '无效邮箱' }] })
 })
-basicForm.createField({ name: 'name', label: '姓名', required: true, rules: [{ minLength: 2, message: '姓名至少 2 个字符' }] })
-basicForm.createField({ name: 'email', label: '邮箱', required: true, rules: [{ format: 'email' }] })
-basicForm.createField({ name: 'phone', label: '手机号', rules: [{ format: 'phone' }] })
-
-/* ======== 表单 2：地址信息 ======== */
-const addressForm = useCreateForm({
-  initialValues: { province: '', city: '', detail: '' },
-})
-addressForm.createField({
-  name: 'province',
-  label: '省份',
-  required: true,
-  dataSource: [
-    { label: '北京', value: '北京' },
-    { label: '上海', value: '上海' },
-    { label: '广东', value: '广东' },
-    { label: '浙江', value: '浙江' },
-  ],
-})
-addressForm.createField({ name: 'city', label: '城市', required: true })
-addressForm.createField({ name: 'detail', label: '详细地址', required: true })
-
-/* 跨表单联动：province 变化时清空 city */
-const provinceField = addressForm.getField('province')
-if (provinceField) {
-  provinceField.onValueChange(() => {
-    const cityField = addressForm.getField('city')
-    if (cityField)
-      cityField.setValue('')
-  })
-}
-
-/* ======== 弹窗表单 ======== */
-const showDialog = ref(false)
-const dialogForm = useCreateForm({
-  initialValues: { note: '', priority: 'normal', assignee: '' },
-})
-dialogForm.createField({ name: 'note', label: '备注内容', required: true, rules: [{ minLength: 5, message: '备注至少 5 个字符' }] })
-dialogForm.createField({
-  name: 'priority',
-  label: '优先级',
-  dataSource: [
-    { label: '紧急', value: 'urgent' },
-    { label: '普通', value: 'normal' },
-    { label: '低', value: 'low' },
-  ],
-})
-dialogForm.createField({ name: 'assignee', label: '指派给', placeholder: '可选' })
-const dialogResult = ref('')
-
-const submitResult = ref('')
-
-/** 联合提交两个表单 */
-async function handleCombinedSubmit(): Promise<void> {
-  const [basicResult, addressResult] = await Promise.all([
-    basicForm.submit(),
-    addressForm.submit(),
-  ])
-
-  const allErrors = [...basicResult.errors, ...addressResult.errors]
-  if (allErrors.length > 0) {
-    submitResult.value = `验证失败:\n${allErrors.map(e => `  ${e.path}: ${e.message}`).join('\n')}`
-    ElMessage.error('部分表单验证失败')
-  }
-  else {
-    submitResult.value = JSON.stringify({
-      basic: basicResult.values,
-      address: addressResult.values,
-    }, null, 2)
-    ElMessage.success('联合提交成功！')
-  }
-}
-
-/** 弹窗表单提交 */
-async function handleDialogSubmit(): Promise<void> {
-  const result = await dialogForm.submit()
-  if (result.errors.length > 0) {
-    ElMessage.warning('请完善弹窗表单')
-    return
-  }
-  dialogResult.value = JSON.stringify(result.values, null, 2)
-  showDialog.value = false
-  ElMessage.success('弹窗表单提交成功')
-}
-
-/** 打开弹窗时重置 */
-function openDialog(): void {
-  dialogForm.reset()
-  showDialog.value = true
-}
+async function jointSubmit(): Promise<void> { const [m, s] = await Promise.all([mainForm.submit(), subForm.submit()]); const errs = [...m.errors, ...s.errors]; result.value = errs.length > 0 ? '验证失败: ' + errs.map(e => e.message).join(', ') : JSON.stringify({ main: m.values, contact: s.values }, null, 2) }
+async function modalOk(): Promise<void> { const res = await subForm.submit(); if (res.errors.length > 0) return; mainForm.setFieldValue('customer', subForm.getFieldValue('contactName') as string); modalOpen.value = false }
 </script>
