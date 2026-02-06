@@ -232,6 +232,10 @@ export interface FormInstance<Values extends Record<string, unknown> = Record<st
   validate: (pattern?: string) => Promise<{ valid: boolean, errors: ValidationFeedback[], warnings: ValidationFeedback[] }>
   onValuesChange: (handler: (values: Values) => void) => Disposer
   onFieldValueChange: (path: string, handler: (value: unknown) => void) => Disposer
+  /** 通知表单值变化（供 Field 内部调用） */
+  notifyValuesChange: () => void
+  /** 通知字段值变化（供 Field 内部调用） */
+  notifyFieldValueChange: (path: string, value: unknown) => void
   batch: (fn: () => void) => void
   dispose: () => void
 }

@@ -429,15 +429,15 @@ implements FormInstance<Values> {
     return result
   }
 
-  /** 通知值变化 */
-  private notifyValuesChange(): void {
+  /** 通知值变化（供 Field.setValue 调用） */
+  notifyValuesChange(): void {
     for (const handler of this.valuesChangeHandlers) {
       handler(this.values)
     }
   }
 
-  /** 通知字段值变化 */
-  private notifyFieldValueChange(path: string, value: unknown): void {
+  /** 通知字段值变化（供 Field.setValue 调用） */
+  notifyFieldValueChange(path: string, value: unknown): void {
     const handlers = this.fieldValueChangeHandlers.get(path)
     if (handlers) {
       for (const handler of handlers) {

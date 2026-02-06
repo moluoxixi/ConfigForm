@@ -169,10 +169,19 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     const parsedValue = this.parse ? this.parse(value) : value
     FormPath.setIn(this.form.values as Record<string, unknown>, this.path, parsedValue)
 
-    /* 通知回调 */
+    /* 值变化后清除验证错误（用户重新输入时不应保留旧错误） */
+    if (this.errors.length > 0) {
+      this.errors = []
+    }
+
+    /* 通知字段级回调 */
     for (const handler of this.valueChangeHandlers) {
       handler(parsedValue, oldValue)
     }
+
+    /* 通知表单级（触发 onValuesChange + reactions） */
+    this.form.notifyFieldValueChange(this.path, parsedValue)
+    this.form.notifyValuesChange()
   }
 
   /** 更新组件 Props */
