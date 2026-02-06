@@ -53,7 +53,9 @@ export const ConfigForm = defineComponent({
   },
   emits: ['submit', 'submitFailed', 'valuesChange'],
   setup(props, { slots, emit }) {
+    /* 合并表单配置：schema.form 提供基础配置，formConfig 显式覆盖 */
     const internalForm = useCreateForm({
+      ...props.schema?.form,
       ...props.formConfig,
       initialValues: props.initialValues ?? props.formConfig?.initialValues,
     })

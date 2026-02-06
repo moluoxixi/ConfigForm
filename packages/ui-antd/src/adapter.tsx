@@ -38,7 +38,7 @@ export function Input({ value, onChange, onFocus, onBlur, placeholder, disabled,
   )
 }
 
-export function Password({ value, onChange, onFocus, onBlur, placeholder, disabled }: CfInputProps): React.ReactElement {
+export function Password({ value, onChange, onFocus, onBlur, placeholder, disabled, readOnly }: CfInputProps): React.ReactElement {
   return (
     <AInput.Password
       value={value}
@@ -47,6 +47,7 @@ export function Password({ value, onChange, onFocus, onBlur, placeholder, disabl
       onBlur={onBlur}
       placeholder={placeholder}
       disabled={disabled}
+      readOnly={readOnly}
     />
   )
 }
@@ -55,7 +56,7 @@ export interface CfTextareaProps extends CfInputProps {
   rows?: number
 }
 
-export function Textarea({ value, onChange, onFocus, onBlur, placeholder, disabled, rows = 3 }: CfTextareaProps): React.ReactElement {
+export function Textarea({ value, onChange, onFocus, onBlur, placeholder, disabled, readOnly, rows = 3 }: CfTextareaProps): React.ReactElement {
   return (
     <AInput.TextArea
       value={value}
@@ -64,6 +65,7 @@ export function Textarea({ value, onChange, onFocus, onBlur, placeholder, disabl
       onBlur={onBlur}
       placeholder={placeholder}
       disabled={disabled}
+      readOnly={readOnly}
       rows={rows}
     />
   )
@@ -76,12 +78,13 @@ export interface CfInputNumberProps {
   onBlur?: () => void
   placeholder?: string
   disabled?: boolean
+  readOnly?: boolean
   min?: number
   max?: number
   step?: number
 }
 
-export function InputNumber({ value, onChange, onFocus, onBlur, placeholder, disabled, min, max, step = 1 }: CfInputNumberProps): React.ReactElement {
+export function InputNumber({ value, onChange, onFocus, onBlur, placeholder, disabled, readOnly, min, max, step = 1 }: CfInputNumberProps): React.ReactElement {
   return (
     <AInputNumber
       value={value}
@@ -89,7 +92,7 @@ export function InputNumber({ value, onChange, onFocus, onBlur, placeholder, dis
       onFocus={onFocus}
       onBlur={onBlur}
       placeholder={placeholder}
-      disabled={disabled}
+      disabled={disabled || readOnly}
       min={min}
       max={max}
       step={step}
@@ -108,11 +111,12 @@ export interface CfSelectProps {
   dataSource?: DataSourceItem[]
   placeholder?: string
   disabled?: boolean
+  readOnly?: boolean
   loading?: boolean
   mode?: 'multiple' | 'tags'
 }
 
-export function Select({ value, onChange, onFocus, onBlur, dataSource = [], placeholder, disabled, loading, mode }: CfSelectProps): React.ReactElement {
+export function Select({ value, onChange, onFocus, onBlur, dataSource = [], placeholder, disabled, readOnly, loading, mode }: CfSelectProps): React.ReactElement {
   return (
     <ASelect
       value={value}
@@ -120,7 +124,7 @@ export function Select({ value, onChange, onFocus, onBlur, dataSource = [], plac
       onFocus={onFocus}
       onBlur={onBlur}
       placeholder={placeholder}
-      disabled={disabled}
+      disabled={disabled || readOnly}
       loading={loading}
       mode={mode}
       style={{ width: '100%' }}
@@ -138,14 +142,15 @@ export interface CfRadioGroupProps {
   onChange?: (value: unknown) => void
   dataSource?: DataSourceItem[]
   disabled?: boolean
+  readOnly?: boolean
 }
 
-export function RadioGroup({ value, onChange, dataSource = [], disabled }: CfRadioGroupProps): React.ReactElement {
+export function RadioGroup({ value, onChange, dataSource = [], disabled, readOnly }: CfRadioGroupProps): React.ReactElement {
   return (
     <ARadio.Group
       value={value}
       onChange={e => onChange?.(e.target.value)}
-      disabled={disabled}
+      disabled={disabled || readOnly}
       options={dataSource.map(item => ({ label: item.label, value: item.value }))}
     />
   )
@@ -156,14 +161,15 @@ export interface CfCheckboxGroupProps {
   onChange?: (value: unknown[]) => void
   dataSource?: DataSourceItem[]
   disabled?: boolean
+  readOnly?: boolean
 }
 
-export function CheckboxGroup({ value, onChange, dataSource = [], disabled }: CfCheckboxGroupProps): React.ReactElement {
+export function CheckboxGroup({ value, onChange, dataSource = [], disabled, readOnly }: CfCheckboxGroupProps): React.ReactElement {
   return (
     <ACheckbox.Group
       value={value}
       onChange={v => onChange?.(v)}
-      disabled={disabled}
+      disabled={disabled || readOnly}
       options={dataSource.map(item => ({ label: item.label, value: item.value as string }))}
     />
   )
@@ -175,10 +181,11 @@ export interface CfSwitchProps {
   value?: boolean
   onChange?: (value: boolean) => void
   disabled?: boolean
+  readOnly?: boolean
 }
 
-export function Switch({ value, onChange, disabled }: CfSwitchProps): React.ReactElement {
-  return <ASwitch checked={value} onChange={onChange} disabled={disabled} />
+export function Switch({ value, onChange, disabled, readOnly }: CfSwitchProps): React.ReactElement {
+  return <ASwitch checked={value} onChange={onChange} disabled={disabled || readOnly} />
 }
 
 /* ========== 日期 ========== */
@@ -190,15 +197,16 @@ export interface CfDatePickerProps {
   onBlur?: () => void
   placeholder?: string
   disabled?: boolean
+  readOnly?: boolean
 }
 
-export function DatePicker({ value, onChange, placeholder, disabled }: CfDatePickerProps): React.ReactElement {
+export function DatePicker({ value, onChange, placeholder, disabled, readOnly }: CfDatePickerProps): React.ReactElement {
   return (
     <ADatePicker
       value={value || undefined}
       onChange={(_date, dateString) => onChange?.(dateString as string)}
       placeholder={placeholder}
-      disabled={disabled}
+      disabled={disabled || readOnly}
       style={{ width: '100%' }}
     />
   )

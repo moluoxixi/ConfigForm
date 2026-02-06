@@ -81,8 +81,9 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
     style,
   } = props
 
-  /* 内部创建或使用外部 form */
+  /* 内部创建或使用外部 form：schema.form 提供基础配置，formConfig 显式覆盖 */
   const internalForm = useCreateForm<Values>({
+    ...schema?.form,
     ...formConfig,
     initialValues: initialValues ?? formConfig?.initialValues,
   })

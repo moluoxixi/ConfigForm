@@ -77,6 +77,16 @@ export const FormField = defineComponent({
         Wrapper = registry?.wrappers.get(wrapperName) as Component | undefined
       }
 
+      /**
+       * 根据 pattern 计算有效的交互状态
+       * - disabled: pattern === 'disabled' 或字段级 disabled
+       * - readOnly: pattern === 'readOnly' 或字段级 readOnly
+       * 组件适配层负责将 readonly 映射为合适的行为（如不支持则降级为 disabled）
+       */
+      const effectivePattern = field!.pattern
+      const isDisabled = field!.disabled || effectivePattern === 'disabled'
+      const isReadOnly = field!.readOnly || effectivePattern === 'readOnly'
+
       const fieldElement = h(Component as Component, {
         'modelValue': field!.value,
         'onUpdate:modelValue': (val: unknown) => field!.setValue(val),
@@ -85,8 +95,8 @@ export const FormField = defineComponent({
           field!.blur()
           field!.validate('blur').catch(() => {})
         },
-        'disabled': field!.disabled,
-        'readonly': field!.readOnly,
+        'disabled': isDisabled,
+        'readonly': isReadOnly,
         'loading': field!.loading,
         'dataSource': field!.dataSource,
         ...field!.componentProps,
@@ -99,6 +109,8 @@ export const FormField = defineComponent({
           errors: field!.errors,
           warnings: field!.warnings,
           description: field!.description,
+          labelPosition: form.labelPosition,
+          labelWidth: form.labelWidth,
           ...field!.wrapperProps,
         }, () => fieldElement)
       }

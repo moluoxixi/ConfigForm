@@ -87,6 +87,16 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
     return null
   }
 
+  /**
+   * 根据 pattern 计算有效的交互状态
+   * - disabled: pattern === 'disabled' 或字段级 disabled
+   * - readOnly: pattern === 'readOnly' 或字段级 readOnly
+   * 组件适配层负责将 readOnly 映射为合适的行为（如不支持则降级为 disabled）
+   */
+  const effectivePattern = field.pattern
+  const isDisabled = field.disabled || effectivePattern === 'disabled'
+  const isReadOnly = field.readOnly || effectivePattern === 'readOnly'
+
   const fieldElement = (
     <Component
       value={field.value}
@@ -96,8 +106,8 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
         field.blur()
         field.validate('blur').catch(() => {})
       }}
-      disabled={field.disabled}
-      readOnly={field.readOnly}
+      disabled={isDisabled}
+      readOnly={isReadOnly}
       loading={field.loading}
       dataSource={field.dataSource}
       {...field.componentProps}

@@ -44,13 +44,14 @@ export const Input = defineComponent({
 
 export const Password = defineComponent({
   name: 'CfPassword',
-  props: { modelValue: { type: String, default: '' }, placeholder: String, disabled: Boolean },
+  props: { modelValue: { type: String, default: '' }, placeholder: String, disabled: Boolean, readonly: Boolean },
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => h(ElInput, {
       'modelValue': props.modelValue,
       'placeholder': props.placeholder,
       'disabled': props.disabled,
+      'readonly': props.readonly,
       'type': 'password',
       'showPassword': true,
       'onUpdate:modelValue': (v: string) => emit('update:modelValue', v),
@@ -62,13 +63,14 @@ export const Password = defineComponent({
 
 export const Textarea = defineComponent({
   name: 'CfTextarea',
-  props: { modelValue: { type: String, default: '' }, placeholder: String, disabled: Boolean, rows: { type: Number, default: 3 } },
+  props: { modelValue: { type: String, default: '' }, placeholder: String, disabled: Boolean, readonly: Boolean, rows: { type: Number, default: 3 } },
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => h(ElInput, {
       'modelValue': props.modelValue,
       'placeholder': props.placeholder,
       'disabled': props.disabled,
+      'readonly': props.readonly,
       'type': 'textarea',
       'rows': props.rows,
       'onUpdate:modelValue': (v: string) => emit('update:modelValue', v),
@@ -80,13 +82,13 @@ export const Textarea = defineComponent({
 
 export const InputNumber = defineComponent({
   name: 'CfInputNumber',
-  props: { modelValue: { type: Number, default: undefined }, placeholder: String, disabled: Boolean, min: Number, max: Number, step: { type: Number, default: 1 } },
+  props: { modelValue: { type: Number, default: undefined }, placeholder: String, disabled: Boolean, readonly: Boolean, min: Number, max: Number, step: { type: Number, default: 1 } },
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => h(ElInputNumber, {
       'modelValue': props.modelValue,
       'placeholder': props.placeholder,
-      'disabled': props.disabled,
+      'disabled': props.disabled || props.readonly,
       'min': props.min,
       'max': props.max,
       'step': props.step,
@@ -108,6 +110,7 @@ export const Select = defineComponent({
     dataSource: { type: Array as PropType<DataSourceItem[]>, default: () => [] },
     placeholder: String,
     disabled: Boolean,
+    readonly: Boolean,
     loading: Boolean,
     multiple: Boolean,
   },
@@ -116,7 +119,7 @@ export const Select = defineComponent({
     return () => h(ElSelect, {
       'modelValue': props.modelValue,
       'placeholder': props.placeholder,
-      'disabled': props.disabled,
+      'disabled': props.disabled || props.readonly,
       'loading': props.loading,
       'multiple': props.multiple,
       'style': 'width: 100%',
@@ -140,12 +143,13 @@ export const RadioGroup = defineComponent({
     modelValue: { type: [String, Number, Boolean], default: undefined },
     dataSource: { type: Array as PropType<DataSourceItem[]>, default: () => [] },
     disabled: Boolean,
+    readonly: Boolean,
   },
   emits: ['update:modelValue'],
   setup(props, { emit }) {
     return () => h(ElRadioGroup, {
       'modelValue': props.modelValue,
-      'disabled': props.disabled,
+      'disabled': props.disabled || props.readonly,
       'onUpdate:modelValue': (v: unknown) => emit('update:modelValue', v),
     }, () => props.dataSource.map(item =>
       h(ElRadio, { key: String(item.value), value: item.value }, () => item.label),
@@ -159,12 +163,13 @@ export const CheckboxGroup = defineComponent({
     modelValue: { type: Array as PropType<unknown[]>, default: () => [] },
     dataSource: { type: Array as PropType<DataSourceItem[]>, default: () => [] },
     disabled: Boolean,
+    readonly: Boolean,
   },
   emits: ['update:modelValue'],
   setup(props, { emit }) {
     return () => h(ElCheckboxGroup, {
       'modelValue': props.modelValue,
-      'disabled': props.disabled,
+      'disabled': props.disabled || props.readonly,
       'onUpdate:modelValue': (v: unknown) => emit('update:modelValue', v),
     }, () => props.dataSource.map(item =>
       h(ElCheckbox, { key: String(item.value), value: item.value }, () => item.label),
@@ -176,12 +181,12 @@ export const CheckboxGroup = defineComponent({
 
 export const Switch = defineComponent({
   name: 'CfSwitch',
-  props: { modelValue: { type: Boolean, default: false }, disabled: Boolean },
+  props: { modelValue: { type: Boolean, default: false }, disabled: Boolean, readonly: Boolean },
   emits: ['update:modelValue'],
   setup(props, { emit }) {
     return () => h(ElSwitch, {
       'modelValue': props.modelValue,
-      'disabled': props.disabled,
+      'disabled': props.disabled || props.readonly,
       'onUpdate:modelValue': (v: boolean) => emit('update:modelValue', v),
     })
   },
@@ -191,13 +196,13 @@ export const Switch = defineComponent({
 
 export const DatePicker = defineComponent({
   name: 'CfDatePicker',
-  props: { modelValue: { type: String, default: '' }, placeholder: String, disabled: Boolean },
+  props: { modelValue: { type: String, default: '' }, placeholder: String, disabled: Boolean, readonly: Boolean },
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => h(ElDatePicker, {
       'modelValue': props.modelValue,
       'placeholder': props.placeholder,
-      'disabled': props.disabled,
+      'disabled': props.disabled || props.readonly,
       'style': 'width: 100%',
       'valueFormat': 'YYYY-MM-DD',
       'onUpdate:modelValue': (v: string) => emit('update:modelValue', v),
