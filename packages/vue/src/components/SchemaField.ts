@@ -60,8 +60,10 @@ export const SchemaField = defineComponent({
       const layoutSchema = compiled.value.layout
       const containerStyle = computeContainerStyle(formConfig.direction, layoutSchema)
 
+      /* 渲染 schema.fields 中直接声明的字段（包括扁平化点路径如 'profile.name'） */
+      const schemaKeys = new Set(Object.keys(props.schema.fields))
       const topLevelFields = Array.from(compiled.value.fields.entries()).filter(
-        ([path]) => !path.includes('.'),
+        ([path]) => schemaKeys.has(path),
       )
 
       const fieldElements = topLevelFields.map(([path, compiledField]) => {

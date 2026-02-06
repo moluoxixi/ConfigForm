@@ -37,7 +37,7 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
     let field = form.getField(name)
     if (!field) {
       /* 字段 pattern 继承表单级 pattern（schema.pattern 优先） */
-      const mergedProps = { name, ...fieldProps }
+      const mergedProps = { ...fieldProps, name }
       if (!mergedProps.pattern && form.pattern !== 'editable') {
         mergedProps.pattern = form.pattern
       }

@@ -37,7 +37,7 @@ export const FormField = defineComponent({
     let field = form.getField(props.name)
     if (!field) {
       /* 字段 pattern 继承表单级 pattern（schema.pattern 优先） */
-      const mergedProps: Record<string, unknown> = { name: props.name, ...props.fieldProps }
+      const mergedProps: Record<string, unknown> = { ...props.fieldProps, name: props.name }
       if (!mergedProps.pattern && form.pattern !== 'editable') {
         mergedProps.pattern = form.pattern
       }
