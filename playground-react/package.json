@@ -10,11 +10,12 @@
     "lint:eslint": "eslint . --fix"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.1.0",
     "@moluoxixi/core": "workspace:*",
-    "@moluoxixi/schema": "workspace:*",
     "@moluoxixi/react": "workspace:*",
-    "@moluoxixi/reactive-mobx": "workspace:*",
     "@moluoxixi/reactive": "workspace:*",
+    "@moluoxixi/reactive-mobx": "workspace:*",
+    "@moluoxixi/schema": "workspace:*",
     "@moluoxixi/ui-antd": "workspace:*",
     "antd": "^5.22.0",
     "mobx": "^6.13.0",
