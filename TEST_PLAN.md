@@ -158,18 +158,3 @@
 - [ ] React-Antd-Field-1.基础表单-阅读态+禁用态
 （... 每个场景同上 ...）
 
----
-
-## 已修复的核心问题
-
-| # | 问题 | 严重度 | 提交 |
-|---|---|---|---|
-| 1 | Field.setValue() 不清除验证错误 | P0 | 4afffa7 |
-| 2 | Field.setValue() 不通知 form | P0 | 4afffa7 |
-| 3 | FormField 不继承 form.pattern | P1 | 4afffa7 |
-| 4 | @ant-design/icons 依赖缺失 | P1 | 326da75 |
-| 5 | field 模式缺少重置按钮 | P2 | bb4e112 |
-| 6 | collectSubmitValues 响应式引用泄漏 | P0 | 78726a8 |
-| 7 | FormField unmount 未清理字段注册 | P1 | 78726a8 |
-| 8 | MobX 下联动不触发（action.bound 依赖追踪失效） | P0 | 903e16d |
-| 9 | Schema 重构为 ISchema + address/dataPath + ReactiveField | 重构 | 263b197 |
