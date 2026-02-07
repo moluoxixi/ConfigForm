@@ -117,10 +117,7 @@ export const ReactiveField = defineComponent({
             'modelValue': dataField.value,
             'onUpdate:modelValue': (val: unknown) => dataField.setValue(val),
             'onFocus': () => dataField.focus(),
-            'onBlur': () => {
-              dataField.blur()
-              dataField.validate('blur').catch(() => {})
-            },
+            'onBlur': () => dataField.blur(),
             'disabled': isDisabled,
             'readonly': isReadOnly,
             'loading': dataField.loading,

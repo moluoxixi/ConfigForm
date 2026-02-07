@@ -135,10 +135,7 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
         value={field.value}
         onChange={(val: unknown) => field.setValue(val)}
         onFocus={() => field.focus()}
-        onBlur={() => {
-          field.blur()
-          field.validate('blur').catch(() => {})
-        }}
+        onBlur={() => field.blur()}
         disabled={isDisabled}
         readOnly={isReadOnly}
         loading={field.loading}

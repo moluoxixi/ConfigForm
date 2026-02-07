@@ -163,16 +163,16 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     return this.errors.length === 0
   }
 
-  /** 设置值 */
+  /**
+   * 设置值（对应 Formily 的 onInput）
+   *
+   * 参考 Formily 设计：值变化后总是调用 validate('change')。
+   * 验证过滤交给规则的 trigger 属性（无 trigger 的规则在所有时机执行）。
+   */
   setValue(value: Value): void {
     const oldValue = this.value
     const parsedValue = this.parse ? this.parse(value) : value
     FormPath.setIn(this.form.values as Record<string, unknown>, this.path, parsedValue)
-
-    /* 值变化后清除验证错误（用户重新输入时不应保留旧错误） */
-    if (this.errors.length > 0) {
-      this.errors = []
-    }
 
     /* 通知字段级回调 */
     for (const handler of this.valueChangeHandlers) {
@@ -182,6 +182,9 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     /* 通知表单级（触发 onValuesChange + reactions） */
     this.form.notifyFieldValueChange(this.path, parsedValue)
     this.form.notifyValuesChange()
+
+    /* 值变化后触发 change 验证（规则级 trigger 过滤） */
+    this.validate('change').catch(() => {})
   }
 
   /** 更新组件 Props */
@@ -262,9 +265,15 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     this.visited = true
   }
 
-  /** 失焦 */
+  /**
+   * 失焦（对应 Formily 的 onBlur）
+   *
+   * 参考 Formily 设计：失焦后总是调用 validate('blur')。
+   * 验证过滤交给规则的 trigger 属性。
+   */
   blur(): void {
     this.active = false
+    this.validate('blur').catch(() => {})
   }
 
   /** 显示 */
