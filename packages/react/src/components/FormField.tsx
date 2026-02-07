@@ -3,7 +3,7 @@ import type { ComponentType, ReactNode } from 'react'
 import { observer } from 'mobx-react-lite'
 import { useContext, useEffect, useRef } from 'react'
 import { ComponentRegistryContext, FieldContext, FormContext } from '../context'
-import { getDefaultWrapper } from '../registry'
+import { getDefaultWrapper, getReadPrettyComponent } from '../registry'
 
 export interface FormFieldProps {
   /** 字段名 */
@@ -115,22 +115,38 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
   const isDisabled = field.disabled || fp === 'disabled' || formP === 'disabled'
   const isReadOnly = field.readOnly || fp === 'readOnly' || formP === 'readOnly'
 
-  const fieldElement = (
-    <Component
-      value={field.value}
-      onChange={(val: unknown) => field.setValue(val)}
-      onFocus={() => field.focus()}
-      onBlur={() => {
-        field.blur()
-        field.validate('blur').catch(() => {})
-      }}
-      disabled={isDisabled}
-      readOnly={isReadOnly}
-      loading={field.loading}
-      dataSource={field.dataSource}
-      {...field.componentProps}
-    />
-  )
+  /* readPretty：阅读态时查找替代组件，由框架自动替换 */
+  let fieldElement: React.ReactElement
+  const compName = typeof field.component === 'string' ? field.component : ''
+  const ReadPrettyComp = isReadOnly && compName ? getReadPrettyComponent(compName) : undefined
+
+  if (ReadPrettyComp) {
+    fieldElement = (
+      <ReadPrettyComp
+        value={field.value}
+        dataSource={field.dataSource}
+        {...field.componentProps}
+      />
+    )
+  }
+  else {
+    fieldElement = (
+      <Component
+        value={field.value}
+        onChange={(val: unknown) => field.setValue(val)}
+        onFocus={() => field.focus()}
+        onBlur={() => {
+          field.blur()
+          field.validate('blur').catch(() => {})
+        }}
+        disabled={isDisabled}
+        readOnly={isReadOnly}
+        loading={field.loading}
+        dataSource={field.dataSource}
+        {...field.componentProps}
+      />
+    )
+  }
 
   const wrappedElement = Wrapper
     ? (

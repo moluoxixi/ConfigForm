@@ -8,9 +8,6 @@ export const DatePicker = defineComponent({
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => {
-      if (props.readonly) {
-        return h('span', null, props.modelValue || '—')
-      }
       return h(ADatePicker, {
         'value': props.modelValue,
         'placeholder': props.placeholder,

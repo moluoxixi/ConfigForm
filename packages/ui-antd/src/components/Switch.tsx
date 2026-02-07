@@ -11,10 +11,6 @@ export interface CfSwitchProps {
 }
 
 export function Switch({ value, onChange, onFocus, onBlur, disabled, readOnly }: CfSwitchProps): ReactElement {
-  if (readOnly) {
-    return <span>{value ? '是' : '否'}</span>
-  }
-
   return (
     <span onFocus={onFocus} onBlur={onBlur}>
       <ASwitch checked={value} onChange={onChange} disabled={disabled} />

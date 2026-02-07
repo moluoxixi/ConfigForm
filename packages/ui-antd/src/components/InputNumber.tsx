@@ -21,10 +21,6 @@ export interface CfInputNumberProps {
  * 清空时传 null，统一转为 undefined 传递给表单字段。
  */
 export function InputNumber({ value, onChange, onFocus, onBlur, placeholder, disabled, readOnly, min, max, step = 1 }: CfInputNumberProps): ReactElement {
-  if (readOnly) {
-    return <span>{value != null ? String(value) : '—'}</span>
-  }
-
   return (
     <AInputNumber
       value={value}

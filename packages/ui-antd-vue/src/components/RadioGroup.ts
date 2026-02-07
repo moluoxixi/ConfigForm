@@ -15,10 +15,6 @@ export const RadioGroup = defineComponent({
   emits: ['update:modelValue'],
   setup(props, { emit }) {
     return () => {
-      if (props.readonly) {
-        const selectedLabel = props.dataSource.find(item => item.value === props.modelValue)?.label
-        return h('span', null, selectedLabel || (props.modelValue ? String(props.modelValue) : '—'))
-      }
       return h(ARadio.Group, {
         'value': props.modelValue,
         'disabled': props.disabled,

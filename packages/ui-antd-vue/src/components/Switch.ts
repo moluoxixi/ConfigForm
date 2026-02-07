@@ -8,9 +8,6 @@ export const Switch = defineComponent({
   emits: ['update:modelValue'],
   setup(props, { emit }) {
     return () => {
-      if (props.readonly) {
-        return h('span', null, props.modelValue ? '是' : '否')
-      }
       return h(ASwitch, {
         'checked': props.modelValue,
         'disabled': props.disabled,

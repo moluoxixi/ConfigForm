@@ -12,10 +12,6 @@ export interface CfDatePickerProps {
 }
 
 export function DatePicker({ value, onChange, onFocus, onBlur, placeholder, disabled, readOnly }: CfDatePickerProps): ReactElement {
-  if (readOnly) {
-    return <span>{value || '—'}</span>
-  }
-
   return (
     <ADatePicker
       value={value || undefined}

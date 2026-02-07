@@ -16,11 +16,6 @@ export interface CfSelectProps {
 }
 
 export function Select({ value, onChange, onFocus, onBlur, dataSource = [], placeholder, disabled, readOnly, loading, mode }: CfSelectProps): React.ReactElement {
-  if (readOnly) {
-    const selectedLabel = dataSource.find(item => item.value === value)?.label
-    return <span>{selectedLabel ?? (value ? String(value) : '—')}</span>
-  }
-
   return (
     <ASelect
       value={value}

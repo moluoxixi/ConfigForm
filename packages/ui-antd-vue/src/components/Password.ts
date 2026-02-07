@@ -8,9 +8,6 @@ export const Password = defineComponent({
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => {
-      if (props.readonly) {
-        return h('span', null, props.modelValue ? '••••••••' : '—')
-      }
       return h(AInputPassword, {
         'value': props.modelValue,
         'placeholder': props.placeholder,

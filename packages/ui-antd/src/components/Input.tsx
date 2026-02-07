@@ -12,10 +12,6 @@ export interface CfInputProps {
 }
 
 export function Input({ value, onChange, onFocus, onBlur, placeholder, disabled, readOnly }: CfInputProps): React.ReactElement {
-  if (readOnly) {
-    return <span>{value || '—'}</span>
-  }
-
   return (
     <AInput
       value={value}

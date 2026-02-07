@@ -13,11 +13,6 @@ export interface CfRadioGroupProps {
 }
 
 export function RadioGroup({ value, onChange, onFocus, onBlur, dataSource = [], disabled, readOnly }: CfRadioGroupProps): ReactElement {
-  if (readOnly) {
-    const selectedItem = dataSource.find(item => item.value === value)
-    return <span>{selectedItem?.label || (value ? String(value) : '—')}</span>
-  }
-
   return (
     <div onFocus={onFocus} onBlur={onBlur}>
       <ARadio.Group

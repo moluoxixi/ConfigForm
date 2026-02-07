@@ -13,13 +13,6 @@ export interface CfCheckboxGroupProps {
 }
 
 export function CheckboxGroup({ value, onChange, onFocus, onBlur, dataSource = [], disabled, readOnly }: CfCheckboxGroupProps): ReactElement {
-  if (readOnly) {
-    const selectedLabels = (value ?? [])
-      .map(v => dataSource.find(item => item.value === v)?.label ?? String(v))
-      .join('、')
-    return <span>{selectedLabels || '—'}</span>
-  }
-
   return (
     <div onFocus={onFocus} onBlur={onBlur}>
       <ACheckbox.Group

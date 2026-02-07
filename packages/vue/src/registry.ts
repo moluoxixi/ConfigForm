@@ -4,6 +4,8 @@ import type { Component } from 'vue'
 export interface RegisterComponentOptions {
   /** 该组件的默认装饰器名称，字段未显式指定 wrapper 时自动使用 */
   defaultWrapper?: string
+  /** 阅读态替代组件（readPretty），isReadOnly 时自动替换 */
+  readPrettyComponent?: Component
 }
 
 /** 组件作用域（可传给 FormProvider 的 components/wrappers） */
@@ -18,6 +20,8 @@ const globalComponents = new Map<string, Component>()
 const globalWrappers = new Map<string, Component>()
 /** 组件默认装饰器映射：component name → wrapper name */
 const globalDefaultWrappers = new Map<string, string>()
+/** 组件 readPretty 映射：component name → readPretty component */
+const globalReadPretty = new Map<string, Component>()
 
 /**
  * 注册全局组件
@@ -30,6 +34,9 @@ export function registerComponent(name: string, component: Component, options?: 
   globalComponents.set(name, component)
   if (options?.defaultWrapper) {
     globalDefaultWrappers.set(name, options.defaultWrapper)
+  }
+  if (options?.readPrettyComponent) {
+    globalReadPretty.set(name, options.readPrettyComponent)
   }
 }
 
@@ -76,6 +83,7 @@ export function registerFieldComponents(
   fields: Record<string, Component>,
   wrapper: { name: string, component: Component },
   layouts?: Record<string, Component>,
+  readPretty?: Record<string, Component>,
 ): void {
   /* 注册装饰器 */
   globalWrappers.set(wrapper.name, wrapper.component)
@@ -90,6 +98,13 @@ export function registerFieldComponents(
   if (layouts) {
     for (const [name, component] of Object.entries(layouts)) {
       globalComponents.set(name, component)
+    }
+  }
+
+  /* 注册 readPretty 映射 */
+  if (readPretty) {
+    for (const [name, component] of Object.entries(readPretty)) {
+      globalReadPretty.set(name, component)
     }
   }
 }
@@ -107,6 +122,11 @@ export function getWrapper(name: string): Component | undefined {
 /** 获取组件的默认装饰器名称 */
 export function getDefaultWrapper(componentName: string): string | undefined {
   return globalDefaultWrappers.get(componentName)
+}
+
+/** 获取组件的 readPretty 替代组件 */
+export function getReadPrettyComponent(componentName: string): Component | undefined {
+  return globalReadPretty.get(componentName)
 }
 
 /** 获取全局注册表 */

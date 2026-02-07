@@ -8,9 +8,6 @@ export const Textarea = defineComponent({
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => {
-      if (props.readonly) {
-        return h('span', { style: 'white-space:pre-wrap' }, props.modelValue ? String(props.modelValue) : '—')
-      }
       return h(ATextarea, {
         'value': props.modelValue,
         'placeholder': props.placeholder,

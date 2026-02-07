@@ -2,6 +2,7 @@ import type { FieldInstance, FormInstance, VoidFieldInstance } from '@moluoxixi/
 import type { Component, PropType, VNode } from 'vue'
 import { defineComponent, h, inject } from 'vue'
 import { ComponentRegistrySymbol, FormSymbol } from '../context'
+import { getReadPrettyComponent } from '../registry'
 
 /**
  * 响应式字段渲染桥接（参考 Formily ReactiveField）
@@ -96,20 +97,37 @@ export const ReactiveField = defineComponent({
       else {
         /* 数据字段：注入 value / events / 状态 */
         const dataField = field as FieldInstance
-        componentNode = h(Comp!, {
-          'modelValue': dataField.value,
-          'onUpdate:modelValue': (val: unknown) => dataField.setValue(val),
-          'onFocus': () => dataField.focus(),
-          'onBlur': () => {
-            dataField.blur()
-            dataField.validate('blur').catch(() => {})
-          },
-          'disabled': isDisabled,
-          'readonly': isReadOnly,
-          'loading': dataField.loading,
-          'dataSource': dataField.dataSource,
-          ...dataField.componentProps,
-        })
+
+        /* readPretty：阅读态时查找替代组件，由框架自动替换 */
+        if (isReadOnly) {
+          const compName = typeof componentName === 'string' ? componentName : ''
+          const ReadPrettyComp = compName ? getReadPrettyComponent(compName) : undefined
+          if (ReadPrettyComp) {
+            componentNode = h(ReadPrettyComp as Component, {
+              'modelValue': dataField.value,
+              'dataSource': dataField.dataSource,
+              ...dataField.componentProps,
+            })
+          }
+        }
+
+        /* 无 readPretty 替代或非阅读态：渲染原组件 */
+        if (!componentNode) {
+          componentNode = h(Comp!, {
+            'modelValue': dataField.value,
+            'onUpdate:modelValue': (val: unknown) => dataField.setValue(val),
+            'onFocus': () => dataField.focus(),
+            'onBlur': () => {
+              dataField.blur()
+              dataField.validate('blur').catch(() => {})
+            },
+            'disabled': isDisabled,
+            'readonly': isReadOnly,
+            'loading': dataField.loading,
+            'dataSource': dataField.dataSource,
+            ...dataField.componentProps,
+          })
+        }
       }
 
       /* ---- 自动渲染：decorator（包装器） ---- */

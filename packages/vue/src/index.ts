@@ -29,6 +29,7 @@ export {
   createComponentScope,
   getComponent,
   getDefaultWrapper,
+  getReadPrettyComponent,
   getWrapper,
   registerComponent,
   registerComponents,

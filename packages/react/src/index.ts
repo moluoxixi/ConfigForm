@@ -38,6 +38,7 @@ export {
 export {
   getComponent,
   getDefaultWrapper,
+  getReadPrettyComponent,
   getWrapper,
   registerComponent,
   registerComponents,

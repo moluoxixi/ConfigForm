@@ -15,12 +15,6 @@ export const CheckboxGroup = defineComponent({
   emits: ['update:modelValue'],
   setup(props, { emit }) {
     return () => {
-      if (props.readonly) {
-        const selectedLabels = (props.modelValue ?? [])
-          .map(v => props.dataSource.find(item => item.value === v)?.label ?? String(v))
-          .join('、')
-        return h('span', null, selectedLabels || '—')
-      }
       return h(ACheckbox.Group, {
         'value': props.modelValue,
         'disabled': props.disabled,

@@ -13,9 +13,6 @@ export const Input = defineComponent({
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => {
-      if (props.readonly) {
-        return h('span', null, props.modelValue ? String(props.modelValue) : '—')
-      }
       return h(AInput, {
         'value': props.modelValue,
         'placeholder': props.placeholder,

@@ -8,9 +8,6 @@ export const InputNumber = defineComponent({
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => {
-      if (props.readonly) {
-        return h('span', null, props.modelValue != null ? String(props.modelValue) : '—')
-      }
       return h(AInputNumber, {
         'value': props.modelValue,
         'placeholder': props.placeholder,

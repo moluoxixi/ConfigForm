@@ -4,6 +4,8 @@ import type { ComponentType } from 'react'
 export interface RegisterComponentOptions {
   /** 该组件的默认装饰器名称，字段未显式指定 wrapper 时自动使用 */
   defaultWrapper?: string
+  /** 阅读态替代组件（readPretty），isReadOnly 时自动替换 */
+  readPrettyComponent?: ComponentType<any>
 }
 
 /** 全局组件注册表 */
@@ -12,6 +14,8 @@ const globalComponents = new Map<string, ComponentType<any>>()
 const globalWrappers = new Map<string, ComponentType<any>>()
 /** 组件默认装饰器映射：component name → wrapper name */
 const globalDefaultWrappers = new Map<string, string>()
+/** 组件 readPretty 映射：component name → readPretty component */
+const globalReadPretty = new Map<string, ComponentType<any>>()
 
 /**
  * 注册全局组件
@@ -24,6 +28,9 @@ export function registerComponent(name: string, component: ComponentType<any>, o
   globalComponents.set(name, component)
   if (options?.defaultWrapper) {
     globalDefaultWrappers.set(name, options.defaultWrapper)
+  }
+  if (options?.readPrettyComponent) {
+    globalReadPretty.set(name, options.readPrettyComponent)
   }
 }
 
@@ -59,6 +66,7 @@ export function registerFieldComponents(
   fields: Record<string, ComponentType<any>>,
   wrapper: { name: string, component: ComponentType<any> },
   layouts?: Record<string, ComponentType<any>>,
+  readPretty?: Record<string, ComponentType<any>>,
 ): void {
   globalWrappers.set(wrapper.name, wrapper.component)
   for (const [name, component] of Object.entries(fields)) {
@@ -68,6 +76,11 @@ export function registerFieldComponents(
   if (layouts) {
     for (const [name, component] of Object.entries(layouts)) {
       globalComponents.set(name, component)
+    }
+  }
+  if (readPretty) {
+    for (const [name, component] of Object.entries(readPretty)) {
+      globalReadPretty.set(name, component)
     }
   }
 }
@@ -85,6 +98,11 @@ export function getWrapper(name: string): ComponentType<any> | undefined {
 /** 获取组件的默认装饰器名称 */
 export function getDefaultWrapper(componentName: string): string | undefined {
   return globalDefaultWrappers.get(componentName)
+}
+
+/** 获取组件的 readPretty 替代组件 */
+export function getReadPrettyComponent(componentName: string): ComponentType<any> | undefined {
+  return globalReadPretty.get(componentName)
 }
 
 /** 获取全局注册表 */
