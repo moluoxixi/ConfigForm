@@ -48,7 +48,7 @@ export const FormArrayField = defineComponent({
         return null
 
       if (slots.default) {
-        return slots.default({ field })
+        return slots.default({ field, arrayField: field })
       }
       return null
     }
