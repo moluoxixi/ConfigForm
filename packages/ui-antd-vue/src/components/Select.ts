@@ -20,7 +20,7 @@ export const Select = defineComponent({
     return () => {
       if (props.readonly) {
         const selectedLabel = props.dataSource.find(item => item.value === props.modelValue)?.label
-        return h('span', null, selectedLabel ?? String(props.modelValue ?? '—'))
+        return h('span', null, selectedLabel || (props.modelValue ? String(props.modelValue) : '—'))
       }
       return h(ASelect, {
         'value': props.modelValue,

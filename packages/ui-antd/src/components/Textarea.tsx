@@ -7,6 +7,10 @@ export interface CfTextareaProps extends CfInputProps {
 }
 
 export function Textarea({ value, onChange, onFocus, onBlur, placeholder, disabled, readOnly, rows = 3 }: CfTextareaProps): React.ReactElement {
+  if (readOnly) {
+    return <span style={{ whiteSpace: 'pre-wrap' }}>{value || '—'}</span>
+  }
+
   return (
     <AInput.TextArea
       value={value}
@@ -15,7 +19,6 @@ export function Textarea({ value, onChange, onFocus, onBlur, placeholder, disabl
       onBlur={onBlur}
       placeholder={placeholder}
       disabled={disabled}
-      readOnly={readOnly}
       rows={rows}
     />
   )

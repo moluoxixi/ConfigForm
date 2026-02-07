@@ -14,7 +14,7 @@ export const Input = defineComponent({
   setup(props, { emit }) {
     return () => {
       if (props.readonly) {
-        return h('span', null, String(props.modelValue ?? '—'))
+        return h('span', null, props.modelValue ? String(props.modelValue) : '—')
       }
       return h(AInput, {
         'value': props.modelValue,

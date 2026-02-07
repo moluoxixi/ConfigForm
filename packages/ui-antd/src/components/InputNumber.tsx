@@ -22,7 +22,7 @@ export interface CfInputNumberProps {
  */
 export function InputNumber({ value, onChange, onFocus, onBlur, placeholder, disabled, readOnly, min, max, step = 1 }: CfInputNumberProps): ReactElement {
   if (readOnly) {
-    return <span>{value ?? '—'}</span>
+    return <span>{value != null ? String(value) : '—'}</span>
   }
 
   return (

@@ -9,7 +9,7 @@ export const InputNumber = defineComponent({
   setup(props, { emit }) {
     return () => {
       if (props.readonly) {
-        return h('span', null, props.modelValue !== undefined ? String(props.modelValue) : '—')
+        return h('span', null, props.modelValue != null ? String(props.modelValue) : '—')
       }
       return h(AInputNumber, {
         'value': props.modelValue,
