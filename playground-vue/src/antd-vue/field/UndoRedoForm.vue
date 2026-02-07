@@ -17,7 +17,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
 import { Button as AButton, Space as ASpace, Alert as AAlert, Segmented as ASegmented, Input as AInput, InputNumber as AInputNumber, FormItem as AFormItem, Textarea as ATextarea, Tag as ATag } from 'ant-design-vue'
@@ -28,6 +28,7 @@ const mode = ref<FieldPattern>('editable')
 const result = ref('')
 const FIELDS = ['title', 'category', 'amount', 'note']
 const form = useCreateForm({ initialValues: { title: '', category: '', amount: 0, note: '' } })
+watch(mode, (v) => { form.pattern = v })
 const history = ref<Array<Record<string, unknown>>>([{ title: '', category: '', amount: 0, note: '' }])
 const historyIdx = ref(0)
 let isRestoring = false

@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
 import { Button as AButton, Space as ASpace, Alert as AAlert, Segmented as ASegmented, Input as AInput, FormItem as AFormItem } from 'ant-design-vue'
@@ -44,6 +44,7 @@ const PRESETS = ['#1677ff', '#52c41a', '#faad14', '#ff4d4f', '#722ed1', '#13c2c2
 const colorNames = ['primaryColor', 'bgColor', 'textColor']
 
 const form = useCreateForm({ initialValues: { themeName: '自定义主题', primaryColor: '#1677ff', bgColor: '#ffffff', textColor: '#333333' } })
+watch(mode, (v) => { form.pattern = v })
 onMounted(() => { form.createField({ name: 'themeName', label: '主题名称', required: true }); form.createField({ name: 'primaryColor', label: '主色调', required: true }); form.createField({ name: 'bgColor', label: '背景色' }); form.createField({ name: 'textColor', label: '文字颜色' }) })
 async function handleSubmit(): Promise<void> { const res = await form.submit(); result.value = res.errors.length > 0 ? '验证失败: ' + res.errors.map(e => e.message).join(', ') : JSON.stringify(res.values, null, 2) }
 </script>

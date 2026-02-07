@@ -15,7 +15,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
 import { Button as AButton, Alert as AAlert, Segmented as ASegmented, Input as AInput, InputNumber as AInputNumber, FormItem as AFormItem, Card as ACard, Row as ARow, Col as ACol, Modal as AModal } from 'ant-design-vue'
@@ -26,7 +26,9 @@ const mode = ref<FieldPattern>('editable')
 const result = ref('')
 const modalOpen = ref(false)
 const mainForm = useCreateForm({ initialValues: { orderName: '', customer: '', total: 0 } })
+watch(mode, (v) => { mainForm.pattern = v })
 const subForm = useCreateForm({ initialValues: { contactName: '', contactPhone: '', contactEmail: '' } })
+watch(mode, (v) => { subForm.pattern = v })
 onMounted(() => {
   mainForm.createField({ name: 'orderName', label: '订单名称', required: true }); mainForm.createField({ name: 'customer', label: '客户', required: true }); mainForm.createField({ name: 'total', label: '金额', required: true })
   subForm.createField({ name: 'contactName', label: '联系人', required: true }); subForm.createField({ name: 'contactPhone', label: '电话', required: true, rules: [{ format: 'phone', message: '无效手机号' }] }); subForm.createField({ name: 'contactEmail', label: '邮箱', rules: [{ format: 'email', message: '无效邮箱' }] })

@@ -19,7 +19,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
 import { Button as AButton, Space as ASpace, Alert as AAlert, Segmented as ASegmented, Input as AInput, InputNumber as AInputNumber, FormItem as AFormItem, Card as ACard, Textarea as ATextarea, Tag as ATag } from 'ant-design-vue'
@@ -32,6 +32,7 @@ const FIELD_DEFS = [{ name: 'name', label: '姓名', type: 'text' }, { name: 'em
 const ORIGINAL: Record<string, unknown> = { name: '张三', email: 'zhangsan@company.com', phone: '13800138000', salary: 25000, department: '技术部', bio: '5 年前端经验' }
 const currentValues = ref<Record<string, unknown>>({ ...ORIGINAL })
 const form = useCreateForm({ initialValues: { ...ORIGINAL } })
+watch(mode, (v) => { form.pattern = v })
 onMounted(() => { FIELD_DEFS.forEach(d => form.createField({ name: d.name, label: d.label })); form.onValuesChange((v: Record<string, unknown>) => { currentValues.value = { ...v } }) })
 function isChanged(name: string): boolean { return String(ORIGINAL[name] ?? '') !== String(currentValues.value[name] ?? '') }
 const changedFields = computed(() => FIELD_DEFS.filter(d => isChanged(d.name)))

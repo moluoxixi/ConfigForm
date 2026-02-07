@@ -17,7 +17,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
 import { Button as AButton, Space as ASpace, Alert as AAlert, Segmented as ASegmented, Input as AInput, FormItem as AFormItem, Transfer as ATransfer, Tag as ATag } from 'ant-design-vue'
@@ -29,6 +29,7 @@ const result = ref('')
 const PERMISSIONS = Array.from({ length: 20 }, (_, i) => ({ key: `perm-${i + 1}`, title: `权限${String(i + 1).padStart(2, '0')} - ${['查看', '编辑', '删除', '审核', '导出'][i % 5]}${['用户', '订单', '商品', '报表'][Math.floor(i / 5)]}` }))
 const targetKeys = ref(['perm-1', 'perm-3', 'perm-5'])
 const form = useCreateForm({ initialValues: { roleName: '管理员', permissions: ['perm-1', 'perm-3', 'perm-5'] } })
+watch(mode, (v) => { form.pattern = v })
 onMounted(() => { form.createField({ name: 'roleName', label: '角色名称', required: true }); form.createField({ name: 'permissions', label: '权限', required: true }) })
 function handleTransferChange(keys: string[]): void { targetKeys.value = keys; form.setFieldValue('permissions', keys) }
 async function handleSubmit(): Promise<void> { const res = await form.submit(); result.value = res.errors.length > 0 ? '验证失败: ' + res.errors.map(e => e.message).join(', ') : JSON.stringify(res.values, null, 2) }

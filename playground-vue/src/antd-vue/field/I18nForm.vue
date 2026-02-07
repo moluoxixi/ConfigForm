@@ -33,6 +33,7 @@ const I18N: Record<Locale, Record<string, string>> = {
 }
 function t(key: string): string { return I18N[locale.value]?.[key] ?? key }
 const form = useCreateForm({ initialValues: { name: '', email: '', phone: '', bio: '' } })
+watch(mode, (v) => { form.pattern = v })
 onMounted(() => { form.createField({ name: 'name', label: t('field.name'), required: true, rules: [{ required: true, message: t('field.name.required') }] }); form.createField({ name: 'email', label: t('field.email'), rules: [{ format: 'email', message: t('field.email.invalid') }] }); form.createField({ name: 'phone', label: t('field.phone') }); form.createField({ name: 'bio', label: t('field.bio') }) })
 watch(locale, () => { const map: Record<string, string> = { name: 'field.name', email: 'field.email', phone: 'field.phone', bio: 'field.bio' }; Object.entries(map).forEach(([n, key]) => { const f = form.getField(n); if (f) { f.label = t(key); f.setComponentProps({ placeholder: t(`${key}.placeholder`) }) } }); const nf = form.getField('name'); if (nf) nf.rules = [{ required: true, message: t('field.name.required') }]; const ef = form.getField('email'); if (ef) ef.rules = [{ format: 'email', message: t('field.email.invalid') }] })
 async function handleSubmit(): Promise<void> { const res = await form.submit(); result.value = res.errors.length > 0 ? '验证失败: ' + res.errors.map(e => e.message).join(', ') : JSON.stringify(res.values, null, 2) }

@@ -15,7 +15,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
 import { Button as AButton, Space as ASpace, Alert as AAlert, Segmented as ASegmented, Input as AInput, FormItem as AFormItem, TreeSelect as ATreeSelect, Tag as ATag } from 'ant-design-vue'
@@ -26,6 +26,7 @@ const mode = ref<FieldPattern>('editable')
 const result = ref('')
 const TREE = [{ title: '总公司', value: 'root', children: [{ title: '技术中心', value: 'tech', children: [{ title: '前端组', value: 'frontend' }, { title: '后端组', value: 'backend' }] }, { title: '产品中心', value: 'product', children: [{ title: '产品设计', value: 'pd' }, { title: '用户研究', value: 'ux' }] }] }]
 const form = useCreateForm({ initialValues: { memberName: '', department: undefined, accessDepts: [] } })
+watch(mode, (v) => { form.pattern = v })
 onMounted(() => { form.createField({ name: 'memberName', label: '成员姓名', required: true }); form.createField({ name: 'department', label: '所属部门', required: true }); form.createField({ name: 'accessDepts', label: '可访问部门' }) })
 async function handleSubmit(): Promise<void> { const res = await form.submit(); result.value = res.errors.length > 0 ? '验证失败: ' + res.errors.map(e => e.message).join(', ') : JSON.stringify(res.values, null, 2) }
 </script>

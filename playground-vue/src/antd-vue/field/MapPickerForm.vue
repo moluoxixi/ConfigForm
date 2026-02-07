@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
 import { Button as AButton, Space as ASpace, Alert as AAlert, Segmented as ASegmented, Input as AInput, InputNumber as AInputNumber, FormItem as AFormItem } from 'ant-design-vue'
@@ -36,6 +36,7 @@ const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅�
 const mode = ref<FieldPattern>('editable')
 const result = ref('')
 const form = useCreateForm({ initialValues: { locationName: '天安门广场', lng: 116.3912, lat: 39.9075 } })
+watch(mode, (v) => { form.pattern = v })
 const lng = computed(() => (form.getFieldValue('lng') as number) ?? 116)
 const lat = computed(() => (form.getFieldValue('lat') as number) ?? 39)
 

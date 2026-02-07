@@ -21,7 +21,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
 import { Button as AButton, Space as ASpace, Alert as AAlert, Segmented as ASegmented, Input as AInput, FormItem as AFormItem, Textarea as ATextarea, Tag as ATag } from 'ant-design-vue'
@@ -33,6 +33,7 @@ const mode = ref<FieldPattern>('editable')
 const result = ref('')
 const jsonError = ref<string | null>(null)
 const form = useCreateForm({ initialValues: { configName: 'API 配置', jsonContent: JSON.stringify({ name: '张三', age: 28, roles: ['admin'] }, null, 2) } })
+watch(mode, (v) => { form.pattern = v })
 onMounted(() => { form.createField({ name: 'configName', label: '配置名称', required: true }); form.createField({ name: 'jsonContent', label: 'JSON 内容', required: true }) })
 function handleJsonChange(field: FieldInstance, value: string): void { field.setValue(value); try { JSON.parse(value); jsonError.value = null } catch (e) { jsonError.value = (e as Error).message } }
 function formatJson(field: FieldInstance): void { try { field.setValue(JSON.stringify(JSON.parse(field.value as string), null, 2)); jsonError.value = null } catch { /* */ } }

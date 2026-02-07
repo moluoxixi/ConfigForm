@@ -23,7 +23,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
 import { Button as AButton, Space as ASpace, Alert as AAlert, Segmented as ASegmented, Input as AInput, FormItem as AFormItem } from 'ant-design-vue'
@@ -36,6 +36,7 @@ const signatureData = ref('')
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 let isDrawing = false
 const form = useCreateForm({ initialValues: { signerName: '', signatureData: '' } })
+watch(mode, (v) => { form.pattern = v })
 onMounted(() => { form.createField({ name: 'signerName', label: '签名人', required: true }); form.createField({ name: 'signatureData', label: '签名' }) })
 function getCtx(): CanvasRenderingContext2D | null { return canvasRef.value?.getContext('2d') ?? null }
 function getPos(e: MouseEvent): { x: number; y: number } { const r = canvasRef.value!.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top } }

@@ -20,7 +20,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
 import { Button as AButton, Space as ASpace, Alert as AAlert, Segmented as ASegmented, Input as AInput, FormItem as AFormItem, Card as ACard, Textarea as ATextarea, message } from 'ant-design-vue'
@@ -36,6 +36,7 @@ const drafts = ref<Draft[]>(loadDrafts())
 function loadDrafts(): Draft[] { try { return JSON.parse(localStorage.getItem(KEY) || '[]') } catch { return [] } }
 function saveDraftsToStorage(): void { localStorage.setItem(KEY, JSON.stringify(drafts.value)) }
 const form = useCreateForm({ initialValues: { title: '', description: '', category: '', priority: '' } })
+watch(mode, (v) => { form.pattern = v })
 onMounted(() => { FIELDS.forEach(n => form.createField({ name: n, label: n === 'title' ? '标题' : n === 'description' ? '描述' : n === 'category' ? '分类' : '优先级', required: n === 'title' })) })
 function saveDraft(): void { const v = { ...form.values } as Record<string, unknown>; drafts.value = [{ id: String(Date.now()), ts: Date.now(), label: (v.title as string) || '未命名', values: v }, ...drafts.value].slice(0, 10); saveDraftsToStorage(); message.success('草稿已暂存') }
 function restoreDraft(d: Draft): void { form.setValues(d.values); message.success(`已恢复：${d.label}`) }

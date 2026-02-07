@@ -24,7 +24,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
 import { Button as AButton, Space as ASpace, Alert as AAlert, Segmented as ASegmented, Input as AInput, InputNumber as AInputNumber, FormItem as AFormItem, Card as ACard, Textarea as ATextarea, Tag as ATag, Switch as ASwitch } from 'ant-design-vue'
@@ -41,6 +41,7 @@ let logId = 0
 const typeColors: Record<string, string> = { mount: 'purple', change: 'blue', submit: 'green', reset: 'orange', 'auto-save': 'cyan' }
 function addLog(type: string, msg: string): void { logId++; logs.value = [{ id: logId, time: new Date().toLocaleTimeString(), type, message: msg }, ...logs.value].slice(0, 50) }
 const form = useCreateForm({ initialValues: { title: '生命周期测试', price: 99, description: '' } })
+watch(mode, (v) => { form.pattern = v })
 let timer: ReturnType<typeof setTimeout> | null = null
 onMounted(() => {
   form.createField({ name: 'title', label: '标题', required: true }); form.createField({ name: 'price', label: '价格' }); form.createField({ name: 'description', label: '描述' })

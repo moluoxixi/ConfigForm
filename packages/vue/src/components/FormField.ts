@@ -50,9 +50,18 @@ export const FormField = defineComponent({
       if (!field!.visible)
         return null
 
-      /* 自定义插槽渲染 */
+      /**
+       * 根据 pattern 计算有效的交互状态（v-slot 和自动渲染共用）
+       * 优先级：字段级 > 字段 pattern > 表单 pattern
+       */
+      const fp = field!.pattern
+      const formP = form.pattern
+      const isDisabled = field!.disabled || fp === 'disabled' || formP === 'disabled'
+      const isReadOnly = field!.readOnly || fp === 'readOnly' || formP === 'readOnly'
+
+      /* 自定义插槽渲染：传递 field + 计算后的交互状态 */
       if (slots.default) {
-        return slots.default({ field })
+        return slots.default({ field, isReadOnly, isDisabled })
       }
 
       /* 自动组件渲染 */
@@ -76,16 +85,6 @@ export const FormField = defineComponent({
       if (typeof wrapperName === 'string' && wrapperName) {
         Wrapper = registry?.wrappers.get(wrapperName) as Component | undefined
       }
-
-      /**
-       * 根据 pattern 计算有效的交互状态
-       * - disabled: pattern === 'disabled' 或字段级 disabled
-       * - readOnly: pattern === 'readOnly' 或字段级 readOnly
-       * 组件适配层负责将 readonly 映射为合适的行为（如不支持则降级为 disabled）
-       */
-      const effectivePattern = field!.pattern
-      const isDisabled = field!.disabled || effectivePattern === 'disabled'
-      const isReadOnly = field!.readOnly || effectivePattern === 'readOnly'
 
       const fieldElement = h(Component as Component, {
         'modelValue': field!.value,

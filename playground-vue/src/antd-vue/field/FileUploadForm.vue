@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
 import { Button as AButton, Space as ASpace, Alert as AAlert, Segmented as ASegmented, Input as AInput, FormItem as AFormItem, Upload as AUpload } from 'ant-design-vue'
@@ -29,6 +29,7 @@ const result = ref('')
 const fileList = ref<any[]>([])
 const imageList = ref<any[]>([])
 const form = useCreateForm({ initialValues: { title: '' } })
+watch(mode, (v) => { form.pattern = v })
 onMounted(() => { form.createField({ name: 'title', label: '标题', required: true }) })
 async function handleSubmit(): Promise<void> { const res = await form.submit(); result.value = res.errors.length > 0 ? '验证失败: ' + res.errors.map(e => e.message).join(', ') : JSON.stringify({ ...res.values, files: fileList.value.map(f => f.name), images: imageList.value.map(f => f.name) }, null, 2) }
 </script>

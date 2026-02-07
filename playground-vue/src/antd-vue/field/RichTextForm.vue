@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
 import { Button as AButton, Space as ASpace, Alert as AAlert, Segmented as ASegmented, Input as AInput, FormItem as AFormItem, Textarea as ATextarea } from 'ant-design-vue'
@@ -31,6 +31,7 @@ const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅�
 const mode = ref<FieldPattern>('editable')
 const result = ref('')
 const form = useCreateForm({ initialValues: { title: '示例文章', content: '<h2>标题</h2><p>这是<strong>富文本</strong>内容。</p>' } })
+watch(mode, (v) => { form.pattern = v })
 onMounted(() => { form.createField({ name: 'title', label: '标题', required: true }); form.createField({ name: 'content', label: '正文', required: true }) })
 async function handleSubmit(): Promise<void> { const res = await form.submit(); result.value = res.errors.length > 0 ? '验证失败: ' + res.errors.map(e => e.message).join(', ') : JSON.stringify(res.values, null, 2) }
 </script>

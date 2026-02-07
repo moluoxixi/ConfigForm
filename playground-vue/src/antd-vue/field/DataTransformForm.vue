@@ -14,7 +14,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
 import { Button as AButton, Space as ASpace, Alert as AAlert, Segmented as ASegmented, Input as AInput, FormItem as AFormItem, Tag as ATag } from 'ant-design-vue'
@@ -26,6 +26,7 @@ const result = ref('')
 const rawValues = ref('')
 const FIELDS = ['priceCent', 'phoneRaw', 'fullName', 'tags']
 const form = useCreateForm({ initialValues: { priceCent: 9990, phoneRaw: '13800138000', fullName: '张三', tags: 'react,vue,typescript' } })
+watch(mode, (v) => { form.pattern = v })
 onMounted(() => {
   form.createField({ name: 'priceCent', label: '价格（分→元）', description: 'format: 分转元, parse: 元转分', format: (v: unknown) => v ? (Number(v) / 100).toFixed(2) : '', parse: (v: unknown) => Math.round(Number(v) * 100) })
   form.createField({ name: 'phoneRaw', label: '手机号（脱敏）', format: (v: unknown) => { const s = String(v ?? ''); return s.length === 11 ? `${s.slice(0, 3)}****${s.slice(7)}` : s } })
