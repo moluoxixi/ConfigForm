@@ -1,7 +1,6 @@
-import type { FieldInstance } from '@moluoxixi/core'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Card, Form, Input, InputNumber, Space, Tag, Typography } from 'antd'
+import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
+import { Card, Space, Tag, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 47：表单比对
@@ -18,7 +17,15 @@ const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
-const FIELD_DEFS = [
+/** 字段定义接口 */
+interface FieldDef {
+  name: string
+  label: string
+  type: 'text' | 'number' | 'textarea'
+}
+
+/** 字段定义 */
+const FIELD_DEFS: FieldDef[] = [
   { name: 'name', label: '姓名', type: 'text' },
   { name: 'email', label: '邮箱', type: 'text' },
   { name: 'phone', label: '电话', type: 'text' },
@@ -37,39 +44,55 @@ const ORIGINAL_VALUES: Record<string, unknown> = {
   bio: '5 年前端开发经验',
 }
 
+/** 根据字段定义生成 fieldProps */
+function getFieldProps(d: FieldDef): Record<string, unknown> {
+  const base: Record<string, unknown> = { label: d.label }
+  if (d.type === 'number') {
+    base.component = 'InputNumber'
+    base.componentProps = { style: { width: '100%' } }
+  }
+  else if (d.type === 'textarea') {
+    base.component = 'Textarea'
+    base.componentProps = { rows: 2 }
+  }
+  else {
+    base.component = 'Input'
+  }
+  return base
+}
+
 export const FormDiffForm = observer((): React.ReactElement => {
   const [currentValues, setCurrentValues] = useState<Record<string, unknown>>({ ...ORIGINAL_VALUES })
 
   const form = useCreateForm({ initialValues: { ...ORIGINAL_VALUES } })
 
+  /** 订阅表单值变化，同步到 currentValues 用于 diff 比较 */
   useEffect(() => {
-    FIELD_DEFS.forEach(d => form.createField({ name: d.name, label: d.label }))
     const unsub = form.onValuesChange((values: Record<string, unknown>) => setCurrentValues({ ...values }))
     return unsub
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** 判断字段是否已变更 */
+  const isChanged = (name: string): boolean =>
+    String(ORIGINAL_VALUES[name] ?? '') !== String(currentValues[name] ?? '')
 
   /** 变更字段列表 */
-  const changedFields = useMemo(() => {
-    return FIELD_DEFS.filter((d) => {
-      const orig = ORIGINAL_VALUES[d.name]
-      const curr = currentValues[d.name]
-      return String(orig ?? '') !== String(curr ?? '')
-    })
-  }, [currentValues])
+  const changedFields = useMemo(
+    () => FIELD_DEFS.filter(d => String(ORIGINAL_VALUES[d.name] ?? '') !== String(currentValues[d.name] ?? '')),
+    [currentValues],
+  )
 
   return (
     <div>
       <Title level={3}>表单比对</Title>
       <Paragraph type="secondary">变更高亮 / 原始值 vs 当前值 / 变更摘要</Paragraph>
 
-      {/* 变更摘要 */}
+      {/* 变更摘要（附加内容） */}
       <Card size="small" style={{ marginBottom: 16 }}>
         <Space>
           <Text strong>变更摘要：</Text>
           {changedFields.length === 0
-            ? (
-                <Tag color="green">无变更</Tag>
-              )
+            ? <Tag color="green">无变更</Tag>
             : (
                 <>
                   <Tag color="orange">
@@ -84,48 +107,39 @@ export const FormDiffForm = observer((): React.ReactElement => {
       </Card>
 
       <StatusTabs>
-        {({ mode }) => {
+        {({ mode, showResult, showErrors }) => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              {FIELD_DEFS.map((d) => {
-                const isChanged = String(ORIGINAL_VALUES[d.name] ?? '') !== String(currentValues[d.name] ?? '')
-                return (
-                  <FormField key={d.name} name={d.name}>
-                    {(field: FieldInstance) => (
-                      <Form.Item
-                        label={(
-                          <Space>
-                            {d.label}
-                            {isChanged && <Tag color="orange" style={{ fontSize: 10 }}>已修改</Tag>}
-                          </Space>
-                        )}
-                        style={{ background: isChanged ? '#fffbe6' : undefined, padding: isChanged ? '4px 8px' : undefined, borderRadius: 4 }}
-                        help={isChanged
-                          ? (
-                              <Text type="secondary" style={{ fontSize: 11 }}>
-                                原始值:
-                                {String(ORIGINAL_VALUES[d.name] ?? '—')}
-                              </Text>
-                            )
-                          : undefined}
-                      >
-                        {d.type === 'number'
-                          ? (
-                              <InputNumber value={field.value as number} onChange={v => field.setValue(v)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} style={{ width: '100%' }} />
-                            )
-                          : d.type === 'textarea'
-                            ? (
-                                <Input.TextArea value={(field.value as string) ?? ''} onChange={e => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} rows={2} />
-                              )
-                            : (
-                                <Input value={(field.value as string) ?? ''} onChange={e => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} />
-                              )}
-                      </Form.Item>
-                    )}
-                  </FormField>
-                )
-              })}
+              <form onSubmit={async (e: React.FormEvent) => {
+                e.preventDefault()
+                const res = await form.submit()
+                if (res.errors.length > 0) showErrors(res.errors)
+                else showResult(res.values)
+              }} noValidate>
+                {FIELD_DEFS.map((d) => {
+                  const changed = isChanged(d.name)
+                  return (
+                    <div
+                      key={d.name}
+                      style={{
+                        background: changed ? '#fffbe6' : undefined,
+                        padding: changed ? '4px 8px' : undefined,
+                        borderRadius: 4,
+                        marginBottom: changed ? 4 : undefined,
+                      }}
+                    >
+                      <FormField name={d.name} fieldProps={getFieldProps(d)} />
+                      {changed && (
+                        <div style={{ color: '#faad14', fontSize: 12, marginTop: -8, marginBottom: 8, paddingLeft: 8 }}>
+                          原始值: {String(ORIGINAL_VALUES[d.name] ?? '—')}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+              </form>
             </FormProvider>
           )
         }}

@@ -1,8 +1,3 @@
-import type { FieldInstance } from '@moluoxixi/core'
-import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Col, Form, Input, Row, Typography } from 'antd'
-import { observer } from 'mobx-react-lite'
 /**
  * 场景 37：Markdown 编辑器
  *
@@ -10,14 +5,20 @@ import { observer } from 'mobx-react-lite'
  * - Markdown 编辑 + 实时预览
  * - 三种模式切换
  *
+ * 自定义 MarkdownEditor 组件注册后，在 fieldProps 中通过 component: 'MarkdownEditor' 引用。
  * 注：实际项目可接入 @bytemd/react
  */
-import React, { useEffect } from 'react'
+import React from 'react'
+import { observer } from 'mobx-react-lite'
+import { FormField, FormProvider, registerComponent, useCreateForm } from '@moluoxixi/react'
+import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
+import { Col, Input, Row, Typography } from 'antd'
 
 const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
+/** Markdown 初始内容 */
 const DEFAULT_MD = `# 标题
 
 ## 二级标题
@@ -50,64 +51,92 @@ function simpleMarkdownToHtml(md: string): string {
     .replace(/\n/g, '<br/>')
 }
 
+// ========== 自定义组件：Markdown 编辑器 ==========
+
+/** Markdown 编辑器 Props */
+interface MarkdownEditorProps {
+  /** Markdown 内容 */
+  value?: string
+  /** 值变更回调 */
+  onChange?: (v: string) => void
+  /** 是否禁用 */
+  disabled?: boolean
+  /** 是否只读 */
+  readOnly?: boolean
+}
+
+/**
+ * Markdown 编辑器组件
+ *
+ * - 编辑态：左右分栏（编辑区 + 预览区）
+ * - 只读/禁用态：渲染后的 HTML 预览
+ */
+const MarkdownEditor = observer(({ value, onChange, disabled, readOnly }: MarkdownEditorProps): React.ReactElement => {
+  const isEditable = !disabled && !readOnly
+  const content = value ?? ''
+
+  if (isEditable) {
+    return (
+      <Row gutter={16}>
+        <Col span={12}>
+          <Text type="secondary" style={{ display: 'block', marginBottom: 4, fontSize: 12 }}>编辑区</Text>
+          <Input.TextArea
+            value={content}
+            onChange={e => onChange?.(e.target.value)}
+            rows={16}
+            style={{ fontFamily: 'Consolas, Monaco, monospace', fontSize: 13 }}
+          />
+        </Col>
+        <Col span={12}>
+          <Text type="secondary" style={{ display: 'block', marginBottom: 4, fontSize: 12 }}>预览区</Text>
+          <div
+            style={{ border: '1px solid #d9d9d9', borderRadius: 6, padding: 12, minHeight: 380, overflow: 'auto', background: '#fafafa' }}
+            dangerouslySetInnerHTML={{ __html: simpleMarkdownToHtml(content) }}
+          />
+        </Col>
+      </Row>
+    )
+  }
+
+  return (
+    <div
+      style={{ border: '1px solid #d9d9d9', borderRadius: 6, padding: 16, background: '#fafafa', opacity: disabled ? 0.6 : 1 }}
+      dangerouslySetInnerHTML={{ __html: simpleMarkdownToHtml(content) }}
+    />
+  )
+})
+
+registerComponent('MarkdownEditor', MarkdownEditor, { defaultWrapper: 'FormItem' })
+
+// ========== 表单组件 ==========
+
+/**
+ * Markdown 编辑器表单
+ *
+ * 展示 Markdown 编写、实时预览、三种模式切换
+ */
 export const MarkdownEditorForm = observer((): React.ReactElement => {
   const form = useCreateForm({ initialValues: { docTitle: '使用指南', content: DEFAULT_MD } })
-
-  useEffect(() => {
-    form.createField({ name: 'docTitle', label: '文档标题', required: true })
-    form.createField({ name: 'content', label: 'Markdown 内容', required: true })
-  }, [])
 
   return (
     <div>
       <Title level={3}>Markdown 编辑器</Title>
       <Paragraph type="secondary">Markdown 编写 + 实时预览 / 三种模式（可接入 @bytemd/react）</Paragraph>
       <StatusTabs>
-        {({ mode }) => {
+        {({ mode, showResult, showErrors }) => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <FormField name="docTitle">
-                {(field: FieldInstance) => (
-                  <Form.Item label={field.label} required={field.required}>
-                    <Input value={(field.value as string) ?? ''} onChange={e => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} />
-                  </Form.Item>
-                )}
-              </FormField>
-
-              <FormField name="content">
-                {(field: FieldInstance) => (
-                  <Form.Item label={field.label} required={field.required}>
-                    {mode === 'editable'
-                      ? (
-                          <Row gutter={16}>
-                            <Col span={12}>
-                              <Text type="secondary" style={{ display: 'block', marginBottom: 4, fontSize: 12 }}>编辑区</Text>
-                              <Input.TextArea
-                                value={(field.value as string) ?? ''}
-                                onChange={e => field.setValue(e.target.value)}
-                                rows={16}
-                                style={{ fontFamily: 'Consolas, Monaco, monospace', fontSize: 13 }}
-                              />
-                            </Col>
-                            <Col span={12}>
-                              <Text type="secondary" style={{ display: 'block', marginBottom: 4, fontSize: 12 }}>预览区</Text>
-                              <div
-                                style={{ border: '1px solid #d9d9d9', borderRadius: 6, padding: 12, minHeight: 380, overflow: 'auto', background: '#fafafa' }}
-                                dangerouslySetInnerHTML={{ __html: simpleMarkdownToHtml((field.value as string) ?? '') }}
-                              />
-                            </Col>
-                          </Row>
-                        )
-                      : (
-                          <div
-                            style={{ border: '1px solid #d9d9d9', borderRadius: 6, padding: 16, background: '#fafafa', opacity: mode === 'disabled' ? 0.6 : 1 }}
-                            dangerouslySetInnerHTML={{ __html: simpleMarkdownToHtml((field.value as string) ?? '') }}
-                          />
-                        )}
-                  </Form.Item>
-                )}
-              </FormField>
+              <form onSubmit={async (e: React.FormEvent) => {
+                e.preventDefault()
+                const res = await form.submit()
+                if (res.errors.length > 0) showErrors(res.errors)
+                else showResult(res.values)
+              }} noValidate>
+                <FormField name="docTitle" fieldProps={{ label: '文档标题', required: true, component: 'Input' }} />
+                <FormField name="content" fieldProps={{ label: 'Markdown 内容', required: true, component: 'MarkdownEditor' }} />
+                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+              </form>
             </FormProvider>
           )
         }}

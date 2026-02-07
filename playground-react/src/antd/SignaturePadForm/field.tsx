@@ -1,8 +1,7 @@
-import type { FieldInstance } from '@moluoxixi/core'
 import { ClearOutlined } from '@ant-design/icons'
-import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Button, Form, Input, Typography } from 'antd'
+import { FormField, FormProvider, registerComponent, useCreateForm } from '@moluoxixi/react'
+import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
+import { Button, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 34：手写签名板
@@ -19,46 +18,54 @@ const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
-/** Canvas 签名板 */
-function SignatureCanvas({
-  value,
-  onChange,
-  disabled,
-}: {
+/** Canvas 签名板常量 */
+const CANVAS_WIDTH = 500
+const CANVAS_HEIGHT = 200
+
+/** 签名板组件 Props */
+interface SignaturePadProps {
   value: string
   onChange: (dataUrl: string) => void
   disabled: boolean
-}): React.ReactElement {
+  readOnly: boolean
+}
+
+/**
+ * Canvas 手写签名自定义组件
+ *
+ * - 编辑态：Canvas 画布 + 清空按钮
+ * - 禁用态：禁用 Canvas（不可绘制）
+ * - 只读态：Base64 图片或占位文字
+ */
+const SignaturePad = observer(({ value, onChange, disabled, readOnly }: SignaturePadProps): React.ReactElement => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const isDrawingRef = useRef(false)
 
-  /** 获取绘图上下文 */
+  /** 获取 Canvas 2D 上下文 */
   const getCtx = (): CanvasRenderingContext2D | null => canvasRef.current?.getContext('2d') ?? null
 
-  /** 获取鼠标在 canvas 中的位置 */
-  const getPos = (e: React.MouseEvent): { x: number, y: number } => {
+  /** 获取鼠标相对 Canvas 的坐标 */
+  const getPos = (e: React.MouseEvent): { x: number; y: number } => {
     const rect = canvasRef.current!.getBoundingClientRect()
     return { x: e.clientX - rect.left, y: e.clientY - rect.top }
   }
 
+  /** 开始绘制 */
   const handleMouseDown = (e: React.MouseEvent): void => {
-    if (disabled)
-      return
+    if (disabled) return
     isDrawingRef.current = true
     const ctx = getCtx()
-    if (!ctx)
-      return
+    if (!ctx) return
     const pos = getPos(e)
     ctx.beginPath()
     ctx.moveTo(pos.x, pos.y)
   }
 
+  /** 绘制中 */
   const handleMouseMove = (e: React.MouseEvent): void => {
-    if (!isDrawingRef.current || disabled)
-      return
+    if (!isDrawingRef.current || disabled) return
     const ctx = getCtx()
-    if (!ctx)
-      return
+    if (!ctx) return
     const pos = getPos(e)
     ctx.lineWidth = 2
     ctx.lineCap = 'round'
@@ -67,13 +74,12 @@ function SignatureCanvas({
     ctx.stroke()
   }
 
+  /** 结束绘制，输出 Base64 */
   const handleMouseUp = (): void => {
-    if (!isDrawingRef.current)
-      return
+    if (!isDrawingRef.current) return
     isDrawingRef.current = false
     const canvas = canvasRef.current
-    if (canvas)
-      onChange(canvas.toDataURL('image/png'))
+    if (canvas) onChange(canvas.toDataURL('image/png'))
   }
 
   /** 清空画布 */
@@ -88,26 +94,33 @@ function SignatureCanvas({
 
   /* 恢复已有签名 */
   useEffect(() => {
-    if (!value)
-      return
+    if (!value) return
     const ctx = getCtx()
     const canvas = canvasRef.current
-    if (!ctx || !canvas)
-      return
+    if (!ctx || !canvas) return
     const img = new Image()
     img.onload = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       ctx.drawImage(img, 0, 0)
     }
     img.src = value
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  /* 只读态：Base64 图片或占位文字 */
+  if (readOnly) {
+    if (value) {
+      return <img src={value} alt="签名" style={{ border: '1px solid #d9d9d9', borderRadius: 8, maxWidth: 500 }} />
+    }
+    return <Text type="secondary">暂无签名</Text>
+  }
+
+  /* 编辑/禁用态：Canvas + 清空按钮 */
   return (
     <div>
       <canvas
         ref={canvasRef}
-        width={500}
-        height={200}
+        width={CANVAS_WIDTH}
+        height={CANVAS_HEIGHT}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -127,57 +140,34 @@ function SignatureCanvas({
       )}
     </div>
   )
-}
+})
+
+registerComponent('SignaturePad', SignaturePad, { defaultWrapper: 'FormItem' })
 
 export const SignaturePadForm = observer((): React.ReactElement => {
   const form = useCreateForm({
     initialValues: { signerName: '', signatureData: '' },
   })
 
-  useEffect(() => {
-    form.createField({ name: 'signerName', label: '签名人', required: true })
-    form.createField({ name: 'signatureData', label: '签名' })
-  }, [])
-
   return (
     <div>
       <Title level={3}>手写签名板</Title>
       <Paragraph type="secondary">Canvas 手写签名 / Base64 数据同步 / 清空操作 / 三种模式</Paragraph>
       <StatusTabs>
-        {({ mode }) => {
+        {({ mode, showResult, showErrors }) => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <FormField name="signerName">
-                {(field: FieldInstance) => (
-                  <Form.Item label={field.label} required={field.required}>
-                    <Input value={(field.value as string) ?? ''} onChange={e => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} style={{ width: 300 }} />
-                  </Form.Item>
-                )}
-              </FormField>
-              <FormField name="signatureData">
-                {(field: FieldInstance) => (
-                  <Form.Item label="手写签名">
-                    {mode === 'readOnly' || mode === 'preview'
-                      ? (
-                          (field.value as string)
-                            ? (
-                                <img src={field.value as string} alt="签名" style={{ border: '1px solid #d9d9d9', borderRadius: 8, maxWidth: 500 }} />
-                              )
-                            : (
-                                <Text type="secondary">暂无签名</Text>
-                              )
-                        )
-                      : (
-                          <SignatureCanvas
-                            value={(field.value as string) ?? ''}
-                            onChange={v => field.setValue(v)}
-                            disabled={mode === 'disabled'}
-                          />
-                        )}
-                  </Form.Item>
-                )}
-              </FormField>
+              <form onSubmit={async (e: React.FormEvent) => {
+                e.preventDefault()
+                const res = await form.submit()
+                if (res.errors.length > 0) showErrors(res.errors)
+                else showResult(res.values)
+              }} noValidate>
+                <FormField name="signerName" fieldProps={{ label: '签名人', required: true, component: 'Input', componentProps: { style: { width: 300 } } }} />
+                <FormField name="signatureData" fieldProps={{ label: '手写签名', component: 'SignaturePad' }} />
+                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+              </form>
             </FormProvider>
           )
         }}

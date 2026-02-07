@@ -1,12 +1,9 @@
-import type { FieldInstance } from '@moluoxixi/core'
 import { DeleteOutlined, SaveOutlined, UndoOutlined } from '@ant-design/icons'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
 import {
   Button,
   Card,
-  Form,
-  Input,
   List,
   message,
   Tag,
@@ -22,14 +19,19 @@ import { observer } from 'mobx-react-lite'
  * - 多版本草稿列表
  * - 三种模式切换
  */
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 
 const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
+/** localStorage 存储键 */
 const STORAGE_KEY = 'configform-snapshot-drafts'
 
+/** 最大草稿数量 */
+const MAX_DRAFTS = 10
+
+/** 草稿数据结构 */
 interface DraftItem {
   id: string
   timestamp: number
@@ -45,12 +47,10 @@ function loadDrafts(): DraftItem[] {
   catch { return [] }
 }
 
-/** 保存草稿列表 */
-function saveDrafts(drafts: DraftItem[]): void {
+/** 保存草稿列表到 localStorage */
+function saveDraftsToStorage(drafts: DraftItem[]): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(drafts))
 }
-
-const FIELDS = ['title', 'description', 'category', 'priority']
 
 export const FormSnapshotForm = observer((): React.ReactElement => {
   const [drafts, setDrafts] = useState<DraftItem[]>(loadDrafts)
@@ -58,13 +58,6 @@ export const FormSnapshotForm = observer((): React.ReactElement => {
   const form = useCreateForm({
     initialValues: { title: '', description: '', category: '', priority: '' },
   })
-
-  useEffect(() => {
-    form.createField({ name: 'title', label: '标题', required: true })
-    form.createField({ name: 'description', label: '描述' })
-    form.createField({ name: 'category', label: '分类' })
-    form.createField({ name: 'priority', label: '优先级' })
-  }, [])
 
   /** 暂存草稿 */
   const saveDraft = (): void => {
@@ -75,9 +68,9 @@ export const FormSnapshotForm = observer((): React.ReactElement => {
       label: (values.title as string) || '未命名草稿',
       values,
     }
-    const newDrafts = [draft, ...drafts].slice(0, 10)
+    const newDrafts = [draft, ...drafts].slice(0, MAX_DRAFTS)
     setDrafts(newDrafts)
-    saveDrafts(newDrafts)
+    saveDraftsToStorage(newDrafts)
     message.success('草稿已暂存')
   }
 
@@ -91,7 +84,7 @@ export const FormSnapshotForm = observer((): React.ReactElement => {
   const deleteDraft = (id: string): void => {
     const newDrafts = drafts.filter(d => d.id !== id)
     setDrafts(newDrafts)
-    saveDrafts(newDrafts)
+    saveDraftsToStorage(newDrafts)
   }
 
   return (
@@ -100,37 +93,35 @@ export const FormSnapshotForm = observer((): React.ReactElement => {
       <Paragraph type="secondary">暂存草稿（localStorage） / 恢复草稿 / 多版本管理</Paragraph>
 
       <div style={{ display: 'flex', gap: 16 }}>
+        {/* 左侧：表单区域 */}
         <div style={{ flex: 1 }}>
           <StatusTabs>
-            {({ mode }) => {
+            {({ mode, showResult, showErrors }) => {
               form.pattern = mode
               return (
                 <FormProvider form={form}>
-                  {FIELDS.map(name => (
-                    <FormField key={name} name={name}>
-                      {(field: FieldInstance) => (
-                        <Form.Item label={field.label} required={field.required}>
-                          {name === 'description'
-                            ? (
-                                <Input.TextArea value={(field.value as string) ?? ''} onChange={e => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} rows={3} />
-                              )
-                            : (
-                                <Input value={(field.value as string) ?? ''} onChange={e => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} />
-                              )}
-                        </Form.Item>
-                      )}
-                    </FormField>
-                  ))}
-                  {mode === 'editable' && (
-                    <Button icon={<SaveOutlined />} onClick={saveDraft}>暂存草稿</Button>
-                  )}
+                  <form onSubmit={async (e: React.FormEvent) => {
+                    e.preventDefault()
+                    const res = await form.submit()
+                    if (res.errors.length > 0) showErrors(res.errors)
+                    else showResult(res.values)
+                  }} noValidate>
+                    <FormField name="title" fieldProps={{ label: '标题', required: true, component: 'Input' }} />
+                    <FormField name="description" fieldProps={{ label: '描述', component: 'Textarea', componentProps: { rows: 3 } }} />
+                    <FormField name="category" fieldProps={{ label: '分类', component: 'Input' }} />
+                    <FormField name="priority" fieldProps={{ label: '优先级', component: 'Input' }} />
+                    {mode === 'editable' && (
+                      <Button icon={<SaveOutlined />} onClick={saveDraft}>暂存草稿</Button>
+                    )}
+                    {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                  </form>
                 </FormProvider>
               )
             }}
           </StatusTabs>
         </div>
 
-        {/* 草稿列表 */}
+        {/* 右侧：草稿列表（附加内容） */}
         <Card
           title={(
             <span>
@@ -142,9 +133,7 @@ export const FormSnapshotForm = observer((): React.ReactElement => {
           style={{ width: 280 }}
         >
           {drafts.length === 0
-            ? (
-                <Text type="secondary">暂无草稿</Text>
-              )
+            ? <Text type="secondary">暂无草稿</Text>
             : (
                 <List
                   size="small"

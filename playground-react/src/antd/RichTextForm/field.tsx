@@ -1,8 +1,6 @@
-import type { FieldInstance } from '@moluoxixi/core'
-import type { FieldPattern } from '@moluoxixi/shared'
-import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Alert, Form, Input, Spin, Typography } from 'antd'
+import { FormField, FormProvider, registerComponent, useCreateForm } from '@moluoxixi/react'
+import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
+import { Alert, Input, Spin, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 28：富文本编辑器
@@ -15,7 +13,7 @@ import { observer } from 'mobx-react-lite'
  *
  * 依赖：react-quill（https://www.npmjs.com/package/react-quill）
  */
-import React, { lazy, Suspense, useEffect } from 'react'
+import React, { lazy, Suspense } from 'react'
 
 const { Title, Paragraph } = Typography
 
@@ -37,43 +35,48 @@ catch {
   ReactQuill = null
 }
 
-/** 富文本编辑器封装（未安装时降级为 Textarea） */
-const RichEditor = observer(({
-  field,
-  pattern,
-}: {
-  field: FieldInstance
-  pattern: FieldPattern
-}): React.ReactElement => {
-  const value = (field.value as string) ?? ''
+/** 富文本编辑器组件 Props */
+interface RichTextEditorProps {
+  value: string
+  onChange: (v: string) => void
+  disabled: boolean
+  readOnly: boolean
+}
 
-  /* 阅读态：纯 HTML 展示 */
-  if (pattern === 'readOnly' || pattern === 'preview') {
+/**
+ * 富文本编辑器自定义组件
+ *
+ * - 编辑态：ReactQuill（未安装时降级为 Textarea）
+ * - 禁用态：HTML 预览（半透明）
+ * - 只读态：HTML 预览
+ */
+const RichTextEditor = observer(({ value, onChange, disabled, readOnly }: RichTextEditorProps): React.ReactElement => {
+  const html = value ?? ''
+
+  /* 只读态 / 禁用态：HTML 预览 */
+  if (readOnly || disabled) {
     return (
       <div
-        style={{ padding: 12, border: '1px solid #d9d9d9', borderRadius: 6, minHeight: 100, background: '#fafafa' }}
-        dangerouslySetInnerHTML={{ __html: value || '<span style="color:#999">暂无内容</span>' }}
+        style={{
+          padding: 12,
+          border: '1px solid #d9d9d9',
+          borderRadius: 6,
+          minHeight: 100,
+          background: '#fafafa',
+          opacity: disabled ? 0.7 : 1,
+        }}
+        dangerouslySetInnerHTML={{ __html: html || '<span style="color:#999">暂无内容</span>' }}
       />
     )
   }
 
-  /* 禁用态 */
-  if (pattern === 'disabled') {
-    return (
-      <div
-        style={{ padding: 12, border: '1px solid #d9d9d9', borderRadius: 6, minHeight: 100, background: '#f5f5f5', opacity: 0.7 }}
-        dangerouslySetInnerHTML={{ __html: value || '<span style="color:#999">暂无内容</span>' }}
-      />
-    )
-  }
-
-  /* 编辑态：尝试加载 ReactQuill */
+  /* 编辑态：ReactQuill（可用时） */
   if (ReactQuill) {
     return (
       <Suspense fallback={<Spin />}>
         <ReactQuill
-          value={value}
-          onChange={(v: string) => field.setValue(v)}
+          value={html}
+          onChange={(v: string) => onChange(v)}
           theme="snow"
           style={{ minHeight: 200 }}
         />
@@ -86,14 +89,16 @@ const RichEditor = observer(({
     <div>
       <Alert type="warning" showIcon message="react-quill 未安装，使用 Textarea 替代" style={{ marginBottom: 8 }} />
       <Input.TextArea
-        value={value}
-        onChange={e => field.setValue(e.target.value)}
+        value={html}
+        onChange={e => onChange(e.target.value)}
         rows={8}
         placeholder="在此输入 HTML 内容"
       />
     </div>
   )
 })
+
+registerComponent('RichTextEditor', RichTextEditor, { defaultWrapper: 'FormItem' })
 
 export const RichTextForm = observer((): React.ReactElement => {
   const form = useCreateForm({
@@ -103,34 +108,25 @@ export const RichTextForm = observer((): React.ReactElement => {
     },
   })
 
-  useEffect(() => {
-    form.createField({ name: 'title', label: '标题', required: true })
-    form.createField({ name: 'content', label: '正文内容', required: true })
-  }, [])
-
   return (
     <div>
       <Title level={3}>富文本编辑器</Title>
       <Paragraph type="secondary">react-quill 集成 / 三种模式 / 未安装时 Textarea 降级</Paragraph>
       <StatusTabs>
-        {({ mode }) => {
+        {({ mode, showResult, showErrors }) => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <FormField name="title">
-                {(field: FieldInstance) => (
-                  <Form.Item label={field.label} required={field.required}>
-                    <Input value={(field.value as string) ?? ''} onChange={e => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} placeholder="文章标题" />
-                  </Form.Item>
-                )}
-              </FormField>
-              <FormField name="content">
-                {(field: FieldInstance) => (
-                  <Form.Item label={field.label} required={field.required}>
-                    <RichEditor field={field} pattern={mode} />
-                  </Form.Item>
-                )}
-              </FormField>
+              <form onSubmit={async (e: React.FormEvent) => {
+                e.preventDefault()
+                const res = await form.submit()
+                if (res.errors.length > 0) showErrors(res.errors)
+                else showResult(res.values)
+              }} noValidate>
+                <FormField name="title" fieldProps={{ label: '标题', required: true, component: 'Input', componentProps: { placeholder: '文章标题' } }} />
+                <FormField name="content" fieldProps={{ label: '正文内容', required: true, component: 'RichTextEditor' }} />
+                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+              </form>
             </FormProvider>
           )
         }}

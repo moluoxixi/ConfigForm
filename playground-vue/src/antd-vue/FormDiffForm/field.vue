@@ -6,39 +6,41 @@
     </p>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <FormProvider :form="form">
-        <ACard size="small" style="margin-bottom: 16px">
-          <ASpace>
-            <span style="font-weight: 600">变更摘要：</span><ATag v-if="changedFields.length === 0" color="green">
-              无变更
-            </ATag><template v-else>
-              <ATag color="orange">
-                {{ changedFields.length }} 个已修改
-              </ATag><ATag v-for="d in changedFields" :key="d.name" color="red">
-                {{ d.label }}
+        <form @submit.prevent="handleSubmit(showResult)" novalidate>
+          <!-- 变更摘要卡片（附加内容） -->
+          <ACard size="small" style="margin-bottom: 16px">
+            <ASpace>
+              <span style="font-weight: 600">变更摘要：</span>
+              <ATag v-if="changedFields.length === 0" color="green">
+                无变更
               </ATag>
-            </template>
-          </ASpace>
-        </ACard>
-        <FormField v-for="d in FIELD_DEFS" :key="d.name" v-slot="{ field }" :name="d.name">
-          <AFormItem :label="d.label" :style="{ background: isChanged(d.name) ? '#fffbe6' : undefined, padding: isChanged(d.name) ? '4px 8px' : undefined, borderRadius: '4px' }" :help="isChanged(d.name) ? `原始值: ${String(ORIGINAL[d.name] ?? '—')}` : undefined">
-            <template v-if="mode === 'readOnly'">
-              <span v-if="d.type === 'textarea'" style="white-space:pre-wrap">{{ (field.value as string) || '—' }}</span><span v-else>{{ field.value ?? '—' }}</span>
-            </template>
-            <template v-else>
-              <AInputNumber v-if="d.type === 'number'" :value="(field.value as number)" :disabled="mode === 'disabled'" style="width: 100%" @update:value="field.setValue($event)" />
-              <ATextarea v-else-if="d.type === 'textarea'" :value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" :rows="2" @update:value="field.setValue($event)" />
-              <AInput v-else :value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" @update:value="field.setValue($event)" />
-            </template>
-          </AFormItem>
-        </FormField>
-        <div v-if="mode === 'editable'" style="margin-top: 16px; display: flex; gap: 8px">
-          <button type="button" style="padding: 4px 15px; background: #1677ff; color: #fff; border: none; border-radius: 6px; cursor: pointer" @click="handleSubmit(showResult)">
-            提交
-          </button>
-          <button type="button" style="padding: 4px 15px; background: #fff; border: 1px solid #d9d9d9; border-radius: 6px; cursor: pointer" @click="form.reset()">
-            重置
-          </button>
-        </div>
+              <template v-else>
+                <ATag color="orange">
+                  {{ changedFields.length }} 个已修改
+                </ATag>
+                <ATag v-for="d in changedFields" :key="d.name" color="red">
+                  {{ d.label }}
+                </ATag>
+              </template>
+            </ASpace>
+          </ACard>
+          <!-- 表单字段：外层 div 添加 diff 高亮样式 -->
+          <div
+            v-for="d in FIELD_DEFS" :key="d.name"
+            :style="{
+              background: isChanged(d.name) ? '#fffbe6' : undefined,
+              padding: isChanged(d.name) ? '4px 8px' : undefined,
+              borderRadius: '4px',
+              marginBottom: isChanged(d.name) ? '4px' : undefined,
+            }"
+          >
+            <FormField :name="d.name" :field-props="getFieldProps(d)" />
+            <div v-if="isChanged(d.name)" style="color: #faad14; font-size: 12px; margin-top: -8px; margin-bottom: 8px; padding-left: 8px">
+              原始值: {{ String(ORIGINAL[d.name] ?? '—') }}
+            </div>
+          </div>
+          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+        </form>
       </FormProvider>
     </StatusTabs>
   </div>
@@ -46,19 +48,81 @@
 
 <script setup lang="ts">
 import type { FieldPattern } from '@moluoxixi/shared'
-import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
+import { LayoutFormActions, setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
-import { Card as ACard, FormItem as AFormItem, Input as AInput, InputNumber as AInputNumber, Space as ASpace, Tag as ATag, Textarea as ATextarea } from 'ant-design-vue'
-import { computed, onMounted, ref, watch } from 'vue'
+/**
+ * 表单比对 — Field 模式
+ *
+ * 所有字段使用 FormField + fieldProps，diff 高亮通过外层 div 样式实现。
+ * 变更摘要卡片作为附加内容，实时展示已修改字段。
+ */
+import { Card as ACard, Space as ASpace, Tag as ATag } from 'ant-design-vue'
+import { computed, ref, watch } from 'vue'
 
 setupAntdVue()
 
 const st = ref<InstanceType<typeof StatusTabs>>()
 
-const FIELD_DEFS = [{ name: 'name', label: '姓名', type: 'text' }, { name: 'email', label: '邮箱', type: 'text' }, { name: 'phone', label: '电话', type: 'text' }, { name: 'salary', label: '薪资', type: 'number' }, { name: 'department', label: '部门', type: 'text' }, { name: 'bio', label: '简介', type: 'textarea' }]
-const ORIGINAL: Record<string, unknown> = { name: '张三', email: 'zhangsan@company.com', phone: '13800138000', salary: 25000, department: '技术部', bio: '5 年前端经验' }
+/** 字段定义 */
+interface FieldDef {
+  name: string
+  label: string
+  type: 'text' | 'number' | 'textarea'
+}
+
+const FIELD_DEFS: FieldDef[] = [
+  { name: 'name', label: '姓名', type: 'text' },
+  { name: 'email', label: '邮箱', type: 'text' },
+  { name: 'phone', label: '电话', type: 'text' },
+  { name: 'salary', label: '薪资', type: 'number' },
+  { name: 'department', label: '部门', type: 'text' },
+  { name: 'bio', label: '简介', type: 'textarea' },
+]
+
+/** 原始值（用于 diff 比较） */
+const ORIGINAL: Record<string, unknown> = {
+  name: '张三',
+  email: 'zhangsan@company.com',
+  phone: '13800138000',
+  salary: 25000,
+  department: '技术部',
+  bio: '5 年前端经验',
+}
+
+/** 当前值的响应式副本（用于 diff 比较） */
 const currentValues = ref<Record<string, unknown>>({ ...ORIGINAL })
+
 const form = useCreateForm({ initialValues: { ...ORIGINAL } })
+
+/** 监听表单值变化，同步到 currentValues */
+form.onValuesChange((v: Record<string, unknown>) => {
+  currentValues.value = { ...v }
+})
+
+/** 判断字段是否已变更 */
+function isChanged(name: string): boolean {
+  return String(ORIGINAL[name] ?? '') !== String(currentValues.value[name] ?? '')
+}
+
+/** 已变更的字段列表 */
+const changedFields = computed(() => FIELD_DEFS.filter(d => isChanged(d.name)))
+
+/** 根据字段定义生成 fieldProps */
+function getFieldProps(d: FieldDef): Record<string, unknown> {
+  const base: Record<string, unknown> = { label: d.label }
+  if (d.type === 'number') {
+    base.component = 'InputNumber'
+    base.componentProps = { style: 'width: 100%' }
+  }
+  else if (d.type === 'textarea') {
+    base.component = 'Textarea'
+    base.componentProps = { rows: 2 }
+  }
+  else {
+    base.component = 'Input'
+  }
+  return base
+}
 
 /** 同步 StatusTabs 的 mode 到 form.pattern */
 watch(() => st.value?.mode, (v) => {
@@ -76,15 +140,4 @@ async function handleSubmit(showResult: (data: Record<string, unknown>) => void)
     showResult(res.values)
   }
 }
-
-onMounted(() => {
-  FIELD_DEFS.forEach(d => form.createField({ name: d.name, label: d.label }))
-  form.onValuesChange((v: Record<string, unknown>) => {
-    currentValues.value = { ...v }
-  })
-})
-function isChanged(name: string): boolean {
-  return String(ORIGINAL[name] ?? '') !== String(currentValues.value[name] ?? '')
-}
-const changedFields = computed(() => FIELD_DEFS.filter(d => isChanged(d.name)))
 </script>

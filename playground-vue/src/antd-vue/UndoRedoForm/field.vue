@@ -6,33 +6,24 @@
     </p>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <FormProvider :form="form">
-        <ASpace style="margin-bottom: 16px">
-          <AButton :disabled="!canUndo || mode !== 'editable'" @click="undo">
-            撤销 (Ctrl+Z)
-          </AButton><AButton :disabled="!canRedo || mode !== 'editable'" @click="redo">
-            重做 (Ctrl+Shift+Z)
-          </AButton><ATag>历史：{{ historyIdx + 1 }} / {{ historyLen }}</ATag>
-        </ASpace>
-        <FormField v-for="n in FIELDS" :key="n" v-slot="{ field }" :name="n">
-          <AFormItem :label="field.label">
-            <template v-if="mode === 'readOnly'">
-              <span v-if="n === 'note'" style="white-space:pre-wrap">{{ (field.value as string) || '—' }}</span><span v-else>{{ field.value ?? '—' }}</span>
-            </template>
-            <template v-else>
-              <AInputNumber v-if="n === 'amount'" :value="(field.value as number)" :disabled="mode === 'disabled'" style="width: 100%" @update:value="field.setValue($event)" />
-              <ATextarea v-else-if="n === 'note'" :value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" :rows="3" @update:value="field.setValue($event)" />
-              <AInput v-else :value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" @update:value="field.setValue($event)" />
-            </template>
-          </AFormItem>
-        </FormField>
-        <div v-if="mode === 'editable'" style="margin-top: 16px; display: flex; gap: 8px">
-          <button type="button" style="padding: 4px 15px; background: #1677ff; color: #fff; border: none; border-radius: 6px; cursor: pointer" @click="handleSubmit(showResult)">
-            提交
-          </button>
-          <button type="button" style="padding: 4px 15px; background: #fff; border: 1px solid #d9d9d9; border-radius: 6px; cursor: pointer" @click="form.reset()">
-            重置
-          </button>
-        </div>
+        <form @submit.prevent="handleSubmit(showResult)" novalidate>
+          <!-- 撤销/重做工具栏（附加内容） -->
+          <ASpace style="margin-bottom: 16px">
+            <AButton :disabled="!canUndo || mode !== 'editable'" @click="undo">
+              撤销 (Ctrl+Z)
+            </AButton>
+            <AButton :disabled="!canRedo || mode !== 'editable'" @click="redo">
+              重做 (Ctrl+Shift+Z)
+            </AButton>
+            <ATag>历史：{{ historyIdx + 1 }} / {{ historyLen }}</ATag>
+          </ASpace>
+          <!-- 表单字段 -->
+          <FormField name="title" :field-props="{ label: '标题', required: true, component: 'Input' }" />
+          <FormField name="category" :field-props="{ label: '分类', component: 'Input' }" />
+          <FormField name="amount" :field-props="{ label: '金额', component: 'InputNumber', componentProps: { style: 'width: 100%' } }" />
+          <FormField name="note" :field-props="{ label: '备注', component: 'Textarea', componentProps: { rows: 3 } }" />
+          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+        </form>
       </FormProvider>
     </StatusTabs>
   </div>
@@ -40,50 +31,80 @@
 
 <script setup lang="ts">
 import type { FieldPattern } from '@moluoxixi/shared'
-import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
+import { LayoutFormActions, setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
-import { Button as AButton, FormItem as AFormItem, Input as AInput, InputNumber as AInputNumber, Space as ASpace, Tag as ATag, Textarea as ATextarea } from 'ant-design-vue'
+/**
+ * 撤销重做表单 — Field 模式
+ *
+ * 所有字段使用 FormField + fieldProps。撤销/重做工具栏作为附加内容。
+ * 通过 form.onValuesChange 监听值变化，维护操作栈支持 undo/redo。
+ * 支持 Ctrl+Z 撤销、Ctrl+Shift+Z 重做快捷键。
+ */
+import { Button as AButton, Space as ASpace, Tag as ATag } from 'ant-design-vue'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 setupAntdVue()
+
 const st = ref<InstanceType<typeof StatusTabs>>()
-const FIELDS = ['title', 'category', 'amount', 'note']
-const form = useCreateForm({ initialValues: { title: '', category: '', amount: 0, note: '' } })
-const history = ref<Array<Record<string, unknown>>>([{ title: '', category: '', amount: 0, note: '' }])
+
+/** 历史栈最大容量 */
+const MAX_HISTORY = 50
+
+/** 初始表单值 */
+const INITIAL_VALUES = { title: '', category: '', amount: 0, note: '' }
+
+const form = useCreateForm({ initialValues: { ...INITIAL_VALUES } })
+
+/** 操作历史栈 */
+const history = ref<Array<Record<string, unknown>>>([{ ...INITIAL_VALUES }])
+
+/** 当前历史索引 */
 const historyIdx = ref(0)
+
+/** 是否正在恢复历史（防止触发 onValuesChange） */
 let isRestoring = false
+
+/** 历史栈长度 */
 const historyLen = computed(() => history.value.length)
+
+/** 是否可撤销 */
 const canUndo = computed(() => historyIdx.value > 0)
+
+/** 是否可重做 */
 const canRedo = computed(() => historyIdx.value < history.value.length - 1)
 
-onMounted(() => {
-  FIELDS.forEach(n => form.createField({ name: n, label: n === 'title' ? '标题' : n === 'category' ? '分类' : n === 'amount' ? '金额' : '备注', required: n === 'title' }))
-  form.onValuesChange((v: Record<string, unknown>) => {
-    if (isRestoring)
-      return
-    history.value = history.value.slice(0, historyIdx.value + 1)
-    history.value.push({ ...v })
-    if (history.value.length > 50)
-      history.value.shift()
-    historyIdx.value = history.value.length - 1
-  })
+/** 监听表单值变化：记录到历史栈 */
+form.onValuesChange((v: Record<string, unknown>) => {
+  if (isRestoring) return
+  /* 丢弃当前位置之后的历史 */
+  history.value = history.value.slice(0, historyIdx.value + 1)
+  history.value.push({ ...v })
+  /* 超出最大容量时移除最早的记录 */
+  if (history.value.length > MAX_HISTORY) {
+    history.value.shift()
+  }
+  historyIdx.value = history.value.length - 1
 })
+
+/** 撤销：回退到上一个历史快照 */
 function undo(): void {
-  if (historyIdx.value <= 0)
-    return
+  if (historyIdx.value <= 0) return
   historyIdx.value--
   isRestoring = true
   form.setValues(history.value[historyIdx.value])
   isRestoring = false
 }
+
+/** 重做：前进到下一个历史快照 */
 function redo(): void {
-  if (historyIdx.value >= history.value.length - 1)
-    return
+  if (historyIdx.value >= history.value.length - 1) return
   historyIdx.value++
   isRestoring = true
   form.setValues(history.value[historyIdx.value])
   isRestoring = false
 }
+
+/** 全局键盘快捷键处理 */
 function onKeyDown(e: KeyboardEvent): void {
   if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
     e.preventDefault()
@@ -94,12 +115,17 @@ function onKeyDown(e: KeyboardEvent): void {
     redo()
   }
 }
+
 onMounted(() => window.addEventListener('keydown', onKeyDown))
 onUnmounted(() => window.removeEventListener('keydown', onKeyDown))
+
+/** 同步 StatusTabs 的 mode 到 form.pattern */
 watch(() => st.value?.mode, (v) => {
   if (v)
     form.pattern = v as FieldPattern
 }, { immediate: true })
+
+/** 提交处理 */
 async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
   const res = await form.submit()
   if (res.errors.length > 0) {

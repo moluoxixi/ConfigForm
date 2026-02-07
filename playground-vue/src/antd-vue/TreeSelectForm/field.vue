@@ -6,60 +6,130 @@
     </p>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <FormProvider :form="form">
-        <FormField v-slot="{ field }" name="memberName">
-          <AFormItem :label="field.label">
-            <AInput :value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" style="width: 300px" @update:value="field.setValue($event)" />
-          </AFormItem>
-        </FormField>
-        <FormField v-slot="{ field }" name="department">
-          <AFormItem :label="field.label">
-            <ATag v-if="mode === 'readOnly'" color="blue">
-              {{ field.value ?? '—' }}
-            </ATag><ATreeSelect v-else :value="(field.value as string)" :tree-data="TREE" placeholder="请选择部门" style="width: 300px" tree-default-expand-all :disabled="mode === 'disabled'" @change="(v: string) => field.setValue(v)" />
-          </AFormItem>
-        </FormField>
-        <FormField v-slot="{ field }" name="accessDepts">
-          <AFormItem :label="field.label">
-            <ASpace v-if="mode === 'readOnly'" wrap>
-              <ATag v-for="v in ((field.value as string[]) ?? [])" :key="v" color="green">
-                {{ v }}
-              </ATag>
-            </ASpace><ATreeSelect v-else :value="(field.value as string[]) ?? []" :tree-data="TREE" placeholder="多选可访问部门" style="width: 100%" tree-default-expand-all tree-checkable :disabled="mode === 'disabled'" @change="(v: string[]) => field.setValue(v)" />
-          </AFormItem>
-        </FormField>
-        <div v-if="mode === 'editable'" style="margin-top: 16px; display: flex; gap: 8px">
-          <button type="button" style="padding: 4px 15px; background: #1677ff; color: #fff; border: none; border-radius: 6px; cursor: pointer" @click="handleSubmit(showResult)">
-            提交
-          </button>
-          <button type="button" style="padding: 4px 15px; background: #fff; border: 1px solid #d9d9d9; border-radius: 6px; cursor: pointer" @click="form.reset()">
-            重置
-          </button>
-        </div>
+        <form @submit.prevent="handleSubmit(showResult)" novalidate>
+          <FormField name="memberName" :field-props="{ label: '成员姓名', required: true, component: 'Input', componentProps: { placeholder: '请输入姓名', style: 'width: 300px' } }" />
+          <FormField name="department" :field-props="{ label: '所属部门', required: true, component: 'TreeSelectPicker', componentProps: { treeData: TREE, placeholder: '请选择部门', style: 'width: 300px' } }" />
+          <FormField name="accessDepts" :field-props="{ label: '可访问部门', component: 'TreeSelectPicker', componentProps: { treeData: TREE, treeCheckable: true, placeholder: '多选可访问部门', style: 'width: 100%' } }" />
+          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+        </form>
       </FormProvider>
     </StatusTabs>
   </div>
 </template>
 
 <script setup lang="ts">
+import type { PropType } from 'vue'
 import type { FieldPattern } from '@moluoxixi/shared'
-import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
-import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
-import { FormItem as AFormItem, Input as AInput, Space as ASpace, Tag as ATag, TreeSelect as ATreeSelect } from 'ant-design-vue'
-import { onMounted, ref, watch } from 'vue'
+import { LayoutFormActions, setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
+import { FormField, FormProvider, registerComponent, useCreateForm } from '@moluoxixi/vue'
+import { Tag as ATag, TreeSelect as ATreeSelect } from 'ant-design-vue'
+import { defineComponent, h, ref, watch } from 'vue'
 
 setupAntdVue()
-const st = ref<InstanceType<typeof StatusTabs>>()
-const TREE = [{ title: '总公司', value: 'root', children: [{ title: '技术中心', value: 'tech', children: [{ title: '前端组', value: 'frontend' }, { title: '后端组', value: 'backend' }] }, { title: '产品中心', value: 'product', children: [{ title: '产品设计', value: 'pd' }, { title: '用户研究', value: 'ux' }] }] }]
-const form = useCreateForm({ initialValues: { memberName: '', department: undefined, accessDepts: [] } })
-onMounted(() => {
-  form.createField({ name: 'memberName', label: '成员姓名', required: true })
-  form.createField({ name: 'department', label: '所属部门', required: true })
-  form.createField({ name: 'accessDepts', label: '可访问部门' })
+
+// ========== 自定义组件：树形选择器 ==========
+
+/** 树形节点数据类型 */
+interface TreeNode {
+  title: string
+  value: string
+  children?: TreeNode[]
+}
+
+/**
+ * 树形选择器组件
+ *
+ * - 编辑态：antd TreeSelect（支持单选 / 多选）
+ * - 禁用态：antd TreeSelect（disabled）
+ * - 只读态：Tag 标签展示选中值
+ */
+const TreeSelectPicker = defineComponent({
+  name: 'TreeSelectPicker',
+  props: {
+    value: { type: [String, Array] as PropType<string | string[]>, default: undefined },
+    onChange: { type: Function as PropType<(v: string | string[]) => void>, default: undefined },
+    disabled: { type: Boolean, default: false },
+    readOnly: { type: Boolean, default: false },
+    treeData: { type: Array as PropType<TreeNode[]>, default: () => [] },
+    treeCheckable: { type: Boolean, default: false },
+    placeholder: { type: String, default: '' },
+    style: { type: [String, Object] as PropType<string | Record<string, string>>, default: undefined },
+  },
+  setup(props) {
+    return (): ReturnType<typeof h> => {
+      /* 只读态：Tag 标签展示 */
+      if (props.readOnly) {
+        const values = Array.isArray(props.value) ? props.value : props.value ? [props.value] : []
+        if (values.length === 0) {
+          return h('span', { style: { color: '#999' } }, '—')
+        }
+        return h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '4px' } },
+          values.map(v => h(ATag, { color: 'blue', key: v }, () => v)),
+        )
+      }
+
+      /* 编辑态 / 禁用态：antd TreeSelect */
+      return h(ATreeSelect, {
+        value: props.value,
+        treeData: props.treeData,
+        placeholder: props.placeholder,
+        treeDefaultExpandAll: true,
+        treeCheckable: props.treeCheckable,
+        disabled: props.disabled,
+        style: props.style,
+        onChange: (v: string | string[]) => props.onChange?.(v),
+      })
+    }
+  },
 })
+
+registerComponent('TreeSelectPicker', TreeSelectPicker, { defaultWrapper: 'FormItem' })
+
+// ========== 表单配置 ==========
+
+const st = ref<InstanceType<typeof StatusTabs>>()
+
+/** 组织树数据 */
+const TREE: TreeNode[] = [
+  {
+    title: '总公司',
+    value: 'root',
+    children: [
+      {
+        title: '技术中心',
+        value: 'tech',
+        children: [
+          { title: '前端组', value: 'frontend' },
+          { title: '后端组', value: 'backend' },
+        ],
+      },
+      {
+        title: '产品中心',
+        value: 'product',
+        children: [
+          { title: '产品设计', value: 'pd' },
+          { title: '用户研究', value: 'ux' },
+        ],
+      },
+    ],
+  },
+]
+
+const form = useCreateForm({
+  initialValues: {
+    memberName: '',
+    department: undefined,
+    accessDepts: [] as string[],
+  },
+})
+
+/** 同步 StatusTabs 的 mode 到 form.pattern */
 watch(() => st.value?.mode, (v) => {
   if (v)
     form.pattern = v as FieldPattern
 }, { immediate: true })
+
+/** 提交处理 */
 async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
   const res = await form.submit()
   if (res.errors.length > 0) {

@@ -6,25 +6,11 @@
     </p>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <FormProvider :form="form">
-        <FormField v-slot="{ field }" name="title">
-          <AFormItem :label="field.label" :required="field.required">
-            <AInput :value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" :readonly="mode === 'readOnly'" @update:value="field.setValue($event)" />
-          </AFormItem>
-        </FormField>
-        <FormField v-slot="{ field }" name="content">
-          <AFormItem :label="field.label" :required="field.required">
-            <div v-if="mode !== 'editable'" style="padding: 12px; border: 1px solid #d9d9d9; border-radius: 6px; min-height: 100px; background: #fafafa" :style="{ opacity: mode === 'disabled' ? 0.6 : 1 }" v-html="(field.value as string) || '<span style=color:#999>暂无内容</span>'" />
-            <ATextarea v-else :value="(field.value as string) ?? ''" :rows="8" placeholder="输入 HTML 内容（实际项目可接入 @wangeditor/editor-for-vue）" @update:value="field.setValue($event)" />
-          </AFormItem>
-        </FormField>
-        <div v-if="mode === 'editable'" style="margin-top: 16px; display: flex; gap: 8px">
-          <button type="button" style="padding: 4px 15px; background: #1677ff; color: #fff; border: none; border-radius: 6px; cursor: pointer" @click="handleSubmit(showResult)">
-            提交
-          </button>
-          <button type="button" style="padding: 4px 15px; background: #fff; border: 1px solid #d9d9d9; border-radius: 6px; cursor: pointer" @click="form.reset()">
-            重置
-          </button>
-        </div>
+        <form @submit.prevent="handleSubmit(showResult)" novalidate>
+          <FormField name="title" :field-props="{ label: '标题', required: true, component: 'Input', componentProps: { placeholder: '请输入标题' } }" />
+          <FormField name="content" :field-props="{ label: '正文', required: true, component: 'RichTextEditor' }" />
+          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+        </form>
       </FormProvider>
     </StatusTabs>
   </div>
@@ -32,22 +18,81 @@
 
 <script setup lang="ts">
 import type { FieldPattern } from '@moluoxixi/shared'
-import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
-import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
-import { FormItem as AFormItem, Input as AInput, Textarea as ATextarea } from 'ant-design-vue'
-import { onMounted, ref, watch } from 'vue'
+import { LayoutFormActions, setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
+import { FormField, FormProvider, registerComponent, useCreateForm } from '@moluoxixi/vue'
+/**
+ * 富文本编辑器表单 — Field 模式
+ *
+ * 自定义 RichTextEditor 组件注册后，在 fieldProps 中通过 component: 'RichTextEditor' 引用。
+ * 编辑态使用 Textarea 降级方案（实际项目可接入 @wangeditor/editor-for-vue）；
+ * 只读/禁用态渲染 HTML 预览。
+ */
+import { Textarea as ATextarea } from 'ant-design-vue'
+import { defineComponent, h, ref, watch } from 'vue'
 
 setupAntdVue()
-const st = ref<InstanceType<typeof StatusTabs>>()
-const form = useCreateForm({ initialValues: { title: '示例文章', content: '<h2>标题</h2><p>这是<strong>富文本</strong>内容。</p>' } })
-onMounted(() => {
-  form.createField({ name: 'title', label: '标题', required: true })
-  form.createField({ name: 'content', label: '正文', required: true })
+
+/**
+ * 富文本编辑器自定义组件
+ *
+ * - 编辑态：Textarea（实际项目可接入 @wangeditor/editor-for-vue）
+ * - 禁用态：HTML 渲染区域（半透明）
+ * - 只读态：HTML 渲染区域
+ */
+const RichTextEditor = defineComponent({
+  name: 'RichTextEditor',
+  props: {
+    modelValue: { type: String, default: '' },
+    disabled: { type: Boolean, default: false },
+    readonly: { type: Boolean, default: false },
+  },
+  emits: ['update:modelValue'],
+  setup(props, { emit }) {
+    return () => {
+      /* 只读/禁用态：渲染 HTML 预览 */
+      if (props.readonly || props.disabled) {
+        return h('div', {
+          innerHTML: props.modelValue || '<span style="color:#999">暂无内容</span>',
+          style: {
+            padding: '12px',
+            border: '1px solid #d9d9d9',
+            borderRadius: '6px',
+            minHeight: '100px',
+            background: '#fafafa',
+            opacity: props.disabled ? 0.6 : 1,
+          },
+        })
+      }
+
+      /* 编辑态：Textarea 降级方案 */
+      return h(ATextarea, {
+        'value': props.modelValue ?? '',
+        'rows': 8,
+        'placeholder': '输入 HTML 内容（实际项目可接入 @wangeditor/editor-for-vue）',
+        'onUpdate:value': (v: string) => emit('update:modelValue', v),
+      })
+    }
+  },
 })
+
+registerComponent('RichTextEditor', RichTextEditor, { defaultWrapper: 'FormItem' })
+
+const st = ref<InstanceType<typeof StatusTabs>>()
+
+const form = useCreateForm({
+  initialValues: {
+    title: '示例文章',
+    content: '<h2>标题</h2><p>这是<strong>富文本</strong>内容。</p>',
+  },
+})
+
+/** 同步 StatusTabs 的 mode 到 form.pattern */
 watch(() => st.value?.mode, (v) => {
   if (v)
     form.pattern = v as FieldPattern
 }, { immediate: true })
+
+/** 提交处理 */
 async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
   const res = await form.submit()
   if (res.errors.length > 0) {

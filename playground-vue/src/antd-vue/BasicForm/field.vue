@@ -6,26 +6,21 @@
     </p>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <FormProvider :form="form">
-        <FormField name="username" :field-props="{ label: '???', required: true, component: 'Input', rules: [{ minLength: 3, maxLength: 20, message: '3-20 ???' }], componentProps: { placeholder: '??????' } }" />
-        <FormField name="password" :field-props="{ label: '??', required: true, component: 'Password', rules: [{ minLength: 8, message: '?? 8 ???' }], componentProps: { placeholder: '?????' } }" />
-        <FormField name="email" :field-props="{ label: '??', required: true, component: 'Input', rules: [{ format: 'email', message: '???????' }], componentProps: { placeholder: '?????' } }" />
-        <FormField name="phone" :field-props="{ label: '???', component: 'Input', rules: [{ format: 'phone', message: '????????' }], componentProps: { placeholder: '??????' } }" />
-        <FormField name="age" :field-props="{ label: '??', required: true, component: 'InputNumber', componentProps: { min: 0, max: 150, style: 'width: 100%' } }" />
-        <FormField name="gender" :field-props="{ label: '??', component: 'Select', dataSource: GENDER_OPTIONS, componentProps: { placeholder: '?????', allowClear: true } }" />
-        <FormField name="marital" :field-props="{ label: '????', component: 'RadioGroup', dataSource: MARITAL_OPTIONS }" />
-        <FormField name="hobbies" :field-props="{ label: '??', component: 'CheckboxGroup', dataSource: HOBBY_OPTIONS }" />
-        <FormField name="notification" :field-props="{ label: '????', component: 'Switch' }" />
-        <FormField name="birthday" :field-props="{ label: '??', component: 'DatePicker', componentProps: { style: 'width: 100%' } }" />
-        <FormField name="bio" :field-props="{ label: '????', component: 'Textarea', rules: [{ maxLength: 200, message: '?? 200 ?' }], componentProps: { placeholder: '???????', rows: 3 } }" />
-        <!-- ??????????? -->
-        <div v-if="mode === 'editable'" style="margin-top: 16px; display: flex; gap: 8px">
-          <button type="button" style="padding: 4px 15px; background: #1677ff; color: #fff; border: none; border-radius: 6px; cursor: pointer" @click="handleSubmit(showResult)">
-            ??
-          </button>
-          <button type="button" style="padding: 4px 15px; background: #fff; border: 1px solid #d9d9d9; border-radius: 6px; cursor: pointer" @click="form.reset()">
-            ??
-          </button>
-        </div>
+        <form novalidate @submit.prevent="handleSubmit(showResult)">
+          <FormField name="username" :field-props="{ label: '???', required: true, component: 'Input', rules: [{ minLength: 3, maxLength: 20, message: '3-20 ???' }], componentProps: { placeholder: '??????' } }" />
+          <FormField name="password" :field-props="{ label: '??', required: true, component: 'Password', rules: [{ minLength: 8, message: '?? 8 ???' }], componentProps: { placeholder: '?????' } }" />
+          <FormField name="email" :field-props="{ label: '??', required: true, component: 'Input', rules: [{ format: 'email', message: '???????' }], componentProps: { placeholder: '?????' } }" />
+          <FormField name="phone" :field-props="{ label: '???', component: 'Input', rules: [{ format: 'phone', message: '????????' }], componentProps: { placeholder: '??????' } }" />
+          <FormField name="age" :field-props="{ label: '??', required: true, component: 'InputNumber', componentProps: { min: 0, max: 150, style: 'width: 100%' } }" />
+          <FormField name="gender" :field-props="{ label: '??', component: 'Select', dataSource: GENDER_OPTIONS, componentProps: { placeholder: '?????', allowClear: true } }" />
+          <FormField name="marital" :field-props="{ label: '????', component: 'RadioGroup', dataSource: MARITAL_OPTIONS }" />
+          <FormField name="hobbies" :field-props="{ label: '??', component: 'CheckboxGroup', dataSource: HOBBY_OPTIONS }" />
+          <FormField name="notification" :field-props="{ label: '????', component: 'Switch' }" />
+          <FormField name="birthday" :field-props="{ label: '??', component: 'DatePicker', componentProps: { style: 'width: 100%' } }" />
+          <FormField name="bio" :field-props="{ label: '????', component: 'Textarea', rules: [{ maxLength: 200, message: '?? 200 ?' }], componentProps: { placeholder: '???????', rows: 3 } }" />
+          <!-- ??????????? -->
+          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+        </form>
       </FormProvider>
     </StatusTabs>
   </div>
@@ -33,7 +28,7 @@
 
 <script setup lang="ts">
 import type { FieldPattern } from '@moluoxixi/shared'
-import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
+import { LayoutFormActions, setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
 /**
  * ?? 1????? - Field ???Ant Design Vue?
