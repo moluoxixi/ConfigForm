@@ -2,8 +2,8 @@
   <div>
     <h2>撤销重做</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">undo/redo 操作栈 / Ctrl+Z 撤销 / Ctrl+Shift+Z 重做</p>
-    <PlaygroundForm :form="form">
-      <template #default="{ form: f, mode }">
+    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+      <FormProvider :form="form">
         <ASpace style="margin-bottom: 16px"><AButton :disabled="!canUndo || mode !== 'editable'" @click="undo">撤销 (Ctrl+Z)</AButton><AButton :disabled="!canRedo || mode !== 'editable'" @click="redo">重做 (Ctrl+Shift+Z)</AButton><ATag>历史：{{ historyIdx + 1 }} / {{ historyLen }}</ATag></ASpace>
         <FormField v-for="n in FIELDS" :key="n" v-slot="{ field }" :name="n"><AFormItem :label="field.label">
           <template v-if="mode === 'readOnly'"><span v-if="n === 'note'" style="white-space:pre-wrap">{{ (field.value as string) || '—' }}</span><span v-else>{{ field.value ?? '—' }}</span></template>
@@ -11,17 +11,22 @@
           <ATextarea v-else-if="n === 'note'" :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" :rows="3" />
           <AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" /></template>
         </AFormItem></FormField>
-      </template>
-    </PlaygroundForm>
+        <div v-if="mode === 'editable'" style="margin-top: 16px; display: flex; gap: 8px">
+          <button type="button" @click="handleSubmit(showResult)" style="padding: 4px 15px; background: #1677ff; color: #fff; border: none; border-radius: 6px; cursor: pointer">提交</button>
+          <button type="button" @click="form.reset()" style="padding: 4px 15px; background: #fff; border: 1px solid #d9d9d9; border-radius: 6px; cursor: pointer">重置</button>
+        </div>
+      </FormProvider>
+    </StatusTabs>
   </div>
 </template>
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { FormField, useCreateForm } from '@moluoxixi/vue'
-import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { Button as AButton, Space as ASpace, Input as AInput, InputNumber as AInputNumber, FormItem as AFormItem, Textarea as ATextarea, Tag as ATag } from 'ant-design-vue'
-import PlaygroundForm from '../../components/PlaygroundForm.vue'
+import type { FieldPattern } from '@moluoxixi/shared'
 setupAntdVue()
+const st = ref<InstanceType<typeof StatusTabs>>()
 const FIELDS = ['title', 'category', 'amount', 'note']
 const form = useCreateForm({ initialValues: { title: '', category: '', amount: 0, note: '' } })
 const history = ref<Array<Record<string, unknown>>>([{ title: '', category: '', amount: 0, note: '' }])
@@ -40,4 +45,10 @@ function redo(): void { if (historyIdx.value >= history.value.length - 1) return
 function onKeyDown(e: KeyboardEvent): void { if (e.ctrlKey && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo() }; if (e.ctrlKey && e.shiftKey && e.key === 'Z') { e.preventDefault(); redo() } }
 onMounted(() => window.addEventListener('keydown', onKeyDown))
 onUnmounted(() => window.removeEventListener('keydown', onKeyDown))
+watch(() => st.value?.mode, (v) => { if (v) form.pattern = v as FieldPattern }, { immediate: true })
+async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
+  const res = await form.submit()
+  if (res.errors.length > 0) { st.value?.showErrors(res.errors) }
+  else { showResult(res.values) }
+}
 </script>

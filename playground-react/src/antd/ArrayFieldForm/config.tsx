@@ -10,15 +10,14 @@
  */
 import React, { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, FormArrayField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, FormArrayField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import {
   Button, Space, Typography, Input, Tag,
 } from 'antd';
 import { PlusOutlined, DeleteOutlined, ArrowUpOutlined, ArrowDownOutlined, CopyOutlined } from '@ant-design/icons';
 import type { ArrayFieldInstance, FieldInstance } from '@moluoxixi/core';
 import type { FieldPattern } from '@moluoxixi/shared';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -130,8 +129,11 @@ export const ArrayFieldForm = observer((): React.ReactElement => {
         增删 / 排序 / 复制 / min={MIN_ITEMS} max={MAX_ITEMS} 数量限制
       </Paragraph>
 
-      <PlaygroundForm form={form}>
-        {({ mode }) => (
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => {
+          form.pattern = mode;
+          return (
+            <FormProvider form={form}>
           <>
             {/* 分组名称 */}
             <FormField name="groupName">
@@ -195,8 +197,10 @@ export const ArrayFieldForm = observer((): React.ReactElement => {
               )}
             </FormArrayField>
           </>
-        )}
-      </PlaygroundForm>
+            </FormProvider>
+          );
+        }}
+      </StatusTabs>
     </div>
   );
 });

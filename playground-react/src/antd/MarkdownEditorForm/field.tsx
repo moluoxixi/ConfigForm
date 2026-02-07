@@ -9,11 +9,10 @@
  */
 import React, { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import { Typography, Form, Input, Row, Col } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -63,9 +62,11 @@ export const MarkdownEditorForm = observer((): React.ReactElement => {
     <div>
       <Title level={3}>Markdown 编辑器</Title>
       <Paragraph type="secondary">Markdown 编写 + 实时预览 / 三种模式（可接入 @bytemd/react）</Paragraph>
-      <PlaygroundForm form={form}>
-        {({ mode }) => (
-          <>
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => {
+          form.pattern = mode;
+          return (
+          <FormProvider form={form}>
             <FormField name="docTitle">
               {(field: FieldInstance) => (
                 <Form.Item label={field.label} required={field.required}>
@@ -105,9 +106,10 @@ export const MarkdownEditorForm = observer((): React.ReactElement => {
                 </Form.Item>
               )}
             </FormField>
-          </>
-        )}
-      </PlaygroundForm>
+          </FormProvider>
+          );
+        }}
+      </StatusTabs>
     </div>
   );
 });

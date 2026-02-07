@@ -11,11 +11,10 @@
  */
 import React, { useEffect, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import { Typography, Form, Input, Tag, Space } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -74,9 +73,11 @@ export const CronEditorForm = observer((): React.ReactElement => {
     <div>
       <Title level={3}>Cron 表达式编辑器</Title>
       <Paragraph type="secondary">Cron 输入 / 快捷预设 / 实时解析 / 三种模式</Paragraph>
-      <PlaygroundForm form={form}>
-        {({ mode }) => (
-          <>
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => {
+          form.pattern = mode;
+          return (
+          <FormProvider form={form}>
             <FormField name="taskName">
               {(field: FieldInstance) => (
                 <Form.Item label={field.label} required={field.required}>
@@ -132,9 +133,10 @@ export const CronEditorForm = observer((): React.ReactElement => {
                 </Form.Item>
               )}
             </FormField>
-          </>
-        )}
-      </PlaygroundForm>
+          </FormProvider>
+          );
+        }}
+      </StatusTabs>
     </div>
   );
 });

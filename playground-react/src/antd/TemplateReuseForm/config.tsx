@@ -9,14 +9,20 @@
  */
 import React, { useState, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { ConfigForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import { Space, Typography, Tag, Segmented } from 'antd';
 import type { ISchema } from '@moluoxixi/schema';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
+import type { FieldPattern } from '@moluoxixi/shared';
 
 const { Title, Paragraph } = Typography;
 
 setupAntd();
+
+/** 工具：将 StatusTabs 的 mode 注入 schema */
+function withMode(s: ISchema, mode: FieldPattern): ISchema {
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } };
+}
 
 /* ======================== Schema 片段（可复用模板） ======================== */
 
@@ -136,7 +142,15 @@ export const TemplateReuseForm = observer((): React.ReactElement => {
         <Tag color="green">扩展字段：{Object.keys(currentTemplate.overrides).filter((k) => !['name', 'phone', 'email'].includes(k)).length} 个</Tag>
       </Space>
 
-      <PlaygroundForm schema={schema} />
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => (
+          <ConfigForm
+            schema={withMode(schema, mode)}
+            onSubmit={showResult}
+            onSubmitFailed={(errors) => showErrors(errors)}
+          />
+        )}
+      </StatusTabs>
     </div>
   );
 });

@@ -9,11 +9,10 @@
  */
 import React, { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import { Typography, Form, Input, TreeSelect, Tag, Space } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph } = Typography;
 
@@ -53,9 +52,11 @@ export const TreeSelectForm = observer((): React.ReactElement => {
     <div>
       <Title level={3}>树形选择</Title>
       <Paragraph type="secondary">antd TreeSelect / 单选 + 多选 / 组织树结构 / 三种模式</Paragraph>
-      <PlaygroundForm form={form}>
-        {({ mode }) => (
-          <>
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => {
+          form.pattern = mode;
+          return (
+          <FormProvider form={form}>
             <FormField name="memberName">
               {(field: FieldInstance) => (
                 <Form.Item label={field.label} required={field.required}>
@@ -105,9 +106,10 @@ export const TreeSelectForm = observer((): React.ReactElement => {
                 </Form.Item>
               )}
             </FormField>
-          </>
-        )}
-      </PlaygroundForm>
+          </FormProvider>
+          );
+        }}
+      </StatusTabs>
     </div>
   );
 });

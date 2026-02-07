@@ -10,15 +10,14 @@
  */
 import React from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, FormArrayField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, FormArrayField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import {
   Button, Space, Typography, InputNumber, Input, Tag,
 } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { ArrayFieldInstance, FieldInstance } from '@moluoxixi/core';
 import type { FieldPattern } from '@moluoxixi/shared';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -152,8 +151,11 @@ export const EditableTableForm = observer((): React.ReactElement => {
         表格行内编辑 / 行级联动（数量×单价=小计） / 列统计（合计行）
       </Paragraph>
 
-      <PlaygroundForm form={form}>
-        {({ mode }) => (
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => {
+          form.pattern = mode;
+          return (
+            <FormProvider form={form}>
           <FormArrayField
             name="items"
             fieldProps={{ minItems: 1, maxItems: MAX_ROWS, itemTemplate: () => ({ ...ROW_TEMPLATE }) }}
@@ -200,8 +202,10 @@ export const EditableTableForm = observer((): React.ReactElement => {
               </div>
             )}
           </FormArrayField>
-        )}
-      </PlaygroundForm>
+            </FormProvider>
+          );
+        }}
+      </StatusTabs>
     </div>
   );
 });

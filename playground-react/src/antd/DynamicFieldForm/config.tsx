@@ -9,15 +9,14 @@
  */
 import React, { useState, useCallback, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import {
   Button, Space, Typography, Input, Select, Form, Tag, Card,
 } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { FieldInstance } from '@moluoxixi/core';
 import type { FieldPattern } from '@moluoxixi/shared';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -106,8 +105,11 @@ export const DynamicFieldForm = observer((): React.ReactElement => {
       <Title level={3}>动态增删字段</Title>
       <Paragraph type="secondary">运行时添加 / 移除字段 / 动态字段参与验证提交</Paragraph>
 
-      <PlaygroundForm form={form}>
-        {({ mode }) => (
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => {
+          form.pattern = mode;
+          return (
+            <FormProvider form={form}>
           <>
             {/* 添加字段面板 */}
             {mode === 'editable' && (
@@ -174,8 +176,10 @@ export const DynamicFieldForm = observer((): React.ReactElement => {
               </FormField>
             ))}
           </>
-        )}
-      </PlaygroundForm>
+            </FormProvider>
+          );
+        }}
+      </StatusTabs>
     </div>
   );
 });

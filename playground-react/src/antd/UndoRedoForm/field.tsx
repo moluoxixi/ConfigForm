@@ -9,14 +9,13 @@
  */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import {
   Button, Typography, Form, Input, InputNumber, Space, Tag,
 } from 'antd';
 import { UndoOutlined, RedoOutlined } from '@ant-design/icons';
 import type { FieldInstance } from '@moluoxixi/core';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph } = Typography;
 
@@ -116,9 +115,11 @@ export const UndoRedoForm = observer((): React.ReactElement => {
         <Tag>历史记录：{currentIdx + 1} / {historyLen}</Tag>
       </Space>
 
-      <PlaygroundForm form={form}>
-        {({ mode }) => (
-          <>
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => {
+          form.pattern = mode;
+          return (
+          <FormProvider form={form}>
             {FIELDS.map((name) => (
               <FormField key={name} name={name}>
                 {(field: FieldInstance) => (
@@ -134,9 +135,10 @@ export const UndoRedoForm = observer((): React.ReactElement => {
                 )}
               </FormField>
             ))}
-          </>
-        )}
-      </PlaygroundForm>
+          </FormProvider>
+          );
+        }}
+      </StatusTabs>
     </div>
   );
 });

@@ -10,8 +10,8 @@
         共 1000 条模拟数据，每页 20 条，搜索防抖 300ms
       </template>
     </AAlert>
-    <PlaygroundForm :form="form">
-      <template #default="{ mode }">
+    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+      <FormProvider :form="form">
         <FormField v-slot="{ field }" name="userId" :field-props="{ label: '选择用户', required: true }">
           <AFormItem label="选择用户" :required="field.required">
             <span v-if="mode === 'readOnly'">{{ getSelectedLabel(field) || '—' }}</span>
@@ -37,8 +37,12 @@
           <span>共 {{ total }} 条 · 第 {{ currentPage }}/{{ Math.ceil(total / 20) }} 页</span>
           <AButton v-if="hasMore" size="small" type="link" :loading="loadingMore" @click="loadMore">加载更多</AButton>
         </div>
-      </template>
-    </PlaygroundForm>
+        <div v-if="mode === 'editable'" style="margin-top: 16px; display: flex; gap: 8px">
+          <button type="button" @click="handleSubmit(showResult)" style="padding: 4px 15px; background: #1677ff; color: #fff; border: none; border-radius: 6px; cursor: pointer">提交</button>
+          <button type="button" @click="form.reset()" style="padding: 4px 15px; background: #fff; border: 1px solid #d9d9d9; border-radius: 6px; cursor: pointer">重置</button>
+        </div>
+      </FormProvider>
+    </StatusTabs>
 
     <!-- API 调用日志 -->
     <ACard size="small" style="margin-top: 16px; background: #f9f9f9">
@@ -55,17 +59,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import type { FieldInstance } from '@moluoxixi/core'
-import { FormField, useCreateForm } from '@moluoxixi/vue'
-import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { Alert as AAlert, Button as AButton, Card as ACard, FormItem as AFormItem, Select as ASelect } from 'ant-design-vue'
-import PlaygroundForm from '../../components/PlaygroundForm.vue'
+import type { FieldPattern } from '@moluoxixi/shared'
 import { setupMockAdapter, getApiLogs, clearApiLogs } from '../../mock/dataSourceAdapter'
 
 setupAntdVue()
 setupMockAdapter()
 
+const st = ref<InstanceType<typeof StatusTabs>>()
 const form = useCreateForm({ initialValues: { userId: undefined } })
 
 const total = ref(0)
@@ -138,4 +143,10 @@ const apiLogs = ref<string[]>([])
 const logTimer = setInterval(() => { apiLogs.value = [...getApiLogs()] }, 500)
 function onClearLogs(): void { clearApiLogs(); apiLogs.value = [] }
 onBeforeUnmount(() => { clearInterval(logTimer); if (timer) clearTimeout(timer) })
+watch(() => st.value?.mode, (v) => { if (v) form.pattern = v as FieldPattern }, { immediate: true })
+async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
+  const res = await form.submit()
+  if (res.errors.length > 0) { st.value?.showErrors(res.errors) }
+  else { showResult(res.values) }
+}
 </script>

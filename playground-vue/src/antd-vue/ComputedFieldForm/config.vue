@@ -2,16 +2,32 @@
   <div>
     <h2>计算字段</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">乘法（单价×数量） / 百分比 / 聚合 / 条件计算</p>
-    <PlaygroundForm :schema="schema" :initial-values="initialValues" />
+    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+      <ConfigForm
+        :schema="withMode(schema, mode)"
+        :initial-values="initialValues"
+        @submit="showResult"
+        @submit-failed="(e: any) => st?.showErrors(e)"
+      />
+    </StatusTabs>
   </div>
 </template>
 
 <script setup lang="ts">
-import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
+import { ref } from 'vue'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
+import { ConfigForm } from '@moluoxixi/vue'
 import type { ISchema } from '@moluoxixi/schema'
-import PlaygroundForm from '../../components/PlaygroundForm.vue'
+import type { FieldPattern } from '@moluoxixi/shared'
 
 setupAntdVue()
+
+const st = ref<InstanceType<typeof StatusTabs>>()
+
+/** 工具：将 mode 注入 schema */
+function withMode(s: ISchema, mode: FieldPattern): ISchema {
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
+}
 
 const initialValues = { unitPrice: 100, quantity: 1, totalPrice: 100, originalPrice: 500, discountRate: 10, discountedPrice: 450, scoreA: 85, scoreB: 90, scoreC: 78, totalScore: 253, avgScore: 84.33, calcType: 'inclusive', amount: 1000, taxAmount: 115.04 }
 

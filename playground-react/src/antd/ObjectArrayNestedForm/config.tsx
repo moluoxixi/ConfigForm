@@ -9,15 +9,14 @@
  */
 import React, { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, FormArrayField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, FormArrayField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import {
   Button, Space, Typography, Input, Card, Tag,
 } from 'antd';
 import { PlusOutlined, DeleteOutlined, PhoneOutlined } from '@ant-design/icons';
 import type { ArrayFieldInstance, FieldInstance } from '@moluoxixi/core';
 import type { FieldPattern } from '@moluoxixi/shared';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -213,8 +212,11 @@ export const ObjectArrayNestedForm = observer((): React.ReactElement => {
         联系人数组 → 每人含嵌套电话数组（多层增删）
       </Paragraph>
 
-      <PlaygroundForm form={form} resultTitle="提交结果（嵌套结构）">
-        {({ mode }) => (
+      <StatusTabs resultTitle="提交结果（嵌套结构）">
+        {({ mode, showResult, showErrors }) => {
+          form.pattern = mode;
+          return (
+            <FormProvider form={form}>
           <>
             <FormField name="teamName">
               {(field: FieldInstance) => (
@@ -255,8 +257,10 @@ export const ObjectArrayNestedForm = observer((): React.ReactElement => {
               )}
             </FormArrayField>
           </>
-        )}
-      </PlaygroundForm>
+            </FormProvider>
+          );
+        }}
+      </StatusTabs>
     </div>
   );
 });

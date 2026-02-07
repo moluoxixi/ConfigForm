@@ -12,13 +12,12 @@
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import {
   Button, Typography, Form, Input, InputNumber, Space, Tag, Card, Badge, Switch,
 } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -95,9 +94,11 @@ export const LifecycleForm = observer((): React.ReactElement => {
             <Switch checked={autoSave} onChange={(v) => setAutoSave(v)} />
           </Space>
 
-          <PlaygroundForm form={form}>
-            {({ mode }) => (
-              <>
+          <StatusTabs>
+            {({ mode, showResult, showErrors }) => {
+              form.pattern = mode;
+              return (
+              <FormProvider form={form}>
                 {FIELDS.map((name) => (
                   <FormField key={name} name={name}>
                     {(field: FieldInstance) => (
@@ -113,9 +114,10 @@ export const LifecycleForm = observer((): React.ReactElement => {
                     )}
                   </FormField>
                 ))}
-              </>
-            )}
-          </PlaygroundForm>
+              </FormProvider>
+              );
+            }}
+          </StatusTabs>
         </div>
 
         {/* 事件日志面板 */}

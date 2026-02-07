@@ -7,14 +7,20 @@
  */
 import React from 'react';
 import { observer } from 'mobx-react-lite';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { ConfigForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import { Typography } from 'antd';
 import type { ISchema } from '@moluoxixi/schema';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
+import type { FieldPattern } from '@moluoxixi/shared';
 
 const { Title, Paragraph } = Typography;
 
 setupAntd();
+
+/** 工具：将 StatusTabs 的 mode 注入 schema */
+function withMode(s: ISchema, mode: FieldPattern): ISchema {
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } };
+}
 
 /** 默认初始值 */
 const INITIAL_VALUES: Record<string, unknown> = {
@@ -164,7 +170,16 @@ export const BasicForm = observer((): React.ReactElement => {
       <Paragraph type="secondary">
         Input / Password / Textarea / InputNumber / Select / RadioGroup / CheckboxGroup / Switch / DatePicker
       </Paragraph>
-      <PlaygroundForm schema={schema} initialValues={INITIAL_VALUES} />
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => (
+          <ConfigForm
+            schema={withMode(schema, mode)}
+            initialValues={INITIAL_VALUES}
+            onSubmit={showResult}
+            onSubmitFailed={(errors) => showErrors(errors)}
+          />
+        )}
+      </StatusTabs>
     </div>
   );
 });

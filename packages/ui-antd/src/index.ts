@@ -1,4 +1,4 @@
-import { registerComponent, registerWrapper } from '@moluoxixi/react'
+import { registerFieldComponents } from '@moluoxixi/react'
 import {
   CheckboxGroup,
   DatePicker,
@@ -28,25 +28,11 @@ import {
  * ```
  */
 export function setupAntd(): void {
-  registerComponent('Input', Input)
-  registerComponent('Password', Password)
-  registerComponent('Textarea', Textarea)
-  registerComponent('InputNumber', InputNumber)
-  registerComponent('Select', Select)
-  registerComponent('RadioGroup', RadioGroup)
-  registerComponent('CheckboxGroup', CheckboxGroup)
-  registerComponent('Switch', Switch)
-  registerComponent('DatePicker', DatePicker)
-
-  /* 布局组件 */
-  registerComponent('LayoutTabs', LayoutTabs)
-  registerComponent('LayoutCard', LayoutCard)
-  registerComponent('LayoutCollapse', LayoutCollapse)
-  registerComponent('LayoutSteps', LayoutSteps)
-  registerComponent('LayoutStepActions', LayoutStepActions)
-  registerComponent('LayoutFormActions', LayoutFormActions)
-
-  registerWrapper('FormItem', FormItem)
+  registerFieldComponents(
+    { Input, Password, Textarea, InputNumber, Select, RadioGroup, CheckboxGroup, Switch, DatePicker },
+    { name: 'FormItem', component: FormItem },
+    { LayoutTabs, LayoutCard, LayoutCollapse, LayoutSteps, LayoutStepActions, LayoutFormActions },
+  )
 }
 
 export {
@@ -64,6 +50,8 @@ export {
   Password,
   RadioGroup,
   Select,
+  StatusTabs,
   Switch,
   Textarea,
 } from './components'
+export type { StatusTabsProps } from './components'

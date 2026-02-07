@@ -9,11 +9,10 @@
  */
 import React, { useState, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import { Typography, Form, Input, Transfer, Tag, Space } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph } = Typography;
 
@@ -45,9 +44,11 @@ export const TransferForm = observer((): React.ReactElement => {
     <div>
       <Title level={3}>穿梭框</Title>
       <Paragraph type="secondary">antd Transfer / 权限分配 / 搜索过滤 / 三种模式</Paragraph>
-      <PlaygroundForm form={form}>
-        {({ mode }) => (
-          <>
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => {
+          form.pattern = mode;
+          return (
+          <FormProvider form={form}>
             <FormField name="roleName">
               {(field: FieldInstance) => (
                 <Form.Item label={field.label} required={field.required}>
@@ -78,9 +79,10 @@ export const TransferForm = observer((): React.ReactElement => {
                 />
               )}
             </Form.Item>
-          </>
-        )}
-      </PlaygroundForm>
+          </FormProvider>
+          );
+        }}
+      </StatusTabs>
     </div>
   );
 });

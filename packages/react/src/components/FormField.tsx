@@ -3,6 +3,7 @@ import type { ComponentType, ReactNode } from 'react'
 import { observer } from 'mobx-react-lite'
 import { useContext, useEffect, useRef } from 'react'
 import { ComponentRegistryContext, FieldContext, FormContext } from '../context'
+import { getDefaultWrapper } from '../registry'
 
 export interface FormFieldProps {
   /** 字段名 */
@@ -39,11 +40,16 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
   if (!fieldRef.current) {
     let field = form.getField(name)
     if (!field) {
-      const mergedProps = { ...fieldProps, name }
+      const mergedProps: Record<string, unknown> = { ...fieldProps, name }
       if (!mergedProps.pattern && form.pattern !== 'editable') {
         mergedProps.pattern = form.pattern
       }
-      field = form.createField(mergedProps)
+      /* 未显式指定 wrapper 时，使用组件注册的默认 wrapper */
+      if (!mergedProps.wrapper && typeof mergedProps.component === 'string') {
+        const dw = getDefaultWrapper(mergedProps.component)
+        if (dw) mergedProps.wrapper = dw
+      }
+      field = form.createField(mergedProps as FieldProps)
       createdByThisRef.current = true
     }
     fieldRef.current = field

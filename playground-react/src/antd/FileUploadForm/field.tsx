@@ -11,13 +11,12 @@
  */
 import React, { useState, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import { Typography, Button, Form, Input, Upload, message } from 'antd';
 import { UploadOutlined, PlusOutlined } from '@ant-design/icons';
 import type { FieldInstance } from '@moluoxixi/core';
 import type { UploadFile } from 'antd';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph } = Typography;
 
@@ -47,11 +46,12 @@ export const FileUploadForm = observer((): React.ReactElement => {
     <div>
       <Title level={3}>文件、图片上传</Title>
       <Paragraph type="secondary">antd Upload / 文件上传 / 图片上传 / 预览</Paragraph>
-      <PlaygroundForm form={form}>
-        {({ mode }) => {
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => {
+          form.pattern = mode;
           const isDisabled = mode === 'disabled' || mode === 'readOnly';
           return (
-            <>
+            <FormProvider form={form}>
               <FormField name="title">
                 {(field: FieldInstance) => (
                   <Form.Item label={field.label} required={field.required}>
@@ -88,10 +88,10 @@ export const FileUploadForm = observer((): React.ReactElement => {
                   )}
                 </Upload>
               </Form.Item>
-            </>
+            </FormProvider>
           );
         }}
-      </PlaygroundForm>
+      </StatusTabs>
     </div>
   );
 });

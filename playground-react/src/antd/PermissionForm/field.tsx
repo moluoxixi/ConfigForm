@@ -9,11 +9,10 @@
  */
 import React, { useState, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import { Typography, Segmented, Form, Input, InputNumber, Space, Tag, Card } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -97,9 +96,11 @@ export const PermissionForm = observer((): React.ReactElement => {
         </div>
       </Card>
 
-      <PlaygroundForm form={form}>
-        {({ mode }) => (
-          <>
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => {
+          form.pattern = mode;
+          return (
+          <FormProvider form={form}>
             {FIELD_DEFS.map((d) => (
               <FormField key={d.name} name={d.name}>
                 {(field: FieldInstance) => {
@@ -120,9 +121,10 @@ export const PermissionForm = observer((): React.ReactElement => {
                 }}
               </FormField>
             ))}
-          </>
-        )}
-      </PlaygroundForm>
+          </FormProvider>
+          );
+        }}
+      </StatusTabs>
     </div>
   );
 });

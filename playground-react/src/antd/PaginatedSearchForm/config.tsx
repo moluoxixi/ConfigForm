@@ -6,11 +6,10 @@
  */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import { Typography, Select, Form, Spin, Alert, Card, Button } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 import { setupMockAdapter, getApiLogs, clearApiLogs } from '../../mock/dataSourceAdapter';
 
 const { Title, Paragraph } = Typography;
@@ -133,8 +132,11 @@ export const PaginatedSearchForm = observer((): React.ReactElement => {
           共 1000 条模拟数据，每页 {PAGE_SIZE} 条</span>}
       />
 
-      <PlaygroundForm form={form}>
-        {({ mode }) => (
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => {
+          form.pattern = mode;
+          return (
+            <FormProvider form={form}>
           <>
             <FormField name="userId">
               {(field: FieldInstance) => (
@@ -172,8 +174,10 @@ export const PaginatedSearchForm = observer((): React.ReactElement => {
               )}
             </FormField>
           </>
-        )}
-      </PlaygroundForm>
+            </FormProvider>
+          );
+        }}
+      </StatusTabs>
       <ApiLogPanel />
     </div>
   );

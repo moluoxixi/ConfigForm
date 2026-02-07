@@ -9,14 +9,13 @@
  */
 import React, { useEffect, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import {
   Button, Typography, Form, Input, InputNumber, Space,
 } from 'antd';
 import { PrinterOutlined, DownloadOutlined, FileTextOutlined } from '@ant-design/icons';
 import type { FieldInstance } from '@moluoxixi/core';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph } = Typography;
 
@@ -100,9 +99,11 @@ export const PrintExportForm = observer((): React.ReactElement => {
       </Space>
 
       <div ref={printRef}>
-        <PlaygroundForm form={form}>
-          {({ mode }) => (
-            <>
+        <StatusTabs>
+          {({ mode, showResult, showErrors }) => {
+            form.pattern = mode;
+            return (
+            <FormProvider form={form}>
               {FIELDS.map((d) => (
                 <FormField key={d.name} name={d.name}>
                   {(field: FieldInstance) => (
@@ -118,9 +119,10 @@ export const PrintExportForm = observer((): React.ReactElement => {
                   )}
                 </FormField>
               ))}
-            </>
-          )}
-        </PlaygroundForm>
+            </FormProvider>
+            );
+          }}
+        </StatusTabs>
       </div>
     </div>
   );

@@ -4,18 +4,32 @@
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">Schema 片段复用 + 继承覆盖 = 不同业务表单</p>
     <ASegmented v-model:value="template" :options="templateOptions" style="margin-bottom: 12px" />
     <ATag color="blue" style="display: inline-block; margin-bottom: 12px">复用片段：个人信息 + 地址 + 备注</ATag>
-    <PlaygroundForm :schema="schema" />
+    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+      <ConfigForm
+        :schema="withMode(schema, mode)"
+        @submit="showResult"
+        @submit-failed="(e: any) => st?.showErrors(e)"
+      />
+    </StatusTabs>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { Segmented as ASegmented, Tag as ATag } from 'ant-design-vue'
+import { ConfigForm } from '@moluoxixi/vue'
 import type { ISchema } from '@moluoxixi/schema'
-import PlaygroundForm from '../../components/PlaygroundForm.vue'
+import type { FieldPattern } from '@moluoxixi/shared'
 
 setupAntdVue()
+
+const st = ref<InstanceType<typeof StatusTabs>>()
+
+/** 工具：将 mode 注入 schema */
+function withMode(s: ISchema, mode: FieldPattern): ISchema {
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
+}
 
 type TKey = 'employee' | 'customer' | 'supplier'
 const template = ref<TKey>('employee')

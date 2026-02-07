@@ -6,16 +6,22 @@
  */
 import React, { useState, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { ConfigForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import { Alert, Card, Button, Typography } from 'antd';
 import type { ISchema } from '@moluoxixi/schema';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
+import type { FieldPattern } from '@moluoxixi/shared';
 import { setupMockAdapter, getApiLogs, clearApiLogs } from '../../mock/dataSourceAdapter';
 
 const { Title, Paragraph } = Typography;
 
 setupAntd();
 setupMockAdapter();
+
+/** 工具：将 StatusTabs 的 mode 注入 schema */
+function withMode(s: ISchema, mode: FieldPattern): ISchema {
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } };
+}
 
 const INITIAL_VALUES: Record<string, unknown> = {
   brand: undefined,
@@ -184,7 +190,16 @@ export const DependentDataSourceForm = observer((): React.ReactElement => {
         type="info" showIcon style={{ marginBottom: 16 }}
         message={<span>使用核心库 <b>registerRequestAdapter('mock')</b> + <code>field.loadDataSource(&#123; url, params &#125;)</code> 远程加载（模拟 600ms 延迟）</span>}
       />
-      <PlaygroundForm schema={schema} initialValues={INITIAL_VALUES} />
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => (
+          <ConfigForm
+            schema={withMode(schema, mode)}
+            initialValues={INITIAL_VALUES}
+            onSubmit={showResult}
+            onSubmitFailed={(errors) => showErrors(errors)}
+          />
+        )}
+      </StatusTabs>
       <ApiLogPanel />
     </div>
   );

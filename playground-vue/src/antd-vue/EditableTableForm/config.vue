@@ -2,8 +2,8 @@
   <div>
     <h2>可编辑表格</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">表格行内编辑 / 行级联动 / 列统计</p>
-    <PlaygroundForm :form="form">
-      <template #default="{ mode }">
+    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+      <FormProvider :form="form">
         <FormArrayField v-slot="{ arrayField }" name="items" :field-props="{ minItems: 1, maxItems: 20, itemTemplate: () => ({ productName: '', quantity: 1, unitPrice: 0, subtotal: 0 }) }">
           <div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 8px">
@@ -26,19 +26,31 @@
             </table>
           </div>
         </FormArrayField>
-      </template>
-    </PlaygroundForm>
+        <div v-if="mode === 'editable'" style="margin-top: 16px; display: flex; gap: 8px">
+          <button type="button" @click="handleSubmit(showResult)" style="padding: 4px 15px; background: #1677ff; color: #fff; border: none; border-radius: 6px; cursor: pointer">提交</button>
+          <button type="button" @click="form.reset()" style="padding: 4px 15px; background: #fff; border: 1px solid #d9d9d9; border-radius: 6px; cursor: pointer">重置</button>
+        </div>
+      </FormProvider>
+    </StatusTabs>
   </div>
 </template>
 
 <script setup lang="ts">
-import { FormField, FormArrayField, useCreateForm } from '@moluoxixi/vue'
-import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
+import { ref, watch } from 'vue'
+import { FormProvider, FormField, FormArrayField, useCreateForm } from '@moluoxixi/vue'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { Button as AButton, Input as AInput, InputNumber as AInputNumber } from 'ant-design-vue'
-import PlaygroundForm from '../../components/PlaygroundForm.vue'
+import type { FieldPattern } from '@moluoxixi/shared'
 
 setupAntdVue()
+const st = ref<InstanceType<typeof StatusTabs>>()
 
 const form = useCreateForm({ initialValues: { items: [{ productName: '键盘', quantity: 2, unitPrice: 299, subtotal: 598 }, { productName: '鼠标', quantity: 3, unitPrice: 99, subtotal: 297 }] } })
 function getTotal(): number { const items = (form.getFieldValue('items') ?? []) as Array<{ subtotal?: number }>; return items.reduce((s, i) => s + (i?.subtotal ?? 0), 0) }
+watch(() => st.value?.mode, (v) => { if (v) form.pattern = v as FieldPattern }, { immediate: true })
+async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
+  const res = await form.submit()
+  if (res.errors.length > 0) { st.value?.showErrors(res.errors) }
+  else { showResult(res.values) }
+}
 </script>

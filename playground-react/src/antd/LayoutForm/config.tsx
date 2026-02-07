@@ -10,14 +10,20 @@
  */
 import React, { useState, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { ConfigForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import { Typography, Segmented } from 'antd';
 import type { ISchema } from '@moluoxixi/schema';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
+import type { FieldPattern } from '@moluoxixi/shared';
 
 const { Title, Paragraph, Text } = Typography;
 
 setupAntd();
+
+/** 工具：将 StatusTabs 的 mode 注入 schema */
+function withMode(s: ISchema, mode: FieldPattern): ISchema {
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } };
+}
 
 /** 布局类型 */
 type LayoutType = 'horizontal' | 'vertical' | 'inline' | 'grid-2col' | 'grid-3col';
@@ -162,7 +168,16 @@ export const LayoutForm = observer((): React.ReactElement => {
         />
       </div>
 
-      <PlaygroundForm schema={schema} initialValues={INITIAL_VALUES} />
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => (
+          <ConfigForm
+            schema={withMode(schema, mode)}
+            initialValues={INITIAL_VALUES}
+            onSubmit={showResult}
+            onSubmitFailed={(errors) => showErrors(errors)}
+          />
+        )}
+      </StatusTabs>
     </div>
   );
 });

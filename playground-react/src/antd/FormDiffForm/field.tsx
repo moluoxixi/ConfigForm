@@ -9,11 +9,10 @@
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import { Typography, Form, Input, InputNumber, Space, Tag, Card } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -78,9 +77,11 @@ export const FormDiffForm = observer((): React.ReactElement => {
         </Space>
       </Card>
 
-      <PlaygroundForm form={form}>
-        {({ mode }) => (
-          <>
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => {
+          form.pattern = mode;
+          return (
+          <FormProvider form={form}>
             {FIELD_DEFS.map((d) => {
               const isChanged = String(ORIGINAL_VALUES[d.name] ?? '') !== String(currentValues[d.name] ?? '');
               return (
@@ -108,9 +109,10 @@ export const FormDiffForm = observer((): React.ReactElement => {
                 </FormField>
               );
             })}
-          </>
-        )}
-      </PlaygroundForm>
+          </FormProvider>
+          );
+        }}
+      </StatusTabs>
     </div>
   );
 });

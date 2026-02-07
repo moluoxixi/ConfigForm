@@ -1,4 +1,4 @@
-import { registerComponent, registerWrapper } from '@moluoxixi/vue'
+import { registerFieldComponents } from '@moluoxixi/vue'
 import {
   CheckboxGroup,
   DatePicker,
@@ -28,27 +28,11 @@ import {
  * ```
  */
 export function setupAntdVue(): void {
-  /* 字段组件 */
-  registerComponent('Input', Input)
-  registerComponent('Password', Password)
-  registerComponent('Textarea', Textarea)
-  registerComponent('InputNumber', InputNumber)
-  registerComponent('Select', Select)
-  registerComponent('RadioGroup', RadioGroup)
-  registerComponent('CheckboxGroup', CheckboxGroup)
-  registerComponent('Switch', Switch)
-  registerComponent('DatePicker', DatePicker)
-
-  /* 布局组件 */
-  registerComponent('LayoutTabs', LayoutTabs)
-  registerComponent('LayoutCard', LayoutCard)
-  registerComponent('LayoutCollapse', LayoutCollapse)
-  registerComponent('LayoutSteps', LayoutSteps)
-  registerComponent('LayoutStepActions', LayoutStepActions)
-  registerComponent('LayoutFormActions', LayoutFormActions)
-
-  /* 装饰器 */
-  registerWrapper('FormItem', FormItem)
+  registerFieldComponents(
+    { Input, Password, Textarea, InputNumber, Select, RadioGroup, CheckboxGroup, Switch, DatePicker },
+    { name: 'FormItem', component: FormItem },
+    { LayoutTabs, LayoutCard, LayoutCollapse, LayoutSteps, LayoutStepActions, LayoutFormActions },
+  )
 }
 
 /* 导出所有组件（按需使用） */
@@ -67,6 +51,7 @@ export {
   Password,
   RadioGroup,
   Select,
+  StatusTabs,
   Switch,
   Textarea,
 } from './components'

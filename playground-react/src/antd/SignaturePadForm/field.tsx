@@ -9,12 +9,11 @@
  */
 import React, { useEffect, useRef, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import { Button, Typography, Form, Input } from 'antd';
 import { ClearOutlined } from '@ant-design/icons';
 import type { FieldInstance } from '@moluoxixi/core';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -133,9 +132,11 @@ export const SignaturePadForm = observer((): React.ReactElement => {
     <div>
       <Title level={3}>手写签名板</Title>
       <Paragraph type="secondary">Canvas 手写签名 / Base64 数据同步 / 清空操作 / 三种模式</Paragraph>
-      <PlaygroundForm form={form}>
-        {({ mode }) => (
-          <>
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => {
+          form.pattern = mode;
+          return (
+          <FormProvider form={form}>
             <FormField name="signerName">
               {(field: FieldInstance) => (
                 <Form.Item label={field.label} required={field.required}>
@@ -162,9 +163,10 @@ export const SignaturePadForm = observer((): React.ReactElement => {
                 </Form.Item>
               )}
             </FormField>
-          </>
-        )}
-      </PlaygroundForm>
+          </FormProvider>
+          );
+        }}
+      </StatusTabs>
     </div>
   );
 });

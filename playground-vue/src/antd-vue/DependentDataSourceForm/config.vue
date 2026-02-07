@@ -10,7 +10,14 @@
         所有 Select 选项通过 <code>field.loadDataSource({ url, params })</code> 远程加载（模拟 600ms 延迟）
       </template>
     </AAlert>
-    <PlaygroundForm :schema="schema" :initial-values="initialValues" />
+    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+      <ConfigForm
+        :schema="withMode(schema, mode)"
+        :initial-values="initialValues"
+        @submit="showResult"
+        @submit-failed="(e: any) => st?.showErrors(e)"
+      />
+    </StatusTabs>
 
     <!-- API 调用日志 -->
     <ACard size="small" style="margin-top: 16px; background: #f9f9f9">
@@ -28,14 +35,22 @@
 
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue'
-import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { Alert as AAlert, Button as AButton, Card as ACard } from 'ant-design-vue'
+import { ConfigForm } from '@moluoxixi/vue'
 import type { ISchema } from '@moluoxixi/schema'
-import PlaygroundForm from '../../components/PlaygroundForm.vue'
+import type { FieldPattern } from '@moluoxixi/shared'
 import { setupMockAdapter, getApiLogs, clearApiLogs } from '../../mock/dataSourceAdapter'
 
 setupAntdVue()
 setupMockAdapter()
+
+const st = ref<InstanceType<typeof StatusTabs>>()
+
+/** 工具：将 mode 注入 schema */
+function withMode(s: ISchema, mode: FieldPattern): ISchema {
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
+}
 
 const initialValues = {
   brand: undefined,

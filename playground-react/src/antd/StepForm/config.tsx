@@ -10,14 +10,13 @@
  */
 import React, { useState, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import {
   Button, Space, Typography, Steps, Card, Row, Col, Input,
   InputNumber, Modal, Descriptions,
 } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -98,8 +97,11 @@ export const StepForm = observer((): React.ReactElement => {
       <Title level={3}>分步表单</Title>
       <Paragraph type="secondary">Steps 导航 / 步骤验证 / 预览汇总 / Modal.confirm 拦截</Paragraph>
 
-      <PlaygroundForm form={form}>
-        {({ mode }) => (
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => {
+          form.pattern = mode;
+          return (
+            <FormProvider form={form}>
           <>
             <Steps current={step} items={STEPS.map((s) => ({ title: s.title }))} style={{ marginBottom: 24 }} />
 
@@ -165,8 +167,10 @@ export const StepForm = observer((): React.ReactElement => {
               </Space>
             </div>
           </>
-        )}
-      </PlaygroundForm>
+            </FormProvider>
+          );
+        }}
+      </StatusTabs>
     </div>
   );
 });

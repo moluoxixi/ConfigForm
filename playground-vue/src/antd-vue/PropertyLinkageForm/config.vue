@@ -2,16 +2,32 @@
   <div>
     <h2>属性联动</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">动态 disabled / required / placeholder / componentProps</p>
-    <PlaygroundForm :schema="schema" :initial-values="initialValues" />
+    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+      <ConfigForm
+        :schema="withMode(schema, mode)"
+        :initial-values="initialValues"
+        @submit="showResult"
+        @submit-failed="(e: any) => st?.showErrors(e)"
+      />
+    </StatusTabs>
   </div>
 </template>
 
 <script setup lang="ts">
-import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
+import { ref } from 'vue'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
+import { ConfigForm } from '@moluoxixi/vue'
 import type { ISchema } from '@moluoxixi/schema'
-import PlaygroundForm from '../../components/PlaygroundForm.vue'
+import type { FieldPattern } from '@moluoxixi/shared'
 
 setupAntdVue()
+
+const st = ref<InstanceType<typeof StatusTabs>>()
+
+/** 工具：将 mode 注入 schema */
+function withMode(s: ISchema, mode: FieldPattern): ISchema {
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
+}
 
 const initialValues = { enableRemark: false, remark: '', contactType: 'phone', contactValue: '', productType: 'standard', quantity: 1, isVip: false, vipCompany: '', vipId: '' }
 

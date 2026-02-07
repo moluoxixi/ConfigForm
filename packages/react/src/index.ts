@@ -37,8 +37,11 @@ export {
 /* 注册 */
 export {
   getComponent,
+  getDefaultWrapper,
   getWrapper,
   registerComponent,
   registerComponents,
+  registerFieldComponents,
   registerWrapper,
 } from './registry'
+export type { RegisterComponentOptions } from './registry'

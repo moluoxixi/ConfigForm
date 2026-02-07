@@ -10,12 +10,11 @@
 import React, { useState, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import {
   Button, Typography, Form, Input, InputNumber, Card, Row, Col, Modal, Space,
 } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph } = Typography;
 
@@ -40,7 +39,7 @@ export const MultiFormForm = observer((): React.ReactElement => {
     subForm.createField({ name: 'contactEmail', label: '邮箱', rules: [{ format: 'email', message: '无效邮箱' }] });
   }, []);
 
-  /** 同步 PlaygroundForm 模式到子表单 */
+  /** 同步 StatusTabs 模式到子表单 */
   useEffect(() => {
     const p = mainForm.pattern;
     ['contactName', 'contactPhone', 'contactEmail'].forEach((n) => { const f = subForm.getField(n); if (f) f.pattern = p; });
@@ -60,8 +59,11 @@ export const MultiFormForm = observer((): React.ReactElement => {
       <Title level={3}>多表单协作</Title>
       <Paragraph type="secondary">两个独立表单 / 联合提交 / 跨表单值联动 / 弹窗表单</Paragraph>
 
-      <PlaygroundForm form={mainForm}>
-        {({ mode }) => (
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => {
+          mainForm.pattern = mode;
+          return (
+          <FormProvider form={mainForm}>
           <Row gutter={16}>
             <Col span={12}>
               <Card title="主表单 - 订单信息" size="small">
@@ -100,8 +102,10 @@ export const MultiFormForm = observer((): React.ReactElement => {
               </Card>
             </Col>
           </Row>
-        )}
-      </PlaygroundForm>
+          </FormProvider>
+          );
+        }}
+      </StatusTabs>
 
       {/* 弹窗表单 */}
       <Modal title="编辑联系人" open={modalOpen} onOk={handleModalOk} onCancel={() => setModalOpen(false)}>

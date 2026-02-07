@@ -9,12 +9,11 @@
  */
 import React, { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import { Typography, Alert, Form, Input, InputNumber, Space } from 'antd';
 import { EnvironmentOutlined } from '@ant-design/icons';
 import type { FieldInstance } from '@moluoxixi/core';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -123,9 +122,11 @@ export const MapPickerForm = observer((): React.ReactElement => {
 
       <Alert type="info" showIcon style={{ marginBottom: 16 }} message="此为模拟地图，点击区域可选点。实际项目请安装 react-amap 并接入高德地图 API。" />
 
-      <PlaygroundForm form={form}>
-        {({ mode }) => (
-          <>
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => {
+          form.pattern = mode;
+          return (
+          <FormProvider form={form}>
             <FormField name="locationName">
               {(field: FieldInstance) => (
                 <Form.Item label={field.label} required={field.required}>
@@ -167,9 +168,10 @@ export const MapPickerForm = observer((): React.ReactElement => {
                 </Form.Item>
               )}
             </FormField>
-          </>
-        )}
-      </PlaygroundForm>
+          </FormProvider>
+          );
+        }}
+      </StatusTabs>
     </div>
   );
 });

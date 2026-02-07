@@ -9,11 +9,10 @@
  */
 import React, { useState, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import { Typography, Segmented, Form, Input, Space } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph } = Typography;
 
@@ -118,9 +117,11 @@ export const I18nForm = observer((): React.ReactElement => {
         style={{ marginBottom: 16 }}
       />
 
-      <PlaygroundForm form={form}>
-        {({ mode }) => (
-          <>
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => {
+          form.pattern = mode;
+          return (
+          <FormProvider form={form}>
             {['name', 'email', 'phone', 'bio'].map((name) => (
               <FormField key={name} name={name}>
                 {(field: FieldInstance) => (
@@ -134,9 +135,10 @@ export const I18nForm = observer((): React.ReactElement => {
                 )}
               </FormField>
             ))}
-          </>
-        )}
-      </PlaygroundForm>
+          </FormProvider>
+          );
+        }}
+      </StatusTabs>
     </div>
   );
 });

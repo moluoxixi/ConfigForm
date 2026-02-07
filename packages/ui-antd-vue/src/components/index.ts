@@ -23,3 +23,6 @@ export { LayoutFormActions } from './LayoutFormActions'
 export { LayoutStepActions } from './LayoutStepActions'
 export { LayoutSteps } from './LayoutSteps'
 export { LayoutTabs } from './LayoutTabs'
+
+/* Playground 组件 */
+export { StatusTabs } from './StatusTabs'

@@ -6,7 +6,14 @@
       <span style="font-weight: 600; margin-right: 12px">布局类型：</span>
       <ASegmented v-model:value="layoutType" :options="LAYOUT_OPTIONS" />
     </div>
-    <PlaygroundForm :schema="schema" :initial-values="initialValues" />
+    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+      <ConfigForm
+        :schema="withMode(schema, mode)"
+        :initial-values="initialValues"
+        @submit="showResult"
+        @submit-failed="(e: any) => st?.showErrors(e)"
+      />
+    </StatusTabs>
   </div>
 </template>
 
@@ -15,12 +22,20 @@
  * 场景 2：表单布局（Ant Design Vue）
  */
 import { computed, ref } from 'vue'
-import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { Segmented as ASegmented } from 'ant-design-vue'
+import { ConfigForm } from '@moluoxixi/vue'
 import type { ISchema } from '@moluoxixi/schema'
-import PlaygroundForm from '../../components/PlaygroundForm.vue'
+import type { FieldPattern } from '@moluoxixi/shared'
 
 setupAntdVue()
+
+const st = ref<InstanceType<typeof StatusTabs>>()
+
+/** 工具：将 mode 注入 schema */
+function withMode(s: ISchema, mode: FieldPattern): ISchema {
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
+}
 
 const LAYOUT_OPTIONS = [{ label: '水平', value: 'horizontal' }, { label: '垂直', value: 'vertical' }, { label: '行内', value: 'inline' }, { label: '栅格两列', value: 'grid-2col' }]
 

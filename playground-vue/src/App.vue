@@ -171,6 +171,19 @@ const sceneGroups = [
       { key: 'print-export', label: '48. 打印导出' },
     ],
   },
+  {
+    title: '扩展场景',
+    items: [
+      { key: 'grid-layout', label: '49. Grid 栅格布局' },
+      { key: 'effects', label: '50. Effects 副作用' },
+      { key: 'large-form-perf', label: '51. 大表单性能' },
+      { key: 'custom-decorator', label: '52. 自定义装饰器' },
+      { key: 'schema-expression', label: '53. Schema 表达式' },
+      { key: 'oneof-schema', label: '54. oneOf 联合 Schema' },
+      { key: 'ssr-compat', label: '55. SSR 兼容性' },
+      { key: 'virtual-scroll', label: '56. 虚拟滚动' },
+    ],
+  },
 ]
 
 /** 场景 key → 文件名映射 */
@@ -190,6 +203,9 @@ const fileMap: Record<string, string> = {
   'data-transform': 'DataTransformForm', 'multi-form': 'MultiFormForm', 'form-snapshot': 'FormSnapshotForm',
   'undo-redo': 'UndoRedoForm', 'lifecycle': 'LifecycleForm',
   'permission': 'PermissionForm', 'i18n': 'I18nForm', 'form-diff': 'FormDiffForm', 'print-export': 'PrintExportForm',
+  'grid-layout': 'GridLayoutForm', 'effects': 'EffectsForm', 'large-form-perf': 'LargeFormPerf',
+  'custom-decorator': 'CustomDecoratorForm', 'schema-expression': 'SchemaExpressionForm',
+  'oneof-schema': 'OneOfSchemaForm', 'ssr-compat': 'SSRCompatForm', 'virtual-scroll': 'VirtualScrollForm',
 }
 
 /**

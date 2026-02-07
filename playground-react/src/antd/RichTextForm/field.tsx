@@ -11,12 +11,11 @@
  */
 import React, { useEffect, lazy, Suspense } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import { Typography, Alert, Form, Input, Spin } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
 import type { FieldPattern } from '@moluoxixi/shared';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph } = Typography;
 
@@ -112,9 +111,11 @@ export const RichTextForm = observer((): React.ReactElement => {
     <div>
       <Title level={3}>富文本编辑器</Title>
       <Paragraph type="secondary">react-quill 集成 / 三种模式 / 未安装时 Textarea 降级</Paragraph>
-      <PlaygroundForm form={form}>
-        {({ mode }) => (
-          <>
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => {
+          form.pattern = mode;
+          return (
+          <FormProvider form={form}>
             <FormField name="title">
               {(field: FieldInstance) => (
                 <Form.Item label={field.label} required={field.required}>
@@ -129,9 +130,10 @@ export const RichTextForm = observer((): React.ReactElement => {
                 </Form.Item>
               )}
             </FormField>
-          </>
-        )}
-      </PlaygroundForm>
+          </FormProvider>
+          );
+        }}
+      </StatusTabs>
     </div>
   );
 });

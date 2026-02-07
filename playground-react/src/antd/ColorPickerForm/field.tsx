@@ -11,12 +11,11 @@
  */
 import React, { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import { Typography, Form, Input, Space } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
 import type { FieldPattern } from '@moluoxixi/shared';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -115,9 +114,11 @@ export const ColorPickerForm = observer((): React.ReactElement => {
     <div>
       <Title level={3}>颜色选择器</Title>
       <Paragraph type="secondary">原生 color input + 预设色板 / HEX 输入 / 三种模式</Paragraph>
-      <PlaygroundForm form={form}>
-        {({ mode }) => (
-          <>
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => {
+          form.pattern = mode;
+          return (
+          <FormProvider form={form}>
             <FormField name="themeName">
               {(field: FieldInstance) => (
                 <Form.Item label={field.label} required={field.required}>
@@ -147,9 +148,10 @@ export const ColorPickerForm = observer((): React.ReactElement => {
                 主色调按钮
               </button>
             </div>
-          </>
-        )}
-      </PlaygroundForm>
+          </FormProvider>
+          );
+        }}
+      </StatusTabs>
     </div>
   );
 });

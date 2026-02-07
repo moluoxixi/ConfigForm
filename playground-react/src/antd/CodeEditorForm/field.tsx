@@ -9,11 +9,10 @@
  */
 import React, { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import { Typography, Alert, Form, Input, Select, Space } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph } = Typography;
 
@@ -51,9 +50,11 @@ export const CodeEditorForm = observer((): React.ReactElement => {
       <Title level={3}>代码编辑器</Title>
       <Paragraph type="secondary">Textarea 模拟（可接入 @monaco-editor/react） / 语言选择 / 三种模式</Paragraph>
       <Alert type="info" showIcon style={{ marginBottom: 16 }} message="此为简化版，实际项目请安装 @monaco-editor/react 获得语法高亮、自动补全等功能。" />
-      <PlaygroundForm form={form}>
-        {({ mode }) => (
-          <>
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => {
+          form.pattern = mode;
+          return (
+          <FormProvider form={form}>
             <Space style={{ marginBottom: 16 }}>
               <FormField name="title">
                 {(field: FieldInstance) => (
@@ -89,9 +90,10 @@ export const CodeEditorForm = observer((): React.ReactElement => {
                 </Form.Item>
               )}
             </FormField>
-          </>
-        )}
-      </PlaygroundForm>
+          </FormProvider>
+          );
+        }}
+      </StatusTabs>
     </div>
   );
 });

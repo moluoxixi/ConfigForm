@@ -4,19 +4,33 @@
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">mergeSchema 合并 / 场景切换 / 热更新</p>
     <ASegmented v-model:value="scenario" :options="scenarioOptions" style="margin-bottom: 12px" />
     <ATag color="green" style="margin-bottom: 12px">当前：{{ SCENARIOS[scenario].label }} | 字段数：{{ Object.keys(schema.properties || {}).length }}</ATag>
-    <PlaygroundForm :schema="schema" />
+    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+      <ConfigForm
+        :schema="withMode(schema, mode)"
+        @submit="showResult"
+        @submit-failed="(e: any) => st?.showErrors(e)"
+      />
+    </StatusTabs>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { mergeSchema } from '@moluoxixi/schema'
-import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { Segmented as ASegmented, Tag as ATag } from 'ant-design-vue'
+import { ConfigForm } from '@moluoxixi/vue'
 import type { ISchema } from '@moluoxixi/schema'
-import PlaygroundForm from '../../components/PlaygroundForm.vue'
+import type { FieldPattern } from '@moluoxixi/shared'
 
 setupAntdVue()
+
+const st = ref<InstanceType<typeof StatusTabs>>()
+
+/** 工具：将 mode 注入 schema */
+function withMode(s: ISchema, mode: FieldPattern): ISchema {
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
+}
 
 type ScenarioKey = 'individual' | 'enterprise' | 'student'
 const scenario = ref<ScenarioKey>('individual')

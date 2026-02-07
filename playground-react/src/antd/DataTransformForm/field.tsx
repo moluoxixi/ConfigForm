@@ -10,11 +10,10 @@
  */
 import React, { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import { Typography, Form, Input, Space, Tag } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph } = Typography;
 
@@ -61,9 +60,11 @@ export const DataTransformForm = observer((): React.ReactElement => {
     <div>
       <Title level={3}>数据转换</Title>
       <Paragraph type="secondary">format（显示格式化） / parse（输入解析） / transform（提交转换）</Paragraph>
-      <PlaygroundForm form={form}>
-        {({ mode }) => (
-          <>
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => {
+          form.pattern = mode;
+          return (
+          <FormProvider form={form}>
             {['priceCent', 'phoneRaw', 'fullName', 'tags'].map((name) => (
               <FormField key={name} name={name}>
                 {(field: FieldInstance) => (
@@ -82,9 +83,10 @@ export const DataTransformForm = observer((): React.ReactElement => {
                 )}
               </FormField>
             ))}
-          </>
-        )}
-      </PlaygroundForm>
+          </FormProvider>
+          );
+        }}
+      </StatusTabs>
     </div>
   );
 });

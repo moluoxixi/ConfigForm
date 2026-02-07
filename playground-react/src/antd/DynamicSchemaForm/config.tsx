@@ -9,15 +9,21 @@
  */
 import React, { useState, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
+import { ConfigForm } from '@moluoxixi/react';
 import { mergeSchema } from '@moluoxixi/schema';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import { Space, Typography, Tag, Collapse, Segmented } from 'antd';
 import type { ISchema } from '@moluoxixi/schema';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
+import type { FieldPattern } from '@moluoxixi/shared';
 
 const { Title, Paragraph } = Typography;
 
 setupAntd();
+
+/** 工具：将 StatusTabs 的 mode 注入 schema */
+function withMode(s: ISchema, mode: FieldPattern): ISchema {
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } };
+}
 
 type ScenarioKey = 'individual' | 'enterprise' | 'student';
 
@@ -94,7 +100,15 @@ export const DynamicSchemaForm = observer((): React.ReactElement => {
         当前：{SCENARIO_SCHEMAS[scenario].label} | 字段数：{Object.keys(mergedSchema.fields).length}
       </Tag>
 
-      <PlaygroundForm schema={mergedSchema} />
+      <StatusTabs>
+        {({ mode, showResult, showErrors }) => (
+          <ConfigForm
+            schema={withMode(mergedSchema, mode)}
+            onSubmit={showResult}
+            onSubmitFailed={(errors) => showErrors(errors)}
+          />
+        )}
+      </StatusTabs>
 
       <Collapse style={{ marginTop: 16 }} items={[{ key: '1', label: '查看合并后 Schema', children: <pre style={{ margin: 0, fontSize: 12, maxHeight: 300, overflow: 'auto' }}>{JSON.stringify(mergedSchema, null, 2)}</pre> }]} />
     </div>

@@ -9,14 +9,13 @@
  */
 import React, { useState, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd } from '@moluoxixi/ui-antd';
+import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
 import {
   Button, Typography, Form, Input, Card, Tag, List, message,
 } from 'antd';
 import { SaveOutlined, UndoOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { FieldInstance } from '@moluoxixi/core';
-import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -93,9 +92,11 @@ export const FormSnapshotForm = observer((): React.ReactElement => {
 
       <div style={{ display: 'flex', gap: 16 }}>
         <div style={{ flex: 1 }}>
-          <PlaygroundForm form={form}>
-            {({ mode }) => (
-              <>
+          <StatusTabs>
+            {({ mode, showResult, showErrors }) => {
+              form.pattern = mode;
+              return (
+              <FormProvider form={form}>
                 {FIELDS.map((name) => (
                   <FormField key={name} name={name}>
                     {(field: FieldInstance) => (
@@ -112,9 +113,10 @@ export const FormSnapshotForm = observer((): React.ReactElement => {
                 {mode === 'editable' && (
                   <Button icon={<SaveOutlined />} onClick={saveDraft}>暂存草稿</Button>
                 )}
-              </>
-            )}
-          </PlaygroundForm>
+              </FormProvider>
+              );
+            }}
+          </StatusTabs>
         </div>
 
         {/* 草稿列表 */}

@@ -2,6 +2,7 @@ import type { FieldInstance, FieldProps } from '@moluoxixi/core'
 import type { Component, PropType } from 'vue'
 import { defineComponent, h, inject, onBeforeUnmount, provide, ref, watch } from 'vue'
 import { FieldSymbol, FormSymbol } from '../context'
+import { getDefaultWrapper } from '../registry'
 import { ReactiveField } from './ReactiveField'
 
 /**
@@ -46,6 +47,13 @@ export const FormField = defineComponent({
       const mergedProps: Record<string, unknown> = { ...props.fieldProps, name }
       if (!mergedProps.pattern && form!.pattern !== 'editable') {
         mergedProps.pattern = form!.pattern
+      }
+      /* 未显式指定 wrapper 时，使用组件注册的默认 wrapper */
+      if (!mergedProps.wrapper && typeof mergedProps.component === 'string') {
+        const defaultWrapper = getDefaultWrapper(mergedProps.component)
+        if (defaultWrapper) {
+          mergedProps.wrapper = defaultWrapper
+        }
       }
       return { field: form!.createField(mergedProps as any), created: true }
     }

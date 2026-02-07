@@ -2,8 +2,8 @@
   <div>
     <h2>数组字段</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">增删 / 排序 / 复制 / min-max 数量限制</p>
-    <PlaygroundForm :form="form">
-      <template #default="{ mode }">
+    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+      <FormProvider :form="form">
         <FormField v-slot="{ field }" name="groupName">
           <AFormItem :label="field.label" :required="field.required"><AInput :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" :readonly="mode === 'readOnly'" style="width: 300px" /></AFormItem>
         </FormField>
@@ -26,20 +26,31 @@
             </div>
           </div>
         </FormArrayField>
-      </template>
-    </PlaygroundForm>
+        <div v-if="mode === 'editable'" style="margin-top: 16px; display: flex; gap: 8px">
+          <button type="button" @click="handleSubmit(showResult)" style="padding: 4px 15px; background: #1677ff; color: #fff; border: none; border-radius: 6px; cursor: pointer">提交</button>
+          <button type="button" @click="form.reset()" style="padding: 4px 15px; background: #fff; border: 1px solid #d9d9d9; border-radius: 6px; cursor: pointer">重置</button>
+        </div>
+      </FormProvider>
+    </StatusTabs>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { FormField, FormArrayField, useCreateForm } from '@moluoxixi/vue'
-import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
+import { ref, watch, onMounted } from 'vue'
+import { FormProvider, FormField, FormArrayField, useCreateForm } from '@moluoxixi/vue'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { Button as AButton, Space as ASpace, Input as AInput, FormItem as AFormItem } from 'ant-design-vue'
-import PlaygroundForm from '../../components/PlaygroundForm.vue'
+import type { FieldPattern } from '@moluoxixi/shared'
 
 setupAntdVue()
+const st = ref<InstanceType<typeof StatusTabs>>()
 
 const form = useCreateForm({ initialValues: { groupName: '默认分组', contacts: [{ name: '', phone: '', email: '' }] } })
 onMounted(() => { form.createField({ name: 'groupName', label: '分组名称', required: true }) })
+watch(() => st.value?.mode, (v) => { if (v) form.pattern = v as FieldPattern }, { immediate: true })
+async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
+  const res = await form.submit()
+  if (res.errors.length > 0) { st.value?.showErrors(res.errors) }
+  else { showResult(res.values) }
+}
 </script>
