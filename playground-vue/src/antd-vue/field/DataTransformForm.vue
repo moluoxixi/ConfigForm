@@ -5,7 +5,7 @@
     <ASegmented v-model:value="mode" :options="MODE_OPTIONS" style="margin-bottom: 16px" />
     <FormProvider :form="form">
       <form @submit.prevent="handleSubmit" novalidate>
-        <FormField v-for="name in FIELDS" :key="name" v-slot="{ field }" :name="name"><AFormItem :label="field.label" :help="field.description"><ASpace><AInput :value="String(field.value ?? '')" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" style="width: 300px" /><ATag color="blue">原始: {{ JSON.stringify(field.value) }}</ATag></ASpace></AFormItem></FormField>
+        <FormField v-for="name in FIELDS" :key="name" v-slot="{ field }" :name="name"><AFormItem :label="field.label" :help="field.description"><ASpace><span v-if="mode === 'readOnly'">{{ String(field.value ?? '') || '—' }}</span><AInput v-else :value="String(field.value ?? '')" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" style="width: 300px" /><ATag color="blue">原始: {{ JSON.stringify(field.value) }}</ATag></ASpace></AFormItem></FormField>
         <ASpace v-if="mode === 'editable'" style="margin-top: 8px"><AButton type="primary" html-type="submit">提交（查看转换结果）</AButton><AButton @click="form.reset()">重置</AButton></ASpace>
       </form>
     </FormProvider>

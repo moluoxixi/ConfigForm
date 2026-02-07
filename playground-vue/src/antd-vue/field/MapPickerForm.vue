@@ -6,7 +6,7 @@
     <ASegmented v-model:value="mode" :options="MODE_OPTIONS" style="margin-bottom: 16px" />
     <FormProvider :form="form">
       <form @submit.prevent="handleSubmit" novalidate>
-        <FormField v-slot="{ field }" name="locationName"><AFormItem :label="field.label"><AInput :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" /></AFormItem></FormField>
+        <FormField v-slot="{ field }" name="locationName"><AFormItem :label="field.label"><span v-if="mode === 'readOnly'">{{ (field.value as string) || '—' }}</span><AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" /></AFormItem></FormField>
         <AFormItem label="地图选点">
           <div @click="handleMapClick" :style="{ width: '100%', height: '300px', background: 'linear-gradient(135deg, #e0f7fa, #a5d6a7)', borderRadius: '8px', border: '1px solid #d9d9d9', position: 'relative', cursor: mode !== 'editable' ? 'not-allowed' : 'crosshair', opacity: mode === 'disabled' ? 0.6 : 1 }">
             <div :style="{ position: 'absolute', left: `${((lng - 73) / 62) * 100}%`, top: `${((53 - lat) / 50) * 100}%`, transform: 'translate(-50%, -100%)', transition: 'all 0.2s', fontSize: '32px', color: '#ff4d4f' }">📍</div>
@@ -14,8 +14,8 @@
           </div>
         </AFormItem>
         <ASpace style="margin-bottom: 16px">
-          <FormField v-slot="{ field }" name="lng"><AFormItem label="经度" style="margin-bottom: 0"><AInputNumber :value="(field.value as number)" @update:value="field.setValue($event)" :disabled="mode !== 'editable'" :step="0.0001" style="width: 150px" /></AFormItem></FormField>
-          <FormField v-slot="{ field }" name="lat"><AFormItem label="纬度" style="margin-bottom: 0"><AInputNumber :value="(field.value as number)" @update:value="field.setValue($event)" :disabled="mode !== 'editable'" :step="0.0001" style="width: 150px" /></AFormItem></FormField>
+          <FormField v-slot="{ field }" name="lng"><AFormItem label="经度" style="margin-bottom: 0"><span v-if="mode === 'readOnly'">{{ field.value ?? '—' }}</span><AInputNumber v-else :value="(field.value as number)" @update:value="field.setValue($event)" :disabled="mode !== 'editable'" :step="0.0001" style="width: 150px" /></AFormItem></FormField>
+          <FormField v-slot="{ field }" name="lat"><AFormItem label="纬度" style="margin-bottom: 0"><span v-if="mode === 'readOnly'">{{ field.value ?? '—' }}</span><AInputNumber v-else :value="(field.value as number)" @update:value="field.setValue($event)" :disabled="mode !== 'editable'" :step="0.0001" style="width: 150px" /></AFormItem></FormField>
         </ASpace>
         <ASpace v-if="mode === 'editable'"><AButton type="primary" html-type="submit">提交</AButton><AButton @click="form.reset()">重置</AButton></ASpace>
       </form>

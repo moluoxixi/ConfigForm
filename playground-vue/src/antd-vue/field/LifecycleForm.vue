@@ -8,9 +8,10 @@
         <ASpace style="margin-bottom: 12px"><span>自动保存：</span><ASwitch v-model:checked="autoSave" /></ASpace>
         <FormProvider :form="form"><form @submit.prevent="handleSubmit" novalidate>
           <FormField v-for="n in FIELDS" :key="n" v-slot="{ field }" :name="n"><AFormItem :label="field.label">
-            <AInputNumber v-if="n === 'price'" :value="(field.value as number)" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" style="width: 100%" />
+            <template v-if="mode === 'readOnly'"><span v-if="n === 'description'" style="white-space:pre-wrap">{{ (field.value as string) || '—' }}</span><span v-else>{{ field.value ?? '—' }}</span></template>
+            <template v-else><AInputNumber v-if="n === 'price'" :value="(field.value as number)" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" style="width: 100%" />
             <ATextarea v-else-if="n === 'description'" :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" :rows="3" />
-            <AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" />
+            <AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" /></template>
           </AFormItem></FormField>
           <ASpace v-if="mode === 'editable'"><AButton type="primary" html-type="submit">提交</AButton><AButton @click="handleReset">重置</AButton></ASpace>
         </form></FormProvider>

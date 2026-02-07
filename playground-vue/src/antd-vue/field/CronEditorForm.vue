@@ -5,9 +5,9 @@
     <ASegmented v-model:value="mode" :options="MODE_OPTIONS" style="margin-bottom: 16px" />
     <FormProvider :form="form">
       <form @submit.prevent="handleSubmit" novalidate>
-        <FormField v-slot="{ field }" name="taskName"><AFormItem :label="field.label"><AInput :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" style="width: 300px" /></AFormItem></FormField>
+        <FormField v-slot="{ field }" name="taskName"><AFormItem :label="field.label"><span v-if="mode === 'readOnly'">{{ (field.value as string) || '—' }}</span><AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" style="width: 300px" /></AFormItem></FormField>
         <FormField v-slot="{ field }" name="cronExpr"><AFormItem :label="field.label">
-          <AInput :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" placeholder="如：0 8 * * 1-5" addon-before="Cron" style="width: 400px" />
+          <span v-if="mode === 'readOnly'">{{ (field.value as string) || '—' }}</span><AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" placeholder="如：0 8 * * 1-5" addon-before="Cron" style="width: 400px" />
           <div style="margin-top: 8px"><span style="color: #999">解析：</span><ATag :color="describeCron((field.value as string) ?? '').includes('错误') ? 'error' : 'blue'">{{ describeCron((field.value as string) ?? '') }}</ATag></div>
           <div v-if="mode === 'editable'" style="margin-top: 8px"><span style="color: #999; font-size: 12px">快捷预设：</span><ASpace wrap><ATag v-for="p in PRESETS" :key="p.value" :color="field.value === p.value ? 'blue' : 'default'" style="cursor: pointer" @click="field.setValue(p.value)">{{ p.label }}</ATag></ASpace></div>
           <div style="background: #f6f8fa; padding: 8px; border-radius: 4px; font-size: 12px; margin-top: 8px; color: #999">格式：分 时 日 月 周 | 示例：<code>0 8 * * 1-5</code> = 工作日 8:00</div>

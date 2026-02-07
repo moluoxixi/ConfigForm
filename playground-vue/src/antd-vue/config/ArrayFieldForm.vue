@@ -16,9 +16,9 @@
             </div>
             <div v-for="(_, idx) in ((arrayField.value as unknown[]) ?? [])" :key="idx" :style="{ display: 'grid', gridTemplateColumns: '40px 1fr 1fr 1fr auto', gap: '8px', padding: '8px 12px', background: idx % 2 === 0 ? '#fafafa' : '#fff', borderRadius: '4px', alignItems: 'center' }">
               <span style="color: #999">#{{ idx + 1 }}</span>
-              <FormField v-slot="{ field }" :name="`contacts.${idx}.name`"><AInput :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" placeholder="姓名" size="small" :disabled="mode === 'disabled'" /></FormField>
-              <FormField v-slot="{ field }" :name="`contacts.${idx}.phone`"><AInput :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" placeholder="电话" size="small" :disabled="mode === 'disabled'" /></FormField>
-              <FormField v-slot="{ field }" :name="`contacts.${idx}.email`"><AInput :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" placeholder="邮箱" size="small" :disabled="mode === 'disabled'" /></FormField>
+              <FormField v-slot="{ field }" :name="`contacts.${idx}.name`"><span v-if="mode === 'readOnly'">{{ (field.value as string) || '—' }}</span><AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" placeholder="姓名" size="small" :disabled="mode === 'disabled'" /></FormField>
+              <FormField v-slot="{ field }" :name="`contacts.${idx}.phone`"><span v-if="mode === 'readOnly'">{{ (field.value as string) || '—' }}</span><AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" placeholder="电话" size="small" :disabled="mode === 'disabled'" /></FormField>
+              <FormField v-slot="{ field }" :name="`contacts.${idx}.email`"><span v-if="mode === 'readOnly'">{{ (field.value as string) || '—' }}</span><AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" placeholder="邮箱" size="small" :disabled="mode === 'disabled'" /></FormField>
               <ASpace v-if="mode === 'editable'" :size="4">
                 <AButton size="small" :disabled="idx === 0" @click="arrayField.moveUp(idx)">↑</AButton>
                 <AButton size="small" :disabled="idx === ((arrayField.value as unknown[]) ?? []).length - 1" @click="arrayField.moveDown(idx)">↓</AButton>

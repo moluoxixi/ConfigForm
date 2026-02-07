@@ -5,7 +5,7 @@
     <ASegmented v-model:value="mode" :options="MODE_OPTIONS" style="margin-bottom: 16px" />
     <div style="display: flex; gap: 16px">
       <div style="flex: 1"><FormProvider :form="form"><form @submit.prevent="handleSubmit" novalidate>
-        <FormField v-for="n in FIELDS" :key="n" v-slot="{ field }" :name="n"><AFormItem :label="field.label"><ATextarea v-if="n === 'description'" :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" :rows="3" /><AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" /></AFormItem></FormField>
+        <FormField v-for="n in FIELDS" :key="n" v-slot="{ field }" :name="n"><AFormItem :label="field.label"><template v-if="mode === 'readOnly'"><span v-if="n === 'description'" style="white-space:pre-wrap">{{ (field.value as string) || '—' }}</span><span v-else>{{ (field.value as string) || '—' }}</span></template><ATextarea v-else-if="n === 'description'" :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" :rows="3" /><AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" /></AFormItem></FormField>
         <ASpace v-if="mode === 'editable'"><AButton type="primary" html-type="submit">提交</AButton><AButton @click="saveDraft">暂存草稿</AButton></ASpace>
       </form></FormProvider></div>
       <ACard :title="`草稿列表 (${drafts.length})`" size="small" style="width: 280px">

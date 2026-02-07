@@ -5,7 +5,7 @@
     <ASegmented v-model:value="mode" :options="MODE_OPTIONS" style="margin-bottom: 16px" />
     <FormProvider :form="form">
       <form @submit.prevent="handleSubmit" novalidate>
-        <FormField v-slot="{ field }" name="docTitle"><AFormItem :label="field.label"><AInput :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" /></AFormItem></FormField>
+        <FormField v-slot="{ field }" name="docTitle"><AFormItem :label="field.label"><span v-if="mode === 'readOnly'">{{ (field.value as string) || '—' }}</span><AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" /></AFormItem></FormField>
         <FormField v-slot="{ field }" name="content"><AFormItem :label="field.label">
           <ARow v-if="mode === 'editable'" :gutter="16"><ACol :span="12"><div style="font-size: 12px; color: #999; margin-bottom: 4px">编辑区</div><ATextarea :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :rows="16" :style="{ fontFamily: 'Consolas, Monaco, monospace', fontSize: '13px' }" /></ACol><ACol :span="12"><div style="font-size: 12px; color: #999; margin-bottom: 4px">预览区</div><div style="border: 1px solid #d9d9d9; border-radius: 6px; padding: 12px; min-height: 380px; overflow: auto; background: #fafafa" v-html="simpleRender((field.value as string) ?? '')" /></ACol></ARow>
           <div v-else style="border: 1px solid #d9d9d9; border-radius: 6px; padding: 16px; background: #fafafa" :style="{ opacity: mode === 'disabled' ? 0.6 : 1 }" v-html="simpleRender((field.value as string) ?? '')" />

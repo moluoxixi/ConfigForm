@@ -5,7 +5,7 @@
     <ASegmented v-model:value="mode" :options="MODE_OPTIONS" style="margin-bottom: 16px" />
     <FormProvider :form="form">
       <form @submit.prevent="handleSubmit" novalidate>
-        <FormField v-slot="{ field }" name="configName"><AFormItem :label="field.label"><AInput :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" /></AFormItem></FormField>
+        <FormField v-slot="{ field }" name="configName"><AFormItem :label="field.label"><span v-if="mode === 'readOnly'">{{ (field.value as string) || '—' }}</span><AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" /></AFormItem></FormField>
         <FormField v-slot="{ field }" name="jsonContent">
           <AFormItem :label="field.label">
             <ASpace v-if="mode === 'editable'" style="margin-bottom: 8px"><AButton size="small" @click="formatJson(field)">格式化</AButton><AButton size="small" @click="minifyJson(field)">压缩</AButton><ATag :color="jsonError ? 'error' : 'success'">{{ jsonError ? '语法错误' : '合法 JSON' }}</ATag></ASpace>

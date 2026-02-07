@@ -5,7 +5,7 @@
     <ASegmented v-model:value="mode" :options="MODE_OPTIONS" style="margin-bottom: 16px" />
     <FormProvider :form="form">
       <form @submit.prevent="handleSubmit" novalidate>
-        <FormField v-slot="{ field }" name="title"><AFormItem :label="field.label"><AInput :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" /></AFormItem></FormField>
+        <FormField v-slot="{ field }" name="title"><AFormItem :label="field.label"><span v-if="mode === 'readOnly'">{{ (field.value as string) || '—' }}</span><AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" /></AFormItem></FormField>
         <AFormItem label="附件上传"><AUpload :file-list="fileList" :before-upload="() => false" @change="(info: any) => fileList = info.fileList" :disabled="mode !== 'editable'"><AButton v-if="mode === 'editable'">选择文件</AButton></AUpload></AFormItem>
         <AFormItem label="图片上传"><AUpload list-type="picture-card" :file-list="imageList" :before-upload="() => false" @change="(info: any) => imageList = info.fileList" :disabled="mode !== 'editable'"><div v-if="mode === 'editable' && imageList.length < 6"><span>+</span><div style="margin-top: 4px">上传</div></div></AUpload></AFormItem>
         <ASpace v-if="mode === 'editable'"><AButton type="primary" html-type="submit">提交</AButton><AButton @click="form.reset()">重置</AButton></ASpace>

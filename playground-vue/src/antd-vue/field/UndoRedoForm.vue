@@ -6,9 +6,10 @@
     <ASpace style="margin-bottom: 16px"><AButton :disabled="!canUndo || mode !== 'editable'" @click="undo">撤销 (Ctrl+Z)</AButton><AButton :disabled="!canRedo || mode !== 'editable'" @click="redo">重做 (Ctrl+Shift+Z)</AButton><ATag>历史：{{ historyIdx + 1 }} / {{ historyLen }}</ATag></ASpace>
     <FormProvider :form="form"><form @submit.prevent="handleSubmit" novalidate>
       <FormField v-for="n in FIELDS" :key="n" v-slot="{ field }" :name="n"><AFormItem :label="field.label">
-        <AInputNumber v-if="n === 'amount'" :value="(field.value as number)" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" style="width: 100%" />
+        <template v-if="mode === 'readOnly'"><span v-if="n === 'note'" style="white-space:pre-wrap">{{ (field.value as string) || '—' }}</span><span v-else>{{ field.value ?? '—' }}</span></template>
+        <template v-else><AInputNumber v-if="n === 'amount'" :value="(field.value as number)" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" style="width: 100%" />
         <ATextarea v-else-if="n === 'note'" :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" :rows="3" />
-        <AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" />
+        <AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" /></template>
       </AFormItem></FormField>
       <ASpace v-if="mode === 'editable'"><AButton type="primary" html-type="submit">提交</AButton><AButton @click="form.reset()">重置</AButton></ASpace>
     </form></FormProvider>

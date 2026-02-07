@@ -5,7 +5,8 @@
     <ASpace direction="vertical" :style="{ width: '100%', marginBottom: '16px' }"><ASegmented v-model:value="mode" :options="MODE_OPTIONS" /><ASegmented v-model:value="locale" :options="[{label:'🇨🇳 中文',value:'zh-CN'},{label:'🇺🇸 English',value:'en-US'},{label:'🇯🇵 日本語',value:'ja-JP'}]" /></ASpace>
     <FormProvider :form="form"><form @submit.prevent="handleSubmit" novalidate>
       <FormField v-for="n in ['name','email','phone','bio']" :key="n" v-slot="{ field }" :name="n"><AFormItem :label="field.label" :required="field.required" :validate-status="field.errors.length > 0 ? 'error' : undefined" :help="field.errors[0]?.message">
-        <ATextarea v-if="n === 'bio'" :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" @blur="field.blur(); field.validate('blur').catch(() => {})" :disabled="mode === 'disabled'" :placeholder="t(`field.${n}.placeholder`)" :rows="3" />
+        <template v-if="mode === 'readOnly'"><span v-if="n === 'bio'" style="white-space:pre-wrap">{{ (field.value as string) || '—' }}</span><span v-else>{{ (field.value as string) || '—' }}</span></template>
+        <ATextarea v-else-if="n === 'bio'" :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" @blur="field.blur(); field.validate('blur').catch(() => {})" :disabled="mode === 'disabled'" :placeholder="t(`field.${n}.placeholder`)" :rows="3" />
         <AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" @blur="field.blur(); field.validate('blur').catch(() => {})" :disabled="mode === 'disabled'" :placeholder="t(`field.${n}.placeholder`)" />
       </AFormItem></FormField>
       <ASpace v-if="mode === 'editable'"><AButton type="primary" html-type="submit">{{ t('btn.submit') }}</AButton><AButton html-type="reset">{{ t('btn.reset') }}</AButton></ASpace>

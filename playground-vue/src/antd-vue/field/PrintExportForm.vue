@@ -6,9 +6,10 @@
     <ASpace style="margin-bottom: 16px"><AButton @click="handlePrint">打印</AButton><AButton @click="exportJson">导出 JSON</AButton><AButton @click="exportCsv">导出 CSV</AButton></ASpace>
     <FormProvider :form="form"><form @submit.prevent="handleSubmit" novalidate>
       <FormField v-for="d in FIELDS" :key="d.name" v-slot="{ field }" :name="d.name"><AFormItem :label="d.label">
-        <AInputNumber v-if="d.type === 'number'" :value="(field.value as number)" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" style="width: 100%" />
+        <template v-if="mode === 'readOnly'"><span v-if="d.type === 'textarea'" style="white-space:pre-wrap">{{ (field.value as string) || '—' }}</span><span v-else>{{ field.value ?? '—' }}</span></template>
+        <template v-else><AInputNumber v-if="d.type === 'number'" :value="(field.value as number)" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" style="width: 100%" />
         <ATextarea v-else-if="d.type === 'textarea'" :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" :rows="2" />
-        <AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" />
+        <AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" /></template>
       </AFormItem></FormField>
       <ASpace v-if="mode === 'editable'"><AButton type="primary" html-type="submit">提交</AButton><AButton @click="form.reset()">重置</AButton></ASpace>
     </form></FormProvider>

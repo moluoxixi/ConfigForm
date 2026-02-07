@@ -5,7 +5,7 @@
     <ASegmented v-model:value="mode" :options="MODE_OPTIONS" style="margin-bottom: 16px" />
     <FormProvider :form="form">
       <form @submit.prevent="handleSubmit" novalidate>
-        <FormField v-slot="{ field }" name="menuName"><AFormItem :label="field.label"><AInput :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" style="width: 300px" /></AFormItem></FormField>
+        <FormField v-slot="{ field }" name="menuName"><AFormItem :label="field.label"><span v-if="mode === 'readOnly'">{{ (field.value as string) || '—' }}</span><AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" style="width: 300px" /></AFormItem></FormField>
         <FormField v-slot="{ field }" name="icon"><AFormItem :label="field.label">
           <div style="margin-bottom: 8px">当前选中：<ATag v-if="field.value" color="blue">{{ field.value }}</ATag><span v-else style="color: #999">未选择</span></div>
           <div v-if="mode === 'editable'">

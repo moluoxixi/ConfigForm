@@ -5,7 +5,7 @@
     <ASegmented v-model:value="mode" :options="MODE_OPTIONS" style="margin-bottom: 16px" />
     <FormProvider :form="form">
       <form @submit.prevent="handleSubmit" novalidate>
-        <FormField v-slot="{ field }" name="teamName"><AFormItem :label="field.label" :required="field.required"><AInput :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" style="width: 300px" :disabled="mode === 'disabled'" /></AFormItem></FormField>
+        <FormField v-slot="{ field }" name="teamName"><AFormItem :label="field.label" :required="field.required"><span v-if="mode === 'readOnly'">{{ (field.value as string) || '—' }}</span><AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" style="width: 300px" :disabled="mode === 'disabled'" /></AFormItem></FormField>
         <FormArrayField v-slot="{ arrayField }" name="contacts" :field-props="{ minItems: 1, maxItems: 10, itemTemplate: () => ({ name: '', role: '', phones: [{ number: '', label: '手机' }] }) }">
           <div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 12px">
@@ -15,8 +15,8 @@
             <ACard v-for="(_, idx) in ((arrayField.value as unknown[]) ?? [])" :key="idx" size="small" :title="`联系人 #${idx + 1}`" style="margin-bottom: 12px">
               <template v-if="mode === 'editable'" #extra><AButton size="small" danger :disabled="!arrayField.canRemove" @click="arrayField.remove(idx)">删除</AButton></template>
               <ASpace>
-                <FormField v-slot="{ field }" :name="`contacts.${idx}.name`"><AInput :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" placeholder="姓名" addon-before="姓名" :disabled="mode === 'disabled'" /></FormField>
-                <FormField v-slot="{ field }" :name="`contacts.${idx}.role`"><AInput :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" placeholder="角色" addon-before="角色" :disabled="mode === 'disabled'" /></FormField>
+                <FormField v-slot="{ field }" :name="`contacts.${idx}.name`"><span v-if="mode === 'readOnly'">{{ (field.value as string) || '—' }}</span><AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" placeholder="姓名" addon-before="姓名" :disabled="mode === 'disabled'" /></FormField>
+                <FormField v-slot="{ field }" :name="`contacts.${idx}.role`"><span v-if="mode === 'readOnly'">{{ (field.value as string) || '—' }}</span><AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" placeholder="角色" addon-before="角色" :disabled="mode === 'disabled'" /></FormField>
               </ASpace>
               <FormArrayField v-slot="{ arrayField: phoneArray }" :name="`contacts.${idx}.phones`" :field-props="{ minItems: 1, maxItems: 5, itemTemplate: () => ({ number: '', label: '手机' }) }">
                 <div style="padding: 8px 12px; background: #fafafa; border-radius: 4px; margin-top: 8px">
@@ -25,8 +25,8 @@
                     <AButton v-if="mode === 'editable'" size="small" type="dashed" :disabled="!phoneArray.canAdd" @click="phoneArray.push({ number: '', label: '手机' })">添加电话</AButton>
                   </div>
                   <ASpace v-for="(__, pIdx) in ((phoneArray.value as unknown[]) ?? [])" :key="pIdx" :size="4" style="width: 100%; margin-bottom: 4px">
-                    <FormField v-slot="{ field }" :name="`contacts.${idx}.phones.${pIdx}.label`"><AInput :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" placeholder="标签" size="small" style="width: 80px" :disabled="mode === 'disabled'" /></FormField>
-                    <FormField v-slot="{ field }" :name="`contacts.${idx}.phones.${pIdx}.number`"><AInput :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" placeholder="号码" size="small" style="width: 180px" :disabled="mode === 'disabled'" /></FormField>
+                    <FormField v-slot="{ field }" :name="`contacts.${idx}.phones.${pIdx}.label`"><span v-if="mode === 'readOnly'">{{ (field.value as string) || '—' }}</span><AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" placeholder="标签" size="small" style="width: 80px" :disabled="mode === 'disabled'" /></FormField>
+                    <FormField v-slot="{ field }" :name="`contacts.${idx}.phones.${pIdx}.number`"><span v-if="mode === 'readOnly'">{{ (field.value as string) || '—' }}</span><AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" placeholder="号码" size="small" style="width: 180px" :disabled="mode === 'disabled'" /></FormField>
                     <AButton v-if="mode === 'editable'" size="small" danger :disabled="!phoneArray.canRemove" @click="phoneArray.remove(pIdx)">删</AButton>
                   </ASpace>
                 </div>
