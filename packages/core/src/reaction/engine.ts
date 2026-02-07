@@ -8,7 +8,7 @@ import type {
   ReactionRule,
 } from '../types'
 import { getReactiveAdapter } from '@moluoxixi/reactive'
-import { debounce, DependencyGraph, isArray, isFunction } from '@moluoxixi/shared'
+import { debounce, DependencyGraph, FormPath, isArray, isFunction } from '@moluoxixi/shared'
 
 /**
  * 联动引擎
@@ -69,7 +69,12 @@ export class ReactionEngine {
           const matchedFields = this.form.queryFields(p)
           return matchedFields.map(f => f.value)
         }
-        return this.form.getFieldValue(p)
+        /**
+         * 直接通过 FormPath.getIn 访问 form.values，绕过 form.getFieldValue()。
+         * 原因：MobX 的 makeObservable 会将 getFieldValue 标记为 action.bound，
+         * action 内部的 observable 访问不会被 MobX reaction 追踪，导致联动不触发。
+         */
+        return FormPath.getIn(this.form.values, p)
       })
     }
 

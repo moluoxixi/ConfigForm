@@ -1,70 +1,32 @@
 /**
  * 场景 18：异步选项加载
  *
- * 覆盖：
- * - 下拉选项远程获取（模拟异步加载）
- * - 加载中 loading 状态
- * - 数据源配置（labelField / valueField 映射）
- * - 缓存策略（重复打开不重复请求）
- * - 三种模式切换
+ * 使用核心库 field.loadDataSource() 管线 + mock 请求适配器。
+ * 切换「类型」→ 品种通过 loadDataSource({ url, params, requestAdapter: 'mock' }) 远程加载。
  */
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { setupAntd } from '@moluoxixi/ui-antd';
-import { Alert, Typography } from 'antd';
+import { Alert, Card, Button, Typography } from 'antd';
 import type { FormSchema } from '@moluoxixi/schema';
 import { PlaygroundForm } from '../../components/PlaygroundForm';
+import { setupMockAdapter, getApiLogs, clearApiLogs } from '../../mock/dataSourceAdapter';
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Paragraph } = Typography;
 
 setupAntd();
+setupMockAdapter();
 
-/** 默认初始值 */
 const INITIAL_VALUES: Record<string, unknown> = {
-  category: undefined,
-  status: undefined,
   dynamicType: 'fruit',
   dynamicItem: undefined,
   country: 'china',
   remark: '',
 };
 
-/** 表单 Schema */
 const schema: FormSchema = {
   form: { labelPosition: 'right', labelWidth: '140px' },
   fields: {
-    /* ---- 异步加载（通过 dataSource url） ---- */
-    category: {
-      type: 'string',
-      label: '商品分类（远程）',
-      component: 'Select',
-      wrapper: 'FormItem',
-      placeholder: '远程加载分类',
-      description: '通过 dataSource.url 配置远程数据',
-      dataSource: {
-        url: '/api/categories',
-        method: 'GET',
-        labelField: 'name',
-        valueField: 'id',
-        cache: true,
-      },
-    },
-
-    /* ---- 静态枚举选项 ---- */
-    status: {
-      type: 'string',
-      label: '状态',
-      component: 'Select',
-      wrapper: 'FormItem',
-      placeholder: '请选择状态',
-      enum: [
-        { label: '启用', value: 'active' },
-        { label: '禁用', value: 'disabled' },
-        { label: '待审核', value: 'pending' },
-      ],
-    },
-
-    /* ---- reactions 异步加载选项 ---- */
     dynamicType: {
       type: 'string',
       label: '类型',
@@ -79,56 +41,36 @@ const schema: FormSchema = {
     },
     dynamicItem: {
       type: 'string',
-      label: '具体品种（异步）',
+      label: '品种（异步）',
       component: 'Select',
       wrapper: 'FormItem',
-      placeholder: '根据类型异步加载选项',
-      description: '通过 reactions 异步加载 dataSource',
-      reactions: [
-        {
-          watch: 'dynamicType',
-          fulfill: {
-            run: async (field, ctx) => {
-              const type = ctx.values.dynamicType as string;
-              if (!type) {
-                field.setDataSource([]);
-                return;
-              }
-
-              field.loading = true;
-              field.setValue(undefined);
-
-              /* 模拟异步请求延迟 */
-              await new Promise((resolve) => setTimeout(resolve, 600));
-
-              const mockData: Record<string, Array<{ label: string; value: string }>> = {
-                fruit: [
-                  { label: '苹果', value: 'apple' },
-                  { label: '香蕉', value: 'banana' },
-                  { label: '橙子', value: 'orange' },
-                  { label: '葡萄', value: 'grape' },
-                ],
-                vegetable: [
-                  { label: '白菜', value: 'cabbage' },
-                  { label: '胡萝卜', value: 'carrot' },
-                  { label: '西红柿', value: 'tomato' },
-                ],
-                meat: [
-                  { label: '猪肉', value: 'pork' },
-                  { label: '牛肉', value: 'beef' },
-                  { label: '鸡肉', value: 'chicken' },
-                ],
-              };
-
-              field.setDataSource(mockData[type] ?? []);
-              field.loading = false;
-            },
+      placeholder: '加载中...',
+      reactions: [{
+        watch: 'dynamicType',
+        fulfill: {
+          run: (f: any, ctx: any) => {
+            const t = ctx.values.dynamicType as string;
+            if (!t) {
+              f.setDataSource([]);
+              f.setComponentProps({ placeholder: '请先选择类型' });
+              return;
+            }
+            f.setValue(undefined);
+            f.setComponentProps({ placeholder: '加载中...' });
+            f.loadDataSource({
+              url: '/api/models',
+              params: { brand: '$values.dynamicType' },
+              requestAdapter: 'mock',
+              labelField: 'name',
+              valueField: 'id',
+            }).then(() => {
+              const count = f.dataSource.length;
+              f.setComponentProps({ placeholder: `请选择品种（${count}项）` });
+            });
           },
         },
-      ],
+      }],
     },
-
-    /* ---- 带默认值的异步选项 ---- */
     country: {
       type: 'string',
       label: '国家',
@@ -141,40 +83,54 @@ const schema: FormSchema = {
         { label: '日本', value: 'japan' },
       ],
     },
-
     remark: {
       type: 'string',
       label: '备注',
       component: 'Textarea',
       wrapper: 'FormItem',
-      placeholder: '请输入备注',
+      placeholder: '请输入',
     },
   },
 };
 
-/**
- * 异步选项加载示例
- */
+/** API 日志面板 */
+function ApiLogPanel(): React.ReactElement {
+  const [logs, setLogs] = useState<string[]>([]);
+
+  useEffect(() => {
+    const timer = setInterval(() => setLogs(getApiLogs()), 500);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <Card size="small" style={{ marginTop: 16, background: '#f9f9f9' }}
+      title={<span style={{ fontSize: 13, color: '#666' }}>📡 Mock API 调用日志（{logs.length} 条）</span>}
+      extra={logs.length > 0 ? <Button size="small" onClick={() => { clearApiLogs(); setLogs([]); }}>清空</Button> : null}
+    >
+      {logs.length === 0
+        ? <div style={{ color: '#aaa', fontSize: 12 }}>暂无请求，选择下拉触发远程加载</div>
+        : <div style={{ fontFamily: 'monospace', fontSize: 11, lineHeight: 1.8, maxHeight: 200, overflow: 'auto' }}>
+            {logs.map((log, i) => <div key={i} style={{ color: log.includes('404') ? '#f5222d' : '#52c41a' }}>{log}</div>)}
+          </div>
+      }
+    </Card>
+  );
+}
+
 export const AsyncOptionsForm = observer((): React.ReactElement => {
   return (
     <div>
       <Title level={3}>异步选项加载</Title>
       <Paragraph type="secondary">
-        远程 dataSource / reactions 异步加载 / loading 状态 / 缓存策略
+        远程 dataSource / reactions 异步加载 / loading 状态 / 走 field.loadDataSource() 管线
       </Paragraph>
-
       <Alert
-        type="info"
-        showIcon
-        style={{ marginBottom: 16 }}
-        message={
-          <span>
-            切换「类型」下拉可看到<Text strong>具体品种</Text>异步加载过程（模拟 600ms 延迟）
-          </span>
-        }
+        type="info" showIcon style={{ marginBottom: 16 }}
+        message={<span>使用核心库的 <b>registerRequestAdapter('mock')</b> + <b>DataSourceConfig</b>，
+          通过 <code>field.loadDataSource()</code> 远程加载（模拟 600ms 延迟）</span>}
       />
-
       <PlaygroundForm schema={schema} initialValues={INITIAL_VALUES} />
+      <ApiLogPanel />
     </div>
   );
 });

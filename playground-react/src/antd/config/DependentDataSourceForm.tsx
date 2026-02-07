@@ -1,59 +1,22 @@
 /**
  * 场景 19：依赖数据源
  *
- * 覆盖：
- * - 选项依赖其他字段值刷新
- * - 带参数的远程数据源（params 引用 $values）
- * - 多级依赖链（A → B → C 数据源联动）
- * - 三种模式切换
+ * 品牌→型号→配置三级远程数据源链 + 年级→班级。
+ * 全部通过 field.loadDataSource({ url, params, requestAdapter: 'mock' }) 加载。
  */
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import { setupAntd } from '@moluoxixi/ui-antd';
-import { Typography } from 'antd';
+import { Alert, Card, Button, Typography } from 'antd';
 import type { FormSchema } from '@moluoxixi/schema';
 import { PlaygroundForm } from '../../components/PlaygroundForm';
+import { setupMockAdapter, getApiLogs, clearApiLogs } from '../../mock/dataSourceAdapter';
 
 const { Title, Paragraph } = Typography;
 
 setupAntd();
+setupMockAdapter();
 
-/* ======================== Mock 数据 ======================== */
-
-/** 品牌 → 型号映射 */
-const BRAND_MODELS: Record<string, Array<{ label: string; value: string }>> = {
-  apple: [
-    { label: 'iPhone 15', value: 'iphone15' },
-    { label: 'iPhone 14', value: 'iphone14' },
-    { label: 'MacBook Pro', value: 'macbook-pro' },
-  ],
-  huawei: [
-    { label: 'Mate 60', value: 'mate60' },
-    { label: 'P60', value: 'p60' },
-    { label: 'MateBook X', value: 'matebook-x' },
-  ],
-  xiaomi: [
-    { label: '小米 14', value: 'mi14' },
-    { label: 'Redmi Note 13', value: 'redmi-note13' },
-  ],
-};
-
-/** 型号 → 配置映射 */
-const MODEL_CONFIGS: Record<string, Array<{ label: string; value: string }>> = {
-  iphone15: [{ label: '128GB', value: '128' }, { label: '256GB', value: '256' }, { label: '512GB', value: '512' }],
-  iphone14: [{ label: '128GB', value: '128' }, { label: '256GB', value: '256' }],
-  mate60: [{ label: '256GB', value: '256' }, { label: '512GB', value: '512' }],
-  mi14: [{ label: '256GB', value: '256' }, { label: '512GB', value: '512' }, { label: '1TB', value: '1024' }],
-};
-
-/** 年级 → 班级映射 */
-const GRADE_CLASSES: Record<string, Array<{ label: string; value: string }>> = {
-  grade1: [{ label: '1班', value: 'c1' }, { label: '2班', value: 'c2' }, { label: '3班', value: 'c3' }],
-  grade2: [{ label: '1班', value: 'c1' }, { label: '2班', value: 'c2' }],
-  grade3: [{ label: '1班', value: 'c1' }, { label: '2班', value: 'c2' }, { label: '3班', value: 'c3' }, { label: '4班', value: 'c4' }],
-};
-
-/** 默认初始值 */
 const INITIAL_VALUES: Record<string, unknown> = {
   brand: undefined,
   model: undefined,
@@ -62,18 +25,15 @@ const INITIAL_VALUES: Record<string, unknown> = {
   classNo: undefined,
 };
 
-/** 表单 Schema */
 const schema: FormSchema = {
   form: { labelPosition: 'right', labelWidth: '140px' },
   fields: {
-    /* ---- 三级依赖：品牌 → 型号 → 配置 ---- */
     brand: {
       type: 'string',
       label: '品牌',
       required: true,
       component: 'Select',
       wrapper: 'FormItem',
-      placeholder: '请选择品牌',
       enum: [
         { label: 'Apple', value: 'apple' },
         { label: '华为', value: 'huawei' },
@@ -87,25 +47,30 @@ const schema: FormSchema = {
       component: 'Select',
       wrapper: 'FormItem',
       placeholder: '请先选择品牌',
-      description: '依赖「品牌」异步刷新选项',
-      reactions: [
-        {
-          watch: 'brand',
-          fulfill: {
-            run: async (field, ctx) => {
-              const brand = ctx.values.brand as string;
-              field.setValue(undefined);
-              if (!brand) { field.setDataSource([]); return; }
-
-              field.loading = true;
-              await new Promise((r) => setTimeout(r, 400));
-              field.setDataSource(BRAND_MODELS[brand] ?? []);
-              field.loading = false;
-              field.setComponentProps({ placeholder: '请选择型号' });
-            },
+      reactions: [{
+        watch: 'brand',
+        fulfill: {
+          run: (f: any, ctx: any) => {
+            const brand = ctx.values.brand;
+            f.setValue(undefined);
+            if (!brand) {
+              f.setDataSource([]);
+              f.setComponentProps({ placeholder: '请先选择品牌' });
+              return;
+            }
+            f.setComponentProps({ placeholder: '加载中...' });
+            f.loadDataSource({
+              url: '/api/models',
+              params: { brand: '$values.brand' },
+              requestAdapter: 'mock',
+              labelField: 'name',
+              valueField: 'id',
+            }).then(() => {
+              f.setComponentProps({ placeholder: `请选择型号（${f.dataSource.length}项）` });
+            });
           },
         },
-      ],
+      }],
     },
     config: {
       type: 'string',
@@ -113,35 +78,37 @@ const schema: FormSchema = {
       component: 'Select',
       wrapper: 'FormItem',
       placeholder: '请先选择型号',
-      description: '依赖「型号」异步刷新选项',
-      reactions: [
-        {
-          watch: 'model',
-          fulfill: {
-            run: async (field, ctx) => {
-              const model = ctx.values.model as string;
-              field.setValue(undefined);
-              if (!model) { field.setDataSource([]); return; }
-
-              field.loading = true;
-              await new Promise((r) => setTimeout(r, 300));
-              field.setDataSource(MODEL_CONFIGS[model] ?? []);
-              field.loading = false;
-              field.setComponentProps({ placeholder: '请选择配置' });
-            },
+      reactions: [{
+        watch: 'model',
+        fulfill: {
+          run: (f: any, ctx: any) => {
+            const model = ctx.values.model;
+            f.setValue(undefined);
+            if (!model) {
+              f.setDataSource([]);
+              f.setComponentProps({ placeholder: '请先选择型号' });
+              return;
+            }
+            f.setComponentProps({ placeholder: '加载中...' });
+            f.loadDataSource({
+              url: '/api/configs',
+              params: { model: '$values.model' },
+              requestAdapter: 'mock',
+              labelField: 'name',
+              valueField: 'id',
+            }).then(() => {
+              f.setComponentProps({ placeholder: `请选择配置（${f.dataSource.length}项）` });
+            });
           },
         },
-      ],
+      }],
     },
-
-    /* ---- 年级 → 班级 ---- */
     grade: {
       type: 'string',
       label: '年级',
       required: true,
       component: 'Select',
       wrapper: 'FormItem',
-      placeholder: '请选择年级',
       enum: [
         { label: '一年级', value: 'grade1' },
         { label: '二年级', value: 'grade2' },
@@ -155,40 +122,71 @@ const schema: FormSchema = {
       component: 'Select',
       wrapper: 'FormItem',
       placeholder: '请先选择年级',
-      description: '依赖「年级」刷新班级列表',
-      reactions: [
-        {
-          watch: 'grade',
-          fulfill: {
-            run: async (field, ctx) => {
-              const grade = ctx.values.grade as string;
-              field.setValue(undefined);
-              if (!grade) { field.setDataSource([]); return; }
-
-              field.loading = true;
-              await new Promise((r) => setTimeout(r, 300));
-              field.setDataSource(GRADE_CLASSES[grade] ?? []);
-              field.loading = false;
-              field.setComponentProps({ placeholder: '请选择班级' });
-            },
+      reactions: [{
+        watch: 'grade',
+        fulfill: {
+          run: (f: any, ctx: any) => {
+            const grade = ctx.values.grade;
+            f.setValue(undefined);
+            if (!grade) {
+              f.setDataSource([]);
+              f.setComponentProps({ placeholder: '请先选择年级' });
+              return;
+            }
+            f.setComponentProps({ placeholder: '加载中...' });
+            f.loadDataSource({
+              url: '/api/classes',
+              params: { grade: '$values.grade' },
+              requestAdapter: 'mock',
+              labelField: 'name',
+              valueField: 'id',
+            }).then(() => {
+              f.setComponentProps({ placeholder: `请选择班级（${f.dataSource.length}项）` });
+            });
           },
         },
-      ],
+      }],
     },
   },
 };
 
-/**
- * 依赖数据源示例
- */
+/** API 日志面板 */
+function ApiLogPanel(): React.ReactElement {
+  const [logs, setLogs] = useState<string[]>([]);
+
+  useEffect(() => {
+    const timer = setInterval(() => setLogs(getApiLogs()), 500);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <Card size="small" style={{ marginTop: 16, background: '#f9f9f9' }}
+      title={<span style={{ fontSize: 13, color: '#666' }}>📡 Mock API 调用日志（{logs.length} 条）</span>}
+      extra={logs.length > 0 ? <Button size="small" onClick={() => { clearApiLogs(); setLogs([]); }}>清空</Button> : null}
+    >
+      {logs.length === 0
+        ? <div style={{ color: '#aaa', fontSize: 12 }}>暂无请求，选择下拉触发远程加载</div>
+        : <div style={{ fontFamily: 'monospace', fontSize: 11, lineHeight: 1.8, maxHeight: 200, overflow: 'auto' }}>
+            {logs.map((log, i) => <div key={i} style={{ color: log.includes('404') ? '#f5222d' : '#52c41a' }}>{log}</div>)}
+          </div>
+      }
+    </Card>
+  );
+}
+
 export const DependentDataSourceForm = observer((): React.ReactElement => {
   return (
     <div>
       <Title level={3}>依赖数据源</Title>
       <Paragraph type="secondary">
-        品牌 → 型号 → 配置（三级依赖链） / 年级 → 班级
+        品牌→型号→配置（三级远程数据源链） / 年级→班级 / 完整走 fetchDataSource 管线
       </Paragraph>
+      <Alert
+        type="info" showIcon style={{ marginBottom: 16 }}
+        message={<span>使用核心库 <b>registerRequestAdapter('mock')</b> + <code>field.loadDataSource(&#123; url, params &#125;)</code> 远程加载（模拟 600ms 延迟）</span>}
+      />
       <PlaygroundForm schema={schema} initialValues={INITIAL_VALUES} />
+      <ApiLogPanel />
     </div>
   );
 });
