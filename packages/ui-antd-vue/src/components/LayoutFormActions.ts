@@ -1,7 +1,7 @@
 import { Button as AButton } from 'ant-design-vue'
 import { defineComponent, h } from 'vue'
 
-/** 表单操作按钮（提交 + 重置） */
+/** 表单操作按钮（提交 + 重置），居中排列 */
 export const LayoutFormActions = defineComponent({
   name: 'CfLayoutFormActions',
   props: {
@@ -12,7 +12,7 @@ export const LayoutFormActions = defineComponent({
   },
   emits: ['reset'],
   setup(props, { emit }) {
-    return () => h('div', { style: 'margin-top: 16px; display: flex; gap: 8px' }, [
+    return () => h('div', { style: 'margin-top: 24px; display: flex; justify-content: center; gap: 8px' }, [
       props.showSubmit ? h(AButton, { type: 'primary', htmlType: 'submit' }, () => props.submitLabel) : null,
       props.showReset ? h(AButton, { onClick: () => emit('reset') }, () => props.resetLabel) : null,
     ])
