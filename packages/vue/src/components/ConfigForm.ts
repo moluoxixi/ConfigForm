@@ -146,6 +146,20 @@ export const ConfigForm = defineComponent({
       const pattern = (props.schema?.pattern ?? currentDecoratorProps.pattern ?? 'editable') as string
       const isEditable = pattern === 'editable'
 
+      /* 布局配置 */
+      const direction = (currentDecoratorProps.direction ?? 'vertical') as string
+      const layout = props.schema?.layout as { type?: string, columns?: number, gutter?: number } | undefined
+
+      /** 根据 direction / layout 计算字段容器样式 */
+      let fieldContainerStyle = ''
+      if (layout?.type === 'grid' && layout.columns) {
+        const gap = layout.gutter ?? 16
+        fieldContainerStyle = `display: grid; grid-template-columns: repeat(${layout.columns}, 1fr); gap: ${gap}px; align-items: start`
+      }
+      else if (direction === 'inline') {
+        fieldContainerStyle = 'display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start'
+      }
+
       /* 按钮配置 */
       const showActions = actions && isEditable
       const submitLabel = typeof actions?.submit === 'string' ? actions.submit : '提交'
@@ -162,7 +176,12 @@ export const ConfigForm = defineComponent({
           onSubmit: handleSubmit,
           novalidate: true,
         }, [
-          props.schema ? h(SchemaField, { schema: props.schema }) : null,
+          /* 字段容器（应用布局样式） */
+          fieldContainerStyle
+            ? h('div', { style: fieldContainerStyle }, [
+              props.schema ? h(SchemaField, { schema: props.schema }) : null,
+            ])
+            : (props.schema ? h(SchemaField, { schema: props.schema }) : null),
 
           /* 操作按钮 */
           showActions
