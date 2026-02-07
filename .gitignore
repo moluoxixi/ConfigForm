@@ -9,6 +9,9 @@ typings
 
 # 测试产物
 .playwright-mcp
+*.png
+*.jpeg
+*.jpg
 
 # Sentry配置
 .env.sentry-build-plugin

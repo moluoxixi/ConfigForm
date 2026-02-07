@@ -28,8 +28,28 @@ const schema: FormSchema = {
   fields: {
     dynamicType: { type: 'string', label: '类型', component: 'Select', wrapper: 'FormItem', defaultValue: 'fruit', enum: [{ label: '水果', value: 'fruit' }, { label: '蔬菜', value: 'vegetable' }, { label: '肉类', value: 'meat' }] },
     dynamicItem: {
-      type: 'string', label: '品种（异步）', component: 'Select', wrapper: 'FormItem', placeholder: '根据类型异步加载',
-      reactions: [{ watch: 'dynamicType', fulfill: { run: async (f: any, ctx: any) => { const t = ctx.values.dynamicType as string; if (!t) { f.setDataSource([]); return }; f.loading = true; f.setValue(undefined); await new Promise(r => setTimeout(r, 600)); f.setDataSource(mockData[t] ?? []); f.loading = false } } }],
+      type: 'string', label: '品种（异步）', component: 'Select', wrapper: 'FormItem', placeholder: '加载中...',
+      reactions: [{
+        watch: 'dynamicType',
+        fulfill: {
+          run: async (f: any, ctx: any) => {
+            const t = ctx.values.dynamicType as string
+            if (!t) {
+              f.setDataSource([])
+              f.setComponentProps({ placeholder: '请先选择类型' })
+              return
+            }
+            f.loading = true
+            f.setValue(undefined)
+            f.setComponentProps({ placeholder: '加载中...' })
+            await new Promise(r => setTimeout(r, 600))
+            f.setDataSource(mockData[t] ?? [])
+            f.loading = false
+            const count = (mockData[t] ?? []).length
+            f.setComponentProps({ placeholder: `请选择品种（${count}项）` })
+          },
+        },
+      }],
     },
     country: { type: 'string', label: '国家', component: 'Select', wrapper: 'FormItem', defaultValue: 'china', enum: [{ label: '中国', value: 'china' }, { label: '美国', value: 'usa' }, { label: '日本', value: 'japan' }] },
     remark: { type: 'string', label: '备注', component: 'Textarea', wrapper: 'FormItem', placeholder: '请输入' },
