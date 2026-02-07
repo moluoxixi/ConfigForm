@@ -7,24 +7,18 @@
  * - 地址反查
  * - 三种模式切换
  */
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { FormField, useCreateForm } from '@moluoxixi/react';
 import { setupAntd } from '@moluoxixi/ui-antd';
-import { Button, Typography, Alert, Segmented, Form, Input, InputNumber, Space } from 'antd';
+import { Typography, Alert, Form, Input, InputNumber, Space } from 'antd';
 import { EnvironmentOutlined } from '@ant-design/icons';
 import type { FieldInstance } from '@moluoxixi/core';
-import type { FieldPattern } from '@moluoxixi/shared';
+import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
 setupAntd();
-
-const MODE_OPTIONS = [
-  { label: '编辑态', value: 'editable' },
-  { label: '阅读态', value: 'readOnly' },
-  { label: '禁用态', value: 'disabled' },
-];
 
 /** 模拟地图选点组件（实际项目中替换为 react-amap 组件） */
 const MapPicker = observer(({
@@ -105,9 +99,6 @@ const MapPicker = observer(({
 });
 
 export const MapPickerForm = observer((): React.ReactElement => {
-  const [mode, setMode] = useState<FieldPattern>('editable');
-  const [result, setResult] = useState('');
-
   const form = useCreateForm({
     initialValues: { locationName: '天安门广场', lng: 116.3912, lat: 39.9075, address: '北京市东城区' },
   });
@@ -119,22 +110,10 @@ export const MapPickerForm = observer((): React.ReactElement => {
     form.createField({ name: 'address', label: '详细地址' });
   }, []);
 
-  const switchMode = (p: FieldPattern): void => {
-    setMode(p);
-    ['locationName', 'lng', 'lat', 'address'].forEach((n) => { const f = form.getField(n); if (f) f.pattern = p; });
-  };
-
   const handleMapChange = (lng: number, lat: number): void => {
     form.setFieldValue('lng', lng);
     form.setFieldValue('lat', lat);
     form.setFieldValue('address', `经度 ${lng}，纬度 ${lat} 附近`);
-  };
-
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-    const res = await form.submit();
-    if (res.errors.length > 0) { setResult('验证失败: ' + res.errors.map((err) => err.message).join(', ')); }
-    else { setResult(JSON.stringify(res.values, null, 2)); }
   };
 
   return (
@@ -144,57 +123,53 @@ export const MapPickerForm = observer((): React.ReactElement => {
 
       <Alert type="info" showIcon style={{ marginBottom: 16 }} message="此为模拟地图，点击区域可选点。实际项目请安装 react-amap 并接入高德地图 API。" />
 
-      <Segmented value={mode} onChange={(v) => switchMode(v as FieldPattern)} options={MODE_OPTIONS} style={{ marginBottom: 16 }} />
-
-      <FormProvider form={form}>
-        <form onSubmit={handleSubmit} noValidate>
-          <FormField name="locationName">
-            {(field: FieldInstance) => (
-              <Form.Item label={field.label} required={field.required}>
-                <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} />
-              </Form.Item>
-            )}
-          </FormField>
-
-          <Form.Item label="地图选点">
-            <MapPicker
-              lng={(form.getFieldValue('lng') as number) ?? 116}
-              lat={(form.getFieldValue('lat') as number) ?? 39}
-              onChange={handleMapChange}
-              disabled={mode !== 'editable'}
-            />
-          </Form.Item>
-
-          <Space style={{ marginBottom: 16 }}>
-            <FormField name="lng">
+      <PlaygroundForm form={form}>
+        {({ mode }) => (
+          <>
+            <FormField name="locationName">
               {(field: FieldInstance) => (
-                <Form.Item label="经度" style={{ marginBottom: 0 }}>
-                  <InputNumber value={field.value as number} onChange={(v) => field.setValue(v)} disabled={mode !== 'editable'} style={{ width: 150 }} step={0.0001} />
+                <Form.Item label={field.label} required={field.required}>
+                  <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} />
                 </Form.Item>
               )}
             </FormField>
-            <FormField name="lat">
+
+            <Form.Item label="地图选点">
+              <MapPicker
+                lng={(form.getFieldValue('lng') as number) ?? 116}
+                lat={(form.getFieldValue('lat') as number) ?? 39}
+                onChange={handleMapChange}
+                disabled={mode !== 'editable'}
+              />
+            </Form.Item>
+
+            <Space style={{ marginBottom: 16 }}>
+              <FormField name="lng">
+                {(field: FieldInstance) => (
+                  <Form.Item label="经度" style={{ marginBottom: 0 }}>
+                    <InputNumber value={field.value as number} onChange={(v) => field.setValue(v)} disabled={mode !== 'editable'} style={{ width: 150 }} step={0.0001} />
+                  </Form.Item>
+                )}
+              </FormField>
+              <FormField name="lat">
+                {(field: FieldInstance) => (
+                  <Form.Item label="纬度" style={{ marginBottom: 0 }}>
+                    <InputNumber value={field.value as number} onChange={(v) => field.setValue(v)} disabled={mode !== 'editable'} style={{ width: 150 }} step={0.0001} />
+                  </Form.Item>
+                )}
+              </FormField>
+            </Space>
+
+            <FormField name="address">
               {(field: FieldInstance) => (
-                <Form.Item label="纬度" style={{ marginBottom: 0 }}>
-                  <InputNumber value={field.value as number} onChange={(v) => field.setValue(v)} disabled={mode !== 'editable'} style={{ width: 150 }} step={0.0001} />
+                <Form.Item label={field.label}>
+                  <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} />
                 </Form.Item>
               )}
             </FormField>
-          </Space>
-
-          <FormField name="address">
-            {(field: FieldInstance) => (
-              <Form.Item label={field.label}>
-                <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} />
-              </Form.Item>
-            )}
-          </FormField>
-
-          {mode === 'editable' && (<Space><Button type="primary" htmlType="submit">提交</Button><Button onClick={() => form.reset()}>重置</Button></Space>)}
-        </form>
-      </FormProvider>
-
-      {result && (<Alert style={{ marginTop: 16 }} type={result.startsWith('验证失败') ? 'error' : 'success'} message="提交结果" description={<pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{result}</pre>} />)}
+          </>
+        )}
+      </PlaygroundForm>
     </div>
   );
 });

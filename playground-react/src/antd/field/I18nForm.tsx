@@ -7,23 +7,17 @@
  * - placeholder 国际化
  * - 三种模式切换
  */
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { FormField, useCreateForm } from '@moluoxixi/react';
 import { setupAntd } from '@moluoxixi/ui-antd';
-import { Button, Typography, Alert, Segmented, Form, Input, Space } from 'antd';
+import { Typography, Segmented, Form, Input, Space } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
-import type { FieldPattern } from '@moluoxixi/shared';
+import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph } = Typography;
 
 setupAntd();
-
-const MODE_OPTIONS = [
-  { label: '编辑态', value: 'editable' },
-  { label: '阅读态', value: 'readOnly' },
-  { label: '禁用态', value: 'disabled' },
-];
 
 type Locale = 'zh-CN' | 'en-US' | 'ja-JP';
 
@@ -82,9 +76,7 @@ function t(locale: Locale, key: string): string {
 }
 
 export const I18nForm = observer((): React.ReactElement => {
-  const [mode, setMode] = useState<FieldPattern>('editable');
   const [locale, setLocale] = useState<Locale>('zh-CN');
-  const [result, setResult] = useState('');
 
   const form = useCreateForm({
     initialValues: { name: '', email: '', phone: '', bio: '' },
@@ -114,57 +106,37 @@ export const I18nForm = observer((): React.ReactElement => {
     if (emailField) emailField.rules = [{ format: 'email', message: t(locale, 'field.email.invalid') }];
   }, [locale]);
 
-  const switchMode = (p: FieldPattern): void => {
-    setMode(p);
-    ['name', 'email', 'phone', 'bio'].forEach((n) => { const f = form.getField(n); if (f) f.pattern = p; });
-  };
-
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-    const res = await form.submit();
-    if (res.errors.length > 0) { setResult('验证失败: ' + res.errors.map((err) => err.message).join(', ')); }
-    else { setResult(JSON.stringify(res.values, null, 2)); }
-  };
-
   return (
     <div>
       <Title level={3}>国际化（i18n）</Title>
       <Paragraph type="secondary">多语言标签 / 验证消息国际化 / placeholder 国际化</Paragraph>
 
-      <Space direction="vertical" style={{ width: '100%', marginBottom: 16 }}>
-        <Segmented value={mode} onChange={(v) => switchMode(v as FieldPattern)} options={MODE_OPTIONS} />
-        <Segmented
-          value={locale}
-          onChange={(v) => setLocale(v as Locale)}
-          options={[{ label: '🇨🇳 中文', value: 'zh-CN' }, { label: '🇺🇸 English', value: 'en-US' }, { label: '🇯🇵 日本語', value: 'ja-JP' }]}
-        />
-      </Space>
+      <Segmented
+        value={locale}
+        onChange={(v) => setLocale(v as Locale)}
+        options={[{ label: '🇨🇳 中文', value: 'zh-CN' }, { label: '🇺🇸 English', value: 'en-US' }, { label: '🇯🇵 日本語', value: 'ja-JP' }]}
+        style={{ marginBottom: 16 }}
+      />
 
-      <FormProvider form={form}>
-        <form onSubmit={handleSubmit} noValidate>
-          {['name', 'email', 'phone', 'bio'].map((name) => (
-            <FormField key={name} name={name}>
-              {(field: FieldInstance) => (
-                <Form.Item label={field.label} required={field.required} validateStatus={field.errors.length > 0 ? 'error' : undefined} help={field.errors[0]?.message}>
-                  {name === 'bio' ? (
-                    <Input.TextArea value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} onBlur={() => { field.blur(); field.validate('blur').catch(() => {}); }} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} placeholder={t(locale, `field.${name}.placeholder`)} rows={3} />
-                  ) : (
-                    <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} onBlur={() => { field.blur(); field.validate('blur').catch(() => {}); }} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} placeholder={t(locale, `field.${name}.placeholder`)} />
-                  )}
-                </Form.Item>
-              )}
-            </FormField>
-          ))}
-          {mode === 'editable' && (
-            <Space>
-              <Button type="primary" htmlType="submit">{t(locale, 'btn.submit')}</Button>
-              <Button htmlType="reset">{t(locale, 'btn.reset')}</Button>
-            </Space>
-          )}
-        </form>
-      </FormProvider>
-
-      {result && (<Alert style={{ marginTop: 16 }} type={result.startsWith('验证失败') ? 'error' : 'success'} message="提交结果" description={<pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{result}</pre>} />)}
+      <PlaygroundForm form={form}>
+        {({ mode }) => (
+          <>
+            {['name', 'email', 'phone', 'bio'].map((name) => (
+              <FormField key={name} name={name}>
+                {(field: FieldInstance) => (
+                  <Form.Item label={field.label} required={field.required} validateStatus={field.errors.length > 0 ? 'error' : undefined} help={field.errors[0]?.message}>
+                    {name === 'bio' ? (
+                      <Input.TextArea value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} onBlur={() => { field.blur(); field.validate('blur').catch(() => {}); }} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} placeholder={t(locale, `field.${name}.placeholder`)} rows={3} />
+                    ) : (
+                      <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} onBlur={() => { field.blur(); field.validate('blur').catch(() => {}); }} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} placeholder={t(locale, `field.${name}.placeholder`)} />
+                    )}
+                  </Form.Item>
+                )}
+              </FormField>
+            ))}
+          </>
+        )}
+      </PlaygroundForm>
     </div>
   );
 });

@@ -9,22 +9,15 @@
  */
 import React, { useState, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
-import { ConfigForm } from '@moluoxixi/react';
 import { mergeSchema } from '@moluoxixi/schema';
 import { setupAntd } from '@moluoxixi/ui-antd';
-import { Button, Space, Typography, Alert, Segmented, Tag, Collapse } from 'antd';
+import { Space, Typography, Tag, Collapse, Segmented } from 'antd';
 import type { FormSchema } from '@moluoxixi/schema';
-import type { FieldPattern } from '@moluoxixi/shared';
+import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph } = Typography;
 
 setupAntd();
-
-const MODE_OPTIONS = [
-  { label: '编辑态', value: 'editable' },
-  { label: '阅读态', value: 'readOnly' },
-  { label: '禁用态', value: 'disabled' },
-];
 
 type ScenarioKey = 'individual' | 'enterprise' | 'student';
 
@@ -74,45 +67,32 @@ const SCENARIO_SCHEMAS: Record<ScenarioKey, { label: string; override: Partial<F
 };
 
 export const DynamicSchemaForm = observer((): React.ReactElement => {
-  const [mode, setMode] = useState<FieldPattern>('editable');
   const [scenario, setScenario] = useState<ScenarioKey>('individual');
-  const [result, setResult] = useState('');
 
   const mergedSchema = useMemo<FormSchema>(() => {
-    const merged = mergeSchema(BASE_SCHEMA, SCENARIO_SCHEMAS[scenario].override);
-    return { ...merged, form: { ...merged.form, pattern: mode } };
-  }, [scenario, mode]);
+    return mergeSchema(BASE_SCHEMA, SCENARIO_SCHEMAS[scenario].override);
+  }, [scenario]);
 
   return (
     <div>
       <Title level={3}>动态 Schema</Title>
       <Paragraph type="secondary">mergeSchema 合并 / 场景切换 / 热更新</Paragraph>
 
-      <Space direction="vertical" style={{ width: '100%', marginBottom: 16 }}>
-        <Segmented value={mode} onChange={(v) => setMode(v as FieldPattern)} options={MODE_OPTIONS} />
+      <div style={{ marginBottom: 16 }}>
         <Segmented
           value={scenario}
-          onChange={(v) => { setScenario(v as ScenarioKey); setResult(''); }}
+          onChange={(v) => setScenario(v as ScenarioKey)}
           options={Object.entries(SCENARIO_SCHEMAS).map(([k, v]) => ({ label: v.label, value: k }))}
         />
-      </Space>
+      </div>
 
       <Tag color="green" style={{ marginBottom: 12 }}>
         当前：{SCENARIO_SCHEMAS[scenario].label} | 字段数：{Object.keys(mergedSchema.fields).length}
       </Tag>
 
-      <ConfigForm
-        key={`${scenario}-${mode}`}
-        schema={mergedSchema}
-        onSubmit={(v) => setResult(JSON.stringify(v, null, 2))}
-        onSubmitFailed={(e) => setResult('验证失败:\n' + e.map((x) => `[${x.path}] ${x.message}`).join('\n'))}
-      >
-        {mode === 'editable' && (<Space style={{ marginTop: 16 }}><Button type="primary" htmlType="submit">提交</Button><Button htmlType="reset">重置</Button></Space>)}
-      </ConfigForm>
+      <PlaygroundForm schema={mergedSchema} />
 
       <Collapse style={{ marginTop: 16 }} items={[{ key: '1', label: '查看合并后 Schema', children: <pre style={{ margin: 0, fontSize: 12, maxHeight: 300, overflow: 'auto' }}>{JSON.stringify(mergedSchema, null, 2)}</pre> }]} />
-
-      {result && (<Alert style={{ marginTop: 16 }} type={result.startsWith('验证失败') ? 'error' : 'success'} message="提交结果" description={<pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{result}</pre>} />)}
     </div>
   );
 });

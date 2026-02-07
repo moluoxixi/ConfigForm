@@ -9,24 +9,18 @@
  */
 import React, { useState, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { FormField, useCreateForm } from '@moluoxixi/react';
 import { setupAntd } from '@moluoxixi/ui-antd';
 import {
-  Button, Typography, Alert, Segmented, Form, Input, Space, Card, Tag, List, message,
+  Button, Typography, Form, Input, Card, Tag, List, message,
 } from 'antd';
 import { SaveOutlined, UndoOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { FieldInstance } from '@moluoxixi/core';
-import type { FieldPattern } from '@moluoxixi/shared';
+import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
 setupAntd();
-
-const MODE_OPTIONS = [
-  { label: '编辑态', value: 'editable' },
-  { label: '阅读态', value: 'readOnly' },
-  { label: '禁用态', value: 'disabled' },
-];
 
 const STORAGE_KEY = 'configform-snapshot-drafts';
 
@@ -51,8 +45,6 @@ function saveDrafts(drafts: DraftItem[]): void {
 const FIELDS = ['title', 'description', 'category', 'priority'];
 
 export const FormSnapshotForm = observer((): React.ReactElement => {
-  const [mode, setMode] = useState<FieldPattern>('editable');
-  const [result, setResult] = useState('');
   const [drafts, setDrafts] = useState<DraftItem[]>(loadDrafts);
 
   const form = useCreateForm({
@@ -65,11 +57,6 @@ export const FormSnapshotForm = observer((): React.ReactElement => {
     form.createField({ name: 'category', label: '分类' });
     form.createField({ name: 'priority', label: '优先级' });
   }, []);
-
-  const switchMode = (p: FieldPattern): void => {
-    setMode(p);
-    FIELDS.forEach((n) => { const f = form.getField(n); if (f) f.pattern = p; });
-  };
 
   /** 暂存草稿 */
   const saveDraft = (): void => {
@@ -99,44 +86,35 @@ export const FormSnapshotForm = observer((): React.ReactElement => {
     saveDrafts(newDrafts);
   };
 
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-    const res = await form.submit();
-    if (res.errors.length > 0) { setResult('验证失败: ' + res.errors.map((err) => err.message).join(', ')); }
-    else { setResult(JSON.stringify(res.values, null, 2)); }
-  };
-
   return (
     <div>
       <Title level={3}>表单快照</Title>
       <Paragraph type="secondary">暂存草稿（localStorage） / 恢复草稿 / 多版本管理</Paragraph>
-      <Segmented value={mode} onChange={(v) => switchMode(v as FieldPattern)} options={MODE_OPTIONS} style={{ marginBottom: 16 }} />
 
       <div style={{ display: 'flex', gap: 16 }}>
         <div style={{ flex: 1 }}>
-          <FormProvider form={form}>
-            <form onSubmit={handleSubmit} noValidate>
-              {FIELDS.map((name) => (
-                <FormField key={name} name={name}>
-                  {(field: FieldInstance) => (
-                    <Form.Item label={field.label} required={field.required}>
-                      {name === 'description' ? (
-                        <Input.TextArea value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} rows={3} />
-                      ) : (
-                        <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} />
-                      )}
-                    </Form.Item>
-                  )}
-                </FormField>
-              ))}
-              {mode === 'editable' && (
-                <Space>
-                  <Button type="primary" htmlType="submit">提交</Button>
+          <PlaygroundForm form={form}>
+            {({ mode }) => (
+              <>
+                {FIELDS.map((name) => (
+                  <FormField key={name} name={name}>
+                    {(field: FieldInstance) => (
+                      <Form.Item label={field.label} required={field.required}>
+                        {name === 'description' ? (
+                          <Input.TextArea value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} rows={3} />
+                        ) : (
+                          <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} />
+                        )}
+                      </Form.Item>
+                    )}
+                  </FormField>
+                ))}
+                {mode === 'editable' && (
                   <Button icon={<SaveOutlined />} onClick={saveDraft}>暂存草稿</Button>
-                </Space>
-              )}
-            </form>
-          </FormProvider>
+                )}
+              </>
+            )}
+          </PlaygroundForm>
         </div>
 
         {/* 草稿列表 */}
@@ -165,8 +143,6 @@ export const FormSnapshotForm = observer((): React.ReactElement => {
           )}
         </Card>
       </div>
-
-      {result && (<Alert style={{ marginTop: 16 }} type={result.startsWith('验证失败') ? 'error' : 'success'} message="提交结果" description={<pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{result}</pre>} />)}
     </div>
   );
 });

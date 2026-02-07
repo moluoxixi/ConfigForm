@@ -2,9 +2,8 @@
   <div>
     <h2>数组字段</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">增删 / 排序 / 复制 / min-max 数量限制</p>
-    <ASegmented v-model:value="mode" :options="MODE_OPTIONS" style="margin-bottom: 16px" />
-    <FormProvider :form="form">
-      <form @submit.prevent="handleSubmit" novalidate>
+    <PlaygroundForm :form="form">
+      <template #default="{ mode }">
         <FormField v-slot="{ field }" name="groupName">
           <AFormItem :label="field.label" :required="field.required"><AInput :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" :disabled="mode === 'disabled'" :readonly="mode === 'readOnly'" style="width: 300px" /></AFormItem>
         </FormField>
@@ -27,25 +26,20 @@
             </div>
           </div>
         </FormArrayField>
-        <AButton v-if="mode === 'editable'" type="primary" html-type="submit">提交</AButton>
-      </form>
-    </FormProvider>
-    <AAlert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" message="提交结果" style="margin-top: 16px"><template #description><pre style="margin: 0; white-space: pre-wrap">{{ result }}</pre></template></AAlert>
+      </template>
+    </PlaygroundForm>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { FormProvider, FormField, FormArrayField, useCreateForm } from '@moluoxixi/vue'
+import { onMounted } from 'vue'
+import { FormField, FormArrayField, useCreateForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
-import { Button as AButton, Space as ASpace, Alert as AAlert, Segmented as ASegmented, Input as AInput, FormItem as AFormItem } from 'ant-design-vue'
-import type { FieldPattern } from '@moluoxixi/shared'
+import { Button as AButton, Space as ASpace, Input as AInput, FormItem as AFormItem } from 'ant-design-vue'
+import PlaygroundForm from '../../components/PlaygroundForm.vue'
 
 setupAntdVue()
-const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅读态', value: 'readOnly' }, { label: '禁用态', value: 'disabled' }]
-const mode = ref<FieldPattern>('editable')
-const result = ref('')
+
 const form = useCreateForm({ initialValues: { groupName: '默认分组', contacts: [{ name: '', phone: '', email: '' }] } })
 onMounted(() => { form.createField({ name: 'groupName', label: '分组名称', required: true }) })
-async function handleSubmit(): Promise<void> { const res = await form.submit(); if (res.errors.length > 0) { result.value = '验证失败: ' + res.errors.map(e => e.message).join(', ') } else { result.value = JSON.stringify(res.values, null, 2) } }
 </script>

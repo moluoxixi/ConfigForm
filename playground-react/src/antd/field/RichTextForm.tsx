@@ -9,23 +9,18 @@
  *
  * 依赖：react-quill（https://www.npmjs.com/package/react-quill）
  */
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useEffect, lazy, Suspense } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { FormField, useCreateForm } from '@moluoxixi/react';
 import { setupAntd } from '@moluoxixi/ui-antd';
-import { Button, Typography, Alert, Segmented, Form, Input, Spin, Space } from 'antd';
+import { Typography, Alert, Form, Input, Spin } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
 import type { FieldPattern } from '@moluoxixi/shared';
+import { PlaygroundForm } from '../../components/PlaygroundForm';
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Paragraph } = Typography;
 
 setupAntd();
-
-const MODE_OPTIONS = [
-  { label: '编辑态', value: 'editable' },
-  { label: '阅读态', value: 'readOnly' },
-  { label: '禁用态', value: 'disabled' },
-];
 
 /** 懒加载 ReactQuill（可能未安装） */
 let ReactQuill: React.ComponentType<{
@@ -101,9 +96,6 @@ const RichEditor = observer(({
 });
 
 export const RichTextForm = observer((): React.ReactElement => {
-  const [mode, setMode] = useState<FieldPattern>('editable');
-  const [result, setResult] = useState('');
-
   const form = useCreateForm({
     initialValues: {
       title: '示例文章',
@@ -116,45 +108,30 @@ export const RichTextForm = observer((): React.ReactElement => {
     form.createField({ name: 'content', label: '正文内容', required: true });
   }, []);
 
-  const switchMode = (p: FieldPattern): void => {
-    setMode(p);
-    ['title', 'content'].forEach((n) => { const f = form.getField(n); if (f) f.pattern = p; });
-  };
-
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-    const res = await form.submit();
-    if (res.errors.length > 0) { setResult('验证失败: ' + res.errors.map((err) => err.message).join(', ')); }
-    else { setResult(JSON.stringify(res.values, null, 2)); }
-  };
-
   return (
     <div>
       <Title level={3}>富文本编辑器</Title>
       <Paragraph type="secondary">react-quill 集成 / 三种模式 / 未安装时 Textarea 降级</Paragraph>
-      <Segmented value={mode} onChange={(v) => switchMode(v as FieldPattern)} options={MODE_OPTIONS} style={{ marginBottom: 16 }} />
-
-      <FormProvider form={form}>
-        <form onSubmit={handleSubmit} noValidate>
-          <FormField name="title">
-            {(field: FieldInstance) => (
-              <Form.Item label={field.label} required={field.required}>
-                <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} placeholder="文章标题" />
-              </Form.Item>
-            )}
-          </FormField>
-          <FormField name="content">
-            {(field: FieldInstance) => (
-              <Form.Item label={field.label} required={field.required}>
-                <RichEditor field={field} pattern={mode} />
-              </Form.Item>
-            )}
-          </FormField>
-          {mode === 'editable' && (<Space><Button type="primary" htmlType="submit">提交</Button><Button onClick={() => form.reset()}>重置</Button></Space>)}
-        </form>
-      </FormProvider>
-
-      {result && (<Alert style={{ marginTop: 16 }} type={result.startsWith('验证失败') ? 'error' : 'success'} message="提交结果" description={<pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{result}</pre>} />)}
+      <PlaygroundForm form={form}>
+        {({ mode }) => (
+          <>
+            <FormField name="title">
+              {(field: FieldInstance) => (
+                <Form.Item label={field.label} required={field.required}>
+                  <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} placeholder="文章标题" />
+                </Form.Item>
+              )}
+            </FormField>
+            <FormField name="content">
+              {(field: FieldInstance) => (
+                <Form.Item label={field.label} required={field.required}>
+                  <RichEditor field={field} pattern={mode} />
+                </Form.Item>
+              )}
+            </FormField>
+          </>
+        )}
+      </PlaygroundForm>
     </div>
   );
 });

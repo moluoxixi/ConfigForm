@@ -7,23 +7,17 @@
  * - 动态权限切换
  * - 三种模式切换
  */
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { FormField, useCreateForm } from '@moluoxixi/react';
 import { setupAntd } from '@moluoxixi/ui-antd';
-import { Button, Typography, Alert, Segmented, Form, Input, InputNumber, Select, Space, Tag, Card } from 'antd';
+import { Typography, Segmented, Form, Input, InputNumber, Space, Tag, Card } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
-import type { FieldPattern } from '@moluoxixi/shared';
+import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
 setupAntd();
-
-const MODE_OPTIONS = [
-  { label: '编辑态', value: 'editable' },
-  { label: '阅读态', value: 'readOnly' },
-  { label: '禁用态', value: 'disabled' },
-];
 
 type Role = 'admin' | 'manager' | 'staff' | 'guest';
 
@@ -47,9 +41,7 @@ const FIELD_DEFS = [
 ];
 
 export const PermissionForm = observer((): React.ReactElement => {
-  const [mode, setMode] = useState<FieldPattern>('editable');
   const [role, setRole] = useState<Role>('admin');
-  const [result, setResult] = useState('');
 
   const form = useCreateForm({
     initialValues: { name: '张三', email: 'zhangsan@company.com', salary: 25000, department: '技术部', level: 'P7', remark: '' },
@@ -59,48 +51,38 @@ export const PermissionForm = observer((): React.ReactElement => {
     FIELD_DEFS.forEach((d) => form.createField({ name: d.name, label: d.label, required: d.required }));
   }, []);
 
-  /** 应用权限 */
+  /** 应用权限：根据角色和当前模式设置字段可见性和读写状态 */
   useEffect(() => {
     FIELD_DEFS.forEach((d) => {
       const field = form.getField(d.name);
       if (!field) return;
       const perm = PERMISSION_MATRIX[d.name]?.[role] ?? 'hidden';
       field.visible = perm !== 'hidden';
-      if (mode === 'editable') {
+      if (form.pattern === 'editable') {
         field.pattern = perm === 'readOnly' ? 'readOnly' : 'editable';
       } else {
-        field.pattern = mode;
+        field.pattern = form.pattern;
       }
     });
-  }, [role, mode, form]);
-
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-    const res = await form.submit();
-    if (res.errors.length > 0) { setResult('验证失败: ' + res.errors.map((err) => err.message).join(', ')); }
-    else { setResult(JSON.stringify(res.values, null, 2)); }
-  };
+  }, [role, form.pattern, form]);
 
   return (
     <div>
       <Title level={3}>字段级权限控制</Title>
       <Paragraph type="secondary">基于角色的字段可见性 + 读写权限矩阵</Paragraph>
 
-      <Space direction="vertical" style={{ width: '100%', marginBottom: 16 }}>
-        <Segmented value={mode} onChange={(v) => setMode(v as FieldPattern)} options={MODE_OPTIONS} />
-        <Space>
-          <Text strong>当前角色：</Text>
-          <Segmented
-            value={role}
-            onChange={(v) => setRole(v as Role)}
-            options={[
-              { label: '管理员', value: 'admin' },
-              { label: '经理', value: 'manager' },
-              { label: '员工', value: 'staff' },
-              { label: '访客', value: 'guest' },
-            ]}
-          />
-        </Space>
+      <Space style={{ marginBottom: 16 }}>
+        <Text strong>当前角色：</Text>
+        <Segmented
+          value={role}
+          onChange={(v) => setRole(v as Role)}
+          options={[
+            { label: '管理员', value: 'admin' },
+            { label: '经理', value: 'manager' },
+            { label: '员工', value: 'staff' },
+            { label: '访客', value: 'guest' },
+          ]}
+        />
       </Space>
 
       {/* 权限矩阵提示 */}
@@ -115,33 +97,32 @@ export const PermissionForm = observer((): React.ReactElement => {
         </div>
       </Card>
 
-      <FormProvider form={form}>
-        <form onSubmit={handleSubmit} noValidate>
-          {FIELD_DEFS.map((d) => (
-            <FormField key={d.name} name={d.name}>
-              {(field: FieldInstance) => {
-                if (!field.visible) return null;
-                const isFieldReadOnly = field.pattern === 'readOnly' || mode === 'readOnly';
-                const isFieldDisabled = field.pattern === 'disabled' || mode === 'disabled';
-                return (
-                  <Form.Item label={field.label} required={field.required}>
-                    {d.name === 'salary' ? (
-                      <InputNumber value={field.value as number} onChange={(v) => field.setValue(v)} disabled={isFieldDisabled} readOnly={isFieldReadOnly} style={{ width: '100%' }} />
-                    ) : d.name === 'remark' ? (
-                      <Input.TextArea value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={isFieldDisabled} readOnly={isFieldReadOnly} />
-                    ) : (
-                      <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={isFieldDisabled} readOnly={isFieldReadOnly} />
-                    )}
-                  </Form.Item>
-                );
-              }}
-            </FormField>
-          ))}
-          {mode === 'editable' && (<Space><Button type="primary" htmlType="submit">提交</Button><Button onClick={() => form.reset()}>重置</Button></Space>)}
-        </form>
-      </FormProvider>
-
-      {result && (<Alert style={{ marginTop: 16 }} type={result.startsWith('验证失败') ? 'error' : 'success'} message="提交结果" description={<pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{result}</pre>} />)}
+      <PlaygroundForm form={form}>
+        {({ mode }) => (
+          <>
+            {FIELD_DEFS.map((d) => (
+              <FormField key={d.name} name={d.name}>
+                {(field: FieldInstance) => {
+                  if (!field.visible) return null;
+                  const isFieldReadOnly = field.pattern === 'readOnly' || mode === 'readOnly';
+                  const isFieldDisabled = field.pattern === 'disabled' || mode === 'disabled';
+                  return (
+                    <Form.Item label={field.label} required={field.required}>
+                      {d.name === 'salary' ? (
+                        <InputNumber value={field.value as number} onChange={(v) => field.setValue(v)} disabled={isFieldDisabled} readOnly={isFieldReadOnly} style={{ width: '100%' }} />
+                      ) : d.name === 'remark' ? (
+                        <Input.TextArea value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={isFieldDisabled} readOnly={isFieldReadOnly} />
+                      ) : (
+                        <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={isFieldDisabled} readOnly={isFieldReadOnly} />
+                      )}
+                    </Form.Item>
+                  );
+                }}
+              </FormField>
+            ))}
+          </>
+        )}
+      </PlaygroundForm>
     </div>
   );
 });

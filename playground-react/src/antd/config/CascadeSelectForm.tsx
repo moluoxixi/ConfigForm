@@ -7,24 +7,16 @@
  * - 选择后自动清空下级
  * - 三种模式切换
  */
-import React, { useState, useMemo } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
-import { ConfigForm } from '@moluoxixi/react';
 import { setupAntd } from '@moluoxixi/ui-antd';
-import { Button, Space, Typography, Alert, Segmented, Divider } from 'antd';
+import { Typography } from 'antd';
 import type { FormSchema } from '@moluoxixi/schema';
-import type { FieldPattern } from '@moluoxixi/shared';
+import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph } = Typography;
 
 setupAntd();
-
-/** 模式选项 */
-const MODE_OPTIONS = [
-  { label: '编辑态', value: 'editable' },
-  { label: '阅读态', value: 'readOnly' },
-  { label: '禁用态', value: 'disabled' },
-];
 
 /* ======================== 省市区数据 ======================== */
 
@@ -79,134 +71,6 @@ const CATEGORIES_L3: Record<string, Array<{ label: string; value: string }>> = {
   drink: [{ label: '碳酸饮料', value: 'soda' }, { label: '果汁', value: 'juice' }],
 };
 
-/**
- * 构建 Schema
- *
- * @param mode - 表单模式
- */
-function buildSchema(mode: FieldPattern): FormSchema {
-  return {
-    form: { labelPosition: 'right', labelWidth: '120px', pattern: mode },
-    fields: {
-      /* ---- 省市区三级联动 ---- */
-      province: {
-        type: 'string',
-        label: '省份',
-        required: true,
-        component: 'Select',
-        wrapper: 'FormItem',
-        placeholder: '请选择省份',
-        enum: PROVINCES,
-      },
-      city: {
-        type: 'string',
-        label: '城市',
-        required: true,
-        component: 'Select',
-        wrapper: 'FormItem',
-        placeholder: '请先选择省份',
-        enum: [],
-        reactions: [
-          {
-            watch: 'province',
-            fulfill: {
-              run: (field, ctx) => {
-                const prov = ctx.values.province as string;
-                field.setValue(undefined);
-                field.setDataSource(prov ? (CITIES[prov] ?? []) : []);
-                field.setComponentProps({
-                  placeholder: prov ? '请选择城市' : '请先选择省份',
-                });
-              },
-            },
-          },
-        ],
-      },
-      district: {
-        type: 'string',
-        label: '区县',
-        component: 'Select',
-        wrapper: 'FormItem',
-        placeholder: '请先选择城市',
-        enum: [],
-        reactions: [
-          {
-            watch: 'city',
-            fulfill: {
-              run: (field, ctx) => {
-                const c = ctx.values.city as string;
-                field.setValue(undefined);
-                field.setDataSource(c ? (DISTRICTS[c] ?? []) : []);
-                field.setComponentProps({
-                  placeholder: c ? '请选择区县' : '请先选择城市',
-                });
-              },
-            },
-          },
-        ],
-      },
-
-      /* ---- 多级分类联动 ---- */
-      categoryL1: {
-        type: 'string',
-        label: '一级分类',
-        required: true,
-        component: 'Select',
-        wrapper: 'FormItem',
-        placeholder: '请选择一级分类',
-        enum: CATEGORIES_L1,
-      },
-      categoryL2: {
-        type: 'string',
-        label: '二级分类',
-        required: true,
-        component: 'Select',
-        wrapper: 'FormItem',
-        placeholder: '请先选择一级分类',
-        enum: [],
-        reactions: [
-          {
-            watch: 'categoryL1',
-            fulfill: {
-              run: (field, ctx) => {
-                const l1 = ctx.values.categoryL1 as string;
-                field.setValue(undefined);
-                field.setDataSource(l1 ? (CATEGORIES_L2[l1] ?? []) : []);
-                field.setComponentProps({
-                  placeholder: l1 ? '请选择二级分类' : '请先选择一级分类',
-                });
-              },
-            },
-          },
-        ],
-      },
-      categoryL3: {
-        type: 'string',
-        label: '三级分类',
-        component: 'Select',
-        wrapper: 'FormItem',
-        placeholder: '请先选择二级分类',
-        enum: [],
-        reactions: [
-          {
-            watch: 'categoryL2',
-            fulfill: {
-              run: (field, ctx) => {
-                const l2 = ctx.values.categoryL2 as string;
-                field.setValue(undefined);
-                field.setDataSource(l2 ? (CATEGORIES_L3[l2] ?? []) : []);
-                field.setComponentProps({
-                  placeholder: l2 ? '请选择三级分类' : '请先选择二级分类',
-                });
-              },
-            },
-          },
-        ],
-      },
-    },
-  };
-}
-
 /** 默认初始值 */
 const INITIAL_VALUES: Record<string, unknown> = {
   province: undefined,
@@ -217,59 +81,139 @@ const INITIAL_VALUES: Record<string, unknown> = {
   categoryL3: undefined,
 };
 
+/** 表单 Schema */
+const schema: FormSchema = {
+  form: { labelPosition: 'right', labelWidth: '120px' },
+  fields: {
+    /* ---- 省市区三级联动 ---- */
+    province: {
+      type: 'string',
+      label: '省份',
+      required: true,
+      component: 'Select',
+      wrapper: 'FormItem',
+      placeholder: '请选择省份',
+      enum: PROVINCES,
+    },
+    city: {
+      type: 'string',
+      label: '城市',
+      required: true,
+      component: 'Select',
+      wrapper: 'FormItem',
+      placeholder: '请先选择省份',
+      enum: [],
+      reactions: [
+        {
+          watch: 'province',
+          fulfill: {
+            run: (field, ctx) => {
+              const prov = ctx.values.province as string;
+              field.setValue(undefined);
+              field.setDataSource(prov ? (CITIES[prov] ?? []) : []);
+              field.setComponentProps({
+                placeholder: prov ? '请选择城市' : '请先选择省份',
+              });
+            },
+          },
+        },
+      ],
+    },
+    district: {
+      type: 'string',
+      label: '区县',
+      component: 'Select',
+      wrapper: 'FormItem',
+      placeholder: '请先选择城市',
+      enum: [],
+      reactions: [
+        {
+          watch: 'city',
+          fulfill: {
+            run: (field, ctx) => {
+              const c = ctx.values.city as string;
+              field.setValue(undefined);
+              field.setDataSource(c ? (DISTRICTS[c] ?? []) : []);
+              field.setComponentProps({
+                placeholder: c ? '请选择区县' : '请先选择城市',
+              });
+            },
+          },
+        },
+      ],
+    },
+
+    /* ---- 多级分类联动 ---- */
+    categoryL1: {
+      type: 'string',
+      label: '一级分类',
+      required: true,
+      component: 'Select',
+      wrapper: 'FormItem',
+      placeholder: '请选择一级分类',
+      enum: CATEGORIES_L1,
+    },
+    categoryL2: {
+      type: 'string',
+      label: '二级分类',
+      required: true,
+      component: 'Select',
+      wrapper: 'FormItem',
+      placeholder: '请先选择一级分类',
+      enum: [],
+      reactions: [
+        {
+          watch: 'categoryL1',
+          fulfill: {
+            run: (field, ctx) => {
+              const l1 = ctx.values.categoryL1 as string;
+              field.setValue(undefined);
+              field.setDataSource(l1 ? (CATEGORIES_L2[l1] ?? []) : []);
+              field.setComponentProps({
+                placeholder: l1 ? '请选择二级分类' : '请先选择一级分类',
+              });
+            },
+          },
+        },
+      ],
+    },
+    categoryL3: {
+      type: 'string',
+      label: '三级分类',
+      component: 'Select',
+      wrapper: 'FormItem',
+      placeholder: '请先选择二级分类',
+      enum: [],
+      reactions: [
+        {
+          watch: 'categoryL2',
+          fulfill: {
+            run: (field, ctx) => {
+              const l2 = ctx.values.categoryL2 as string;
+              field.setValue(undefined);
+              field.setDataSource(l2 ? (CATEGORIES_L3[l2] ?? []) : []);
+              field.setComponentProps({
+                placeholder: l2 ? '请选择三级分类' : '请先选择二级分类',
+              });
+            },
+          },
+        },
+      ],
+    },
+  },
+};
+
 /**
  * 级联选择示例
  */
 export const CascadeSelectForm = observer((): React.ReactElement => {
-  const [mode, setMode] = useState<FieldPattern>('editable');
-  const [result, setResult] = useState('');
-  const [savedValues, setSavedValues] = useState<Record<string, unknown>>({ ...INITIAL_VALUES });
-
-  const schema = useMemo(() => buildSchema(mode), [mode]);
-
   return (
     <div>
       <Title level={3}>级联选择</Title>
       <Paragraph type="secondary">
         省市区三级联动 / 多级分类联动 / 选择后自动清空下级
       </Paragraph>
-
-      <Segmented
-        value={mode}
-        onChange={(val) => setMode(val as FieldPattern)}
-        options={MODE_OPTIONS}
-        style={{ marginBottom: 16 }}
-      />
-
-      <ConfigForm
-        key={mode}
-        schema={schema}
-        initialValues={savedValues}
-        onValuesChange={(values) => setSavedValues(values as Record<string, unknown>)}
-        onSubmit={(values) => setResult(JSON.stringify(values, null, 2))}
-        onSubmitFailed={(errors) =>
-          setResult('验证失败:\n' + errors.map((e) => `[${e.path}] ${e.message}`).join('\n'))
-        }
-      >
-        {mode === 'editable' && (
-          <>
-            <Divider />
-            <Space>
-              <Button type="primary" htmlType="submit">提交</Button>
-              <Button htmlType="reset">重置</Button>
-            </Space>
-          </>
-        )}
-      </ConfigForm>
-
-      {result && (
-        <Alert
-          style={{ marginTop: 16 }}
-          type={result.startsWith('验证失败') ? 'error' : 'success'}
-          message="提交结果"
-          description={<pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{result}</pre>}
-        />
-      )}
+      <PlaygroundForm schema={schema} initialValues={INITIAL_VALUES} />
     </div>
   );
 });

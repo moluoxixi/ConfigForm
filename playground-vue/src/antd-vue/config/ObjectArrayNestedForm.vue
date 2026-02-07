@@ -2,9 +2,8 @@
   <div>
     <h2>对象数组嵌套</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">联系人数组 → 每人含嵌套电话数组</p>
-    <ASegmented v-model:value="mode" :options="MODE_OPTIONS" style="margin-bottom: 16px" />
-    <FormProvider :form="form">
-      <form @submit.prevent="handleSubmit" novalidate>
+    <PlaygroundForm :form="form" result-title="提交结果（嵌套结构）">
+      <template #default="{ mode }">
         <FormField v-slot="{ field }" name="teamName"><AFormItem :label="field.label" :required="field.required"><span v-if="mode === 'readOnly'">{{ (field.value as string) || '—' }}</span><AInput v-else :value="(field.value as string) ?? ''" @update:value="field.setValue($event)" style="width: 300px" :disabled="mode === 'disabled'" /></AFormItem></FormField>
         <FormArrayField v-slot="{ arrayField }" name="contacts" :field-props="{ minItems: 1, maxItems: 10, itemTemplate: () => ({ name: '', role: '', phones: [{ number: '', label: '手机' }] }) }">
           <div>
@@ -34,25 +33,20 @@
             </ACard>
           </div>
         </FormArrayField>
-        <AButton v-if="mode === 'editable'" type="primary" html-type="submit">提交</AButton>
-      </form>
-    </FormProvider>
-    <AAlert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" message="提交结果（嵌套结构）" style="margin-top: 16px"><template #description><pre style="margin: 0; white-space: pre-wrap; max-height: 300px; overflow: auto">{{ result }}</pre></template></AAlert>
+      </template>
+    </PlaygroundForm>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { FormProvider, FormField, FormArrayField, useCreateForm } from '@moluoxixi/vue'
+import { onMounted } from 'vue'
+import { FormField, FormArrayField, useCreateForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
-import { Button as AButton, Space as ASpace, Alert as AAlert, Segmented as ASegmented, Input as AInput, Card as ACard, FormItem as AFormItem } from 'ant-design-vue'
-import type { FieldPattern } from '@moluoxixi/shared'
+import { Button as AButton, Space as ASpace, Input as AInput, Card as ACard, FormItem as AFormItem } from 'ant-design-vue'
+import PlaygroundForm from '../../components/PlaygroundForm.vue'
 
 setupAntdVue()
-const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅读态', value: 'readOnly' }, { label: '禁用态', value: 'disabled' }]
-const mode = ref<FieldPattern>('editable')
-const result = ref('')
+
 const form = useCreateForm({ initialValues: { teamName: '开发团队', contacts: [{ name: '张三', role: '负责人', phones: [{ number: '13800138001', label: '手机' }] }, { name: '李四', role: '成员', phones: [{ number: '13800138002', label: '手机' }, { number: '010-12345678', label: '座机' }] }] } })
 onMounted(() => { form.createField({ name: 'teamName', label: '团队名称', required: true }) })
-async function handleSubmit(): Promise<void> { const res = await form.submit(); if (res.errors.length > 0) { result.value = '验证失败: ' + res.errors.map(e => e.message).join(', ') } else { result.value = JSON.stringify(res.values, null, 2) } }
 </script>

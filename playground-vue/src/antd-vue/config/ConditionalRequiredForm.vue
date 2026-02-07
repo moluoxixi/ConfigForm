@@ -2,32 +2,23 @@
   <div>
     <h2>条件必填</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">开关控制必填 / 金额阈值 / 选择「其他」必填 / 多条件组合</p>
-    <ASegmented v-model:value="mode" :options="MODE_OPTIONS" style="margin-bottom: 16px" />
-    <ConfigForm :key="mode" :schema="schema" :initial-values="savedValues" @values-change="(v: Record<string, unknown>) => savedValues = v" @submit="(v: Record<string, unknown>) => result = JSON.stringify(v, null, 2)" @submit-failed="(e: any[]) => result = '验证失败:\n' + e.map((x: any) => `[${x.path}] ${x.message}`).join('\n')">
-      <template #default="{ form }"><ADivider /><ASpace v-if="mode === 'editable'"><AButton type="primary" html-type="submit">提交</AButton><AButton @click="form.reset()">重置</AButton></ASpace></template>
-    </ConfigForm>
-    <AAlert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" message="提交结果" style="margin-top: 16px"><template #description><pre style="margin: 0; white-space: pre-wrap">{{ result }}</pre></template></AAlert>
+    <PlaygroundForm :schema="schema" :initial-values="initialValues" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { ConfigForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
-import { Button as AButton, Space as ASpace, Alert as AAlert, Segmented as ASegmented, Divider as ADivider } from 'ant-design-vue'
 import type { FormSchema } from '@moluoxixi/schema'
-import type { FieldPattern } from '@moluoxixi/shared'
+import PlaygroundForm from '../../components/PlaygroundForm.vue'
 
 setupAntdVue()
-const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅读态', value: 'readOnly' }, { label: '禁用态', value: 'disabled' }]
-const mode = ref<FieldPattern>('editable')
-const result = ref('')
-const savedValues = ref<Record<string, unknown>>({ needInvoice: false, invoiceTitle: '', invoiceTaxNo: '', amount: 0, approver: '', leaveType: 'annual', leaveReason: '', isOverseas: false, travelDays: 1, travelInsurance: '' })
+
+const initialValues = { needInvoice: false, invoiceTitle: '', invoiceTaxNo: '', amount: 0, approver: '', leaveType: 'annual', leaveReason: '', isOverseas: false, travelDays: 1, travelInsurance: '' }
 
 const THRESHOLD = 10000
 
-const schema = computed<FormSchema>(() => ({
-  form: { labelPosition: 'right', labelWidth: '160px', pattern: mode.value },
+const schema: FormSchema = {
+  form: { labelPosition: 'right', labelWidth: '160px' },
   fields: {
     needInvoice: { type: 'boolean', label: '需要发票', component: 'Switch', wrapper: 'FormItem', defaultValue: false, description: '开启后抬头和税号必填' },
     invoiceTitle: { type: 'string', label: '发票抬头', component: 'Input', wrapper: 'FormItem', reactions: [{ watch: 'needInvoice', when: (v: unknown[]) => v[0] === true, fulfill: { state: { required: true } }, otherwise: { state: { required: false } } }] },
@@ -40,5 +31,5 @@ const schema = computed<FormSchema>(() => ({
     travelDays: { type: 'number', label: '出差天数', component: 'InputNumber', wrapper: 'FormItem', defaultValue: 1, componentProps: { min: 1, style: { width: '100%' } } },
     travelInsurance: { type: 'string', label: '保险单号', component: 'Input', wrapper: 'FormItem', description: '海外且>3天必填', reactions: [{ watch: ['isOverseas', 'travelDays'], fulfill: { run: (f: any, ctx: any) => { f.required = (ctx.values.isOverseas as boolean) && ((ctx.values.travelDays as number) ?? 0) > 3 } } }] },
   },
-}))
+}
 </script>

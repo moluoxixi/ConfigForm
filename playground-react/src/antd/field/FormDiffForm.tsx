@@ -9,21 +9,15 @@
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { FormField, useCreateForm } from '@moluoxixi/react';
 import { setupAntd } from '@moluoxixi/ui-antd';
-import { Button, Typography, Alert, Segmented, Form, Input, InputNumber, Space, Tag, Card, Descriptions } from 'antd';
+import { Typography, Form, Input, InputNumber, Space, Tag, Card } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
-import type { FieldPattern } from '@moluoxixi/shared';
+import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
 setupAntd();
-
-const MODE_OPTIONS = [
-  { label: '编辑态', value: 'editable' },
-  { label: '阅读态', value: 'readOnly' },
-  { label: '禁用态', value: 'disabled' },
-];
 
 const FIELD_DEFS = [
   { name: 'name', label: '姓名', type: 'text' },
@@ -45,8 +39,6 @@ const ORIGINAL_VALUES: Record<string, unknown> = {
 };
 
 export const FormDiffForm = observer((): React.ReactElement => {
-  const [mode, setMode] = useState<FieldPattern>('editable');
-  const [result, setResult] = useState('');
   const [currentValues, setCurrentValues] = useState<Record<string, unknown>>({ ...ORIGINAL_VALUES });
 
   const form = useCreateForm({ initialValues: { ...ORIGINAL_VALUES } });
@@ -57,11 +49,6 @@ export const FormDiffForm = observer((): React.ReactElement => {
     return unsub;
   }, []);
 
-  const switchMode = (p: FieldPattern): void => {
-    setMode(p);
-    FIELD_DEFS.forEach((d) => { const f = form.getField(d.name); if (f) f.pattern = p; });
-  };
-
   /** 变更字段列表 */
   const changedFields = useMemo(() => {
     return FIELD_DEFS.filter((d) => {
@@ -71,18 +58,10 @@ export const FormDiffForm = observer((): React.ReactElement => {
     });
   }, [currentValues]);
 
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-    const res = await form.submit();
-    if (res.errors.length > 0) { setResult('验证失败: ' + res.errors.map((err) => err.message).join(', ')); }
-    else { setResult(JSON.stringify(res.values, null, 2)); }
-  };
-
   return (
     <div>
       <Title level={3}>表单比对</Title>
       <Paragraph type="secondary">变更高亮 / 原始值 vs 当前值 / 变更摘要</Paragraph>
-      <Segmented value={mode} onChange={(v) => switchMode(v as FieldPattern)} options={MODE_OPTIONS} style={{ marginBottom: 16 }} />
 
       {/* 变更摘要 */}
       <Card size="small" style={{ marginBottom: 16 }}>
@@ -99,40 +78,39 @@ export const FormDiffForm = observer((): React.ReactElement => {
         </Space>
       </Card>
 
-      <FormProvider form={form}>
-        <form onSubmit={handleSubmit} noValidate>
-          {FIELD_DEFS.map((d) => {
-            const isChanged = String(ORIGINAL_VALUES[d.name] ?? '') !== String(currentValues[d.name] ?? '');
-            return (
-              <FormField key={d.name} name={d.name}>
-                {(field: FieldInstance) => (
-                  <Form.Item
-                    label={
-                      <Space>
-                        {d.label}
-                        {isChanged && <Tag color="orange" style={{ fontSize: 10 }}>已修改</Tag>}
-                      </Space>
-                    }
-                    style={{ background: isChanged ? '#fffbe6' : undefined, padding: isChanged ? '4px 8px' : undefined, borderRadius: 4 }}
-                    help={isChanged ? <Text type="secondary" style={{ fontSize: 11 }}>原始值: {String(ORIGINAL_VALUES[d.name] ?? '—')}</Text> : undefined}
-                  >
-                    {d.type === 'number' ? (
-                      <InputNumber value={field.value as number} onChange={(v) => field.setValue(v)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} style={{ width: '100%' }} />
-                    ) : d.type === 'textarea' ? (
-                      <Input.TextArea value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} rows={2} />
-                    ) : (
-                      <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} />
-                    )}
-                  </Form.Item>
-                )}
-              </FormField>
-            );
-          })}
-          {mode === 'editable' && (<Space><Button type="primary" htmlType="submit">提交</Button><Button onClick={() => form.reset()}>重置</Button></Space>)}
-        </form>
-      </FormProvider>
-
-      {result && (<Alert style={{ marginTop: 16 }} type={result.startsWith('验证失败') ? 'error' : 'success'} message="提交结果" description={<pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{result}</pre>} />)}
+      <PlaygroundForm form={form}>
+        {({ mode }) => (
+          <>
+            {FIELD_DEFS.map((d) => {
+              const isChanged = String(ORIGINAL_VALUES[d.name] ?? '') !== String(currentValues[d.name] ?? '');
+              return (
+                <FormField key={d.name} name={d.name}>
+                  {(field: FieldInstance) => (
+                    <Form.Item
+                      label={
+                        <Space>
+                          {d.label}
+                          {isChanged && <Tag color="orange" style={{ fontSize: 10 }}>已修改</Tag>}
+                        </Space>
+                      }
+                      style={{ background: isChanged ? '#fffbe6' : undefined, padding: isChanged ? '4px 8px' : undefined, borderRadius: 4 }}
+                      help={isChanged ? <Text type="secondary" style={{ fontSize: 11 }}>原始值: {String(ORIGINAL_VALUES[d.name] ?? '—')}</Text> : undefined}
+                    >
+                      {d.type === 'number' ? (
+                        <InputNumber value={field.value as number} onChange={(v) => field.setValue(v)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} style={{ width: '100%' }} />
+                      ) : d.type === 'textarea' ? (
+                        <Input.TextArea value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} rows={2} />
+                      ) : (
+                        <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} />
+                      )}
+                    </Form.Item>
+                  )}
+                </FormField>
+              );
+            })}
+          </>
+        )}
+      </PlaygroundForm>
     </div>
   );
 });

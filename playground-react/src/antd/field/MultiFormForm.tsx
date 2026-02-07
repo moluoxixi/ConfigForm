@@ -12,24 +12,16 @@ import { observer } from 'mobx-react-lite';
 import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
 import { setupAntd } from '@moluoxixi/ui-antd';
 import {
-  Button, Typography, Alert, Segmented, Form, Input, InputNumber, Card, Row, Col, Modal, Space, Divider,
+  Button, Typography, Form, Input, InputNumber, Card, Row, Col, Modal, Space,
 } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
-import type { FieldPattern } from '@moluoxixi/shared';
+import { PlaygroundForm } from '../../components/PlaygroundForm';
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Paragraph } = Typography;
 
 setupAntd();
 
-const MODE_OPTIONS = [
-  { label: '编辑态', value: 'editable' },
-  { label: '阅读态', value: 'readOnly' },
-  { label: '禁用态', value: 'disabled' },
-];
-
 export const MultiFormForm = observer((): React.ReactElement => {
-  const [mode, setMode] = useState<FieldPattern>('editable');
-  const [result, setResult] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
 
   /* 主表单 */
@@ -48,23 +40,11 @@ export const MultiFormForm = observer((): React.ReactElement => {
     subForm.createField({ name: 'contactEmail', label: '邮箱', rules: [{ format: 'email', message: '无效邮箱' }] });
   }, []);
 
-  const switchMode = (p: FieldPattern): void => {
-    setMode(p);
-    ['orderName', 'customer', 'total'].forEach((n) => { const f = mainForm.getField(n); if (f) f.pattern = p; });
+  /** 同步 PlaygroundForm 模式到子表单 */
+  useEffect(() => {
+    const p = mainForm.pattern;
     ['contactName', 'contactPhone', 'contactEmail'].forEach((n) => { const f = subForm.getField(n); if (f) f.pattern = p; });
-  };
-
-  /** 联合提交 */
-  const handleJointSubmit = async (): Promise<void> => {
-    const mainRes = await mainForm.submit();
-    const subRes = await subForm.submit();
-    const allErrors = [...mainRes.errors, ...subRes.errors];
-    if (allErrors.length > 0) {
-      setResult('验证失败: ' + allErrors.map((e) => e.message).join(', '));
-    } else {
-      setResult(JSON.stringify({ main: mainRes.values, contact: subRes.values }, null, 2));
-    }
-  };
+  }, [mainForm.pattern]);
 
   /** 弹窗确认 */
   const handleModalOk = async (): Promise<void> => {
@@ -79,52 +59,49 @@ export const MultiFormForm = observer((): React.ReactElement => {
     <div>
       <Title level={3}>多表单协作</Title>
       <Paragraph type="secondary">两个独立表单 / 联合提交 / 跨表单值联动 / 弹窗表单</Paragraph>
-      <Segmented value={mode} onChange={(v) => switchMode(v as FieldPattern)} options={MODE_OPTIONS} style={{ marginBottom: 16 }} />
 
-      <Row gutter={16}>
-        <Col span={12}>
-          <Card title="主表单 - 订单信息" size="small">
-            <FormProvider form={mainForm}>
-              {['orderName', 'customer', 'total'].map((name) => (
-                <FormField key={name} name={name}>
-                  {(field: FieldInstance) => (
-                    <Form.Item label={field.label} required={field.required}>
-                      {name === 'total' ? (
-                        <InputNumber value={field.value as number} onChange={(v) => field.setValue(v)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} style={{ width: '100%' }} min={0} />
-                      ) : (
-                        <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} />
+      <PlaygroundForm form={mainForm}>
+        {({ mode }) => (
+          <Row gutter={16}>
+            <Col span={12}>
+              <Card title="主表单 - 订单信息" size="small">
+                {['orderName', 'customer', 'total'].map((name) => (
+                  <FormField key={name} name={name}>
+                    {(field: FieldInstance) => (
+                      <Form.Item label={field.label} required={field.required}>
+                        {name === 'total' ? (
+                          <InputNumber value={field.value as number} onChange={(v) => field.setValue(v)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} style={{ width: '100%' }} min={0} />
+                        ) : (
+                          <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} />
+                        )}
+                      </Form.Item>
+                    )}
+                  </FormField>
+                ))}
+                {mode === 'editable' && (
+                  <Button type="dashed" onClick={() => setModalOpen(true)}>从弹窗填写联系人</Button>
+                )}
+              </Card>
+            </Col>
+
+            <Col span={12}>
+              <Card title="子表单 - 联系人信息" size="small">
+                <FormProvider form={subForm}>
+                  {['contactName', 'contactPhone', 'contactEmail'].map((name) => (
+                    <FormField key={name} name={name}>
+                      {(field: FieldInstance) => (
+                        <Form.Item label={field.label} required={field.required} validateStatus={field.errors.length > 0 ? 'error' : undefined} help={field.errors[0]?.message}>
+                          <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} onBlur={() => { field.blur(); field.validate('blur').catch(() => {}); }} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} />
+                        </Form.Item>
                       )}
-                    </Form.Item>
-                  )}
-                </FormField>
-              ))}
-              {mode === 'editable' && (
-                <Button type="dashed" onClick={() => setModalOpen(true)}>从弹窗填写联系人</Button>
-              )}
-            </FormProvider>
-          </Card>
-        </Col>
-
-        <Col span={12}>
-          <Card title="子表单 - 联系人信息" size="small">
-            <FormProvider form={subForm}>
-              {['contactName', 'contactPhone', 'contactEmail'].map((name) => (
-                <FormField key={name} name={name}>
-                  {(field: FieldInstance) => (
-                    <Form.Item label={field.label} required={field.required} validateStatus={field.errors.length > 0 ? 'error' : undefined} help={field.errors[0]?.message}>
-                      <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} onBlur={() => { field.blur(); field.validate('blur').catch(() => {}); }} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} />
-                    </Form.Item>
-                  )}
-                </FormField>
-              ))}
-            </FormProvider>
-          </Card>
-        </Col>
-      </Row>
-
-      {mode === 'editable' && (
-        <Button type="primary" onClick={handleJointSubmit} style={{ marginTop: 16 }}>联合提交（两个表单）</Button>
-      )}
+                    </FormField>
+                  ))}
+                </FormProvider>
+              </Card>
+            </Col>
+          </Row>
+        )}
+      </PlaygroundForm>
 
       {/* 弹窗表单 */}
       <Modal title="编辑联系人" open={modalOpen} onOk={handleModalOk} onCancel={() => setModalOpen(false)}>
@@ -140,8 +117,6 @@ export const MultiFormForm = observer((): React.ReactElement => {
           ))}
         </FormProvider>
       </Modal>
-
-      {result && (<Alert style={{ marginTop: 16 }} type={result.startsWith('验证失败') ? 'error' : 'success'} message="联合提交结果" description={<pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{result}</pre>} />)}
     </div>
   );
 });

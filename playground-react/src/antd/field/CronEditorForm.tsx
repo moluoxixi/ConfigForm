@@ -9,23 +9,17 @@
  *
  * 注：实际项目可接入 react-js-cron
  */
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { FormField, useCreateForm } from '@moluoxixi/react';
 import { setupAntd } from '@moluoxixi/ui-antd';
-import { Button, Typography, Alert, Segmented, Form, Input, Select, Tag, Space } from 'antd';
+import { Typography, Form, Input, Tag, Space } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
-import type { FieldPattern } from '@moluoxixi/shared';
+import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
 setupAntd();
-
-const MODE_OPTIONS = [
-  { label: '编辑态', value: 'editable' },
-  { label: '阅读态', value: 'readOnly' },
-  { label: '禁用态', value: 'disabled' },
-];
 
 /** Cron 预设 */
 const CRON_PRESETS = [
@@ -64,9 +58,6 @@ function describeCron(expr: string): string {
 }
 
 export const CronEditorForm = observer((): React.ReactElement => {
-  const [mode, setMode] = useState<FieldPattern>('editable');
-  const [result, setResult] = useState('');
-
   const form = useCreateForm({
     initialValues: { taskName: '数据同步', cronExpr: '0 8 * * 1-5' },
   });
@@ -76,90 +67,74 @@ export const CronEditorForm = observer((): React.ReactElement => {
     form.createField({ name: 'cronExpr', label: 'Cron 表达式', required: true });
   }, []);
 
-  const switchMode = (p: FieldPattern): void => {
-    setMode(p);
-    ['taskName', 'cronExpr'].forEach((n) => { const f = form.getField(n); if (f) f.pattern = p; });
-  };
-
   const cronValue = (form.getFieldValue('cronExpr') as string) ?? '';
   const cronDesc = useMemo(() => describeCron(cronValue), [cronValue]);
-
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-    const res = await form.submit();
-    if (res.errors.length > 0) { setResult('验证失败: ' + res.errors.map((err) => err.message).join(', ')); }
-    else { setResult(JSON.stringify(res.values, null, 2)); }
-  };
 
   return (
     <div>
       <Title level={3}>Cron 表达式编辑器</Title>
       <Paragraph type="secondary">Cron 输入 / 快捷预设 / 实时解析 / 三种模式</Paragraph>
-      <Segmented value={mode} onChange={(v) => switchMode(v as FieldPattern)} options={MODE_OPTIONS} style={{ marginBottom: 16 }} />
+      <PlaygroundForm form={form}>
+        {({ mode }) => (
+          <>
+            <FormField name="taskName">
+              {(field: FieldInstance) => (
+                <Form.Item label={field.label} required={field.required}>
+                  <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} style={{ width: 300 }} />
+                </Form.Item>
+              )}
+            </FormField>
 
-      <FormProvider form={form}>
-        <form onSubmit={handleSubmit} noValidate>
-          <FormField name="taskName">
-            {(field: FieldInstance) => (
-              <Form.Item label={field.label} required={field.required}>
-                <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} style={{ width: 300 }} />
-              </Form.Item>
-            )}
-          </FormField>
+            <FormField name="cronExpr">
+              {(field: FieldInstance) => (
+                <Form.Item label={field.label} required={field.required}>
+                  <Space direction="vertical" style={{ width: '100%' }}>
+                    <Input
+                      value={(field.value as string) ?? ''}
+                      onChange={(e) => field.setValue(e.target.value)}
+                      disabled={mode === 'disabled'}
+                      readOnly={mode === 'readOnly'}
+                      placeholder="如：0 8 * * 1-5"
+                      addonBefore="Cron"
+                      style={{ width: 400 }}
+                    />
 
-          <FormField name="cronExpr">
-            {(field: FieldInstance) => (
-              <Form.Item label={field.label} required={field.required}>
-                <Space direction="vertical" style={{ width: '100%' }}>
-                  <Input
-                    value={(field.value as string) ?? ''}
-                    onChange={(e) => field.setValue(e.target.value)}
-                    disabled={mode === 'disabled'}
-                    readOnly={mode === 'readOnly'}
-                    placeholder="如：0 8 * * 1-5"
-                    addonBefore="Cron"
-                    style={{ width: 400 }}
-                  />
-
-                  {/* 解析结果 */}
-                  <div>
-                    <Text type="secondary">解析结果：</Text>
-                    <Tag color={cronDesc.includes('错误') ? 'error' : 'blue'}>{cronDesc}</Tag>
-                  </div>
-
-                  {/* 快捷预设 */}
-                  {mode === 'editable' && (
+                    {/* 解析结果 */}
                     <div>
-                      <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>快捷预设：</Text>
-                      <Space wrap>
-                        {CRON_PRESETS.map((preset) => (
-                          <Tag
-                            key={preset.value}
-                            color={field.value === preset.value ? 'blue' : 'default'}
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => field.setValue(preset.value)}
-                          >
-                            {preset.label}
-                          </Tag>
-                        ))}
-                      </Space>
+                      <Text type="secondary">解析结果：</Text>
+                      <Tag color={cronDesc.includes('错误') ? 'error' : 'blue'}>{cronDesc}</Tag>
                     </div>
-                  )}
 
-                  {/* Cron 字段说明 */}
-                  <div style={{ background: '#f6f8fa', padding: 8, borderRadius: 4, fontSize: 12 }}>
-                    <Text type="secondary">格式：分 时 日 月 周 | 示例：<Text code>0 8 * * 1-5</Text> = 工作日 8:00</Text>
-                  </div>
-                </Space>
-              </Form.Item>
-            )}
-          </FormField>
+                    {/* 快捷预设 */}
+                    {mode === 'editable' && (
+                      <div>
+                        <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>快捷预设：</Text>
+                        <Space wrap>
+                          {CRON_PRESETS.map((preset) => (
+                            <Tag
+                              key={preset.value}
+                              color={field.value === preset.value ? 'blue' : 'default'}
+                              style={{ cursor: 'pointer' }}
+                              onClick={() => field.setValue(preset.value)}
+                            >
+                              {preset.label}
+                            </Tag>
+                          ))}
+                        </Space>
+                      </div>
+                    )}
 
-          {mode === 'editable' && (<Space><Button type="primary" htmlType="submit">提交</Button><Button onClick={() => form.reset()}>重置</Button></Space>)}
-        </form>
-      </FormProvider>
-
-      {result && (<Alert style={{ marginTop: 16 }} type={result.startsWith('验证失败') ? 'error' : 'success'} message="提交结果" description={<pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{result}</pre>} />)}
+                    {/* Cron 字段说明 */}
+                    <div style={{ background: '#f6f8fa', padding: 8, borderRadius: 4, fontSize: 12 }}>
+                      <Text type="secondary">格式：分 时 日 月 周 | 示例：<Text code>0 8 * * 1-5</Text> = 工作日 8:00</Text>
+                    </div>
+                  </Space>
+                </Form.Item>
+              )}
+            </FormField>
+          </>
+        )}
+      </PlaygroundForm>
     </div>
   );
 });

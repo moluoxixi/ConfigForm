@@ -7,27 +7,21 @@
  * - 多层嵌套操作
  * - 三种模式切换
  */
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormProvider, FormField, FormArrayField, useCreateForm } from '@moluoxixi/react';
+import { FormField, FormArrayField, useCreateForm } from '@moluoxixi/react';
 import { setupAntd } from '@moluoxixi/ui-antd';
 import {
-  Button, Space, Typography, Alert, Segmented, Input, Card, Tag,
+  Button, Space, Typography, Input, Card, Tag,
 } from 'antd';
 import { PlusOutlined, DeleteOutlined, PhoneOutlined } from '@ant-design/icons';
 import type { ArrayFieldInstance, FieldInstance } from '@moluoxixi/core';
 import type { FieldPattern } from '@moluoxixi/shared';
+import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
 setupAntd();
-
-/** 模式选项 */
-const MODE_OPTIONS = [
-  { label: '编辑态', value: 'editable' },
-  { label: '阅读态', value: 'readOnly' },
-  { label: '禁用态', value: 'disabled' },
-];
 
 /** 联系人模板 */
 const CONTACT_TEMPLATE = {
@@ -198,9 +192,6 @@ const ContactCard = observer(({
  * 对象数组嵌套示例
  */
 export const ObjectArrayNestedForm = observer((): React.ReactElement => {
-  const [mode, setMode] = useState<FieldPattern>('editable');
-  const [result, setResult] = useState('');
-
   const form = useCreateForm({
     initialValues: {
       teamName: '开发团队',
@@ -211,20 +202,9 @@ export const ObjectArrayNestedForm = observer((): React.ReactElement => {
     },
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     form.createField({ name: 'teamName', label: '团队名称', required: true });
   }, []);
-
-  /** 提交 */
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-    const res = await form.submit();
-    if (res.errors.length > 0) {
-      setResult('验证失败: ' + res.errors.map((err) => err.message).join(', '));
-    } else {
-      setResult(JSON.stringify(res.values, null, 2));
-    }
-  };
 
   return (
     <div>
@@ -233,68 +213,50 @@ export const ObjectArrayNestedForm = observer((): React.ReactElement => {
         联系人数组 → 每人含嵌套电话数组（多层增删）
       </Paragraph>
 
-      <Segmented
-        value={mode}
-        onChange={(val) => setMode(val as FieldPattern)}
-        options={MODE_OPTIONS}
-        style={{ marginBottom: 16 }}
-      />
-
-      <FormProvider form={form}>
-        <form onSubmit={handleSubmit} noValidate>
-          <FormField name="teamName">
-            {(field: FieldInstance) => (
-              <div style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', marginBottom: 4, fontWeight: 500 }}>{field.label} *</label>
-                <Input
-                  value={(field.value as string) ?? ''}
-                  onChange={(e) => field.setValue(e.target.value)}
-                  style={{ width: 300 }}
-                  disabled={mode === 'disabled'}
-                  readOnly={mode === 'readOnly'}
-                />
-              </div>
-            )}
-          </FormField>
-
-          <FormArrayField
-            name="contacts"
-            fieldProps={{ minItems: 1, maxItems: 10, itemTemplate: () => ({ ...CONTACT_TEMPLATE }) }}
-          >
-            {(arrayField: ArrayFieldInstance) => (
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <Space>
-                    <Text strong>团队成员</Text>
-                    <Tag>{((arrayField.value as unknown[]) ?? []).length}/10</Tag>
-                  </Space>
-                  {mode === 'editable' && (
-                    <Button type="primary" icon={<PlusOutlined />} disabled={!arrayField.canAdd} onClick={() => arrayField.push({ ...CONTACT_TEMPLATE })}>
-                      添加联系人
-                    </Button>
-                  )}
+      <PlaygroundForm form={form} resultTitle="提交结果（嵌套结构）">
+        {({ mode }) => (
+          <>
+            <FormField name="teamName">
+              {(field: FieldInstance) => (
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: 'block', marginBottom: 4, fontWeight: 500 }}>{field.label} *</label>
+                  <Input
+                    value={(field.value as string) ?? ''}
+                    onChange={(e) => field.setValue(e.target.value)}
+                    style={{ width: 300 }}
+                    disabled={mode === 'disabled'}
+                    readOnly={mode === 'readOnly'}
+                  />
                 </div>
-                {((arrayField.value as unknown[]) ?? []).map((_: unknown, idx: number) => (
-                  <ContactCard key={idx} index={idx} arrayField={arrayField} pattern={mode} />
-                ))}
-              </div>
-            )}
-          </FormArrayField>
+              )}
+            </FormField>
 
-          {mode === 'editable' && (
-            <Button type="primary" htmlType="submit" style={{ marginTop: 12 }}>提交</Button>
-          )}
-        </form>
-      </FormProvider>
-
-      {result && (
-        <Alert
-          style={{ marginTop: 16 }}
-          type={result.startsWith('验证失败') ? 'error' : 'success'}
-          message="提交结果（嵌套结构）"
-          description={<pre style={{ margin: 0, whiteSpace: 'pre-wrap', maxHeight: 300, overflow: 'auto' }}>{result}</pre>}
-        />
-      )}
+            <FormArrayField
+              name="contacts"
+              fieldProps={{ minItems: 1, maxItems: 10, itemTemplate: () => ({ ...CONTACT_TEMPLATE }) }}
+            >
+              {(arrayField: ArrayFieldInstance) => (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <Space>
+                      <Text strong>团队成员</Text>
+                      <Tag>{((arrayField.value as unknown[]) ?? []).length}/10</Tag>
+                    </Space>
+                    {mode === 'editable' && (
+                      <Button type="primary" icon={<PlusOutlined />} disabled={!arrayField.canAdd} onClick={() => arrayField.push({ ...CONTACT_TEMPLATE })}>
+                        添加联系人
+                      </Button>
+                    )}
+                  </div>
+                  {((arrayField.value as unknown[]) ?? []).map((_: unknown, idx: number) => (
+                    <ContactCard key={idx} index={idx} arrayField={arrayField} pattern={mode} />
+                  ))}
+                </div>
+              )}
+            </FormArrayField>
+          </>
+        )}
+      </PlaygroundForm>
     </div>
   );
 });

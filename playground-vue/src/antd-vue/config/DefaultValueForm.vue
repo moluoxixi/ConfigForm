@@ -2,31 +2,21 @@
   <div>
     <h2>默认值</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">静态 defaultValue / 动态计算默认值 / initialValues 注入</p>
-    <ASegmented v-model:value="mode" :options="MODE_OPTIONS" style="margin-bottom: 16px" />
-    <ConfigForm :key="mode" :schema="schema" :initial-values="savedValues" @values-change="(v: Record<string, unknown>) => savedValues = v" @submit="(v: Record<string, unknown>) => result = JSON.stringify(v, null, 2)" @submit-failed="(e: any[]) => result = '验证失败:\n' + e.map((x: any) => `[${x.path}] ${x.message}`).join('\n')">
-      <template #default="{ form }"><ASpace v-if="mode === 'editable'" style="margin-top: 16px"><AButton type="primary" html-type="submit">提交</AButton><AButton @click="form.reset()">重置</AButton></ASpace></template>
-    </ConfigForm>
-    <AAlert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" message="提交结果" style="margin-top: 16px"><template #description><pre style="margin: 0; white-space: pre-wrap">{{ result }}</pre></template></AAlert>
+    <PlaygroundForm :schema="schema" :initial-values="initialValues" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { ConfigForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
-import { Button as AButton, Space as ASpace, Alert as AAlert, Segmented as ASegmented } from 'ant-design-vue'
 import type { FormSchema } from '@moluoxixi/schema'
-import type { FieldPattern } from '@moluoxixi/shared'
+import PlaygroundForm from '../../components/PlaygroundForm.vue'
 
 setupAntdVue()
 
-const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅读态', value: 'readOnly' }, { label: '禁用态', value: 'disabled' }]
-const mode = ref<FieldPattern>('editable')
-const result = ref('')
-const savedValues = ref<Record<string, unknown>>({ country: 'china', status: 'draft', enableNotify: true, quantity: 1, unitPrice: 99.9, totalPrice: 99.9, level: 'silver', discountRate: 5 })
+const initialValues = { country: 'china', status: 'draft', enableNotify: true, quantity: 1, unitPrice: 99.9, totalPrice: 99.9, level: 'silver', discountRate: 5 }
 
-const schema = computed<FormSchema>(() => ({
-  form: { labelPosition: 'right', labelWidth: '140px', pattern: mode.value },
+const schema: FormSchema = {
+  form: { labelPosition: 'right', labelWidth: '140px' },
   fields: {
     country: { type: 'string', label: '国家', component: 'Select', wrapper: 'FormItem', defaultValue: 'china', description: '静态默认值', enum: [{ label: '中国', value: 'china' }, { label: '美国', value: 'usa' }, { label: '日本', value: 'japan' }] },
     status: { type: 'string', label: '状态', component: 'RadioGroup', wrapper: 'FormItem', defaultValue: 'draft', enum: [{ label: '草稿', value: 'draft' }, { label: '发布', value: 'published' }] },
@@ -43,5 +33,5 @@ const schema = computed<FormSchema>(() => ({
       reactions: [{ watch: 'level', fulfill: { run: (field: any, ctx: any) => { const map: Record<string, number> = { silver: 5, gold: 10, diamond: 20 }; field.setValue(map[ctx.values.level as string] ?? 0) } } }],
     },
   },
-}))
+}
 </script>

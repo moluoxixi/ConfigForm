@@ -7,24 +7,18 @@
  * - 清空 / 撤销
  * - 三种模式切换
  */
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { FormField, useCreateForm } from '@moluoxixi/react';
 import { setupAntd } from '@moluoxixi/ui-antd';
-import { Button, Typography, Alert, Segmented, Form, Input, Space } from 'antd';
+import { Button, Typography, Form, Input } from 'antd';
 import { ClearOutlined } from '@ant-design/icons';
 import type { FieldInstance } from '@moluoxixi/core';
-import type { FieldPattern } from '@moluoxixi/shared';
+import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
 setupAntd();
-
-const MODE_OPTIONS = [
-  { label: '编辑态', value: 'editable' },
-  { label: '阅读态', value: 'readOnly' },
-  { label: '禁用态', value: 'disabled' },
-];
 
 /** Canvas 签名板 */
 const SignatureCanvas = ({
@@ -126,9 +120,6 @@ const SignatureCanvas = ({
 };
 
 export const SignaturePadForm = observer((): React.ReactElement => {
-  const [mode, setMode] = useState<FieldPattern>('editable');
-  const [result, setResult] = useState('');
-
   const form = useCreateForm({
     initialValues: { signerName: '', signatureData: '' },
   });
@@ -138,60 +129,42 @@ export const SignaturePadForm = observer((): React.ReactElement => {
     form.createField({ name: 'signatureData', label: '签名' });
   }, []);
 
-  const switchMode = (p: FieldPattern): void => {
-    setMode(p);
-    ['signerName', 'signatureData'].forEach((n) => { const f = form.getField(n); if (f) f.pattern = p; });
-  };
-
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-    const res = await form.submit();
-    if (res.errors.length > 0) { setResult('验证失败: ' + res.errors.map((err) => err.message).join(', ')); }
-    else {
-      const data = { ...res.values, signatureData: (res.values as Record<string, unknown>).signatureData ? '[Base64 Image Data]' : '' };
-      setResult(JSON.stringify(data, null, 2));
-    }
-  };
-
   return (
     <div>
       <Title level={3}>手写签名板</Title>
       <Paragraph type="secondary">Canvas 手写签名 / Base64 数据同步 / 清空操作 / 三种模式</Paragraph>
-      <Segmented value={mode} onChange={(v) => switchMode(v as FieldPattern)} options={MODE_OPTIONS} style={{ marginBottom: 16 }} />
-
-      <FormProvider form={form}>
-        <form onSubmit={handleSubmit} noValidate>
-          <FormField name="signerName">
-            {(field: FieldInstance) => (
-              <Form.Item label={field.label} required={field.required}>
-                <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} style={{ width: 300 }} />
-              </Form.Item>
-            )}
-          </FormField>
-          <FormField name="signatureData">
-            {(field: FieldInstance) => (
-              <Form.Item label="手写签名">
-                {mode === 'readOnly' || mode === 'preview' ? (
-                  (field.value as string) ? (
-                    <img src={field.value as string} alt="签名" style={{ border: '1px solid #d9d9d9', borderRadius: 8, maxWidth: 500 }} />
+      <PlaygroundForm form={form}>
+        {({ mode }) => (
+          <>
+            <FormField name="signerName">
+              {(field: FieldInstance) => (
+                <Form.Item label={field.label} required={field.required}>
+                  <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} style={{ width: 300 }} />
+                </Form.Item>
+              )}
+            </FormField>
+            <FormField name="signatureData">
+              {(field: FieldInstance) => (
+                <Form.Item label="手写签名">
+                  {mode === 'readOnly' || mode === 'preview' ? (
+                    (field.value as string) ? (
+                      <img src={field.value as string} alt="签名" style={{ border: '1px solid #d9d9d9', borderRadius: 8, maxWidth: 500 }} />
+                    ) : (
+                      <Text type="secondary">暂无签名</Text>
+                    )
                   ) : (
-                    <Text type="secondary">暂无签名</Text>
-                  )
-                ) : (
-                  <SignatureCanvas
-                    value={(field.value as string) ?? ''}
-                    onChange={(v) => field.setValue(v)}
-                    disabled={mode === 'disabled'}
-                  />
-                )}
-              </Form.Item>
-            )}
-          </FormField>
-          {mode === 'editable' && (<Space><Button type="primary" htmlType="submit">提交</Button><Button onClick={() => form.reset()}>重置</Button></Space>)}
-        </form>
-      </FormProvider>
-
-      {result && (<Alert style={{ marginTop: 16 }} type={result.startsWith('验证失败') ? 'error' : 'success'} message="提交结果" description={<pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{result}</pre>} />)}
+                    <SignatureCanvas
+                      value={(field.value as string) ?? ''}
+                      onChange={(v) => field.setValue(v)}
+                      disabled={mode === 'disabled'}
+                    />
+                  )}
+                </Form.Item>
+              )}
+            </FormField>
+          </>
+        )}
+      </PlaygroundForm>
     </div>
   );
 });

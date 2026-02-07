@@ -9,23 +9,18 @@
  *
  * 注：如未安装 react-colorful，降级为 Input 输入 HEX 值
  */
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { FormField, useCreateForm } from '@moluoxixi/react';
 import { setupAntd } from '@moluoxixi/ui-antd';
-import { Button, Typography, Alert, Segmented, Form, Input, Space, Spin } from 'antd';
+import { Typography, Form, Input, Space } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
 import type { FieldPattern } from '@moluoxixi/shared';
+import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
 setupAntd();
-
-const MODE_OPTIONS = [
-  { label: '编辑态', value: 'editable' },
-  { label: '阅读态', value: 'readOnly' },
-  { label: '禁用态', value: 'disabled' },
-];
 
 /** 预设颜色 */
 const PRESET_COLORS = ['#1677ff', '#52c41a', '#faad14', '#ff4d4f', '#722ed1', '#13c2c2', '#eb2f96', '#000000'];
@@ -105,9 +100,6 @@ const ColorEditor = observer(({
 });
 
 export const ColorPickerForm = observer((): React.ReactElement => {
-  const [mode, setMode] = useState<FieldPattern>('editable');
-  const [result, setResult] = useState('');
-
   const form = useCreateForm({
     initialValues: { themeName: '自定义主题', primaryColor: '#1677ff', bgColor: '#ffffff', textColor: '#333333' },
   });
@@ -119,61 +111,45 @@ export const ColorPickerForm = observer((): React.ReactElement => {
     form.createField({ name: 'textColor', label: '文字颜色' });
   }, []);
 
-  const switchMode = (p: FieldPattern): void => {
-    setMode(p);
-    ['themeName', 'primaryColor', 'bgColor', 'textColor'].forEach((n) => { const f = form.getField(n); if (f) f.pattern = p; });
-  };
-
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-    const res = await form.submit();
-    if (res.errors.length > 0) { setResult('验证失败: ' + res.errors.map((err) => err.message).join(', ')); }
-    else { setResult(JSON.stringify(res.values, null, 2)); }
-  };
-
   return (
     <div>
       <Title level={3}>颜色选择器</Title>
       <Paragraph type="secondary">原生 color input + 预设色板 / HEX 输入 / 三种模式</Paragraph>
-      <Segmented value={mode} onChange={(v) => switchMode(v as FieldPattern)} options={MODE_OPTIONS} style={{ marginBottom: 16 }} />
-
-      <FormProvider form={form}>
-        <form onSubmit={handleSubmit} noValidate>
-          <FormField name="themeName">
-            {(field: FieldInstance) => (
-              <Form.Item label={field.label} required={field.required}>
-                <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} />
-              </Form.Item>
-            )}
-          </FormField>
-          {['primaryColor', 'bgColor', 'textColor'].map((name) => (
-            <FormField key={name} name={name}>
+      <PlaygroundForm form={form}>
+        {({ mode }) => (
+          <>
+            <FormField name="themeName">
               {(field: FieldInstance) => (
                 <Form.Item label={field.label} required={field.required}>
-                  <ColorEditor field={field} pattern={mode} />
+                  <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} />
                 </Form.Item>
               )}
             </FormField>
-          ))}
+            {['primaryColor', 'bgColor', 'textColor'].map((name) => (
+              <FormField key={name} name={name}>
+                {(field: FieldInstance) => (
+                  <Form.Item label={field.label} required={field.required}>
+                    <ColorEditor field={field} pattern={mode} />
+                  </Form.Item>
+                )}
+              </FormField>
+            ))}
 
-          {/* 预览 */}
-          <div style={{
-            padding: 16, borderRadius: 8, marginBottom: 16, border: '1px solid #eee',
-            background: (form.getFieldValue('bgColor') as string) || '#fff',
-            color: (form.getFieldValue('textColor') as string) || '#333',
-          }}>
-            <h4 style={{ color: (form.getFieldValue('primaryColor') as string) || '#1677ff' }}>主题预览</h4>
-            <p>这是文字颜色预览，背景色为 {form.getFieldValue('bgColor') as string || '#ffffff'}。</p>
-            <button style={{ background: (form.getFieldValue('primaryColor') as string) || '#1677ff', color: '#fff', border: 'none', padding: '6px 16px', borderRadius: 4 }}>
-              主色调按钮
-            </button>
-          </div>
-
-          {mode === 'editable' && (<Space><Button type="primary" htmlType="submit">提交</Button><Button onClick={() => form.reset()}>重置</Button></Space>)}
-        </form>
-      </FormProvider>
-
-      {result && (<Alert style={{ marginTop: 16 }} type={result.startsWith('验证失败') ? 'error' : 'success'} message="提交结果" description={<pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{result}</pre>} />)}
+            {/* 预览 */}
+            <div style={{
+              padding: 16, borderRadius: 8, marginBottom: 16, border: '1px solid #eee',
+              background: (form.getFieldValue('bgColor') as string) || '#fff',
+              color: (form.getFieldValue('textColor') as string) || '#333',
+            }}>
+              <h4 style={{ color: (form.getFieldValue('primaryColor') as string) || '#1677ff' }}>主题预览</h4>
+              <p>这是文字颜色预览，背景色为 {form.getFieldValue('bgColor') as string || '#ffffff'}。</p>
+              <button style={{ background: (form.getFieldValue('primaryColor') as string) || '#1677ff', color: '#fff', border: 'none', padding: '6px 16px', borderRadius: 4 }}>
+                主色调按钮
+              </button>
+            </div>
+          </>
+        )}
+      </PlaygroundForm>
     </div>
   );
 });

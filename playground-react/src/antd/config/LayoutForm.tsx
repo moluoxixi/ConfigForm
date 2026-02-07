@@ -10,22 +10,14 @@
  */
 import React, { useState, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
-import { ConfigForm } from '@moluoxixi/react';
 import { setupAntd } from '@moluoxixi/ui-antd';
-import { Button, Space, Typography, Alert, Segmented, Divider } from 'antd';
+import { Typography, Segmented } from 'antd';
 import type { FormSchema } from '@moluoxixi/schema';
-import type { FieldPattern } from '@moluoxixi/shared';
+import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
 setupAntd();
-
-/** 模式选项 */
-const MODE_OPTIONS = [
-  { label: '编辑态', value: 'editable' },
-  { label: '阅读态', value: 'readOnly' },
-  { label: '禁用态', value: 'disabled' },
-];
 
 /** 布局类型 */
 type LayoutType = 'horizontal' | 'vertical' | 'inline' | 'grid-2col' | 'grid-3col';
@@ -95,16 +87,14 @@ const BASE_FIELDS: FormSchema['fields'] = {
 };
 
 /**
- * 根据布局类型和模式构建 Schema
+ * 根据布局类型构建 Schema
  *
  * @param layoutType - 布局类型
- * @param mode - 表单模式
  * @returns 完整的表单 Schema
  */
-function buildSchema(layoutType: LayoutType, mode: FieldPattern): FormSchema {
+function buildSchema(layoutType: LayoutType): FormSchema {
   const schema: FormSchema = {
     form: {
-      pattern: mode,
       labelWidth: '100px',
     },
     fields: { ...BASE_FIELDS },
@@ -161,12 +151,9 @@ const INITIAL_VALUES: Record<string, unknown> = {
  * 可切换水平 / 垂直 / 行内 / 栅格两列 / 栅格三列布局。
  */
 export const LayoutForm = observer((): React.ReactElement => {
-  const [mode, setMode] = useState<FieldPattern>('editable');
   const [layoutType, setLayoutType] = useState<LayoutType>('horizontal');
-  const [result, setResult] = useState('');
-  const [savedValues, setSavedValues] = useState<Record<string, unknown>>({ ...INITIAL_VALUES });
 
-  const schema = useMemo(() => buildSchema(layoutType, mode), [layoutType, mode]);
+  const schema = useMemo(() => buildSchema(layoutType), [layoutType]);
 
   return (
     <div>
@@ -175,54 +162,16 @@ export const LayoutForm = observer((): React.ReactElement => {
         水平布局 / 垂直布局 / 行内布局 / 栅格两列 / 栅格三列
       </Paragraph>
 
-      {/* 模式切换 */}
-      <Space direction="vertical" style={{ width: '100%', marginBottom: 16 }}>
-        <div>
-          <Text strong style={{ marginRight: 12 }}>表单模式：</Text>
-          <Segmented
-            value={mode}
-            onChange={(val) => setMode(val as FieldPattern)}
-            options={MODE_OPTIONS}
-          />
-        </div>
-        <div>
-          <Text strong style={{ marginRight: 12 }}>布局类型：</Text>
-          <Segmented
-            value={layoutType}
-            onChange={(val) => setLayoutType(val as LayoutType)}
-            options={LAYOUT_OPTIONS}
-          />
-        </div>
-      </Space>
-
-      <Divider />
-
-      <ConfigForm
-        key={`${layoutType}-${mode}`}
-        schema={schema}
-        initialValues={savedValues}
-        onValuesChange={(values) => setSavedValues(values as Record<string, unknown>)}
-        onSubmit={(values) => setResult(JSON.stringify(values, null, 2))}
-        onSubmitFailed={(errors) =>
-          setResult('验证失败:\n' + errors.map((e) => `[${e.path}] ${e.message}`).join('\n'))
-        }
-      >
-        {mode === 'editable' && (
-          <Space style={{ marginTop: 16 }}>
-            <Button type="primary" htmlType="submit">提交</Button>
-            <Button htmlType="reset">重置</Button>
-          </Space>
-        )}
-      </ConfigForm>
-
-      {result && (
-        <Alert
-          style={{ marginTop: 16 }}
-          type={result.startsWith('验证失败') ? 'error' : 'success'}
-          message="提交结果"
-          description={<pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{result}</pre>}
+      <div style={{ marginBottom: 16 }}>
+        <Text strong style={{ marginRight: 12 }}>布局类型：</Text>
+        <Segmented
+          value={layoutType}
+          onChange={(val) => setLayoutType(val as LayoutType)}
+          options={LAYOUT_OPTIONS}
         />
-      )}
+      </div>
+
+      <PlaygroundForm schema={schema} initialValues={INITIAL_VALUES} />
     </div>
   );
 });

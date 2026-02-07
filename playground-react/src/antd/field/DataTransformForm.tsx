@@ -8,29 +8,19 @@
  * - submitPath 路径映射
  * - 三种模式切换
  */
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { FormField, useCreateForm } from '@moluoxixi/react';
 import { setupAntd } from '@moluoxixi/ui-antd';
-import { Button, Typography, Alert, Segmented, Form, Input, InputNumber, Space, Tag } from 'antd';
+import { Typography, Form, Input, Space, Tag } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
-import type { FieldPattern } from '@moluoxixi/shared';
+import { PlaygroundForm } from '../../components/PlaygroundForm';
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Paragraph } = Typography;
 
 setupAntd();
 
-const MODE_OPTIONS = [
-  { label: '编辑态', value: 'editable' },
-  { label: '阅读态', value: 'readOnly' },
-  { label: '禁用态', value: 'disabled' },
-];
-
 export const DataTransformForm = observer((): React.ReactElement => {
-  const [mode, setMode] = useState<FieldPattern>('editable');
-  const [result, setResult] = useState('');
-  const [rawValues, setRawValues] = useState('');
-
   const form = useCreateForm({
     initialValues: {
       priceCent: 9990,
@@ -67,56 +57,34 @@ export const DataTransformForm = observer((): React.ReactElement => {
     });
   }, []);
 
-  const switchMode = (p: FieldPattern): void => {
-    setMode(p);
-    ['priceCent', 'phoneRaw', 'fullName', 'tags'].forEach((n) => { const f = form.getField(n); if (f) f.pattern = p; });
-  };
-
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-    setRawValues(JSON.stringify(form.values, null, 2));
-    const res = await form.submit();
-    if (res.errors.length > 0) { setResult('验证失败: ' + res.errors.map((err) => err.message).join(', ')); }
-    else { setResult(JSON.stringify(res.values, null, 2)); }
-  };
-
   return (
     <div>
       <Title level={3}>数据转换</Title>
       <Paragraph type="secondary">format（显示格式化） / parse（输入解析） / transform（提交转换）</Paragraph>
-      <Segmented value={mode} onChange={(v) => switchMode(v as FieldPattern)} options={MODE_OPTIONS} style={{ marginBottom: 16 }} />
-
-      <FormProvider form={form}>
-        <form onSubmit={handleSubmit} noValidate>
-          {['priceCent', 'phoneRaw', 'fullName', 'tags'].map((name) => (
-            <FormField key={name} name={name}>
-              {(field: FieldInstance) => (
-                <Form.Item label={field.label} required={field.required} help={field.description}>
-                  <Space>
-                    <Input
-                      value={String(field.value ?? '')}
-                      onChange={(e) => field.setValue(e.target.value)}
-                      disabled={mode === 'disabled'}
-                      readOnly={mode === 'readOnly'}
-                      style={{ width: 300 }}
-                    />
-                    <Tag color="blue">原始值: {JSON.stringify(field.value)}</Tag>
-                  </Space>
-                </Form.Item>
-              )}
-            </FormField>
-          ))}
-
-          {mode === 'editable' && (<Space style={{ marginTop: 8 }}><Button type="primary" htmlType="submit">提交（查看转换结果）</Button><Button onClick={() => form.reset()}>重置</Button></Space>)}
-        </form>
-      </FormProvider>
-
-      {rawValues && (
-        <Alert style={{ marginTop: 16 }} type="info" message="表单原始值" description={<pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{rawValues}</pre>} />
-      )}
-      {result && (
-        <Alert style={{ marginTop: 8 }} type={result.startsWith('验证失败') ? 'error' : 'success'} message="提交转换后的值" description={<pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{result}</pre>} />
-      )}
+      <PlaygroundForm form={form}>
+        {({ mode }) => (
+          <>
+            {['priceCent', 'phoneRaw', 'fullName', 'tags'].map((name) => (
+              <FormField key={name} name={name}>
+                {(field: FieldInstance) => (
+                  <Form.Item label={field.label} required={field.required} help={field.description}>
+                    <Space>
+                      <Input
+                        value={String(field.value ?? '')}
+                        onChange={(e) => field.setValue(e.target.value)}
+                        disabled={mode === 'disabled'}
+                        readOnly={mode === 'readOnly'}
+                        style={{ width: 300 }}
+                      />
+                      <Tag color="blue">原始值: {JSON.stringify(field.value)}</Tag>
+                    </Space>
+                  </Form.Item>
+                )}
+              </FormField>
+            ))}
+          </>
+        )}
+      </PlaygroundForm>
     </div>
   );
 });

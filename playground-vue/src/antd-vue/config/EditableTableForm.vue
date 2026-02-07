@@ -2,9 +2,8 @@
   <div>
     <h2>可编辑表格</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">表格行内编辑 / 行级联动 / 列统计</p>
-    <ASegmented v-model:value="mode" :options="MODE_OPTIONS" style="margin-bottom: 16px" />
-    <FormProvider :form="form">
-      <form @submit.prevent="handleSubmit" novalidate>
+    <PlaygroundForm :form="form">
+      <template #default="{ mode }">
         <FormArrayField v-slot="{ arrayField }" name="items" :field-props="{ minItems: 1, maxItems: 20, itemTemplate: () => ({ productName: '', quantity: 1, unitPrice: 0, subtotal: 0 }) }">
           <div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 8px">
@@ -27,25 +26,19 @@
             </table>
           </div>
         </FormArrayField>
-        <AButton v-if="mode === 'editable'" type="primary" html-type="submit" style="margin-top: 16px">提交</AButton>
-      </form>
-    </FormProvider>
-    <AAlert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" message="提交结果" style="margin-top: 16px"><template #description><pre style="margin: 0; white-space: pre-wrap">{{ result }}</pre></template></AAlert>
+      </template>
+    </PlaygroundForm>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { FormProvider, FormField, FormArrayField, useCreateForm } from '@moluoxixi/vue'
+import { FormField, FormArrayField, useCreateForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
-import { Button as AButton, Alert as AAlert, Segmented as ASegmented, Input as AInput, InputNumber as AInputNumber } from 'ant-design-vue'
-import type { FieldPattern } from '@moluoxixi/shared'
+import { Button as AButton, Input as AInput, InputNumber as AInputNumber } from 'ant-design-vue'
+import PlaygroundForm from '../../components/PlaygroundForm.vue'
 
 setupAntdVue()
-const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅读态', value: 'readOnly' }, { label: '禁用态', value: 'disabled' }]
-const mode = ref<FieldPattern>('editable')
-const result = ref('')
+
 const form = useCreateForm({ initialValues: { items: [{ productName: '键盘', quantity: 2, unitPrice: 299, subtotal: 598 }, { productName: '鼠标', quantity: 3, unitPrice: 99, subtotal: 297 }] } })
 function getTotal(): number { const items = (form.getFieldValue('items') ?? []) as Array<{ subtotal?: number }>; return items.reduce((s, i) => s + (i?.subtotal ?? 0), 0) }
-async function handleSubmit(): Promise<void> { const res = await form.submit(); if (res.errors.length > 0) { result.value = '验证失败: ' + res.errors.map(e => e.message).join(', ') } else { result.value = JSON.stringify({ ...res.values, totalAmount: getTotal().toFixed(2) }, null, 2) } }
 </script>

@@ -8,27 +8,21 @@
  * - 增删行
  * - 三种模式切换
  */
-import React, { useState } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormProvider, FormField, FormArrayField, useCreateForm } from '@moluoxixi/react';
+import { FormField, FormArrayField, useCreateForm } from '@moluoxixi/react';
 import { setupAntd } from '@moluoxixi/ui-antd';
 import {
-  Button, Space, Typography, Alert, Segmented, InputNumber, Input, Tag,
+  Button, Space, Typography, InputNumber, Input, Tag,
 } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { ArrayFieldInstance, FieldInstance } from '@moluoxixi/core';
 import type { FieldPattern } from '@moluoxixi/shared';
+import { PlaygroundForm } from '../../components/PlaygroundForm';
 
 const { Title, Paragraph, Text } = Typography;
 
 setupAntd();
-
-/** 模式选项 */
-const MODE_OPTIONS = [
-  { label: '编辑态', value: 'editable' },
-  { label: '阅读态', value: 'readOnly' },
-  { label: '禁用态', value: 'disabled' },
-];
 
 /** 行模板 */
 const ROW_TEMPLATE = { productName: '', quantity: 1, unitPrice: 0, subtotal: 0 };
@@ -136,9 +130,6 @@ const EditableRow = observer(({
  * 可编辑表格示例
  */
 export const EditableTableForm = observer((): React.ReactElement => {
-  const [mode, setMode] = useState<FieldPattern>('editable');
-  const [result, setResult] = useState('');
-
   const form = useCreateForm({
     initialValues: {
       items: [
@@ -154,17 +145,6 @@ export const EditableTableForm = observer((): React.ReactElement => {
     return items.reduce((sum, item) => sum + (item?.subtotal ?? 0), 0);
   };
 
-  /** 提交 */
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-    const res = await form.submit();
-    if (res.errors.length > 0) {
-      setResult('验证失败: ' + res.errors.map((err) => err.message).join(', '));
-    } else {
-      setResult(JSON.stringify({ ...res.values, totalAmount: getTotal().toFixed(2) }, null, 2));
-    }
-  };
-
   return (
     <div>
       <Title level={3}>可编辑表格</Title>
@@ -172,15 +152,8 @@ export const EditableTableForm = observer((): React.ReactElement => {
         表格行内编辑 / 行级联动（数量×单价=小计） / 列统计（合计行）
       </Paragraph>
 
-      <Segmented
-        value={mode}
-        onChange={(val) => setMode(val as FieldPattern)}
-        options={MODE_OPTIONS}
-        style={{ marginBottom: 16 }}
-      />
-
-      <FormProvider form={form}>
-        <form onSubmit={handleSubmit} noValidate>
+      <PlaygroundForm form={form}>
+        {({ mode }) => (
           <FormArrayField
             name="items"
             fieldProps={{ minItems: 1, maxItems: MAX_ROWS, itemTemplate: () => ({ ...ROW_TEMPLATE }) }}
@@ -227,21 +200,8 @@ export const EditableTableForm = observer((): React.ReactElement => {
               </div>
             )}
           </FormArrayField>
-
-          {mode === 'editable' && (
-            <Button type="primary" htmlType="submit" style={{ marginTop: 16 }}>提交订单</Button>
-          )}
-        </form>
-      </FormProvider>
-
-      {result && (
-        <Alert
-          style={{ marginTop: 16 }}
-          type={result.startsWith('验证失败') ? 'error' : 'success'}
-          message="提交结果"
-          description={<pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{result}</pre>}
-        />
-      )}
+        )}
+      </PlaygroundForm>
     </div>
   );
 });

@@ -2,30 +2,21 @@
   <div>
     <h2>属性联动</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">动态 disabled / required / placeholder / componentProps</p>
-    <ASegmented v-model:value="mode" :options="MODE_OPTIONS" style="margin-bottom: 16px" />
-    <ConfigForm :key="mode" :schema="schema" :initial-values="savedValues" @values-change="(v: Record<string, unknown>) => savedValues = v" @submit="(v: Record<string, unknown>) => result = JSON.stringify(v, null, 2)" @submit-failed="(e: any[]) => result = '验证失败:\n' + e.map((x: any) => `[${x.path}] ${x.message}`).join('\n')">
-      <template #default="{ form }"><ASpace v-if="mode === 'editable'" style="margin-top: 16px"><AButton type="primary" html-type="submit">提交</AButton><AButton @click="form.reset()">重置</AButton></ASpace></template>
-    </ConfigForm>
-    <AAlert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" message="提交结果" style="margin-top: 16px"><template #description><pre style="margin: 0; white-space: pre-wrap">{{ result }}</pre></template></AAlert>
+    <PlaygroundForm :schema="schema" :initial-values="initialValues" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { ConfigForm } from '@moluoxixi/vue'
 import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
-import { Button as AButton, Space as ASpace, Alert as AAlert, Segmented as ASegmented } from 'ant-design-vue'
 import type { FormSchema } from '@moluoxixi/schema'
-import type { FieldPattern } from '@moluoxixi/shared'
+import PlaygroundForm from '../../components/PlaygroundForm.vue'
 
 setupAntdVue()
-const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅读态', value: 'readOnly' }, { label: '禁用态', value: 'disabled' }]
-const mode = ref<FieldPattern>('editable')
-const result = ref('')
-const savedValues = ref<Record<string, unknown>>({ enableRemark: false, remark: '', contactType: 'phone', contactValue: '', productType: 'standard', quantity: 1, isVip: false, vipCompany: '', vipId: '' })
 
-const schema = computed<FormSchema>(() => ({
-  form: { labelPosition: 'right', labelWidth: '150px', pattern: mode.value },
+const initialValues = { enableRemark: false, remark: '', contactType: 'phone', contactValue: '', productType: 'standard', quantity: 1, isVip: false, vipCompany: '', vipId: '' }
+
+const schema: FormSchema = {
+  form: { labelPosition: 'right', labelWidth: '150px' },
   fields: {
     enableRemark: { type: 'boolean', label: '启用备注', component: 'Switch', wrapper: 'FormItem', defaultValue: false },
     remark: { type: 'string', label: '备注内容', component: 'Textarea', wrapper: 'FormItem', placeholder: '请先开启', disabled: true, reactions: [{ watch: 'enableRemark', when: (v: unknown[]) => v[0] === true, fulfill: { state: { disabled: false } }, otherwise: { state: { disabled: true } } }] },
@@ -43,5 +34,5 @@ const schema = computed<FormSchema>(() => ({
     vipCompany: { type: 'string', label: '公司名称', component: 'Input', wrapper: 'FormItem', placeholder: 'VIP 必填', reactions: [{ watch: 'isVip', when: (v: unknown[]) => v[0] === true, fulfill: { state: { required: true } }, otherwise: { state: { required: false } } }] },
     vipId: { type: 'string', label: '工号', component: 'Input', wrapper: 'FormItem', placeholder: 'VIP 必填', reactions: [{ watch: 'isVip', when: (v: unknown[]) => v[0] === true, fulfill: { state: { required: true } }, otherwise: { state: { required: false } } }] },
   },
-}))
+}
 </script>

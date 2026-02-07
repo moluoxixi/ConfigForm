@@ -7,26 +7,20 @@
  * - 导出 CSV
  * - 三种模式切换
  */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { FormField, useCreateForm } from '@moluoxixi/react';
 import { setupAntd } from '@moluoxixi/ui-antd';
 import {
-  Button, Typography, Alert, Segmented, Form, Input, InputNumber, Space, Card,
+  Button, Typography, Form, Input, InputNumber, Space,
 } from 'antd';
 import { PrinterOutlined, DownloadOutlined, FileTextOutlined } from '@ant-design/icons';
 import type { FieldInstance } from '@moluoxixi/core';
-import type { FieldPattern } from '@moluoxixi/shared';
+import { PlaygroundForm } from '../../components/PlaygroundForm';
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Paragraph } = Typography;
 
 setupAntd();
-
-const MODE_OPTIONS = [
-  { label: '编辑态', value: 'editable' },
-  { label: '阅读态', value: 'readOnly' },
-  { label: '禁用态', value: 'disabled' },
-];
 
 const FIELDS = [
   { name: 'orderNo', label: '订单号', type: 'text' },
@@ -49,8 +43,6 @@ function downloadFile(content: string, filename: string, mimeType: string): void
 }
 
 export const PrintExportForm = observer((): React.ReactElement => {
-  const [mode, setMode] = useState<FieldPattern>('editable');
-  const [result, setResult] = useState('');
   const printRef = useRef<HTMLDivElement>(null);
 
   const form = useCreateForm({
@@ -60,11 +52,6 @@ export const PrintExportForm = observer((): React.ReactElement => {
   useEffect(() => {
     FIELDS.forEach((d) => form.createField({ name: d.name, label: d.label }));
   }, []);
-
-  const switchMode = (p: FieldPattern): void => {
-    setMode(p);
-    FIELDS.forEach((d) => { const f = form.getField(d.name); if (f) f.pattern = p; });
-  };
 
   /** 打印 */
   const handlePrint = (): void => {
@@ -100,18 +87,10 @@ export const PrintExportForm = observer((): React.ReactElement => {
     downloadFile(`\uFEFF${headers}\n${values}`, 'form-data.csv', 'text/csv;charset=utf-8');
   };
 
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-    const res = await form.submit();
-    if (res.errors.length > 0) { setResult('验证失败: ' + res.errors.map((err) => err.message).join(', ')); }
-    else { setResult(JSON.stringify(res.values, null, 2)); }
-  };
-
   return (
     <div>
       <Title level={3}>打印、导出</Title>
       <Paragraph type="secondary">打印预览（window.print） / 导出 JSON / 导出 CSV</Paragraph>
-      <Segmented value={mode} onChange={(v) => switchMode(v as FieldPattern)} options={MODE_OPTIONS} style={{ marginBottom: 16 }} />
 
       {/* 工具栏 */}
       <Space style={{ marginBottom: 16 }}>
@@ -121,29 +100,28 @@ export const PrintExportForm = observer((): React.ReactElement => {
       </Space>
 
       <div ref={printRef}>
-        <FormProvider form={form}>
-          <form onSubmit={handleSubmit} noValidate>
-            {FIELDS.map((d) => (
-              <FormField key={d.name} name={d.name}>
-                {(field: FieldInstance) => (
-                  <Form.Item label={d.label}>
-                    {d.type === 'number' ? (
-                      <InputNumber value={field.value as number} onChange={(v) => field.setValue(v)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} style={{ width: '100%' }} />
-                    ) : d.type === 'textarea' ? (
-                      <Input.TextArea value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} rows={2} />
-                    ) : (
-                      <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} />
-                    )}
-                  </Form.Item>
-                )}
-              </FormField>
-            ))}
-            {mode === 'editable' && (<Space><Button type="primary" htmlType="submit">提交</Button><Button onClick={() => form.reset()}>重置</Button></Space>)}
-          </form>
-        </FormProvider>
+        <PlaygroundForm form={form}>
+          {({ mode }) => (
+            <>
+              {FIELDS.map((d) => (
+                <FormField key={d.name} name={d.name}>
+                  {(field: FieldInstance) => (
+                    <Form.Item label={d.label}>
+                      {d.type === 'number' ? (
+                        <InputNumber value={field.value as number} onChange={(v) => field.setValue(v)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} style={{ width: '100%' }} />
+                      ) : d.type === 'textarea' ? (
+                        <Input.TextArea value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} rows={2} />
+                      ) : (
+                        <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} />
+                      )}
+                    </Form.Item>
+                  )}
+                </FormField>
+              ))}
+            </>
+          )}
+        </PlaygroundForm>
       </div>
-
-      {result && (<Alert style={{ marginTop: 16 }} type={result.startsWith('验证失败') ? 'error' : 'success'} message="提交结果" description={<pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{result}</pre>} />)}
     </div>
   );
 });

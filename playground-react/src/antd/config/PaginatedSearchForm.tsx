@@ -9,24 +9,17 @@
  */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
-import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
+import { FormField, useCreateForm } from '@moluoxixi/react';
 import { setupAntd } from '@moluoxixi/ui-antd';
 import {
-  Button, Space, Typography, Alert, Segmented, Select, Form, Spin,
+  Typography, Select, Form, Spin,
 } from 'antd';
 import type { FieldInstance } from '@moluoxixi/core';
-import type { FieldPattern } from '@moluoxixi/shared';
+import { PlaygroundForm } from '../../components/PlaygroundForm';
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Paragraph } = Typography;
 
 setupAntd();
-
-/** 模式选项 */
-const MODE_OPTIONS = [
-  { label: '编辑态', value: 'editable' },
-  { label: '阅读态', value: 'readOnly' },
-  { label: '禁用态', value: 'disabled' },
-];
 
 /** 模拟 1000 条用户数据 */
 const MOCK_USERS = Array.from({ length: 1000 }, (_, i) => ({
@@ -63,9 +56,6 @@ async function fetchUsers(keyword: string, page: number): Promise<{ data: typeof
  * 分页搜索数据源示例
  */
 export const PaginatedSearchForm = observer((): React.ReactElement => {
-  const [mode, setMode] = useState<FieldPattern>('editable');
-  const [result, setResult] = useState('');
-
   const form = useCreateForm({
     initialValues: { userId: undefined, remark: '' },
   });
@@ -128,26 +118,6 @@ export const PaginatedSearchForm = observer((): React.ReactElement => {
     }
   };
 
-  /** 切换模式 */
-  const switchMode = (p: FieldPattern): void => {
-    setMode(p);
-    ['userId', 'remark'].forEach((name) => {
-      const field = form.getField(name);
-      if (field) field.pattern = p;
-    });
-  };
-
-  /** 提交 */
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-    const res = await form.submit();
-    if (res.errors.length > 0) {
-      setResult('验证失败: ' + res.errors.map((err) => err.message).join(', '));
-    } else {
-      setResult(JSON.stringify(res.values, null, 2));
-    }
-  };
-
   return (
     <div>
       <Title level={3}>分页搜索数据源</Title>
@@ -155,78 +125,60 @@ export const PaginatedSearchForm = observer((): React.ReactElement => {
         大数据量远程搜索 / 分页加载更多 / 搜索防抖（{DEBOUNCE_DELAY}ms） / 共 {MOCK_USERS.length} 条模拟数据
       </Paragraph>
 
-      <Segmented
-        value={mode}
-        onChange={(val) => switchMode(val as FieldPattern)}
-        options={MODE_OPTIONS}
-        style={{ marginBottom: 16 }}
-      />
+      <PlaygroundForm form={form}>
+        {({ mode }) => (
+          <>
+            <FormField name="userId">
+              {(field: FieldInstance) => (
+                <Form.Item
+                  label={field.label}
+                  required={field.required}
+                  validateStatus={field.errors.length > 0 ? 'error' : undefined}
+                  help={field.errors.length > 0 ? field.errors[0].message : undefined}
+                >
+                  <Select
+                    value={(field.value as string) ?? undefined}
+                    onChange={(val) => field.setValue(val)}
+                    showSearch
+                    filterOption={false}
+                    onSearch={handleSearch}
+                    onPopupScroll={handlePopupScroll}
+                    placeholder="输入关键词搜索用户"
+                    options={options}
+                    loading={loading}
+                    disabled={mode === 'disabled'}
+                    style={{ width: 400 }}
+                    notFoundContent={loading ? <Spin size="small" /> : '无匹配结果'}
+                    dropdownRender={(menu) => (
+                      <>
+                        {menu}
+                        <div style={{ padding: '4px 8px', textAlign: 'center', color: '#999', fontSize: 12 }}>
+                          {loading ? '加载中...' : `已加载 ${options.length} / ${total} 条`}
+                        </div>
+                      </>
+                    )}
+                  />
+                </Form.Item>
+              )}
+            </FormField>
 
-      <FormProvider form={form}>
-        <form onSubmit={handleSubmit} noValidate>
-          <FormField name="userId">
-            {(field: FieldInstance) => (
-              <Form.Item
-                label={field.label}
-                required={field.required}
-                validateStatus={field.errors.length > 0 ? 'error' : undefined}
-                help={field.errors.length > 0 ? field.errors[0].message : undefined}
-              >
-                <Select
-                  value={(field.value as string) ?? undefined}
-                  onChange={(val) => field.setValue(val)}
-                  showSearch
-                  filterOption={false}
-                  onSearch={handleSearch}
-                  onPopupScroll={handlePopupScroll}
-                  placeholder="输入关键词搜索用户"
-                  options={options}
-                  loading={loading}
-                  disabled={mode === 'disabled'}
-                  style={{ width: 400 }}
-                  notFoundContent={loading ? <Spin size="small" /> : '无匹配结果'}
-                  dropdownRender={(menu) => (
-                    <>
-                      {menu}
-                      <div style={{ padding: '4px 8px', textAlign: 'center', color: '#999', fontSize: 12 }}>
-                        {loading ? '加载中...' : `已加载 ${options.length} / ${total} 条`}
-                      </div>
-                    </>
-                  )}
-                />
-              </Form.Item>
-            )}
-          </FormField>
-
-          <FormField name="remark">
-            {(field: FieldInstance) => (
-              <Form.Item label={field.label}>
-                <Select
-                  mode="tags"
-                  value={field.value as string[] ?? []}
-                  onChange={(val) => field.setValue(val)}
-                  placeholder="输入标签"
-                  style={{ width: 400 }}
-                  disabled={mode === 'disabled'}
-                />
-              </Form.Item>
-            )}
-          </FormField>
-
-          {mode === 'editable' && (
-            <Button type="primary" htmlType="submit">提交</Button>
-          )}
-        </form>
-      </FormProvider>
-
-      {result && (
-        <Alert
-          style={{ marginTop: 16 }}
-          type={result.startsWith('验证失败') ? 'error' : 'success'}
-          message="提交结果"
-          description={<pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{result}</pre>}
-        />
-      )}
+            <FormField name="remark">
+              {(field: FieldInstance) => (
+                <Form.Item label={field.label}>
+                  <Select
+                    mode="tags"
+                    value={field.value as string[] ?? []}
+                    onChange={(val) => field.setValue(val)}
+                    placeholder="输入标签"
+                    style={{ width: 400 }}
+                    disabled={mode === 'disabled'}
+                  />
+                </Form.Item>
+              )}
+            </FormField>
+          </>
+        )}
+      </PlaygroundForm>
     </div>
   );
 });
