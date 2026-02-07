@@ -1,45 +1,29 @@
-import type { CompileOptions, FormSchema, GridLayout } from '@moluoxixi/schema'
-import type { CSSProperties, PropType } from 'vue'
-import { compileSchema, toArrayFieldProps, toFieldProps } from '@moluoxixi/schema'
+import type { CompiledField, CompileOptions, ISchema } from '@moluoxixi/schema'
+import type { PropType, VNode } from 'vue'
+import { compileSchema, toArrayFieldProps, toFieldProps, toVoidFieldProps } from '@moluoxixi/schema'
 import { computed, defineComponent, h, inject } from 'vue'
 import { FormSymbol } from '../context'
 import { FormArrayField } from './FormArrayField'
 import { FormField } from './FormField'
+import { FormObjectField } from './FormObjectField'
+import { FormVoidField } from './FormVoidField'
 
 /**
- * 根据 schema.form.direction 和 schema.layout 计算容器 CSS
- */
-function computeContainerStyle(direction?: string, layout?: FormSchema['layout']): CSSProperties {
-  const style: CSSProperties = {}
-
-  /* 栅格布局优先 */
-  if (layout && layout.type === 'grid') {
-    const grid = layout as GridLayout
-    style.display = 'grid'
-    style.gridTemplateColumns = `repeat(${grid.columns}, 1fr)`
-    style.gap = `${grid.gutter ?? 16}px`
-    return style
-  }
-
-  /* 行内布局：字段水平排列 */
-  if (direction === 'inline') {
-    style.display = 'flex'
-    style.flexWrap = 'wrap'
-    style.gap = '0 16px'
-    style.alignItems = 'flex-start'
-  }
-
-  return style
-}
-
-/**
- * Schema 驱动的字段渲染器
+ * Schema 驱动的递归渲染器（参考 Formily RecursionField）
+ *
+ * 根据编译后的 schema 树递归渲染，每种 type 对应一个 Field 组件：
+ * - void   → FormVoidField（创建 VoidField 实例，渲染布局容器）
+ * - string/number/boolean/date → FormField（创建 Field 实例）
+ * - array  → FormArrayField（创建 ArrayField 实例）
+ * - object → FormObjectField（创建 Field 实例，递归子节点）
+ *
+ * 所有 Field 组件通过 ReactiveField 桥接渲染 decorator(component(children))。
  */
 export const SchemaField = defineComponent({
   name: 'SchemaField',
   props: {
     schema: {
-      type: Object as PropType<FormSchema>,
+      type: Object as PropType<ISchema>,
       required: true,
     },
     compileOptions: {
@@ -55,45 +39,81 @@ export const SchemaField = defineComponent({
 
     const compiled = computed(() => compileSchema(props.schema, props.compileOptions))
 
-    return () => {
-      const formConfig = compiled.value.form
-      const layoutSchema = compiled.value.layout
-      const containerStyle = computeContainerStyle(formConfig.direction, layoutSchema)
-
-      /* 渲染 schema.fields 中直接声明的字段（包括扁平化点路径如 'profile.name'） */
-      const schemaKeys = new Set(Object.keys(props.schema.fields))
-      const topLevelFields = Array.from(compiled.value.fields.entries()).filter(
-        ([path]) => schemaKeys.has(path),
-      )
-
-      const fieldElements = topLevelFields.map(([path, compiledField]) => {
-        if (compiledField.isVoid) {
-          return null
-        }
-
-        if (compiledField.isArray) {
-          const fieldProps = toArrayFieldProps(compiledField)
-          return h(FormArrayField, {
-            key: path,
-            name: path,
-            fieldProps,
-          })
-        }
-
-        const fieldProps = toFieldProps(compiledField)
-        return h(FormField, {
-          key: path,
-          name: path,
-          fieldProps,
+    /** 渲染一个编译后的节点 */
+    function renderNode(cf: CompiledField): VNode | null {
+      if (cf.isVoid) {
+        return renderVoidNode(cf)
+      }
+      if (cf.isArray) {
+        return h(FormArrayField, {
+          key: cf.address,
+          name: cf.dataPath,
+          fieldProps: toArrayFieldProps(cf),
         })
+      }
+      if (cf.schema.type === 'object' && cf.children.length > 0) {
+        return renderObjectNode(cf)
+      }
+      /* 普通数据字段 */
+      return h(FormField, {
+        key: cf.address,
+        name: cf.dataPath,
+        fieldProps: toFieldProps(cf),
       })
+    }
 
-      /* 如果有布局样式，包裹在容器 div 中 */
-      if (Object.keys(containerStyle).length > 0) {
-        return h('div', { style: containerStyle }, fieldElements)
+    /** void 节点 → FormVoidField + 递归 children */
+    function renderVoidNode(cf: CompiledField): VNode {
+      const voidProps = toVoidFieldProps(cf)
+      return h(FormVoidField, {
+        key: cf.address,
+        name: cf.address,
+        fieldProps: voidProps,
+      }, {
+        default: () => renderChildren(cf.children),
+      })
+    }
+
+    /** object 节点 → FormObjectField + 递归 children */
+    function renderObjectNode(cf: CompiledField): VNode {
+      return h(FormObjectField, {
+        key: cf.address,
+        name: cf.dataPath,
+        fieldProps: toFieldProps(cf),
+      }, {
+        default: () => renderChildren(cf.children),
+      })
+    }
+
+    /** 递归渲染子节点 */
+    function renderChildren(childAddresses: string[]): VNode[] {
+      const allFields = compiled.value.fields
+      const result: VNode[] = []
+      for (const addr of childAddresses) {
+        const cf = allFields.get(addr)
+        if (cf) {
+          const node = renderNode(cf)
+          if (node) result.push(node)
+        }
+      }
+      return result
+    }
+
+    return () => {
+      const rootChildren: VNode[] = []
+      const allFields = compiled.value.fields
+
+      for (const addr of compiled.value.fieldOrder) {
+        if (!addr.includes('.')) {
+          const cf = allFields.get(addr)
+          if (cf) {
+            const node = renderNode(cf)
+            if (node) rootChildren.push(node)
+          }
+        }
       }
 
-      return fieldElements
+      return rootChildren
     }
   },
 })

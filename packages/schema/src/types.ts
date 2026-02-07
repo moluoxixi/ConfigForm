@@ -2,62 +2,87 @@ import type { DataSourceConfig, ReactionRule } from '@moluoxixi/core'
 import type { DataSourceItem, FieldPattern } from '@moluoxixi/shared'
 import type { ValidationRule, ValidationTrigger } from '@moluoxixi/validator'
 
-/* ======================== 表单 Schema ======================== */
+/* ======================== Schema 定义 ======================== */
 
-/** 完整表单 Schema 定义 */
-export interface FormSchema<Values = Record<string, unknown>> {
-  /** 表单级配置 */
-  form?: FormSchemaConfig
-  /** 字段定义 */
-  fields: Record<string, FieldSchema>
-  /** 布局定义 */
-  layout?: LayoutSchema
-  /** 全局联动规则 */
-  reactions?: ReactionRule[]
-}
+/** Schema 节点数据类型 */
+export type SchemaType = 'string' | 'number' | 'boolean' | 'date' | 'array' | 'object' | 'void'
 
-/** 表单级 Schema 配置 */
-export interface FormSchemaConfig {
-  /** 标签位置 */
-  labelPosition?: 'top' | 'left' | 'right'
-  /** 标签宽度 */
-  labelWidth?: number | string
-  /** 尺寸 */
-  size?: 'small' | 'default' | 'large'
-  /** 布局方向 */
-  direction?: 'vertical' | 'horizontal' | 'inline'
-  /** 表单模式 */
-  pattern?: FieldPattern
-  /** 验证触发时机 */
-  validateTrigger?: ValidationTrigger | ValidationTrigger[]
-}
-
-/* ======================== 字段 Schema ======================== */
-
-/** 字段 Schema 定义 */
-export interface FieldSchema {
-  /** 字段数据类型 */
-  type: FieldSchemaType
-  /** 标签 */
-  label?: string
-  /** 描述 */
+/**
+ * Schema 节点定义（JSON Schema 风格，语义化命名）
+ *
+ * 参考 Formily 的 ISchema，但不使用 x- 前缀。
+ *
+ * 设计原则：
+ * - `type: 'void'` 作为布局容器（Card / Collapse / Tabs 等），不参与数据收集
+ * - `type: 'object'` 作为根节点或嵌套对象
+ * - 通过 `properties` 嵌套子节点，而非扁平 fields
+ * - 类型自动推断组件：string→Input, number→InputNumber, boolean→Switch, enum→Select
+ * - 默认 decorator：非 void 字段自动使用 `'FormItem'`
+ *
+ * @example
+ * ```ts
+ * const schema: ISchema = {
+ *   type: 'object',
+ *   properties: {
+ *     username: { type: 'string', title: '用户名', required: true },
+ *     gender: { type: 'string', title: '性别', enum: [{ label: '男', value: 'male' }] },
+ *     info: {
+ *       type: 'void',
+ *       component: 'Card',
+ *       componentProps: { title: '详细信息' },
+ *       properties: {
+ *         email: { type: 'string', title: '邮箱', rules: [{ format: 'email' }] },
+ *       },
+ *     },
+ *   },
+ * }
+ * ```
+ */
+export interface ISchema {
+  /** 数据类型 */
+  type?: SchemaType
+  /** 标签文字（JSON Schema 标准命名） */
+  title?: string
+  /** 描述信息 */
   description?: string
   /** 默认值 */
-  defaultValue?: unknown
-  /** 占位符 */
-  placeholder?: string
+  default?: unknown
+  /** 是否必填（字段级为 boolean，object 级可为 string[] 指定哪些子字段必填） */
+  required?: boolean | string[]
+
+  /* ---- 枚举 / 数据源 ---- */
+  /** 枚举选项（简写） */
+  enum?: Array<string | number | { label: string; value: unknown; disabled?: boolean }>
+  /** 数据源（静态数组或远程配置） */
+  dataSource?: DataSourceItem[] | DataSourceConfig
 
   /* ---- 组件 ---- */
-  /** 渲染组件 */
-  component?: string
-  /** 组件 Props */
+  /** 渲染组件（省略时按 type/enum 自动推断；支持字符串名或直接组件引用） */
+  component?: string | ((...args: unknown[]) => unknown) | Record<string, unknown>
+  /** 组件属性 */
   componentProps?: Record<string, unknown>
-  /** 装饰器组件 */
-  wrapper?: string
-  /** 装饰器 Props */
-  wrapperProps?: Record<string, unknown>
+  /** 装饰器组件（省略时非 void 字段默认 'FormItem'；支持字符串名或直接组件引用） */
+  decorator?: string | ((...args: unknown[]) => unknown) | Record<string, unknown>
+  /** 装饰器属性 */
+  decoratorProps?: Record<string, unknown>
 
-  /* ---- 行为 ---- */
+  /* ---- 嵌套 ---- */
+  /** 子节点（JSON Schema properties） */
+  properties?: Record<string, ISchema>
+  /** 数组项 Schema */
+  items?: ISchema
+
+  /* ---- 验证 ---- */
+  /** 验证规则 */
+  rules?: ValidationRule[]
+  /** 验证触发时机 */
+  validateTrigger?: ValidationTrigger | ValidationTrigger[]
+
+  /* ---- 联动 ---- */
+  /** 联动规则 */
+  reactions?: ReactionRule[]
+
+  /* ---- 状态 ---- */
   /** 是否可见 */
   visible?: boolean
   /** 是否禁用 */
@@ -67,45 +92,13 @@ export interface FieldSchema {
   /** 字段模式 */
   pattern?: FieldPattern
 
-  /* ---- 验证 ---- */
-  /** 是否必填 */
-  required?: boolean
-  /** 验证规则 */
-  rules?: ValidationRule[]
-  /** 验证触发时机 */
-  validateTrigger?: ValidationTrigger | ValidationTrigger[]
-
-  /* ---- 数据源 ---- */
-  /** 数据源（静态或远程配置） */
-  dataSource?: DataSourceConfig | DataSourceItem[]
-  /** 枚举值（简写，等价于静态数据源） */
-  enum?: Array<string | number | { label: string, value: unknown, disabled?: boolean }>
-
-  /* ---- 联动 ---- */
-  /** 联动规则 */
-  reactions?: ReactionRule[]
-
-  /* ---- 数组 ---- */
-  /** 数组项 Schema */
-  items?: FieldSchema
+  /* ---- 数组特有 ---- */
   /** 数组项最小数量 */
   minItems?: number
   /** 数组项最大数量 */
   maxItems?: number
   /** 新增项模板 */
   itemTemplate?: unknown
-
-  /* ---- 嵌套 ---- */
-  /** 子字段 */
-  properties?: Record<string, FieldSchema>
-
-  /* ---- 布局提示 ---- */
-  /** 栅格占比 */
-  span?: number
-  /** 排序权重 */
-  order?: number
-  /** 所属分组 */
-  group?: string
 
   /* ---- 数据处理 ---- */
   /** 显示格式化 */
@@ -119,137 +112,70 @@ export interface FieldSchema {
   /** 隐藏时是否排除提交数据 */
   excludeWhenHidden?: boolean
 
-  /* ---- 国际化 ---- */
-  /** 国际化 key */
-  i18nKey?: string
+  /* ---- 布局提示 ---- */
+  /** 栅格占比 */
+  span?: number
+  /** 排序权重 */
+  order?: number
 
   /* ---- 扩展 ---- */
   /** 自定义扩展属性 */
   [key: `x-${string}`]: unknown
 }
 
-/** 字段数据类型 */
-export type FieldSchemaType
-  = | 'string'
-    | 'number'
-    | 'boolean'
-    | 'date'
-    | 'array'
-    | 'object'
-    | 'void'
-
-/* ======================== 布局 Schema ======================== */
-
-/** 布局 Schema（联合类型） */
-export type LayoutSchema
-  = | GridLayout
-    | StepLayout
-    | TabLayout
-    | GroupLayout
-
-/** 栅格布局 */
-export interface GridLayout {
-  type: 'grid'
-  /** 列数 */
-  columns: number
-  /** 间距 */
-  gutter?: number
-  /** 响应式列数 */
-  responsive?: {
-    xs?: number
-    sm?: number
-    md?: number
-    lg?: number
-    xl?: number
-  }
-  /** 栅格区域 */
-  areas?: GridArea[]
-}
-
-/** 栅格区域 */
-export interface GridArea {
-  /** 区域名称 */
-  name?: string
-  /** 包含的字段路径 */
-  fields: string[]
-  /** 占用列数 */
-  span?: number
-}
-
-/** 分步布局 */
-export interface StepLayout {
-  type: 'steps'
-  steps: StepItem[]
-}
-
-export interface StepItem {
-  title: string
-  description?: string
-  icon?: string
-  fields: string[]
-  /** 切换下一步前是否验证 */
-  validateOnNext?: boolean
-}
-
-/** 标签页布局 */
-export interface TabLayout {
-  type: 'tabs'
-  tabs: TabItem[]
-}
-
-export interface TabItem {
-  title: string
-  icon?: string
-  fields: string[]
-  /** 显示错误数量徽标 */
-  showErrorBadge?: boolean
-}
-
-/** 分组布局 */
-export interface GroupLayout {
-  type: 'groups'
-  groups: GroupItem[]
-}
-
-export interface GroupItem {
-  title: string
-  description?: string
-  /** 分组组件（Card / Collapse 等） */
-  component?: string
-  fields: string[]
-  /** 是否默认折叠 */
-  collapsed?: boolean
-}
+/**
+ * 表单 Schema（根节点，等价于 type='object' 的 ISchema）
+ *
+ * ConfigForm 接收此类型。根节点的 decoratorProps 用于传递表单级配置
+ * （如 labelWidth、labelPosition 等）。
+ */
+export type FormSchema = ISchema
 
 /* ======================== 编译结果 ======================== */
 
-/** Schema 编译结果 */
-export interface CompiledSchema {
-  form: FormSchemaConfig
-  fields: Map<string, CompiledField>
-  layout?: LayoutSchema
-  /** 字段渲染顺序 */
-  fieldOrder: string[]
+/** 编译后的字段节点 */
+export interface CompiledField {
+  /**
+   * 完整地址（含 void 节点），用于渲染 key 和组件查找。
+   * 例：`cardGroup.username`（cardGroup 是 void）
+   */
+  address: string
+  /**
+   * 数据路径（跳过 void 节点），用于 form.values 读写和 FormField name。
+   * 例：`username`（void 节点 cardGroup 被跳过）
+   *
+   * 参考 Formily：void 字段不参与数据路径。
+   */
+  dataPath: string
+  /** 原始 schema 节点（已标准化 enum → dataSource） */
+  schema: ISchema
+  /** 推断出的组件（字符串名或直接引用） */
+  resolvedComponent: string | unknown
+  /** 推断出的装饰器（字符串名或直接引用） */
+  resolvedDecorator: string | unknown
+  /** 是否是虚拟字段（type='void'） */
+  isVoid: boolean
+  /** 是否是数组字段（type='array'） */
+  isArray: boolean
+  /** 直接子节点地址（address） */
+  children: string[]
 }
 
-/** 编译后的字段 */
-export interface CompiledField {
-  path: string
-  schema: FieldSchema
-  /** 推断出的组件名 */
-  resolvedComponent: string
-  /** 是否是虚拟字段 */
-  isVoid: boolean
-  /** 是否是数组字段 */
-  isArray: boolean
-  /** 子字段路径 */
-  children: string[]
+/** Schema 编译结果 */
+export interface CompiledSchema {
+  /** 根节点 schema */
+  root: ISchema
+  /** 所有节点（路径 → 编译结果） */
+  fields: Map<string, CompiledField>
+  /** 渲染顺序 */
+  fieldOrder: string[]
 }
 
 /** Schema 编译选项 */
 export interface CompileOptions {
-  /** 类型 → 组件的映射 */
+  /** 类型 → 组件的映射（覆盖默认推断） */
   componentMapping?: Record<string, string>
-  /** 默认装饰器组件 */
-  defaultWrapper?: string
+  /** 默认装饰器组件（默认 'FormItem'） */
+  defaultDecorator?: string
 }
+

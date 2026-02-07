@@ -1,0 +1,52 @@
+<template>
+  <div>
+    <h2>表单布局</h2>
+    <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">水平 / 垂直 / 行内 / 栅格布局</p>
+    <div style="margin-bottom: 16px">
+      <span style="font-weight: 600; margin-right: 12px">布局类型：</span>
+      <ASegmented v-model:value="layoutType" :options="LAYOUT_OPTIONS" />
+    </div>
+    <PlaygroundForm :schema="schema" :initial-values="initialValues" />
+  </div>
+</template>
+
+<script setup lang="ts">
+/**
+ * 场景 2：表单布局（Ant Design Vue）
+ */
+import { computed, ref } from 'vue'
+import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
+import { Segmented as ASegmented } from 'ant-design-vue'
+import type { ISchema } from '@moluoxixi/schema'
+import PlaygroundForm from '../../components/PlaygroundForm.vue'
+
+setupAntdVue()
+
+const LAYOUT_OPTIONS = [{ label: '水平', value: 'horizontal' }, { label: '垂直', value: 'vertical' }, { label: '行内', value: 'inline' }, { label: '栅格两列', value: 'grid-2col' }]
+
+type LayoutType = 'horizontal' | 'vertical' | 'inline' | 'grid-2col'
+
+const layoutType = ref<LayoutType>('horizontal')
+
+const initialValues = { name: '', email: '', phone: '', department: undefined, role: '', joinDate: '' }
+
+const PROPERTIES: ISchema['properties'] = {
+  name: { type: 'string', title: '姓名', required: true, placeholder: '请输入姓名' },
+  email: { type: 'string', title: '邮箱', required: true, placeholder: '请输入邮箱', rules: [{ format: 'email', message: '无效邮箱' }] },
+  phone: { type: 'string', title: '手机号', placeholder: '请输入手机号' },
+  department: { type: 'string', title: '部门', component: 'Select', placeholder: '请选择', enum: [{ label: '技术部', value: 'tech' }, { label: '产品部', value: 'product' }, { label: '设计部', value: 'design' }] },
+  role: { type: 'string', title: '职位', placeholder: '请输入职位' },
+  joinDate: { type: 'string', title: '入职日期', component: 'DatePicker' },
+}
+
+const schema = computed<ISchema>(() => {
+  const s: ISchema = { type: 'object', decoratorProps: { labelWidth: '100px' }, properties: { ...PROPERTIES } }
+  switch (layoutType.value) {
+    case 'horizontal': s.decoratorProps!.labelPosition = 'right'; s.decoratorProps!.direction = 'vertical'; break
+    case 'vertical': s.decoratorProps!.labelPosition = 'top'; s.decoratorProps!.direction = 'vertical'; break
+    case 'inline': s.decoratorProps!.labelPosition = 'right'; s.decoratorProps!.direction = 'inline'; break
+    case 'grid-2col': s.decoratorProps!.labelPosition = 'right'; s.layout = { type: 'grid', columns: 2, gutter: 24 }; break
+  }
+  return s
+})
+</script>

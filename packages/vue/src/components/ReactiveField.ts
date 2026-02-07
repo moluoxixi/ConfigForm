@@ -1,0 +1,134 @@
+import type { FieldInstance, FormInstance, VoidFieldInstance } from '@moluoxixi/core'
+import type { Component, PropType, VNode } from 'vue'
+import { defineComponent, h, inject } from 'vue'
+import { ComponentRegistrySymbol, FormSymbol } from '../context'
+
+/**
+ * 响应式字段渲染桥接（参考 Formily ReactiveField）
+ *
+ * 统一处理所有字段类型的渲染管线：
+ * - 判断 visible（不可见则不渲染）
+ * - 渲染 decorator（FormItem 等包装器）
+ * - 渲染 component（Input / Card 等业务组件）
+ * - 注入字段属性（value / disabled / readonly / loading / dataSource 等）
+ *
+ * 由 FormField / FormVoidField / FormArrayField 调用，不直接在模板中使用。
+ */
+export const ReactiveField = defineComponent({
+  name: 'ReactiveField',
+  props: {
+    /** 字段实例（Field / VoidField / ArrayField） */
+    field: {
+      type: Object as PropType<FieldInstance | VoidFieldInstance>,
+      required: true,
+    },
+    /** 是否是 void 字段（不绑定数据） */
+    isVoid: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  setup(props, { slots }) {
+    const form = inject(FormSymbol) as FormInstance
+    const registry = inject(ComponentRegistrySymbol)
+
+    /** 从 registry 查找组件 */
+    function resolveComp(name: string | unknown): Component | undefined {
+      if (typeof name === 'string') {
+        return registry?.components.get(name) as Component | undefined
+      }
+      return name as Component | undefined
+    }
+
+    /** 从 registry 查找装饰器 */
+    function resolveWrapper(name: string | unknown): Component | undefined {
+      if (typeof name === 'string') {
+        return registry?.wrappers.get(name) as Component | undefined
+      }
+      return name as Component | undefined
+    }
+
+    return () => {
+      const field = props.field
+      if (!field) return null
+
+      /* 不可见则不渲染 */
+      if (!field.visible) return null
+
+      /* 计算交互状态 */
+      const fp = field.pattern
+      const formP = form?.pattern ?? 'editable'
+      const isDisabled = !props.isVoid && (
+        (field as FieldInstance).disabled || fp === 'disabled' || formP === 'disabled'
+      )
+      const isReadOnly = !props.isVoid && (
+        (field as FieldInstance).readOnly || fp === 'readOnly' || formP === 'readOnly'
+      )
+
+      /* ---- 自定义插槽优先 ---- */
+      if (slots.default) {
+        return slots.default({ field, isReadOnly, isDisabled })
+      }
+
+      /* ---- 自动渲染：component ---- */
+      const componentName = field.component
+      const Comp = resolveComp(componentName)
+
+      if (!Comp && !props.isVoid) {
+        console.warn(`[ConfigForm] 字段 "${field.path}" 未找到组件 "${String(componentName)}"`)
+        return null
+      }
+
+      let componentNode: VNode | VNode[] | null = null
+
+      if (props.isVoid) {
+        /* void 字段：component 作为容器，children 来自 slots.children */
+        if (Comp) {
+          componentNode = h(Comp, { ...field.componentProps }, () => slots.children?.())
+        }
+        else {
+          /* 无组件的 void 节点：透明容器 */
+          componentNode = slots.children?.() ?? null
+        }
+      }
+      else {
+        /* 数据字段：注入 value / events / 状态 */
+        const dataField = field as FieldInstance
+        componentNode = h(Comp!, {
+          'modelValue': dataField.value,
+          'onUpdate:modelValue': (val: unknown) => dataField.setValue(val),
+          'onFocus': () => dataField.focus(),
+          'onBlur': () => {
+            dataField.blur()
+            dataField.validate('blur').catch(() => {})
+          },
+          'disabled': isDisabled,
+          'readonly': isReadOnly,
+          'loading': dataField.loading,
+          'dataSource': dataField.dataSource,
+          ...dataField.componentProps,
+        })
+      }
+
+      /* ---- 自动渲染：decorator（包装器） ---- */
+      const wrapperName = !props.isVoid ? (field as FieldInstance).wrapper : undefined
+      const Wrapper = wrapperName ? resolveWrapper(wrapperName) : undefined
+
+      if (Wrapper && !props.isVoid) {
+        const dataField = field as FieldInstance
+        return h(Wrapper, {
+          label: dataField.label,
+          required: dataField.required,
+          errors: dataField.errors,
+          warnings: dataField.warnings,
+          description: dataField.description,
+          labelPosition: form?.labelPosition,
+          labelWidth: form?.labelWidth,
+          ...dataField.wrapperProps,
+        }, () => componentNode)
+      }
+
+      return componentNode
+    }
+  },
+})

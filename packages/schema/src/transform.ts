@@ -6,25 +6,24 @@ import { isFunction } from '@moluoxixi/shared'
  * 将编译后的字段转为 FieldProps
  */
 export function toFieldProps(compiled: CompiledField): FieldProps {
-  const { schema, path } = compiled
+  const { schema, dataPath } = compiled
 
   const props: FieldProps = {
-    name: path.includes('.') ? path.split('.').pop()! : path,
-    label: schema.label,
+    name: dataPath,
+    label: schema.title,
     description: schema.description,
-    initialValue: schema.defaultValue,
+    initialValue: schema.default,
     visible: schema.visible,
     disabled: schema.disabled,
     readOnly: schema.readOnly,
-    required: schema.required,
+    required: schema.required === true,
     rules: schema.rules ?? [],
     component: compiled.resolvedComponent,
     componentProps: {
       ...schema.componentProps,
-      placeholder: schema.placeholder,
     },
-    wrapper: schema.wrapper,
-    wrapperProps: schema.wrapperProps,
+    wrapper: compiled.resolvedDecorator,
+    wrapperProps: schema.decoratorProps,
     reactions: schema.reactions,
     pattern: schema.pattern,
     submitPath: schema.submitPath,
@@ -48,7 +47,7 @@ export function toFieldProps(compiled: CompiledField): FieldProps {
   }
 
   /* 必填规则 */
-  if (schema.required && !props.rules!.some(r => r.required)) {
+  if (schema.required === true && !props.rules!.some(r => r.required)) {
     props.rules!.unshift({ required: true })
   }
 
@@ -75,11 +74,11 @@ export function toArrayFieldProps(compiled: CompiledField): ArrayFieldProps {
  * 将编译后的字段转为 VoidFieldProps
  */
 export function toVoidFieldProps(compiled: CompiledField): VoidFieldProps {
-  const { schema, path } = compiled
+  const { schema, address } = compiled
 
   return {
-    name: path.includes('.') ? path.split('.').pop()! : path,
-    label: schema.label,
+    name: address,
+    label: schema.title,
     visible: schema.visible,
     component: compiled.resolvedComponent,
     componentProps: schema.componentProps,
@@ -94,35 +93,22 @@ export function toVoidFieldProps(compiled: CompiledField): VoidFieldProps {
 export function transformSchema(
   compiledSchema: CompiledSchema,
 ): {
-  fields: Array<{ path: string, props: FieldProps, type: 'field' | 'array' | 'void' }>
+  fields: Array<{ path: string; props: FieldProps; type: 'field' | 'array' | 'void' }>
 } {
-  const fields: Array<{ path: string, props: FieldProps, type: 'field' | 'array' | 'void' }> = []
+  const fields: Array<{ path: string; props: FieldProps; type: 'field' | 'array' | 'void' }> = []
 
-  for (const [path, compiled] of compiledSchema.fields) {
-    /* 跳过通配符项（数组内部项由 ArrayField 处理） */
-    if (path.includes('.*'))
+  for (const [address, compiled] of compiledSchema.fields) {
+    if (address.includes('.*'))
       continue
 
     if (compiled.isVoid) {
-      fields.push({
-        path,
-        props: toVoidFieldProps(compiled) as unknown as FieldProps,
-        type: 'void',
-      })
+      fields.push({ path: address, props: toVoidFieldProps(compiled) as unknown as FieldProps, type: 'void' })
     }
     else if (compiled.isArray) {
-      fields.push({
-        path,
-        props: toArrayFieldProps(compiled),
-        type: 'array',
-      })
+      fields.push({ path: address, props: toArrayFieldProps(compiled), type: 'array' })
     }
     else {
-      fields.push({
-        path,
-        props: toFieldProps(compiled),
-        type: 'field',
-      })
+      fields.push({ path: address, props: toFieldProps(compiled), type: 'field' })
     }
   }
 

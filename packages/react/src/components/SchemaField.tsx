@@ -1,71 +1,80 @@
-import type { CompiledField, CompileOptions, FormSchema } from '@moluoxixi/schema'
-import { compileSchema, toArrayFieldProps, toFieldProps } from '@moluoxixi/schema'
+import type { CompiledField, CompileOptions, ISchema } from '@moluoxixi/schema'
+import { compileSchema, toArrayFieldProps, toFieldProps, toVoidFieldProps } from '@moluoxixi/schema'
 import { observer } from 'mobx-react-lite'
 import React, { useContext, useMemo } from 'react'
 import { FormContext } from '../context'
 import { FormArrayField } from './FormArrayField'
 import { FormField } from './FormField'
+import { FormObjectField } from './FormObjectField'
+import { FormVoidField } from './FormVoidField'
 
 export interface SchemaFieldProps {
-  /** 表单 Schema */
-  schema: FormSchema
-  /** 编译选项 */
+  schema: ISchema
   compileOptions?: CompileOptions
 }
 
 /**
- * Schema 驱动的字段渲染器
+ * Schema 驱动的递归渲染器（React 版）
  *
- * 根据 FormSchema 自动创建字段并渲染对应组件。
+ * 每种 type 对应一个 Field 组件，通过 ReactiveField 桥接渲染。
  */
 export const SchemaField = observer<SchemaFieldProps>(({ schema, compileOptions }) => {
   const form = useContext(FormContext)
-  if (!form) {
-    throw new Error('[ConfigForm] <SchemaField> 必须在 <FormProvider> 内部使用')
-  }
+  if (!form) throw new Error('[ConfigForm] <SchemaField> 必须在 <FormProvider> 内部使用')
 
   const compiled = useMemo(() => compileSchema(schema, compileOptions), [schema, compileOptions])
 
-  /* 仅渲染顶层字段（嵌套由各组件递归处理） */
-  const topLevelFields = Array.from(compiled.fields.entries()).filter(
-    ([path]) => !path.includes('.'),
-  )
+  function renderNode(cf: CompiledField): React.ReactElement | null {
+    if (cf.isVoid) return renderVoidNode(cf)
+    if (cf.isArray) {
+      return <FormArrayField key={cf.address} name={cf.dataPath} fieldProps={toArrayFieldProps(cf)} />
+    }
+    if (cf.schema.type === 'object' && cf.children.length > 0) {
+      return renderObjectNode(cf)
+    }
+    return <FormField key={cf.address} name={cf.dataPath} fieldProps={toFieldProps(cf)} />
+  }
 
-  return (
-    <>
-      {topLevelFields.map(([path, compiledField]) => (
-        <SchemaFieldItem key={path} path={path} compiledField={compiledField} />
-      ))}
-    </>
-  )
+  function renderVoidNode(cf: CompiledField): React.ReactElement {
+    const voidProps = toVoidFieldProps(cf)
+    return (
+      <FormVoidField key={cf.address} name={cf.address} fieldProps={voidProps}>
+        {renderChildren(cf.children)}
+      </FormVoidField>
+    )
+  }
+
+  function renderObjectNode(cf: CompiledField): React.ReactElement {
+    return (
+      <FormObjectField key={cf.address} name={cf.dataPath} fieldProps={toFieldProps(cf)}>
+        {renderChildren(cf.children)}
+      </FormObjectField>
+    )
+  }
+
+  function renderChildren(childAddresses: string[]): React.ReactElement[] {
+    const allFields = compiled.fields
+    const result: React.ReactElement[] = []
+    for (const addr of childAddresses) {
+      const cf = allFields.get(addr)
+      if (cf) {
+        const node = renderNode(cf)
+        if (node) result.push(node)
+      }
+    }
+    return result
+  }
+
+  const rootChildren: React.ReactElement[] = []
+  for (const addr of compiled.fieldOrder) {
+    if (!addr.includes('.')) {
+      const cf = compiled.fields.get(addr)
+      if (cf) {
+        const node = renderNode(cf)
+        if (node) rootChildren.push(node)
+      }
+    }
+  }
+
+  return <>{rootChildren}</>
 })
-
-/** 单个 Schema 字段渲染 */
-const SchemaFieldItem = observer<{ path: string, compiledField: CompiledField }>(
-  ({ path, compiledField }) => {
-    if (compiledField.isVoid) {
-      /* 虚拟字段：仅渲染容器 */
-      return null
-    }
-
-    if (compiledField.isArray) {
-      const props = toArrayFieldProps(compiledField)
-      return (
-        <FormArrayField name={path} fieldProps={props}>
-          {field => (
-            <div data-field-array={path}>
-              {(field.value as unknown[])?.map((_, index) => (
-                <div key={index} data-array-item={index}>
-                  {/* 数组项由具体组件处理 */}
-                </div>
-              ))}
-            </div>
-          )}
-        </FormArrayField>
-      )
-    }
-
-    const props = toFieldProps(compiledField)
-    return <FormField name={path} fieldProps={props} />
-  },
-)

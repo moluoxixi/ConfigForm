@@ -3,7 +3,10 @@ export {
   ConfigForm,
   FormArrayField,
   FormField,
+  FormObjectField,
   FormProvider,
+  FormVoidField,
+  ReactiveField,
   SchemaField,
 } from './components'
 

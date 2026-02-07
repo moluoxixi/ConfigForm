@@ -5,26 +5,18 @@ import {
   FormItem,
   Input,
   InputNumber,
+  LayoutCard,
+  LayoutCollapse,
+  LayoutFormActions,
+  LayoutStepActions,
+  LayoutSteps,
+  LayoutTabs,
   Password,
   RadioGroup,
   Select,
   Switch,
   Textarea,
-} from './adapter'
-
-/** 组件名 → 组件映射表 */
-export const componentMapping = {
-  Input,
-  Password,
-  Textarea,
-  InputNumber,
-  Select,
-  RadioGroup,
-  CheckboxGroup,
-  Switch,
-  DatePicker,
-  FormItem,
-} as const
+} from './components'
 
 /**
  * 注册 Ant Design Vue 全套组件到 ConfigForm
@@ -36,7 +28,7 @@ export const componentMapping = {
  * ```
  */
 export function setupAntdVue(): void {
-  /* 注册字段组件 */
+  /* 字段组件 */
   registerComponent('Input', Input)
   registerComponent('Password', Password)
   registerComponent('Textarea', Textarea)
@@ -47,20 +39,34 @@ export function setupAntdVue(): void {
   registerComponent('Switch', Switch)
   registerComponent('DatePicker', DatePicker)
 
-  /* 注册装饰器 */
+  /* 布局组件 */
+  registerComponent('LayoutTabs', LayoutTabs)
+  registerComponent('LayoutCard', LayoutCard)
+  registerComponent('LayoutCollapse', LayoutCollapse)
+  registerComponent('LayoutSteps', LayoutSteps)
+  registerComponent('LayoutStepActions', LayoutStepActions)
+  registerComponent('LayoutFormActions', LayoutFormActions)
+
+  /* 装饰器 */
   registerWrapper('FormItem', FormItem)
 }
 
-/* 导出所有组件（方便按需使用） */
+/* 导出所有组件（按需使用） */
 export {
   CheckboxGroup,
   DatePicker,
   FormItem,
   Input,
   InputNumber,
+  LayoutCard,
+  LayoutCollapse,
+  LayoutFormActions,
+  LayoutStepActions,
+  LayoutSteps,
+  LayoutTabs,
   Password,
   RadioGroup,
   Select,
   Switch,
   Textarea,
-} from './adapter'
+} from './components'

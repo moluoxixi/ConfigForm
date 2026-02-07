@@ -1,0 +1,36 @@
+<template>
+  <div>
+    <h2>显隐联动</h2>
+    <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">用户类型切换 / 开关控制多字段 / 嵌套显隐</p>
+    <PlaygroundForm :schema="schema" :initial-values="initialValues" />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
+import type { ISchema } from '@moluoxixi/schema'
+import PlaygroundForm from '../../components/PlaygroundForm.vue'
+
+setupAntdVue()
+
+const initialValues = { userType: 'personal', realName: '', idCard: '', companyName: '', taxNumber: '', enableNotify: false, notifyEmail: '', notifyFrequency: undefined, hasAddress: false, city: '', hasDetailAddress: false, detailAddress: '' }
+
+const schema: ISchema = {
+  type: 'object',
+  decoratorProps: { actions: { submit: true, reset: true }, labelPosition: 'right', labelWidth: '140px' },
+  properties: {
+    userType: { type: 'string', title: '用户类型', required: true, component: 'RadioGroup', default: 'personal', enum: [{ label: '个人', value: 'personal' }, { label: '企业', value: 'business' }] },
+    realName: { type: 'string', title: '真实姓名', required: true, componentProps: { placeholder: '请输入' }, excludeWhenHidden: true, reactions: [{ watch: 'userType', when: (v: unknown[]) => v[0] === 'personal', fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }] },
+    idCard: { type: 'string', title: '身份证号', componentProps: { placeholder: '18 位' }, excludeWhenHidden: true, rules: [{ pattern: /^\d{17}[\dXx]$/, message: '无效身份证' }], reactions: [{ watch: 'userType', when: (v: unknown[]) => v[0] === 'personal', fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }] },
+    companyName: { type: 'string', title: '公司名称', required: true, componentProps: { placeholder: '请输入' }, visible: false, excludeWhenHidden: true, reactions: [{ watch: 'userType', when: (v: unknown[]) => v[0] === 'business', fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }] },
+    taxNumber: { type: 'string', title: '税号', componentProps: { placeholder: '请输入' }, visible: false, excludeWhenHidden: true, reactions: [{ watch: 'userType', when: (v: unknown[]) => v[0] === 'business', fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }] },
+    enableNotify: { type: 'boolean', title: '开启通知', default: false },
+    notifyEmail: { type: 'string', title: '通知邮箱', componentProps: { placeholder: '邮箱' }, visible: false, excludeWhenHidden: true, rules: [{ format: 'email', message: '无效邮箱' }], reactions: [{ watch: 'enableNotify', when: (v: unknown[]) => v[0] === true, fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }] },
+    notifyFrequency: { type: 'string', title: '通知频率', visible: false, excludeWhenHidden: true, enum: [{ label: '实时', value: 'realtime' }, { label: '每日', value: 'daily' }, { label: '每周', value: 'weekly' }], reactions: [{ watch: 'enableNotify', when: (v: unknown[]) => v[0] === true, fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }] },
+    hasAddress: { type: 'boolean', title: '填写地址', default: false },
+    city: { type: 'string', title: '城市', visible: false, excludeWhenHidden: true, reactions: [{ watch: 'hasAddress', when: (v: unknown[]) => v[0] === true, fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }] },
+    hasDetailAddress: { type: 'boolean', title: '填写详细地址', visible: false, default: false, reactions: [{ watch: 'hasAddress', when: (v: unknown[]) => v[0] === true, fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }] },
+    detailAddress: { type: 'string', title: '详细地址', component: 'Textarea', visible: false, excludeWhenHidden: true, reactions: [{ watch: ['hasAddress', 'hasDetailAddress'], when: (v: unknown[]) => v[0] === true && v[1] === true, fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }] },
+  },
+}
+</script>

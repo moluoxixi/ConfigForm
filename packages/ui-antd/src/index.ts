@@ -5,12 +5,18 @@ import {
   FormItem,
   Input,
   InputNumber,
+  LayoutCard,
+  LayoutCollapse,
+  LayoutFormActions,
+  LayoutStepActions,
+  LayoutSteps,
+  LayoutTabs,
   Password,
   RadioGroup,
   Select,
   Switch,
   Textarea,
-} from './adapter'
+} from './components'
 
 /**
  * 注册 Ant Design (React) 全套组件到 ConfigForm
@@ -32,6 +38,14 @@ export function setupAntd(): void {
   registerComponent('Switch', Switch)
   registerComponent('DatePicker', DatePicker)
 
+  /* 布局组件 */
+  registerComponent('LayoutTabs', LayoutTabs)
+  registerComponent('LayoutCard', LayoutCard)
+  registerComponent('LayoutCollapse', LayoutCollapse)
+  registerComponent('LayoutSteps', LayoutSteps)
+  registerComponent('LayoutStepActions', LayoutStepActions)
+  registerComponent('LayoutFormActions', LayoutFormActions)
+
   registerWrapper('FormItem', FormItem)
 }
 
@@ -41,9 +55,15 @@ export {
   FormItem,
   Input,
   InputNumber,
+  LayoutCard,
+  LayoutCollapse,
+  LayoutFormActions,
+  LayoutStepActions,
+  LayoutSteps,
+  LayoutTabs,
   Password,
   RadioGroup,
   Select,
   Switch,
   Textarea,
-} from './adapter'
+} from './components'

@@ -1,8 +1,8 @@
-import type { FieldSchema, FormSchema } from './types'
+import type { ISchema } from './types'
 import { deepMerge, isObject } from '@moluoxixi/shared'
 
 /**
- * 合并两个 FormSchema
+ * 合并两个 ISchema
  *
  * 适用于 Schema 继承/覆盖场景：
  * - 基础 Schema + 特定业务覆盖
@@ -13,36 +13,56 @@ import { deepMerge, isObject } from '@moluoxixi/shared'
  * @returns 合并后的 Schema
  */
 export function mergeSchema(
-  base: FormSchema,
-  override: Partial<FormSchema>,
-): FormSchema {
-  const mergedFields: Record<string, FieldSchema> = { ...base.fields }
+  base: ISchema,
+  override: Partial<ISchema>,
+): ISchema {
+  const result: ISchema = { ...base }
 
-  /* 逐字段合并（深度合并） */
-  if (override.fields) {
-    for (const [name, fieldOverride] of Object.entries(override.fields)) {
-      const baseField = mergedFields[name]
-      if (baseField && isObject(fieldOverride)) {
-        mergedFields[name] = deepMerge(
-          { ...baseField } as Record<string, unknown>,
-          fieldOverride as Record<string, unknown>,
-        ) as unknown as FieldSchema
+  /* 合并 properties（递归深度合并） */
+  if (override.properties) {
+    const mergedProps: Record<string, ISchema> = { ...base.properties }
+    for (const [name, propOverride] of Object.entries(override.properties)) {
+      const baseProp = mergedProps[name]
+      if (baseProp && isObject(propOverride)) {
+        mergedProps[name] = deepMerge(
+          { ...baseProp } as Record<string, unknown>,
+          propOverride as Record<string, unknown>,
+        ) as unknown as ISchema
       }
       else {
-        mergedFields[name] = fieldOverride
+        mergedProps[name] = propOverride
       }
     }
+    result.properties = mergedProps
   }
 
-  return {
-    form: override.form
-      ? deepMerge({ ...(base.form ?? {}) } as Record<string, unknown>, override.form as Record<string, unknown>) as FormSchema['form']
-      : base.form,
-    fields: mergedFields,
-    layout: override.layout ?? base.layout,
-    reactions: [
-      ...(base.reactions ?? []),
-      ...(override.reactions ?? []),
-    ],
+  /* 合并 decoratorProps */
+  if (override.decoratorProps) {
+    result.decoratorProps = deepMerge(
+      { ...(base.decoratorProps ?? {}) },
+      override.decoratorProps as Record<string, unknown>,
+    )
   }
+
+  /* 合并 componentProps */
+  if (override.componentProps) {
+    result.componentProps = deepMerge(
+      { ...(base.componentProps ?? {}) },
+      override.componentProps as Record<string, unknown>,
+    )
+  }
+
+  /* 合并 reactions */
+  if (override.reactions) {
+    result.reactions = [...(base.reactions ?? []), ...override.reactions]
+  }
+
+  /* 覆盖简单属性 */
+  if (override.type !== undefined) result.type = override.type
+  if (override.title !== undefined) result.title = override.title
+  if (override.component !== undefined) result.component = override.component
+  if (override.decorator !== undefined) result.decorator = override.decorator
+  if (override.pattern !== undefined) result.pattern = override.pattern
+
+  return result
 }

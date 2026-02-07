@@ -1,5 +1,8 @@
 export { ConfigForm } from './ConfigForm'
 export { FormArrayField } from './FormArrayField'
 export { FormField } from './FormField'
+export { FormObjectField } from './FormObjectField'
 export { FormProvider } from './FormProvider'
+export { FormVoidField } from './FormVoidField'
+export { ReactiveField } from './ReactiveField'
 export { SchemaField } from './SchemaField'
