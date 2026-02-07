@@ -20,7 +20,8 @@ import { debounce, DependencyGraph, FormPath, isArray, isFunction } from '@moluo
  */
 export class ReactionEngine {
   private form: FormInstance
-  private disposers: Disposer[] = []
+  /** 按字段路径索引的 disposer 映射，移除字段时可精确清理 */
+  private fieldDisposers = new Map<string, Disposer[]>()
   private depGraph = new DependencyGraph()
 
   constructor(form: FormInstance) {
@@ -170,27 +171,46 @@ export class ReactionEngine {
       { fireImmediately: true },
     )
 
-    this.disposers.push(disposer)
+    /* 按字段路径存储 disposer，移除字段时可精确清理 */
+    if (!this.fieldDisposers.has(field.path)) {
+      this.fieldDisposers.set(field.path, [])
+    }
+    const fieldDisposerList = this.fieldDisposers.get(field.path)!
+    fieldDisposerList.push(disposer)
     if ('cancel' in finalExecute) {
-      this.disposers.push(() => (finalExecute as { cancel: () => void }).cancel())
+      fieldDisposerList.push(() => (finalExecute as { cancel: () => void }).cancel())
     }
   }
 
   /**
    * 移除字段的联动
+   *
+   * 同时清理依赖图和该字段关联的所有 reaction disposers，
+   * 防止已删除字段的联动回调继续在后台运行导致内存泄漏。
    */
   removeFieldReactions(fieldPath: string): void {
     this.depGraph.removeNode(fieldPath)
+
+    /* 清理该字段注册的所有 reaction disposers */
+    const disposers = this.fieldDisposers.get(fieldPath)
+    if (disposers) {
+      for (const disposer of disposers) {
+        disposer()
+      }
+      this.fieldDisposers.delete(fieldPath)
+    }
   }
 
   /**
    * 销毁引擎
    */
   dispose(): void {
-    for (const disposer of this.disposers) {
-      disposer()
+    for (const [, disposers] of this.fieldDisposers) {
+      for (const disposer of disposers) {
+        disposer()
+      }
     }
-    this.disposers = []
+    this.fieldDisposers.clear()
     this.depGraph.clear()
   }
 }

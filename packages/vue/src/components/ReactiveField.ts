@@ -30,22 +30,22 @@ export const ReactiveField = defineComponent({
   },
   setup(props, { slots }) {
     const form = inject(FormSymbol) as FormInstance
-    const registry = inject(ComponentRegistrySymbol)
+    const registryRef = inject(ComponentRegistrySymbol)
 
     /** 从 registry 查找组件 */
-    function resolveComp(name: string | unknown): Component | undefined {
+    function resolveComp(name: string | unknown): Component | null {
       if (typeof name === 'string') {
-        return registry?.components.get(name) as Component | undefined
+        return (registryRef?.value.components.get(name) as Component) ?? null
       }
-      return name as Component | undefined
+      return (name as Component) ?? null
     }
 
     /** 从 registry 查找装饰器 */
-    function resolveWrapper(name: string | unknown): Component | undefined {
+    function resolveWrapper(name: string | unknown): Component | null {
       if (typeof name === 'string') {
-        return registry?.wrappers.get(name) as Component | undefined
+        return (registryRef?.value.wrappers.get(name) as Component) ?? null
       }
-      return name as Component | undefined
+      return (name as Component) ?? null
     }
 
     return () => {

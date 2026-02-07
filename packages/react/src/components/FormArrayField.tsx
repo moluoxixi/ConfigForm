@@ -1,7 +1,7 @@
 import type { ArrayFieldInstance, ArrayFieldProps } from '@moluoxixi/core'
 import type { ReactNode } from 'react'
 import { observer } from 'mobx-react-lite'
-import React, { useContext, useRef } from 'react'
+import { useContext, useEffect, useRef } from 'react'
 import { FieldContext, FormContext } from '../context'
 
 export interface FormArrayFieldComponentProps {
@@ -14,6 +14,7 @@ export interface FormArrayFieldComponentProps {
  * 数组字段组件
  *
  * 提供 ArrayField 实例给子组件，支持增删改排序等操作。
+ * 组件卸载时清理由本组件创建的字段注册，防止内存泄漏。
  *
  * @example
  * ```tsx
@@ -41,14 +42,27 @@ export const FormArrayField = observer<FormArrayFieldComponentProps>(
     }
 
     const fieldRef = useRef<ArrayFieldInstance | null>(null)
+    const createdByThisRef = useRef(false)
     if (!fieldRef.current) {
       let field = form.getArrayField(name)
       if (!field) {
         field = form.createArrayField({ name, ...fieldProps })
+        createdByThisRef.current = true
       }
       fieldRef.current = field
     }
     const field = fieldRef.current
+
+    /* 组件卸载时清理由本组件创建的字段注册 */
+    useEffect(() => {
+      const fieldName = name
+      const created = createdByThisRef.current
+      return () => {
+        if (created) {
+          form.removeField(fieldName)
+        }
+      }
+    }, [form, name])
 
     if (!field.visible)
       return null

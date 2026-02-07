@@ -18,6 +18,8 @@ export class VoidField implements VoidFieldInstance {
 
   label: string
   visible: boolean
+  disabled: boolean
+  readOnly: boolean
   pattern: FieldPattern
   component: string | ComponentType
   componentProps: Record<string, unknown>
@@ -33,6 +35,8 @@ export class VoidField implements VoidFieldInstance {
 
     this.label = props.label ?? ''
     this.visible = props.visible ?? true
+    this.disabled = props.disabled ?? false
+    this.readOnly = props.readOnly ?? false
     this.pattern = props.pattern ?? 'editable'
     this.component = props.component ?? ''
     this.componentProps = props.componentProps ?? {}

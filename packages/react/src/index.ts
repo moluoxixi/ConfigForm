@@ -3,14 +3,20 @@ export {
   ConfigForm,
   FormArrayField,
   FormField,
+  FormObjectField,
   FormProvider,
+  FormVoidField,
+  ReactiveField,
   SchemaField,
 } from './components'
 export type {
   ConfigFormProps,
   FormArrayFieldComponentProps,
   FormFieldProps,
+  FormObjectFieldProps,
   FormProviderProps,
+  FormVoidFieldProps,
+  ReactiveFieldProps,
   SchemaFieldProps,
 } from './components'
 

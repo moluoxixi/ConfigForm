@@ -1,12 +1,13 @@
 import type { FieldInstance, FormInstance, VoidFieldInstance } from '@moluoxixi/core'
+import type { ComponentType, ReactNode } from 'react'
 import { observer } from 'mobx-react-lite'
-import React, { useContext } from 'react'
+import { useContext } from 'react'
 import { ComponentRegistryContext, FormContext } from '../context'
 
 export interface ReactiveFieldProps {
   field: FieldInstance | VoidFieldInstance
   isVoid?: boolean
-  children?: React.ReactNode
+  children?: ReactNode
 }
 
 /**
@@ -28,7 +29,7 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
   /* void 字段：component 作容器 */
   if (isVoid) {
     const componentName = field.component
-    const Comp = typeof componentName === 'string' ? registry.components.get(componentName) : componentName as React.ComponentType<any>
+    const Comp = typeof componentName === 'string' ? registry.components.get(componentName) : componentName as ComponentType<any>
     if (Comp) {
       return <Comp {...field.componentProps}>{children}</Comp>
     }
@@ -38,7 +39,7 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
   /* 数据字段 */
   const dataField = field as FieldInstance
   const componentName = dataField.component
-  const Comp = typeof componentName === 'string' ? registry.components.get(componentName) : componentName as React.ComponentType<any>
+  const Comp = typeof componentName === 'string' ? registry.components.get(componentName) : componentName as ComponentType<any>
 
   if (!Comp) return null
 
@@ -56,9 +57,11 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
     />
   )
 
-  /* decorator */
+  /* decorator — 支持字符串名和直接组件引用 */
   const wrapperName = dataField.wrapper
-  const Wrapper = typeof wrapperName === 'string' ? registry.wrappers.get(wrapperName) : undefined
+  const Wrapper = typeof wrapperName === 'string'
+    ? registry.wrappers.get(wrapperName)
+    : (wrapperName as ComponentType<any>)
 
   if (Wrapper) {
     return (
@@ -68,6 +71,8 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
         errors={dataField.errors}
         warnings={dataField.warnings}
         description={dataField.description}
+        labelPosition={form?.labelPosition}
+        labelWidth={form?.labelWidth}
         {...dataField.wrapperProps}
       >
         {fieldElement}

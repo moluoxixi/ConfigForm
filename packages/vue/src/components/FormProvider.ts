@@ -49,7 +49,7 @@ export const FormProvider = defineComponent({
       return { components, wrappers }
     })
 
-    provide(ComponentRegistrySymbol, registry.value)
+    provide(ComponentRegistrySymbol, registry)
 
     return () => slots.default?.()
   },

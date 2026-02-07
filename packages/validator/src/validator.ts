@@ -10,6 +10,20 @@ import { getFormatValidator } from './formats'
 import { getMessage } from './messages'
 
 /**
+ * 安全创建正则表达式
+ *
+ * 如果 pattern 字符串语法无效，返回 null 而非抛出 SyntaxError。
+ */
+function safeCreateRegExp(pattern: string): RegExp | null {
+  try {
+    return new RegExp(pattern)
+  }
+  catch {
+    return null
+  }
+}
+
+/**
  * 执行单条规则验证（同步部分）
  */
 function validateRuleSync(
@@ -36,23 +50,23 @@ function validateRuleSync(
   }
 
   /* min / max */
-  if (isNumber(rule.min) && isNumber(value as number) && (value as number) < rule.min) {
+  if (isNumber(rule.min) && isNumber(value) && (value as number) < rule.min) {
     return getMessage('min', rule, label)
   }
-  if (isNumber(rule.max) && isNumber(value as number) && (value as number) > rule.max) {
+  if (isNumber(rule.max) && isNumber(value) && (value as number) > rule.max) {
     return getMessage('max', rule, label)
   }
-  if (isNumber(rule.exclusiveMin) && isNumber(value as number) && (value as number) <= rule.exclusiveMin) {
+  if (isNumber(rule.exclusiveMin) && isNumber(value) && (value as number) <= rule.exclusiveMin) {
     return getMessage('exclusiveMin', rule, label)
   }
-  if (isNumber(rule.exclusiveMax) && isNumber(value as number) && (value as number) >= rule.exclusiveMax) {
+  if (isNumber(rule.exclusiveMax) && isNumber(value) && (value as number) >= rule.exclusiveMax) {
     return getMessage('exclusiveMax', rule, label)
   }
 
   /* minLength / maxLength */
-  const strVal = isString(value) ? value : isArray(value) ? value : null
-  if (strVal !== null) {
-    const len = isString(strVal) ? strVal.length : (strVal as unknown[]).length
+  const measurable = isString(value) ? value : isArray(value) ? value : null
+  if (measurable !== null) {
+    const len = measurable.length
     if (isNumber(rule.minLength) && len < rule.minLength) {
       return getMessage('minLength', rule, label)
     }
@@ -63,7 +77,11 @@ function validateRuleSync(
 
   /* pattern */
   if (rule.pattern) {
-    const regex = isString(rule.pattern) ? new RegExp(rule.pattern) : rule.pattern
+    const regex = isString(rule.pattern) ? safeCreateRegExp(rule.pattern) : rule.pattern
+    if (regex === null) {
+      /* 无效正则字符串：视为验证失败，返回格式错误提示而非崩溃 */
+      return rule.message ?? `${label} 的验证正则表达式无效`
+    }
     if (!regex.test(String(value))) {
       return getMessage('pattern', rule, label)
     }
@@ -103,12 +121,40 @@ function filterRulesByTrigger(
 }
 
 /**
+ * 将同步验证消息分类到 errors 或 warnings
+ *
+ * @returns true 表示应停止后续规则验证（stopOnFirstFailure）
+ */
+function collectSyncFeedback(
+  syncMsg: string,
+  rule: ValidationRule,
+  context: ValidatorContext,
+  errors: ValidationFeedback[],
+  warnings: ValidationFeedback[],
+): boolean {
+  const feedback: ValidationFeedback = {
+    path: context.path,
+    message: syncMsg,
+    type: rule.level ?? 'error',
+    ruleName: rule.format ?? rule.id,
+  }
+  if (feedback.type === 'warning') {
+    warnings.push(feedback)
+  }
+  else {
+    errors.push(feedback)
+  }
+  return !!rule.stopOnFirstFailure
+}
+
+/**
  * 验证字段值
  *
  * @param value - 字段值
  * @param rules - 验证规则列表
  * @param context - 验证上下文（提供路径、跨字段取值等）
  * @param trigger - 当前触发时机（可选）
+ * @param signal - 外部取消信号（可选），用于在字段值变化时取消正在进行的异步验证
  * @returns 验证结果
  */
 export async function validate(
@@ -116,6 +162,7 @@ export async function validate(
   rules: ValidationRule[],
   context: ValidatorContext,
   trigger?: ValidationTrigger,
+  signal?: AbortSignal,
 ): Promise<ValidationResult> {
   const filteredRules = filterRulesByTrigger(rules, trigger)
   const errors: ValidationFeedback[] = []
@@ -123,31 +170,24 @@ export async function validate(
   const label = context.label ?? context.path
 
   for (const rule of filteredRules) {
+    /* 外部取消检查 */
+    if (signal?.aborted) {
+      break
+    }
+
     /* 同步验证 */
     const syncMsg = validateRuleSync(value, rule, context, label)
     if (syncMsg) {
-      const feedback: ValidationFeedback = {
-        path: context.path,
-        message: syncMsg,
-        type: rule.level ?? 'error',
-        ruleName: rule.format ?? rule.id,
-      }
-      if (feedback.type === 'warning') {
-        warnings.push(feedback)
-      }
-      else {
-        errors.push(feedback)
-      }
-      if (rule.stopOnFirstFailure)
-        break
+      if (collectSyncFeedback(syncMsg, rule, context, errors, warnings)) break
       continue
     }
 
     /* 异步验证（仅在同步验证通过后执行） */
     if (rule.asyncValidator && !isNullish(value) && !isEmpty(value)) {
-      const controller = new AbortController()
+      /* 优先使用外部 signal，否则创建内部 signal 用于异步调用 */
+      const effectiveSignal = signal ?? new AbortController().signal
       try {
-        const asyncMsg = await rule.asyncValidator(value, rule, context, controller.signal)
+        const asyncMsg = await rule.asyncValidator(value, rule, context, effectiveSignal)
         if (isString(asyncMsg) && asyncMsg.length > 0) {
           const feedback: ValidationFeedback = {
             path: context.path,
@@ -189,6 +229,8 @@ export async function validate(
 
 /**
  * 同步验证（仅执行同步规则）
+ *
+ * 复用 validateRuleSync + collectSyncFeedback，不包含异步验证逻辑。
  */
 export function validateSync(
   value: unknown,
@@ -204,20 +246,7 @@ export function validateSync(
   for (const rule of filteredRules) {
     const syncMsg = validateRuleSync(value, rule, context, label)
     if (syncMsg) {
-      const feedback: ValidationFeedback = {
-        path: context.path,
-        message: syncMsg,
-        type: rule.level ?? 'error',
-        ruleName: rule.format ?? rule.id,
-      }
-      if (feedback.type === 'warning') {
-        warnings.push(feedback)
-      }
-      else {
-        errors.push(feedback)
-      }
-      if (rule.stopOnFirstFailure)
-        break
+      if (collectSyncFeedback(syncMsg, rule, context, errors, warnings)) break
     }
   }
 

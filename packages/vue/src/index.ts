@@ -26,9 +26,11 @@ export { ComponentRegistrySymbol, FieldSymbol, FormSymbol } from './context'
 
 /* 注册 */
 export {
+  createComponentScope,
   getComponent,
   getWrapper,
   registerComponent,
   registerComponents,
   registerWrapper,
 } from './registry'
+export type { ComponentScope } from './registry'

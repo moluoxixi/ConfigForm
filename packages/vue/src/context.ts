@@ -1,6 +1,6 @@
 import type { FieldInstance, FormInstance } from '@moluoxixi/core'
 import type { ComponentType } from '@moluoxixi/shared'
-import type { InjectionKey } from 'vue'
+import type { ComputedRef, InjectionKey } from 'vue'
 
 /** 表单注入 key */
 export const FormSymbol: InjectionKey<FormInstance> = Symbol('ConfigForm')
@@ -14,4 +14,10 @@ export interface ComponentRegistry {
   wrappers: Map<string, ComponentType>
 }
 
-export const ComponentRegistrySymbol: InjectionKey<ComponentRegistry> = Symbol('ConfigComponentRegistry')
+/**
+ * 组件注册表注入 key
+ *
+ * 提供 ComputedRef 而非普通对象，确保当 FormProvider 的
+ * components/wrappers props 变化时，注入方能获取到最新注册表。
+ */
+export const ComponentRegistrySymbol: InjectionKey<ComputedRef<ComponentRegistry>> = Symbol('ConfigComponentRegistry')

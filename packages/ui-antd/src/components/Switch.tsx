@@ -1,13 +1,23 @@
+import type { ReactElement } from 'react'
 import { Switch as ASwitch } from 'antd'
-import React from 'react'
 
 export interface CfSwitchProps {
   value?: boolean
   onChange?: (value: boolean) => void
+  onFocus?: () => void
+  onBlur?: () => void
   disabled?: boolean
   readOnly?: boolean
 }
 
-export function Switch({ value, onChange, disabled, readOnly }: CfSwitchProps): React.ReactElement {
-  return <ASwitch checked={value} onChange={onChange} disabled={disabled || readOnly} />
+export function Switch({ value, onChange, onFocus, onBlur, disabled, readOnly }: CfSwitchProps): ReactElement {
+  if (readOnly) {
+    return <span>{value ? '是' : '否'}</span>
+  }
+
+  return (
+    <span onFocus={onFocus} onBlur={onBlur}>
+      <ASwitch checked={value} onChange={onChange} disabled={disabled} />
+    </span>
+  )
 }

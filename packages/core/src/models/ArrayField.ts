@@ -7,6 +7,9 @@ import { Field } from './Field'
  *
  * 继承 Field，额外提供数组操作方法：
  * push / pop / insert / remove / move / duplicate 等
+ *
+ * 结构性操作（remove / pop / move / replace）会在修改数组前
+ * 先清理所有子字段注册，避免残留的"幽灵字段"影响验证和联动。
  */
 export class ArrayField<Value extends unknown[] = unknown[]>
   extends Field<Value>
@@ -53,6 +56,14 @@ export class ArrayField<Value extends unknown[] = unknown[]>
     return undefined as Value[number]
   }
 
+  /**
+   * 清理当前数组路径下的所有子字段注册。
+   * 在结构性数组操作前调用，避免子字段索引错位后残留。
+   */
+  private cleanupChildren(): void {
+    this.form.cleanupChildFields(this.path)
+  }
+
   /** 尾部添加 */
   push(...items: Value[number][]): void {
     if (!this.canAdd)
@@ -66,6 +77,7 @@ export class ArrayField<Value extends unknown[] = unknown[]>
   pop(): void {
     if (!this.canRemove)
       return
+    this.cleanupChildren()
     const arr = [...this.arrayValue]
     arr.pop()
     this.setValue(arr as unknown as Value)
@@ -75,6 +87,7 @@ export class ArrayField<Value extends unknown[] = unknown[]>
   insert(index: number, ...items: Value[number][]): void {
     if (!this.canAdd)
       return
+    this.cleanupChildren()
     const newItems = items.length > 0 ? items : [this.createItem()]
     const arr = [...this.arrayValue]
     arr.splice(index, 0, ...newItems)
@@ -85,6 +98,7 @@ export class ArrayField<Value extends unknown[] = unknown[]>
   remove(index: number): void {
     if (!this.canRemove)
       return
+    this.cleanupChildren()
     const arr = [...this.arrayValue]
     arr.splice(index, 1)
     this.setValue(arr as unknown as Value)
@@ -95,6 +109,7 @@ export class ArrayField<Value extends unknown[] = unknown[]>
     const arr = [...this.arrayValue]
     if (from < 0 || from >= arr.length || to < 0 || to >= arr.length)
       return
+    this.cleanupChildren()
     const [item] = arr.splice(from, 1)
     arr.splice(to, 0, item)
     this.setValue(arr as unknown as Value)
@@ -121,6 +136,7 @@ export class ArrayField<Value extends unknown[] = unknown[]>
     const arr = this.arrayValue
     if (index < 0 || index >= arr.length)
       return
+    this.cleanupChildren()
     const cloned = deepClone(arr[index])
     const newArr = [...arr]
     newArr.splice(index + 1, 0, cloned)
@@ -132,6 +148,7 @@ export class ArrayField<Value extends unknown[] = unknown[]>
     const arr = [...this.arrayValue]
     if (index < 0 || index >= arr.length)
       return
+    this.cleanupChildren()
     arr[index] = item
     this.setValue(arr as unknown as Value)
   }

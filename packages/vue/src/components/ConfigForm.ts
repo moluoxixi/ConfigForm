@@ -2,7 +2,7 @@ import type { FormConfig, FormInstance } from '@moluoxixi/core'
 import type { ISchema } from '@moluoxixi/schema'
 import type { ComponentType, FieldPattern } from '@moluoxixi/shared'
 import type { Component, PropType } from 'vue'
-import { defineComponent, h, inject } from 'vue'
+import { computed, defineComponent, h, inject, watch } from 'vue'
 import { ComponentRegistrySymbol } from '../context'
 import { useCreateForm } from '../composables/useForm'
 import { FormProvider } from './FormProvider'
@@ -59,17 +59,32 @@ export const ConfigForm = defineComponent({
   },
   emits: ['submit', 'submitFailed', 'valuesChange'],
   setup(props, { slots, emit }) {
-    /** 从根 schema 的 decoratorProps 提取表单级配置 */
-    const rootDecoratorProps = (props.schema?.decoratorProps ?? {}) as Record<string, unknown>
+    /** 响应式读取根 schema 的 decoratorProps（schema 变化时自动更新） */
+    const rootDecoratorProps = computed(() =>
+      (props.schema?.decoratorProps ?? {}) as Record<string, unknown>,
+    )
 
     const internalForm = useCreateForm({
-      labelPosition: (rootDecoratorProps.labelPosition ?? 'right') as 'top' | 'left' | 'right',
-      labelWidth: rootDecoratorProps.labelWidth as string | number,
-      pattern: (rootDecoratorProps.pattern ?? 'editable') as FieldPattern,
+      labelPosition: (rootDecoratorProps.value.labelPosition ?? 'right') as 'top' | 'left' | 'right',
+      labelWidth: rootDecoratorProps.value.labelWidth as string | number,
+      pattern: (rootDecoratorProps.value.pattern ?? 'editable') as FieldPattern,
       ...props.formConfig,
       initialValues: props.initialValues ?? props.formConfig?.initialValues,
     })
     const form = props.form ?? internalForm
+
+    /** schema 变化时同步更新表单级配置 */
+    watch(rootDecoratorProps, (newProps) => {
+      if (newProps.labelPosition !== undefined) {
+        form.labelPosition = newProps.labelPosition as 'top' | 'left' | 'right'
+      }
+      if (newProps.labelWidth !== undefined) {
+        form.labelWidth = newProps.labelWidth as string | number
+      }
+      if (newProps.pattern !== undefined) {
+        form.pattern = newProps.pattern as FieldPattern
+      }
+    })
 
     form.onValuesChange((values) => {
       emit('valuesChange', values)
@@ -88,8 +103,9 @@ export const ConfigForm = defineComponent({
     }
 
     return () => {
-      const actions = rootDecoratorProps.actions as Record<string, unknown> | undefined
-      const pattern = (props.schema?.pattern ?? rootDecoratorProps.pattern ?? 'editable') as string
+      const currentDecoratorProps = rootDecoratorProps.value
+      const actions = currentDecoratorProps.actions as Record<string, unknown>
+      const pattern = (props.schema?.pattern ?? currentDecoratorProps.pattern ?? 'editable') as string
       const isEditable = pattern === 'editable'
 
       /* 按钮配置 */
@@ -138,10 +154,10 @@ const FormActionsRenderer = defineComponent({
   },
   emits: ['reset'],
   setup(props, { emit }) {
-    const registry = inject(ComponentRegistrySymbol)
+    const registryRef = inject(ComponentRegistrySymbol)
 
     return () => {
-      const LayoutActions = registry?.components.get('LayoutFormActions') as Component | undefined
+      const LayoutActions = registryRef?.value.components.get('LayoutFormActions') as Component
 
       if (LayoutActions) {
         return h(LayoutActions, {

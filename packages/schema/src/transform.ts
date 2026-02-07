@@ -46,10 +46,10 @@ export function toFieldProps(compiled: CompiledField): FieldProps {
     props.transform = schema.transform as (value: unknown) => unknown
   }
 
-  /* 必填规则 */
-  if (schema.required === true && !props.rules!.some(r => r.required)) {
-    props.rules!.unshift({ required: true })
-  }
+  /*
+   * 必填规则由 Field 构造器统一处理（根据 props.required 添加），
+   * 此处不再重复添加，避免 Schema → toFieldProps → Field 构造器链路中规则重复。
+   */
 
   return props
 }
@@ -80,6 +80,8 @@ export function toVoidFieldProps(compiled: CompiledField): VoidFieldProps {
     name: address,
     label: schema.title,
     visible: schema.visible,
+    disabled: schema.disabled,
+    readOnly: schema.readOnly,
     component: compiled.resolvedComponent,
     componentProps: schema.componentProps,
     reactions: schema.reactions,

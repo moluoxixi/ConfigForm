@@ -1,9 +1,9 @@
+import type { ReactElement } from 'react'
 import { InputNumber as AInputNumber } from 'antd'
-import React from 'react'
 
 export interface CfInputNumberProps {
   value?: number
-  onChange?: (value: number) => void
+  onChange?: (value?: number) => void
   onFocus?: () => void
   onBlur?: () => void
   placeholder?: string
@@ -14,15 +14,25 @@ export interface CfInputNumberProps {
   step?: number
 }
 
-export function InputNumber({ value, onChange, onFocus, onBlur, placeholder, disabled, readOnly, min, max, step = 1 }: CfInputNumberProps): React.ReactElement {
+/**
+ * InputNumber 适配组件
+ *
+ * Ant Design 的 InputNumber.onChange 传入 number | null，
+ * 清空时传 null，统一转为 undefined 传递给表单字段。
+ */
+export function InputNumber({ value, onChange, onFocus, onBlur, placeholder, disabled, readOnly, min, max, step = 1 }: CfInputNumberProps): ReactElement {
+  if (readOnly) {
+    return <span>{value ?? '—'}</span>
+  }
+
   return (
     <AInputNumber
       value={value}
-      onChange={v => onChange?.(v as number)}
+      onChange={v => onChange?.(v ?? undefined)}
       onFocus={onFocus}
       onBlur={onBlur}
       placeholder={placeholder}
-      disabled={disabled || readOnly}
+      disabled={disabled}
       min={min}
       max={max}
       step={step}

@@ -17,8 +17,13 @@ const DEFAULT_COMPONENT_MAPPING: Record<string, string> = {
 /** 默认装饰器 */
 const DEFAULT_DECORATOR = 'FormItem'
 
-/** Schema 编译缓存 */
-const compileCache = new WeakMap<ISchema, CompiledSchema>()
+/**
+ * Schema 编译不再使用模块级缓存。
+ *
+ * 原因：WeakMap 以对象引用为 key，无法检测响应式代理内部属性变化，
+ * 导致修改 schema 属性后仍返回旧的编译结果。
+ * 缓存职责交给调用方（Vue 的 computed、React 的 useMemo）。
+ */
 
 /**
  * 推断组件名
@@ -151,10 +156,6 @@ function compileNode(
  * - 字段渲染顺序 + 子字段关系
  */
 export function compileSchema(schema: ISchema, options?: CompileOptions): CompiledSchema {
-  const cached = compileCache.get(schema)
-  if (cached)
-    return cached
-
   const mapping = { ...DEFAULT_COMPONENT_MAPPING, ...options?.componentMapping }
   const defaultDecorator = options?.defaultDecorator ?? DEFAULT_DECORATOR
   const fields = new Map<string, CompiledField>()
@@ -168,17 +169,9 @@ export function compileSchema(schema: ISchema, options?: CompileOptions): Compil
     }
   }
 
-  const compiled: CompiledSchema = {
+  return {
     root: schema,
     fields,
     fieldOrder,
   }
-
-  compileCache.set(schema, compiled)
-  return compiled
-}
-
-/** 清除编译缓存 */
-export function clearCompileCache(): void {
-  /* WeakMap 无法手动清除，新 schema 对象会生成新的编译结果 */
 }

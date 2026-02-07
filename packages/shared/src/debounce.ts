@@ -21,10 +21,12 @@ export function debounce<T extends AnyFunction>(
 ): DebouncedFunction<T> {
   let timer: ReturnType<typeof setTimeout> | null = null
   let lastArgs: Parameters<T> | null = null
+  let lastThis: unknown = undefined
   const leading = options?.leading ?? false
 
   const debounced = function (this: unknown, ...args: Parameters<T>) {
     lastArgs = args
+    lastThis = this
 
     if (timer !== null) {
       clearTimeout(timer)
@@ -33,6 +35,7 @@ export function debounce<T extends AnyFunction>(
     if (leading && timer === null) {
       fn.apply(this, args)
       lastArgs = null
+      lastThis = undefined
       timer = setTimeout(() => {
         timer = null
       }, delay)
@@ -41,8 +44,9 @@ export function debounce<T extends AnyFunction>(
 
     timer = setTimeout(() => {
       if (lastArgs) {
-        fn.apply(this, lastArgs)
+        fn.apply(lastThis, lastArgs)
         lastArgs = null
+        lastThis = undefined
       }
       timer = null
     }, delay)
@@ -54,6 +58,7 @@ export function debounce<T extends AnyFunction>(
       timer = null
     }
     lastArgs = null
+    lastThis = undefined
   }
 
   debounced.flush = () => {
@@ -62,8 +67,9 @@ export function debounce<T extends AnyFunction>(
       timer = null
     }
     if (lastArgs) {
-      fn(...lastArgs)
+      fn.apply(lastThis, lastArgs)
       lastArgs = null
+      lastThis = undefined
     }
   }
 

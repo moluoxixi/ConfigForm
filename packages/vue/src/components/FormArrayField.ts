@@ -1,10 +1,14 @@
 import type { ArrayFieldProps } from '@moluoxixi/core'
 import type { PropType } from 'vue'
-import { defineComponent, inject, onBeforeUnmount, provide } from 'vue'
+import { defineComponent, h, inject, onBeforeUnmount, provide } from 'vue'
 import { FieldSymbol, FormSymbol } from '../context'
+import { ReactiveField } from './ReactiveField'
 
 /**
  * 数组字段组件
+ *
+ * 通过 ReactiveField 桥接渲染，获得 decorator（FormItem）包装和
+ * disabled/readOnly 状态自动传播。在 Config 模式下自动获得标签和错误提示。
  *
  * @example
  * ```vue
@@ -53,13 +57,20 @@ export const FormArrayField = defineComponent({
     })
 
     return () => {
-      if (!field!.visible)
-        return null
-
-      if (slots.default) {
-        return slots.default({ field, arrayField: field })
-      }
-      return null
+      /* 通过 ReactiveField 统一渲染管线：decorator 包装 + 状态传播 */
+      return h(ReactiveField, {
+        field: field as any,
+        isVoid: false,
+      }, {
+        /* 自定义渲染：将 field 暴露给用户插槽 */
+        default: slots.default
+          ? (renderProps: Record<string, unknown>) => slots.default!({
+              field,
+              arrayField: field,
+              ...renderProps,
+            })
+          : undefined,
+      })
     }
   },
 })

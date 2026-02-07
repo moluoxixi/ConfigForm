@@ -1,5 +1,5 @@
+import type { ReactElement } from 'react'
 import { DatePicker as ADatePicker } from 'antd'
-import React from 'react'
 
 export interface CfDatePickerProps {
   value?: string
@@ -11,13 +11,19 @@ export interface CfDatePickerProps {
   readOnly?: boolean
 }
 
-export function DatePicker({ value, onChange, placeholder, disabled, readOnly }: CfDatePickerProps): React.ReactElement {
+export function DatePicker({ value, onChange, onFocus, onBlur, placeholder, disabled, readOnly }: CfDatePickerProps): ReactElement {
+  if (readOnly) {
+    return <span>{value || '—'}</span>
+  }
+
   return (
     <ADatePicker
       value={value || undefined}
       onChange={(_date, dateString) => onChange?.(dateString as string)}
+      onFocus={onFocus}
+      onBlur={onBlur}
       placeholder={placeholder}
-      disabled={disabled || readOnly}
+      disabled={disabled}
       style={{ width: '100%' }}
     />
   )

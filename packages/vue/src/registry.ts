@@ -1,5 +1,11 @@
 import type { Component } from 'vue'
 
+/** 组件作用域（可传给 FormProvider 的 components/wrappers） */
+export interface ComponentScope {
+  components: Record<string, Component>
+  wrappers: Record<string, Component>
+}
+
 /** 全局组件注册表 */
 const globalComponents = new Map<string, Component>()
 /** 全局装饰器注册表 */
@@ -44,4 +50,38 @@ export function getGlobalRegistry() {
     components: globalComponents,
     wrappers: globalWrappers,
   }
+}
+
+/**
+ * 创建组件作用域（不写入全局注册表）
+ *
+ * 用于同一页面需要使用多套 UI 库的场景，
+ * 将返回值传给 `<FormProvider :components="scope.components" :wrappers="scope.wrappers">`
+ * 或 `<ConfigForm :components="scope.components" :wrappers="scope.wrappers">`
+ * 实现实例级隔离，避免全局注册表冲突。
+ *
+ * @example
+ * ```ts
+ * const antdScope = createComponentScope((register) => {
+ *   register.component('Input', AntdInput)
+ *   register.component('Select', AntdSelect)
+ *   register.wrapper('FormItem', AntdFormItem)
+ * })
+ * ```
+ */
+export function createComponentScope(
+  setup: (register: {
+    component: (name: string, comp: Component) => void
+    wrapper: (name: string, wrapper: Component) => void
+  }) => void,
+): ComponentScope {
+  const components: Record<string, Component> = {}
+  const wrappers: Record<string, Component> = {}
+
+  setup({
+    component: (name, comp) => { components[name] = comp },
+    wrapper: (name, wrapper) => { wrappers[name] = wrapper },
+  })
+
+  return { components, wrappers }
 }

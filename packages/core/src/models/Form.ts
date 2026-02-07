@@ -212,6 +212,51 @@ implements FormInstance<Values> {
     }
   }
 
+  /**
+   * 清理指定路径下的所有子字段注册
+   *
+   * 当数组字段执行 remove/move/setValue 等操作时调用，
+   * 避免已删除的数组子字段残留在 fields 映射中导致：
+   * - 验证时遍历到不存在的字段
+   * - 联动引擎处理幽灵字段
+   * - 提交数据收集时的额外过滤开销
+   */
+  cleanupChildFields(parentPath: string): void {
+    /* 收集所有以 parentPath 为前缀的子字段路径 */
+    const childPaths: string[] = []
+    for (const path of this.fields.keys()) {
+      if (FormPath.isChildOf(path, parentPath)) {
+        childPaths.push(path)
+      }
+    }
+
+    /* 逐个移除子字段及其联动 */
+    for (const path of childPaths) {
+      const field = this.fields.get(path)
+      if (field) {
+        field.dispose()
+        this.fields.delete(path)
+        this.arrayFields.delete(path)
+        this.reactionEngine.removeFieldReactions(path)
+      }
+    }
+
+    /* 同时清理子虚拟字段 */
+    const childVoidPaths: string[] = []
+    for (const path of this.voidFields.keys()) {
+      if (FormPath.isChildOf(path, parentPath)) {
+        childVoidPaths.push(path)
+      }
+    }
+    for (const path of childVoidPaths) {
+      const voidField = this.voidFields.get(path)
+      if (voidField) {
+        voidField.dispose()
+        this.voidFields.delete(path)
+      }
+    }
+  }
+
   /** 通过模式匹配查询字段 */
   queryFields(pattern: string): FieldInstance[] {
     const result: FieldInstance[] = []
@@ -238,9 +283,23 @@ implements FormInstance<Values> {
     const adapter = getReactiveAdapter()
     adapter.batch(() => {
       switch (strategy) {
-        case 'replace':
-          this.values = adapter.observable({ ...values } as Values)
+        case 'replace': {
+          /**
+           * 不创建新的 reactive 对象，而是在原引用上执行：
+           * 1. 删除不在新 values 中的旧 key
+           * 2. 赋值新 values 的所有 key
+           * 这样保持 this.values 的引用不变，避免破坏正在运行的 reactions。
+           */
+          const target = this.values as Record<string, unknown>
+          const source = values as Record<string, unknown>
+          for (const key of Object.keys(target)) {
+            if (!(key in source)) {
+              delete target[key]
+            }
+          }
+          Object.assign(target, source)
           break
+        }
         case 'shallow':
           Object.assign(this.values, values)
           break
@@ -249,8 +308,8 @@ implements FormInstance<Values> {
           deepMerge(this.values as Record<string, unknown>, values as Record<string, unknown>)
           break
       }
+      this.notifyValuesChange()
     })
-    this.notifyValuesChange()
   }
 
   /** 设置单个字段值 */

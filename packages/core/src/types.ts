@@ -75,6 +75,8 @@ export interface VoidFieldProps {
   name: string
   label?: string
   visible?: boolean
+  disabled?: boolean
+  readOnly?: boolean
   component?: string | ComponentType
   componentProps?: Record<string, unknown>
   reactions?: ReactionRule[]
@@ -216,6 +218,12 @@ export interface FormInstance<Values extends Record<string, unknown> = Record<st
   submitting: boolean
   validating: boolean
   pattern: FieldPattern
+  /** 验证触发时机 */
+  validateTrigger: ValidationTrigger | ValidationTrigger[]
+  /** 标签位置 */
+  labelPosition: 'top' | 'left' | 'right'
+  /** 标签宽度 */
+  labelWidth: number | string
 
   createField: <V = unknown>(props: FieldProps<V>) => FieldInstance<V>
   createArrayField: <V extends unknown[] = unknown[]>(props: ArrayFieldProps<V>) => ArrayFieldInstance<V>
@@ -223,7 +231,13 @@ export interface FormInstance<Values extends Record<string, unknown> = Record<st
   getField: (path: string) => FieldInstance | undefined
   getArrayField: (path: string) => ArrayFieldInstance | undefined
   removeField: (path: string) => void
+  /** 清理指定路径下的所有子字段注册（供 ArrayField 操作时调用） */
+  cleanupChildFields: (parentPath: string) => void
   queryFields: (pattern: string) => FieldInstance[]
+  /** 获取所有注册的字段（返回内部 Map 的只读快照） */
+  getAllFields: () => ReadonlyMap<string, FieldInstance>
+  /** 获取所有虚拟字段（返回内部 Map 的只读快照） */
+  getAllVoidFields: () => ReadonlyMap<string, VoidFieldInstance>
   setValues: (values: Partial<Values>, strategy?: 'merge' | 'shallow' | 'replace') => void
   setFieldValue: (path: string, value: unknown) => void
   getFieldValue: (path: string) => unknown
@@ -319,6 +333,8 @@ export interface VoidFieldInstance {
   readonly name: string
   label: string
   visible: boolean
+  disabled: boolean
+  readOnly: boolean
   pattern: FieldPattern
   component: string | ComponentType
   componentProps: Record<string, unknown>

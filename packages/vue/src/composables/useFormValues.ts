@@ -1,4 +1,5 @@
-import { inject } from 'vue'
+import type { ComputedRef } from 'vue'
+import { computed, inject } from 'vue'
 import { FormSymbol } from '../context'
 
 /**
@@ -16,21 +17,29 @@ export function useFormValues<Values extends Record<string, unknown> = Record<st
 }
 
 /**
- * 获取表单是否有效
+ * 获取表单是否有效（响应式 computed ref）
+ *
+ * 返回 ComputedRef<boolean>，在模板中使用 `.value` 访问，
+ * 当字段验证状态变化时自动更新。
  */
-export function useFormValid(): boolean {
+export function useFormValid(): ComputedRef<boolean> {
   const form = inject(FormSymbol)
-  if (!form)
-    return false
-  return form.valid
+  if (!form) {
+    throw new Error('[ConfigForm] useFormValid 必须在 <FormProvider> 内部使用')
+  }
+  return computed(() => form.valid)
 }
 
 /**
- * 获取表单提交状态
+ * 获取表单提交状态（响应式 computed ref）
+ *
+ * 返回 ComputedRef<boolean>，在模板中使用 `.value` 访问，
+ * 当提交状态变化时自动更新。
  */
-export function useFormSubmitting(): boolean {
+export function useFormSubmitting(): ComputedRef<boolean> {
   const form = inject(FormSymbol)
-  if (!form)
-    return false
-  return form.submitting
+  if (!form) {
+    throw new Error('[ConfigForm] useFormSubmitting 必须在 <FormProvider> 内部使用')
+  }
+  return computed(() => form.submitting)
 }

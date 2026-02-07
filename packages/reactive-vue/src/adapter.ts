@@ -9,6 +9,26 @@ import {
 } from '@vue/reactivity'
 
 /**
+ * 浅比较两个值
+ *
+ * 用于 reaction 的默认值比较：
+ * - 基本类型：直接 ===
+ * - 数组：逐元素 === 比较（联动引擎的 getWatchedValues 返回数组）
+ * - 其他引用类型：===
+ */
+function shallowEquals(a: unknown, b: unknown): boolean {
+  if (a === b) return true
+  if (Array.isArray(a) && Array.isArray(b)) {
+    if (a.length !== b.length) return false
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] !== b[i]) return false
+    }
+    return true
+  }
+  return false
+}
+
+/**
  * Vue Reactivity 适配器
  *
  * 用于 Vue 项目。直接使用 @vue/reactivity 核心包：
@@ -70,7 +90,7 @@ export const vueAdapter: ReactiveAdapter = {
         const newValue = runner()
         const shouldRun = options?.equals
           ? !options.equals(newValue, oldValue)
-          : newValue !== oldValue
+          : !shallowEquals(newValue, oldValue)
         if (shouldRun) {
           const prev = oldValue
           oldValue = newValue

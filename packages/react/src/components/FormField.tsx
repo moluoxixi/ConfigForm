@@ -1,7 +1,7 @@
 import type { FieldInstance, FieldProps } from '@moluoxixi/core'
 import type { ComponentType, ReactNode } from 'react'
 import { observer } from 'mobx-react-lite'
-import React, { useContext, useRef } from 'react'
+import { useContext, useEffect, useRef } from 'react'
 import { ComponentRegistryContext, FieldContext, FormContext } from '../context'
 
 export interface FormFieldProps {
@@ -19,6 +19,8 @@ export interface FormFieldProps {
  * 表单字段组件
  *
  * 自动从 Form 中获取/创建 Field，并注入 FieldContext。
+ * 组件卸载时清理由本组件创建的字段注册，防止内存泄漏。
+ *
  * 支持两种渲染模式：
  * 1. 自动渲染（根据注册表查找组件）
  * 2. 自定义渲染（children render prop）
@@ -31,23 +33,33 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
     throw new Error('[ConfigForm] <FormField> 必须在 <FormProvider> 内部使用')
   }
 
-  /* 获取或创建字段 */
+  /* 获取或创建字段，并记录是否由本组件创建 */
   const fieldRef = useRef<FieldInstance | null>(null)
+  const createdByThisRef = useRef(false)
   if (!fieldRef.current) {
     let field = form.getField(name)
     if (!field) {
-      /* 字段 pattern 继承表单级 pattern（schema.pattern 优先） */
       const mergedProps = { ...fieldProps, name }
       if (!mergedProps.pattern && form.pattern !== 'editable') {
         mergedProps.pattern = form.pattern
       }
       field = form.createField(mergedProps)
+      createdByThisRef.current = true
     }
     fieldRef.current = field
   }
   const field = fieldRef.current
 
-  /* 组件卸载时不销毁字段（保持数据），除非表单销毁 */
+  /* 组件卸载时清理由本组件创建的字段注册 */
+  useEffect(() => {
+    const fieldName = name
+    const created = createdByThisRef.current
+    return () => {
+      if (created) {
+        form.removeField(fieldName)
+      }
+    }
+  }, [form, name])
 
   /* 不可见时不渲染 */
   if (!field.visible)
@@ -80,7 +92,7 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
 
   const Wrapper = typeof field.wrapper === 'string'
     ? registry.wrappers.get(field.wrapper)
-    : field.wrapper as ComponentType<any> | undefined
+    : (field.wrapper as ComponentType<any>)
 
   if (!Component) {
     console.warn(`[ConfigForm] 字段 "${name}" 未找到组件 "${String(field.component)}"`)
@@ -121,6 +133,8 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
           errors={field.errors}
           warnings={field.warnings}
           description={field.description}
+          labelPosition={form.labelPosition}
+          labelWidth={form.labelWidth}
           {...field.wrapperProps}
         >
           {fieldElement}

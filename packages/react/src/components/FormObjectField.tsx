@@ -1,19 +1,21 @@
 import type { FieldProps } from '@moluoxixi/core'
+import type { ReactNode } from 'react'
 import { observer } from 'mobx-react-lite'
-import React, { useContext, useEffect, useRef } from 'react'
+import { useContext, useEffect, useRef } from 'react'
 import { FieldContext, FormContext } from '../context'
 import { ReactiveField } from './ReactiveField'
 
 export interface FormObjectFieldProps {
   name: string
   fieldProps?: Partial<FieldProps>
-  children?: React.ReactNode
+  children?: ReactNode
 }
 
 /**
  * 对象字段组件（React 版）
  *
  * 创建 Field 实例，支持嵌套子字段。
+ * 组件卸载时清理由本组件创建的字段注册。
  */
 export const FormObjectField = observer<FormObjectFieldProps>(({ name, fieldProps, children }) => {
   const form = useContext(FormContext)
@@ -24,9 +26,11 @@ export const FormObjectField = observer<FormObjectFieldProps>(({ name, fieldProp
   )
   const field = fieldRef.current
 
+  /* 正确的依赖数组，避免 stale closure */
   useEffect(() => {
-    return () => { form.removeField(name) }
-  }, [])
+    const fieldName = name
+    return () => { form.removeField(fieldName) }
+  }, [form, name])
 
   return (
     <FieldContext.Provider value={field}>
