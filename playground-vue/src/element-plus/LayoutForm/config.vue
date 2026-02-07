@@ -1,11 +1,25 @@
 <template>
   <div>
     <h2>表单布局</h2>
-    <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">水平 / 垂直 / 行内 / 栅格布局</p>
+    <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">
+      水平 / 垂直 / 行内 / 栅格布局
+    </p>
 
     <el-space direction="vertical" :style="{ width: '100%', marginBottom: '16px' }">
-      <div><span style="font-weight: 600; margin-right: 12px">表单模式：</span><el-radio-group v-model="mode" size="small"><el-radio-button v-for="opt in MODE_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</el-radio-button></el-radio-group></div>
-      <div><span style="font-weight: 600; margin-right: 12px">布局类型：</span><el-radio-group v-model="layoutType" size="small"><el-radio-button v-for="opt in LAYOUT_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</el-radio-button></el-radio-group></div>
+      <div>
+        <span style="font-weight: 600; margin-right: 12px">表单模式：</span><el-radio-group v-model="mode" size="small">
+          <el-radio-button v-for="opt in MODE_OPTIONS" :key="opt.value" :value="opt.value">
+            {{ opt.label }}
+          </el-radio-button>
+        </el-radio-group>
+      </div>
+      <div>
+        <span style="font-weight: 600; margin-right: 12px">布局类型：</span><el-radio-group v-model="layoutType" size="small">
+          <el-radio-button v-for="opt in LAYOUT_OPTIONS" :key="opt.value" :value="opt.value">
+            {{ opt.label }}
+          </el-radio-button>
+        </el-radio-group>
+      </div>
     </el-space>
 
     <el-divider />
@@ -16,12 +30,16 @@
       :initial-values="savedValues"
       @values-change="(v: Record<string, unknown>) => savedValues = v"
       @submit="(v: Record<string, unknown>) => result = JSON.stringify(v, null, 2)"
-      @submit-failed="(e: any[]) => result = '验证失败:\n' + e.map((x: any) => `[${x.path}] ${x.message}`).join('\n')"
+      @submit-failed="(e: any[]) => result = `验证失败:\n${e.map((x: any) => `[${x.path}] ${x.message}`).join('\n')}`"
     >
       <template #default="{ form }">
         <el-space v-if="mode === 'editable'" style="margin-top: 16px">
-          <el-button type="primary" native-type="submit">提交</el-button>
-          <el-button @click="form.reset()">重置</el-button>
+          <el-button type="primary" native-type="submit">
+            提交
+          </el-button>
+          <el-button @click="form.reset()">
+            重置
+          </el-button>
         </el-space>
       </template>
     </ConfigForm>
@@ -31,14 +49,14 @@
 </template>
 
 <script setup lang="ts">
+import type { FormSchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { setupElementPlus } from '@moluoxixi/ui-element-plus'
+import { ConfigForm } from '@moluoxixi/vue'
 /**
  * 场景 2：表单布局（Element Plus）
  */
 import { computed, ref } from 'vue'
-import { ConfigForm } from '@moluoxixi/vue'
-import { setupElementPlus } from '@moluoxixi/ui-element-plus'
-import type { FormSchema } from '@moluoxixi/schema'
-import type { FieldPattern } from '@moluoxixi/shared'
 
 setupElementPlus()
 
@@ -64,10 +82,18 @@ const FIELDS: FormSchema['fields'] = {
 const schema = computed<FormSchema>(() => {
   const s: FormSchema = { form: { pattern: mode.value, labelWidth: '100px' }, fields: { ...FIELDS } }
   switch (layoutType.value) {
-    case 'horizontal': s.form!.labelPosition = 'right'; s.form!.direction = 'vertical'; break
-    case 'vertical': s.form!.labelPosition = 'top'; s.form!.direction = 'vertical'; break
-    case 'inline': s.form!.labelPosition = 'right'; s.form!.direction = 'inline'; break
-    case 'grid-2col': s.form!.labelPosition = 'right'; s.layout = { type: 'grid', columns: 2, gutter: 24 }; break
+    case 'horizontal': s.form!.labelPosition = 'right'
+      s.form!.direction = 'vertical'
+      break
+    case 'vertical': s.form!.labelPosition = 'top'
+      s.form!.direction = 'vertical'
+      break
+    case 'inline': s.form!.labelPosition = 'right'
+      s.form!.direction = 'inline'
+      break
+    case 'grid-2col': s.form!.labelPosition = 'right'
+      s.layout = { type: 'grid', columns: 2, gutter: 24 }
+      break
   }
   return s
 })

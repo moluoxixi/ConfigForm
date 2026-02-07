@@ -1,7 +1,9 @@
 <template>
   <div>
     <h2>卡片分组</h2>
-    <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">Card 多卡片分组 / void 节点布局 / 卡片内验证</p>
+    <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
+      Card 多卡片分组 / void 节点布局 / 卡片内验证
+    </p>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <ConfigForm
         :schema="withMode(schema, mode)"
@@ -14,11 +16,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
-import { ConfigForm } from '@moluoxixi/vue'
 import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
+import { ConfigForm } from '@moluoxixi/vue'
+import { ref } from 'vue'
 
 setupAntdVue()
 

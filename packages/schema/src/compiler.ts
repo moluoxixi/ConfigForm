@@ -8,10 +8,10 @@ import { isArray, isObject } from '@moluoxixi/shared'
 
 /** 默认类型 → 组件映射 */
 const DEFAULT_COMPONENT_MAPPING: Record<string, string> = {
-  'string': 'Input',
-  'number': 'InputNumber',
-  'boolean': 'Switch',
-  'date': 'DatePicker',
+  string: 'Input',
+  number: 'InputNumber',
+  boolean: 'Switch',
+  date: 'DatePicker',
 }
 
 /** 默认装饰器 */
@@ -69,7 +69,7 @@ function normalizeEnum(schema: ISchema): ISchema {
 
   const dataSource = schema.enum.map((item) => {
     if (isObject(item))
-      return item as { label: string; value: unknown; disabled?: boolean }
+      return item as { label: string, value: unknown, disabled?: boolean }
     return { label: String(item), value: item }
   })
 

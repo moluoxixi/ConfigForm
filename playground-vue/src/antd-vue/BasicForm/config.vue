@@ -16,16 +16,16 @@
 </template>
 
 <script setup lang="ts">
+import type { ISchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
+import { ConfigForm } from '@moluoxixi/vue'
 /**
  * 场景 1：基础表单（Ant Design Vue）
  *
  * 展示所有基础字段类型 + 必填校验和格式校验
  */
 import { ref } from 'vue'
-import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
-import { ConfigForm } from '@moluoxixi/vue'
-import type { ISchema } from '@moluoxixi/schema'
-import type { FieldPattern } from '@moluoxixi/shared'
 
 setupAntdVue()
 
@@ -37,8 +37,17 @@ function withMode(s: ISchema, mode: FieldPattern): ISchema {
 }
 
 const initialValues = {
-  username: '', password: '', email: '', phone: '', age: 18,
-  gender: undefined, marital: 'single', hobbies: [], notification: true, birthday: '', bio: '',
+  username: '',
+  password: '',
+  email: '',
+  phone: '',
+  age: 18,
+  gender: undefined,
+  marital: 'single',
+  hobbies: [],
+  notification: true,
+  birthday: '',
+  bio: '',
 }
 
 const schema: ISchema = {

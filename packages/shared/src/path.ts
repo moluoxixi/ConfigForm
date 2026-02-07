@@ -20,15 +20,16 @@ export class FormPath {
     if (!path)
       return []
     const segments: PathSegment[] = []
-    let match: RegExpExecArray | null
     PATH_RE.lastIndex = 0
-    while ((match = PATH_RE.exec(path)) !== null) {
+    let match: RegExpExecArray | null = PATH_RE.exec(path)
+    while (match !== null) {
       if (match[1] !== undefined) {
         segments.push(Number(match[1]))
       }
       else if (match[2] !== undefined) {
         segments.push(match[2])
       }
+      match = PATH_RE.exec(path)
     }
     return segments
   }

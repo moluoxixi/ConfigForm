@@ -1,6 +1,8 @@
 <template>
   <div style="max-width: 1400px; margin: 0 auto; padding: 16px; font-family: system-ui, sans-serif;">
-    <h1 style="margin-bottom: 4px;">ConfigForm - Vue Playground</h1>
+    <h1 style="margin-bottom: 4px;">
+      ConfigForm - Vue Playground
+    </h1>
     <p style="color: #666; margin-bottom: 16px; font-size: 13px;">
       基于 @vue/reactivity 的响应式配置化表单 · 48 个场景 × 2 套 UI 库 · Config（Schema 驱动） / Field（自定义渲染）
     </p>
@@ -10,11 +12,18 @@
       <span style="line-height: 32px; font-weight: 600; color: #333; font-size: 13px;">UI 组件库：</span>
       <button
         v-for="lib in uiLibs" :key="lib.key"
-        :style="{ padding: '4px 16px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 600,
-          background: currentUI === lib.key ? lib.color : '#fff', color: currentUI === lib.key ? '#fff' : '#333',
-          border: `2px solid ${currentUI === lib.key ? lib.color : '#ddd'}` }"
+        :style="{ padding: '4px 16px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  background: currentUI === lib.key ? lib.color : '#fff',
+                  color: currentUI === lib.key ? '#fff' : '#333',
+                  border: `2px solid ${currentUI === lib.key ? lib.color : '#ddd'}` }"
         @click="switchUI(lib.key)"
-      >{{ lib.label }}</button>
+      >
+        {{ lib.label }}
+      </button>
     </div>
 
     <!-- 主体：左侧导航 + 右侧内容 -->
@@ -24,26 +33,46 @@
         <!-- Config / Field Tab 切换 -->
         <div style="display: flex; border-bottom: 1px solid #eee;">
           <button
-            :style="{ flex: 1, padding: '10px 0', fontSize: '13px', fontWeight: 700, cursor: 'pointer', border: 'none',
-              background: navMode === 'config' ? '#1677ff' : '#f5f5f5', color: navMode === 'config' ? '#fff' : '#666' }"
+            :style="{ flex: 1,
+                      padding: '10px 0',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      border: 'none',
+                      background: navMode === 'config' ? '#1677ff' : '#f5f5f5',
+                      color: navMode === 'config' ? '#fff' : '#666' }"
             @click="navMode = 'config'"
-          >Config 模式</button>
+          >
+            Config 模式
+          </button>
           <button
-            :style="{ flex: 1, padding: '10px 0', fontSize: '13px', fontWeight: 700, cursor: 'pointer', border: 'none',
-              background: navMode === 'field' ? '#52c41a' : '#f5f5f5', color: navMode === 'field' ? '#fff' : '#666' }"
+            :style="{ flex: 1,
+                      padding: '10px 0',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      border: 'none',
+                      background: navMode === 'field' ? '#52c41a' : '#f5f5f5',
+                      color: navMode === 'field' ? '#fff' : '#666' }"
             @click="navMode = 'field'"
-          >Field 模式</button>
+          >
+            Field 模式
+          </button>
         </div>
 
         <!-- 场景列表（两种模式共用同一场景列表） -->
         <div style="max-height: calc(100vh - 220px); overflow: auto; padding: 8px;">
           <div v-for="group in sceneGroups" :key="group.title" style="margin-bottom: 8px;">
-            <div style="font-size: 11px; font-weight: 600; color: #999; padding: 2px 4px;">{{ group.title }}</div>
+            <div style="font-size: 11px; font-weight: 600; color: #999; padding: 2px 4px;">
+              {{ group.title }}
+            </div>
             <button
               v-for="item in group.items" :key="item.key"
               :style="navBtnStyle(item.key)"
               @click="currentDemo = item.key"
-            >{{ item.label }}</button>
+            >
+              {{ item.label }}
+            </button>
           </div>
         </div>
       </div>
@@ -51,7 +80,9 @@
       <!-- 右侧内容区 -->
       <div style="flex: 1; border: 1px solid #eee; border-radius: 8px; padding: 24px; background: #fff; min-height: 400px;">
         <component :is="currentComponent" v-if="currentComponent" :key="`${currentUI}-${navMode}-${currentDemo}`" />
-        <div v-else style="text-align: center; color: #999; padding: 40px;">请选择场景</div>
+        <div v-else style="text-align: center; color: #999; padding: 40px;">
+          请选择场景
+        </div>
       </div>
     </div>
   </div>
@@ -188,24 +219,62 @@ const sceneGroups = [
 
 /** 场景 key → 文件名映射 */
 const fileMap: Record<string, string> = {
-  'basic': 'BasicForm', 'layout': 'LayoutForm', 'basic-validation': 'BasicValidationForm', 'default-value': 'DefaultValueForm',
-  'visibility-linkage': 'VisibilityLinkageForm', 'value-linkage': 'ValueLinkageForm', 'property-linkage': 'PropertyLinkageForm',
-  'cascade-select': 'CascadeSelectForm', 'computed-field': 'ComputedFieldForm', 'conditional-required': 'ConditionalRequiredForm',
-  'custom-validation': 'CustomValidationForm', 'async-validation': 'AsyncValidationForm', 'cross-field-validation': 'CrossFieldValidationForm',
-  'nested-object': 'NestedObjectForm', 'array-field': 'ArrayFieldForm', 'editable-table': 'EditableTableForm', 'object-array-nested': 'ObjectArrayNestedForm',
-  'async-options': 'AsyncOptionsForm', 'dependent-datasource': 'DependentDataSourceForm', 'paginated-search': 'PaginatedSearchForm',
-  'step-form': 'StepForm', 'tab-group': 'TabGroupForm', 'collapse-group': 'CollapseGroupForm', 'card-group': 'CardGroupForm',
-  'dynamic-field': 'DynamicFieldForm', 'dynamic-schema': 'DynamicSchemaForm', 'template-reuse': 'TemplateReuseForm',
-  'rich-text': 'RichTextForm', 'file-upload': 'FileUploadForm', 'map-picker': 'MapPickerForm', 'color-picker': 'ColorPickerForm',
-  'code-editor': 'CodeEditorForm', 'json-editor': 'JsonEditorForm', 'signature-pad': 'SignaturePadForm',
-  'transfer': 'TransferForm', 'tree-select': 'TreeSelectForm', 'markdown-editor': 'MarkdownEditorForm',
-  'icon-selector': 'IconSelectorForm', 'cron-editor': 'CronEditorForm',
-  'data-transform': 'DataTransformForm', 'multi-form': 'MultiFormForm', 'form-snapshot': 'FormSnapshotForm',
-  'undo-redo': 'UndoRedoForm', 'lifecycle': 'LifecycleForm',
-  'permission': 'PermissionForm', 'i18n': 'I18nForm', 'form-diff': 'FormDiffForm', 'print-export': 'PrintExportForm',
-  'grid-layout': 'GridLayoutForm', 'effects': 'EffectsForm', 'large-form-perf': 'LargeFormPerf',
-  'custom-decorator': 'CustomDecoratorForm', 'schema-expression': 'SchemaExpressionForm',
-  'oneof-schema': 'OneOfSchemaForm', 'ssr-compat': 'SSRCompatForm', 'virtual-scroll': 'VirtualScrollForm',
+  'basic': 'BasicForm',
+  'layout': 'LayoutForm',
+  'basic-validation': 'BasicValidationForm',
+  'default-value': 'DefaultValueForm',
+  'visibility-linkage': 'VisibilityLinkageForm',
+  'value-linkage': 'ValueLinkageForm',
+  'property-linkage': 'PropertyLinkageForm',
+  'cascade-select': 'CascadeSelectForm',
+  'computed-field': 'ComputedFieldForm',
+  'conditional-required': 'ConditionalRequiredForm',
+  'custom-validation': 'CustomValidationForm',
+  'async-validation': 'AsyncValidationForm',
+  'cross-field-validation': 'CrossFieldValidationForm',
+  'nested-object': 'NestedObjectForm',
+  'array-field': 'ArrayFieldForm',
+  'editable-table': 'EditableTableForm',
+  'object-array-nested': 'ObjectArrayNestedForm',
+  'async-options': 'AsyncOptionsForm',
+  'dependent-datasource': 'DependentDataSourceForm',
+  'paginated-search': 'PaginatedSearchForm',
+  'step-form': 'StepForm',
+  'tab-group': 'TabGroupForm',
+  'collapse-group': 'CollapseGroupForm',
+  'card-group': 'CardGroupForm',
+  'dynamic-field': 'DynamicFieldForm',
+  'dynamic-schema': 'DynamicSchemaForm',
+  'template-reuse': 'TemplateReuseForm',
+  'rich-text': 'RichTextForm',
+  'file-upload': 'FileUploadForm',
+  'map-picker': 'MapPickerForm',
+  'color-picker': 'ColorPickerForm',
+  'code-editor': 'CodeEditorForm',
+  'json-editor': 'JsonEditorForm',
+  'signature-pad': 'SignaturePadForm',
+  'transfer': 'TransferForm',
+  'tree-select': 'TreeSelectForm',
+  'markdown-editor': 'MarkdownEditorForm',
+  'icon-selector': 'IconSelectorForm',
+  'cron-editor': 'CronEditorForm',
+  'data-transform': 'DataTransformForm',
+  'multi-form': 'MultiFormForm',
+  'form-snapshot': 'FormSnapshotForm',
+  'undo-redo': 'UndoRedoForm',
+  'lifecycle': 'LifecycleForm',
+  'permission': 'PermissionForm',
+  'i18n': 'I18nForm',
+  'form-diff': 'FormDiffForm',
+  'print-export': 'PrintExportForm',
+  'grid-layout': 'GridLayoutForm',
+  'effects': 'EffectsForm',
+  'large-form-perf': 'LargeFormPerf',
+  'custom-decorator': 'CustomDecoratorForm',
+  'schema-expression': 'SchemaExpressionForm',
+  'oneof-schema': 'OneOfSchemaForm',
+  'ssr-compat': 'SSRCompatForm',
+  'virtual-scroll': 'VirtualScrollForm',
 }
 
 /**
@@ -222,27 +291,32 @@ const asyncComponents: Record<string, Record<string, Record<string, ReturnType<t
 /* antd-vue: ./antd-vue/XxxForm/config.vue + field.vue */
 for (const [path, loader] of Object.entries(import.meta.glob('./antd-vue/*/config.vue'))) {
   const name = path.match(/\/antd-vue\/(\w+)\/config\.vue$/)?.[1] ?? ''
-  if (name) asyncComponents['antd-vue'].config[name] = defineAsyncComponent(loader as () => Promise<any>)
+  if (name)
+    asyncComponents['antd-vue'].config[name] = defineAsyncComponent(loader as () => Promise<any>)
 }
 for (const [path, loader] of Object.entries(import.meta.glob('./antd-vue/*/field.vue'))) {
   const name = path.match(/\/antd-vue\/(\w+)\/field\.vue$/)?.[1] ?? ''
-  if (name) asyncComponents['antd-vue'].field[name] = defineAsyncComponent(loader as () => Promise<any>)
+  if (name)
+    asyncComponents['antd-vue'].field[name] = defineAsyncComponent(loader as () => Promise<any>)
 }
 
 /* element-plus: ./element-plus/XxxForm/config.vue + field.vue */
 for (const [path, loader] of Object.entries(import.meta.glob('./element-plus/*/config.vue'))) {
   const name = path.match(/\/element-plus\/(\w+)\/config\.vue$/)?.[1] ?? ''
-  if (name) asyncComponents['element-plus'].config[name] = defineAsyncComponent(loader as () => Promise<any>)
+  if (name)
+    asyncComponents['element-plus'].config[name] = defineAsyncComponent(loader as () => Promise<any>)
 }
 for (const [path, loader] of Object.entries(import.meta.glob('./element-plus/*/field.vue'))) {
   const name = path.match(/\/element-plus\/(\w+)\/field\.vue$/)?.[1] ?? ''
-  if (name) asyncComponents['element-plus'].field[name] = defineAsyncComponent(loader as () => Promise<any>)
+  if (name)
+    asyncComponents['element-plus'].field[name] = defineAsyncComponent(loader as () => Promise<any>)
 }
 
 /** 当前组件：按 UI 库 + 模式 + 场景名查找 */
 const currentComponent = computed(() => {
   const fileName = fileMap[currentDemo.value]
-  if (!fileName) return undefined
+  if (!fileName)
+    return undefined
   return asyncComponents[currentUI.value]?.[navMode.value]?.[fileName]
 })
 
@@ -254,10 +328,18 @@ function navBtnStyle(key: string): Record<string, string> {
   const active = currentDemo.value === key
   const color = currentUI.value === 'antd-vue' ? '#1677ff' : '#409eff'
   return {
-    display: 'block', width: '100%', textAlign: 'left', padding: '3px 8px',
-    border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px',
-    background: active ? color : 'transparent', color: active ? '#fff' : '#333',
-    fontWeight: active ? '600' : '400', marginBottom: '1px',
+    display: 'block',
+    width: '100%',
+    textAlign: 'left',
+    padding: '3px 8px',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '12px',
+    background: active ? color : 'transparent',
+    color: active ? '#fff' : '#333',
+    fontWeight: active ? '600' : '400',
+    marginBottom: '1px',
   }
 }
 </script>

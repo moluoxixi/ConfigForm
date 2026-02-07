@@ -1,3 +1,9 @@
+import type { ISchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { ConfigForm } from '@moluoxixi/react'
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { Typography } from 'antd'
+import { observer } from 'mobx-react-lite'
 /**
  * 场景 7：属性联动
  *
@@ -8,21 +14,15 @@
  * - 动态 componentProps：切换组件属性（如 InputNumber 的 min/max/step）
  * - 三种模式切换
  */
-import React from 'react';
-import { observer } from 'mobx-react-lite';
-import { ConfigForm } from '@moluoxixi/react';
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
-import { Typography } from 'antd';
-import type { ISchema } from '@moluoxixi/schema';
-import type { FieldPattern } from '@moluoxixi/shared';
+import React from 'react'
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph } = Typography
 
-setupAntd();
+setupAntd()
 
 /** 工具：将 StatusTabs 的 mode 注入 schema */
 function withMode(s: ISchema, mode: FieldPattern): ISchema {
-  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } };
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
 }
 
 /** 默认初始值 */
@@ -36,7 +36,7 @@ const INITIAL_VALUES: Record<string, unknown> = {
   isVip: false,
   vipCompany: '',
   vipId: '',
-};
+}
 
 /** 表单 Schema */
 const schema: ISchema = {
@@ -58,7 +58,7 @@ const schema: ISchema = {
       reactions: [
         {
           watch: 'enableRemark',
-          when: (v) => v[0] === true,
+          when: v => v[0] === true,
           fulfill: { state: { disabled: false } },
           otherwise: { state: { disabled: true } },
         },
@@ -88,16 +88,16 @@ const schema: ISchema = {
           watch: 'contactType',
           fulfill: {
             run: (field, ctx) => {
-              const type = ctx.values.contactType as string;
-              const config: Record<string, { placeholder: string; required: boolean }> = {
+              const type = ctx.values.contactType as string
+              const config: Record<string, { placeholder: string, required: boolean }> = {
                 phone: { placeholder: '请输入 11 位手机号', required: true },
                 email: { placeholder: '请输入邮箱地址', required: true },
                 wechat: { placeholder: '请输入微信号（选填）', required: false },
                 qq: { placeholder: '请输入 QQ 号（选填）', required: false },
-              };
-              const cfg = config[type] ?? { placeholder: '请输入', required: false };
-              field.setComponentProps({ placeholder: cfg.placeholder });
-              field.required = cfg.required;
+              }
+              const cfg = config[type] ?? { placeholder: '请输入', required: false }
+              field.setComponentProps({ placeholder: cfg.placeholder })
+              field.required = cfg.required
             },
           },
         },
@@ -127,13 +127,15 @@ const schema: ISchema = {
           watch: 'productType',
           fulfill: {
             run: (field, ctx) => {
-              const type = ctx.values.productType as string;
+              const type = ctx.values.productType as string
               if (type === 'standard') {
-                field.setComponentProps({ min: 1, max: 9999, step: 1, addonAfter: '件' });
-              } else if (type === 'weight') {
-                field.setComponentProps({ min: 0.01, max: 9999, step: 0.01, addonAfter: 'kg' });
-              } else {
-                field.setComponentProps({ min: 0.1, max: 99999, step: 0.1, addonAfter: 'L' });
+                field.setComponentProps({ min: 1, max: 9999, step: 1, addonAfter: '件' })
+              }
+              else if (type === 'weight') {
+                field.setComponentProps({ min: 0.01, max: 9999, step: 0.01, addonAfter: 'kg' })
+              }
+              else {
+                field.setComponentProps({ min: 0.1, max: 99999, step: 0.1, addonAfter: 'L' })
               }
             },
           },
@@ -155,7 +157,7 @@ const schema: ISchema = {
       reactions: [
         {
           watch: 'isVip',
-          when: (v) => v[0] === true,
+          when: v => v[0] === true,
           fulfill: { state: { required: true } },
           otherwise: { state: { required: false } },
         },
@@ -168,14 +170,14 @@ const schema: ISchema = {
       reactions: [
         {
           watch: 'isVip',
-          when: (v) => v[0] === true,
+          when: v => v[0] === true,
           fulfill: { state: { required: true } },
           otherwise: { state: { required: false } },
         },
       ],
     },
   },
-};
+}
 
 /**
  * 属性联动示例
@@ -193,10 +195,10 @@ export const PropertyLinkageForm = observer((): React.ReactElement => {
             schema={withMode(schema, mode)}
             initialValues={INITIAL_VALUES}
             onSubmit={showResult}
-            onSubmitFailed={(errors) => showErrors(errors)}
+            onSubmitFailed={errors => showErrors(errors)}
           />
         )}
       </StatusTabs>
     </div>
-  );
-});
+  )
+})

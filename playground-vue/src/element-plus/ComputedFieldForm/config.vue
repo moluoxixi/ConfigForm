@@ -1,23 +1,35 @@
 <template>
   <div>
     <h2>计算字段</h2>
-    <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">乘法（单价×数量） / 百分比 / 聚合 / 条件计算</p>
+    <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">
+      乘法（单价×数量） / 百分比 / 聚合 / 条件计算
+    </p>
     <el-radio-group v-model="mode" size="small" style="margin-bottom: 16px">
-      <el-radio-button v-for="opt in MODE_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</el-radio-button>
+      <el-radio-button v-for="opt in MODE_OPTIONS" :key="opt.value" :value="opt.value">
+        {{ opt.label }}
+      </el-radio-button>
     </el-radio-group>
-    <ConfigForm :key="mode" :schema="schema" :initial-values="savedValues" @values-change="(v: Record<string, unknown>) => savedValues = v" @submit="(v: Record<string, unknown>) => result = JSON.stringify(v, null, 2)" @submit-failed="(e: any[]) => result = '验证失败:\n' + e.map((x: any) => `[${x.path}] ${x.message}`).join('\n')">
-      <template #default="{ form }"><el-divider /><el-space v-if="mode === 'editable'"><el-button type="primary" native-type="submit">提交</el-button><el-button @click="form.reset()">重置</el-button></el-space></template>
+    <ConfigForm :key="mode" :schema="schema" :initial-values="savedValues" @values-change="(v: Record<string, unknown>) => savedValues = v" @submit="(v: Record<string, unknown>) => result = JSON.stringify(v, null, 2)" @submit-failed="(e: any[]) => result = `验证失败:\n${e.map((x: any) => `[${x.path}] ${x.message}`).join('\n')}`">
+      <template #default="{ form }">
+        <el-divider /><el-space v-if="mode === 'editable'">
+          <el-button type="primary" native-type="submit">
+            提交
+          </el-button><el-button @click="form.reset()">
+            重置
+          </el-button>
+        </el-space>
+      </template>
     </ConfigForm>
     <el-alert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" :title="result.startsWith('验证失败') ? '验证失败' : '提交成功'" :description="result" show-icon style="margin-top: 16px" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { ConfigForm } from '@moluoxixi/vue'
-import { setupElementPlus } from '@moluoxixi/ui-element-plus'
 import type { FormSchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
+import { setupElementPlus } from '@moluoxixi/ui-element-plus'
+import { ConfigForm } from '@moluoxixi/vue'
+import { computed, ref } from 'vue'
 
 setupElementPlus()
 const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅读态', value: 'readOnly' }, { label: '禁用态', value: 'disabled' }]
@@ -38,10 +50,17 @@ const schema = computed<FormSchema>(() => ({
     scoreB: { type: 'number', label: '科目 B', component: 'InputNumber', wrapper: 'FormItem', defaultValue: 90, componentProps: { min: 0, max: 100, style: { width: '100%' } } },
     scoreC: { type: 'number', label: '科目 C', component: 'InputNumber', wrapper: 'FormItem', defaultValue: 78, componentProps: { min: 0, max: 100, style: { width: '100%' } } },
     totalScore: { type: 'number', label: '总分（自动）', component: 'InputNumber', wrapper: 'FormItem', componentProps: { disabled: true, style: { width: '100%' } }, reactions: [{ watch: ['scoreA', 'scoreB', 'scoreC'], fulfill: { run: (f: any, ctx: any) => { f.setValue(((ctx.values.scoreA as number) ?? 0) + ((ctx.values.scoreB as number) ?? 0) + ((ctx.values.scoreC as number) ?? 0)) } } }] },
-    avgScore: { type: 'number', label: '平均分（自动）', component: 'InputNumber', wrapper: 'FormItem', componentProps: { disabled: true, style: { width: '100%' } }, reactions: [{ watch: ['scoreA', 'scoreB', 'scoreC'], fulfill: { run: (f: any, ctx: any) => { const sum = ((ctx.values.scoreA as number) ?? 0) + ((ctx.values.scoreB as number) ?? 0) + ((ctx.values.scoreC as number) ?? 0); f.setValue(Math.round(sum / 3 * 100) / 100) } } }] },
+    avgScore: { type: 'number', label: '平均分（自动）', component: 'InputNumber', wrapper: 'FormItem', componentProps: { disabled: true, style: { width: '100%' } }, reactions: [{ watch: ['scoreA', 'scoreB', 'scoreC'], fulfill: { run: (f: any, ctx: any) => {
+      const sum = ((ctx.values.scoreA as number) ?? 0) + ((ctx.values.scoreB as number) ?? 0) + ((ctx.values.scoreC as number) ?? 0)
+      f.setValue(Math.round(sum / 3 * 100) / 100)
+    } } }] },
     calcType: { type: 'string', label: '计税方式', component: 'RadioGroup', wrapper: 'FormItem', defaultValue: 'inclusive', enum: [{ label: '含税 13%', value: 'inclusive' }, { label: '不含税', value: 'exclusive' }] },
     amount: { type: 'number', label: '金额', component: 'InputNumber', wrapper: 'FormItem', defaultValue: 1000, componentProps: { min: 0, style: { width: '100%' } } },
-    taxAmount: { type: 'number', label: '税额（自动）', component: 'InputNumber', wrapper: 'FormItem', componentProps: { disabled: true, style: { width: '100%' } }, reactions: [{ watch: ['calcType', 'amount'], fulfill: { run: (f: any, ctx: any) => { const t = ctx.values.calcType as string; const a = (ctx.values.amount as number) ?? 0; f.setValue(t === 'inclusive' ? Math.round(a / 1.13 * 0.13 * 100) / 100 : Math.round(a * 0.13 * 100) / 100) } } }] },
+    taxAmount: { type: 'number', label: '税额（自动）', component: 'InputNumber', wrapper: 'FormItem', componentProps: { disabled: true, style: { width: '100%' } }, reactions: [{ watch: ['calcType', 'amount'], fulfill: { run: (f: any, ctx: any) => {
+      const t = ctx.values.calcType as string
+      const a = (ctx.values.amount as number) ?? 0
+      f.setValue(t === 'inclusive' ? Math.round(a / 1.13 * 0.13 * 100) / 100 : Math.round(a * 0.13 * 100) / 100)
+    } } }] },
   },
 }))
 </script>

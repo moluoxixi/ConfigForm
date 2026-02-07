@@ -1,3 +1,9 @@
+import type { ISchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { ConfigForm } from '@moluoxixi/react'
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { Typography } from 'antd'
+import { observer } from 'mobx-react-lite'
 /**
  * 场景 6：值联动
  *
@@ -8,21 +14,15 @@
  * - 多对一：多个字段聚合到一个显示字段
  * - 三种模式切换
  */
-import React from 'react';
-import { observer } from 'mobx-react-lite';
-import { ConfigForm } from '@moluoxixi/react';
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
-import { Typography } from 'antd';
-import type { ISchema } from '@moluoxixi/schema';
-import type { FieldPattern } from '@moluoxixi/shared';
+import React from 'react'
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph } = Typography
 
-setupAntd();
+setupAntd()
 
 /** 工具：将 StatusTabs 的 mode 注入 schema */
 function withMode(s: ISchema, mode: FieldPattern): ISchema {
-  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } };
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
 }
 
 /** 国家→区号映射 */
@@ -32,7 +32,7 @@ const COUNTRY_CODE_MAP: Record<string, string> = {
   japan: '+81',
   korea: '+82',
   uk: '+44',
-};
+}
 
 /** 国家→货币映射 */
 const COUNTRY_CURRENCY_MAP: Record<string, string> = {
@@ -41,7 +41,7 @@ const COUNTRY_CURRENCY_MAP: Record<string, string> = {
   japan: 'JPY',
   korea: 'KRW',
   uk: 'GBP',
-};
+}
 
 /** 默认初始值 */
 const INITIAL_VALUES: Record<string, unknown> = {
@@ -58,7 +58,7 @@ const INITIAL_VALUES: Record<string, unknown> = {
   city: '',
   district: '',
   fullAddress: '',
-};
+}
 
 /** 表单 Schema */
 const schema: ISchema = {
@@ -86,9 +86,9 @@ const schema: ISchema = {
           watch: ['firstName', 'lastName'],
           fulfill: {
             run: (field, ctx) => {
-              const first = (ctx.values.firstName as string) ?? '';
-              const last = (ctx.values.lastName as string) ?? '';
-              field.setValue(`${first}${last}`.trim());
+              const first = (ctx.values.firstName as string) ?? ''
+              const last = (ctx.values.lastName as string) ?? ''
+              field.setValue(`${first}${last}`.trim())
             },
           },
         },
@@ -111,8 +111,8 @@ const schema: ISchema = {
           watch: 'rawInput',
           fulfill: {
             run: (field, ctx) => {
-              const raw = (ctx.values.rawInput as string) ?? '';
-              field.setValue(raw.toUpperCase());
+              const raw = (ctx.values.rawInput as string) ?? ''
+              field.setValue(raw.toUpperCase())
             },
           },
         },
@@ -128,8 +128,8 @@ const schema: ISchema = {
           watch: 'rawInput',
           fulfill: {
             run: (field, ctx) => {
-              const raw = (ctx.values.rawInput as string) ?? '';
-              field.setValue(raw.trim());
+              const raw = (ctx.values.rawInput as string) ?? ''
+              field.setValue(raw.trim())
             },
           },
         },
@@ -159,8 +159,8 @@ const schema: ISchema = {
           watch: 'country',
           fulfill: {
             run: (field, ctx) => {
-              const c = (ctx.values.country as string) ?? '';
-              field.setValue(COUNTRY_CODE_MAP[c] ?? '');
+              const c = (ctx.values.country as string) ?? ''
+              field.setValue(COUNTRY_CODE_MAP[c] ?? '')
             },
           },
         },
@@ -176,8 +176,8 @@ const schema: ISchema = {
           watch: 'country',
           fulfill: {
             run: (field, ctx) => {
-              const c = (ctx.values.country as string) ?? '';
-              field.setValue(COUNTRY_CURRENCY_MAP[c] ?? '');
+              const c = (ctx.values.country as string) ?? ''
+              field.setValue(COUNTRY_CURRENCY_MAP[c] ?? '')
             },
           },
         },
@@ -214,15 +214,15 @@ const schema: ISchema = {
                 ctx.values.province as string,
                 ctx.values.city as string,
                 ctx.values.district as string,
-              ].filter(Boolean);
-              field.setValue(parts.join(' '));
+              ].filter(Boolean)
+              field.setValue(parts.join(' '))
             },
           },
         },
       ],
     },
   },
-};
+}
 
 /**
  * 值联动示例
@@ -240,10 +240,10 @@ export const ValueLinkageForm = observer((): React.ReactElement => {
             schema={withMode(schema, mode)}
             initialValues={INITIAL_VALUES}
             onSubmit={showResult}
-            onSubmitFailed={(errors) => showErrors(errors)}
+            onSubmitFailed={errors => showErrors(errors)}
           />
         )}
       </StatusTabs>
     </div>
-  );
-});
+  )
+})

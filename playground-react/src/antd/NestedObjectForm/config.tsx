@@ -1,3 +1,9 @@
+import type { ISchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { ConfigForm } from '@moluoxixi/react'
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { Typography } from 'antd'
+import { observer } from 'mobx-react-lite'
 /**
  * 场景 14：嵌套对象
  *
@@ -7,21 +13,15 @@
  * - 嵌套对象内联动
  * - 三种模式切换
  */
-import React from 'react';
-import { observer } from 'mobx-react-lite';
-import { ConfigForm } from '@moluoxixi/react';
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
-import { Typography } from 'antd';
-import type { ISchema } from '@moluoxixi/schema';
-import type { FieldPattern } from '@moluoxixi/shared';
+import React from 'react'
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph } = Typography
 
-setupAntd();
+setupAntd()
 
 /** 工具：将 StatusTabs 的 mode 注入 schema */
 function withMode(s: ISchema, mode: FieldPattern): ISchema {
-  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } };
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
 }
 
 /** 默认初始值 */
@@ -36,7 +36,7 @@ const INITIAL_VALUES: Record<string, unknown> = {
   },
   company: { name: '', department: '', position: '' },
   settings: { theme: 'light', customColor: '' },
-};
+}
 
 /** 表单 Schema */
 const schema: ISchema = {
@@ -44,7 +44,7 @@ const schema: ISchema = {
   decoratorProps: { labelPosition: 'right', labelWidth: '160px' },
   properties: {
     /* 顶层字段 */
-    title: {
+    'title': {
       type: 'string',
       title: '标题',
       required: true,
@@ -146,14 +146,14 @@ const schema: ISchema = {
       reactions: [
         {
           watch: 'settings.theme',
-          when: (v) => v[0] === 'custom',
+          when: v => v[0] === 'custom',
           fulfill: { state: { visible: true, required: true } },
           otherwise: { state: { visible: false, required: false } },
         },
       ],
     },
   },
-};
+}
 
 /**
  * 嵌套对象示例
@@ -171,10 +171,10 @@ export const NestedObjectForm = observer((): React.ReactElement => {
             schema={withMode(schema, mode)}
             initialValues={INITIAL_VALUES}
             onSubmit={showResult}
-            onSubmitFailed={(errors) => showErrors(errors)}
+            onSubmitFailed={errors => showErrors(errors)}
           />
         )}
       </StatusTabs>
     </div>
-  );
-});
+  )
+})

@@ -1,7 +1,9 @@
 <template>
   <div>
     <h2>条件必填</h2>
-    <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">开关控制必填 / 金额阈值 / 选择「其他」必填 / 多条件组合</p>
+    <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
+      开关控制必填 / 金额阈值 / 选择「其他」必填 / 多条件组合
+    </p>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <ConfigForm
         :schema="withMode(schema, mode)"
@@ -14,11 +16,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
-import { ConfigForm } from '@moluoxixi/vue'
 import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
+import { ConfigForm } from '@moluoxixi/vue'
+import { ref } from 'vue'
 
 setupAntdVue()
 
@@ -41,7 +43,11 @@ const schema: ISchema = {
     invoiceTitle: { type: 'string', title: '发票抬头', reactions: [{ watch: 'needInvoice', when: (v: unknown[]) => v[0] === true, fulfill: { state: { required: true } }, otherwise: { state: { required: false } } }] },
     invoiceTaxNo: { type: 'string', title: '纳税人识别号', reactions: [{ watch: 'needInvoice', when: (v: unknown[]) => v[0] === true, fulfill: { state: { required: true } }, otherwise: { state: { required: false } } }] },
     amount: { type: 'number', title: '报销金额', required: true, default: 0, componentProps: { min: 0, step: 100, style: { width: '100%' } }, description: `超 ${THRESHOLD.toLocaleString()} 需填审批人` },
-    approver: { type: 'string', title: '审批人', reactions: [{ watch: 'amount', fulfill: { run: (f: any, ctx: any) => { const a = (ctx.values.amount as number) ?? 0; f.required = a > THRESHOLD; f.setComponentProps({ placeholder: a > THRESHOLD ? '必须填写审批人' : '选填' }) } } }] },
+    approver: { type: 'string', title: '审批人', reactions: [{ watch: 'amount', fulfill: { run: (f: any, ctx: any) => {
+      const a = (ctx.values.amount as number) ?? 0
+      f.required = a > THRESHOLD
+      f.setComponentProps({ placeholder: a > THRESHOLD ? '必须填写审批人' : '选填' })
+    } } }] },
     leaveType: { type: 'string', title: '请假类型', required: true, default: 'annual', enum: [{ label: '年假', value: 'annual' }, { label: '事假', value: 'personal' }, { label: '其他', value: 'other' }] },
     leaveReason: { type: 'string', title: '请假原因', component: 'Textarea', placeholder: '选择其他时必填', reactions: [{ watch: 'leaveType', when: (v: unknown[]) => v[0] === 'other', fulfill: { state: { required: true } }, otherwise: { state: { required: false } } }] },
     isOverseas: { type: 'boolean', title: '海外出差', default: false },

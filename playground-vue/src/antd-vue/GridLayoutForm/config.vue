@@ -15,14 +15,15 @@
 </template>
 
 <script setup lang="ts">
-/**
- * ?? 49?Grid ?????Ant Design Vue?? *
- * ?? schema.span ????????????24 ????? * decoratorProps.grid ??????????? span ?????? */
-import { ref } from 'vue'
-import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
-import { ConfigForm } from '@moluoxixi/vue'
 import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
+import { ConfigForm } from '@moluoxixi/vue'
+/**
+ * ?? 49?Grid ?????Ant Design Vue?? *
+ * ?? schema.span ????????????24 ????? * decoratorProps.grid ??????????? span ??????
+ */
+import { ref } from 'vue'
 
 setupAntdVue()
 
@@ -41,63 +42,63 @@ const schema: ISchema = {
   properties: {
     firstName: {
       type: 'string',
-      title: '??,
+      title: '姓',
       required: true,
       span: 12,
-      componentProps: { placeholder: '?????? },
+      componentProps: { placeholder: '请输入姓氏' },
     },
     lastName: {
       type: 'string',
-      title: '??,
+      title: '名',
       required: true,
       span: 12,
-      componentProps: { placeholder: '?????? },
+      componentProps: { placeholder: '请输入名字' },
     },
     email: {
       type: 'string',
-      title: '??',
+      title: '邮箱',
       span: 16,
-      rules: [{ format: 'email', message: '???????? }],
+      rules: [{ format: 'email', message: '请输入有效邮箱' }],
       componentProps: { placeholder: 'user@example.com' },
     },
     age: {
       type: 'number',
-      title: '??',
+      title: '年龄',
       span: 8,
       componentProps: { min: 0, max: 150 },
     },
     address: {
       type: 'string',
-      title: '????',
+      title: '详细地址',
       span: 24,
       component: 'Textarea',
-      componentProps: { placeholder: '???????', rows: 2 },
+      componentProps: { placeholder: '请输入详细地址', rows: 2 },
     },
     province: {
       type: 'string',
-      title: '??',
+      title: '省份',
       span: 8,
       enum: [
-        { label: '??', value: 'beijing' },
-        { label: '??', value: 'shanghai' },
-        { label: '??', value: 'guangdong' },
+        { label: '北京', value: 'beijing' },
+        { label: '上海', value: 'shanghai' },
+        { label: '广东', value: 'guangdong' },
       ],
     },
     city: {
       type: 'string',
-      title: '??',
+      title: '城市',
       span: 8,
-      componentProps: { placeholder: '?????? },
+      componentProps: { placeholder: '请输入城市' },
     },
     zipCode: {
       type: 'string',
-      title: '??',
+      title: '邮编',
       span: 8,
       componentProps: { placeholder: '100000' },
     },
     phone: {
       type: 'string',
-      title: '????,
+      title: '手机号',
       span: 12,
       rules: [{ format: 'phone', message: '????????' }],
     },

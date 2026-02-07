@@ -16,11 +16,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
-import { ConfigForm } from '@moluoxixi/vue'
 import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
+import { ConfigForm } from '@moluoxixi/vue'
+import { ref } from 'vue'
 
 setupAntdVue()
 
@@ -33,14 +33,29 @@ function withMode(s: ISchema, mode: FieldPattern): ISchema {
 
 const initialValues = {
   title: '员工档案',
-  name: '张三', age: 28, gender: 'male',
-  phone: '13800138000', email: 'zhangsan@example.com',
-  emergencyName: '李女士', emergencyRelation: 'spouse', emergencyPhone: '13900139000',
-  province: 'beijing', city: '北京', zipCode: '100000', addressDetail: '朝阳区某某街道1号',
-  companyName: '科技有限公司', department: '研发部', position: '高级工程师',
-  building: 'A 栋', floor: '12F', seat: 'A-12-03',
-  theme: 'light', customColor: '',
-  emailNotify: true, smsNotify: false, dnd: false,
+  name: '张三',
+  age: 28,
+  gender: 'male',
+  phone: '13800138000',
+  email: 'zhangsan@example.com',
+  emergencyName: '李女士',
+  emergencyRelation: 'spouse',
+  emergencyPhone: '13900139000',
+  province: 'beijing',
+  city: '北京',
+  zipCode: '100000',
+  addressDetail: '朝阳区某某街道1号',
+  companyName: '科技有限公司',
+  department: '研发部',
+  position: '高级工程师',
+  building: 'A 栋',
+  floor: '12F',
+  seat: 'A-12-03',
+  theme: 'light',
+  customColor: '',
+  emailNotify: true,
+  smsNotify: false,
+  dnd: false,
 }
 
 /**

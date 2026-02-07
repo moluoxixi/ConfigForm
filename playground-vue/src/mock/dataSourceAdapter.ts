@@ -12,7 +12,7 @@ const DELAY = 600
 
 /* ================== Mock 数据库 ================== */
 
-const MODELS: Record<string, Array<{ name: string; id: string }>> = {
+const MODELS: Record<string, Array<{ name: string, id: string }>> = {
   apple: [
     { name: 'iPhone 15', id: 'iphone15' },
     { name: 'iPhone 15 Pro', id: 'iphone15pro' },
@@ -29,13 +29,13 @@ const MODELS: Record<string, Array<{ name: string; id: string }>> = {
   ],
 }
 
-const CONFIGS: Record<string, Array<{ name: string; id: string }>> = {
-  iphone15: [
+const CONFIGS: Record<string, Array<{ name: string, id: string }>> = {
+  'iphone15': [
     { name: '128GB / 黑色', id: '128-black' },
     { name: '256GB / 白色', id: '256-white' },
     { name: '512GB / 蓝色', id: '512-blue' },
   ],
-  iphone15pro: [
+  'iphone15pro': [
     { name: '256GB / 钛金属', id: '256-titanium' },
     { name: '512GB / 钛金属', id: '512-titanium' },
     { name: '1TB / 钛金属', id: '1tb-titanium' },
@@ -44,22 +44,22 @@ const CONFIGS: Record<string, Array<{ name: string; id: string }>> = {
     { name: 'M3 / 16GB / 512GB', id: 'm3-16-512' },
     { name: 'M3 Pro / 36GB / 1TB', id: 'm3pro-36-1tb' },
   ],
-  mate60: [
+  'mate60': [
     { name: '256GB 雅丹黑', id: '256-black' },
     { name: '512GB 南糯紫', id: '512-purple' },
   ],
-  p60: [
+  'p60': [
     { name: '128GB 翡冷翠', id: '128-green' },
     { name: '256GB 洛可可白', id: '256-white' },
   ],
-  mi14: [
+  'mi14': [
     { name: '256GB 黑色', id: '256-black' },
     { name: '512GB 白色', id: '512-white' },
     { name: '1TB 钛金属', id: '1tb-titanium' },
   ],
 }
 
-const CLASSES: Record<string, Array<{ name: string; id: string }>> = {
+const CLASSES: Record<string, Array<{ name: string, id: string }>> = {
   grade1: [
     { name: '一(1)班 - 王老师', id: 'c1' },
     { name: '一(2)班 - 李老师', id: 'c2' },
@@ -89,8 +89,12 @@ const USERS = Array.from({ length: 1000 }, (_, i) => ({
 
 /** API 日志（方便调试） */
 const logs: string[] = []
-export function getApiLogs(): string[] { return logs }
-export function clearApiLogs(): void { logs.length = 0 }
+export function getApiLogs(): string[] {
+  return logs
+}
+export function clearApiLogs(): void {
+  logs.length = 0
+}
 
 /** 路由表：URL → 处理函数 */
 const routes: Record<string, (params: Record<string, unknown>) => unknown> = {

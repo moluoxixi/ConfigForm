@@ -1,7 +1,9 @@
 <template>
   <div>
     <h2>异步选项加载</h2>
-    <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">远程 dataSource / reactions 异步加载 / loading 状态</p>
+    <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
+      远程 dataSource / reactions 异步加载 / loading 状态
+    </p>
     <AAlert type="info" show-icon style="margin-bottom: 16px" message="切换「类型」下拉可看到异步加载过程（模拟 600ms 延迟）" />
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <ConfigForm
@@ -15,12 +17,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
-import { Alert as AAlert } from 'ant-design-vue'
-import { ConfigForm } from '@moluoxixi/vue'
 import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
+import { ConfigForm } from '@moluoxixi/vue'
+import { Alert as AAlert } from 'ant-design-vue'
+import { ref } from 'vue'
 
 setupAntdVue()
 
@@ -33,7 +35,7 @@ function withMode(s: ISchema, mode: FieldPattern): ISchema {
 
 const initialValues = { dynamicType: 'fruit', dynamicItem: undefined, country: 'china', remark: '' }
 
-const mockData: Record<string, Array<{ label: string; value: string }>> = {
+const mockData: Record<string, Array<{ label: string, value: string }>> = {
   fruit: [{ label: '苹果', value: 'apple' }, { label: '香蕉', value: 'banana' }, { label: '橙子', value: 'orange' }],
   vegetable: [{ label: '白菜', value: 'cabbage' }, { label: '胡萝卜', value: 'carrot' }],
   meat: [{ label: '猪肉', value: 'pork' }, { label: '牛肉', value: 'beef' }],
@@ -45,7 +47,10 @@ const schema: ISchema = {
   properties: {
     dynamicType: { type: 'string', title: '类型', default: 'fruit', enum: [{ label: '水果', value: 'fruit' }, { label: '蔬菜', value: 'vegetable' }, { label: '肉类', value: 'meat' }] },
     dynamicItem: {
-      type: 'string', title: '品种（异步）', component: 'Select', placeholder: '加载中...',
+      type: 'string',
+      title: '品种（异步）',
+      component: 'Select',
+      placeholder: '加载中...',
       reactions: [{
         watch: 'dynamicType',
         fulfill: {

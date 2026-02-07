@@ -178,7 +178,8 @@ export async function validate(
     /* 同步验证 */
     const syncMsg = validateRuleSync(value, rule, context, label)
     if (syncMsg) {
-      if (collectSyncFeedback(syncMsg, rule, context, errors, warnings)) break
+      if (collectSyncFeedback(syncMsg, rule, context, errors, warnings))
+        break
       continue
     }
 
@@ -246,7 +247,8 @@ export function validateSync(
   for (const rule of filteredRules) {
     const syncMsg = validateRuleSync(value, rule, context, label)
     if (syncMsg) {
-      if (collectSyncFeedback(syncMsg, rule, context, errors, warnings)) break
+      if (collectSyncFeedback(syncMsg, rule, context, errors, warnings))
+        break
     }
   }
 

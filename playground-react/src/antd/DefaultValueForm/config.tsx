@@ -1,3 +1,9 @@
+import type { ISchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { ConfigForm } from '@moluoxixi/react'
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { Alert, Typography } from 'antd'
+import { observer } from 'mobx-react-lite'
 /**
  * 场景 4：默认值
  *
@@ -8,33 +14,27 @@
  * - 重置恢复默认值
  * - 三种模式切换
  */
-import React from 'react';
-import { observer } from 'mobx-react-lite';
-import { ConfigForm } from '@moluoxixi/react';
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
-import { Alert, Typography } from 'antd';
-import type { ISchema } from '@moluoxixi/schema';
-import type { FieldPattern } from '@moluoxixi/shared';
+import React from 'react'
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Paragraph, Text } = Typography
 
-setupAntd();
+setupAntd()
 
 /** 工具：将 StatusTabs 的 mode 注入 schema */
 function withMode(s: ISchema, mode: FieldPattern): ISchema {
-  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } };
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
 }
 
 /** 生成今天的日期字符串 */
 function getToday(): string {
-  return new Date().toISOString().slice(0, 10);
+  return new Date().toISOString().slice(0, 10)
 }
 
 /** 生成默认订单编号 */
 function generateOrderNo(): string {
-  const now = new Date();
-  const pad = (n: number): string => String(n).padStart(2, '0');
-  return `ORD-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+  const now = new Date()
+  const pad = (n: number): string => String(n).padStart(2, '0')
+  return `ORD-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
 }
 
 /** 外部注入的初始值（模拟从接口获取） */
@@ -49,7 +49,7 @@ const INITIAL_VALUES: Record<string, unknown> = {
   totalPrice: 99.9,
   level: 'silver',
   discountRate: 5,
-};
+}
 
 /** 表单 Schema */
 const schema: ISchema = {
@@ -119,9 +119,9 @@ const schema: ISchema = {
           watch: ['quantity', 'unitPrice'],
           fulfill: {
             run: (field, ctx) => {
-              const qty = (ctx.values.quantity as number) ?? 0;
-              const price = (ctx.values.unitPrice as number) ?? 0;
-              field.setValue(Math.round(qty * price * 100) / 100);
+              const qty = (ctx.values.quantity as number) ?? 0
+              const price = (ctx.values.unitPrice as number) ?? 0
+              field.setValue(Math.round(qty * price * 100) / 100)
             },
           },
         },
@@ -153,16 +153,16 @@ const schema: ISchema = {
                 silver: 5,
                 gold: 10,
                 diamond: 20,
-              };
-              const level = ctx.values.level as string;
-              field.setValue(levelMap[level] ?? 0);
+              }
+              const level = ctx.values.level as string
+              field.setValue(levelMap[level] ?? 0)
             },
           },
         },
       ],
     },
   },
-};
+}
 
 /**
  * 默认值示例
@@ -181,12 +181,17 @@ export const DefaultValueForm = observer((): React.ReactElement => {
         type="info"
         showIcon
         style={{ marginBottom: 16 }}
-        message={
+        message={(
           <span>
-            外部注入初始值：订单号 <Text code>{INITIAL_VALUES.orderNo as string}</Text>，
-            日期 <Text code>{INITIAL_VALUES.createDate as string}</Text>
+            外部注入初始值：订单号
+            {' '}
+            <Text code>{INITIAL_VALUES.orderNo as string}</Text>
+            ，
+            日期
+            {' '}
+            <Text code>{INITIAL_VALUES.createDate as string}</Text>
           </span>
-        }
+        )}
       />
 
       <StatusTabs>
@@ -195,10 +200,10 @@ export const DefaultValueForm = observer((): React.ReactElement => {
             schema={withMode(schema, mode)}
             initialValues={INITIAL_VALUES}
             onSubmit={showResult}
-            onSubmitFailed={(errors) => showErrors(errors)}
+            onSubmitFailed={errors => showErrors(errors)}
           />
         )}
       </StatusTabs>
     </div>
-  );
-});
+  )
+})

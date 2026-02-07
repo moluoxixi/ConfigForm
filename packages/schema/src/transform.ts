@@ -95,9 +95,9 @@ export function toVoidFieldProps(compiled: CompiledField): VoidFieldProps {
 export function transformSchema(
   compiledSchema: CompiledSchema,
 ): {
-  fields: Array<{ path: string; props: FieldProps; type: 'field' | 'array' | 'void' }>
+  fields: Array<{ path: string, props: FieldProps, type: 'field' | 'array' | 'void' }>
 } {
-  const fields: Array<{ path: string; props: FieldProps; type: 'field' | 'array' | 'void' }> = []
+  const fields: Array<{ path: string, props: FieldProps, type: 'field' | 'array' | 'void' }> = []
 
   for (const [address, compiled] of compiledSchema.fields) {
     if (address.includes('.*'))

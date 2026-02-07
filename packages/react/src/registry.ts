@@ -50,12 +50,14 @@ export function registerComponents(mapping: Record<string, ComponentType<any>>, 
  * 批量注册字段组件 + 装饰器，所有字段组件共享同一个默认 wrapper
  *
  * @param fields - 字段组件映射（name → Component）
- * @param wrapper - 装饰器：{ name: 注册名, component: 装饰器组件 }
+ * @param wrapper - 装饰器配置
+ * @param wrapper.name - 装饰器注册名
+ * @param wrapper.component - 装饰器组件
  * @param layouts - 可选的布局组件映射（无默认 wrapper）
  */
 export function registerFieldComponents(
   fields: Record<string, ComponentType<any>>,
-  wrapper: { name: string; component: ComponentType<any> },
+  wrapper: { name: string, component: ComponentType<any> },
   layouts?: Record<string, ComponentType<any>>,
 ): void {
   globalWrappers.set(wrapper.name, wrapper.component)

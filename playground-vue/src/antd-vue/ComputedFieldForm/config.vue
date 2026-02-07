@@ -1,7 +1,9 @@
 <template>
   <div>
     <h2>计算字段</h2>
-    <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">乘法（单价×数量） / 百分比 / 聚合 / 条件计算</p>
+    <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
+      乘法（单价×数量） / 百分比 / 聚合 / 条件计算
+    </p>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <ConfigForm
         :schema="withMode(schema, mode)"
@@ -14,11 +16,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
-import { ConfigForm } from '@moluoxixi/vue'
 import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
+import { ConfigForm } from '@moluoxixi/vue'
+import { ref } from 'vue'
 
 setupAntdVue()
 
@@ -45,10 +47,17 @@ const schema: ISchema = {
     scoreB: { type: 'number', title: '科目 B', default: 90, componentProps: { min: 0, max: 100, style: { width: '100%' } } },
     scoreC: { type: 'number', title: '科目 C', default: 78, componentProps: { min: 0, max: 100, style: { width: '100%' } } },
     totalScore: { type: 'number', title: '总分（自动）', componentProps: { disabled: true, style: { width: '100%' } }, reactions: [{ watch: ['scoreA', 'scoreB', 'scoreC'], fulfill: { run: (f: any, ctx: any) => { f.setValue(((ctx.values.scoreA as number) ?? 0) + ((ctx.values.scoreB as number) ?? 0) + ((ctx.values.scoreC as number) ?? 0)) } } }] },
-    avgScore: { type: 'number', title: '平均分（自动）', componentProps: { disabled: true, style: { width: '100%' } }, reactions: [{ watch: ['scoreA', 'scoreB', 'scoreC'], fulfill: { run: (f: any, ctx: any) => { const sum = ((ctx.values.scoreA as number) ?? 0) + ((ctx.values.scoreB as number) ?? 0) + ((ctx.values.scoreC as number) ?? 0); f.setValue(Math.round(sum / 3 * 100) / 100) } } }] },
+    avgScore: { type: 'number', title: '平均分（自动）', componentProps: { disabled: true, style: { width: '100%' } }, reactions: [{ watch: ['scoreA', 'scoreB', 'scoreC'], fulfill: { run: (f: any, ctx: any) => {
+      const sum = ((ctx.values.scoreA as number) ?? 0) + ((ctx.values.scoreB as number) ?? 0) + ((ctx.values.scoreC as number) ?? 0)
+      f.setValue(Math.round(sum / 3 * 100) / 100)
+    } } }] },
     calcType: { type: 'string', title: '计税方式', component: 'RadioGroup', default: 'inclusive', enum: [{ label: '含税 13%', value: 'inclusive' }, { label: '不含税', value: 'exclusive' }] },
     amount: { type: 'number', title: '金额', default: 1000, componentProps: { min: 0, style: { width: '100%' } } },
-    taxAmount: { type: 'number', title: '税额（自动）', componentProps: { disabled: true, style: { width: '100%' } }, reactions: [{ watch: ['calcType', 'amount'], fulfill: { run: (f: any, ctx: any) => { const t = ctx.values.calcType as string; const a = (ctx.values.amount as number) ?? 0; f.setValue(t === 'inclusive' ? Math.round(a / 1.13 * 0.13 * 100) / 100 : Math.round(a * 0.13 * 100) / 100) } } }] },
+    taxAmount: { type: 'number', title: '税额（自动）', componentProps: { disabled: true, style: { width: '100%' } }, reactions: [{ watch: ['calcType', 'amount'], fulfill: { run: (f: any, ctx: any) => {
+      const t = ctx.values.calcType as string
+      const a = (ctx.values.amount as number) ?? 0
+      f.setValue(t === 'inclusive' ? Math.round(a / 1.13 * 0.13 * 100) / 100 : Math.round(a * 0.13 * 100) / 100)
+    } } }] },
   },
 }
 </script>

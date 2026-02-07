@@ -1,7 +1,9 @@
 <template>
   <div>
     <h2>显隐联动</h2>
-    <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">用户类型切换 / 开关控制多字段 / 嵌套显隐</p>
+    <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
+      用户类型切换 / 开关控制多字段 / 嵌套显隐
+    </p>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <ConfigForm
         :schema="withMode(schema, mode)"
@@ -14,11 +16,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
-import { ConfigForm } from '@moluoxixi/vue'
 import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
+import { ConfigForm } from '@moluoxixi/vue'
+import { ref } from 'vue'
 
 setupAntdVue()
 
@@ -37,7 +39,7 @@ const schema: ISchema = {
   properties: {
     userType: { type: 'string', title: '用户类型', required: true, component: 'RadioGroup', default: 'personal', enum: [{ label: '个人', value: 'personal' }, { label: '企业', value: 'business' }] },
     realName: { type: 'string', title: '真实姓名', required: true, componentProps: { placeholder: '请输入' }, excludeWhenHidden: true, reactions: [{ watch: 'userType', when: (v: unknown[]) => v[0] === 'personal', fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }] },
-    idCard: { type: 'string', title: '身份证号', componentProps: { placeholder: '18 位' }, excludeWhenHidden: true, rules: [{ pattern: /^\d{17}[\dXx]$/, message: '无效身份证' }], reactions: [{ watch: 'userType', when: (v: unknown[]) => v[0] === 'personal', fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }] },
+    idCard: { type: 'string', title: '身份证号', componentProps: { placeholder: '18 位' }, excludeWhenHidden: true, rules: [{ pattern: /^\d{17}[\dX]$/i, message: '无效身份证' }], reactions: [{ watch: 'userType', when: (v: unknown[]) => v[0] === 'personal', fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }] },
     companyName: { type: 'string', title: '公司名称', required: true, componentProps: { placeholder: '请输入' }, visible: false, excludeWhenHidden: true, reactions: [{ watch: 'userType', when: (v: unknown[]) => v[0] === 'business', fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }] },
     taxNumber: { type: 'string', title: '税号', componentProps: { placeholder: '请输入' }, visible: false, excludeWhenHidden: true, reactions: [{ watch: 'userType', when: (v: unknown[]) => v[0] === 'business', fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }] },
     enableNotify: { type: 'boolean', title: '开启通知', default: false },

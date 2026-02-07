@@ -19,7 +19,8 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
   const form = useContext(FormContext) as FormInstance
   const registry = useContext(ComponentRegistryContext)
 
-  if (!field || !field.visible) return null
+  if (!field || !field.visible)
+    return null
 
   const fp = field.pattern
   const formP = form?.pattern ?? 'editable'
@@ -41,14 +42,18 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
   const componentName = dataField.component
   const Comp = typeof componentName === 'string' ? registry.components.get(componentName) : componentName as ComponentType<any>
 
-  if (!Comp) return null
+  if (!Comp)
+    return null
 
   const fieldElement = (
     <Comp
       value={dataField.value}
       onChange={(val: unknown) => dataField.setValue(val)}
       onFocus={() => dataField.focus()}
-      onBlur={() => { dataField.blur(); dataField.validate('blur').catch(() => {}) }}
+      onBlur={() => {
+        dataField.blur()
+        dataField.validate('blur').catch(() => {})
+      }}
       disabled={isDisabled}
       readOnly={isReadOnly}
       loading={dataField.loading}

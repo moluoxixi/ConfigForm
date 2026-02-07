@@ -1,7 +1,9 @@
 <template>
   <div>
     <h2>表单布局</h2>
-    <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">水平 / 垂直 / 行内 / 栅格布局</p>
+    <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
+      水平 / 垂直 / 行内 / 栅格布局
+    </p>
     <div style="margin-bottom: 16px">
       <span style="font-weight: 600; margin-right: 12px">布局类型：</span>
       <ASegmented v-model:value="layoutType" :options="LAYOUT_OPTIONS" />
@@ -18,15 +20,15 @@
 </template>
 
 <script setup lang="ts">
+import type { ISchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
+import { ConfigForm } from '@moluoxixi/vue'
+import { Segmented as ASegmented } from 'ant-design-vue'
 /**
  * 场景 2：表单布局（Ant Design Vue）
  */
 import { computed, ref } from 'vue'
-import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
-import { Segmented as ASegmented } from 'ant-design-vue'
-import { ConfigForm } from '@moluoxixi/vue'
-import type { ISchema } from '@moluoxixi/schema'
-import type { FieldPattern } from '@moluoxixi/shared'
 
 setupAntdVue()
 
@@ -57,10 +59,18 @@ const PROPERTIES: ISchema['properties'] = {
 const schema = computed<ISchema>(() => {
   const s: ISchema = { type: 'object', decoratorProps: { labelWidth: '100px' }, properties: { ...PROPERTIES } }
   switch (layoutType.value) {
-    case 'horizontal': s.decoratorProps!.labelPosition = 'right'; s.decoratorProps!.direction = 'vertical'; break
-    case 'vertical': s.decoratorProps!.labelPosition = 'top'; s.decoratorProps!.direction = 'vertical'; break
-    case 'inline': s.decoratorProps!.labelPosition = 'right'; s.decoratorProps!.direction = 'inline'; break
-    case 'grid-2col': s.decoratorProps!.labelPosition = 'right'; s.layout = { type: 'grid', columns: 2, gutter: 24 }; break
+    case 'horizontal': s.decoratorProps!.labelPosition = 'right'
+      s.decoratorProps!.direction = 'vertical'
+      break
+    case 'vertical': s.decoratorProps!.labelPosition = 'top'
+      s.decoratorProps!.direction = 'vertical'
+      break
+    case 'inline': s.decoratorProps!.labelPosition = 'right'
+      s.decoratorProps!.direction = 'inline'
+      break
+    case 'grid-2col': s.decoratorProps!.labelPosition = 'right'
+      s.layout = { type: 'grid', columns: 2, gutter: 24 }
+      break
   }
   return s
 })

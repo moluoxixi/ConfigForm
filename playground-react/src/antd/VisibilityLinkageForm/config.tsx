@@ -1,3 +1,9 @@
+import type { ISchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { ConfigForm } from '@moluoxixi/react'
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { Typography } from 'antd'
+import { observer } from 'mobx-react-lite'
 /**
  * 场景 5：显隐联动
  *
@@ -8,21 +14,15 @@
  * - excludeWhenHidden 隐藏时排除提交数据
  * - 三种模式切换
  */
-import React from 'react';
-import { observer } from 'mobx-react-lite';
-import { ConfigForm } from '@moluoxixi/react';
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
-import { Typography } from 'antd';
-import type { ISchema } from '@moluoxixi/schema';
-import type { FieldPattern } from '@moluoxixi/shared';
+import React from 'react'
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph } = Typography
 
-setupAntd();
+setupAntd()
 
 /** 工具：将 StatusTabs 的 mode 注入 schema */
 function withMode(s: ISchema, mode: FieldPattern): ISchema {
-  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } };
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
 }
 
 /** 默认初始值 */
@@ -39,7 +39,7 @@ const INITIAL_VALUES: Record<string, unknown> = {
   city: '',
   hasDetailAddress: false,
   detailAddress: '',
-};
+}
 
 /** 表单 Schema */
 const schema: ISchema = {
@@ -69,7 +69,7 @@ const schema: ISchema = {
       reactions: [
         {
           watch: 'userType',
-          when: (v) => v[0] === 'personal',
+          when: v => v[0] === 'personal',
           fulfill: { state: { visible: true } },
           otherwise: { state: { visible: false } },
         },
@@ -80,11 +80,11 @@ const schema: ISchema = {
       title: '身份证号',
       placeholder: '18 位身份证号',
       excludeWhenHidden: true,
-      rules: [{ pattern: /^\d{17}[\dXx]$/, message: '请输入有效身份证号' }],
+      rules: [{ pattern: /^\d{17}[\dX]$/i, message: '请输入有效身份证号' }],
       reactions: [
         {
           watch: 'userType',
-          when: (v) => v[0] === 'personal',
+          when: v => v[0] === 'personal',
           fulfill: { state: { visible: true } },
           otherwise: { state: { visible: false } },
         },
@@ -102,7 +102,7 @@ const schema: ISchema = {
       reactions: [
         {
           watch: 'userType',
-          when: (v) => v[0] === 'business',
+          when: v => v[0] === 'business',
           fulfill: { state: { visible: true } },
           otherwise: { state: { visible: false } },
         },
@@ -117,7 +117,7 @@ const schema: ISchema = {
       reactions: [
         {
           watch: 'userType',
-          when: (v) => v[0] === 'business',
+          when: v => v[0] === 'business',
           fulfill: { state: { visible: true } },
           otherwise: { state: { visible: false } },
         },
@@ -140,7 +140,7 @@ const schema: ISchema = {
       reactions: [
         {
           watch: 'enableNotify',
-          when: (v) => v[0] === true,
+          when: v => v[0] === true,
           fulfill: { state: { visible: true } },
           otherwise: { state: { visible: false } },
         },
@@ -159,7 +159,7 @@ const schema: ISchema = {
       reactions: [
         {
           watch: 'enableNotify',
-          when: (v) => v[0] === true,
+          when: v => v[0] === true,
           fulfill: { state: { visible: true } },
           otherwise: { state: { visible: false } },
         },
@@ -181,7 +181,7 @@ const schema: ISchema = {
       reactions: [
         {
           watch: 'hasAddress',
-          when: (v) => v[0] === true,
+          when: v => v[0] === true,
           fulfill: { state: { visible: true } },
           otherwise: { state: { visible: false } },
         },
@@ -195,7 +195,7 @@ const schema: ISchema = {
       reactions: [
         {
           watch: 'hasAddress',
-          when: (v) => v[0] === true,
+          when: v => v[0] === true,
           fulfill: { state: { visible: true } },
           otherwise: { state: { visible: false } },
         },
@@ -211,14 +211,14 @@ const schema: ISchema = {
       reactions: [
         {
           watch: ['hasAddress', 'hasDetailAddress'],
-          when: (v) => v[0] === true && v[1] === true,
+          when: v => v[0] === true && v[1] === true,
           fulfill: { state: { visible: true } },
           otherwise: { state: { visible: false } },
         },
       ],
     },
   },
-};
+}
 
 /**
  * 显隐联动示例
@@ -236,10 +236,10 @@ export const VisibilityLinkageForm = observer((): React.ReactElement => {
             schema={withMode(schema, mode)}
             initialValues={INITIAL_VALUES}
             onSubmit={showResult}
-            onSubmitFailed={(errors) => showErrors(errors)}
+            onSubmitFailed={errors => showErrors(errors)}
           />
         )}
       </StatusTabs>
     </div>
-  );
-});
+  )
+})

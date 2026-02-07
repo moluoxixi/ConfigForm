@@ -3,10 +3,48 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { ComponentType, FieldPattern } from '@moluoxixi/shared'
 import type { Component, PropType } from 'vue'
 import { computed, defineComponent, h, inject, watch } from 'vue'
-import { ComponentRegistrySymbol } from '../context'
 import { useCreateForm } from '../composables/useForm'
+import { ComponentRegistrySymbol } from '../context'
 import { FormProvider } from './FormProvider'
 import { SchemaField } from './SchemaField'
+
+/** 操作按钮渲染器（优先从 registry 获取 LayoutFormActions） */
+const FormActionsRenderer = defineComponent({
+  name: 'FormActionsRenderer',
+  props: {
+    showSubmit: Boolean,
+    showReset: Boolean,
+    submitLabel: { type: String, default: '提交' },
+    resetLabel: { type: String, default: '重置' },
+  },
+  emits: ['reset'],
+  setup(props, { emit }) {
+    const registryRef = inject(ComponentRegistrySymbol)
+
+    return () => {
+      const LayoutActions = registryRef?.value.components.get('LayoutFormActions') as Component
+
+      if (LayoutActions) {
+        return h(LayoutActions, {
+          showSubmit: props.showSubmit,
+          showReset: props.showReset,
+          submitLabel: props.submitLabel,
+          resetLabel: props.resetLabel,
+          onReset: () => emit('reset'),
+        })
+      }
+
+      const buttons: ReturnType<typeof h>[] = []
+      if (props.showSubmit) {
+        buttons.push(h('button', { type: 'submit', style: 'margin-right: 8px; padding: 4px 16px; cursor: pointer' }, props.submitLabel))
+      }
+      if (props.showReset) {
+        buttons.push(h('button', { type: 'button', style: 'padding: 4px 16px; cursor: pointer', onClick: () => emit('reset') }, props.resetLabel))
+      }
+      return h('div', { style: 'margin-top: 16px' }, buttons)
+    }
+  },
+})
 
 /**
  * 开箱即用的配置化表单组件
@@ -129,54 +167,16 @@ export const ConfigForm = defineComponent({
           /* 操作按钮 */
           showActions
             ? h(FormActionsRenderer, {
-              showSubmit,
-              showReset,
-              submitLabel,
-              resetLabel,
-              onReset: () => form.reset(),
-            })
+                showSubmit,
+                showReset,
+                submitLabel,
+                resetLabel,
+                onReset: () => form.reset(),
+              })
             : null,
 
           slots.default?.({ form }),
         ]))
-    }
-  },
-})
-
-/** 操作按钮渲染器（优先从 registry 获取 LayoutFormActions） */
-const FormActionsRenderer = defineComponent({
-  name: 'FormActionsRenderer',
-  props: {
-    showSubmit: Boolean,
-    showReset: Boolean,
-    submitLabel: { type: String, default: '提交' },
-    resetLabel: { type: String, default: '重置' },
-  },
-  emits: ['reset'],
-  setup(props, { emit }) {
-    const registryRef = inject(ComponentRegistrySymbol)
-
-    return () => {
-      const LayoutActions = registryRef?.value.components.get('LayoutFormActions') as Component
-
-      if (LayoutActions) {
-        return h(LayoutActions, {
-          showSubmit: props.showSubmit,
-          showReset: props.showReset,
-          submitLabel: props.submitLabel,
-          resetLabel: props.resetLabel,
-          onReset: () => emit('reset'),
-        })
-      }
-
-      const buttons: ReturnType<typeof h>[] = []
-      if (props.showSubmit) {
-        buttons.push(h('button', { type: 'submit', style: 'margin-right: 8px; padding: 4px 16px; cursor: pointer' }, props.submitLabel))
-      }
-      if (props.showReset) {
-        buttons.push(h('button', { type: 'button', style: 'padding: 4px 16px; cursor: pointer', onClick: () => emit('reset') }, props.resetLabel))
-      }
-      return h('div', { style: 'margin-top: 16px' }, buttons)
     }
   },
 })

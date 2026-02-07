@@ -1,6 +1,6 @@
+import type { CfInputProps } from './Input'
 import { Input as AInput } from 'antd'
 import React from 'react'
-import type { CfInputProps } from './Input'
 
 export interface CfTextareaProps extends CfInputProps {
   rows?: number

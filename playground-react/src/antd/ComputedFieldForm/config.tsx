@@ -1,3 +1,9 @@
+import type { ISchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { ConfigForm } from '@moluoxixi/react'
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { Typography } from 'antd'
+import { observer } from 'mobx-react-lite'
 /**
  * 场景 9：计算字段
  *
@@ -8,21 +14,15 @@
  * - 条件计算：根据条件选择不同计算公式
  * - 三种模式切换
  */
-import React from 'react';
-import { observer } from 'mobx-react-lite';
-import { ConfigForm } from '@moluoxixi/react';
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
-import { Typography } from 'antd';
-import type { ISchema } from '@moluoxixi/schema';
-import type { FieldPattern } from '@moluoxixi/shared';
+import React from 'react'
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph } = Typography
 
-setupAntd();
+setupAntd()
 
 /** 工具：将 StatusTabs 的 mode 注入 schema */
 function withMode(s: ISchema, mode: FieldPattern): ISchema {
-  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } };
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
 }
 
 /** 默认初始值 */
@@ -41,7 +41,7 @@ const INITIAL_VALUES: Record<string, unknown> = {
   calcType: 'inclusive',
   amount: 1000,
   taxAmount: 115.04,
-};
+}
 
 /** 表单 Schema */
 const schema: ISchema = {
@@ -71,9 +71,9 @@ const schema: ISchema = {
           watch: ['unitPrice', 'quantity'],
           fulfill: {
             run: (field, ctx) => {
-              const price = (ctx.values.unitPrice as number) ?? 0;
-              const qty = (ctx.values.quantity as number) ?? 0;
-              field.setValue(Math.round(price * qty * 100) / 100);
+              const price = (ctx.values.unitPrice as number) ?? 0
+              const qty = (ctx.values.quantity as number) ?? 0
+              field.setValue(Math.round(price * qty * 100) / 100)
             },
           },
         },
@@ -103,9 +103,9 @@ const schema: ISchema = {
           watch: ['originalPrice', 'discountRate'],
           fulfill: {
             run: (field, ctx) => {
-              const price = (ctx.values.originalPrice as number) ?? 0;
-              const rate = (ctx.values.discountRate as number) ?? 0;
-              field.setValue(Math.round(price * (1 - rate / 100) * 100) / 100);
+              const price = (ctx.values.originalPrice as number) ?? 0
+              const rate = (ctx.values.discountRate as number) ?? 0
+              field.setValue(Math.round(price * (1 - rate / 100) * 100) / 100)
             },
           },
         },
@@ -141,10 +141,10 @@ const schema: ISchema = {
           watch: ['scoreA', 'scoreB', 'scoreC'],
           fulfill: {
             run: (field, ctx) => {
-              const a = (ctx.values.scoreA as number) ?? 0;
-              const b = (ctx.values.scoreB as number) ?? 0;
-              const c = (ctx.values.scoreC as number) ?? 0;
-              field.setValue(a + b + c);
+              const a = (ctx.values.scoreA as number) ?? 0
+              const b = (ctx.values.scoreB as number) ?? 0
+              const c = (ctx.values.scoreC as number) ?? 0
+              field.setValue(a + b + c)
             },
           },
         },
@@ -160,10 +160,10 @@ const schema: ISchema = {
           watch: ['scoreA', 'scoreB', 'scoreC'],
           fulfill: {
             run: (field, ctx) => {
-              const a = (ctx.values.scoreA as number) ?? 0;
-              const b = (ctx.values.scoreB as number) ?? 0;
-              const c = (ctx.values.scoreC as number) ?? 0;
-              field.setValue(Math.round((a + b + c) / 3 * 100) / 100);
+              const a = (ctx.values.scoreA as number) ?? 0
+              const b = (ctx.values.scoreB as number) ?? 0
+              const c = (ctx.values.scoreC as number) ?? 0
+              field.setValue(Math.round((a + b + c) / 3 * 100) / 100)
             },
           },
         },
@@ -197,15 +197,16 @@ const schema: ISchema = {
           watch: ['calcType', 'amount'],
           fulfill: {
             run: (field, ctx) => {
-              const type = ctx.values.calcType as string;
-              const amt = (ctx.values.amount as number) ?? 0;
-              const TAX_RATE = 0.13;
+              const type = ctx.values.calcType as string
+              const amt = (ctx.values.amount as number) ?? 0
+              const TAX_RATE = 0.13
               if (type === 'inclusive') {
                 /* 含税价反算税额 */
-                field.setValue(Math.round(amt / (1 + TAX_RATE) * TAX_RATE * 100) / 100);
-              } else {
+                field.setValue(Math.round(amt / (1 + TAX_RATE) * TAX_RATE * 100) / 100)
+              }
+              else {
                 /* 不含税直接算 */
-                field.setValue(Math.round(amt * TAX_RATE * 100) / 100);
+                field.setValue(Math.round(amt * TAX_RATE * 100) / 100)
               }
             },
           },
@@ -213,7 +214,7 @@ const schema: ISchema = {
       ],
     },
   },
-};
+}
 
 /**
  * 计算字段示例
@@ -231,10 +232,10 @@ export const ComputedFieldForm = observer((): React.ReactElement => {
             schema={withMode(schema, mode)}
             initialValues={INITIAL_VALUES}
             onSubmit={showResult}
-            onSubmitFailed={(errors) => showErrors(errors)}
+            onSubmitFailed={errors => showErrors(errors)}
           />
         )}
       </StatusTabs>
     </div>
-  );
-});
+  )
+})

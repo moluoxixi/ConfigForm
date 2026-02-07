@@ -7,7 +7,7 @@ export const LayoutCollapse = defineComponent({
   name: 'CfLayoutCollapse',
   props: {
     activeKey: { type: Array as PropType<string[]>, default: undefined },
-    items: { type: Array as PropType<Array<{ key: string; label: string }>>, default: () => [] },
+    items: { type: Array as PropType<Array<{ key: string, label: string }>>, default: () => [] },
   },
   emits: ['update:activeKey'],
   setup(props, { slots, emit }) {

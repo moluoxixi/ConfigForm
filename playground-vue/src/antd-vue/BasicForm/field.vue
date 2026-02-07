@@ -19,8 +19,12 @@
         <FormField name="bio" :field-props="{ label: '????', component: 'Textarea', rules: [{ maxLength: 200, message: '?? 200 ?' }], componentProps: { placeholder: '???????', rows: 3 } }" />
         <!-- ??????????? -->
         <div v-if="mode === 'editable'" style="margin-top: 16px; display: flex; gap: 8px">
-          <button type="button" @click="handleSubmit(showResult)" style="padding: 4px 15px; background: #1677ff; color: #fff; border: none; border-radius: 6px; cursor: pointer">??</button>
-          <button type="button" @click="form.reset()" style="padding: 4px 15px; background: #fff; border: 1px solid #d9d9d9; border-radius: 6px; cursor: pointer">??</button>
+          <button type="button" style="padding: 4px 15px; background: #1677ff; color: #fff; border: none; border-radius: 6px; cursor: pointer" @click="handleSubmit(showResult)">
+            ??
+          </button>
+          <button type="button" style="padding: 4px 15px; background: #fff; border: 1px solid #d9d9d9; border-radius: 6px; cursor: pointer" @click="form.reset()">
+            ??
+          </button>
         </div>
       </FormProvider>
     </StatusTabs>
@@ -28,6 +32,9 @@
 </template>
 
 <script setup lang="ts">
+import type { FieldPattern } from '@moluoxixi/shared'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
+import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
 /**
  * ?? 1????? - Field ???Ant Design Vue?
  *
@@ -35,9 +42,6 @@
  * ?? FormField ?? fieldProps ???????ReactiveField ???????????
  */
 import { ref, watch } from 'vue'
-import { FormProvider, FormField, useCreateForm } from '@moluoxixi/vue'
-import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
-import type { FieldPattern } from '@moluoxixi/shared'
 
 setupAntdVue()
 
@@ -50,18 +54,34 @@ const HOBBY_OPTIONS = [{ label: '??', value: 'reading' }, { label: '??', value: 
 
 const form = useCreateForm({
   initialValues: {
-    username: '', password: '', email: '', phone: '', age: 18,
-    gender: undefined, marital: 'single', hobbies: [] as string[], notification: true, birthday: '', bio: '',
+    username: '',
+    password: '',
+    email: '',
+    phone: '',
+    age: 18,
+    gender: undefined,
+    marital: 'single',
+    hobbies: [] as string[],
+    notification: true,
+    birthday: '',
+    bio: '',
   },
 })
 
 /** ?? StatusTabs ? mode ? form.pattern */
-watch(() => st.value?.mode, (v) => { if (v) form.pattern = v as FieldPattern }, { immediate: true })
+watch(() => st.value?.mode, (v) => {
+  if (v)
+    form.pattern = v as FieldPattern
+}, { immediate: true })
 
 /** ???? */
 async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
   const res = await form.submit()
-  if (res.errors.length > 0) { st.value?.showErrors(res.errors) }
-  else { showResult(res.values) }
+  if (res.errors.length > 0) {
+    st.value?.showErrors(res.errors)
+  }
+  else {
+    showResult(res.values)
+  }
 }
 </script>

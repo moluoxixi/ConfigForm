@@ -93,7 +93,8 @@ export const SchemaField = defineComponent({
         const cf = allFields.get(addr)
         if (cf) {
           const node = renderNode(cf)
-          if (node) result.push(node)
+          if (node)
+            result.push(node)
         }
       }
       return result
@@ -108,7 +109,8 @@ export const SchemaField = defineComponent({
           const cf = allFields.get(addr)
           if (cf) {
             const node = renderNode(cf)
-            if (node) rootChildren.push(node)
+            if (node)
+              rootChildren.push(node)
           }
         }
       }

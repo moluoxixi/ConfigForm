@@ -1,56 +1,69 @@
 <template>
   <div>
-    <h2>Effects ??????/h2>
-    <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
-      ?? createForm({ effects }) ?????????? onFieldValueChange / onValuesChange ??????????    </p>
+    <h2>
+      Effects ??????/h2>
+      <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
+        ?? createForm({ effects }) ?????????? onFieldValueChange / onValuesChange ??????????
+      </p>
 
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
-    <div style="display: flex; gap: 16px;">
-      <div style="flex: 1;">
-        <FormProvider :form="form">
-          <FormField name="unitPrice" :field-props="{ label: '??', component: 'InputNumber', componentProps: { min: 0 } }" />
-          <FormField name="quantity" :field-props="{ label: '??', component: 'InputNumber', componentProps: { min: 1 } }" />
-          <FormField name="totalPrice" :field-props="{ label: '????????', component: 'InputNumber', disabled: true }" />
-          <FormField name="discount" :field-props="{ label: '??(%)', component: 'InputNumber', componentProps: { min: 0, max: 100 } }" />
-          <FormField name="finalPrice" :field-props="{ label: '?????????', component: 'InputNumber', disabled: true }" />
-          <div v-if="mode === 'editable'" style="margin-top: 16px; display: flex; gap: 8px">
-            <button type="button" @click="handleSubmit(showResult)" style="padding: 4px 15px; background: #1677ff; color: #fff; border: none; border-radius: 6px; cursor: pointer">??</button>
-            <button type="button" @click="form.reset()" style="padding: 4px 15px; background: #fff; border: 1px solid #d9d9d9; border-radius: 6px; cursor: pointer">??</button>
+      <StatusTabs ref="st" v-slot="{ mode, showResult }">
+        <div style="display: flex; gap: 16px;">
+          <div style="flex: 1;">
+            <FormProvider :form="form">
+              <FormField name="unitPrice" :field-props="{ label: '??', component: 'InputNumber', componentProps: { min: 0 } }" />
+              <FormField name="quantity" :field-props="{ label: '??', component: 'InputNumber', componentProps: { min: 1 } }" />
+              <FormField name="totalPrice" :field-props="{ label: '????????', component: 'InputNumber', disabled: true }" />
+              <FormField name="discount" :field-props="{ label: '??(%)', component: 'InputNumber', componentProps: { min: 0, max: 100 } }" />
+              <FormField name="finalPrice" :field-props="{ label: '?????????', component: 'InputNumber', disabled: true }" />
+              <div v-if="mode === 'editable'" style="margin-top: 16px; display: flex; gap: 8px">
+                <button type="button" style="padding: 4px 15px; background: #1677ff; color: #fff; border: none; border-radius: 6px; cursor: pointer" @click="handleSubmit(showResult)">
+                  ??
+                </button>
+                <button type="button" style="padding: 4px 15px; background: #fff; border: 1px solid #d9d9d9; border-radius: 6px; cursor: pointer" @click="form.reset()">
+                  ??
+                </button>
+              </div>
+            </FormProvider>
           </div>
-        </FormProvider>
-      </div>
-      <div style="width: 320px; border: 1px solid #eee; border-radius: 8px; padding: 12px; background: #fafafa; max-height: 500px; overflow: auto;">
-        <div style="font-weight: 600; margin-bottom: 8px; font-size: 13px;">Effects ??</div>
-        <div v-for="(log, i) in logs" :key="i" style="font-size: 12px; color: #666; border-bottom: 1px solid #f0f0f0; padding: 4px 0;">
-          <span style="color: #1677ff;">[{{ log.type }}]</span> {{ log.message }}
+          <div style="width: 320px; border: 1px solid #eee; border-radius: 8px; padding: 12px; background: #fafafa; max-height: 500px; overflow: auto;">
+            <div style="font-weight: 600; margin-bottom: 8px; font-size: 13px;">
+              Effects ??
+            </div>
+            <div v-for="(log, i) in logs" :key="i" style="font-size: 12px; color: #666; border-bottom: 1px solid #f0f0f0; padding: 4px 0;">
+              <span style="color: #1677ff;">[{{ log.type }}]</span> {{ log.message }}
+            </div>
+            <div v-if="logs.length === 0" style="color: #999; font-size: 12px;">
+              ????...
+            </div>
+          </div>
         </div>
-        <div v-if="logs.length === 0" style="color: #999; font-size: 12px;">????...</div>
-      </div>
-    </div>
-    </StatusTabs>
+      </StatusTabs>
+    </h2>
   </div>
 </template>
 
 <script setup lang="ts">
+import type { FieldPattern } from '@moluoxixi/shared'
+import { createForm } from '@moluoxixi/core'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
+import { FormField, FormProvider } from '@moluoxixi/vue'
 /**
  * ?? 50?Effects ??????Ant Design Vue?? *
  * ?? createForm ??effects ???? * - onValuesChange????????? * - onFieldValueChange??????????????
- * - ?? setFieldValue ???????? */
+ * - ?? setFieldValue ????????
+ */
 import { reactive, ref, watch } from 'vue'
-import { createForm } from '@moluoxixi/core'
-import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
-import { FormProvider, FormField } from '@moluoxixi/vue'
-import type { FieldPattern } from '@moluoxixi/shared'
 
 setupAntdVue()
 
 const st = ref<InstanceType<typeof StatusTabs>>()
 
-const logs = reactive<Array<{ type: string; message: string }>>([])
+const logs = reactive<Array<{ type: string, message: string }>>([])
 
 function addLog(type: string, message: string): void {
   logs.unshift({ type, message })
-  if (logs.length > 50) logs.pop()
+  if (logs.length > 50)
+    logs.pop()
 }
 
 const form = createForm({
@@ -97,7 +110,10 @@ const form = createForm({
 })
 
 /** ?? StatusTabs ? mode ? form.pattern */
-watch(() => st.value?.mode, (v) => { if (v) form.pattern = v as FieldPattern }, { immediate: true })
+watch(() => st.value?.mode, (v) => {
+  if (v)
+    form.pattern = v as FieldPattern
+}, { immediate: true })
 
 /** ???? */
 async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {

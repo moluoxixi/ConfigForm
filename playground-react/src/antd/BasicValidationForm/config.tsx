@@ -1,3 +1,9 @@
+import type { ISchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { ConfigForm } from '@moluoxixi/react'
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { Typography } from 'antd'
+import { observer } from 'mobx-react-lite'
 /**
  * 场景 3：必填与格式验证
  *
@@ -11,21 +17,15 @@
  * - 正则校验（pattern）
  * - 三种模式切换
  */
-import React from 'react';
-import { observer } from 'mobx-react-lite';
-import { ConfigForm } from '@moluoxixi/react';
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
-import { Typography } from 'antd';
-import type { ISchema } from '@moluoxixi/schema';
-import type { FieldPattern } from '@moluoxixi/shared';
+import React from 'react'
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph } = Typography
 
-setupAntd();
+setupAntd()
 
 /** 工具：将 StatusTabs 的 mode 注入 schema */
 function withMode(s: ISchema, mode: FieldPattern): ISchema {
-  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } };
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
 }
 
 /** 默认初始值 */
@@ -39,7 +39,7 @@ const INITIAL_VALUES: Record<string, unknown> = {
   zipCode: '',
   idCard: '',
   password: '',
-};
+}
 
 /** 表单 Schema */
 const schema: ISchema = {
@@ -120,7 +120,7 @@ const schema: ISchema = {
       title: '身份证号',
       placeholder: '18 位身份证号',
       rules: [
-        { pattern: /^\d{17}[\dXx]$/, message: '请输入有效的 18 位身份证号' },
+        { pattern: /^\d{17}[\dX]$/i, message: '请输入有效的 18 位身份证号' },
       ],
     },
 
@@ -140,7 +140,7 @@ const schema: ISchema = {
       ],
     },
   },
-};
+}
 
 /**
  * 必填与格式验证示例
@@ -160,10 +160,10 @@ export const BasicValidationForm = observer((): React.ReactElement => {
             schema={withMode(schema, mode)}
             initialValues={INITIAL_VALUES}
             onSubmit={showResult}
-            onSubmitFailed={(errors) => showErrors(errors)}
+            onSubmitFailed={errors => showErrors(errors)}
           />
         )}
       </StatusTabs>
     </div>
-  );
-});
+  )
+})

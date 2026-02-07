@@ -1,3 +1,10 @@
+import type { ISchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { ConfigForm } from '@moluoxixi/react'
+import { mergeSchema } from '@moluoxixi/schema'
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { Collapse, Segmented, Tag, Typography } from 'antd'
+import { observer } from 'mobx-react-lite'
 /**
  * 场景 26：动态 Schema
  *
@@ -7,25 +14,18 @@
  * - Schema 热更新
  * - 三种模式切换
  */
-import React, { useState, useMemo } from 'react';
-import { observer } from 'mobx-react-lite';
-import { ConfigForm } from '@moluoxixi/react';
-import { mergeSchema } from '@moluoxixi/schema';
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
-import { Space, Typography, Tag, Collapse, Segmented } from 'antd';
-import type { ISchema } from '@moluoxixi/schema';
-import type { FieldPattern } from '@moluoxixi/shared';
+import React, { useMemo, useState } from 'react'
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph } = Typography
 
-setupAntd();
+setupAntd()
 
 /** 工具：将 StatusTabs 的 mode 注入 schema */
 function withMode(s: ISchema, mode: FieldPattern): ISchema {
-  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } };
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
 }
 
-type ScenarioKey = 'individual' | 'enterprise' | 'student';
+type ScenarioKey = 'individual' | 'enterprise' | 'student'
 
 /** 基础 Schema（所有场景共享） */
 const BASE_SCHEMA: ISchema = {
@@ -40,15 +40,15 @@ const BASE_SCHEMA: ISchema = {
     email: { type: 'string', title: '邮箱', placeholder: '请输入邮箱', rules: [{ format: 'email', message: '无效邮箱' }], order: 3 },
     remark: { type: 'string', title: '备注', component: 'Textarea', placeholder: '请输入备注', order: 99 },
   },
-};
+}
 
 /** 场景覆盖 Schema */
-const SCENARIO_SCHEMAS: Record<ScenarioKey, { label: string; override: Partial<ISchema> }> = {
+const SCENARIO_SCHEMAS: Record<ScenarioKey, { label: string, override: Partial<ISchema> }> = {
   individual: {
     label: '个人用户',
     override: {
       properties: {
-        idCard: { type: 'string', title: '身份证号', required: true, placeholder: '18 位身份证号', rules: [{ pattern: /^\d{17}[\dXx]$/, message: '无效身份证号' }], order: 4 },
+        idCard: { type: 'string', title: '身份证号', required: true, placeholder: '18 位身份证号', rules: [{ pattern: /^\d{17}[\dX]$/i, message: '无效身份证号' }], order: 4 },
         city: { type: 'string', title: '居住城市', component: 'Select', enum: [{ label: '北京', value: 'beijing' }, { label: '上海', value: 'shanghai' }, { label: '广州', value: 'guangzhou' }], order: 5 },
       },
     },
@@ -74,14 +74,14 @@ const SCENARIO_SCHEMAS: Record<ScenarioKey, { label: string; override: Partial<I
       },
     },
   },
-};
+}
 
 export const DynamicSchemaForm = observer((): React.ReactElement => {
-  const [scenario, setScenario] = useState<ScenarioKey>('individual');
+  const [scenario, setScenario] = useState<ScenarioKey>('individual')
 
   const mergedSchema = useMemo<ISchema>(() => {
-    return mergeSchema(BASE_SCHEMA, SCENARIO_SCHEMAS[scenario].override);
-  }, [scenario]);
+    return mergeSchema(BASE_SCHEMA, SCENARIO_SCHEMAS[scenario].override)
+  }, [scenario])
 
   return (
     <div>
@@ -91,13 +91,17 @@ export const DynamicSchemaForm = observer((): React.ReactElement => {
       <div style={{ marginBottom: 16 }}>
         <Segmented
           value={scenario}
-          onChange={(v) => setScenario(v as ScenarioKey)}
+          onChange={v => setScenario(v as ScenarioKey)}
           options={Object.entries(SCENARIO_SCHEMAS).map(([k, v]) => ({ label: v.label, value: k }))}
         />
       </div>
 
       <Tag color="green" style={{ marginBottom: 12 }}>
-        当前：{SCENARIO_SCHEMAS[scenario].label} | 字段数：{Object.keys(mergedSchema.fields).length}
+        当前：
+        {SCENARIO_SCHEMAS[scenario].label}
+        {' '}
+        | 字段数：
+        {Object.keys(mergedSchema.fields).length}
       </Tag>
 
       <StatusTabs>
@@ -105,12 +109,12 @@ export const DynamicSchemaForm = observer((): React.ReactElement => {
           <ConfigForm
             schema={withMode(mergedSchema, mode)}
             onSubmit={showResult}
-            onSubmitFailed={(errors) => showErrors(errors)}
+            onSubmitFailed={errors => showErrors(errors)}
           />
         )}
       </StatusTabs>
 
       <Collapse style={{ marginTop: 16 }} items={[{ key: '1', label: '查看合并后 Schema', children: <pre style={{ margin: 0, fontSize: 12, maxHeight: 300, overflow: 'auto' }}>{JSON.stringify(mergedSchema, null, 2)}</pre> }]} />
     </div>
-  );
-});
+  )
+})

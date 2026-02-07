@@ -1,3 +1,9 @@
+import type { FieldInstance } from '@moluoxixi/core'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { Alert, Form, Input, Spin, Typography } from 'antd'
+import { observer } from 'mobx-react-lite'
 /**
  * 场景 28：富文本编辑器
  *
@@ -9,31 +15,26 @@
  *
  * 依赖：react-quill（https://www.npmjs.com/package/react-quill）
  */
-import React, { useEffect, lazy, Suspense } from 'react';
-import { observer } from 'mobx-react-lite';
-import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
-import { Typography, Alert, Form, Input, Spin } from 'antd';
-import type { FieldInstance } from '@moluoxixi/core';
-import type { FieldPattern } from '@moluoxixi/shared';
+import React, { lazy, Suspense, useEffect } from 'react'
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph } = Typography
 
-setupAntd();
+setupAntd()
 
 /** 懒加载 ReactQuill（可能未安装） */
 let ReactQuill: React.ComponentType<{
-  value: string;
-  onChange: (v: string) => void;
-  readOnly?: boolean;
-  theme?: string;
-  style?: React.CSSProperties;
-}> | null = null;
+  value: string
+  onChange: (v: string) => void
+  readOnly?: boolean
+  theme?: string
+  style?: React.CSSProperties
+}> | null = null
 
 try {
-  ReactQuill = lazy(() => import('react-quill'));
-} catch {
-  ReactQuill = null;
+  ReactQuill = lazy(() => import('react-quill'))
+}
+catch {
+  ReactQuill = null
 }
 
 /** 富文本编辑器封装（未安装时降级为 Textarea） */
@@ -41,10 +42,10 @@ const RichEditor = observer(({
   field,
   pattern,
 }: {
-  field: FieldInstance;
-  pattern: FieldPattern;
+  field: FieldInstance
+  pattern: FieldPattern
 }): React.ReactElement => {
-  const value = (field.value as string) ?? '';
+  const value = (field.value as string) ?? ''
 
   /* 阅读态：纯 HTML 展示 */
   if (pattern === 'readOnly' || pattern === 'preview') {
@@ -53,7 +54,7 @@ const RichEditor = observer(({
         style={{ padding: 12, border: '1px solid #d9d9d9', borderRadius: 6, minHeight: 100, background: '#fafafa' }}
         dangerouslySetInnerHTML={{ __html: value || '<span style="color:#999">暂无内容</span>' }}
       />
-    );
+    )
   }
 
   /* 禁用态 */
@@ -63,7 +64,7 @@ const RichEditor = observer(({
         style={{ padding: 12, border: '1px solid #d9d9d9', borderRadius: 6, minHeight: 100, background: '#f5f5f5', opacity: 0.7 }}
         dangerouslySetInnerHTML={{ __html: value || '<span style="color:#999">暂无内容</span>' }}
       />
-    );
+    )
   }
 
   /* 编辑态：尝试加载 ReactQuill */
@@ -77,7 +78,7 @@ const RichEditor = observer(({
           style={{ minHeight: 200 }}
         />
       </Suspense>
-    );
+    )
   }
 
   /* 未安装 react-quill，降级为 Textarea */
@@ -86,13 +87,13 @@ const RichEditor = observer(({
       <Alert type="warning" showIcon message="react-quill 未安装，使用 Textarea 替代" style={{ marginBottom: 8 }} />
       <Input.TextArea
         value={value}
-        onChange={(e) => field.setValue(e.target.value)}
+        onChange={e => field.setValue(e.target.value)}
         rows={8}
         placeholder="在此输入 HTML 内容"
       />
     </div>
-  );
-});
+  )
+})
 
 export const RichTextForm = observer((): React.ReactElement => {
   const form = useCreateForm({
@@ -100,40 +101,40 @@ export const RichTextForm = observer((): React.ReactElement => {
       title: '示例文章',
       content: '<h2>标题</h2><p>这是一段<strong>富文本</strong>内容，支持 <em>格式化</em> 操作。</p>',
     },
-  });
+  })
 
   useEffect(() => {
-    form.createField({ name: 'title', label: '标题', required: true });
-    form.createField({ name: 'content', label: '正文内容', required: true });
-  }, []);
+    form.createField({ name: 'title', label: '标题', required: true })
+    form.createField({ name: 'content', label: '正文内容', required: true })
+  }, [])
 
   return (
     <div>
       <Title level={3}>富文本编辑器</Title>
       <Paragraph type="secondary">react-quill 集成 / 三种模式 / 未安装时 Textarea 降级</Paragraph>
       <StatusTabs>
-        {({ mode, showResult, showErrors }) => {
-          form.pattern = mode;
+        {({ mode }) => {
+          form.pattern = mode
           return (
-          <FormProvider form={form}>
-            <FormField name="title">
-              {(field: FieldInstance) => (
-                <Form.Item label={field.label} required={field.required}>
-                  <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} placeholder="文章标题" />
-                </Form.Item>
-              )}
-            </FormField>
-            <FormField name="content">
-              {(field: FieldInstance) => (
-                <Form.Item label={field.label} required={field.required}>
-                  <RichEditor field={field} pattern={mode} />
-                </Form.Item>
-              )}
-            </FormField>
-          </FormProvider>
-          );
+            <FormProvider form={form}>
+              <FormField name="title">
+                {(field: FieldInstance) => (
+                  <Form.Item label={field.label} required={field.required}>
+                    <Input value={(field.value as string) ?? ''} onChange={e => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} placeholder="文章标题" />
+                  </Form.Item>
+                )}
+              </FormField>
+              <FormField name="content">
+                {(field: FieldInstance) => (
+                  <Form.Item label={field.label} required={field.required}>
+                    <RichEditor field={field} pattern={mode} />
+                  </Form.Item>
+                )}
+              </FormField>
+            </FormProvider>
+          )
         }}
       </StatusTabs>
     </div>
-  );
-});
+  )
+})

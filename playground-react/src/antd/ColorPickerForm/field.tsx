@@ -1,3 +1,9 @@
+import type { FieldInstance } from '@moluoxixi/core'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { Form, Input, Space, Typography } from 'antd'
+import { observer } from 'mobx-react-lite'
 /**
  * 场景 31：颜色选择器
  *
@@ -9,23 +15,17 @@
  *
  * 注：如未安装 react-colorful，降级为 Input 输入 HEX 值
  */
-import React, { useEffect } from 'react';
-import { observer } from 'mobx-react-lite';
-import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
-import { Typography, Form, Input, Space } from 'antd';
-import type { FieldInstance } from '@moluoxixi/core';
-import type { FieldPattern } from '@moluoxixi/shared';
+import React, { useEffect } from 'react'
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Paragraph, Text } = Typography
 
-setupAntd();
+setupAntd()
 
 /** 预设颜色 */
-const PRESET_COLORS = ['#1677ff', '#52c41a', '#faad14', '#ff4d4f', '#722ed1', '#13c2c2', '#eb2f96', '#000000'];
+const PRESET_COLORS = ['#1677ff', '#52c41a', '#faad14', '#ff4d4f', '#722ed1', '#13c2c2', '#eb2f96', '#000000']
 
 /** 颜色预览块 */
-function ColorSwatch({ color, size = 24 }: { color: string; size?: number }): React.ReactElement {
+function ColorSwatch({ color, size = 24 }: { color: string, size?: number }): React.ReactElement {
   return (
     <div
       style={{
@@ -38,7 +38,7 @@ function ColorSwatch({ color, size = 24 }: { color: string; size?: number }): Re
         verticalAlign: 'middle',
       }}
     />
-  );
+  )
 }
 
 /** 颜色选择器封装 */
@@ -46,10 +46,10 @@ const ColorEditor = observer(({
   field,
   pattern,
 }: {
-  field: FieldInstance;
-  pattern: FieldPattern;
+  field: FieldInstance
+  pattern: FieldPattern
 }): React.ReactElement => {
-  const value = (field.value as string) ?? '#1677ff';
+  const value = (field.value as string) ?? '#1677ff'
 
   /* 只读 / 禁用 */
   if (pattern !== 'editable') {
@@ -58,7 +58,7 @@ const ColorEditor = observer(({
         <ColorSwatch color={value} size={32} />
         <Text code>{value}</Text>
       </Space>
-    );
+    )
   }
 
   return (
@@ -67,19 +67,19 @@ const ColorEditor = observer(({
         <input
           type="color"
           value={value}
-          onChange={(e) => field.setValue(e.target.value)}
+          onChange={e => field.setValue(e.target.value)}
           style={{ width: 48, height: 48, border: 'none', cursor: 'pointer', padding: 0 }}
         />
         <Input
           value={value}
-          onChange={(e) => field.setValue(e.target.value)}
+          onChange={e => field.setValue(e.target.value)}
           style={{ width: 120 }}
           placeholder="#000000"
         />
         <ColorSwatch color={value} size={32} />
       </Space>
       <div style={{ display: 'flex', gap: 4 }}>
-        {PRESET_COLORS.map((c) => (
+        {PRESET_COLORS.map(c => (
           <div
             key={c}
             onClick={() => field.setValue(c)}
@@ -95,63 +95,71 @@ const ColorEditor = observer(({
         ))}
       </div>
     </div>
-  );
-});
+  )
+})
 
 export const ColorPickerForm = observer((): React.ReactElement => {
   const form = useCreateForm({
     initialValues: { themeName: '自定义主题', primaryColor: '#1677ff', bgColor: '#ffffff', textColor: '#333333' },
-  });
+  })
 
   useEffect(() => {
-    form.createField({ name: 'themeName', label: '主题名称', required: true });
-    form.createField({ name: 'primaryColor', label: '主色调', required: true });
-    form.createField({ name: 'bgColor', label: '背景色' });
-    form.createField({ name: 'textColor', label: '文字颜色' });
-  }, []);
+    form.createField({ name: 'themeName', label: '主题名称', required: true })
+    form.createField({ name: 'primaryColor', label: '主色调', required: true })
+    form.createField({ name: 'bgColor', label: '背景色' })
+    form.createField({ name: 'textColor', label: '文字颜色' })
+  }, [])
 
   return (
     <div>
       <Title level={3}>颜色选择器</Title>
       <Paragraph type="secondary">原生 color input + 预设色板 / HEX 输入 / 三种模式</Paragraph>
       <StatusTabs>
-        {({ mode, showResult, showErrors }) => {
-          form.pattern = mode;
+        {({ mode }) => {
+          form.pattern = mode
           return (
-          <FormProvider form={form}>
-            <FormField name="themeName">
-              {(field: FieldInstance) => (
-                <Form.Item label={field.label} required={field.required}>
-                  <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} />
-                </Form.Item>
-              )}
-            </FormField>
-            {['primaryColor', 'bgColor', 'textColor'].map((name) => (
-              <FormField key={name} name={name}>
+            <FormProvider form={form}>
+              <FormField name="themeName">
                 {(field: FieldInstance) => (
                   <Form.Item label={field.label} required={field.required}>
-                    <ColorEditor field={field} pattern={mode} />
+                    <Input value={(field.value as string) ?? ''} onChange={e => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} />
                   </Form.Item>
                 )}
               </FormField>
-            ))}
+              {['primaryColor', 'bgColor', 'textColor'].map(name => (
+                <FormField key={name} name={name}>
+                  {(field: FieldInstance) => (
+                    <Form.Item label={field.label} required={field.required}>
+                      <ColorEditor field={field} pattern={mode} />
+                    </Form.Item>
+                  )}
+                </FormField>
+              ))}
 
-            {/* 预览 */}
-            <div style={{
-              padding: 16, borderRadius: 8, marginBottom: 16, border: '1px solid #eee',
-              background: (form.getFieldValue('bgColor') as string) || '#fff',
-              color: (form.getFieldValue('textColor') as string) || '#333',
-            }}>
-              <h4 style={{ color: (form.getFieldValue('primaryColor') as string) || '#1677ff' }}>主题预览</h4>
-              <p>这是文字颜色预览，背景色为 {form.getFieldValue('bgColor') as string || '#ffffff'}。</p>
-              <button style={{ background: (form.getFieldValue('primaryColor') as string) || '#1677ff', color: '#fff', border: 'none', padding: '6px 16px', borderRadius: 4 }}>
-                主色调按钮
-              </button>
-            </div>
-          </FormProvider>
-          );
+              {/* 预览 */}
+              <div style={{
+                padding: 16,
+                borderRadius: 8,
+                marginBottom: 16,
+                border: '1px solid #eee',
+                background: (form.getFieldValue('bgColor') as string) || '#fff',
+                color: (form.getFieldValue('textColor') as string) || '#333',
+              }}
+              >
+                <h4 style={{ color: (form.getFieldValue('primaryColor') as string) || '#1677ff' }}>主题预览</h4>
+                <p>
+                  这是文字颜色预览，背景色为
+                  {form.getFieldValue('bgColor') as string || '#ffffff'}
+                  。
+                </p>
+                <button style={{ background: (form.getFieldValue('primaryColor') as string) || '#1677ff', color: '#fff', border: 'none', padding: '6px 16px', borderRadius: 4 }}>
+                  主色调按钮
+                </button>
+              </div>
+            </FormProvider>
+          )
         }}
       </StatusTabs>
     </div>
-  );
-});
+  )
+})

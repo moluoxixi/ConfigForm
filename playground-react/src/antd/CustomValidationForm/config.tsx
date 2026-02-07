@@ -1,3 +1,9 @@
+import type { ISchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { ConfigForm } from '@moluoxixi/react'
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { Typography } from 'antd'
+import { observer } from 'mobx-react-lite'
 /**
  * 场景 11：自定义验证规则
  *
@@ -9,28 +15,22 @@
  * - 条件验证（动态切换规则）
  * - 三种模式切换
  */
-import React from 'react';
-import { observer } from 'mobx-react-lite';
-import { ConfigForm } from '@moluoxixi/react';
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
-import { Typography } from 'antd';
-import type { ISchema } from '@moluoxixi/schema';
-import type { FieldPattern } from '@moluoxixi/shared';
+import React from 'react'
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph } = Typography
 
-setupAntd();
+setupAntd()
 
 /** 工具：将 StatusTabs 的 mode 注入 schema */
 function withMode(s: ISchema, mode: FieldPattern): ISchema {
-  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } };
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
 }
 
 /** 中国大陆手机号正则 */
-const CHINA_PHONE_REGEX = /^1[3-9]\d{9}$/;
+const CHINA_PHONE_REGEX = /^1[3-9]\d{9}$/
 
 /** 常见弱密码列表 */
-const WEAK_PASSWORDS = ['12345678', 'password', 'qwerty123', 'abc12345', '11111111'];
+const WEAK_PASSWORDS = ['12345678', 'password', 'qwerty123', 'abc12345', '11111111']
 
 /** 默认初始值 */
 const INITIAL_VALUES: Record<string, unknown> = {
@@ -41,7 +41,7 @@ const INITIAL_VALUES: Record<string, unknown> = {
   idType: 'idcard',
   idNumber: '',
   ipAddress: '',
-};
+}
 
 /** 表单 Schema */
 const schema: ISchema = {
@@ -55,7 +55,7 @@ const schema: ISchema = {
       placeholder: '如：京A12345',
       rules: [
         {
-          pattern: /^[\u4e00-\u9fa5][A-Z][A-Z0-9]{5}$/,
+          pattern: /^[\u4E00-\u9FA5][A-Z][A-Z0-9]{5}$/,
           message: '请输入有效车牌号（如：京A12345）',
         },
       ],
@@ -70,11 +70,12 @@ const schema: ISchema = {
       rules: [
         {
           validator: (value) => {
-            if (!value) return undefined;
+            if (!value)
+              return undefined
             if (!CHINA_PHONE_REGEX.test(String(value))) {
-              return '请输入有效的中国大陆手机号（1开头，11位数字）';
+              return '请输入有效的中国大陆手机号（1开头，11位数字）'
             }
-            return undefined;
+            return undefined
           },
         },
       ],
@@ -109,9 +110,9 @@ const schema: ISchema = {
         {
           validator: (value) => {
             if (WEAK_PASSWORDS.includes(String(value).toLowerCase())) {
-              return '密码过于简单，请使用更复杂的密码';
+              return '密码过于简单，请使用更复杂的密码'
             }
-            return undefined;
+            return undefined
           },
         },
       ],
@@ -128,14 +129,14 @@ const schema: ISchema = {
         {
           level: 'warning',
           validator: (value) => {
-            const age = Number(value);
+            const age = Number(value)
             if (age > 0 && age < 18) {
-              return '未成年用户部分功能可能受限';
+              return '未成年用户部分功能可能受限'
             }
             if (age > 60) {
-              return '建议开启大字模式以获得更好体验';
+              return '建议开启大字模式以获得更好体验'
             }
-            return undefined;
+            return undefined
           },
         },
       ],
@@ -163,28 +164,30 @@ const schema: ISchema = {
           watch: 'idType',
           fulfill: {
             run: (field, ctx) => {
-              const idType = ctx.values.idType as string;
-              field.setValue('');
-              field.errors = [];
+              const idType = ctx.values.idType as string
+              field.setValue('')
+              field.errors = []
 
               if (idType === 'idcard') {
                 field.rules = [
                   { required: true, message: '请输入身份证号码' },
-                  { pattern: /^\d{17}[\dXx]$/, message: '请输入有效的 18 位身份证号码' },
-                ];
-                field.setComponentProps({ placeholder: '请输入 18 位身份证号' });
-              } else if (idType === 'passport') {
+                  { pattern: /^\d{17}[\dX]$/i, message: '请输入有效的 18 位身份证号码' },
+                ]
+                field.setComponentProps({ placeholder: '请输入 18 位身份证号' })
+              }
+              else if (idType === 'passport') {
                 field.rules = [
                   { required: true, message: '请输入护照号码' },
                   { pattern: /^[A-Z]\d{8}$/, message: '护照格式：1 位大写字母 + 8 位数字' },
-                ];
-                field.setComponentProps({ placeholder: '如：E12345678' });
-              } else {
+                ]
+                field.setComponentProps({ placeholder: '如：E12345678' })
+              }
+              else {
                 field.rules = [
                   { required: true, message: '请输入军官证号码' },
                   { minLength: 6, maxLength: 12, message: '军官证号码 6-12 位' },
-                ];
-                field.setComponentProps({ placeholder: '请输入军官证号码' });
+                ]
+                field.setComponentProps({ placeholder: '请输入军官证号码' })
               }
             },
           },
@@ -200,22 +203,24 @@ const schema: ISchema = {
       rules: [
         {
           validator: (value) => {
-            if (!value) return undefined;
-            const parts = String(value).split('.');
-            if (parts.length !== 4) return 'IP 地址格式错误';
+            if (!value)
+              return undefined
+            const parts = String(value).split('.')
+            if (parts.length !== 4)
+              return 'IP 地址格式错误'
             for (const part of parts) {
-              const num = Number(part);
-              if (isNaN(num) || num < 0 || num > 255 || String(num) !== part) {
-                return 'IP 地址各段必须为 0-255 的整数';
+              const num = Number(part)
+              if (Number.isNaN(num) || num < 0 || num > 255 || String(num) !== part) {
+                return 'IP 地址各段必须为 0-255 的整数'
               }
             }
-            return undefined;
+            return undefined
           },
         },
       ],
     },
   },
-};
+}
 
 /**
  * 自定义验证规则示例
@@ -233,10 +238,10 @@ export const CustomValidationForm = observer((): React.ReactElement => {
             schema={withMode(schema, mode)}
             initialValues={INITIAL_VALUES}
             onSubmit={showResult}
-            onSubmitFailed={(errors) => showErrors(errors)}
+            onSubmitFailed={errors => showErrors(errors)}
           />
         )}
       </StatusTabs>
     </div>
-  );
-});
+  )
+})

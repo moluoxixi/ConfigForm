@@ -50,10 +50,12 @@ export const ReactiveField = defineComponent({
 
     return () => {
       const field = props.field
-      if (!field) return null
+      if (!field)
+        return null
 
       /* 不可见则不渲染 */
-      if (!field.visible) return null
+      if (!field.visible)
+        return null
 
       /* 计算交互状态 */
       const fp = field.pattern

@@ -1,3 +1,9 @@
+import type { ISchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { ConfigForm } from '@moluoxixi/react'
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { Alert, Typography } from 'antd'
+import { observer } from 'mobx-react-lite'
 /**
  * 场景 12：异步验证
  *
@@ -7,34 +13,28 @@
  * - 邀请码校验（异步 + loading 状态）
  * - 三种模式切换
  */
-import React from 'react';
-import { observer } from 'mobx-react-lite';
-import { ConfigForm } from '@moluoxixi/react';
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
-import { Alert, Typography } from 'antd';
-import type { ISchema } from '@moluoxixi/schema';
-import type { FieldPattern } from '@moluoxixi/shared';
+import React from 'react'
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Paragraph, Text } = Typography
 
-setupAntd();
+setupAntd()
 
 /** 工具：将 StatusTabs 的 mode 注入 schema */
 function withMode(s: ISchema, mode: FieldPattern): ISchema {
-  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } };
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
 }
 
 /** 模拟已注册用户名 */
-const REGISTERED_USERNAMES = ['admin', 'test', 'root', 'user', 'demo', 'zhangsan'];
+const REGISTERED_USERNAMES = ['admin', 'test', 'root', 'user', 'demo', 'zhangsan']
 
 /** 模拟已注册邮箱 */
-const REGISTERED_EMAILS = ['admin@test.com', 'test@test.com', 'user@example.com'];
+const REGISTERED_EMAILS = ['admin@test.com', 'test@test.com', 'user@example.com']
 
 /** 合法邀请码 */
-const VALID_INVITE_CODES = ['INVITE2024', 'VIP888', 'NEWUSER'];
+const VALID_INVITE_CODES = ['INVITE2024', 'VIP888', 'NEWUSER']
 
 /** 模拟异步延迟 */
-const ASYNC_DELAY = 800;
+const ASYNC_DELAY = 800
 
 /**
  * 模拟异步请求（带取消支持）
@@ -44,12 +44,12 @@ const ASYNC_DELAY = 800;
  */
 function delay(ms: number, signal: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(resolve, ms);
+    const timer = setTimeout(resolve, ms)
     signal.addEventListener('abort', () => {
-      clearTimeout(timer);
-      reject(new Error('已取消'));
-    });
-  });
+      clearTimeout(timer)
+      reject(new Error('已取消'))
+    })
+  })
 }
 
 /** 默认初始值 */
@@ -59,7 +59,7 @@ const INITIAL_VALUES: Record<string, unknown> = {
   inviteCode: '',
   phone: '',
   nickname: '',
-};
+}
 
 /** 表单 Schema */
 const schema: ISchema = {
@@ -75,14 +75,14 @@ const schema: ISchema = {
       description: '失焦后异步检查用户名是否已注册',
       rules: [
         { minLength: 3, maxLength: 20, message: '用户名 3-20 个字符' },
-        { pattern: /^[a-zA-Z0-9_]+$/, message: '只能包含字母、数字和下划线' },
+        { pattern: /^\w+$/, message: '只能包含字母、数字和下划线' },
         {
           asyncValidator: async (value, _rule, _context, signal) => {
-            await delay(ASYNC_DELAY, signal);
+            await delay(ASYNC_DELAY, signal)
             if (REGISTERED_USERNAMES.includes(String(value).toLowerCase())) {
-              return `用户名 "${value}" 已被注册`;
+              return `用户名 "${value}" 已被注册`
             }
-            return undefined;
+            return undefined
           },
           trigger: 'blur',
           debounce: 300,
@@ -102,12 +102,13 @@ const schema: ISchema = {
         { format: 'email', message: '请输入有效邮箱' },
         {
           asyncValidator: async (value, _rule, _context, signal) => {
-            if (!value) return undefined;
-            await delay(ASYNC_DELAY, signal);
+            if (!value)
+              return undefined
+            await delay(ASYNC_DELAY, signal)
             if (REGISTERED_EMAILS.includes(String(value).toLowerCase())) {
-              return '该邮箱已被注册，请使用其他邮箱';
+              return '该邮箱已被注册，请使用其他邮箱'
             }
-            return undefined;
+            return undefined
           },
           trigger: 'blur',
           debounce: 500,
@@ -127,12 +128,13 @@ const schema: ISchema = {
         { minLength: 3, message: '邀请码至少 3 个字符' },
         {
           asyncValidator: async (value, _rule, _context, signal) => {
-            if (!value) return undefined;
-            await delay(ASYNC_DELAY + 200, signal);
+            if (!value)
+              return undefined
+            await delay(ASYNC_DELAY + 200, signal)
             if (!VALID_INVITE_CODES.includes(String(value).toUpperCase())) {
-              return '邀请码无效或已过期';
+              return '邀请码无效或已过期'
             }
-            return undefined;
+            return undefined
           },
           trigger: 'blur',
           debounce: 300,
@@ -150,13 +152,14 @@ const schema: ISchema = {
         { format: 'phone', message: '请输入有效手机号' },
         {
           asyncValidator: async (value, _rule, _context, signal) => {
-            if (!value) return undefined;
-            await delay(ASYNC_DELAY, signal);
+            if (!value)
+              return undefined
+            await delay(ASYNC_DELAY, signal)
             /* 模拟：170 开头的号码已被注册 */
             if (String(value).startsWith('170')) {
-              return '该手机号已被绑定到其他账户';
+              return '该手机号已被绑定到其他账户'
             }
-            return undefined;
+            return undefined
           },
           trigger: 'blur',
           debounce: 300,
@@ -165,9 +168,9 @@ const schema: ISchema = {
           level: 'warning',
           validator: (value) => {
             if (value && String(value).startsWith('170')) {
-              return '170 号段可能存在接收验证码延迟的情况';
+              return '170 号段可能存在接收验证码延迟的情况'
             }
-            return undefined;
+            return undefined
           },
         },
       ],
@@ -181,7 +184,7 @@ const schema: ISchema = {
       rules: [{ maxLength: 20, message: '昵称不超过 20 字' }],
     },
   },
-};
+}
 
 /**
  * 异步验证示例
@@ -198,13 +201,21 @@ export const AsyncValidationForm = observer((): React.ReactElement => {
         type="info"
         showIcon
         style={{ marginBottom: 16 }}
-        message={
+        message={(
           <span>
-            测试数据：已注册用户名 <Text code>admin / test / root</Text>，
-            已注册邮箱 <Text code>admin@test.com</Text>，
-            有效邀请码 <Text code>INVITE2024 / VIP888</Text>
+            测试数据：已注册用户名
+            {' '}
+            <Text code>admin / test / root</Text>
+            ，
+            已注册邮箱
+            {' '}
+            <Text code>admin@test.com</Text>
+            ，
+            有效邀请码
+            {' '}
+            <Text code>INVITE2024 / VIP888</Text>
           </span>
-        }
+        )}
       />
 
       <StatusTabs>
@@ -213,10 +224,10 @@ export const AsyncValidationForm = observer((): React.ReactElement => {
             schema={withMode(schema, mode)}
             initialValues={INITIAL_VALUES}
             onSubmit={showResult}
-            onSubmitFailed={(errors) => showErrors(errors)}
+            onSubmitFailed={errors => showErrors(errors)}
           />
         )}
       </StatusTabs>
     </div>
-  );
-});
+  )
+})

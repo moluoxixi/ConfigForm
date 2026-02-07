@@ -3,7 +3,7 @@ import React from 'react'
 
 export interface LayoutStepsProps {
   current: number
-  items: Array<{ title: string; description?: string }>
+  items: Array<{ title: string, description?: string }>
 }
 
 export function LayoutSteps({ current, items }: LayoutStepsProps): React.ReactElement {

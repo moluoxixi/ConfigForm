@@ -23,24 +23,31 @@
     <ACard size="small" style="margin-top: 16px; background: #f9f9f9">
       <template #title>
         <span style="font-size: 13px; color: #666">📡 Mock API 调用日志（{{ apiLogs.length }} 条）</span>
-        <AButton v-if="apiLogs.length > 0" size="small" style="float:right" @click="onClearLogs">清空</AButton>
+        <AButton v-if="apiLogs.length > 0" size="small" style="float:right" @click="onClearLogs">
+          清空
+        </AButton>
       </template>
-      <div v-if="apiLogs.length === 0" style="color: #aaa; font-size: 12px">暂无请求，选择下拉触发远程加载</div>
+      <div v-if="apiLogs.length === 0" style="color: #aaa; font-size: 12px">
+        暂无请求，选择下拉触发远程加载
+      </div>
       <div v-else style="font-family: monospace; font-size: 11px; line-height: 1.8; max-height: 200px; overflow: auto">
-        <div v-for="(log, i) in apiLogs" :key="i" :style="{ color: log.includes('404') ? '#f5222d' : '#52c41a' }">{{ log }}</div>
+        <div v-for="(log, i) in apiLogs" :key="i" :style="{ color: log.includes('404') ? '#f5222d' : '#52c41a' }">
+          {{ log }}
+        </div>
       </div>
     </ACard>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watchEffect } from 'vue'
-import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
-import { Alert as AAlert, Button as AButton, Card as ACard } from 'ant-design-vue'
-import { ConfigForm } from '@moluoxixi/vue'
 import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
-import { setupMockAdapter, getApiLogs, clearApiLogs } from '../../mock/dataSourceAdapter'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
+import { ConfigForm } from '@moluoxixi/vue'
+import { Alert as AAlert, Button as AButton, Card as ACard } from 'ant-design-vue'
+import { onBeforeUnmount, ref } from 'vue'
+
+import { clearApiLogs, getApiLogs, setupMockAdapter } from '../../mock/dataSourceAdapter'
 
 setupAntdVue()
 setupMockAdapter()
@@ -191,10 +198,15 @@ const schema: ISchema = {
 /* API 日志响应式轮询（每 500ms 刷新） */
 const apiLogs = ref<string[]>([])
 let logTimer: ReturnType<typeof setInterval> | null = null
-logTimer = setInterval(() => { apiLogs.value = [...getApiLogs()] }, 500)
-function onClearLogs(): void { clearApiLogs(); apiLogs.value = [] }
-
-/* 组件卸载时清理 */
-import { onBeforeUnmount } from 'vue'
-onBeforeUnmount(() => { if (logTimer) clearInterval(logTimer) })
+logTimer = setInterval(() => {
+  apiLogs.value = [...getApiLogs()]
+}, 500)
+function onClearLogs(): void {
+  clearApiLogs()
+  apiLogs.value = []
+}
+onBeforeUnmount(() => {
+  if (logTimer)
+    clearInterval(logTimer)
+})
 </script>

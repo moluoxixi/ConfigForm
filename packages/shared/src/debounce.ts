@@ -13,6 +13,7 @@ export interface DebouncedFunction<T extends AnyFunction> {
  * @param fn - 要防抖的函数
  * @param delay - 延迟毫秒数
  * @param options - 配置项
+ * @param options.leading - 是否在延迟前立即执行一次
  */
 export function debounce<T extends AnyFunction>(
   fn: T,
@@ -20,13 +21,12 @@ export function debounce<T extends AnyFunction>(
   options?: { leading?: boolean },
 ): DebouncedFunction<T> {
   let timer: ReturnType<typeof setTimeout> | null = null
-  let lastArgs: Parameters<T> | null = null
-  let lastThis: unknown = undefined
+  /** 暂存最近一次调用的参数和上下文，用于延迟执行 */
+  let pending: { ctx: unknown, args: Parameters<T> } | null = null
   const leading = options?.leading ?? false
 
   const debounced = function (this: unknown, ...args: Parameters<T>) {
-    lastArgs = args
-    lastThis = this
+    pending = { ctx: this, args }
 
     if (timer !== null) {
       clearTimeout(timer)
@@ -34,8 +34,7 @@ export function debounce<T extends AnyFunction>(
 
     if (leading && timer === null) {
       fn.apply(this, args)
-      lastArgs = null
-      lastThis = undefined
+      pending = null
       timer = setTimeout(() => {
         timer = null
       }, delay)
@@ -43,10 +42,9 @@ export function debounce<T extends AnyFunction>(
     }
 
     timer = setTimeout(() => {
-      if (lastArgs) {
-        fn.apply(lastThis, lastArgs)
-        lastArgs = null
-        lastThis = undefined
+      if (pending) {
+        fn.apply(pending.ctx, pending.args)
+        pending = null
       }
       timer = null
     }, delay)
@@ -57,8 +55,7 @@ export function debounce<T extends AnyFunction>(
       clearTimeout(timer)
       timer = null
     }
-    lastArgs = null
-    lastThis = undefined
+    pending = null
   }
 
   debounced.flush = () => {
@@ -66,10 +63,9 @@ export function debounce<T extends AnyFunction>(
       clearTimeout(timer)
       timer = null
     }
-    if (lastArgs) {
-      fn.apply(lastThis, lastArgs)
-      lastArgs = null
-      lastThis = undefined
+    if (pending) {
+      fn.apply(pending.ctx, pending.args)
+      pending = null
     }
   }
 

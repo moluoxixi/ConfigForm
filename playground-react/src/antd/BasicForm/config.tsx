@@ -1,3 +1,9 @@
+import type { ISchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { ConfigForm } from '@moluoxixi/react'
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { Typography } from 'antd'
+import { observer } from 'mobx-react-lite'
 /**
  * 场景 1：基础表单
  *
@@ -5,21 +11,15 @@
  * - Input / Password / Textarea / InputNumber / Select / RadioGroup / CheckboxGroup / Switch / DatePicker
  * - 三种模式切换（编辑态 / 阅读态 / 禁用态）
  */
-import React from 'react';
-import { observer } from 'mobx-react-lite';
-import { ConfigForm } from '@moluoxixi/react';
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
-import { Typography } from 'antd';
-import type { ISchema } from '@moluoxixi/schema';
-import type { FieldPattern } from '@moluoxixi/shared';
+import React from 'react'
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph } = Typography
 
-setupAntd();
+setupAntd()
 
 /** 工具：将 StatusTabs 的 mode 注入 schema */
 function withMode(s: ISchema, mode: FieldPattern): ISchema {
-  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } };
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
 }
 
 /** 默认初始值 */
@@ -35,7 +35,7 @@ const INITIAL_VALUES: Record<string, unknown> = {
   notification: true,
   birthday: '',
   bio: '',
-};
+}
 
 /** 表单 Schema */
 const schema: ISchema = {
@@ -53,7 +53,7 @@ const schema: ISchema = {
       placeholder: '请输入用户名',
       rules: [
         { minLength: 3, maxLength: 20, message: '用户名长度 3-20 个字符' },
-        { pattern: /^[a-zA-Z0-9_]+$/, message: '仅允许字母、数字和下划线' },
+        { pattern: /^\w+$/, message: '仅允许字母、数字和下划线' },
       ],
     },
 
@@ -156,7 +156,7 @@ const schema: ISchema = {
       rules: [{ maxLength: 200, message: '简介不超过 200 字' }],
     },
   },
-};
+}
 
 /**
  * 基础表单示例
@@ -176,10 +176,10 @@ export const BasicForm = observer((): React.ReactElement => {
             schema={withMode(schema, mode)}
             initialValues={INITIAL_VALUES}
             onSubmit={showResult}
-            onSubmitFailed={(errors) => showErrors(errors)}
+            onSubmitFailed={errors => showErrors(errors)}
           />
         )}
       </StatusTabs>
     </div>
-  );
-});
+  )
+})

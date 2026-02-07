@@ -39,7 +39,7 @@ export const FormField = defineComponent({
     }
 
     /** 获取或创建字段实例 */
-    function resolveField(name: string): { field: FieldInstance; created: boolean } {
+    function resolveField(name: string): { field: FieldInstance, created: boolean } {
       const existing = form!.getField(name)
       if (existing) {
         return { field: existing, created: false }
@@ -77,7 +77,8 @@ export const FormField = defineComponent({
      * name 变化时 Vue 会销毁并重建组件，setup 重新执行，provide 重新注册。
      */
     watch(() => props.name, (newName, oldName) => {
-      if (newName === oldName) return
+      if (newName === oldName)
+        return
 
       /* 清理旧字段 */
       if (createdByThis) {

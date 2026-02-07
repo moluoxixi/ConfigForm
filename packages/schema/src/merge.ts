@@ -41,14 +41,17 @@ export function mergeSchema(
   base: ISchema,
   override: Partial<ISchema>,
 ): ISchema {
-  if (!base) return { ...override } as ISchema
-  if (!override) return { ...base }
+  if (!base)
+    return { ...override } as ISchema
+  if (!override)
+    return { ...base }
 
   const result: ISchema = { ...base }
 
   for (const key of Object.keys(override) as Array<keyof ISchema>) {
     const overrideVal = override[key]
-    if (overrideVal === undefined) continue
+    if (overrideVal === undefined)
+      continue
 
     /* properties：递归合并每个子节点 */
     if (key === 'properties' && isObject(overrideVal)) {

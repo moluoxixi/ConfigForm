@@ -1,3 +1,9 @@
+import type { ISchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { ConfigForm } from '@moluoxixi/react'
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { Typography } from 'antd'
+import { observer } from 'mobx-react-lite'
 /**
  * 场景 22：标签页切换分组
  *
@@ -7,21 +13,15 @@
  * - 每个 Tab 独立验证
  * - 三种模式切换
  */
-import React from 'react';
-import { observer } from 'mobx-react-lite';
-import { ConfigForm } from '@moluoxixi/react';
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
-import { Typography } from 'antd';
-import type { ISchema } from '@moluoxixi/schema';
-import type { FieldPattern } from '@moluoxixi/shared';
+import React from 'react'
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph } = Typography
 
-setupAntd();
+setupAntd()
 
 /** 工具：将 StatusTabs 的 mode 注入 schema */
 function withMode(s: ISchema, mode: FieldPattern): ISchema {
-  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } };
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
 }
 
 /** 默认初始值 */
@@ -35,7 +35,7 @@ const INITIAL_VALUES: Record<string, unknown> = {
   bio: '',
   website: '',
   github: '',
-};
+}
 
 /** 表单 Schema */
 const schema: ISchema = {
@@ -69,7 +69,7 @@ const schema: ISchema = {
     website: { type: 'string', title: '个人网站', placeholder: 'https://example.com', rules: [{ format: 'url', message: '请输入有效 URL' }] },
     github: { type: 'string', title: 'GitHub', placeholder: 'GitHub 地址' },
   },
-};
+}
 
 /**
  * 标签页分组示例
@@ -87,10 +87,10 @@ export const TabGroupForm = observer((): React.ReactElement => {
             schema={withMode(schema, mode)}
             initialValues={INITIAL_VALUES}
             onSubmit={showResult}
-            onSubmitFailed={(errors) => showErrors(errors)}
+            onSubmitFailed={errors => showErrors(errors)}
           />
         )}
       </StatusTabs>
     </div>
-  );
-});
+  )
+})

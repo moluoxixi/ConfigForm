@@ -1,23 +1,35 @@
 <template>
   <div>
     <h2>值联动</h2>
-    <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">单向同步 / 格式转换 / 映射转换 / 多对一聚合</p>
+    <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">
+      单向同步 / 格式转换 / 映射转换 / 多对一聚合
+    </p>
     <el-radio-group v-model="mode" size="small" style="margin-bottom: 16px">
-      <el-radio-button v-for="opt in MODE_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</el-radio-button>
+      <el-radio-button v-for="opt in MODE_OPTIONS" :key="opt.value" :value="opt.value">
+        {{ opt.label }}
+      </el-radio-button>
     </el-radio-group>
-    <ConfigForm :key="mode" :schema="schema" :initial-values="savedValues" @values-change="(v: Record<string, unknown>) => savedValues = v" @submit="(v: Record<string, unknown>) => result = JSON.stringify(v, null, 2)" @submit-failed="(e: any[]) => result = '验证失败:\n' + e.map((x: any) => `[${x.path}] ${x.message}`).join('\n')">
-      <template #default="{ form }"><el-space v-if="mode === 'editable'" style="margin-top: 16px"><el-button type="primary" native-type="submit">提交</el-button><el-button @click="form.reset()">重置</el-button></el-space></template>
+    <ConfigForm :key="mode" :schema="schema" :initial-values="savedValues" @values-change="(v: Record<string, unknown>) => savedValues = v" @submit="(v: Record<string, unknown>) => result = JSON.stringify(v, null, 2)" @submit-failed="(e: any[]) => result = `验证失败:\n${e.map((x: any) => `[${x.path}] ${x.message}`).join('\n')}`">
+      <template #default="{ form }">
+        <el-space v-if="mode === 'editable'" style="margin-top: 16px">
+          <el-button type="primary" native-type="submit">
+            提交
+          </el-button><el-button @click="form.reset()">
+            重置
+          </el-button>
+        </el-space>
+      </template>
     </ConfigForm>
     <el-alert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" :title="result.startsWith('验证失败') ? '验证失败' : '提交成功'" :description="result" show-icon style="margin-top: 16px" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { ConfigForm } from '@moluoxixi/vue'
-import { setupElementPlus } from '@moluoxixi/ui-element-plus'
 import type { FormSchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
+import { setupElementPlus } from '@moluoxixi/ui-element-plus'
+import { ConfigForm } from '@moluoxixi/vue'
+import { computed, ref } from 'vue'
 
 setupElementPlus()
 const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅读态', value: 'readOnly' }, { label: '禁用态', value: 'disabled' }]

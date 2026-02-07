@@ -1,3 +1,9 @@
+import type { ISchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { ConfigForm } from '@moluoxixi/react'
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { Typography } from 'antd'
+import { observer } from 'mobx-react-lite'
 /**
  * 场景 10：条件必填
  *
@@ -8,25 +14,19 @@
  * - 选项联动必填：选择「其他」时备注变必填
  * - 三种模式切换
  */
-import React from 'react';
-import { observer } from 'mobx-react-lite';
-import { ConfigForm } from '@moluoxixi/react';
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
-import { Typography } from 'antd';
-import type { ISchema } from '@moluoxixi/schema';
-import type { FieldPattern } from '@moluoxixi/shared';
+import React from 'react'
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph } = Typography
 
-setupAntd();
+setupAntd()
 
 /** 工具：将 StatusTabs 的 mode 注入 schema */
 function withMode(s: ISchema, mode: FieldPattern): ISchema {
-  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } };
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
 }
 
 /** 金额阈值：超过此值需要填写审批人 */
-const AMOUNT_THRESHOLD = 10000;
+const AMOUNT_THRESHOLD = 10000
 
 /** 默认初始值 */
 const INITIAL_VALUES: Record<string, unknown> = {
@@ -40,7 +40,7 @@ const INITIAL_VALUES: Record<string, unknown> = {
   isOverseas: false,
   travelDays: 1,
   travelInsurance: '',
-};
+}
 
 /** 表单 Schema */
 const schema: ISchema = {
@@ -61,7 +61,7 @@ const schema: ISchema = {
       reactions: [
         {
           watch: 'needInvoice',
-          when: (v) => v[0] === true,
+          when: v => v[0] === true,
           fulfill: { state: { required: true } },
           otherwise: { state: { required: false } },
         },
@@ -74,7 +74,7 @@ const schema: ISchema = {
       reactions: [
         {
           watch: 'needInvoice',
-          when: (v) => v[0] === true,
+          when: v => v[0] === true,
           fulfill: { state: { required: true } },
           otherwise: { state: { required: false } },
         },
@@ -99,13 +99,13 @@ const schema: ISchema = {
           watch: 'amount',
           fulfill: {
             run: (field, ctx) => {
-              const amt = (ctx.values.amount as number) ?? 0;
-              field.required = amt > AMOUNT_THRESHOLD;
+              const amt = (ctx.values.amount as number) ?? 0
+              field.required = amt > AMOUNT_THRESHOLD
               field.setComponentProps({
                 placeholder: amt > AMOUNT_THRESHOLD
                   ? `金额超过 ${AMOUNT_THRESHOLD.toLocaleString()} 元，必须填写审批人`
                   : '金额较小时选填',
-              });
+              })
             },
           },
         },
@@ -133,7 +133,7 @@ const schema: ISchema = {
       reactions: [
         {
           watch: 'leaveType',
-          when: (v) => v[0] === 'other',
+          when: v => v[0] === 'other',
           fulfill: { state: { required: true } },
           otherwise: { state: { required: false } },
         },
@@ -162,22 +162,22 @@ const schema: ISchema = {
           watch: ['isOverseas', 'travelDays'],
           fulfill: {
             run: (field, ctx) => {
-              const overseas = ctx.values.isOverseas as boolean;
-              const days = (ctx.values.travelDays as number) ?? 0;
-              const isRequired = overseas && days > 3;
-              field.required = isRequired;
+              const overseas = ctx.values.isOverseas as boolean
+              const days = (ctx.values.travelDays as number) ?? 0
+              const isRequired = overseas && days > 3
+              field.required = isRequired
               field.setComponentProps({
                 placeholder: isRequired
                   ? '海外出差超过 3 天，必须填写保险单号'
                   : '海外出差且超过 3 天时必填',
-              });
+              })
             },
           },
         },
       ],
     },
   },
-};
+}
 
 /**
  * 条件必填示例
@@ -195,10 +195,10 @@ export const ConditionalRequiredForm = observer((): React.ReactElement => {
             schema={withMode(schema, mode)}
             initialValues={INITIAL_VALUES}
             onSubmit={showResult}
-            onSubmitFailed={(errors) => showErrors(errors)}
+            onSubmitFailed={errors => showErrors(errors)}
           />
         )}
       </StatusTabs>
     </div>
-  );
-});
+  )
+})

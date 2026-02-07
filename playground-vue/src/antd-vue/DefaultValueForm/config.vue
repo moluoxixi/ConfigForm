@@ -1,7 +1,9 @@
 <template>
   <div>
     <h2>默认值</h2>
-    <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">静态 defaultValue / 动态计算默认值 / initialValues 注入</p>
+    <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
+      静态 defaultValue / 动态计算默认值 / initialValues 注入
+    </p>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <ConfigForm
         :schema="withMode(schema, mode)"
@@ -14,11 +16,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
-import { ConfigForm } from '@moluoxixi/vue'
 import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
+import { ConfigForm } from '@moluoxixi/vue'
+import { ref } from 'vue'
 
 setupAntdVue()
 
@@ -41,13 +43,26 @@ const schema: ISchema = {
     quantity: { type: 'number', title: '数量', default: 1, componentProps: { min: 1 } },
     unitPrice: { type: 'number', title: '单价', default: 99.9, componentProps: { min: 0, step: 0.1 } },
     totalPrice: {
-      type: 'number', title: '总价（自动计算）', componentProps: { disabled: true }, description: '数量 × 单价',
-      reactions: [{ watch: ['quantity', 'unitPrice'], fulfill: { run: (field: any, ctx: any) => { const q = (ctx.values.quantity as number) ?? 0; const p = (ctx.values.unitPrice as number) ?? 0; field.setValue(Math.round(q * p * 100) / 100) } } }],
+      type: 'number',
+      title: '总价（自动计算）',
+      componentProps: { disabled: true },
+      description: '数量 × 单价',
+      reactions: [{ watch: ['quantity', 'unitPrice'], fulfill: { run: (field: any, ctx: any) => {
+        const q = (ctx.values.quantity as number) ?? 0
+        const p = (ctx.values.unitPrice as number) ?? 0
+        field.setValue(Math.round(q * p * 100) / 100)
+      } } }],
     },
     level: { type: 'string', title: '会员等级', default: 'silver', enum: [{ label: '银牌', value: 'silver' }, { label: '金牌', value: 'gold' }, { label: '钻石', value: 'diamond' }] },
     discountRate: {
-      type: 'number', title: '折扣率（%）', componentProps: { disabled: true }, description: '根据等级动态设置',
-      reactions: [{ watch: 'level', fulfill: { run: (field: any, ctx: any) => { const map: Record<string, number> = { silver: 5, gold: 10, diamond: 20 }; field.setValue(map[ctx.values.level as string] ?? 0) } } }],
+      type: 'number',
+      title: '折扣率（%）',
+      componentProps: { disabled: true },
+      description: '根据等级动态设置',
+      reactions: [{ watch: 'level', fulfill: { run: (field: any, ctx: any) => {
+        const map: Record<string, number> = { silver: 5, gold: 10, diamond: 20 }
+        field.setValue(map[ctx.values.level as string] ?? 0)
+      } } }],
     },
   },
 }

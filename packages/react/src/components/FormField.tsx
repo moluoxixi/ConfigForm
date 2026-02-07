@@ -47,7 +47,8 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
       /* 未显式指定 wrapper 时，使用组件注册的默认 wrapper */
       if (!mergedProps.wrapper && typeof mergedProps.component === 'string') {
         const dw = getDefaultWrapper(mergedProps.component)
-        if (dw) mergedProps.wrapper = dw
+        if (dw)
+          mergedProps.wrapper = dw
       }
       field = form.createField(mergedProps as FieldProps)
       createdByThisRef.current = true

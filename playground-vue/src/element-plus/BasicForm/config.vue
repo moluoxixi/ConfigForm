@@ -6,7 +6,9 @@
     </p>
 
     <el-radio-group v-model="mode" size="small" style="margin-bottom: 16px">
-      <el-radio-button v-for="opt in MODE_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</el-radio-button>
+      <el-radio-button v-for="opt in MODE_OPTIONS" :key="opt.value" :value="opt.value">
+        {{ opt.label }}
+      </el-radio-button>
     </el-radio-group>
 
     <ConfigForm
@@ -15,12 +17,16 @@
       :initial-values="savedValues"
       @values-change="(v: Record<string, unknown>) => savedValues = v"
       @submit="(v: Record<string, unknown>) => result = JSON.stringify(v, null, 2)"
-      @submit-failed="(e: any[]) => result = '验证失败:\n' + e.map((x: any) => `[${x.path}] ${x.message}`).join('\n')"
+      @submit-failed="(e: any[]) => result = `验证失败:\n${e.map((x: any) => `[${x.path}] ${x.message}`).join('\n')}`"
     >
       <template #default="{ form }">
         <el-space v-if="mode === 'editable'" style="margin-top: 16px">
-          <el-button type="primary" native-type="submit">提交</el-button>
-          <el-button @click="form.reset()">重置</el-button>
+          <el-button type="primary" native-type="submit">
+            提交
+          </el-button>
+          <el-button @click="form.reset()">
+            重置
+          </el-button>
         </el-space>
       </template>
     </ConfigForm>
@@ -30,16 +36,16 @@
 </template>
 
 <script setup lang="ts">
+import type { FormSchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { setupElementPlus } from '@moluoxixi/ui-element-plus'
+import { ConfigForm } from '@moluoxixi/vue'
 /**
  * 场景 1：基础表单（Element Plus）
  *
  * 覆盖全部注册组件类型 + 三种模式切换
  */
 import { computed, ref } from 'vue'
-import { ConfigForm } from '@moluoxixi/vue'
-import { setupElementPlus } from '@moluoxixi/ui-element-plus'
-import type { FormSchema } from '@moluoxixi/schema'
-import type { FieldPattern } from '@moluoxixi/shared'
 
 setupElementPlus()
 
@@ -52,8 +58,17 @@ const MODE_OPTIONS = [
 const mode = ref<FieldPattern>('editable')
 const result = ref('')
 const savedValues = ref<Record<string, unknown>>({
-  username: '', password: '', email: '', phone: '', age: 18,
-  gender: undefined, marital: 'single', hobbies: [], notification: true, birthday: '', bio: '',
+  username: '',
+  password: '',
+  email: '',
+  phone: '',
+  age: 18,
+  gender: undefined,
+  marital: 'single',
+  hobbies: [],
+  notification: true,
+  birthday: '',
+  bio: '',
 })
 
 const schema = computed<FormSchema>(() => ({

@@ -1,3 +1,9 @@
+import type { ISchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { ConfigForm } from '@moluoxixi/react'
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { Segmented, Space, Tag, Typography } from 'antd'
+import { observer } from 'mobx-react-lite'
 /**
  * 场景 27：模板复用
  *
@@ -7,21 +13,15 @@
  * - 组合多个片段
  * - 三种模式切换
  */
-import React, { useState, useMemo } from 'react';
-import { observer } from 'mobx-react-lite';
-import { ConfigForm } from '@moluoxixi/react';
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
-import { Space, Typography, Tag, Segmented } from 'antd';
-import type { ISchema } from '@moluoxixi/schema';
-import type { FieldPattern } from '@moluoxixi/shared';
+import React, { useMemo, useState } from 'react'
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph } = Typography
 
-setupAntd();
+setupAntd()
 
 /** 工具：将 StatusTabs 的 mode 注入 schema */
 function withMode(s: ISchema, mode: FieldPattern): ISchema {
-  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } };
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
 }
 
 /* ======================== Schema 片段（可复用模板） ======================== */
@@ -31,23 +31,23 @@ const PERSON_FRAGMENT: Record<string, ISchema> = {
   name: { type: 'string', title: '姓名', required: true, placeholder: '请输入姓名', rules: [{ minLength: 2, message: '至少 2 字' }] },
   phone: { type: 'string', title: '手机号', required: true, placeholder: '请输入手机号', rules: [{ format: 'phone', message: '无效手机号' }] },
   email: { type: 'string', title: '邮箱', placeholder: '请输入邮箱', rules: [{ format: 'email', message: '无效邮箱' }] },
-};
+}
 
 /** 通用地址片段 */
 const ADDRESS_FRAGMENT: Record<string, ISchema> = {
   province: { type: 'string', title: '省份', component: 'Select', enum: [{ label: '北京', value: 'bj' }, { label: '上海', value: 'sh' }, { label: '广东', value: 'gd' }] },
   city: { type: 'string', title: '城市', placeholder: '请输入城市' },
   address: { type: 'string', title: '详细地址', component: 'Textarea', placeholder: '请输入详细地址' },
-};
+}
 
 /** 通用备注片段 */
 const REMARK_FRAGMENT: Record<string, ISchema> = {
   remark: { type: 'string', title: '备注', component: 'Textarea', placeholder: '请输入备注', rules: [{ maxLength: 500, message: '不超过 500 字' }] },
-};
+}
 
 /* ======================== 组合模板 ======================== */
 
-type TemplateKey = 'employee' | 'customer' | 'supplier';
+type TemplateKey = 'employee' | 'customer' | 'supplier'
 
 /**
  * 合并多个片段为完整 Schema
@@ -59,16 +59,17 @@ function composeSchema(
   fragments: Array<Record<string, ISchema>>,
   overrides: Record<string, Partial<ISchema>>,
 ): ISchema {
-  const properties: Record<string, ISchema> = {};
+  const properties: Record<string, ISchema> = {}
   for (const fragment of fragments) {
-    Object.assign(properties, fragment);
+    Object.assign(properties, fragment)
   }
   /* 应用覆盖 */
   for (const [key, override] of Object.entries(overrides)) {
     if (properties[key]) {
-      properties[key] = { ...properties[key], ...override };
-    } else {
-      properties[key] = override as ISchema;
+      properties[key] = { ...properties[key], ...override }
+    }
+    else {
+      properties[key] = override as ISchema
     }
   }
   return {
@@ -78,11 +79,11 @@ function composeSchema(
       labelWidth: '120px',
     },
     properties,
-  };
+  }
 }
 
 /** 模板配置 */
-const TEMPLATES: Record<TemplateKey, { label: string; fragments: Array<Record<string, ISchema>>; overrides: Record<string, Partial<ISchema>> }> = {
+const TEMPLATES: Record<TemplateKey, { label: string, fragments: Array<Record<string, ISchema>>, overrides: Record<string, Partial<ISchema>> }> = {
   employee: {
     label: '员工入职',
     fragments: [PERSON_FRAGMENT, ADDRESS_FRAGMENT, REMARK_FRAGMENT],
@@ -111,16 +112,16 @@ const TEMPLATES: Record<TemplateKey, { label: string; fragments: Array<Record<st
       name: { type: 'string', title: '联系人', required: true, placeholder: '联系人姓名', rules: [{ minLength: 2, message: '至少 2 字' }] },
     },
   },
-};
+}
 
 export const TemplateReuseForm = observer((): React.ReactElement => {
-  const [template, setTemplate] = useState<TemplateKey>('employee');
+  const [template, setTemplate] = useState<TemplateKey>('employee')
 
-  const currentTemplate = TEMPLATES[template];
+  const currentTemplate = TEMPLATES[template]
   const schema = useMemo(
     () => composeSchema(currentTemplate.fragments, currentTemplate.overrides),
     [template],
-  );
+  )
 
   return (
     <div>
@@ -132,14 +133,19 @@ export const TemplateReuseForm = observer((): React.ReactElement => {
       <div style={{ marginBottom: 16 }}>
         <Segmented
           value={template}
-          onChange={(v) => setTemplate(v as TemplateKey)}
+          onChange={v => setTemplate(v as TemplateKey)}
           options={Object.entries(TEMPLATES).map(([k, v]) => ({ label: v.label, value: k }))}
         />
       </div>
 
       <Space style={{ marginBottom: 12 }}>
         <Tag color="blue">复用片段：个人信息 + 地址 + 备注</Tag>
-        <Tag color="green">扩展字段：{Object.keys(currentTemplate.overrides).filter((k) => !['name', 'phone', 'email'].includes(k)).length} 个</Tag>
+        <Tag color="green">
+          扩展字段：
+          {Object.keys(currentTemplate.overrides).filter(k => !['name', 'phone', 'email'].includes(k)).length}
+          {' '}
+          个
+        </Tag>
       </Space>
 
       <StatusTabs>
@@ -147,10 +153,10 @@ export const TemplateReuseForm = observer((): React.ReactElement => {
           <ConfigForm
             schema={withMode(schema, mode)}
             onSubmit={showResult}
-            onSubmitFailed={(errors) => showErrors(errors)}
+            onSubmitFailed={errors => showErrors(errors)}
           />
         )}
       </StatusTabs>
     </div>
-  );
-});
+  )
+})

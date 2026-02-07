@@ -1,3 +1,9 @@
+import type { ISchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { ConfigForm } from '@moluoxixi/react'
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { Typography } from 'antd'
+import { observer } from 'mobx-react-lite'
 /**
  * 场景 24：卡片分组
  *
@@ -7,28 +13,29 @@
  * - 卡片内独立验证提示
  * - 三种模式切换
  */
-import React from 'react';
-import { observer } from 'mobx-react-lite';
-import { ConfigForm } from '@moluoxixi/react';
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
-import { Typography } from 'antd';
-import type { ISchema } from '@moluoxixi/schema';
-import type { FieldPattern } from '@moluoxixi/shared';
+import React from 'react'
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph } = Typography
 
-setupAntd();
+setupAntd()
 
 /** 工具：将 StatusTabs 的 mode 注入 schema */
 function withMode(s: ISchema, mode: FieldPattern): ISchema {
-  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } };
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
 }
 
 /** 默认初始值 */
 const INITIAL_VALUES: Record<string, unknown> = {
-  username: '', password: '', confirmPwd: '', realName: '', gender: undefined, birthday: '',
-  email: '', phone: '', address: '',
-};
+  username: '',
+  password: '',
+  confirmPwd: '',
+  realName: '',
+  gender: undefined,
+  birthday: '',
+  email: '',
+  phone: '',
+  address: '',
+}
 
 /** 表单 Schema */
 const schema: ISchema = {
@@ -49,12 +56,22 @@ const schema: ISchema = {
     username: { type: 'string', title: '用户名', required: true, placeholder: '请输入用户名', rules: [{ minLength: 3, message: '至少 3 字符' }] },
     password: { type: 'string', title: '密码', required: true, component: 'Password', placeholder: '请输入密码', rules: [{ minLength: 8, message: '至少 8 字符' }] },
     confirmPwd: {
-      type: 'string', title: '确认密码', required: true, component: 'Password', placeholder: '再次输入',
-      rules: [{ validator: (v, _r, ctx) => { if (v !== ctx.getFieldValue('password')) return '密码不一致'; return undefined; }, trigger: 'blur' }],
+      type: 'string',
+      title: '确认密码',
+      required: true,
+      component: 'Password',
+      placeholder: '再次输入',
+      rules: [{ validator: (v, _r, ctx) => {
+        if (v !== ctx.getFieldValue('password'))
+          return '密码不一致'
+        return undefined
+      }, trigger: 'blur' }],
     },
     realName: { type: 'string', title: '真实姓名', required: true, placeholder: '请输入姓名' },
     gender: {
-      type: 'string', title: '性别', component: 'RadioGroup',
+      type: 'string',
+      title: '性别',
+      component: 'RadioGroup',
       enum: [{ label: '男', value: 'male' }, { label: '女', value: 'female' }],
     },
     birthday: { type: 'string', title: '生日', component: 'DatePicker' },
@@ -62,7 +79,7 @@ const schema: ISchema = {
     phone: { type: 'string', title: '手机号', placeholder: '请输入手机号', rules: [{ format: 'phone', message: '无效手机号' }] },
     address: { type: 'string', title: '地址', component: 'Textarea', placeholder: '请输入地址' },
   },
-};
+}
 
 export const CardGroupForm = observer((): React.ReactElement => {
   return (
@@ -75,10 +92,10 @@ export const CardGroupForm = observer((): React.ReactElement => {
             schema={withMode(schema, mode)}
             initialValues={INITIAL_VALUES}
             onSubmit={showResult}
-            onSubmitFailed={(errors) => showErrors(errors)}
+            onSubmitFailed={errors => showErrors(errors)}
           />
         )}
       </StatusTabs>
     </div>
-  );
-});
+  )
+})

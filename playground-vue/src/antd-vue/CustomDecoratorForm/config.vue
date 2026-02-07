@@ -16,16 +16,16 @@
 </template>
 
 <script setup lang="ts">
+import type { ISchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
+import { ConfigForm, registerWrapper } from '@moluoxixi/vue'
 /**
  * ?? 52????????Ant Design Vue?? *
  * ????????decorator ???? * - CardDecorator????????
  * - InlineDecorator???????? * - ????FormItem ????
  */
 import { defineComponent, h, ref } from 'vue'
-import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
-import { ConfigForm, registerWrapper } from '@moluoxixi/vue'
-import type { ISchema } from '@moluoxixi/schema'
-import type { FieldPattern } from '@moluoxixi/shared'
 
 setupAntdVue()
 
@@ -79,53 +79,70 @@ registerWrapper('CardDecorator', CardDecorator)
 registerWrapper('InlineDecorator', InlineDecorator)
 
 const initialValues = {
-  projectName: '', projectCode: '', description: '',
-  contactName: '', contactPhone: '', contactEmail: '',
-  budget: 0, startDate: '',
+  projectName: '',
+  projectCode: '',
+  description: '',
+  contactName: '',
+  contactPhone: '',
+  contactEmail: '',
+  budget: 0,
+  startDate: '',
 }
 
 const schema: ISchema = {
   type: 'object',
-  decoratorProps: { labelPosition: 'top', actions: { submit: '??', reset: '??' } },
+  decoratorProps: { labelPosition: 'top', actions: { submit: '提交', reset: '重置' } },
   properties: {
     projectName: {
-      type: 'string', title: '????', required: true,
+      type: 'string',
+      title: '项目名称',
+      required: true,
       decorator: 'CardDecorator',
       decoratorProps: {},
-      description: '??????????',
+      description: '请输入项目的完整名称',
     },
     projectCode: {
-      type: 'string', title: '????', required: true,
+      type: 'string',
+      title: '项目编号',
+      required: true,
       decorator: 'CardDecorator',
-      rules: [{ pattern: '^[A-Z]{2}-\\d{4}$', message: '???XX-0000' }],
+      rules: [{ pattern: '^[A-Z]{2}-\\d{4}$', message: '格式：XX-0000' }],
     },
     description: {
-      type: 'string', title: '????', component: 'Textarea',
+      type: 'string',
+      title: '项目描述',
+      component: 'Textarea',
       decorator: 'CardDecorator',
-      description: '???500 ??,
+      description: '不超过500字',
     },
     contactName: {
-      type: 'string', title: '????, required: true,
+      type: 'string',
+      title: '联系人',
+      required: true,
       decorator: 'InlineDecorator',
     },
     contactPhone: {
-      type: 'string', title: '??',
+      type: 'string',
+      title: '电话',
       decorator: 'InlineDecorator',
-      rules: [{ format: 'phone', message: '????????' }],
+      rules: [{ format: 'phone', message: '请输入有效手机号' }],
     },
     contactEmail: {
-      type: 'string', title: '??',
+      type: 'string',
+      title: '邮箱',
       decorator: 'InlineDecorator',
-      rules: [{ format: 'email', message: '???????? }],
+      rules: [{ format: 'email', message: '请输入有效邮箱' }],
     },
     budget: {
-      type: 'number', title: '??????',
-      /* ???? FormItem ????*/
+      type: 'number',
+      title: '预算（万元）',
+      /* 未指定 decorator，使用默认 FormItem */
       componentProps: { min: 0 },
     },
     startDate: {
-      type: 'date', title: '?????,
-      /* ???? FormItem ????*/
+      type: 'date',
+      title: '开始日期',
+      /* 未指定 decorator，使用默认 FormItem */
     },
   },
 }

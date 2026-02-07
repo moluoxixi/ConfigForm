@@ -16,7 +16,7 @@ export interface StatusTabsProps {
   children: (ctx: {
     mode: FieldPattern
     showResult: (data: Record<string, unknown>) => void
-    showErrors: (errors: Array<{ path: string; message: string }>) => void
+    showErrors: (errors: Array<{ path: string, message: string }>) => void
   }) => React.ReactNode
 }
 
@@ -39,7 +39,7 @@ export function StatusTabs({ resultTitle = '提交结果', children }: StatusTab
   }, [])
 
   /** 显示验证错误列表 */
-  const showErrors = useCallback((errors: Array<{ path: string; message: string }>) => {
+  const showErrors = useCallback((errors: Array<{ path: string, message: string }>) => {
     setResult(`验证失败:\n${errors.map(e => `[${e.path}] ${e.message}`).join('\n')}`)
   }, [])
 
@@ -49,7 +49,7 @@ export function StatusTabs({ resultTitle = '提交结果', children }: StatusTab
       <Segmented
         options={MODE_OPTIONS}
         value={mode}
-        onChange={(v) => setMode(v as FieldPattern)}
+        onChange={v => setMode(v as FieldPattern)}
         style={{ marginBottom: 16 }}
       />
 

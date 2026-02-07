@@ -12,7 +12,7 @@ const FORMAT_PATTERNS: Record<string, RegExp> = {
   /** 电子邮箱 */
   email: /^[\w.%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i,
   /** URL（http/https） */
-  url: /^https?:\/\/[^\s/$.?#][^\s]*$/i,
+  url: /^https?:\/\/[^\s/$.?#]\S*$/i,
   /** 中国大陆手机号 */
   phone: /^1[3-9]\d{9}$/,
   /** 中国大陆二代身份证号 */

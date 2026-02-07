@@ -32,7 +32,7 @@ export const StatusTabs = defineComponent({
     }
 
     /** 显示验证错误列表 */
-    function showErrors(errors: Array<{ path: string; message: string }>): void {
+    function showErrors(errors: Array<{ path: string, message: string }>): void {
       result.value = `验证失败:\n${errors.map(e => `[${e.path}] ${e.message}`).join('\n')}`
     }
 
@@ -54,12 +54,12 @@ export const StatusTabs = defineComponent({
       /* 结果展示 */
       result.value
         ? h(AAlert, {
-          type: isError.value ? 'error' : 'success',
-          message: props.resultTitle,
-          description: h('pre', { style: 'margin: 0; white-space: pre-wrap; font-size: 13px' }, result.value),
-          showIcon: true,
-          style: 'margin-top: 16px',
-        })
+            type: isError.value ? 'error' : 'success',
+            message: props.resultTitle,
+            description: h('pre', { style: 'margin: 0; white-space: pre-wrap; font-size: 13px' }, result.value),
+            showIcon: true,
+            style: 'margin-top: 16px',
+          })
         : null,
     ]
   },

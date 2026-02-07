@@ -1,3 +1,9 @@
+import type { ISchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { ConfigForm } from '@moluoxixi/react'
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { Typography } from 'antd'
+import { observer } from 'mobx-react-lite'
 /**
  * 场景 13：跨字段验证
  *
@@ -8,21 +14,15 @@
  * - 数值区间不重叠验证
  * - 三种模式切换
  */
-import React from 'react';
-import { observer } from 'mobx-react-lite';
-import { ConfigForm } from '@moluoxixi/react';
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
-import { Typography } from 'antd';
-import type { ISchema } from '@moluoxixi/schema';
-import type { FieldPattern } from '@moluoxixi/shared';
+import React from 'react'
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph } = Typography
 
-setupAntd();
+setupAntd()
 
 /** 工具：将 StatusTabs 的 mode 注入 schema */
 function withMode(s: ISchema, mode: FieldPattern): ISchema {
-  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } };
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
 }
 
 /** 默认初始值 */
@@ -38,7 +38,7 @@ const INITIAL_VALUES: Record<string, unknown> = {
   maxAge: 60,
   budget: 10000,
   expense: 0,
-};
+}
 
 /** 表单 Schema */
 const schema: ISchema = {
@@ -63,11 +63,11 @@ const schema: ISchema = {
       rules: [
         {
           validator: (value, _rule, context) => {
-            const pwd = context.getFieldValue('password');
+            const pwd = context.getFieldValue('password')
             if (value && pwd && value !== pwd) {
-              return '两次输入的密码不一致';
+              return '两次输入的密码不一致'
             }
-            return undefined;
+            return undefined
           },
           trigger: 'blur',
         },
@@ -87,24 +87,25 @@ const schema: ISchema = {
       rules: [
         {
           validator: (value, _rule, context) => {
-            const start = context.getFieldValue('startDate') as string;
+            const start = context.getFieldValue('startDate') as string
             if (start && value && String(value) < start) {
-              return '结束日期不能早于开始日期';
+              return '结束日期不能早于开始日期'
             }
-            return undefined;
+            return undefined
           },
           trigger: 'blur',
         },
         {
           level: 'warning',
           validator: (value, _rule, context) => {
-            const start = context.getFieldValue('startDate') as string;
+            const start = context.getFieldValue('startDate') as string
             if (start && value) {
-              const diffMs = new Date(String(value)).getTime() - new Date(start).getTime();
-              const diffDays = diffMs / (1000 * 60 * 60 * 24);
-              if (diffDays > 365) return '日期跨度超过一年，请确认';
+              const diffMs = new Date(String(value)).getTime() - new Date(start).getTime()
+              const diffDays = diffMs / (1000 * 60 * 60 * 24)
+              if (diffDays > 365)
+                return '日期跨度超过一年，请确认'
             }
-            return undefined;
+            return undefined
           },
         },
       ],
@@ -135,14 +136,14 @@ const schema: ISchema = {
       rules: [
         {
           validator: (_value, _rule, context) => {
-            const a = (context.getFieldValue('ratioA') as number) ?? 0;
-            const b = (context.getFieldValue('ratioB') as number) ?? 0;
-            const c = (context.getFieldValue('ratioC') as number) ?? 0;
-            const total = a + b + c;
+            const a = (context.getFieldValue('ratioA') as number) ?? 0
+            const b = (context.getFieldValue('ratioB') as number) ?? 0
+            const c = (context.getFieldValue('ratioC') as number) ?? 0
+            const total = a + b + c
             if (total !== 100) {
-              return `三项比例之和必须等于 100%，当前为 ${total}%`;
+              return `三项比例之和必须等于 100%，当前为 ${total}%`
             }
-            return undefined;
+            return undefined
           },
           trigger: 'blur',
         },
@@ -166,11 +167,11 @@ const schema: ISchema = {
       rules: [
         {
           validator: (value, _rule, context) => {
-            const minVal = context.getFieldValue('minAge') as number;
+            const minVal = context.getFieldValue('minAge') as number
             if (minVal !== undefined && value !== undefined && Number(value) <= minVal) {
-              return '最大年龄必须大于最小年龄';
+              return '最大年龄必须大于最小年龄'
             }
-            return undefined;
+            return undefined
           },
           trigger: 'blur',
         },
@@ -194,28 +195,28 @@ const schema: ISchema = {
       rules: [
         {
           validator: (value, _rule, context) => {
-            const budgetVal = context.getFieldValue('budget') as number;
+            const budgetVal = context.getFieldValue('budget') as number
             if (budgetVal !== undefined && Number(value) > budgetVal) {
-              return `实际支出（${value}）不能超过预算上限（${budgetVal}）`;
+              return `实际支出（${value}）不能超过预算上限（${budgetVal}）`
             }
-            return undefined;
+            return undefined
           },
           trigger: 'blur',
         },
         {
           level: 'warning',
           validator: (value, _rule, context) => {
-            const budgetVal = (context.getFieldValue('budget') as number) ?? 0;
+            const budgetVal = (context.getFieldValue('budget') as number) ?? 0
             if (budgetVal > 0 && Number(value) > budgetVal * 0.8) {
-              return '支出已超过预算的 80%，请注意控制';
+              return '支出已超过预算的 80%，请注意控制'
             }
-            return undefined;
+            return undefined
           },
         },
       ],
     },
   },
-};
+}
 
 /**
  * 跨字段验证示例
@@ -233,10 +234,10 @@ export const CrossFieldValidationForm = observer((): React.ReactElement => {
             schema={withMode(schema, mode)}
             initialValues={INITIAL_VALUES}
             onSubmit={showResult}
-            onSubmitFailed={(errors) => showErrors(errors)}
+            onSubmitFailed={errors => showErrors(errors)}
           />
         )}
       </StatusTabs>
     </div>
-  );
-});
+  )
+})

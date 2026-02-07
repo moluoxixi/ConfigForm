@@ -1,3 +1,9 @@
+import type { ISchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { ConfigForm } from '@moluoxixi/react'
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { Segmented, Typography } from 'antd'
+import { observer } from 'mobx-react-lite'
 /**
  * 场景 2：表单布局
  *
@@ -8,34 +14,28 @@
  * - 栅格布局（layout.type = 'grid'，一行两列 / 三列）
  * - 三种模式切换
  */
-import React, { useState, useMemo } from 'react';
-import { observer } from 'mobx-react-lite';
-import { ConfigForm } from '@moluoxixi/react';
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
-import { Typography, Segmented } from 'antd';
-import type { ISchema } from '@moluoxixi/schema';
-import type { FieldPattern } from '@moluoxixi/shared';
+import React, { useMemo, useState } from 'react'
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Paragraph, Text } = Typography
 
-setupAntd();
+setupAntd()
 
 /** 工具：将 StatusTabs 的 mode 注入 schema */
 function withMode(s: ISchema, mode: FieldPattern): ISchema {
-  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } };
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
 }
 
 /** 布局类型 */
-type LayoutType = 'horizontal' | 'vertical' | 'inline' | 'grid-2col' | 'grid-3col';
+type LayoutType = 'horizontal' | 'vertical' | 'inline' | 'grid-2col' | 'grid-3col'
 
 /** 布局选项 */
-const LAYOUT_OPTIONS: Array<{ label: string; value: LayoutType }> = [
+const LAYOUT_OPTIONS: Array<{ label: string, value: LayoutType }> = [
   { label: '水平布局', value: 'horizontal' },
   { label: '垂直布局', value: 'vertical' },
   { label: '行内布局', value: 'inline' },
   { label: '栅格两列', value: 'grid-2col' },
   { label: '栅格三列', value: 'grid-3col' },
-];
+]
 
 /** 基础字段定义（所有布局共享） */
 const BASE_PROPERTIES: ISchema['properties'] = {
@@ -80,7 +80,7 @@ const BASE_PROPERTIES: ISchema['properties'] = {
     component: 'DatePicker',
     placeholder: '请选择日期',
   },
-};
+}
 
 /**
  * 根据布局类型构建 Schema
@@ -95,41 +95,41 @@ function buildSchema(layoutType: LayoutType): ISchema {
       labelWidth: '100px',
     },
     properties: { ...BASE_PROPERTIES },
-  };
+  }
 
   /* 根据布局类型调整 decoratorProps 配置 */
   switch (layoutType) {
     case 'horizontal':
-      schema.decoratorProps!.labelPosition = 'right';
-      schema.decoratorProps!.direction = 'vertical';
-      break;
+      schema.decoratorProps!.labelPosition = 'right'
+      schema.decoratorProps!.direction = 'vertical'
+      break
     case 'vertical':
-      schema.decoratorProps!.labelPosition = 'top';
-      schema.decoratorProps!.direction = 'vertical';
-      break;
+      schema.decoratorProps!.labelPosition = 'top'
+      schema.decoratorProps!.direction = 'vertical'
+      break
     case 'inline':
-      schema.decoratorProps!.labelPosition = 'right';
-      schema.decoratorProps!.direction = 'inline';
-      break;
+      schema.decoratorProps!.labelPosition = 'right'
+      schema.decoratorProps!.direction = 'inline'
+      break
     case 'grid-2col':
-      schema.decoratorProps!.labelPosition = 'right';
+      schema.decoratorProps!.labelPosition = 'right'
       schema.layout = {
         type: 'grid',
         columns: 2,
         gutter: 24,
-      };
-      break;
+      }
+      break
     case 'grid-3col':
-      schema.decoratorProps!.labelPosition = 'top';
+      schema.decoratorProps!.labelPosition = 'top'
       schema.layout = {
         type: 'grid',
         columns: 3,
         gutter: 16,
-      };
-      break;
+      }
+      break
   }
 
-  return schema;
+  return schema
 }
 
 /** 默认初始值 */
@@ -140,7 +140,7 @@ const INITIAL_VALUES: Record<string, unknown> = {
   department: undefined,
   role: '',
   joinDate: '',
-};
+}
 
 /**
  * 表单布局示例
@@ -148,9 +148,9 @@ const INITIAL_VALUES: Record<string, unknown> = {
  * 可切换水平 / 垂直 / 行内 / 栅格两列 / 栅格三列布局。
  */
 export const LayoutForm = observer((): React.ReactElement => {
-  const [layoutType, setLayoutType] = useState<LayoutType>('horizontal');
+  const [layoutType, setLayoutType] = useState<LayoutType>('horizontal')
 
-  const schema = useMemo(() => buildSchema(layoutType), [layoutType]);
+  const schema = useMemo(() => buildSchema(layoutType), [layoutType])
 
   return (
     <div>
@@ -163,7 +163,7 @@ export const LayoutForm = observer((): React.ReactElement => {
         <Text strong style={{ marginRight: 12 }}>布局类型：</Text>
         <Segmented
           value={layoutType}
-          onChange={(val) => setLayoutType(val as LayoutType)}
+          onChange={val => setLayoutType(val as LayoutType)}
           options={LAYOUT_OPTIONS}
         />
       </div>
@@ -174,10 +174,10 @@ export const LayoutForm = observer((): React.ReactElement => {
             schema={withMode(schema, mode)}
             initialValues={INITIAL_VALUES}
             onSubmit={showResult}
-            onSubmitFailed={(errors) => showErrors(errors)}
+            onSubmitFailed={errors => showErrors(errors)}
           />
         )}
       </StatusTabs>
     </div>
-  );
-});
+  )
+})

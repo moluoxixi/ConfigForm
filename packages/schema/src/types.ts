@@ -52,7 +52,7 @@ export interface ISchema {
 
   /* ---- 枚举 / 数据源 ---- */
   /** 枚举选项（简写） */
-  enum?: Array<string | number | { label: string; value: unknown; disabled?: boolean }>
+  enum?: Array<string | number | { label: string, value: unknown, disabled?: boolean }>
   /** 数据源（静态数组或远程配置） */
   dataSource?: DataSourceItem[] | DataSourceConfig
 
@@ -178,4 +178,3 @@ export interface CompileOptions {
   /** 默认装饰器组件（默认 'FormItem'） */
   defaultDecorator?: string
 }
-

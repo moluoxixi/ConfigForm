@@ -1,3 +1,9 @@
+import type { ISchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/shared'
+import { ConfigForm } from '@moluoxixi/react'
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { Typography } from 'antd'
+import { observer } from 'mobx-react-lite'
 /**
  * 场景 23：折叠面板分组
  *
@@ -7,28 +13,31 @@
  * - 展开收起切换
  * - 三种模式切换
  */
-import React from 'react';
-import { observer } from 'mobx-react-lite';
-import { ConfigForm } from '@moluoxixi/react';
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
-import { Typography } from 'antd';
-import type { ISchema } from '@moluoxixi/schema';
-import type { FieldPattern } from '@moluoxixi/shared';
+import React from 'react'
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph } = Typography
 
-setupAntd();
+setupAntd()
 
 /** 工具：将 StatusTabs 的 mode 注入 schema */
 function withMode(s: ISchema, mode: FieldPattern): ISchema {
-  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } };
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
 }
 
 /** 默认初始值 */
 const INITIAL_VALUES: Record<string, unknown> = {
-  name: '', email: '', phone: '', company: '', position: '', salary: undefined,
-  school: '', major: '', degree: undefined, bio: '', hobby: '',
-};
+  name: '',
+  email: '',
+  phone: '',
+  company: '',
+  position: '',
+  salary: undefined,
+  school: '',
+  major: '',
+  degree: undefined,
+  bio: '',
+  hobby: '',
+}
 
 /** 表单 Schema */
 const schema: ISchema = {
@@ -56,13 +65,15 @@ const schema: ISchema = {
     school: { type: 'string', title: '学校', placeholder: '请输入学校' },
     major: { type: 'string', title: '专业', placeholder: '请输入专业' },
     degree: {
-      type: 'string', title: '学历', component: 'Select',
+      type: 'string',
+      title: '学历',
+      component: 'Select',
       enum: [{ label: '本科', value: 'bachelor' }, { label: '硕士', value: 'master' }, { label: '博士', value: 'phd' }],
     },
     bio: { type: 'string', title: '简介', component: 'Textarea', placeholder: '请输入简介' },
     hobby: { type: 'string', title: '爱好', placeholder: '请输入爱好' },
   },
-};
+}
 
 export const CollapseGroupForm = observer((): React.ReactElement => {
   return (
@@ -75,10 +86,10 @@ export const CollapseGroupForm = observer((): React.ReactElement => {
             schema={withMode(schema, mode)}
             initialValues={INITIAL_VALUES}
             onSubmit={showResult}
-            onSubmitFailed={(errors) => showErrors(errors)}
+            onSubmitFailed={errors => showErrors(errors)}
           />
         )}
       </StatusTabs>
     </div>
-  );
-});
+  )
+})

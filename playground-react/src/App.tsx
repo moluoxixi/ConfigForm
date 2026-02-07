@@ -4,11 +4,9 @@
  * 48 个场景，Config（Schema 驱动）/ Field（自定义渲染）两种模式
  * 目录结构：antd/XxxForm/config.tsx + field.tsx
  */
-import React, { useState, Suspense, lazy } from 'react';
+import React, { lazy, Suspense, useState } from 'react'
 
 /* ======================== 场景分组（Config / Field 共用） ======================== */
-
-type DemoName = string;
 
 const sceneGroups = [
   {
@@ -109,47 +107,82 @@ const sceneGroups = [
       { key: 'print-export', label: '48. 打印导出' },
     ],
   },
-];
+]
 
 /* ======================== 动态导入 ======================== */
 
 const sceneMap: Record<string, string> = {
-  'basic': 'BasicForm', 'layout': 'LayoutForm', 'basic-validation': 'BasicValidationForm', 'default-value': 'DefaultValueForm',
-  'visibility-linkage': 'VisibilityLinkageForm', 'value-linkage': 'ValueLinkageForm', 'property-linkage': 'PropertyLinkageForm',
-  'cascade-select': 'CascadeSelectForm', 'computed-field': 'ComputedFieldForm', 'conditional-required': 'ConditionalRequiredForm',
-  'custom-validation': 'CustomValidationForm', 'async-validation': 'AsyncValidationForm', 'cross-field-validation': 'CrossFieldValidationForm',
-  'nested-object': 'NestedObjectForm', 'array-field': 'ArrayFieldForm', 'editable-table': 'EditableTableForm', 'object-array-nested': 'ObjectArrayNestedForm',
-  'async-options': 'AsyncOptionsForm', 'dependent-datasource': 'DependentDataSourceForm', 'paginated-search': 'PaginatedSearchForm',
-  'step-form': 'StepForm', 'tab-group': 'TabGroupForm', 'collapse-group': 'CollapseGroupForm', 'card-group': 'CardGroupForm',
-  'dynamic-field': 'DynamicFieldForm', 'dynamic-schema': 'DynamicSchemaForm', 'template-reuse': 'TemplateReuseForm',
-  'rich-text': 'RichTextForm', 'file-upload': 'FileUploadForm', 'map-picker': 'MapPickerForm', 'color-picker': 'ColorPickerForm',
-  'code-editor': 'CodeEditorForm', 'json-editor': 'JsonEditorForm', 'signature-pad': 'SignaturePadForm',
-  'transfer': 'TransferForm', 'tree-select': 'TreeSelectForm', 'markdown-editor': 'MarkdownEditorForm',
-  'icon-selector': 'IconSelectorForm', 'cron-editor': 'CronEditorForm',
-  'data-transform': 'DataTransformForm', 'multi-form': 'MultiFormForm', 'form-snapshot': 'FormSnapshotForm',
-  'undo-redo': 'UndoRedoForm', 'lifecycle': 'LifecycleForm',
-  'permission': 'PermissionForm', 'i18n': 'I18nForm', 'form-diff': 'FormDiffForm', 'print-export': 'PrintExportForm',
-};
+  'basic': 'BasicForm',
+  'layout': 'LayoutForm',
+  'basic-validation': 'BasicValidationForm',
+  'default-value': 'DefaultValueForm',
+  'visibility-linkage': 'VisibilityLinkageForm',
+  'value-linkage': 'ValueLinkageForm',
+  'property-linkage': 'PropertyLinkageForm',
+  'cascade-select': 'CascadeSelectForm',
+  'computed-field': 'ComputedFieldForm',
+  'conditional-required': 'ConditionalRequiredForm',
+  'custom-validation': 'CustomValidationForm',
+  'async-validation': 'AsyncValidationForm',
+  'cross-field-validation': 'CrossFieldValidationForm',
+  'nested-object': 'NestedObjectForm',
+  'array-field': 'ArrayFieldForm',
+  'editable-table': 'EditableTableForm',
+  'object-array-nested': 'ObjectArrayNestedForm',
+  'async-options': 'AsyncOptionsForm',
+  'dependent-datasource': 'DependentDataSourceForm',
+  'paginated-search': 'PaginatedSearchForm',
+  'step-form': 'StepForm',
+  'tab-group': 'TabGroupForm',
+  'collapse-group': 'CollapseGroupForm',
+  'card-group': 'CardGroupForm',
+  'dynamic-field': 'DynamicFieldForm',
+  'dynamic-schema': 'DynamicSchemaForm',
+  'template-reuse': 'TemplateReuseForm',
+  'rich-text': 'RichTextForm',
+  'file-upload': 'FileUploadForm',
+  'map-picker': 'MapPickerForm',
+  'color-picker': 'ColorPickerForm',
+  'code-editor': 'CodeEditorForm',
+  'json-editor': 'JsonEditorForm',
+  'signature-pad': 'SignaturePadForm',
+  'transfer': 'TransferForm',
+  'tree-select': 'TreeSelectForm',
+  'markdown-editor': 'MarkdownEditorForm',
+  'icon-selector': 'IconSelectorForm',
+  'cron-editor': 'CronEditorForm',
+  'data-transform': 'DataTransformForm',
+  'multi-form': 'MultiFormForm',
+  'form-snapshot': 'FormSnapshotForm',
+  'undo-redo': 'UndoRedoForm',
+  'lifecycle': 'LifecycleForm',
+  'permission': 'PermissionForm',
+  'i18n': 'I18nForm',
+  'form-diff': 'FormDiffForm',
+  'print-export': 'PrintExportForm',
+}
 
-const configModules = import.meta.glob('./antd/*/config.tsx') as Record<string, () => Promise<any>>;
-const fieldModules = import.meta.glob('./antd/*/field.tsx') as Record<string, () => Promise<any>>;
+const configModules = import.meta.glob('./antd/*/config.tsx') as Record<string, () => Promise<any>>
+const fieldModules = import.meta.glob('./antd/*/field.tsx') as Record<string, () => Promise<any>>
 
 function getComponent(key: string, mode: 'config' | 'field'): React.LazyExoticComponent<React.ComponentType> | null {
-  const folder = sceneMap[key];
-  if (!folder) return null;
-  const modules = mode === 'config' ? configModules : fieldModules;
-  const path = `./antd/${folder}/${mode}.tsx`;
-  const loader = modules[path];
-  if (!loader) return null;
-  return lazy(() => loader().then((m: any) => ({ default: m[folder] ?? m.default ?? Object.values(m)[0] })));
+  const folder = sceneMap[key]
+  if (!folder)
+    return null
+  const modules = mode === 'config' ? configModules : fieldModules
+  const path = `./antd/${folder}/${mode}.tsx`
+  const loader = modules[path]
+  if (!loader)
+    return null
+  return lazy(() => loader().then((m: any) => ({ default: m[folder] ?? m.default ?? Object.values(m)[0] })))
 }
 
 /* ======================== 主组件 ======================== */
 
 export function App(): React.ReactElement {
-  const [currentDemo, setCurrentDemo] = useState('basic');
-  const [navMode, setNavMode] = useState<'config' | 'field'>('config');
-  const CurrentComponent = getComponent(currentDemo, navMode);
+  const [currentDemo, setCurrentDemo] = useState('basic')
+  const [navMode, setNavMode] = useState<'config' | 'field'>('config')
+  const CurrentComponent = getComponent(currentDemo, navMode)
 
   return (
     <div style={{ maxWidth: 1400, margin: '0 auto', padding: 16, fontFamily: 'system-ui, sans-serif' }}>
@@ -175,36 +208,61 @@ export function App(): React.ReactElement {
             <button
               onClick={() => setNavMode('config')}
               style={{
-                flex: 1, padding: '10px 0', fontSize: 13, fontWeight: 700, cursor: 'pointer', border: 'none',
-                background: navMode === 'config' ? '#1677ff' : '#f5f5f5', color: navMode === 'config' ? '#fff' : '#666',
+                flex: 1,
+                padding: '10px 0',
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+                border: 'none',
+                background: navMode === 'config' ? '#1677ff' : '#f5f5f5',
+                color: navMode === 'config' ? '#fff' : '#666',
               }}
-            >Config 模式</button>
+            >
+              Config 模式
+            </button>
             <button
               onClick={() => setNavMode('field')}
               style={{
-                flex: 1, padding: '10px 0', fontSize: 13, fontWeight: 700, cursor: 'pointer', border: 'none',
-                background: navMode === 'field' ? '#52c41a' : '#f5f5f5', color: navMode === 'field' ? '#fff' : '#666',
+                flex: 1,
+                padding: '10px 0',
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+                border: 'none',
+                background: navMode === 'field' ? '#52c41a' : '#f5f5f5',
+                color: navMode === 'field' ? '#fff' : '#666',
               }}
-            >Field 模式</button>
+            >
+              Field 模式
+            </button>
           </div>
 
           {/* 场景列表 */}
           <div style={{ maxHeight: 'calc(100vh - 220px)', overflow: 'auto', padding: 8 }}>
-            {sceneGroups.map((group) => (
+            {sceneGroups.map(group => (
               <div key={group.title} style={{ marginBottom: 8 }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: '#999', padding: '2px 4px' }}>{group.title}</div>
-                {group.items.map((item) => (
+                {group.items.map(item => (
                   <button
                     key={item.key}
                     onClick={() => setCurrentDemo(item.key)}
                     style={{
-                      display: 'block', width: '100%', textAlign: 'left', padding: '3px 8px',
-                      border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12,
+                      display: 'block',
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '3px 8px',
+                      border: 'none',
+                      borderRadius: 4,
+                      cursor: 'pointer',
+                      fontSize: 12,
                       background: currentDemo === item.key ? '#1677ff' : 'transparent',
                       color: currentDemo === item.key ? '#fff' : '#333',
-                      fontWeight: currentDemo === item.key ? 600 : 400, marginBottom: 1,
+                      fontWeight: currentDemo === item.key ? 600 : 400,
+                      marginBottom: 1,
                     }}
-                  >{item.label}</button>
+                  >
+                    {item.label}
+                  </button>
                 ))}
               </div>
             ))}
@@ -219,5 +277,5 @@ export function App(): React.ReactElement {
         </div>
       </div>
     </div>
-  );
+  )
 }

@@ -19,7 +19,8 @@ export interface FormVoidFieldProps {
  */
 export const FormVoidField = observer<FormVoidFieldProps>(({ name, fieldProps, children }) => {
   const form = useContext(FormContext)
-  if (!form) throw new Error('[ConfigForm] <FormVoidField> 必须在 <FormProvider> 内部使用')
+  if (!form)
+    throw new Error('[ConfigForm] <FormVoidField> 必须在 <FormProvider> 内部使用')
 
   const fieldRef = useRef<VoidFieldInstance | null>(null)
   const createdByThisRef = useRef(false)

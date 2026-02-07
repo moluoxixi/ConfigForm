@@ -58,7 +58,9 @@ export function registerComponents(mapping: Record<string, Component>, options?:
  * UI 适配层的一站式注册方法，避免重复为每个组件指定 defaultWrapper。
  *
  * @param fields - 字段组件映射（name → Component）
- * @param wrapper - 装饰器：{ name: 注册名, component: 装饰器组件 }
+ * @param wrapper - 装饰器配置
+ * @param wrapper.name - 装饰器注册名
+ * @param wrapper.component - 装饰器组件
  * @param layouts - 可选的布局组件映射（无默认 wrapper）
  *
  * @example
@@ -72,7 +74,7 @@ export function registerComponents(mapping: Record<string, Component>, options?:
  */
 export function registerFieldComponents(
   fields: Record<string, Component>,
-  wrapper: { name: string; component: Component },
+  wrapper: { name: string, component: Component },
   layouts?: Record<string, Component>,
 ): void {
   /* 注册装饰器 */

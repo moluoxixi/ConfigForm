@@ -20,12 +20,14 @@ export interface SchemaFieldProps {
  */
 export const SchemaField = observer<SchemaFieldProps>(({ schema, compileOptions }) => {
   const form = useContext(FormContext)
-  if (!form) throw new Error('[ConfigForm] <SchemaField> 必须在 <FormProvider> 内部使用')
+  if (!form)
+    throw new Error('[ConfigForm] <SchemaField> 必须在 <FormProvider> 内部使用')
 
   const compiled = useMemo(() => compileSchema(schema, compileOptions), [schema, compileOptions])
 
   function renderNode(cf: CompiledField): React.ReactElement | null {
-    if (cf.isVoid) return renderVoidNode(cf)
+    if (cf.isVoid)
+      return renderVoidNode(cf)
     if (cf.isArray) {
       return <FormArrayField key={cf.address} name={cf.dataPath} fieldProps={toArrayFieldProps(cf)} />
     }
@@ -59,7 +61,8 @@ export const SchemaField = observer<SchemaFieldProps>(({ schema, compileOptions 
       const cf = allFields.get(addr)
       if (cf) {
         const node = renderNode(cf)
-        if (node) result.push(node)
+        if (node)
+          result.push(node)
       }
     }
     return result
@@ -71,7 +74,8 @@ export const SchemaField = observer<SchemaFieldProps>(({ schema, compileOptions 
       const cf = compiled.fields.get(addr)
       if (cf) {
         const node = renderNode(cf)
-        if (node) rootChildren.push(node)
+        if (node)
+          rootChildren.push(node)
       }
     }
   }

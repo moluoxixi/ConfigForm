@@ -19,7 +19,8 @@ export interface FormObjectFieldProps {
  */
 export const FormObjectField = observer<FormObjectFieldProps>(({ name, fieldProps, children }) => {
   const form = useContext(FormContext)
-  if (!form) throw new Error('[ConfigForm] <FormObjectField> 必须在 <FormProvider> 内部使用')
+  if (!form)
+    throw new Error('[ConfigForm] <FormObjectField> 必须在 <FormProvider> 内部使用')
 
   const fieldRef = useRef(
     form.getField(name) ?? form.createField({ name, initialValue: {}, ...fieldProps } as any),
@@ -29,7 +30,9 @@ export const FormObjectField = observer<FormObjectFieldProps>(({ name, fieldProp
   /* 正确的依赖数组，避免 stale closure */
   useEffect(() => {
     const fieldName = name
-    return () => { form.removeField(fieldName) }
+    return () => {
+      form.removeField(fieldName)
+    }
   }, [form, name])
 
   return (

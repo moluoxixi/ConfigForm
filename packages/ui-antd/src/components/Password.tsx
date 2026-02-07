@@ -1,6 +1,6 @@
+import type { CfInputProps } from './Input'
 import { Input as AInput } from 'antd'
 import React from 'react'
-import type { CfInputProps } from './Input'
 
 export function Password({ value, onChange, onFocus, onBlur, placeholder, disabled, readOnly }: CfInputProps): React.ReactElement {
   return (

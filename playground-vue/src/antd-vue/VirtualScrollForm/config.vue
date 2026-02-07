@@ -10,9 +10,15 @@
         <div style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
           <span style="font-size: 13px; color: #666;">??{{ items.length }} ??? ??????400px ? ?? 48px</span>
           <div style="display: inline-flex; gap: 8px;">
-            <button @click="addBatch(50)" style="padding: 2px 12px; border: 1px solid #d9d9d9; border-radius: 4px; cursor: pointer; font-size: 13px; background: #fff;">+50 ??/button>
-            <button @click="addBatch(100)" style="padding: 2px 12px; border: 1px solid #d9d9d9; border-radius: 4px; cursor: pointer; font-size: 13px; background: #fff;">+100 ??/button>
-            <button @click="clearAll" style="padding: 2px 12px; border: 1px solid #ff4d4f; border-radius: 4px; cursor: pointer; font-size: 13px; background: #fff; color: #ff4d4f;">??</button>
+            <button style="padding: 2px 12px; border: 1px solid #d9d9d9; border-radius: 4px; cursor: pointer; font-size: 13px; background: #fff;" @click="addBatch(50)">
+              +50 ??/button>
+              <button style="padding: 2px 12px; border: 1px solid #d9d9d9; border-radius: 4px; cursor: pointer; font-size: 13px; background: #fff;" @click="addBatch(100)">
+                +100 ??/button>
+                <button style="padding: 2px 12px; border: 1px solid #ff4d4f; border-radius: 4px; cursor: pointer; font-size: 13px; background: #fff; color: #ff4d4f;" @click="clearAll">
+                  ??
+                </button>
+              </button>
+            </button>
           </div>
         </div>
 
@@ -21,11 +27,11 @@
           style="height: 400px; overflow-y: auto; border: 1px solid #e8e8e8; border-radius: 6px;"
           @scroll="onScroll"
         >
-          <div :style="{ height: totalHeight + 'px', position: 'relative' }">
+          <div :style="{ height: `${totalHeight}px`, position: 'relative' }">
             <div
               v-for="item in visibleItems"
               :key="item.index"
-              :style="{ position: 'absolute', top: item.offset + 'px', left: 0, right: 0, height: ROW_HEIGHT + 'px', padding: '8px 12px', display: 'flex', gap: '8px', alignItems: 'center', borderBottom: '1px solid #f0f0f0' }"
+              :style="{ position: 'absolute', top: `${item.offset}px`, left: 0, right: 0, height: `${ROW_HEIGHT}px`, padding: '8px 12px', display: 'flex', gap: '8px', alignItems: 'center', borderBottom: '1px solid #f0f0f0' }"
             >
               <span style="width: 40px; color: #999; font-size: 12px;">#{{ item.index + 1 }}</span>
               <input
@@ -35,7 +41,7 @@
                 :readonly="mode === 'readOnly'"
                 style="flex: 1; padding: 2px 8px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 13px; outline: none;"
                 @input="updateItem(item.index, 'name', ($event.target as HTMLInputElement).value)"
-              />
+              >
               <input
                 :value="item.data.email"
                 placeholder="??"
@@ -43,18 +49,24 @@
                 :readonly="mode === 'readOnly'"
                 style="flex: 1; padding: 2px 8px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 13px; outline: none;"
                 @input="updateItem(item.index, 'email', ($event.target as HTMLInputElement).value)"
-              />
+              >
               <button
                 v-if="mode === 'editable'"
-                @click="removeItem(item.index)"
                 style="padding: 2px 8px; border: 1px solid #ff4d4f; border-radius: 4px; cursor: pointer; font-size: 13px; background: #fff; color: #ff4d4f;"
-              >??/button>
+                @click="removeItem(item.index)"
+              >
+                ??/button>
+              </button>
             </div>
           </div>
         </div>
         <div v-if="mode === 'editable'" style="margin-top: 16px; display: flex; gap: 8px">
-          <button type="button" @click="handleSubmit(showResult)" style="padding: 4px 15px; background: #1677ff; color: #fff; border: none; border-radius: 6px; cursor: pointer">??</button>
-          <button type="button" @click="form.reset()" style="padding: 4px 15px; background: #fff; border: 1px solid #d9d9d9; border-radius: 6px; cursor: pointer">??</button>
+          <button type="button" style="padding: 4px 15px; background: #1677ff; color: #fff; border: none; border-radius: 6px; cursor: pointer" @click="handleSubmit(showResult)">
+            ??
+          </button>
+          <button type="button" style="padding: 4px 15px; background: #fff; border: 1px solid #d9d9d9; border-radius: 6px; cursor: pointer" @click="form.reset()">
+            ??
+          </button>
         </div>
       </FormProvider>
     </StatusTabs>
@@ -62,14 +74,15 @@
 </template>
 
 <script setup lang="ts">
-/**
- * ?? 56??????Ant Design Vue?? *
- * ????CSS + ?????????????? * ????????? ??????????????????? */
-import { computed, ref, watch } from 'vue'
+import type { FieldPattern } from '@moluoxixi/shared'
 import { createForm } from '@moluoxixi/core'
 import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { FormProvider } from '@moluoxixi/vue'
-import type { FieldPattern } from '@moluoxixi/shared'
+/**
+ * ?? 56??????Ant Design Vue?? *
+ * ????CSS + ?????????????? * ????????? ???????????????????
+ */
+import { computed, ref, watch } from 'vue'
 
 setupAntdVue()
 
@@ -105,7 +118,7 @@ const visibleItems = computed(() => {
   const visibleCount = Math.ceil(CONTAINER_HEIGHT / ROW_HEIGHT) + BUFFER * 2
   const end = Math.min(items.value.length, start + visibleCount)
 
-  const result: Array<{ index: number; offset: number; data: RowItem }> = []
+  const result: Array<{ index: number, offset: number, data: RowItem }> = []
   for (let i = start; i < end; i++) {
     result.push({ index: i, offset: i * ROW_HEIGHT, data: items.value[i] })
   }
@@ -138,7 +151,10 @@ function clearAll(): void {
 }
 
 /** ?? StatusTabs ? mode ? form.pattern */
-watch(() => st.value?.mode, (v) => { if (v) form.pattern = v as FieldPattern }, { immediate: true })
+watch(() => st.value?.mode, (v) => {
+  if (v)
+    form.pattern = v as FieldPattern
+}, { immediate: true })
 
 /** ???? */
 async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {

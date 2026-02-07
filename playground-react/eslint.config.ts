@@ -6,9 +6,9 @@
 import eslintConfig from '@moluoxixi/eslint-config'
 
 export default eslintConfig({
-    ignores: [],
-    rules: {
-        // 不允许使用console
-        'no-console': 'off',
-    },
+  ignores: [],
+  rules: {
+    // 不允许使用console
+    'no-console': 'off',
+  },
 })

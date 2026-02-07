@@ -4,7 +4,7 @@ import React from 'react'
 export interface LayoutCollapseProps {
   activeKey?: string[]
   onChange?: (keys: string[]) => void
-  items: Array<{ key: string; label: string; children: React.ReactNode }>
+  items: Array<{ key: string, label: string, children: React.ReactNode }>
 }
 
 export function LayoutCollapse({ activeKey, onChange, items }: LayoutCollapseProps): React.ReactElement {

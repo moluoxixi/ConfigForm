@@ -1,3 +1,8 @@
+import type { FieldInstance } from '@moluoxixi/core'
+import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { Form, Input, Segmented, Typography } from 'antd'
+import { observer } from 'mobx-react-lite'
 /**
  * 场景 46：国际化
  *
@@ -7,18 +12,13 @@
  * - placeholder 国际化
  * - 三种模式切换
  */
-import React, { useState, useEffect } from 'react';
-import { observer } from 'mobx-react-lite';
-import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
-import { Typography, Segmented, Form, Input, Space } from 'antd';
-import type { FieldInstance } from '@moluoxixi/core';
+import React, { useEffect, useState } from 'react'
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph } = Typography
 
-setupAntd();
+setupAntd()
 
-type Locale = 'zh-CN' | 'en-US' | 'ja-JP';
+type Locale = 'zh-CN' | 'en-US' | 'ja-JP'
 
 /** 国际化资源 */
 const I18N: Record<Locale, Record<string, string>> = {
@@ -67,43 +67,45 @@ const I18N: Record<Locale, Record<string, string>> = {
     'btn.submit': '送信',
     'btn.reset': 'リセット',
   },
-};
+}
 
 /** 翻译函数 */
 function t(locale: Locale, key: string): string {
-  return I18N[locale]?.[key] ?? key;
+  return I18N[locale]?.[key] ?? key
 }
 
 export const I18nForm = observer((): React.ReactElement => {
-  const [locale, setLocale] = useState<Locale>('zh-CN');
+  const [locale, setLocale] = useState<Locale>('zh-CN')
 
   const form = useCreateForm({
     initialValues: { name: '', email: '', phone: '', bio: '' },
-  });
+  })
 
   useEffect(() => {
-    form.createField({ name: 'name', label: t(locale, 'field.name'), required: true, rules: [{ required: true, message: t(locale, 'field.name.required') }] });
-    form.createField({ name: 'email', label: t(locale, 'field.email'), rules: [{ format: 'email', message: t(locale, 'field.email.invalid') }] });
-    form.createField({ name: 'phone', label: t(locale, 'field.phone') });
-    form.createField({ name: 'bio', label: t(locale, 'field.bio') });
-  }, []);
+    form.createField({ name: 'name', label: t(locale, 'field.name'), required: true, rules: [{ required: true, message: t(locale, 'field.name.required') }] })
+    form.createField({ name: 'email', label: t(locale, 'field.email'), rules: [{ format: 'email', message: t(locale, 'field.email.invalid') }] })
+    form.createField({ name: 'phone', label: t(locale, 'field.phone') })
+    form.createField({ name: 'bio', label: t(locale, 'field.bio') })
+  }, [])
 
   /** 切换语言时更新标签和占位符 */
   useEffect(() => {
-    const fieldMap: Record<string, string> = { name: 'field.name', email: 'field.email', phone: 'field.phone', bio: 'field.bio' };
+    const fieldMap: Record<string, string> = { name: 'field.name', email: 'field.email', phone: 'field.phone', bio: 'field.bio' }
     Object.entries(fieldMap).forEach(([name, key]) => {
-      const field = form.getField(name);
+      const field = form.getField(name)
       if (field) {
-        field.label = t(locale, key);
-        field.setComponentProps({ placeholder: t(locale, `${key}.placeholder`) });
+        field.label = t(locale, key)
+        field.setComponentProps({ placeholder: t(locale, `${key}.placeholder`) })
       }
-    });
+    })
     /* 更新验证消息 */
-    const nameField = form.getField('name');
-    if (nameField) nameField.rules = [{ required: true, message: t(locale, 'field.name.required') }];
-    const emailField = form.getField('email');
-    if (emailField) emailField.rules = [{ format: 'email', message: t(locale, 'field.email.invalid') }];
-  }, [locale]);
+    const nameField = form.getField('name')
+    if (nameField)
+      nameField.rules = [{ required: true, message: t(locale, 'field.name.required') }]
+    const emailField = form.getField('email')
+    if (emailField)
+      emailField.rules = [{ format: 'email', message: t(locale, 'field.email.invalid') }]
+  }, [locale])
 
   return (
     <div>
@@ -112,33 +114,56 @@ export const I18nForm = observer((): React.ReactElement => {
 
       <Segmented
         value={locale}
-        onChange={(v) => setLocale(v as Locale)}
+        onChange={v => setLocale(v as Locale)}
         options={[{ label: '🇨🇳 中文', value: 'zh-CN' }, { label: '🇺🇸 English', value: 'en-US' }, { label: '🇯🇵 日本語', value: 'ja-JP' }]}
         style={{ marginBottom: 16 }}
       />
 
       <StatusTabs>
-        {({ mode, showResult, showErrors }) => {
-          form.pattern = mode;
+        {({ mode }) => {
+          form.pattern = mode
           return (
-          <FormProvider form={form}>
-            {['name', 'email', 'phone', 'bio'].map((name) => (
-              <FormField key={name} name={name}>
-                {(field: FieldInstance) => (
-                  <Form.Item label={field.label} required={field.required} validateStatus={field.errors.length > 0 ? 'error' : undefined} help={field.errors[0]?.message}>
-                    {name === 'bio' ? (
-                      <Input.TextArea value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} onBlur={() => { field.blur(); field.validate('blur').catch(() => {}); }} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} placeholder={t(locale, `field.${name}.placeholder`)} rows={3} />
-                    ) : (
-                      <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} onBlur={() => { field.blur(); field.validate('blur').catch(() => {}); }} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} placeholder={t(locale, `field.${name}.placeholder`)} />
-                    )}
-                  </Form.Item>
-                )}
-              </FormField>
-            ))}
-          </FormProvider>
-          );
+            <FormProvider form={form}>
+              {['name', 'email', 'phone', 'bio'].map(name => (
+                <FormField key={name} name={name}>
+                  {(field: FieldInstance) => (
+                    <Form.Item label={field.label} required={field.required} validateStatus={field.errors.length > 0 ? 'error' : undefined} help={field.errors[0]?.message}>
+                      {name === 'bio'
+                        ? (
+                            <Input.TextArea
+                              value={(field.value as string) ?? ''}
+                              onChange={e => field.setValue(e.target.value)}
+                              onBlur={() => {
+                                field.blur()
+                                field.validate('blur').catch(() => {})
+                              }}
+                              disabled={mode === 'disabled'}
+                              readOnly={mode === 'readOnly'}
+                              placeholder={t(locale, `field.${name}.placeholder`)}
+                              rows={3}
+                            />
+                          )
+                        : (
+                            <Input
+                              value={(field.value as string) ?? ''}
+                              onChange={e => field.setValue(e.target.value)}
+                              onBlur={() => {
+                                field.blur()
+                                field.validate('blur').catch(() => {})
+                              }}
+                              disabled={mode === 'disabled'}
+                              readOnly={mode === 'readOnly'}
+                              placeholder={t(locale, `field.${name}.placeholder`)}
+                            />
+                          )}
+                    </Form.Item>
+                  )}
+                </FormField>
+              ))}
+            </FormProvider>
+          )
         }}
       </StatusTabs>
     </div>
-  );
-});
+  )
+})

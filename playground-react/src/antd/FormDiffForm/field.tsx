@@ -1,3 +1,8 @@
+import type { FieldInstance } from '@moluoxixi/core'
+import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { Card, Form, Input, InputNumber, Space, Tag, Typography } from 'antd'
+import { observer } from 'mobx-react-lite'
 /**
  * 场景 47：表单比对
  *
@@ -7,16 +12,11 @@
  * - 变更摘要
  * - 三种模式切换
  */
-import React, { useState, useEffect, useMemo } from 'react';
-import { observer } from 'mobx-react-lite';
-import { FormProvider, FormField, useCreateForm } from '@moluoxixi/react';
-import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd';
-import { Typography, Form, Input, InputNumber, Space, Tag, Card } from 'antd';
-import type { FieldInstance } from '@moluoxixi/core';
+import React, { useEffect, useMemo, useState } from 'react'
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Paragraph, Text } = Typography
 
-setupAntd();
+setupAntd()
 
 const FIELD_DEFS = [
   { name: 'name', label: '姓名', type: 'text' },
@@ -25,7 +25,7 @@ const FIELD_DEFS = [
   { name: 'salary', label: '薪资', type: 'number' },
   { name: 'department', label: '部门', type: 'text' },
   { name: 'bio', label: '简介', type: 'textarea' },
-];
+]
 
 /** 原始值（模拟从数据库加载） */
 const ORIGINAL_VALUES: Record<string, unknown> = {
@@ -35,27 +35,27 @@ const ORIGINAL_VALUES: Record<string, unknown> = {
   salary: 25000,
   department: '技术部',
   bio: '5 年前端开发经验',
-};
+}
 
 export const FormDiffForm = observer((): React.ReactElement => {
-  const [currentValues, setCurrentValues] = useState<Record<string, unknown>>({ ...ORIGINAL_VALUES });
+  const [currentValues, setCurrentValues] = useState<Record<string, unknown>>({ ...ORIGINAL_VALUES })
 
-  const form = useCreateForm({ initialValues: { ...ORIGINAL_VALUES } });
+  const form = useCreateForm({ initialValues: { ...ORIGINAL_VALUES } })
 
   useEffect(() => {
-    FIELD_DEFS.forEach((d) => form.createField({ name: d.name, label: d.label }));
-    const unsub = form.onValuesChange((values: Record<string, unknown>) => setCurrentValues({ ...values }));
-    return unsub;
-  }, []);
+    FIELD_DEFS.forEach(d => form.createField({ name: d.name, label: d.label }))
+    const unsub = form.onValuesChange((values: Record<string, unknown>) => setCurrentValues({ ...values }))
+    return unsub
+  }, [])
 
   /** 变更字段列表 */
   const changedFields = useMemo(() => {
     return FIELD_DEFS.filter((d) => {
-      const orig = ORIGINAL_VALUES[d.name];
-      const curr = currentValues[d.name];
-      return String(orig ?? '') !== String(curr ?? '');
-    });
-  }, [currentValues]);
+      const orig = ORIGINAL_VALUES[d.name]
+      const curr = currentValues[d.name]
+      return String(orig ?? '') !== String(curr ?? '')
+    })
+  }, [currentValues])
 
   return (
     <div>
@@ -66,53 +66,70 @@ export const FormDiffForm = observer((): React.ReactElement => {
       <Card size="small" style={{ marginBottom: 16 }}>
         <Space>
           <Text strong>变更摘要：</Text>
-          {changedFields.length === 0 ? (
-            <Tag color="green">无变更</Tag>
-          ) : (
-            <>
-              <Tag color="orange">{changedFields.length} 个字段已修改</Tag>
-              {changedFields.map((d) => <Tag key={d.name} color="red">{d.label}</Tag>)}
-            </>
-          )}
+          {changedFields.length === 0
+            ? (
+                <Tag color="green">无变更</Tag>
+              )
+            : (
+                <>
+                  <Tag color="orange">
+                    {changedFields.length}
+                    {' '}
+                    个字段已修改
+                  </Tag>
+                  {changedFields.map(d => <Tag key={d.name} color="red">{d.label}</Tag>)}
+                </>
+              )}
         </Space>
       </Card>
 
       <StatusTabs>
-        {({ mode, showResult, showErrors }) => {
-          form.pattern = mode;
+        {({ mode }) => {
+          form.pattern = mode
           return (
-          <FormProvider form={form}>
-            {FIELD_DEFS.map((d) => {
-              const isChanged = String(ORIGINAL_VALUES[d.name] ?? '') !== String(currentValues[d.name] ?? '');
-              return (
-                <FormField key={d.name} name={d.name}>
-                  {(field: FieldInstance) => (
-                    <Form.Item
-                      label={
-                        <Space>
-                          {d.label}
-                          {isChanged && <Tag color="orange" style={{ fontSize: 10 }}>已修改</Tag>}
-                        </Space>
-                      }
-                      style={{ background: isChanged ? '#fffbe6' : undefined, padding: isChanged ? '4px 8px' : undefined, borderRadius: 4 }}
-                      help={isChanged ? <Text type="secondary" style={{ fontSize: 11 }}>原始值: {String(ORIGINAL_VALUES[d.name] ?? '—')}</Text> : undefined}
-                    >
-                      {d.type === 'number' ? (
-                        <InputNumber value={field.value as number} onChange={(v) => field.setValue(v)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} style={{ width: '100%' }} />
-                      ) : d.type === 'textarea' ? (
-                        <Input.TextArea value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} rows={2} />
-                      ) : (
-                        <Input value={(field.value as string) ?? ''} onChange={(e) => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} />
-                      )}
-                    </Form.Item>
-                  )}
-                </FormField>
-              );
-            })}
-          </FormProvider>
-          );
+            <FormProvider form={form}>
+              {FIELD_DEFS.map((d) => {
+                const isChanged = String(ORIGINAL_VALUES[d.name] ?? '') !== String(currentValues[d.name] ?? '')
+                return (
+                  <FormField key={d.name} name={d.name}>
+                    {(field: FieldInstance) => (
+                      <Form.Item
+                        label={(
+                          <Space>
+                            {d.label}
+                            {isChanged && <Tag color="orange" style={{ fontSize: 10 }}>已修改</Tag>}
+                          </Space>
+                        )}
+                        style={{ background: isChanged ? '#fffbe6' : undefined, padding: isChanged ? '4px 8px' : undefined, borderRadius: 4 }}
+                        help={isChanged
+                          ? (
+                              <Text type="secondary" style={{ fontSize: 11 }}>
+                                原始值:
+                                {String(ORIGINAL_VALUES[d.name] ?? '—')}
+                              </Text>
+                            )
+                          : undefined}
+                      >
+                        {d.type === 'number'
+                          ? (
+                              <InputNumber value={field.value as number} onChange={v => field.setValue(v)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} style={{ width: '100%' }} />
+                            )
+                          : d.type === 'textarea'
+                            ? (
+                                <Input.TextArea value={(field.value as string) ?? ''} onChange={e => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} rows={2} />
+                              )
+                            : (
+                                <Input value={(field.value as string) ?? ''} onChange={e => field.setValue(e.target.value)} disabled={mode === 'disabled'} readOnly={mode === 'readOnly'} />
+                              )}
+                      </Form.Item>
+                    )}
+                  </FormField>
+                )
+              })}
+            </FormProvider>
+          )
         }}
       </StatusTabs>
     </div>
-  );
-});
+  )
+})
