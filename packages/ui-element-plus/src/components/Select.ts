@@ -3,9 +3,7 @@ import type { PropType } from 'vue'
 import { ElOption, ElSelect } from 'element-plus'
 import { defineComponent, h } from 'vue'
 
-/**
- * 选择器组件适配
- */
+/** 选择器适配 — readonly 显示已选标签文本 */
 export const Select = defineComponent({
   name: 'CfSelect',
   props: {
@@ -19,23 +17,35 @@ export const Select = defineComponent({
   },
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
-    return () => h(ElSelect, {
-      'modelValue': props.modelValue,
-      'placeholder': props.placeholder,
-      'disabled': props.disabled || props.readonly,
-      'loading': props.loading,
-      'multiple': props.multiple,
-      'style': 'width: 100%',
-      'onUpdate:modelValue': (v: unknown) => emit('update:modelValue', v),
-      'onFocus': () => emit('focus'),
-      'onBlur': () => emit('blur'),
-    }, () => props.dataSource.map(item =>
-      h(ElOption, {
-        key: String(item.value),
-        label: item.label,
-        value: item.value,
-        disabled: item.disabled,
-      }),
-    ))
+    return () => {
+      if (props.readonly) {
+        if (props.multiple && Array.isArray(props.modelValue)) {
+          const labels = props.modelValue
+            .map(v => props.dataSource.find(item => item.value === v)?.label ?? String(v))
+            .join('、')
+          return h('span', null, labels || '—')
+        }
+        const selectedLabel = props.dataSource.find(item => item.value === props.modelValue)?.label
+        return h('span', null, selectedLabel ?? String(props.modelValue ?? '—'))
+      }
+      return h(ElSelect, {
+        'modelValue': props.modelValue,
+        'placeholder': props.placeholder,
+        'disabled': props.disabled,
+        'loading': props.loading,
+        'multiple': props.multiple,
+        'style': 'width: 100%',
+        'onUpdate:modelValue': (v: unknown) => emit('update:modelValue', v),
+        'onFocus': () => emit('focus'),
+        'onBlur': () => emit('blur'),
+      }, () => props.dataSource.map(item =>
+        h(ElOption, {
+          key: String(item.value),
+          label: item.label,
+          value: item.value,
+          disabled: item.disabled,
+        }),
+      ))
+    }
   },
 })

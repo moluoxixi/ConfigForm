@@ -6,29 +6,17 @@ import {
   Input,
   InputNumber,
   LayoutCard,
+  LayoutCollapse,
   LayoutFormActions,
+  LayoutStepActions,
+  LayoutSteps,
+  LayoutTabs,
   Password,
   RadioGroup,
   Select,
   Switch,
   Textarea,
 } from './components'
-
-/** 组件名 → 组件映射表 */
-export const componentMapping = {
-  Input,
-  Password,
-  Textarea,
-  InputNumber,
-  Select,
-  RadioGroup,
-  CheckboxGroup,
-  Switch,
-  DatePicker,
-  FormItem,
-  LayoutCard,
-  LayoutFormActions,
-} as const
 
 /**
  * 注册 Element Plus 全套组件到 ConfigForm
@@ -53,6 +41,10 @@ export function setupElementPlus(): void {
 
   /* 布局组件 */
   registerComponent('LayoutCard', LayoutCard)
+  registerComponent('LayoutTabs', LayoutTabs)
+  registerComponent('LayoutCollapse', LayoutCollapse)
+  registerComponent('LayoutSteps', LayoutSteps)
+  registerComponent('LayoutStepActions', LayoutStepActions)
   registerComponent('LayoutFormActions', LayoutFormActions)
 
   /* 装饰器 */
@@ -67,7 +59,11 @@ export {
   Input,
   InputNumber,
   LayoutCard,
+  LayoutCollapse,
   LayoutFormActions,
+  LayoutStepActions,
+  LayoutSteps,
+  LayoutTabs,
   Password,
   RadioGroup,
   Select,
