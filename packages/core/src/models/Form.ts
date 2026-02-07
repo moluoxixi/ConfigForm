@@ -412,18 +412,43 @@ implements FormInstance<Values> {
 
   /** 收集提交数据 */
   private collectSubmitValues(): Record<string, unknown> {
-    const result: Record<string, unknown> = {}
+    /**
+     * 以 form.values 的深克隆作为基础（单一数据源），
+     * 再根据字段配置应用隐藏排除、值转换、提交路径映射。
+     *
+     * 这样做避免了两个问题：
+     * 1. 直接使用响应式引用导致 FormPath.setIn 意外修改 form.values
+     * 2. 已删除的数组子字段仍残留在 fields 映射中，产生脏数据
+     */
+    const result = deepClone(this.values) as Record<string, unknown>
 
     for (const [path, field] of this.fields) {
-      /* 隐藏字段排除 */
-      if (!field.visible && field.excludeWhenHidden)
+      /* 跳过已不存在于 values 中的字段（如已删除的数组子字段） */
+      if (!FormPath.existsIn(this.values, path))
         continue
 
-      const value = field.value
-      const finalValue = field.transform ? field.transform(value) : value
-      const submitPath = field.submitPath ?? path
+      /* 隐藏字段排除 */
+      if (!field.visible && field.excludeWhenHidden) {
+        FormPath.deleteIn(result, path)
+        continue
+      }
 
-      FormPath.setIn(result, submitPath, finalValue)
+      /* 值转换 */
+      if (field.transform) {
+        const value = FormPath.getIn(result, path)
+        const transformed = field.transform(value)
+        const submitPath = field.submitPath ?? path
+        FormPath.setIn(result, submitPath, transformed)
+        if (submitPath !== path) {
+          FormPath.deleteIn(result, path)
+        }
+      }
+      else if (field.submitPath && field.submitPath !== path) {
+        /* 提交路径映射 */
+        const value = FormPath.getIn(result, path)
+        FormPath.deleteIn(result, path)
+        FormPath.setIn(result, field.submitPath, value)
+      }
     }
 
     return result

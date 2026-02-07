@@ -1,6 +1,6 @@
 import type { FieldProps } from '@moluoxixi/core'
 import type { Component, PropType } from 'vue'
-import { defineComponent, h, inject, provide } from 'vue'
+import { defineComponent, h, inject, onBeforeUnmount, provide } from 'vue'
 import { ComponentRegistrySymbol, FieldSymbol, FormSymbol } from '../context'
 
 /**
@@ -35,6 +35,7 @@ export const FormField = defineComponent({
 
     /* 获取或创建字段 */
     let field = form.getField(props.name)
+    let createdByThis = false
     if (!field) {
       /* 字段 pattern 继承表单级 pattern（schema.pattern 优先） */
       const mergedProps: Record<string, unknown> = { ...props.fieldProps, name: props.name }
@@ -42,9 +43,17 @@ export const FormField = defineComponent({
         mergedProps.pattern = form.pattern
       }
       field = form.createField(mergedProps as any)
+      createdByThis = true
     }
 
     provide(FieldSymbol, field)
+
+    /* 组件卸载时清理由本组件创建的字段注册，避免数组项删除后残留脏字段 */
+    onBeforeUnmount(() => {
+      if (createdByThis) {
+        form.removeField(props.name)
+      }
+    })
 
     return () => {
       if (!field!.visible)

@@ -1,6 +1,6 @@
 import type { ArrayFieldProps } from '@moluoxixi/core'
 import type { PropType } from 'vue'
-import { defineComponent, inject, provide } from 'vue'
+import { defineComponent, inject, onBeforeUnmount, provide } from 'vue'
 import { FieldSymbol, FormSymbol } from '../context'
 
 /**
@@ -37,11 +37,20 @@ export const FormArrayField = defineComponent({
     }
 
     let field = form.getArrayField(props.name)
+    let createdByThis = false
     if (!field) {
       field = form.createArrayField({ name: props.name, ...props.fieldProps })
+      createdByThis = true
     }
 
     provide(FieldSymbol, field)
+
+    /* 组件卸载时清理由本组件创建的字段注册 */
+    onBeforeUnmount(() => {
+      if (createdByThis) {
+        form.removeField(props.name)
+      }
+    })
 
     return () => {
       if (!field!.visible)
