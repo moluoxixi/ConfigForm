@@ -1,15 +1,7 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "composite": true,
-    "lib": [
-      "ESNext"
-    ],
-    "allowImportingTsExtensions": true,
-    "noEmit": false,
-    "rewriteRelativeImportExtensions": true
+    "lib": ["ESNext"]
   },
-  "include": [
-    "vite.config.ts"
-  ]
+  "include": ["vite.config.ts"]
 }
