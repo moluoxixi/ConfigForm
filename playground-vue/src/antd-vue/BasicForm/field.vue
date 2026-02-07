@@ -1,24 +1,23 @@
 <template>
   <div>
-    <h2>????</h2>
+    <h2>基础表单（Field 版）</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
-      FormField + fieldProps ????? � component / wrapper ???? � ??????
+      FormField + fieldProps 声明式渲染 · component / wrapper 自动查找 · 三态自动处理
     </p>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <FormProvider :form="form">
         <form novalidate @submit.prevent="handleSubmit(showResult)">
-          <FormField name="username" :field-props="{ label: '???', required: true, component: 'Input', rules: [{ minLength: 3, maxLength: 20, message: '3-20 ???' }], componentProps: { placeholder: '??????' } }" />
-          <FormField name="password" :field-props="{ label: '??', required: true, component: 'Password', rules: [{ minLength: 8, message: '?? 8 ???' }], componentProps: { placeholder: '?????' } }" />
-          <FormField name="email" :field-props="{ label: '??', required: true, component: 'Input', rules: [{ format: 'email', message: '???????' }], componentProps: { placeholder: '?????' } }" />
-          <FormField name="phone" :field-props="{ label: '???', component: 'Input', rules: [{ format: 'phone', message: '????????' }], componentProps: { placeholder: '??????' } }" />
-          <FormField name="age" :field-props="{ label: '??', required: true, component: 'InputNumber', componentProps: { min: 0, max: 150, style: 'width: 100%' } }" />
-          <FormField name="gender" :field-props="{ label: '??', component: 'Select', dataSource: GENDER_OPTIONS, componentProps: { placeholder: '?????', allowClear: true } }" />
-          <FormField name="marital" :field-props="{ label: '????', component: 'RadioGroup', dataSource: MARITAL_OPTIONS }" />
-          <FormField name="hobbies" :field-props="{ label: '??', component: 'CheckboxGroup', dataSource: HOBBY_OPTIONS }" />
-          <FormField name="notification" :field-props="{ label: '????', component: 'Switch' }" />
-          <FormField name="birthday" :field-props="{ label: '??', component: 'DatePicker', componentProps: { style: 'width: 100%' } }" />
-          <FormField name="bio" :field-props="{ label: '????', component: 'Textarea', rules: [{ maxLength: 200, message: '?? 200 ?' }], componentProps: { placeholder: '???????', rows: 3 } }" />
-          <!-- ??????????? -->
+          <FormField name="username" :field-props="{ label: '用户名', required: true, component: 'Input', rules: [{ minLength: 3, maxLength: 20, message: '3-20 个字符' }], componentProps: { placeholder: '请输入用户名' } }" />
+          <FormField name="password" :field-props="{ label: '密码', required: true, component: 'Password', rules: [{ minLength: 8, message: '至少 8 个字符' }], componentProps: { placeholder: '请输入密码' } }" />
+          <FormField name="email" :field-props="{ label: '邮箱', required: true, component: 'Input', rules: [{ format: 'email', message: '邮箱格式不正确' }], componentProps: { placeholder: '请输入邮箱' } }" />
+          <FormField name="phone" :field-props="{ label: '手机号', component: 'Input', rules: [{ format: 'phone', message: '手机号格式不正确' }], componentProps: { placeholder: '请输入手机号' } }" />
+          <FormField name="age" :field-props="{ label: '年龄', required: true, component: 'InputNumber', componentProps: { min: 0, max: 150, style: 'width: 100%' } }" />
+          <FormField name="gender" :field-props="{ label: '性别', component: 'Select', dataSource: GENDER_OPTIONS, componentProps: { placeholder: '请选择性别', allowClear: true } }" />
+          <FormField name="marital" :field-props="{ label: '婚姻状况', component: 'RadioGroup', dataSource: MARITAL_OPTIONS }" />
+          <FormField name="hobbies" :field-props="{ label: '爱好', component: 'CheckboxGroup', dataSource: HOBBY_OPTIONS }" />
+          <FormField name="notification" :field-props="{ label: '开启通知', component: 'Switch' }" />
+          <FormField name="birthday" :field-props="{ label: '生日', component: 'DatePicker', componentProps: { style: 'width: 100%' } }" />
+          <FormField name="bio" :field-props="{ label: '个人简介', component: 'Textarea', rules: [{ maxLength: 200, message: '最多 200 字' }], componentProps: { placeholder: '请输入简介', rows: 3 } }" />
           <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
         </form>
       </FormProvider>
@@ -27,25 +26,25 @@
 </template>
 
 <script setup lang="ts">
+/**
+ * 场景 1：基础表单 - Field 版（Ant Design Vue）
+ *
+ * 使用 FormProvider + FormField 声明式渲染，等价 Formily 的 Field 模式。
+ * 通过 FormField 的 fieldProps 配置字段，ReactiveField 自动处理组件查找和三态。
+ */
 import type { FieldPattern } from '@moluoxixi/shared'
 import { LayoutFormActions, setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
-/**
- * ?? 1????? - Field ???Ant Design Vue?
- *
- * ?? FormProvider + FormField ???????? Formily ? Field ???
- * ?? FormField ?? fieldProps ???????ReactiveField ???????????
- */
 import { ref, watch } from 'vue'
 
 setupAntdVue()
 
 const st = ref<InstanceType<typeof StatusTabs>>()
 
-/** ???? */
-const GENDER_OPTIONS = [{ label: '?', value: 'male' }, { label: '?', value: 'female' }]
-const MARITAL_OPTIONS = [{ label: '??', value: 'single' }, { label: '??', value: 'married' }]
-const HOBBY_OPTIONS = [{ label: '??', value: 'reading' }, { label: '??', value: 'sports' }, { label: '??', value: 'coding' }]
+/** 选项数据 */
+const GENDER_OPTIONS = [{ label: '男', value: 'male' }, { label: '女', value: 'female' }]
+const MARITAL_OPTIONS = [{ label: '未婚', value: 'single' }, { label: '已婚', value: 'married' }]
+const HOBBY_OPTIONS = [{ label: '阅读', value: 'reading' }, { label: '运动', value: 'sports' }, { label: '编程', value: 'coding' }]
 
 const form = useCreateForm({
   initialValues: {
@@ -63,13 +62,13 @@ const form = useCreateForm({
   },
 })
 
-/** ?? StatusTabs ? mode ? form.pattern */
+/** 同步 StatusTabs 的 mode 到 form.pattern */
 watch(() => st.value?.mode, (v) => {
   if (v)
     form.pattern = v as FieldPattern
 }, { immediate: true })
 
-/** ???? */
+/** 提交处理 */
 async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
   const res = await form.submit()
   if (res.errors.length > 0) {

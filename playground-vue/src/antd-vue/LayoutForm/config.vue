@@ -57,7 +57,7 @@ const PROPERTIES: ISchema['properties'] = {
 }
 
 const schema = computed<ISchema>(() => {
-  const s: ISchema = { type: 'object', decoratorProps: { labelWidth: '100px' }, properties: { ...PROPERTIES } }
+  const s: ISchema = { type: 'object', decoratorProps: { labelWidth: '100px', actions: { submit: '提交', reset: '重置' } }, properties: { ...PROPERTIES } }
   switch (layoutType.value) {
     case 'horizontal': s.decoratorProps!.labelPosition = 'right'
       s.decoratorProps!.direction = 'vertical'
