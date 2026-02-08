@@ -6,8 +6,8 @@
  */
 import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/core'
-import type { SceneConfig, FieldConfig } from '@moluoxixi/playground-shared'
-import { getSceneGroups, sceneRegistry } from '@moluoxixi/playground-shared'
+import type { SceneConfig, FieldConfig } from '@playground/shared'
+import { getSceneGroups, sceneRegistry } from '@playground/shared'
 import { ConfigForm, FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
 import { observer } from 'mobx-react-lite'

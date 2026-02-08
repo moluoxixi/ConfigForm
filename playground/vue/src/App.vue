@@ -111,8 +111,8 @@
 <script setup lang="ts">
 import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/core'
-import type { SceneConfig } from '@moluoxixi/playground-shared'
-import { getSceneGroups, sceneRegistry } from '@moluoxixi/playground-shared'
+import type { SceneConfig } from '@playground/shared'
+import { getSceneGroups, sceneRegistry } from '@playground/shared'
 import { LayoutFormActions, setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { setupElementPlus } from '@moluoxixi/ui-element-plus'
 import { ConfigForm, FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
