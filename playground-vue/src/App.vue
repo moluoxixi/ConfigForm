@@ -44,7 +44,7 @@
           </button>
         </div>
 
-        <!-- 场景列表（从 glob 自动生成） -->
+        <!-- 场景列表 -->
         <div style="max-height: calc(100vh - 220px); overflow: auto; padding: 8px;">
           <div v-for="group in sceneGroups" :key="group.key" style="margin-bottom: 8px;">
             <div style="font-size: 11px; font-weight: 600; color: #999; padding: 2px 4px;">
@@ -63,9 +63,32 @@
 
       <!-- 右侧内容区 -->
       <div style="flex: 1; border: 1px solid #eee; border-radius: 8px; padding: 24px; background: #fff; min-height: 400px;">
-        <component :is="currentComponent" v-if="currentComponent" :key="`${currentUI}-${navMode}-${currentDemo}`" />
+        <div v-if="sceneConfig" :key="`${renderKey}-${navMode}-${currentDemo}`">
+          <h2>{{ sceneConfig.title }}{{ navMode === 'field' ? '（Field 版）' : '' }}</h2>
+          <p :style="{ color: currentUI === 'antd-vue' ? 'rgba(0,0,0,0.45)' : '#909399', marginBottom: '16px', fontSize: '14px' }">
+            {{ sceneConfig.description }}{{ navMode === 'field' ? ' — FormField + fieldProps 实现' : '' }}
+          </p>
+
+          <!-- Config 模式：通用渲染 -->
+          <StatusTabs v-if="navMode === 'config'" ref="st" v-slot="{ mode, showResult }">
+            <ConfigForm
+              :schema="withMode(sceneConfig.schema, mode)"
+              :initial-values="sceneConfig.initialValues"
+              @submit="showResult"
+              @submit-failed="(e: any) => st?.showErrors(e)"
+            />
+          </StatusTabs>
+
+          <!-- Field 模式：通用渲染 -->
+          <FieldScene
+            v-else
+            :fields="sceneConfig.fields"
+            :initial-values="sceneConfig.initialValues"
+            :label-width="(sceneConfig.schema.decoratorProps?.labelWidth as string) ?? '120px'"
+          />
+        </div>
         <div v-else style="text-align: center; color: #999; padding: 40px;">
-          请选择场景
+          {{ loading ? '加载中...' : '请选择场景' }}
         </div>
       </div>
     </div>
@@ -73,122 +96,80 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent, ref } from 'vue'
+import type { ISchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/core'
+import type { SceneConfig } from '@moluoxixi/playground-shared'
+import { getSceneGroups, sceneRegistry } from '@moluoxixi/playground-shared'
+import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
+import { setupElementPlus } from '@moluoxixi/ui-element-plus'
+import { ConfigForm } from '@moluoxixi/vue'
+import { ref, watch } from 'vue'
+import FieldScene from './components/FieldScene.vue'
 
 type UILib = 'antd-vue' | 'element-plus'
 
 const currentUI = ref<UILib>('antd-vue')
 const currentDemo = ref('BasicForm')
 const navMode = ref<'config' | 'field'>('config')
+const loading = ref(false)
+const sceneConfig = ref<SceneConfig | null>(null)
+const st = ref<InstanceType<typeof StatusTabs>>()
+/** 用于强制重新挂载内容区域 */
+const renderKey = ref(0)
 
 const uiLibs = [
   { key: 'antd-vue' as UILib, label: 'Ant Design Vue', color: '#1677ff' },
   { key: 'element-plus' as UILib, label: 'Element Plus', color: '#409eff' },
 ]
 
-/** 分组目录名 → 中文标题 */
-const GROUP_LABELS: Record<string, string> = {
-  '01-basic': '基础场景',
-  '02-linkage': '联动场景',
-  '03-validation': '验证场景',
-  '04-complex-data': '复杂数据',
-  '05-datasource': '数据源',
-  '06-layout': '布局分组',
-  '07-dynamic': '动态表单',
-  '08-components': '复杂组件',
-  '09-state': '表单状态',
-  '10-misc': '其他能力',
-  '11-advanced': '扩展场景',
+/** 根据当前 UI 库调用对应 setup（切换时重新注册组件覆盖） */
+function applyUISetup(lib: UILib): void {
+  if (lib === 'antd-vue') setupAntdVue()
+  else setupElementPlus()
 }
 
-/* ======================== import.meta.glob 自动扫描 ======================== */
+applyUISetup(currentUI.value)
 
-/**
- * 两层 glob：{ui-lib}/{group}/{demo}/config|field.vue
- * 路径示例：./antd-vue/01-basic/BasicForm/config.vue
- */
-const antdConfigGlob = import.meta.glob('./antd-vue/*/*/config.vue')
-const antdFieldGlob = import.meta.glob('./antd-vue/*/*/field.vue')
-const epConfigGlob = import.meta.glob('./element-plus/*/*/config.vue')
-const epFieldGlob = import.meta.glob('./element-plus/*/*/field.vue')
+/** UI 库切换时重新注册 + 强制重新挂载 */
+watch(currentUI, (lib) => {
+  applyUISetup(lib)
+  renderKey.value++
+})
 
-/** 从 glob 路径解析分组和示例名 */
-function parseGlobPath(path: string): { group: string, name: string } | null {
-  const m = path.match(/\/(\d{2}-[\w-]+)\/([\w]+)\/(config|field)\.vue$/)
-  return m ? { group: m[1], name: m[2] } : null
-}
-
-/** 将 glob 结果转为 { DemoName: AsyncComponent } */
-function buildComponentMap(glob: Record<string, () => Promise<unknown>>): Record<string, ReturnType<typeof defineAsyncComponent>> {
-  const map: Record<string, ReturnType<typeof defineAsyncComponent>> = {}
-  for (const [path, loader] of Object.entries(glob)) {
-    const parsed = parseGlobPath(path)
-    if (parsed) {
-      map[parsed.name] = defineAsyncComponent(loader as () => Promise<any>)
-    }
-  }
-  return map
-}
-
-/** 从任一 glob 结果自动生成分组列表 */
-function buildSceneGroups(glob: Record<string, () => Promise<unknown>>): Array<{ key: string, label: string, items: string[] }> {
-  const groupMap = new Map<string, Set<string>>()
-
-  for (const path of Object.keys(glob)) {
-    const parsed = parseGlobPath(path)
-    if (parsed) {
-      if (!groupMap.has(parsed.group)) {
-        groupMap.set(parsed.group, new Set())
-      }
-      groupMap.get(parsed.group)!.add(parsed.name)
-    }
-  }
-
-  return Array.from(groupMap.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, names]) => ({
-      key,
-      label: GROUP_LABELS[key] ?? key,
-      items: Array.from(names).sort(),
-    }))
-}
-
-const asyncComponents: Record<UILib, Record<'config' | 'field', Record<string, ReturnType<typeof defineAsyncComponent>>>> = {
-  'antd-vue': {
-    config: buildComponentMap(antdConfigGlob),
-    field: buildComponentMap(antdFieldGlob),
-  },
-  'element-plus': {
-    config: buildComponentMap(epConfigGlob),
-    field: buildComponentMap(epFieldGlob),
-  },
-}
-
-/** 场景分组（从 glob 自动生成，无需硬编码） */
-const sceneGroups = buildSceneGroups({ ...antdConfigGlob, ...antdFieldGlob })
+const sceneGroups = getSceneGroups()
 const totalScenes = sceneGroups.reduce((sum, g) => sum + g.items.length, 0)
 
-/** 当前组件 */
-const currentComponent = computed(() => {
-  return asyncComponents[currentUI.value]?.[navMode.value]?.[currentDemo.value]
-})
+/** 加载场景配置 */
+async function loadScene(name: string): Promise<void> {
+  const entry = sceneRegistry[name]
+  if (!entry) { sceneConfig.value = null; return }
+  loading.value = true
+  try {
+    const mod = await entry.loader()
+    sceneConfig.value = mod.default
+  }
+  catch (e) {
+    console.error(`加载场景 ${name} 失败:`, e)
+    sceneConfig.value = null
+  }
+  finally { loading.value = false }
+}
+
+watch(currentDemo, (name) => loadScene(name), { immediate: true })
+
+/** 工具：将 mode 注入 schema */
+function withMode(s: ISchema, mode: FieldPattern): ISchema {
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
+}
 
 function navBtnStyle(key: string): Record<string, string> {
   const active = currentDemo.value === key
   const color = currentUI.value === 'antd-vue' ? '#1677ff' : '#409eff'
   return {
-    display: 'block',
-    width: '100%',
-    textAlign: 'left',
-    padding: '3px 8px',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '12px',
-    background: active ? color : 'transparent',
-    color: active ? '#fff' : '#333',
-    fontWeight: active ? '600' : '400',
-    marginBottom: '1px',
+    display: 'block', width: '100%', textAlign: 'left', padding: '3px 8px',
+    border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px',
+    background: active ? color : 'transparent', color: active ? '#fff' : '#333',
+    fontWeight: active ? '600' : '400', marginBottom: '1px',
   }
 }
 </script>

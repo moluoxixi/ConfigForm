@@ -1,91 +1,97 @@
 /**
  * React Playground 入口
  *
- * 使用 import.meta.glob 自动扫描 antd/{group}/{demo}/config|field.tsx
- * 无需硬编码示例列表，新增示例只需创建文件夹即可自动出现
+ * 从 playground-shared 动态加载场景配置，通用渲染 Config/Field 模式。
+ * 无需为每个场景编写独立的 config.tsx / field.tsx 文件。
  */
-import React, { lazy, Suspense, useMemo, useState } from 'react'
+import type { ISchema } from '@moluoxixi/schema'
+import type { FieldPattern } from '@moluoxixi/core'
+import type { SceneConfig, FieldConfig } from '@moluoxixi/playground-shared'
+import { getSceneGroups, sceneRegistry } from '@moluoxixi/playground-shared'
+import { ConfigForm, FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
+import { LayoutFormActions, setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
+import { observer } from 'mobx-react-lite'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
-/* ======================== 分组标题映射 ======================== */
+setupAntd()
 
-const GROUP_LABELS: Record<string, string> = {
-  '01-basic': '基础场景',
-  '02-linkage': '联动场景',
-  '03-validation': '验证场景',
-  '04-complex-data': '复杂数据',
-  '05-datasource': '数据源',
-  '06-layout': '布局分组',
-  '07-dynamic': '动态表单',
-  '08-components': '复杂组件',
-  '09-state': '表单状态',
-  '10-misc': '其他能力',
-  '11-advanced': '扩展场景',
-}
-
-/* ======================== import.meta.glob 自动扫描 ======================== */
-
-/**
- * 两层 glob：antd/{group}/{demo}/config|field.tsx
- * 路径示例：./antd/01-basic/BasicForm/config.tsx
- */
-const configModules = import.meta.glob('./antd/*/*/config.tsx') as Record<string, () => Promise<any>>
-const fieldModules = import.meta.glob('./antd/*/*/field.tsx') as Record<string, () => Promise<any>>
-
-/** 从 glob 路径解析分组和示例名 */
-function parseGlobPath(path: string): { group: string, name: string } | null {
-  const m = path.match(/\/(\d{2}-[\w-]+)\/([\w]+)\/(config|field)\.tsx$/)
-  return m ? { group: m[1], name: m[2] } : null
-}
-
-/** 构建 { DemoName: loader } 映射 */
-function buildLoaderMap(glob: Record<string, () => Promise<any>>): Record<string, () => Promise<any>> {
-  const map: Record<string, () => Promise<any>> = {}
-  for (const [path, loader] of Object.entries(glob)) {
-    const parsed = parseGlobPath(path)
-    if (parsed) map[parsed.name] = loader
-  }
-  return map
-}
-
-/** 从 glob 结果自动生成分组列表 */
-function buildSceneGroups(glob: Record<string, () => Promise<any>>): Array<{ key: string, label: string, items: string[] }> {
-  const groupMap = new Map<string, Set<string>>()
-
-  for (const path of Object.keys(glob)) {
-    const parsed = parseGlobPath(path)
-    if (parsed) {
-      if (!groupMap.has(parsed.group)) groupMap.set(parsed.group, new Set())
-      groupMap.get(parsed.group)!.add(parsed.name)
-    }
-  }
-
-  return Array.from(groupMap.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, names]) => ({
-      key,
-      label: GROUP_LABELS[key] ?? key,
-      items: Array.from(names).sort(),
-    }))
-}
-
-const configLoaders = buildLoaderMap(configModules)
-const fieldLoaders = buildLoaderMap(fieldModules)
-const sceneGroups = buildSceneGroups({ ...configModules, ...fieldModules })
+const sceneGroups = getSceneGroups()
 const totalScenes = sceneGroups.reduce((sum, g) => sum + g.items.length, 0)
 
-function getComponent(key: string, mode: 'config' | 'field'): React.LazyExoticComponent<React.ComponentType> | null {
-  const loaders = mode === 'config' ? configLoaders : fieldLoaders
-  const loader = loaders[key]
-  if (!loader) return null
-  return lazy(() => loader().then((m: any) => ({ default: m[key] ?? m.default ?? Object.values(m)[0] })))
+/** 工具：将 mode 注入 schema */
+function withMode(s: ISchema, mode: FieldPattern): ISchema {
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
 }
+
+/* ======================== 通用 Field 渲染器 ======================== */
+
+interface FieldSceneProps {
+  fields: FieldConfig[]
+  initialValues: Record<string, unknown>
+  labelWidth?: string
+}
+
+const FieldScene = observer(({ fields, initialValues, labelWidth = '120px' }: FieldSceneProps): React.ReactElement => {
+  const form = useCreateForm({ labelWidth, initialValues: { ...initialValues } })
+
+  return (
+    <StatusTabs>
+      {({ mode, showResult, showErrors }) => {
+        form.pattern = mode
+        return (
+          <FormProvider form={form}>
+            {fields.map(f => (
+              <FormField
+                key={f.name}
+                name={f.name}
+                fieldProps={{
+                  label: f.label,
+                  required: f.required,
+                  component: f.component,
+                  componentProps: f.componentProps,
+                  dataSource: f.dataSource,
+                  rules: f.rules,
+                  description: f.description,
+                }}
+              />
+            ))}
+            <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
+          </FormProvider>
+        )
+      }}
+    </StatusTabs>
+  )
+})
 
 /* ======================== 主组件 ======================== */
 
 export function App(): React.ReactElement {
   const [currentDemo, setCurrentDemo] = useState('BasicForm')
   const [navMode, setNavMode] = useState<'config' | 'field'>('config')
-  const CurrentComponent = useMemo(() => getComponent(currentDemo, navMode), [currentDemo, navMode])
+  const [sceneConfig, setSceneConfig] = useState<SceneConfig | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  /** 加载场景配置 */
+  const loadScene = useCallback(async (name: string) => {
+    const entry = sceneRegistry[name]
+    if (!entry) { setSceneConfig(null); return }
+    setLoading(true)
+    try {
+      const mod = await entry.loader()
+      setSceneConfig(mod.default)
+    }
+    catch (e) {
+      console.error(`加载场景 ${name} 失败:`, e)
+      setSceneConfig(null)
+    }
+    finally { setLoading(false) }
+  }, [])
+
+  useEffect(() => { loadScene(currentDemo) }, [currentDemo, loadScene])
+
+  const labelWidth = useMemo(() =>
+    (sceneConfig?.schema.decoratorProps?.labelWidth as string) ?? '120px'
+  , [sceneConfig])
 
   return (
     <div style={{ maxWidth: 1400, margin: '0 auto', padding: 16, fontFamily: 'system-ui, sans-serif' }}>
@@ -123,7 +129,6 @@ export function App(): React.ReactElement {
             </button>
           </div>
 
-          {/* 场景列表（从 glob 自动生成） */}
           <div style={{ maxHeight: 'calc(100vh - 220px)', overflow: 'auto', padding: 8 }}>
             {sceneGroups.map(group => (
               <div key={group.key} style={{ marginBottom: 8 }}>
@@ -150,9 +155,37 @@ export function App(): React.ReactElement {
 
         {/* 右侧内容区 */}
         <div style={{ flex: 1, border: '1px solid #eee', borderRadius: 8, padding: 24, background: '#fff', minHeight: 400 }}>
-          <Suspense fallback={<div style={{ textAlign: 'center', color: '#999', padding: 40 }}>加载中...</div>}>
-            {CurrentComponent ? <CurrentComponent key={`${navMode}-${currentDemo}`} /> : <div style={{ textAlign: 'center', color: '#999', padding: 40 }}>请选择场景</div>}
-          </Suspense>
+          {sceneConfig ? (
+            <div key={`${navMode}-${currentDemo}`}>
+              <h2>{sceneConfig.title}{navMode === 'field' ? '（Field 版）' : ''}</h2>
+              <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
+                {sceneConfig.description}{navMode === 'field' ? ' — FormField + fieldProps 实现' : ''}
+              </p>
+
+              {navMode === 'config' ? (
+                <StatusTabs>
+                  {({ mode, showResult, showErrors }) => (
+                    <ConfigForm
+                      schema={withMode(sceneConfig.schema, mode)}
+                      initialValues={sceneConfig.initialValues}
+                      onSubmit={showResult}
+                      onSubmitFailed={errors => showErrors(errors)}
+                    />
+                  )}
+                </StatusTabs>
+              ) : (
+                <FieldScene
+                  fields={sceneConfig.fields}
+                  initialValues={sceneConfig.initialValues}
+                  labelWidth={labelWidth}
+                />
+              )}
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', color: '#999', padding: 40 }}>
+              {loading ? '加载中...' : '请选择场景'}
+            </div>
+          )}
         </div>
       </div>
     </div>

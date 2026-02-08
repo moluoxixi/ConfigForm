@@ -151,6 +151,9 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
     )
   }
 
+  /** 参考 Formily：将表单 pattern 传递给 Wrapper，用于 readOnly/disabled 时隐藏必填标记 */
+  const effectivePattern = form.pattern ?? 'editable'
+
   const wrappedElement = Wrapper
     ? (
         <Wrapper
@@ -161,6 +164,7 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
           description={field.description}
           labelPosition={form.labelPosition}
           labelWidth={form.labelWidth}
+          pattern={effectivePattern}
           {...field.wrapperProps}
         >
           {fieldElement}

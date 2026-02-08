@@ -1,10 +1,19 @@
-fix: React 18 StrictMode字段注册丢失，导致提交结果全空
+refactor: 大重构 - Schema配置抽离到playground-shared，App动态加载
 
-根因：React 18 StrictMode 开发模式下组件双挂载：
-1. 首次挂载 → fieldRef 设置 + form.createField() 注册字段
-2. StrictMode 卸载 → useEffect cleanup 调用 form.removeField()
-3. 二次挂载 → fieldRef.current 仍存在 → 跳过 createField
-结果：form.fields.size === 0，submit() 永远返回初始值
+架构变更：
+- 新增 playground-shared 包，包含 56 个场景的共享配置
+- 每个场景导出 SceneConfig（title/description/schema/initialValues/fields）
+- sceneRegistry 懒加载注册表，getSceneGroups 自动生成分组
+- Vue/React App 改为动态场景加载模式，不再需要独立的 config/field 文件
 
-修复：FormField/FormArrayField/FormVoidField 增加 !form.getField(name) 检查，
-当 fieldRef 存在但 form 中无该字段时重新注册，兼容 StrictMode 双挂载。
+文件变化：
+- 新增 playground-shared/src/ 下 56 个配置 .ts 文件
+- Vue App.vue 改为动态加载 + FieldScene.vue 通用 Field 渲染器
+- React App.tsx 改为动态加载 + 内置 FieldScene 组件
+- 删除 playground-vue/src/antd-vue/ 和 element-plus/ 的所有场景文件
+- 删除 playground-react/src/antd/ 的所有场景文件
+
+效果：
+- 原来每个场景需要 6 个文件（3平台 x 2模式 = 336个）
+- 现在每个场景只需 1 个 shared 配置文件（共 56 个）
+- 三平台配置 100% 统一，消除不一致风险

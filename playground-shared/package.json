@@ -1,0 +1,16 @@
+{
+  "name": "@moluoxixi/playground-shared",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*"
+  },
+  "dependencies": {
+    "@moluoxixi/schema": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "catalog:type"
+  }
+}

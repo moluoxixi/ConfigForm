@@ -10,6 +10,7 @@ registry: https://registry.npmjs.org/
 
 packages:
   - 'packages/*'
+  - playground-shared
   - playground-vue
   - playground-react
 catalogs:

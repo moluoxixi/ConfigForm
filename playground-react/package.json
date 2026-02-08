@@ -13,6 +13,7 @@
   "dependencies": {
     "@ant-design/icons": "^6.1.0",
     "@moluoxixi/core": "workspace:*",
+    "@moluoxixi/playground-shared": "workspace:*",
     "@moluoxixi/react": "workspace:*",
     "@moluoxixi/reactive": "workspace:*",
     "@moluoxixi/reactive-mobx": "workspace:*",

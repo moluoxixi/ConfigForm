@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@moluoxixi/core": "workspace:*",
+    "@moluoxixi/playground-shared": "workspace:*",
     "@moluoxixi/reactive": "workspace:*",
     "@moluoxixi/reactive-vue": "workspace:*",
     "@moluoxixi/schema": "workspace:*",
