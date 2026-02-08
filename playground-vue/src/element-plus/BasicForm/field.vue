@@ -1,12 +1,11 @@
-﻿<template>
+<template>
   <div>
     <h2>基础表单（Field 版）</h2>
     <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">
       FormField + fieldProps 声明式渲染 · component / wrapper 自动查找 · 三态自动处理
     </p>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form novalidate @submit.prevent="handleSubmit(showResult)">
           <FormField name="username" :field-props="{ label: '用户名', required: true, component: 'Input', rules: [{ minLength: 3, maxLength: 20, message: '3-20 个字符' }], componentProps: { placeholder: '请输入用户名' } }" />
           <FormField name="password" :field-props="{ label: '密码', required: true, component: 'Password', rules: [{ minLength: 8, message: '至少 8 个字符' }], componentProps: { placeholder: '请输入密码' } }" />
           <FormField name="email" :field-props="{ label: '邮箱', required: true, component: 'Input', rules: [{ format: 'email', message: '邮箱格式不正确' }], componentProps: { placeholder: '请输入邮箱' } }" />
@@ -18,8 +17,7 @@
           <FormField name="notification" :field-props="{ label: '开启通知', component: 'Switch' }" />
           <FormField name="birthday" :field-props="{ label: '生日', component: 'DatePicker', componentProps: { style: 'width: 100%' } }" />
           <FormField name="bio" :field-props="{ label: '个人简介', component: 'Textarea', rules: [{ maxLength: 200, message: '最多 200 字' }], componentProps: { placeholder: '请输入简介', rows: 3 } }" />
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -67,15 +65,4 @@ watch(() => st.value?.mode, (v) => {
   if (v)
     form.pattern = v as FieldPattern
 }, { immediate: true })
-
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

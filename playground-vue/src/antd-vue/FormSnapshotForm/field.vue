@@ -4,12 +4,11 @@
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       暂存草稿（localStorage） / 恢复草稿 / 多版本管理
     </p>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <div style="display: flex; gap: 16px">
         <!-- 左侧：表单区域 -->
         <div style="flex: 1">
           <FormProvider :form="form">
-            <form @submit.prevent="handleSubmit(showResult)" novalidate>
               <FormField name="title" :field-props="{ label: '标题', required: true, component: 'Input' }" />
               <FormField name="description" :field-props="{ label: '描述', component: 'Textarea', componentProps: { rows: 3 } }" />
               <FormField name="category" :field-props="{ label: '分类', component: 'Input' }" />
@@ -18,8 +17,7 @@
               <button style="border: 1px solid #d9d9d9; background: #fff; padding: 4px 15px; border-radius: 6px; cursor: pointer; margin-bottom: 8px" @click="saveDraft">
                 暂存草稿
               </button>
-              <LayoutFormActions @reset="form.reset()" />
-            </form>
+              <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
           </FormProvider>
         </div>
         <!-- 右侧：草稿列表（附加内容） -->
@@ -137,14 +135,4 @@ function deleteDraft(id: string): void {
   saveDraftsToStorage()
 }
 
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

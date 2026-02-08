@@ -1,20 +1,18 @@
-﻿<template>
+<template>
   <div>
     <h2>级联选择（Field 版）</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       省市区三级联动 / 多级分类联动 - FormField + fieldProps 实现
     </p>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <FormField name="province" :field-props="{ label: '省份', required: true, component: 'Select', dataSource: PROVINCES, componentProps: { placeholder: '请选择' } }" />
           <FormField name="city" :field-props="{ label: '城市', required: true, component: 'Select', componentProps: { placeholder: '请先选择省份' } }" />
           <FormField name="district" :field-props="{ label: '区县', component: 'Select', componentProps: { placeholder: '请先选择城市' } }" />
           <FormField name="categoryL1" :field-props="{ label: '一级分类', required: true, component: 'Select', dataSource: CAT_L1, componentProps: { placeholder: '请选择' } }" />
           <FormField name="categoryL2" :field-props="{ label: '二级分类', required: true, component: 'Select', componentProps: { placeholder: '请先选择一级' } }" />
           <FormField name="categoryL3" :field-props="{ label: '三级分类', component: 'Select', componentProps: { placeholder: '请先选择二级' } }" />
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -119,15 +117,4 @@ watch(() => st.value?.mode, (v) => {
   if (v)
     form.pattern = v as FieldPattern
 }, { immediate: true })
-
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

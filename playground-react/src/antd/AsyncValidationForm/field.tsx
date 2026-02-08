@@ -77,13 +77,7 @@ export const AsyncValidationForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
-                {/* 用户名唯一性校验 */}
+              {/* 用户名唯一性校验 */}
                 <FormField name="username" fieldProps={{
                   label: '用户名',
                   required: true,
@@ -201,8 +195,7 @@ export const AsyncValidationForm = observer((): React.ReactElement => {
                   rules: [{ maxLength: 20, message: '昵称不超过 20 字' }],
                 }}
                 />
-                {<LayoutFormActions onReset={() => form.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

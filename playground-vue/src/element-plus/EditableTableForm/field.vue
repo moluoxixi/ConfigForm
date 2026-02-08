@@ -1,12 +1,11 @@
-﻿<template>
+<template>
   <div>
     <h2>可编辑表格（Field 版）</h2>
     <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">
       表格行内编辑 / 行级联动 / 列统计 — FormField + FormArrayField 实现
     </p>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form novalidate @submit.prevent="handleSubmit(showResult)">
           <FormArrayField v-slot="{ arrayField }" name="items" :field-props="{ minItems: 1, maxItems: 20, itemTemplate: () => ({ productName: '', quantity: 1, unitPrice: 0 }) }">
             <div>
               <div style="display: flex; justify-content: space-between; margin-bottom: 8px">
@@ -50,8 +49,7 @@
               </div>
             </div>
           </FormArrayField>
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -89,15 +87,4 @@ watch(() => st.value?.mode, (v) => {
   if (v)
     form.pattern = v as FieldPattern
 }, { immediate: true })
-
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult({ ...res.values, totalAmount: getTotal((res.values as any).items).toFixed(2) })
-  }
-}
 </script>

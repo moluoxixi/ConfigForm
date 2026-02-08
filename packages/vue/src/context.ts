@@ -2,8 +2,8 @@ import type { FieldInstance, FormInstance } from '@moluoxixi/core'
 import type { ComponentType } from '@moluoxixi/shared'
 import type { ComputedRef, InjectionKey } from 'vue'
 
-/** 表单注入 key */
-export const FormSymbol: InjectionKey<FormInstance> = Symbol('ConfigForm')
+/** 表单注入 key（使用 Symbol.for 确保跨包可共享） */
+export const FormSymbol: InjectionKey<FormInstance> = Symbol.for('ConfigForm') as unknown as InjectionKey<FormInstance>
 
 /** 字段注入 key */
 export const FieldSymbol: InjectionKey<FieldInstance> = Symbol('ConfigField')

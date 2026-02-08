@@ -4,9 +4,8 @@
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       Collapse 分组 / void 节点布局 - FormField + fieldProps 实现
     </p>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <div style="border: 1px solid #f0f0f0; border-radius: 8px; padding: 16px; margin-bottom: 16px">
             <div style="font-weight: 600; margin-bottom: 12px; font-size: 16px">基本信息</div>
             <FormField name="name" :field-props="{ label: '姓名', required: true, component: 'Input', componentProps: { placeholder: '请输入姓名' } }" />
@@ -30,8 +29,7 @@
             <FormField name="bio" :field-props="{ label: '简介', component: 'Textarea', componentProps: { placeholder: '请输入简介' } }" />
             <FormField name="hobby" :field-props="{ label: '爱好', component: 'Input', componentProps: { placeholder: '请输入爱好' } }" />
           </div>
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -67,15 +65,4 @@ watch(() => st.value?.mode, (v) => {
   if (v)
     form.pattern = v as FieldPattern
 }, { immediate: true })
-
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

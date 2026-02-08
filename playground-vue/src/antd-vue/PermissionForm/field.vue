@@ -4,9 +4,8 @@
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       基于角色的字段可见性 + 读写权限矩阵
     </p>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <!-- 角色选择器（附加内容） -->
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px">
             <span style="font-weight: 600">当前角色：</span>
@@ -27,8 +26,7 @@
           </div>
           <!-- 表单字段：可见性和读写权限由 watch 动态控制 -->
           <FormField v-for="d in FIELD_DEFS" :key="d.name" :name="d.name" :field-props="getFieldProps(d)" />
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -144,14 +142,4 @@ watch(() => st.value?.mode, (v) => {
 /** 角色或表单模式变化时重新应用权限 */
 watch([role, () => form.pattern], applyPermissions, { immediate: true })
 
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

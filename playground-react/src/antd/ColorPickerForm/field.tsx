@@ -131,13 +131,7 @@ export const ColorPickerForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
-                <FormField name="themeName" fieldProps={{ label: '主题名称', required: true, component: 'Input' }} />
+              <FormField name="themeName" fieldProps={{ label: '主题名称', required: true, component: 'Input' }} />
                 <FormField name="primaryColor" fieldProps={{ label: '主色调', required: true, component: 'ColorPicker' }} />
                 <FormField name="bgColor" fieldProps={{ label: '背景色', component: 'ColorPicker' }} />
                 <FormField name="textColor" fieldProps={{ label: '文字颜色', component: 'ColorPicker' }} />
@@ -165,8 +159,7 @@ export const ColorPickerForm = observer((): React.ReactElement => {
                     主色调按钮
                   </button>
                 </div>
-                {<LayoutFormActions onReset={() => form.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

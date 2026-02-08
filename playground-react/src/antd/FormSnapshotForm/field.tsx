@@ -89,12 +89,6 @@ export const FormSnapshotForm = observer((): React.ReactElement => {
               form.pattern = mode
               return (
                 <FormProvider form={form}>
-                  <form onSubmit={async (e: React.FormEvent) => {
-                    e.preventDefault()
-                    const res = await form.submit()
-                    if (res.errors.length > 0) showErrors(res.errors)
-                    else showResult(res.values)
-                  }} noValidate>
                     <FormField name="title" fieldProps={{ label: '标题', required: true, component: 'Input' }} />
                     <FormField name="description" fieldProps={{ label: '描述', component: 'Textarea', componentProps: { rows: 3 } }} />
                     <FormField name="category" fieldProps={{ label: '分类', component: 'Input' }} />
@@ -102,8 +96,7 @@ export const FormSnapshotForm = observer((): React.ReactElement => {
                     {(
                       <button type="button" onClick={saveDraft} style={{ padding: '4px 15px', background: '#fff', border: '1px solid #d9d9d9', borderRadius: 6, cursor: 'pointer' }}>💾 暂存草稿</button>
                     )}
-                    {<LayoutFormActions onReset={() => form.reset()} />}
-                  </form>
+                    <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
                 </FormProvider>
               )
             }}

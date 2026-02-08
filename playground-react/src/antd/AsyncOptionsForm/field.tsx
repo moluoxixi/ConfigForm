@@ -99,13 +99,7 @@ export const AsyncOptionsForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
-                <FormField name="dynamicType" fieldProps={{
+              <FormField name="dynamicType" fieldProps={{
                   label: '类型',
                   component: 'Select',
                   dataSource: [
@@ -162,8 +156,7 @@ export const AsyncOptionsForm = observer((): React.ReactElement => {
                   componentProps: { placeholder: '请输入' },
                 }}
                 />
-                {<LayoutFormActions onReset={() => form.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

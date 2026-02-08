@@ -4,9 +4,8 @@
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       多语言标签 / 验证消息国际化 / placeholder 国际化
     </p>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <!-- 语言切换器（附加内容） -->
           <div style="display: inline-flex; border: 1px solid #d9d9d9; border-radius: 6px; overflow: hidden; margin-bottom: 16px">
             <button v-for="opt in LOCALE_OPTIONS" :key="opt.value" :style="{ padding: '4px 12px', border: 'none', cursor: 'pointer', background: locale === opt.value ? '#1677ff' : '#fff', color: locale === opt.value ? '#fff' : 'inherit', fontSize: '14px' }" @click="locale = opt.value as Locale">
@@ -17,8 +16,7 @@
           <FormField name="email" :field-props="{ label: t('field.email'), component: 'Input', rules: [{ format: 'email', message: t('field.email.invalid') }], componentProps: { placeholder: t('field.email.placeholder') } }" />
           <FormField name="phone" :field-props="{ label: t('field.phone'), component: 'Input', componentProps: { placeholder: t('field.phone.placeholder') } }" />
           <FormField name="bio" :field-props="{ label: t('field.bio'), component: 'Textarea', componentProps: { placeholder: t('field.bio.placeholder'), rows: 3 } }" />
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -144,14 +142,4 @@ watch(locale, () => {
   }
 })
 
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

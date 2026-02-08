@@ -33,13 +33,7 @@ export const CollapseGroupForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
-                <FormVoidField name="collapseGroup" fieldProps={{ component: 'LayoutCollapse' }}>
+              <FormVoidField name="collapseGroup" fieldProps={{ component: 'LayoutCollapse' }}>
                   {() => (
                     <>
                       <FormVoidField name="basicSection" fieldProps={{ componentProps: { title: '基本信息', collapsed: false } }}>
@@ -80,8 +74,7 @@ export const CollapseGroupForm = observer((): React.ReactElement => {
                     </>
                   )}
                 </FormVoidField>
-                <LayoutFormActions onReset={() => form.reset()} />
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

@@ -6,7 +6,6 @@
     </p>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <FormProvider :form="form">
-        <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <!-- 撤销/重做工具栏（附加内容） -->
           <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 16px">
             <button type="button" :disabled="!canUndo || mode !== 'editable'" :style="{ padding: '4px 15px', border: '1px solid #d9d9d9', borderRadius: '6px', background: '#fff', cursor: (!canUndo || mode !== 'editable') ? 'not-allowed' : 'pointer', fontSize: '14px', opacity: (!canUndo || mode !== 'editable') ? 0.5 : 1 }" @click="undo">
@@ -22,8 +21,7 @@
           <FormField name="category" :field-props="{ label: '分类', component: 'Input' }" />
           <FormField name="amount" :field-props="{ label: '金额', component: 'InputNumber', componentProps: { style: 'width: 100%' } }" />
           <FormField name="note" :field-props="{ label: '备注', component: 'Textarea', componentProps: { rows: 3 } }" />
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -124,14 +122,4 @@ watch(() => st.value?.mode, (v) => {
     form.pattern = v as FieldPattern
 }, { immediate: true })
 
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

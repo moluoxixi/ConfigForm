@@ -4,9 +4,8 @@
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       两个独立表单 / 联合提交 / 弹窗表单
     </p>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="mainForm">
-        <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <div style="display: flex; gap: 16px">
             <!-- 左侧：主表单 -->
             <div style="flex: 1">
@@ -30,8 +29,7 @@
               </div>
             </div>
           </div>
-          <LayoutFormActions @reset="mainForm.reset(); subForm.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
     <!-- 弹窗表单（编辑联系人） -->
@@ -99,18 +97,6 @@ watch(() => st.value?.mode, (v) => {
 watch(() => mainForm.pattern, (v) => {
   subForm.pattern = v
 })
-
-/** 联合提交：同时校验主表单和子表单 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const [mainRes, subRes] = await Promise.all([mainForm.submit(), subForm.submit()])
-  const allErrors = [...mainRes.errors, ...subRes.errors]
-  if (allErrors.length > 0) {
-    st.value?.showErrors(allErrors)
-  }
-  else {
-    showResult({ ...mainRes.values, ...subRes.values })
-  }
-}
 
 /** 弹窗确认：校验子表单并同步客户名到主表单 */
 async function modalOk(): Promise<void> {

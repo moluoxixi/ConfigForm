@@ -1,12 +1,11 @@
-﻿<template>
+<template>
   <div>
     <h2>分步表单（Field 版）</h2>
     <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">
       Steps 导航 / 步骤验证 / 逐步填写 — FormField + Steps 实现
     </p>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form novalidate @submit.prevent="handleSubmit(showResult)">
           <!-- 步骤导航 -->
           <el-steps :active="currentStep" simple style="margin-bottom: 24px">
             <el-step title="基本信息" />
@@ -39,9 +38,8 @@
             <el-button v-if="currentStep < 2" type="primary" @click="nextStep">
               下一步
             </el-button>
-            <LayoutFormActions @reset="form.reset(); currentStep = 0" />
+            <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" @reset="currentStep = 0" />
           </div>
-        </form>
       </FormProvider>
     </StatusTabs>
   </div>
@@ -99,14 +97,4 @@ watch(() => st.value?.mode, (v) => {
     form.pattern = v as FieldPattern
 }, { immediate: true })
 
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

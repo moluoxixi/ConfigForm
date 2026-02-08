@@ -12,9 +12,8 @@
         </button>
       </div>
     </div>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <div :style="wrapperStyle">
             <FormField name="name" :field-props="{ label: '姓名', required: true, component: 'Input', componentProps: { placeholder: '请输入姓名' } }" />
             <FormField name="email" :field-props="{ label: '邮箱', required: true, component: 'Input', componentProps: { placeholder: '请输入邮箱' }, rules: [{ format: 'email', message: '无效邮箱' }] }" />
@@ -23,8 +22,7 @@
             <FormField name="role" :field-props="{ label: '职位', component: 'Input', componentProps: { placeholder: '请输入职位' } }" />
             <FormField name="joinDate" :field-props="{ label: '入职日期', component: 'DatePicker' }" />
           </div>
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -84,14 +82,4 @@ watch(() => st.value?.mode, (v) => {
     form.pattern = v as FieldPattern
 }, { immediate: true })
 
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

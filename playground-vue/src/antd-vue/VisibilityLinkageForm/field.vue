@@ -1,12 +1,11 @@
-﻿<template>
+<template>
   <div>
     <h2>显隐联动（Field 版）</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       用户类型切换 / 开关控制多字段 / 嵌套显隐 - FormField + fieldProps 实现
     </p>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <FormField name="userType" :field-props="{ label: '用户类型', required: true, component: 'RadioGroup', dataSource: USER_TYPE_OPTIONS }" />
           <FormField name="realName" :field-props="{ label: '真实姓名', required: true, component: 'Input', excludeWhenHidden: true, componentProps: { placeholder: '请输入' } }" />
           <FormField name="idCard" :field-props="{ label: '身份证号', component: 'Input', excludeWhenHidden: true, componentProps: { placeholder: '18 位' }, rules: idCardRules }" />
@@ -19,8 +18,7 @@
           <FormField name="city" :field-props="{ label: '城市', component: 'Input', excludeWhenHidden: true, componentProps: { placeholder: '请输入城市' } }" />
           <FormField name="hasDetailAddress" :field-props="{ label: '填写详细地址', component: 'Switch' }" />
           <FormField name="detailAddress" :field-props="{ label: '详细地址', component: 'Textarea', excludeWhenHidden: true, componentProps: { placeholder: '请输入详细地址' } }" />
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -124,14 +122,4 @@ watch(() => st.value?.mode, (v) => {
     form.pattern = v as FieldPattern
 }, { immediate: true })
 
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

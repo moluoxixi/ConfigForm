@@ -195,17 +195,10 @@ export const MapPickerForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
                 <FormField name="locationName" fieldProps={{ label: '地点名称', required: true, component: 'Input' }} />
                 <FormField name="coordinates" fieldProps={{ label: '地图选点', required: true, component: 'MapCoordinatePicker' }} />
                 <FormField name="address" fieldProps={{ label: '详细地址', component: 'Input' }} />
-                {<LayoutFormActions onReset={() => form.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

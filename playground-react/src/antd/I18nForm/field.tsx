@@ -128,12 +128,6 @@ export const I18nForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
                 <FormField
                   name="name"
                   fieldProps={{
@@ -169,8 +163,7 @@ export const I18nForm = observer((): React.ReactElement => {
                     componentProps: { placeholder: t(locale, 'field.bio.placeholder'), rows: 3 },
                   }}
                 />
-                {<LayoutFormActions onReset={() => form.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

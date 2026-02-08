@@ -10,7 +10,6 @@
     </div>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <FormProvider :form="form">
-        <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <FormField name="locationName" :field-props="{ label: '地点名称', required: true, component: 'Input', componentProps: { placeholder: '请输入地点名称' } }" />
           <!-- 模拟地图区域（非表单字段组件，作为附加内容） -->
           <div style="margin-bottom: 16px">
@@ -51,8 +50,7 @@
             <FormField name="lng" :field-props="{ label: '经度', component: 'InputNumber', componentProps: { step: 0.0001, style: 'width: 150px' } }" />
             <FormField name="lat" :field-props="{ label: '纬度', component: 'InputNumber', componentProps: { step: 0.0001, style: 'width: 150px' } }" />
           </div>
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -98,14 +96,4 @@ watch(() => st.value?.mode, (v) => {
     form.pattern = v as FieldPattern
 }, { immediate: true })
 
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

@@ -138,17 +138,10 @@ export const FileUploadForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
                 <FormField name="title" fieldProps={{ label: '标题', required: true, component: 'Input' }} />
                 <FormField name="files" fieldProps={{ label: '附件上传', component: 'FileUpload' }} />
                 <FormField name="images" fieldProps={{ label: '图片上传', component: 'ImageUpload' }} />
-                {<LayoutFormActions onReset={() => form.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

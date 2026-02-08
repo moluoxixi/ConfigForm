@@ -48,12 +48,6 @@ export const PropertyLinkageForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
                 {/* ---- 场景 A：开关控制 disabled ---- */}
                 <FormField name="enableRemark" fieldProps={{ label: '启用备注', component: 'Switch' }} />
                 <FormField name="remark" fieldProps={{
@@ -169,8 +163,7 @@ export const PropertyLinkageForm = observer((): React.ReactElement => {
                   }],
                 }}
                 />
-                {<LayoutFormActions onReset={() => form.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

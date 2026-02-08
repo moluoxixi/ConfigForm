@@ -1,108 +1,233 @@
 <template>
   <div>
     <h2>Cron 表达式编辑器</h2>
-    <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">
+    <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       Cron 输入 / 快捷预设 / 实时解析
     </p>
-    <div style="display:inline-flex;margin-bottom:16px">
-      <button v-for="(opt, idx) in MODE_OPTIONS" :key="opt.value" type="button" :style="{ padding: '5px 15px', fontSize: '14px', border: '1px solid #dcdfe6', background: mode === opt.value ? '#409eff' : '#fff', color: mode === opt.value ? '#fff' : '#606266', cursor: 'pointer', marginLeft: idx > 0 ? '-1px' : '0', borderRadius: idx === 0 ? '4px 0 0 4px' : idx === MODE_OPTIONS.length - 1 ? '0 4px 4px 0' : '0' }" @click="mode = opt.value as FieldPattern">
-        {{ opt.label }}
-      </button>
-    </div>
-    <FormProvider :form="form">
-      <form novalidate @submit.prevent="handleSubmit">
-        <FormField v-slot="{ field }" name="taskName">
-          <div style="margin-bottom:18px">
-            <label style="display:block;font-size:14px;color:#606266;margin-bottom:4px">{{ field.label }}</label>
-            <input :value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" style="width:300px;padding:0 11px;height:32px;border:1px solid #dcdfe6;border-radius:4px;font-size:14px;outline:none;box-sizing:border-box" @input="field.setValue(($event.target as HTMLInputElement).value)">
-          </div>
-        </FormField>
-        <FormField v-slot="{ field }" name="cronExpr">
-          <div style="margin-bottom:18px">
-            <label style="display:block;font-size:14px;color:#606266;margin-bottom:4px">{{ field.label }}</label>
-            <div style="display:inline-flex;width:400px">
-              <span style="padding:0 11px;height:32px;line-height:32px;background:#f5f7fa;border:1px solid #dcdfe6;border-radius:4px 0 0 4px;font-size:14px;color:#909399;white-space:nowrap;box-sizing:border-box">Cron</span>
-              <input :value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" placeholder="如：0 8 * * 1-5" style="flex:1;padding:0 11px;height:32px;border:1px solid #dcdfe6;border-left:none;border-radius:0 4px 4px 0;font-size:14px;outline:none;box-sizing:border-box" @input="field.setValue(($event.target as HTMLInputElement).value)">
-            </div>
-            <div style="margin-top: 8px">
-              <span style="color: #999">解析：</span>
-              <span :style="{ display: 'inline-block', padding: '0 7px', fontSize: '12px', lineHeight: '20px', borderRadius: '4px', background: describeCron((field.value as string) ?? '').includes('错误') ? '#fef0f0' : '#ecf5ff', border: describeCron((field.value as string) ?? '').includes('错误') ? '1px solid #fde2e2' : '1px solid #d9ecff', color: describeCron((field.value as string) ?? '').includes('错误') ? '#f56c6c' : '#409eff' }">
-                {{ describeCron((field.value as string) ?? '') }}
-              </span>
-            </div>
-            <div style="margin-top: 8px">
-              <span style="color: #999; font-size: 12px">快捷预设：</span>
-              <div style="display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap">
-                <span v-for="p in PRESETS" :key="p.value" :style="{ display: 'inline-block', padding: '0 7px', fontSize: '12px', lineHeight: '20px', borderRadius: '4px', cursor: 'pointer', background: field.value === p.value ? '#ecf5ff' : '#f4f4f5', border: field.value === p.value ? '1px solid #d9ecff' : '1px solid #e9e9eb', color: field.value === p.value ? '#409eff' : '#909399' }" @click="field.setValue(p.value)">
-                  {{ p.label }}
-                </span>
-              </div>
-            </div>
-            <div style="background: #f6f8fa; padding: 8px; border-radius: 4px; font-size: 12px; margin-top: 8px; color: #999">
-              格式：分 时 日 月 周 | 示例：<code>0 8 * * 1-5</code> = 工作日 8:00
-            </div>
-          </div>
-        </FormField>
-        <div style="display:flex;gap:8px;align-items:center">
-          <button type="submit" style="padding:8px 15px;background:#409eff;color:#fff;border:1px solid #409eff;border-radius:4px;cursor:pointer;font-size:14px">提交</button>
-          <button type="button" style="padding:8px 15px;background:#fff;color:#606266;border:1px solid #dcdfe6;border-radius:4px;cursor:pointer;font-size:14px" @click="form.reset()">重置</button>
-        </div>
-      </form>
-    </FormProvider>
-    <div v-if="result" :style="{ padding: '8px 16px', borderRadius: '4px', fontSize: '13px', marginTop: '16px', background: result.startsWith('验证失败') ? '#fef0f0' : '#f0f9eb', border: result.startsWith('验证失败') ? '1px solid #fde2e2' : '1px solid #e1f3d8', color: result.startsWith('验证失败') ? '#f56c6c' : '#67c23a' }">
-      {{ result }}
-    </div>
+    <StatusTabs ref="st" v-slot="{ showResult }">
+      <FormProvider :form="form">
+          <FormField name="taskName" :field-props="{ label: '任务名称', required: true, component: 'Input', componentProps: { placeholder: '请输入任务名称', style: 'width: 300px' } }" />
+          <FormField name="cronExpr" :field-props="{ label: 'Cron 表达式', required: true, component: 'CronEditor', componentProps: { presets: CRON_PRESETS } }" />
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
+      </FormProvider>
+    </StatusTabs>
   </div>
 </template>
 
 <script setup lang="ts">
+import type { PropType } from 'vue'
 import type { FieldPattern } from '@moluoxixi/shared'
-import { setupElementPlus } from '@moluoxixi/ui-element-plus'
-import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
-import { onMounted, ref } from 'vue'
+import { LayoutFormActions, setupElementPlus, StatusTabs } from '@moluoxixi/ui-element-plus'
+import { FormField, FormProvider, registerComponent, useCreateForm } from '@moluoxixi/vue'
+import { defineComponent, h, ref, watch } from 'vue'
 
 setupElementPlus()
 
-/** 模式选项 */
-const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅读态', value: 'readOnly' }, { label: '禁用态', value: 'disabled' }]
+// ========== Cron 解析工具 ==========
 
-const mode = ref<FieldPattern>('editable')
-const result = ref('')
+/** Cron 预设选项 */
+interface CronPreset {
+  label: string
+  value: string
+}
 
-/** Cron 预设 */
-const PRESETS = [{ label: '每分钟', value: '* * * * *' }, { label: '每小时', value: '0 * * * *' }, { label: '每天 0:00', value: '0 0 * * *' }, { label: '每天 8:00', value: '0 8 * * *' }, { label: '工作日 9:00', value: '0 9 * * 1-5' }, { label: '每 5 分钟', value: '*/5 * * * *' }]
+/** 快捷预设列表 */
+const CRON_PRESETS: CronPreset[] = [
+  { label: '每分钟', value: '* * * * *' },
+  { label: '每小时', value: '0 * * * *' },
+  { label: '每天 0:00', value: '0 0 * * *' },
+  { label: '每天 8:00', value: '0 8 * * *' },
+  { label: '工作日 9:00', value: '0 9 * * 1-5' },
+  { label: '每 5 分钟', value: '*/5 * * * *' },
+]
 
-const form = useCreateForm({ initialValues: { taskName: '数据同步', cronExpr: '0 8 * * 1-5' } })
-onMounted(() => {
-  form.createField({ name: 'taskName', label: '任务名称', required: true })
-  form.createField({ name: 'cronExpr', label: 'Cron 表达式', required: true })
+/** 星期中文映射 */
+const WEEK_MAP: Record<string, string> = { '0': '日', '1': '一', '1-5': '一至五（工作日）' }
+
+/**
+ * 解析 Cron 表达式为中文描述
+ *
+ * @param expr - 5 段式 Cron 表达式（分 时 日 月 周）
+ * @returns 中文描述
+ */
+function describeCron(expr: string): string {
+  const parts = expr.trim().split(/\s+/)
+  if (parts.length !== 5) return '格式错误'
+
+  const [min, hour, , , week] = parts
+  const descriptions: string[] = []
+
+  if (min === '*' && hour === '*') {
+    descriptions.push('每分钟')
+  }
+  else if (min === '0' && hour === '*') {
+    descriptions.push('每小时整点')
+  }
+  else if (min.startsWith('*/')) {
+    descriptions.push(`每 ${min.slice(2)} 分钟`)
+  }
+  else if (hour !== '*') {
+    descriptions.push(`${hour}:${min.padStart(2, '0')}`)
+  }
+
+  if (week !== '*') {
+    descriptions.push(`周${WEEK_MAP[week] ?? week}`)
+  }
+
+  return descriptions.join('，') || expr
+}
+
+// ========== 自定义组件：Cron 编辑器 ==========
+
+/**
+ * Cron 表达式编辑器组件
+ *
+ * - 编辑态：Cron 输入框 + 实时解析 + 快捷预设 + 格式说明
+ * - 只读态：表达式文本 + 解析结果
+ * - 禁用态：输入框禁用 + 解析结果
+ */
+const CronEditor = defineComponent({
+  name: 'CronEditor',
+  props: {
+    value: { type: String, default: '' },
+    onChange: { type: Function as PropType<(v: string) => void>, default: undefined },
+    disabled: { type: Boolean, default: false },
+    readOnly: { type: Boolean, default: false },
+    presets: { type: Array as PropType<CronPreset[]>, default: () => [] },
+  },
+  setup(props) {
+    return (): ReturnType<typeof h> => {
+      const currentValue = props.value ?? ''
+      const description = describeCron(currentValue)
+      const isError = description.includes('错误')
+
+      /* 解析结果标签 */
+      const descriptionTag = h('div', { style: { marginTop: '8px' } }, [
+        h('span', { style: { color: '#999' } }, '解析：'),
+        h('span', {
+          style: {
+            display: 'inline-block',
+            padding: '0 7px',
+            fontSize: '12px',
+            lineHeight: '20px',
+            background: isError ? '#fff2f0' : '#e6f4ff',
+            border: `1px solid ${isError ? '#ffccc7' : '#91caff'}`,
+            borderRadius: '4px',
+            color: isError ? '#ff4d4f' : '#1677ff',
+          },
+        }, description),
+      ])
+
+      /* 格式说明 */
+      const formatHint = h('div', {
+        style: {
+          background: '#f6f8fa',
+          padding: '8px',
+          borderRadius: '4px',
+          fontSize: '12px',
+          marginTop: '8px',
+          color: '#999',
+        },
+      }, [
+        '格式：分 时 日 月 周 | 示例：',
+        h('code', { style: { background: '#f0f0f0', padding: '2px 4px', borderRadius: '3px' } }, '0 8 * * 1-5'),
+        ' = 工作日 8:00',
+      ])
+
+      /* 只读态：文本 + 解析 + 格式说明 */
+      if (props.readOnly) {
+        return h('div', {}, [
+          h('span', {}, currentValue || '—'),
+          descriptionTag,
+          formatHint,
+        ])
+      }
+
+      /* 编辑态 / 禁用态 */
+      const children = [
+        /* Cron 输入框 */
+        h('div', { style: { display: 'flex', alignItems: 'center' } }, [
+          h('span', {
+            style: {
+              padding: '4px 11px',
+              background: '#fafafa',
+              border: '1px solid #d9d9d9',
+              borderRight: 'none',
+              borderRadius: '6px 0 0 6px',
+              fontSize: '14px',
+              color: '#666',
+            },
+          }, 'Cron'),
+          h('input', {
+            type: 'text',
+            value: currentValue,
+            disabled: props.disabled,
+            placeholder: '如：0 8 * * 1-5',
+            style: {
+              width: '340px',
+              padding: '4px 11px',
+              border: '1px solid #d9d9d9',
+              borderRadius: '0 6px 6px 0',
+              fontSize: '14px',
+              outline: 'none',
+            },
+            onInput: (e: Event) => props.onChange?.((e.target as HTMLInputElement).value),
+          }),
+        ]),
+        descriptionTag,
+      ]
+
+      /* 快捷预设（仅编辑态可点击） */
+      if (!props.disabled && props.presets.length > 0) {
+        children.push(
+          h('div', { style: { marginTop: '8px' } }, [
+            h('span', { style: { color: '#999', fontSize: '12px' } }, '快捷预设：'),
+            h('span', { style: { display: 'inline-flex', flexWrap: 'wrap', gap: '4px' } },
+              props.presets.map(p =>
+                h('span', {
+                  key: p.value,
+                  style: {
+                    display: 'inline-block',
+                    padding: '0 7px',
+                    fontSize: '12px',
+                    lineHeight: '20px',
+                    background: props.value === p.value ? '#e6f4ff' : '#fafafa',
+                    border: `1px solid ${props.value === p.value ? '#91caff' : '#d9d9d9'}`,
+                    borderRadius: '4px',
+                    color: props.value === p.value ? '#1677ff' : '#333',
+                    cursor: 'pointer',
+                  },
+                  onClick: () => props.onChange?.(p.value),
+                }, p.label),
+              ),
+            ),
+          ]),
+        )
+      }
+
+      children.push(formatHint)
+
+      return h('div', {}, children)
+    }
+  },
 })
 
-/** 解析 Cron 表达式为人可读描述 */
-function describeCron(expr: string): string {
-  const p = expr.trim().split(/\s+/)
-  if (p.length !== 5)
-    return '格式错误'
-  const [min, hour, , , week] = p
-  const d: string[] = []
-  if (min === '*' && hour === '*')
-    d.push('每分钟')
-  else if (min === '0' && hour === '*')
-    d.push('每小时整点')
-  else if (min.startsWith('*/'))
-    d.push(`每 ${min.slice(2)} 分钟`)
-  else if (hour !== '*')
-    d.push(`${hour}:${min.padStart(2, '0')}`)
-  if (week !== '*') {
-    const wm: Record<string, string> = { '0': '日', '1': '一', '1-5': '一至五（工作日）' }
-    d.push(`周${wm[week] ?? week}`)
-  }
-  return d.join('，') || expr
-}
+registerComponent('CronEditor', CronEditor, { defaultWrapper: 'FormItem' })
 
-/** 提交处理 */
-async function handleSubmit(): Promise<void> {
-  const res = await form.submit()
-  result.value = res.errors.length > 0 ? `验证失败: ${res.errors.map(e => e.message).join(', ')}` : JSON.stringify(res.values, null, 2)
-}
+// ========== 表单配置 ==========
+
+const st = ref<InstanceType<typeof StatusTabs>>()
+
+const form = useCreateForm({
+  initialValues: {
+    taskName: '数据同步',
+    cronExpr: '0 8 * * 1-5',
+  },
+})
+
+/** 同步 StatusTabs 的 mode 到 form.pattern */
+watch(() => st.value?.mode, (v) => {
+  if (v)
+    form.pattern = v as FieldPattern
+}, { immediate: true })
 </script>

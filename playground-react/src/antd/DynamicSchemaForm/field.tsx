@@ -74,12 +74,6 @@ export const DynamicSchemaForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
                 {/* 公共字段 */}
                 <FormField name="name" fieldProps={{
                   label: scenario === 'enterprise' ? '联系人' : '姓名',
@@ -129,8 +123,7 @@ export const DynamicSchemaForm = observer((): React.ReactElement => {
 
                 {/* 公共备注 */}
                 <FormField name="remark" fieldProps={{ label: '备注', component: 'Textarea', componentProps: { placeholder: '请输入备注' } }} />
-                {<LayoutFormActions onReset={() => form.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

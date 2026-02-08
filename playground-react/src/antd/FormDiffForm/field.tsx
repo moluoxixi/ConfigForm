@@ -108,12 +108,6 @@ export const FormDiffForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
                 {FIELD_DEFS.map((d) => {
                   const changed = isChanged(d.name)
                   return (
@@ -135,8 +129,7 @@ export const FormDiffForm = observer((): React.ReactElement => {
                     </div>
                   )
                 })}
-                {<LayoutFormActions onReset={() => form.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

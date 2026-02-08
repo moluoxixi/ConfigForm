@@ -6,7 +6,6 @@
     </p>
     <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form novalidate @submit.prevent="handleSubmit(showResult)">
           <FormField name="teamName" :field-props="{ label: '团队名称', required: true, component: 'Input', componentProps: { placeholder: '请输入团队名称', style: 'width: 300px' } }" />
           <!-- FormArrayField 自动渲染嵌套数组，无需 v-for -->
           <FormArrayField name="contacts" :field-props="{
@@ -15,8 +14,7 @@
             maxItems: 10,
             itemTemplate: () => ({ name: '', role: '', phones: [{ number: '', label: '手机' }] }),
           }" />
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -53,14 +51,4 @@ watch(() => st.value?.mode, (v) => {
     form.pattern = v as FieldPattern
 }, { immediate: true })
 
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

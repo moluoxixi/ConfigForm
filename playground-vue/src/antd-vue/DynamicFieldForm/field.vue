@@ -6,7 +6,6 @@
     </p>
     <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form novalidate @submit.prevent="handleSubmit(showResult)">
           <!-- 固定字段 -->
           <FormField name="title" :field-props="{ label: '表单标题', required: true, component: 'Input', componentProps: { placeholder: '请输入标题' } }" />
           <!-- 使用 FormArrayField 管理动态字段 -->
@@ -16,8 +15,7 @@
             maxItems: 20,
             itemTemplate: () => ({ label: '', value: '', type: 'text' }),
           }" />
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -55,14 +53,4 @@ watch(() => st.value?.mode, (v) => {
     form.pattern = v as FieldPattern
 }, { immediate: true })
 
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

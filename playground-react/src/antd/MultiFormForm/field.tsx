@@ -58,12 +58,6 @@ export const MultiFormForm = observer((): React.ReactElement => {
           subForm.pattern = mode
           return (
             <FormProvider form={mainForm}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await mainForm.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
                 <div style={{ display: 'flex', gap: 16 }}>
                   {/* 左侧：主表单 */}
                   <div style={{ flex: 1 }}>
@@ -90,8 +84,7 @@ export const MultiFormForm = observer((): React.ReactElement => {
                     </div>
                   </div>
                 </div>
-                {<LayoutFormActions onReset={() => mainForm.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

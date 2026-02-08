@@ -6,7 +6,6 @@
     </p>
     <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form novalidate @submit.prevent="handleSubmit(showResult)">
           <FormField name="username" :field-props="{
             label: '用户名',
             required: true,
@@ -43,8 +42,7 @@
             componentProps: { placeholder: '无需异步验证' },
             rules: [{ maxLength: 20, message: '不超过 20 字' }],
           }" />
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -110,14 +108,4 @@ const form = useCreateForm({
 watch(() => st.value?.mode, (v) => {
   if (v) form.pattern = v as FieldPattern
 }, { immediate: true })
-
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

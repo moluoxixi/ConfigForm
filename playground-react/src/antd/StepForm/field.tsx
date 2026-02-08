@@ -73,12 +73,6 @@ export const StepForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
                 {/* 步骤条 */}
                 <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
                   {STEPS.map((s, i) => (
@@ -143,8 +137,7 @@ export const StepForm = observer((): React.ReactElement => {
                     {!isLast && <button type="button" onClick={handleNext} style={{ padding: '4px 15px', background: '#1677ff', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>下一步</button>}
                   </div>
                 </div>
-                {<LayoutFormActions onReset={() => form.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

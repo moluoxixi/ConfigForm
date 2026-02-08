@@ -1,12 +1,11 @@
-﻿<template>
+<template>
   <div>
     <h2>属性联动（Field 版）</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       动态 disabled / required / placeholder / componentProps - FormField + fieldProps 实现
     </p>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <FormField name="enableRemark" :field-props="{ label: '启用备注', component: 'Switch' }" />
           <FormField name="remark" :field-props="{ label: '备注内容', component: 'Textarea', disabled: true, componentProps: { placeholder: '请先开启' } }" />
           <FormField name="contactType" :field-props="{ label: '联系方式类型', component: 'Select', dataSource: CONTACT_TYPE_OPTIONS, componentProps: { placeholder: '请选择' } }" />
@@ -16,8 +15,7 @@
           <FormField name="isVip" :field-props="{ label: 'VIP 用户', component: 'Switch', description: '开启后公司名称和工号必填' }" />
           <FormField name="vipCompany" :field-props="{ label: '公司名称', component: 'Input', componentProps: { placeholder: 'VIP 必填' } }" />
           <FormField name="vipId" :field-props="{ label: '工号', component: 'Input', componentProps: { placeholder: 'VIP 必填' } }" />
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -105,14 +103,4 @@ watch(() => st.value?.mode, (v) => {
     form.pattern = v as FieldPattern
 }, { immediate: true })
 
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

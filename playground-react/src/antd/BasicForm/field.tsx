@@ -50,13 +50,7 @@ export const BasicForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
-                <FormField name="username" fieldProps={{
+              <FormField name="username" fieldProps={{
                   label: '用户名',
                   required: true,
                   component: 'Input',
@@ -148,8 +142,7 @@ export const BasicForm = observer((): React.ReactElement => {
                   rules: [{ maxLength: 200, message: '简介不超过 200 字' }],
                 }}
                 />
-                {<LayoutFormActions onReset={() => form.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

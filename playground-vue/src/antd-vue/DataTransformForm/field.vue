@@ -1,18 +1,16 @@
-﻿<template>
+<template>
   <div>
     <h2>数据转换</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       format / parse / transform / submitPath
     </p>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <FormField name="priceCent" :field-props="{ label: '价格（分→元）', description: 'format: 分转元, parse: 元转分', component: 'TransformInput', format: formatPrice, parse: parsePrice, componentProps: { style: 'width: 300px' } }" />
           <FormField name="phoneRaw" :field-props="{ label: '手机号（脱敏）', component: 'TransformInput', format: formatPhone, componentProps: { style: 'width: 300px' } }" />
           <FormField name="fullName" :field-props="{ label: '姓名', component: 'TransformInput', componentProps: { style: 'width: 300px' } }" />
           <FormField name="tags" :field-props="{ label: '标签（逗号分隔）', description: '提交时转为数组', component: 'TransformInput', transform: transformTags, componentProps: { style: 'width: 300px' } }" />
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -157,15 +155,4 @@ watch(() => st.value?.mode, (v) => {
   if (v)
     form.pattern = v as FieldPattern
 }, { immediate: true })
-
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

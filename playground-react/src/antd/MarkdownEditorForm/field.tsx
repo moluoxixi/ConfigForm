@@ -124,16 +124,9 @@ export const MarkdownEditorForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
                 <FormField name="docTitle" fieldProps={{ label: '文档标题', required: true, component: 'Input' }} />
                 <FormField name="content" fieldProps={{ label: 'Markdown 内容', required: true, component: 'MarkdownEditor' }} />
-                {<LayoutFormActions onReset={() => form.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

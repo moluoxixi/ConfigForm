@@ -7,9 +7,8 @@
     <div style="display: flex; gap: 16px">
       <!-- 左侧：表单区域 -->
       <div style="flex: 1">
-        <StatusTabs ref="st" v-slot="{ mode, showResult }">
+        <StatusTabs ref="st" v-slot="{ showResult }">
           <FormProvider :form="form">
-            <form @submit.prevent="handleSubmit(showResult)" novalidate>
               <!-- 自动保存开关（附加内容） -->
               <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px">
                 <span>自动保存：</span>
@@ -23,8 +22,7 @@
               <FormField name="title" :field-props="{ label: '标题', required: true, component: 'Input' }" />
               <FormField name="price" :field-props="{ label: '价格', component: 'InputNumber', componentProps: { style: 'width: 100%' } }" />
               <FormField name="description" :field-props="{ label: '描述', component: 'Textarea', componentProps: { rows: 3 } }" />
-              <LayoutFormActions @reset="form.reset()" />
-            </form>
+              <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
           </FormProvider>
         </StatusTabs>
       </div>
@@ -149,14 +147,4 @@ watch(() => st.value?.mode, (v) => {
     form.pattern = v as FieldPattern
 }, { immediate: true })
 
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

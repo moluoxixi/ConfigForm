@@ -1,79 +1,153 @@
 <template>
   <div>
     <h2>文件、图片上传</h2>
-    <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">
-      Element Plus Upload / 文件+图片上传 / 三种模式
+    <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
+      antd Upload / 文件+图片上传 / 三种模式
     </p>
-    <div style="display:inline-flex;margin-bottom:16px">
-      <button v-for="(opt, idx) in MODE_OPTIONS" :key="opt.value" type="button" :style="{ padding: '5px 15px', fontSize: '14px', border: '1px solid #dcdfe6', background: mode === opt.value ? '#409eff' : '#fff', color: mode === opt.value ? '#fff' : '#606266', cursor: 'pointer', marginLeft: idx > 0 ? '-1px' : '0', borderRadius: idx === 0 ? '4px 0 0 4px' : idx === MODE_OPTIONS.length - 1 ? '0 4px 4px 0' : '0' }" @click="mode = opt.value as FieldPattern">
-        {{ opt.label }}
-      </button>
-    </div>
-    <FormProvider :form="form">
-      <form novalidate @submit.prevent="handleSubmit">
-        <FormField v-slot="{ field }" name="title">
-          <div style="margin-bottom:18px">
-            <label style="display:block;font-size:14px;color:#606266;margin-bottom:4px">{{ field.label }}</label>
-            <input :value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" style="width:100%;padding:0 11px;height:32px;border:1px solid #dcdfe6;border-radius:4px;font-size:14px;outline:none;box-sizing:border-box" @input="field.setValue(($event.target as HTMLInputElement).value)">
-          </div>
-        </FormField>
-        <!-- TODO: ElUpload 待替换为自定义上传组件 -->
-        <div style="margin-bottom:18px">
-          <label style="display:block;font-size:14px;color:#606266;margin-bottom:4px">附件上传</label>
-          <ElUpload v-model:file-list="fileList" :disabled="mode !== 'editable'" :auto-upload="false">
-            <button type="button" style="padding:8px 15px;background:#fff;color:#606266;border:1px solid #dcdfe6;border-radius:4px;cursor:pointer;font-size:14px">选择文件</button>
-          </ElUpload>
-        </div>
-        <!-- TODO: ElUpload 待替换为自定义图片上传组件 -->
-        <div style="margin-bottom:18px">
-          <label style="display:block;font-size:14px;color:#606266;margin-bottom:4px">图片上传</label>
-          <ElUpload v-model:file-list="imageList" list-type="picture-card" :disabled="mode !== 'editable'" :auto-upload="false" :limit="6">
-            <span v-if="mode === 'editable' && imageList.length < 6" style="font-size:24px;color:#909399">+</span>
-          </ElUpload>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <button type="submit" style="padding:8px 15px;background:#409eff;color:#fff;border:1px solid #409eff;border-radius:4px;cursor:pointer;font-size:14px">提交</button>
-          <button type="button" style="padding:8px 15px;background:#fff;color:#606266;border:1px solid #dcdfe6;border-radius:4px;cursor:pointer;font-size:14px" @click="form.reset()">重置</button>
-        </div>
-      </form>
-    </FormProvider>
-    <div v-if="result" :style="{ padding: '8px 16px', borderRadius: '4px', fontSize: '13px', marginTop: '16px', background: result.startsWith('验证失败') ? '#fef0f0' : '#f0f9eb', border: result.startsWith('验证失败') ? '1px solid #fde2e2' : '1px solid #e1f3d8', color: result.startsWith('验证失败') ? '#f56c6c' : '#67c23a' }">
-      {{ result }}
-    </div>
+    <StatusTabs ref="st" v-slot="{ showResult }">
+      <FormProvider :form="form">
+          <FormField name="title" :field-props="{ label: '标题', required: true, component: 'Input', componentProps: { placeholder: '请输入标题' } }" />
+          <FormField name="files" :field-props="{ label: '附件上传', component: 'FileUpload' }" />
+          <FormField name="images" :field-props="{ label: '图片上传', component: 'ImageUpload', componentProps: { maxCount: 6 } }" />
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
+      </FormProvider>
+    </StatusTabs>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { FieldPattern } from '@moluoxixi/shared'
-import { setupElementPlus } from '@moluoxixi/ui-element-plus'
-import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
-/* TODO: ElUpload 待替换为自定义上传组件 */
-import { ElUpload } from 'element-plus'
-import { onMounted, ref } from 'vue'
+import { LayoutFormActions, setupElementPlus, StatusTabs } from '@moluoxixi/ui-element-plus'
+import { FormField, FormProvider, registerComponent, useCreateForm } from '@moluoxixi/vue'
+/**
+ * 文件 / 图片上传表单 — Field 模式
+ *
+ * 自定义 FileUpload / ImageUpload 组件注册后，在 fieldProps 中通过名称引用。
+ * 文件列表存储在表单字段中，三态由框架自动传播。
+ */
+// TODO: AUpload 待替换为自定义上传组件
+import { Upload as AUpload } from 'ant-design-vue'
+import { defineComponent, h, ref, watch } from 'vue'
 
 setupElementPlus()
 
-/** 模式选项 */
-const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅读态', value: 'readOnly' }, { label: '禁用态', value: 'disabled' }]
+/** 上传文件信息 */
+interface UploadFileInfo {
+  fileList: unknown[]
+}
 
-const mode = ref<FieldPattern>('editable')
-const result = ref('')
-const fileList = ref<unknown[]>([])
-const imageList = ref<unknown[]>([])
-const form = useCreateForm({ initialValues: { title: '' } })
-onMounted(() => {
-  form.createField({ name: 'title', label: '标题', required: true })
+/**
+ * 文件上传自定义组件
+ *
+ * - 编辑态：AUpload + 选择按钮
+ * - 禁用态：禁用的 AUpload
+ * - 只读态：文件名列表
+ */
+const FileUpload = defineComponent({
+  name: 'FileUpload',
+  props: {
+    modelValue: { type: Array, default: () => [] },
+    disabled: { type: Boolean, default: false },
+    readonly: { type: Boolean, default: false },
+  },
+  emits: ['update:modelValue'],
+  setup(props, { emit }) {
+    return () => {
+      /* 只读态：显示文件名列表 */
+      if (props.readonly) {
+        if (!props.modelValue?.length) {
+          return h('span', { style: { color: '#999' } }, '暂无文件')
+        }
+        return h('div', (props.modelValue as Array<{ name?: string }>).map((f, i) =>
+          h('div', { key: i, style: { padding: '2px 0', color: '#1677ff' } }, f.name || `文件 ${i + 1}`),
+        ))
+      }
+
+      /* 编辑/禁用态：Upload 组件 */
+      return h(AUpload, {
+        fileList: props.modelValue ?? [],
+        beforeUpload: () => false,
+        disabled: props.disabled,
+        onChange: (info: UploadFileInfo) => emit('update:modelValue', info.fileList),
+      }, {
+        default: () => !props.disabled
+          ? h('button', { type: 'button', style: { border: '1px solid #d9d9d9', background: '#fff', padding: '4px 15px', borderRadius: '6px', cursor: 'pointer' } }, '选择文件')
+          : null,
+      })
+    }
+  },
 })
 
-/** 提交处理 */
-async function handleSubmit(): Promise<void> {
-  const res = await form.submit()
-  result.value = res.errors.length > 0
-    ? `验证失败: ${res.errors.map(e => e.message).join(', ')}`
-    : JSON.stringify({
-      ...res.values,
-      files: (fileList.value as Array<{ name: string }>).map(f => f.name),
-      images: (imageList.value as Array<{ name: string }>).map(f => f.name),
-    }, null, 2)
-}
+/** 图片上传文件数量上限 */
+const IMAGE_MAX_COUNT = 6
+
+/**
+ * 图片上传自定义组件（picture-card 样式）
+ *
+ * - 编辑态：AUpload picture-card + 上传按钮
+ * - 禁用态：禁用的 picture-card
+ * - 只读态：图片名称列表
+ */
+const ImageUpload = defineComponent({
+  name: 'ImageUpload',
+  props: {
+    modelValue: { type: Array, default: () => [] },
+    disabled: { type: Boolean, default: false },
+    readonly: { type: Boolean, default: false },
+    maxCount: { type: Number, default: IMAGE_MAX_COUNT },
+  },
+  emits: ['update:modelValue'],
+  setup(props, { emit }) {
+    return () => {
+      /* 只读态：显示图片名称 */
+      if (props.readonly) {
+        if (!props.modelValue?.length) {
+          return h('span', { style: { color: '#999' } }, '暂无图片')
+        }
+        return h('div', { style: { display: 'flex', gap: '4px', flexWrap: 'wrap' } },
+          (props.modelValue as Array<{ name?: string }>).map((f, i) =>
+            h('div', {
+              key: i,
+              style: { width: '80px', height: '80px', border: '1px solid #d9d9d9', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: '#999', padding: '4px', textAlign: 'center', wordBreak: 'break-all' },
+            }, f.name || `图片 ${i + 1}`),
+          ),
+        )
+      }
+
+      /* 编辑/禁用态：picture-card Upload */
+      const showUploadBtn = !props.disabled && (props.modelValue?.length ?? 0) < props.maxCount
+      return h(AUpload, {
+        fileList: props.modelValue ?? [],
+        listType: 'picture-card',
+        beforeUpload: () => false,
+        disabled: props.disabled,
+        onChange: (info: UploadFileInfo) => emit('update:modelValue', info.fileList),
+      }, {
+        default: () => showUploadBtn
+          ? h('div', [h('span', '+'), h('div', { style: { marginTop: '4px' } }, '上传')])
+          : null,
+      })
+    }
+  },
+})
+
+registerComponent('FileUpload', FileUpload, { defaultWrapper: 'FormItem' })
+registerComponent('ImageUpload', ImageUpload, { defaultWrapper: 'FormItem' })
+
+const st = ref<InstanceType<typeof StatusTabs>>()
+
+const form = useCreateForm({
+  initialValues: {
+    title: '',
+    files: [] as unknown[],
+    images: [] as unknown[],
+  },
+})
+
+/** 同步 StatusTabs 的 mode 到 form.pattern */
+watch(() => st.value?.mode, (v) => {
+  if (v)
+    form.pattern = v as FieldPattern
+}, { immediate: true })
+
 </script>

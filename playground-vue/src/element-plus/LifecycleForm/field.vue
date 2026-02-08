@@ -21,7 +21,6 @@
           </label>
         </div>
         <FormProvider :form="form">
-          <form novalidate @submit.prevent="handleSubmit">
             <FormField v-for="n in FIELDS" :key="n" v-slot="{ field }" :name="n">
               <div style="margin-bottom: 18px">
                 <label style="display: block; margin-bottom: 4px; font-size: 14px; color: #606266">{{ field.label }}</label>
@@ -38,7 +37,6 @@
                 重置
               </button>
             </div>
-          </form>
         </FormProvider>
       </div>
       <div style="width: 360px; border: 1px solid #e4e7ed; border-radius: 4px; padding: 16px">
@@ -127,17 +125,5 @@ onUnmounted(() => {
 function handleReset(): void {
   addLog('reset', '表单已重置')
   form.reset()
-}
-async function handleSubmit(): Promise<void> {
-  addLog('submit', '提交开始')
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    addLog('submit', '提交失败')
-    result.value = `验证失败: ${res.errors.map(e => e.message).join(', ')}`
-  }
-  else {
-    addLog('submit', '提交成功')
-    result.value = JSON.stringify(res.values, null, 2)
-  }
 }
 </script>

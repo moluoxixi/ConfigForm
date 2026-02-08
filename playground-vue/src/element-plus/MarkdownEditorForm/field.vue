@@ -10,7 +10,6 @@
       </button>
     </div>
     <FormProvider :form="form">
-      <form novalidate @submit.prevent="handleSubmit">
         <FormField v-slot="{ field }" name="docTitle">
           <div style="margin-bottom: 18px">
             <label style="display: block; margin-bottom: 4px; font-size: 14px; color: #606266">{{ field.label }}</label>
@@ -45,7 +44,6 @@
             重置
           </button>
         </div>
-      </form>
     </FormProvider>
     <div v-if="result" :style="{ marginTop: '16px', padding: '12px 16px', borderRadius: '4px', background: result.startsWith('验证失败') ? '#fef0f0' : '#f0f9eb', color: result.startsWith('验证失败') ? '#f56c6c' : '#67c23a', border: result.startsWith('验证失败') ? '1px solid #fde2e2' : '1px solid #e1f3d8' }">
       <div style="white-space: pre-wrap">{{ result }}</div>
@@ -71,9 +69,5 @@ onMounted(() => {
 })
 function simpleRender(md: string): string {
   return md.replace(/^### (.*$)/gm, '<h3>$1</h3>').replace(/^## (.*$)/gm, '<h2>$1</h2>').replace(/^# (.*$)/gm, '<h1>$1</h1>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/`([^`]+)`/g, '<code style="background:#f0f0f0;padding:2px 4px;border-radius:3px">$1</code>').replace(/^> (.*$)/gm, '<blockquote style="border-left:3px solid #ddd;padding-left:12px;color:#666">$1</blockquote>').replace(/^- (.*$)/gm, '<li>$1</li>').replace(/\n/g, '<br/>')
-}
-async function handleSubmit(): Promise<void> {
-  const res = await form.submit()
-  result.value = res.errors.length > 0 ? `验证失败: ${res.errors.map(e => e.message).join(', ')}` : JSON.stringify(res.values, null, 2)
 }
 </script>

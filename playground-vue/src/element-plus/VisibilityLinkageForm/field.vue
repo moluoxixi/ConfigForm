@@ -1,12 +1,11 @@
-﻿<template>
+<template>
   <div>
     <h2>显隐联动（Field 版）</h2>
     <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">
       根据表单值动态控制字段显隐 - FormField + watch 实现
     </p>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form novalidate @submit.prevent="handleSubmit(showResult)">
           <FormField name="hasCompany" :field-props="{ label: '是否有公司', component: 'Switch' }" />
           <FormField v-if="showCompanyFields" name="companyName" :field-props="{ label: '公司名称', required: true, component: 'Input', componentProps: { placeholder: '请输入公司名称' } }" />
           <FormField v-if="showCompanyFields" name="companyAddress" :field-props="{ label: '公司地址', component: 'Input', componentProps: { placeholder: '请输入公司地址' } }" />
@@ -14,8 +13,7 @@
           <FormField v-if="contactType === 'phone'" name="phone" :field-props="{ label: '手机号', required: true, component: 'Input', rules: [{ format: 'phone', message: '无效手机号' }], componentProps: { placeholder: '请输入手机号' } }" />
           <FormField v-if="contactType === 'email'" name="email" :field-props="{ label: '邮箱', required: true, component: 'Input', rules: [{ format: 'email', message: '无效邮箱' }], componentProps: { placeholder: '请输入邮箱' } }" />
           <FormField v-if="contactType === 'wechat'" name="wechat" :field-props="{ label: '微信号', required: true, component: 'Input', componentProps: { placeholder: '请输入微信号' } }" />
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -69,14 +67,4 @@ watch(() => st.value?.mode, (v) => {
     form.pattern = v as FieldPattern
 }, { immediate: true })
 
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

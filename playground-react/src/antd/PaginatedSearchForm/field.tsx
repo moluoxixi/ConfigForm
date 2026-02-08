@@ -138,12 +138,6 @@ export const PaginatedSearchForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
                 {/* 分页搜索 Select — 通过 fieldProps.componentProps 传递自定义交互 */}
                 <FormField
                   name="userId"
@@ -172,8 +166,7 @@ export const PaginatedSearchForm = observer((): React.ReactElement => {
                     },
                   }}
                 />
-                {<LayoutFormActions onReset={() => form.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

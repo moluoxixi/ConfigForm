@@ -159,16 +159,9 @@ export const CronEditorForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
-                <FormField name="taskName" fieldProps={{ label: '任务名称', required: true, component: 'Input', componentProps: { style: { width: 300 } } }} />
+              <FormField name="taskName" fieldProps={{ label: '任务名称', required: true, component: 'Input', componentProps: { style: { width: 300 } } }} />
                 <FormField name="cronExpr" fieldProps={{ label: 'Cron 表达式', required: true, component: 'CronEditor' }} />
-                {<LayoutFormActions onReset={() => form.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

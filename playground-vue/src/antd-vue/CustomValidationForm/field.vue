@@ -1,12 +1,11 @@
-﻿<template>
+<template>
   <div>
     <h2>自定义验证规则（Field 版）</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       正则 / 自定义函数 / 多规则 / 警告级 / 条件规则 - FormField + fieldProps 实现
     </p>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <FormField name="licensePlate" :field-props="{ label: '车牌号', component: 'Input', componentProps: { placeholder: '京A12345' }, rules: licensePlateRules }" />
           <FormField name="phone" :field-props="{ label: '手机号', required: true, component: 'Input', componentProps: { placeholder: '中国大陆手机号' }, rules: phoneRules }" />
           <FormField name="password" :field-props="{ label: '密码', required: true, component: 'Password', componentProps: { placeholder: '8-32 位' }, rules: passwordRules }" />
@@ -14,8 +13,7 @@
           <FormField name="idType" :field-props="{ label: '证件类型', required: true, component: 'Select', dataSource: ID_TYPE_OPTIONS, componentProps: { placeholder: '请选择' } }" />
           <FormField name="idNumber" :field-props="{ label: '证件号码', required: true, component: 'Input', componentProps: { placeholder: '18 位身份证' } }" />
           <FormField name="ipAddress" :field-props="{ label: 'IP 地址', component: 'Input', componentProps: { placeholder: '192.168.1.1' }, rules: ipAddressRules }" />
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -128,15 +126,4 @@ watch(() => st.value?.mode, (v) => {
   if (v)
     form.pattern = v as FieldPattern
 }, { immediate: true })
-
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

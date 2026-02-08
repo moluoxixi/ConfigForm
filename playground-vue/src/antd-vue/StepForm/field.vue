@@ -4,9 +4,8 @@
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       Steps 导航 / 步骤验证 / 逐步填写 — FormField + Steps 实现
     </p>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <!-- 步骤导航 -->
           <div style="display: flex; margin-bottom: 24px">
             <div v-for="(title, idx) in STEP_TITLES" :key="idx" style="flex: 1; text-align: center; position: relative">
@@ -41,9 +40,8 @@
           <div style="margin-top: 16px; display: flex; gap: 8px">
             <button v-if="currentStep > 0" type="button" style="padding: 4px 15px; border: 1px solid #d9d9d9; border-radius: 6px; background: #fff; cursor: pointer; font-size: 14px" @click="currentStep--">上一步</button>
             <button v-if="currentStep < 2" type="button" style="padding: 4px 15px; border: none; border-radius: 6px; background: #1677ff; color: #fff; cursor: pointer; font-size: 14px" @click="nextStep">下一步</button>
-            <LayoutFormActions @reset="form.reset(); currentStep = 0" />
+            <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" @reset="form.reset(); currentStep = 0" />
           </div>
-        </form>
       </FormProvider>
     </StatusTabs>
   </div>
@@ -104,14 +102,4 @@ watch(() => st.value?.mode, (v) => {
     form.pattern = v as FieldPattern
 }, { immediate: true })
 
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

@@ -1,12 +1,11 @@
-﻿<template>
+<template>
   <div>
     <h2>Tab 分组表单（Field 版）</h2>
     <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">
       使用 Tabs 进行表单分组 - FormField + ElTabs 实现
     </p>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form novalidate @submit.prevent="handleSubmit(showResult)">
           <el-tabs v-model="activeTab" type="card">
             <el-tab-pane label="基本信息" name="basic">
               <FormField name="name" :field-props="{ label: '姓名', required: true, component: 'Input', componentProps: { placeholder: '请输入姓名' } }" />
@@ -24,8 +23,7 @@
               <FormField name="salary" :field-props="{ label: '薪资', component: 'InputNumber', componentProps: { min: 0, step: 1000 } }" />
             </el-tab-pane>
           </el-tabs>
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -75,14 +73,4 @@ watch(() => st.value?.mode, (v) => {
     form.pattern = v as FieldPattern
 }, { immediate: true })
 
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

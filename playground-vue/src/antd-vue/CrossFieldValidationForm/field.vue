@@ -1,12 +1,11 @@
-﻿<template>
+<template>
   <div>
     <h2>跨字段验证（Field 版）</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       密码一致性 / 日期范围 / 比例总和=100% / 数值区间 / 预算限制 - FormField + fieldProps 实现
     </p>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <FormField name="password" :field-props="{ label: '密码', required: true, component: 'Password', componentProps: { placeholder: '请输入密码' }, rules: [{ minLength: 8, message: '至少 8 字符' }] }" />
           <FormField name="confirmPassword" :field-props="{ label: '确认密码', required: true, component: 'Password', componentProps: { placeholder: '请再次输入密码' }, rules: confirmPasswordRules }" />
           <FormField name="startDate" :field-props="{ label: '开始日期', required: true, component: 'Input', componentProps: { placeholder: '如 2024-01-01' } }" />
@@ -18,8 +17,7 @@
           <FormField name="maxAge" :field-props="{ label: '最大年龄', required: true, component: 'InputNumber', componentProps: { min: 0, max: 150, style: { width: '100%' } }, rules: maxAgeRules }" />
           <FormField name="budget" :field-props="{ label: '预算上限', required: true, component: 'InputNumber', componentProps: { min: 0, style: { width: '100%' } } }" />
           <FormField name="expense" :field-props="{ label: '实际支出', required: true, component: 'InputNumber', componentProps: { min: 0, style: { width: '100%' } }, rules: expenseRules }" />
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -102,15 +100,4 @@ watch(() => st.value?.mode, (v) => {
   if (v)
     form.pattern = v as FieldPattern
 }, { immediate: true })
-
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

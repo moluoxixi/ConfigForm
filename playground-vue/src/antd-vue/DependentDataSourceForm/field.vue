@@ -8,16 +8,14 @@
       使用核心库的 <b>registerRequestAdapter('mock')</b> + <b>DataSourceConfig</b> 驱动，
       所有 Select 选项通过 <code>field.loadDataSource({ url, params })</code> 远程加载（模拟 600ms 延迟）
     </div>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <FormField name="brand" :field-props="{ label: '品牌', required: true, component: 'Select', dataSource: BRAND_OPTIONS, componentProps: { placeholder: '请选择品牌' } }" />
           <FormField name="model" :field-props="{ label: '型号', required: true, component: 'Select', componentProps: { placeholder: '请先选择品牌' } }" />
           <FormField name="config" :field-props="{ label: '配置', component: 'Select', componentProps: { placeholder: '请先选择型号' } }" />
           <FormField name="grade" :field-props="{ label: '年级', required: true, component: 'Select', dataSource: GRADE_OPTIONS, componentProps: { placeholder: '请选择年级' } }" />
           <FormField name="classNo" :field-props="{ label: '班级', required: true, component: 'Select', componentProps: { placeholder: '请先选择年级' } }" />
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
 
@@ -152,17 +150,6 @@ watch(() => st.value?.mode, (v) => {
   if (v)
     form.pattern = v as FieldPattern
 }, { immediate: true })
-
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 
 // ========== API 日志轮询 ==========
 

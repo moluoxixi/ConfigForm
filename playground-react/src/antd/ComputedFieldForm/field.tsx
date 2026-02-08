@@ -53,13 +53,7 @@ export const ComputedFieldForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
-                {/* ---- 场景 A：总价 = 单价 × 数量 ---- */}
+              {/* ---- 场景 A：总价 = 单价 × 数量 ---- */}
                 <FormField name="unitPrice" fieldProps={{ label: '单价（元）', component: 'InputNumber', componentProps: { min: 0, step: 0.01, style: { width: '100%' } } }} />
                 <FormField name="quantity" fieldProps={{ label: '数量', component: 'InputNumber', componentProps: { min: 1, step: 1, style: { width: '100%' } } }} />
                 <FormField name="totalPrice" fieldProps={{
@@ -176,8 +170,7 @@ export const ComputedFieldForm = observer((): React.ReactElement => {
                   }],
                 }}
                 />
-                {<LayoutFormActions onReset={() => form.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

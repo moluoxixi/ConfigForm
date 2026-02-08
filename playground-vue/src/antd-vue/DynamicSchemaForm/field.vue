@@ -12,9 +12,8 @@
     <span style="display: inline-block; padding: 0 7px; font-size: 12px; line-height: 20px; background: #f6ffed; border: 1px solid #b7eb8f; border-radius: 4px; color: #52c41a; margin-bottom: 12px">
       当前：{{ SCENARIOS[scenario].label }} | 字段数：{{ SCENARIOS[scenario].fields.length }}
     </span>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <!-- 公共字段 -->
           <FormField name="name" :field-props="{ label: '姓名', required: true, component: 'Input', rules: [{ minLength: 2, message: '至少 2 字' }] }" />
           <FormField name="phone" :field-props="{ label: '手机号', required: true, component: 'Input', rules: [{ format: 'phone', message: '无效手机号' }] }" />
@@ -37,8 +36,7 @@
           </template>
           <!-- 公共备注 -->
           <FormField name="remark" :field-props="{ label: '备注', component: 'Textarea' }" />
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -98,14 +96,4 @@ watch(() => st.value?.mode, (v) => {
     form.pattern = v as FieldPattern
 }, { immediate: true })
 
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

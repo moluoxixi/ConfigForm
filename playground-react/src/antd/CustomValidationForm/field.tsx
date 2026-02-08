@@ -53,13 +53,7 @@ export const CustomValidationForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
-                {/* 自定义正则 */}
+              {/* 自定义正则 */}
                 <FormField name="licensePlate" fieldProps={{
                   label: '车牌号',
                   component: 'Input',
@@ -198,8 +192,7 @@ export const CustomValidationForm = observer((): React.ReactElement => {
                   }],
                 }}
                 />
-                {<LayoutFormActions onReset={() => form.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

@@ -1,12 +1,11 @@
-﻿<template>
+<template>
   <div>
     <h2>默认值（Field 版）</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       静态 defaultValue / 动态计算默认值 / initialValues 注入 - FormField + fieldProps 实现
     </p>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <FormField name="country" :field-props="{ label: '国家', component: 'Select', description: '静态默认值', dataSource: COUNTRY_OPTIONS, componentProps: { placeholder: '请选择国家' } }" />
           <FormField name="status" :field-props="{ label: '状态', component: 'RadioGroup', dataSource: STATUS_OPTIONS }" />
           <FormField name="enableNotify" :field-props="{ label: '开启通知', component: 'Switch' }" />
@@ -15,8 +14,7 @@
           <FormField name="totalPrice" :field-props="{ label: '总价（自动计算）', component: 'InputNumber', description: '数量 × 单价', componentProps: { disabled: true } }" />
           <FormField name="level" :field-props="{ label: '会员等级', component: 'Select', dataSource: LEVEL_OPTIONS, componentProps: { placeholder: '请选择等级' } }" />
           <FormField name="discountRate" :field-props="{ label: '折扣率（%）', component: 'InputNumber', description: '根据等级动态设置', componentProps: { disabled: true } }" />
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -89,15 +87,4 @@ watch(() => st.value?.mode, (v) => {
   if (v)
     form.pattern = v as FieldPattern
 }, { immediate: true })
-
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

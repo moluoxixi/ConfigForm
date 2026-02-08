@@ -115,16 +115,9 @@ export const RichTextForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
                 <FormField name="title" fieldProps={{ label: '标题', required: true, component: 'Input', componentProps: { placeholder: '文章标题' } }} />
                 <FormField name="content" fieldProps={{ label: '正文内容', required: true, component: 'RichTextEditor' }} />
-                {<LayoutFormActions onReset={() => form.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

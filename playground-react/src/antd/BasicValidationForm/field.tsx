@@ -48,13 +48,7 @@ export const BasicValidationForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
-                <FormField name="username" fieldProps={{
+              <FormField name="username" fieldProps={{
                   label: '用户名（必填）',
                   required: true,
                   component: 'Input',
@@ -128,8 +122,7 @@ export const BasicValidationForm = observer((): React.ReactElement => {
                   ],
                 }}
                 />
-                {<LayoutFormActions onReset={() => form.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

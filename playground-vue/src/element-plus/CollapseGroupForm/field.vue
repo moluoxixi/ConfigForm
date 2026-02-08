@@ -1,12 +1,11 @@
-﻿<template>
+<template>
   <div>
     <h2>折叠分组表单（Field 版）</h2>
     <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">
       使用 Collapse 进行表单分组 - FormField + ElCollapse 实现
     </p>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form novalidate @submit.prevent="handleSubmit(showResult)">
           <el-collapse v-model="activeNames">
             <el-collapse-item title="基本信息" name="basic">
               <FormField name="name" :field-props="{ label: '姓名', required: true, component: 'Input', componentProps: { placeholder: '请输入姓名' } }" />
@@ -24,8 +23,7 @@
               <FormField name="salary" :field-props="{ label: '薪资', component: 'InputNumber', componentProps: { min: 0, step: 1000 } }" />
             </el-collapse-item>
           </el-collapse>
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -74,15 +72,4 @@ watch(() => st.value?.mode, (v) => {
   if (v)
     form.pattern = v as FieldPattern
 }, { immediate: true })
-
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

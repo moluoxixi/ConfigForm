@@ -32,13 +32,7 @@ export const CardGroupForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
-                {/* 账户信息 — FormVoidField + LayoutCard */}
+              {/* 账户信息 — FormVoidField + LayoutCard */}
                 <FormVoidField name="accountCard" fieldProps={{ component: 'LayoutCard', componentProps: { title: '账户信息' } }}>
                   {() => (
                     <>
@@ -74,8 +68,7 @@ export const CardGroupForm = observer((): React.ReactElement => {
                     </>
                   )}
                 </FormVoidField>
-                <LayoutFormActions onReset={() => form.reset()} />
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

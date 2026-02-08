@@ -19,7 +19,6 @@
       <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; background: #f4f4f5; color: #909399; border: 1px solid #e9e9eb">历史：{{ historyIdx + 1 }} / {{ historyLen }}</span>
     </div>
     <FormProvider :form="form">
-      <form novalidate @submit.prevent="handleSubmit">
         <FormField v-for="n in FIELDS" :key="n" v-slot="{ field }" :name="n">
           <div style="margin-bottom: 18px">
             <label style="display: block; margin-bottom: 4px; font-size: 14px; color: #606266">{{ field.label }}</label>
@@ -36,7 +35,6 @@
             重置
           </button>
         </div>
-      </form>
     </FormProvider>
     <div v-if="result" :style="{ marginTop: '16px', padding: '12px 16px', borderRadius: '4px', background: result.startsWith('验证失败') ? '#fef0f0' : '#f0f9eb', color: result.startsWith('验证失败') ? '#f56c6c' : '#67c23a', border: result.startsWith('验证失败') ? '1px solid #fde2e2' : '1px solid #e1f3d8' }">
       <strong>提交结果</strong>
@@ -104,8 +102,4 @@ function onKeyDown(e: KeyboardEvent): void {
 }
 onMounted(() => window.addEventListener('keydown', onKeyDown))
 onUnmounted(() => window.removeEventListener('keydown', onKeyDown))
-async function handleSubmit(): Promise<void> {
-  const res = await form.submit()
-  result.value = res.errors.length > 0 ? `验证失败: ${res.errors.map(e => e.message).join(', ')}` : JSON.stringify(res.values, null, 2)
-}
 </script>

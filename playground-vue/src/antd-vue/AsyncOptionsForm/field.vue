@@ -5,15 +5,13 @@
       远程 dataSource / reactions 异步加载 / loading 状态 - FormField + fieldProps 实现
     </p>
     <div style="padding: 8px 16px; margin-bottom: 16px; background: #e6f4ff; border: 1px solid #91caff; border-radius: 6px; font-size: 13px">切换「类型」下拉可看到异步加载过程（模拟 600ms 延迟）</div>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <FormField name="dynamicType" :field-props="{ label: '类型', component: 'Select', dataSource: TYPE_OPTIONS, componentProps: { placeholder: '请选择类型' } }" />
           <FormField name="dynamicItem" :field-props="{ label: '品种（异步）', component: 'Select', componentProps: { placeholder: '加载中...' } }" />
           <FormField name="country" :field-props="{ label: '国家', component: 'Select', dataSource: COUNTRY_OPTIONS, componentProps: { placeholder: '请选择国家' } }" />
           <FormField name="remark" :field-props="{ label: '备注', component: 'Textarea', componentProps: { placeholder: '请输入' } }" />
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -83,15 +81,4 @@ watch(() => st.value?.mode, (v) => {
   if (v)
     form.pattern = v as FieldPattern
 }, { immediate: true })
-
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

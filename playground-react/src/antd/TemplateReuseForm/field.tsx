@@ -107,12 +107,6 @@ export const TemplateReuseForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
                 {/* 公共：个人信息 */}
                 <PersonFields nameLabel={
                   template === 'employee' ? '员工姓名'
@@ -166,8 +160,7 @@ export const TemplateReuseForm = observer((): React.ReactElement => {
                 {/* 公共：地址 + 备注 */}
                 <AddressFields />
                 <RemarkField />
-                {<LayoutFormActions onReset={() => form.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

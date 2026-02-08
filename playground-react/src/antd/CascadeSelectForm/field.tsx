@@ -94,13 +94,7 @@ export const CascadeSelectForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
-                {/* ---- 省市区三级联动 ---- */}
+              {/* ---- 省市区三级联动 ---- */}
                 <FormField name="province" fieldProps={{
                   label: '省份',
                   required: true,
@@ -189,8 +183,7 @@ export const CascadeSelectForm = observer((): React.ReactElement => {
                   }],
                 }}
                 />
-                {<LayoutFormActions onReset={() => form.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

@@ -10,7 +10,6 @@
       </button>
     </div>
     <FormProvider :form="form">
-      <form novalidate @submit.prevent="handleSubmit">
         <FormField v-slot="{ field }" name="memberName">
           <div style="margin-bottom: 18px">
             <label style="display: block; margin-bottom: 4px; font-size: 14px; color: #606266">{{ field.label }}</label>
@@ -55,7 +54,6 @@
             重置
           </button>
         </div>
-      </form>
     </FormProvider>
     <div v-if="result" :style="{ marginTop: '16px', padding: '12px 16px', borderRadius: '4px', background: result.startsWith('验证失败') ? '#fef0f0' : '#f0f9eb', color: result.startsWith('验证失败') ? '#f56c6c' : '#67c23a', border: result.startsWith('验证失败') ? '1px solid #fde2e2' : '1px solid #e1f3d8' }">
       <div style="white-space: pre-wrap">{{ result }}</div>
@@ -104,9 +102,5 @@ function toggleDept(field: FieldInstance, value: string): void {
   else {
     field.setValue([...current, value])
   }
-}
-async function handleSubmit(): Promise<void> {
-  const res = await form.submit()
-  result.value = res.errors.length > 0 ? `验证失败: ${res.errors.map(e => e.message).join(', ')}` : JSON.stringify(res.values, null, 2)
 }
 </script>

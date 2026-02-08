@@ -140,16 +140,9 @@ export const IconSelectorForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
                 <FormField name="menuName" fieldProps={{ label: '菜单名称', required: true, component: 'Input', componentProps: { style: { width: 300 } } }} />
                 <FormField name="icon" fieldProps={{ label: '图标', required: true, component: 'IconSelector' }} />
-                {<LayoutFormActions onReset={() => form.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

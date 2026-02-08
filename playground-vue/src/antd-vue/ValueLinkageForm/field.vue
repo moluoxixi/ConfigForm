@@ -1,12 +1,11 @@
-﻿<template>
+<template>
   <div>
     <h2>值联动（Field 版）</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       单向同步 / 格式转换 / 映射转换 / 多对一聚合 - FormField + fieldProps 实现
     </p>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <FormField name="firstName" :field-props="{ label: '姓', component: 'Input', componentProps: { placeholder: '请输入姓' } }" />
           <FormField name="lastName" :field-props="{ label: '名', component: 'Input', componentProps: { placeholder: '请输入名' } }" />
           <FormField name="fullName" :field-props="{ label: '全名（自动拼接）', component: 'Input', componentProps: { disabled: true } }" />
@@ -20,8 +19,7 @@
           <FormField name="city" :field-props="{ label: '市', component: 'Input', componentProps: { placeholder: '市' } }" />
           <FormField name="district" :field-props="{ label: '区', component: 'Input', componentProps: { placeholder: '区' } }" />
           <FormField name="fullAddress" :field-props="{ label: '完整地址（聚合）', component: 'Input', componentProps: { disabled: true } }" />
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -104,14 +102,4 @@ watch(() => st.value?.mode, (v) => {
     form.pattern = v as FieldPattern
 }, { immediate: true })
 
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

@@ -70,12 +70,6 @@ export const ValueLinkageForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
                 {/* ---- 场景 A：单向同步 ---- */}
                 <FormField name="firstName" fieldProps={{ label: '姓', component: 'Input', componentProps: { placeholder: '请输入姓' } }} />
                 <FormField name="lastName" fieldProps={{ label: '名', component: 'Input', componentProps: { placeholder: '请输入名' } }} />
@@ -202,8 +196,7 @@ export const ValueLinkageForm = observer((): React.ReactElement => {
                   }],
                 }}
                 />
-                {<LayoutFormActions onReset={() => form.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

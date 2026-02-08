@@ -5,15 +5,13 @@
       用户名唯一性 / 邮箱可用性 / 邀请码 / 防抖 + AbortSignal - FormField + fieldProps 实现
     </p>
     <div style="padding: 8px 16px; margin-bottom: 16px; background: #e6f4ff; border: 1px solid #91caff; border-radius: 6px; font-size: 13px">已注册用户名: admin / test / root，有效邀请码: INVITE2024 / VIP888</div>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <FormField name="username" :field-props="{ label: '用户名', required: true, component: 'Input', componentProps: { placeholder: '试试 admin / test' }, rules: usernameRules }" />
           <FormField name="email" :field-props="{ label: '邮箱', required: true, component: 'Input', componentProps: { placeholder: '试试 admin@test.com' }, rules: emailRules }" />
           <FormField name="inviteCode" :field-props="{ label: '邀请码', required: true, component: 'Input', componentProps: { placeholder: 'INVITE2024 / VIP888' }, rules: inviteCodeRules }" />
           <FormField name="nickname" :field-props="{ label: '昵称', component: 'Input', componentProps: { placeholder: '无需异步验证' }, rules: [{ maxLength: 20, message: '不超过 20 字' }] }" />
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -111,15 +109,4 @@ watch(() => st.value?.mode, (v) => {
   if (v)
     form.pattern = v as FieldPattern
 }, { immediate: true })
-
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

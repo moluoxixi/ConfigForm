@@ -1,12 +1,11 @@
-﻿<template>
+<template>
   <div>
     <h2>计算字段（Field 版）</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       乘法（单价×数量） / 百分比 / 聚合 / 条件计算 - FormField + fieldProps 实现
     </p>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <FormField name="unitPrice" :field-props="{ label: '单价（元）', component: 'InputNumber', componentProps: { min: 0, step: 0.01, style: { width: '100%' } } }" />
           <FormField name="quantity" :field-props="{ label: '数量', component: 'InputNumber', componentProps: { min: 1, step: 1, style: { width: '100%' } } }" />
           <FormField name="totalPrice" :field-props="{ label: '总价（自动）', component: 'InputNumber', description: '单价 × 数量', componentProps: { disabled: true, style: { width: '100%' } } }" />
@@ -21,8 +20,7 @@
           <FormField name="calcType" :field-props="{ label: '计税方式', component: 'RadioGroup', dataSource: CALC_TYPE_OPTIONS }" />
           <FormField name="amount" :field-props="{ label: '金额', component: 'InputNumber', componentProps: { min: 0, style: { width: '100%' } } }" />
           <FormField name="taxAmount" :field-props="{ label: '税额（自动）', component: 'InputNumber', componentProps: { disabled: true, style: { width: '100%' } } }" />
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -118,15 +116,4 @@ watch(() => st.value?.mode, (v) => {
   if (v)
     form.pattern = v as FieldPattern
 }, { immediate: true })
-
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>

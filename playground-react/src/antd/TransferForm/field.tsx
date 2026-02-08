@@ -100,16 +100,9 @@ export const TransferForm = observer((): React.ReactElement => {
           form.pattern = mode
           return (
             <FormProvider form={form}>
-              <form onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault()
-                const res = await form.submit()
-                if (res.errors.length > 0) showErrors(res.errors)
-                else showResult(res.values)
-              }} noValidate>
                 <FormField name="roleName" fieldProps={{ label: '角色名称', required: true, component: 'Input', componentProps: { placeholder: '请输入角色名称', style: { width: 300 } } }} />
                 <FormField name="permissions" fieldProps={{ label: '权限分配', required: true, component: 'TransferPicker', componentProps: { dataSource: PERMISSIONS } }} />
-                {<LayoutFormActions onReset={() => form.reset()} />}
-              </form>
+                <LayoutFormActions onSubmit={showResult} onSubmitFailed={showErrors} />
             </FormProvider>
           )
         }}

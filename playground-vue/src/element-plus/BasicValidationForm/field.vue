@@ -1,12 +1,11 @@
-﻿<template>
+<template>
   <div>
     <h2>必填与格式验证（Field 版）</h2>
     <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">
       required / email / phone / URL / pattern / min-max - FormField + fieldProps 实现
     </p>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <StatusTabs ref="st" v-slot="{ showResult }">
       <FormProvider :form="form">
-        <form novalidate @submit.prevent="handleSubmit(showResult)">
           <FormField name="username" :field-props="{ label: '用户名（必填）', required: true, component: 'Input', componentProps: { placeholder: '请输入' }, rules: [{ minLength: 3, maxLength: 20, message: '3-20 字符' }] }" />
           <FormField name="email" :field-props="{ label: '邮箱', required: true, component: 'Input', componentProps: { placeholder: '请输入邮箱' }, rules: [{ format: 'email', message: '无效邮箱' }] }" />
           <FormField name="phone" :field-props="{ label: '手机号', required: true, component: 'Input', componentProps: { placeholder: '11 位手机号' }, rules: [{ format: 'phone', message: '无效手机号' }] }" />
@@ -16,8 +15,7 @@
           <FormField name="zipCode" :field-props="{ label: '邮编', component: 'Input', componentProps: { placeholder: '6 位数字' }, rules: zipCodeRules }" />
           <FormField name="idCard" :field-props="{ label: '身份证号', component: 'Input', componentProps: { placeholder: '18 位' }, rules: idCardRules }" />
           <FormField name="password" :field-props="{ label: '密码', required: true, component: 'Password', componentProps: { placeholder: '8-32 位' }, rules: passwordRules }" />
-          <LayoutFormActions @reset="form.reset()" />
-        </form>
+          <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => st?.showErrors(e)" />
       </FormProvider>
     </StatusTabs>
   </div>
@@ -58,15 +56,4 @@ watch(() => st.value?.mode, (v) => {
   if (v)
     form.pattern = v as FieldPattern
 }, { immediate: true })
-
-/** 提交处理 */
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
-}
 </script>
