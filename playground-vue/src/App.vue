@@ -80,12 +80,25 @@
           </StatusTabs>
 
           <!-- Field 模式：通用渲染 -->
-          <FieldScene
-            v-else
-            :fields="sceneConfig.fields"
-            :initial-values="sceneConfig.initialValues"
-            :label-width="(sceneConfig.schema.decoratorProps?.labelWidth as string) ?? '120px'"
-          />
+          <StatusTabs v-else ref="stField" v-slot="{ showResult }">
+            <FormProvider :form="fieldForm">
+              <FormField
+                v-for="field in sceneConfig.fields"
+                :key="field.name"
+                :name="field.name"
+                :field-props="{
+                  label: field.label,
+                  required: field.required,
+                  component: field.component,
+                  componentProps: field.componentProps,
+                  dataSource: field.dataSource,
+                  rules: field.rules,
+                  description: field.description,
+                }"
+              />
+              <LayoutFormActions @submit="showResult" @submit-failed="(e: any) => stField?.showErrors(e)" />
+            </FormProvider>
+          </StatusTabs>
         </div>
         <div v-else style="text-align: center; color: #999; padding: 40px;">
           {{ loading ? '加载中...' : '请选择场景' }}
@@ -100,11 +113,10 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/core'
 import type { SceneConfig } from '@moluoxixi/playground-shared'
 import { getSceneGroups, sceneRegistry } from '@moluoxixi/playground-shared'
-import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
+import { LayoutFormActions, setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { setupElementPlus } from '@moluoxixi/ui-element-plus'
-import { ConfigForm } from '@moluoxixi/vue'
+import { ConfigForm, FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
 import { ref, watch } from 'vue'
-import FieldScene from './components/FieldScene.vue'
 
 type UILib = 'antd-vue' | 'element-plus'
 
@@ -114,8 +126,11 @@ const navMode = ref<'config' | 'field'>('config')
 const loading = ref(false)
 const sceneConfig = ref<SceneConfig | null>(null)
 const st = ref<InstanceType<typeof StatusTabs>>()
+const stField = ref<InstanceType<typeof StatusTabs>>()
 /** 用于强制重新挂载内容区域 */
 const renderKey = ref(0)
+/** Field 模式的表单实例 */
+const fieldForm = useCreateForm({ initialValues: {} })
 
 const uiLibs = [
   { key: 'antd-vue' as UILib, label: 'Ant Design Vue', color: '#1677ff' },
@@ -156,6 +171,11 @@ async function loadScene(name: string): Promise<void> {
 }
 
 watch(currentDemo, (name) => loadScene(name), { immediate: true })
+
+/** Field 模式：同步 StatusTabs 的 mode 到 form.pattern */
+watch(() => stField.value?.mode, (v) => {
+  if (v) fieldForm.pattern = v as FieldPattern
+}, { immediate: true })
 
 /** 工具：将 mode 注入 schema */
 function withMode(s: ISchema, mode: FieldPattern): ISchema {
