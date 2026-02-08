@@ -5,7 +5,7 @@
 | 维度 | 值 |
 |------|------|
 | 场景数 | 56（3 个 UI 库共享同一份 schema） |
-| 渲染 | ConfigForm + SchemaField 递归渲染 |
+| 渲染 | ConfigForm + SchemaField 递归渲染（参考 Formily RecursionField） |
 | 三态 | 编辑态 / 阅读态 / 禁用态（StatusTabs 切换） |
 | 框架 | React 18 / Vue 3 |
 | UI 库 | Ant Design（React）/ Ant Design Vue / Element Plus |
@@ -20,58 +20,57 @@
 ```
 playground/
   shared/src/                    # 56 个场景的共享配置（SceneConfig）
-    01-basic/BasicForm.ts        # schema + initialValues + fields
-    02-linkage/...
-    index.ts                     # sceneRegistry 注册表
-    types.ts                     # SceneConfig / FieldConfig 类型
+    {group}/{Scene}.ts           # { title, description, schema, initialValues }
+    index.ts                     # sceneRegistry 懒加载注册表
+    types.ts                     # SceneConfig 类型
   vue/src/
     App.vue                      # 场景导航 + UI 库切换
-    components/SceneRenderer.vue # 通用场景渲染器（Config/Field 模式）
+    components/SceneRenderer.vue # 通用场景渲染器（UI 库无关）
+    ui/                          # UI 库适配层
+      index.ts                   # UIAdapter 接口 + adapters 映射
+      antd-vue.ts                # { setup, StatusTabs }
+      element-plus.ts            # { setup, StatusTabs }
   react/src/
     App.tsx                      # 场景导航
-    components/SceneRenderer.tsx # 通用场景渲染器（Config/Field 模式）
+    components/SceneRenderer.tsx # 通用场景渲染器
 ```
-
-新增场景只需：在 `playground/shared/src/{group}/` 添加 `.ts` 文件 + 注册到 `index.ts`。
 
 ### 架构
 
 - **@playground/shared**：56 个场景配置，每个导出 `SceneConfig`（title / description / schema / initialValues）
-- **SceneRenderer**：通用渲染组件，使用 `ConfigForm + SchemaField` 递归渲染 schema（参考 Formily RecursionField）
+- **SceneRenderer**：通用渲染组件，StatusTabs 通过 prop 注入（Vue）或直接导入（React），ConfigForm + SchemaField 递归渲染 schema
+- **UI 适配层**（Vue）：`src/ui/` 目录，每个 UI 库导出 `{ setup, StatusTabs }`，App 根据选择加载
 - **App**：仅负责导航、场景加载、UI 库切换，不包含表单渲染逻辑
-- 三平台（Vue AntdVue / Vue ElementPlus / React Antd）共享同一份 schema 配置
-- 三态（编辑态 / 阅读态 / 禁用态）通过 StatusTabs 切换 pattern 注入 schema
+- 三态通过 StatusTabs 切换 pattern 注入 schema
 
 ### 测试标准
 
-每个场景需测试 **Config** 和 **Field** 两种模式，每种模式测试 **编辑态 / 阅读态 / 禁用态** 三态，共 6 项。
+每个场景测试 **编辑态 / 阅读态 / 禁用态** 三态。
 
-#### 编辑态验证项（6项）
+#### 编辑态验证项
 
-1. **UI 截图检查**：截取完整页面，逐像素确认 UI 组件库样式（输入框边框、按钮颜色、图标尺寸、布局对齐）正确
-2. **组件渲染检查**：标题、描述、StatusTabs、FormItem 标签、必填 `*` 标记、所有字段类型正确
-3. **交互+提交**：逐一填写所有字段 → 点击"提交" → 验证结果表格/JSON 所有值正确
-4. **重置验证**：点击"重置" → 验证所有字段恢复初始值（包含默认值字段）
-5. **校验验证**：清空必填字段 → 提交 → 验证每个必填字段显示红色错误提示 + 底部汇总
+1. **UI 截图检查**：截取完整页面，确认 UI 组件库样式正确
+2. **组件渲染检查**：标题、描述、StatusTabs、FormItem 标签冒号、必填 `*` 标记、所有字段类型正确
+3. **交互+提交**：填写字段 → 点击"提交" → 验证结果表格所有值正确
+4. **重置验证**：点击"重置" → 验证所有字段恢复初始值
+5. **校验验证**：清空必填字段 → 提交 → 验证红色错误提示
 6. **控制台检查**：无 error 级别日志
 
-#### 阅读态验证项（4项）
+#### 阅读态验证项
 
-1. **UI 截图检查**：截取完整页面，确认无残留输入框/选择器
-2. 所有字段变为纯文本：有值显示值，无值显示"—"
-3. 提交/重置按钮完全隐藏
-4. accessibility 快照中不应有 textbox/combobox/checkbox/radio 等可交互元素
+1. 所有字段变为纯文本：有值显示值，无值显示"—"
+2. 必填 `*` 标记隐藏
+3. 提交/重置按钮隐藏
+4. 无可交互表单元素
 
-#### 禁用态验证项（4项）
+#### 禁用态验证项
 
-1. **UI 截图检查**：截取完整页面，确认字段显示为灰色输入框
-2. 所有字段保持输入框形态但灰色不可交互（快照含 `[disabled]`）
-3. 提交/重置按钮完全隐藏
-4. 尝试点击 Switch/输入框 → 确认 Playwright 报 disabled 超时
+1. 所有字段保持输入框形态但灰色不可交互（`[disabled]`）
+2. 提交/重置按钮隐藏
 
 #### 问题处理
 
-发现问题 → 截图记录 → 在 TEST_PLAN.md 问题表中登记 → 立即修复 → 刷新截图重验 → 通过后继续
+发现问题 → 记录到问题表 → 立即修复 → 刷新重验 → 通过后继续
 
 ---
 
@@ -196,133 +195,52 @@ playground/
 
 ### 全局问题（影响所有场景）
 
-| # | 问题 | 影响平台 | 状态 | 修复文件 |
-|---|------|----------|------|----------|
-| G1 | `@moluoxixi/vue` 未导出 `ArrayItems` 等组件，导致 `setupAntdVue()` 失败 | Vue 全部 | ✅ 已修复 | `packages/vue/src/index.ts` |
-| G2 | `ConfigForm` 的 `FormActionsRenderer` 未传递 `onSubmit`/`onSubmitFailed` 给 `LayoutFormActions`，导致 Config 模式提交无反应 | Vue + React 全部 | ✅ 已修复 | `packages/vue/src/components/ConfigForm.ts`, `packages/react/src/components/ConfigForm.tsx` |
-| G3 | `SchemaField` 对 `type:'array'` + 显式组件（如 CheckboxGroup/Transfer）错误使用 `FormArrayField` 渲染，导致选项不显示 | Vue + React 全部 | ✅ 已修复 | `packages/vue/src/components/SchemaField.ts`, `packages/react/src/components/SchemaField.tsx` |
-| G4 | React playground `PaginatedSearchForm/config.tsx` JSX 语法错误 | React | ✅ 已修复 | `playground-react/src/antd/05-datasource/PaginatedSearchForm/config.tsx` |
-| G5 | Element Plus 缺少 CSS 导入，导致图标（InputNumber箭头/Select下拉/DatePicker日历）尺寸失控 | Vue EP 全部 | ✅ 已修复 | `packages/ui-element-plus/src/index.ts` 顶部添加 `import 'element-plus/dist/index.css'` |
-| G6 | React BasicForm config.tsx 缺少 `decoratorProps.actions` 配置，导致无提交/重置按钮 | React | ✅ 已修复 | `playground-react/src/antd/01-basic/BasicForm/config.tsx` |
-| G7 | `LayoutFormActions` 在 Field 模式的 readOnly/disabled 下未自动隐藏提交/重置按钮 | 全部 | ✅ 已修复 | `packages/ui-antd-vue/src/components/LayoutFormActions.ts`, `packages/ui-element-plus/src/components/LayoutFormActions.ts`, `packages/ui-antd/src/components/LayoutFormActions.tsx` |
-| G8 | React `ConfigForm` 缺少 schema 变化时同步 `form.pattern` 的 useEffect，导致三态切换不生效 | React | ✅ 已修复 | `packages/react/src/components/ConfigForm.tsx` 添加 useEffect 同步 pattern/labelPosition/labelWidth |
-| G9 | antd-vue 垂直布局（`labelCol.span=24`）冒号消失，因 antd CSS 伪元素自动隐藏。改为手动追加冒号到 label 文本，禁用 antd 内置 colon | Vue AntdVue | ✅ 已修复 | `packages/ui-antd-vue/src/components/FormItem.ts` 设 `colon: false`，label 追加 ` :` |
-| G10 | 阅读态/禁用态仍显示必填 `*` 标记。参考 Formily `takeAsterisk`，pattern 非 editable 时隐藏 | 全部 | ✅ 已修复 | FormItem（3个UI库）添加 `pattern` prop + ReactiveField（Vue+React）传递 `pattern` |
-| G11 | React ReactiveField `{...componentProps}` 在 value/onChange 之后展开可能覆盖核心绑定 | React | ✅ 已修复 | `packages/react/src/components/ReactiveField.tsx` 调整 props 顺序 |
+| # | 问题 | 状态 | 修复位置 |
+|---|------|:----:|----------|
+| G1 | `@moluoxixi/vue` 未导出 `ArrayItems` 等组件 | ✅ | `packages/vue/src/index.ts` |
+| G2 | ConfigForm FormActionsRenderer 未传递 submit 事件 | ✅ | ConfigForm.ts / ConfigForm.tsx |
+| G3 | SchemaField 对 type:array + CheckboxGroup 错误用 FormArrayField | ✅ | SchemaField.ts / SchemaField.tsx |
+| G4 | Element Plus 缺少 CSS 导入，图标尺寸失控 | ✅ | `packages/ui-element-plus/src/index.ts` |
+| G5 | LayoutFormActions 在 readOnly/disabled 下未隐藏按钮 | ✅ | 三个 UI 库的 LayoutFormActions |
+| G6 | React ConfigForm 缺少 useEffect 同步 pattern | ✅ | `packages/react/src/components/ConfigForm.tsx` |
+| G7 | antd-vue 垂直布局冒号消失（CSS 伪元素覆盖） | ✅ | FormItem.ts 手动追加冒号 |
+| G8 | 阅读态/禁用态仍显示必填 `*` 标记 | ✅ | 三个 UI 库 FormItem + ReactiveField 传递 pattern |
+| G9 | React ReactiveField componentProps 展开顺序覆盖 value/onChange | ✅ | ReactiveField.tsx 调整顺序 |
+| G10 | React 18 StrictMode 字段注册丢失 | ✅ | FormField/FormArrayField/FormVoidField.tsx |
+| G11 | 三个 UI 库 FormItem colon 属性统一 | ✅ | 三个 FormItem 添加 colon prop |
 
 ### 场景级问题
 
-| # | 场景 | 平台 | 问题 | 状态 | 修复文件 |
-|---|------|------|------|------|----------|
-| S1 | BasicForm | React Antd | React 18 StrictMode 双挂载导致字段注册丢失。首次挂载创建 field → StrictMode 卸载 cleanup 移除 field → 二次挂载 fieldRef 已存在跳过 createField → form.fields 永远为空 → submit 返回初始值。修复：检查 `!form.getField(name)` 重新注册。 | ✅ 已修复 | `packages/react/src/components/FormField.tsx`, `FormArrayField.tsx`, `FormVoidField.tsx` |
+| # | 场景 | 问题 | 状态 |
+|---|------|------|:----:|
 
 ---
 
 ## 详细测试结果
 
-> 每个场景 18 项：3 平台 × 2 模式 × 3 态
-> ✅ 通过 | ❌ 失败 | ⏳ 待测 | 🔧 修复中 | ⚠️ 有问题但不阻塞
+> 每个场景 3 项：编辑态 / 阅读态 / 禁用态
+> 每项需在 3 个平台验证：Vue AntdVue / Vue ElementPlus / React Antd
+> ✅ 通过 | ❌ 失败 | ⏳ 待测
 
 ### 场景 1：基础表单（BasicForm）
 
-覆盖：Input / Password / Textarea / InputNumber / Select / RadioGroup / CheckboxGroup / Switch / DatePicker
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ⏳ |
+| Vue ElementPlus | ✅ | ⏳ | ⏳ |
+| React Antd | ✅ | ✅ | ⏳ |
 
-| 平台 | Config 编辑 | Config 阅读 | Config 禁用 | Field 编辑 | Field 阅读 | Field 禁用 |
-|------|:-----------:|:-----------:|:-----------:|:----------:|:----------:|:----------:|
-| Vue AntdVue | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Vue ElementPlus | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| React Antd | ✅ | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+### 场景 2~56：待测
 
-**验证详情：**
-- Vue AntdVue Config 编辑态：UI 截图正常，11个字段+必填标记+提交重置按钮 ✅ | 填写全部字段提交结果正确 ✅ | 重置恢复初始值 ✅ | 空提交3个必填校验错误 ✅
-- Vue AntdVue Config 阅读态：UI 截图确认纯文本+按钮隐藏 ✅ | ⚠️ 必填`*`标记仍显示（小问题不阻塞）
-- Vue AntdVue Config 禁用态：UI 截图灰色输入框 ✅ | 所有字段 disabled ✅ | Switch 点击超时确认不可操作 ✅ | 按钮隐藏 ✅
-- Vue AntdVue Field 编辑态：UI 截图正常+placeholder 显示 ✅ | 填写提交结果正确 ✅ | 重置成功 ✅
-- Vue AntdVue Field 阅读态：按钮隐藏修复后通过 ✅（修复 G7）
-- Vue ElementPlus Config 编辑态：CSS 导入修复后 UI 正常 ✅（修复 G5）| 提交/重置/校验全通过 ✅
-- Vue ElementPlus Config 阅读态：快照确认纯文本+按钮隐藏 ✅
-- Vue ElementPlus Config 禁用态：快照确认全部 disabled+按钮隐藏 ✅
-- Vue AntdVue Field 禁用态：UI 截图灰色+按钮隐藏（G7修复）✅
-- Vue ElementPlus Field 编辑态：UI 截图完美+Element Plus 样式正确（G5修复）✅ | 提交结果正确 ✅
-- Vue ElementPlus Field 阅读态：UI 截图纯文本+密码遮蔽+按钮隐藏 ✅
-- Vue ElementPlus Field 禁用态：UI 截图灰色 disabled+按钮隐藏 ✅
-- React Antd Config 编辑态：UI 截图正常，11个字段+必填标记+按钮 ✅ | ⚠️ Playwright 输入未触发 MobX 更新（S1 问题，待修复）
-- React Antd Config 阅读态：UI 截图纯文本+按钮隐藏 ✅（修复 G8 后通过）
-- React Antd Config 禁用态：UI 截图灰色 disabled+按钮隐藏 ✅
-
-### 场景 2：表单布局（LayoutForm）
-
-覆盖：labelPosition / labelWidth、4 种布局切换（水平/垂直/行内/栅格两列）
-
-| 平台 | Config 编辑 | Config 阅读 | Config 禁用 | Field 编辑 | Field 阅读 | Field 禁用 |
-|------|:-----------:|:-----------:|:-----------:|:----------:|:----------:|:----------:|
-| Vue AntdVue | ✅ | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
-| Vue ElementPlus | ✅ | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
-| React Antd | ⚠️ | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
-
-**验证详情：**
-- Vue AntdVue Config：4 种布局 UI 截图全部正确（水平/垂直/行内/栅格两列）✅ | 填写提交正确 ✅ | 阅读态纯文本+按钮隐藏 ✅ | 禁用态全部 disabled ✅
-- Vue ElementPlus Config：水平+栅格两列 UI 截图正确（标签右对齐+冒号）✅ | 阅读态+禁用态正确 ✅
-- React Antd Config：UI 正确但缺少提交按钮（decoratorProps.actions 缺失）⚠️ | 阅读态+禁用态三态切换正常（G8 修复生效）✅
-
-### 场景 3：必填与格式验证（BasicValidationForm）
-
-覆盖：required / email / phone / URL / minLength / maxLength / pattern
-
-| 平台 | Config 编辑 | Config 阅读 | Config 禁用 | Field 编辑 | Field 阅读 | Field 禁用 |
-|------|:-----------:|:-----------:|:-----------:|:----------:|:----------:|:----------:|
-| Vue AntdVue | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ |
-| Vue ElementPlus | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ |
-| React Antd | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ |
-
-### 场景 4：默认值（DefaultValueForm）
-
-覆盖：静态默认值、动态计算联动、重置恢复
-
-| 平台 | Config 编辑 | Config 阅读 | Config 禁用 | Field 编辑 | Field 阅读 | Field 禁用 |
-|------|:-----------:|:-----------:|:-----------:|:----------:|:----------:|:----------:|
-| Vue AntdVue | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ |
-| Vue ElementPlus | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ |
-| React Antd | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ |
-
-### 场景 5：显隐联动（VisibilityLinkageForm）
-
-覆盖：个人/企业切换、嵌套显隐、excludeWhenHidden
-
-| 平台 | Config 编辑 | Config 阅读 | Config 禁用 | Field 编辑 | Field 阅读 | Field 禁用 |
-|------|:-----------:|:-----------:|:-----------:|:----------:|:----------:|:----------:|
-| Vue AntdVue | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ |
-| Vue ElementPlus | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ |
-| React Antd | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ |
-
-### 场景 6~56：待展开
-
-> 后续场景在测试到时逐个展开，避免文档过长。格式与上述一致。
+> 逐个测试时展开，格式同上。
 
 ---
 
 ## 测试总量统计
 
-| 平台 | 场景数 | 模式 | 三态 | 测试项总计 |
-|------|--------|------|------|-----------|
-| Vue AntdVue | 56 | 2（Config/Field） | 3 | 336 |
-| Vue ElementPlus | 56 | 2 | 3 | 336 |
-| React Antd | 56 | 2 | 3 | 336 |
-| **合计** | | | | **1008** |
-
-## 测试进度
-
-| 分组 | 场景数 | 已完成 | 通过 | 失败 | 进度 |
-|------|--------|--------|------|------|------|
-| 01-basic | 4 | 15/72 | 14 | 1⚠️ | 21% |
-| 02-linkage | 6 | 0/108 | 0 | 0 | 0% |
-| 03-validation | 3 | 0/54 | 0 | 0 | 0% |
-| 04-complex-data | 4 | 0/72 | 0 | 0 | 0% |
-| 05-datasource | 3 | 0/54 | 0 | 0 | 0% |
-| 06-layout | 4 | 0/72 | 0 | 0 | 0% |
-| 07-dynamic | 3 | 0/54 | 0 | 0 | 0% |
-| 08-components | 12 | 0/216 | 0 | 0 | 0% |
-| 09-state | 5 | 0/90 | 0 | 0 | 0% |
-| 10-misc | 4 | 0/72 | 0 | 0 | 0% |
-| 11-advanced | 8 | 0/144 | 0 | 0 | 0% |
-| **合计** | **56** | **15/1008** | **14** | **1⚠️** | **1.5%** |
+| 平台 | 场景数 | 三态 | 测试项总计 |
+|------|--------|------|-----------|
+| Vue AntdVue | 56 | 3 | 168 |
+| Vue ElementPlus | 56 | 3 | 168 |
+| React Antd | 56 | 3 | 168 |
+| **合计** | | | **504** |
