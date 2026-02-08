@@ -4,9 +4,9 @@
 
 | 维度 | 值 |
 |------|------|
-| 场景数 | 56（3 个 UI 库完全一致） |
-| 模式 | Config（ConfigForm + ISchema）/ Field（FormProvider + FormField） |
-| 三态 | 编辑态 / 阅读态 / 禁用态 |
+| 场景数 | 56（3 个 UI 库共享同一份 schema） |
+| 渲染 | ConfigForm + SchemaField 递归渲染 |
+| 三态 | 编辑态 / 阅读态 / 禁用态（StatusTabs 切换） |
 | 框架 | React 18 / Vue 3 |
 | UI 库 | Ant Design（React）/ Ant Design Vue / Element Plus |
 
@@ -36,10 +36,11 @@ playground/
 
 ### 架构
 
-- **@playground/shared**：56 个场景配置，每个导出 `SceneConfig`（title/description/schema/initialValues/fields）
-- **SceneRenderer**：通用渲染组件，根据 mode 切换 Config（ConfigForm + schema）或 Field（FormField 循环渲染）
+- **@playground/shared**：56 个场景配置，每个导出 `SceneConfig`（title / description / schema / initialValues）
+- **SceneRenderer**：通用渲染组件，使用 `ConfigForm + SchemaField` 递归渲染 schema（参考 Formily RecursionField）
 - **App**：仅负责导航、场景加载、UI 库切换，不包含表单渲染逻辑
 - 三平台（Vue AntdVue / Vue ElementPlus / React Antd）共享同一份 schema 配置
+- 三态（编辑态 / 阅读态 / 禁用态）通过 StatusTabs 切换 pattern 注入 schema
 
 ### 测试标准
 

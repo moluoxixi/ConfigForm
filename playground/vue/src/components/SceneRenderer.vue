@@ -1,8 +1,8 @@
 <template>
   <div>
-    <h2>{{ props.config.title }}{{ props.mode === 'field' ? '（Field 版）' : '' }}</h2>
+    <h2>{{ props.config.title }}</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
-      {{ props.config.description }}{{ props.mode === 'field' ? ' — FormProvider + SchemaField 实现' : '' }}
+      {{ props.config.description }}
     </p>
 
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
@@ -20,9 +20,8 @@
 /**
  * 场景渲染器
  *
- * Config / Field 模式都使用 ConfigForm + 同一份 schema 渲染。
- * ConfigForm 内部通过 SchemaField 递归渲染 schema.properties，
- * 与 Formily 的 RecursionField 机制一致。
+ * 使用 ConfigForm + SchemaField 递归渲染 schema.properties。
+ * StatusTabs 提供编辑态/阅读态/禁用态三态切换。
  */
 import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/core'
@@ -33,7 +32,6 @@ import { ref } from 'vue'
 
 const props = defineProps<{
   config: SceneConfig
-  mode: 'config' | 'field'
 }>()
 
 const st = ref<InstanceType<typeof StatusTabs>>()

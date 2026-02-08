@@ -1,7 +1,7 @@
 /**
  * React Playground 入口
  *
- * 从 @playground/shared 动态加载场景配置，通过 SceneRenderer 通用渲染。
+ * 从 @playground/shared 动态加载场景配置，通过 SceneRenderer 渲染。
  */
 import type { SceneConfig } from '@playground/shared'
 import { getSceneGroups, sceneRegistry } from '@playground/shared'
@@ -16,7 +16,6 @@ const totalScenes = sceneGroups.reduce((sum, g) => sum + g.items.length, 0)
 
 export function App(): React.ReactElement {
   const [currentDemo, setCurrentDemo] = useState('BasicForm')
-  const [navMode, setNavMode] = useState<'config' | 'field'>('config')
   const [sceneConfig, setSceneConfig] = useState<SceneConfig | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -35,7 +34,7 @@ export function App(): React.ReactElement {
     <div style={{ maxWidth: 1400, margin: '0 auto', padding: 16, fontFamily: 'system-ui, sans-serif' }}>
       <h1 style={{ marginBottom: 4 }}>ConfigForm - React Playground</h1>
       <p style={{ color: '#666', marginBottom: 16, fontSize: 13 }}>
-        基于 MobX 的响应式配置化表单 · {totalScenes} 个场景 · Ant Design · Config / Field
+        基于 MobX 的响应式配置化表单 · {totalScenes} 个场景 · Ant Design · ConfigForm + SchemaField 递归渲染
       </p>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, padding: '8px 16px', background: '#f5f5f5', borderRadius: 8 }}>
@@ -48,17 +47,7 @@ export function App(): React.ReactElement {
       <div style={{ display: 'flex', gap: 16 }}>
         {/* 左侧导航 */}
         <div style={{ width: 280, flexShrink: 0, border: '1px solid #eee', borderRadius: 8, overflow: 'hidden' }}>
-          <div style={{ display: 'flex', borderBottom: '1px solid #eee' }}>
-            {(['config', 'field'] as const).map(m => (
-              <button key={m} onClick={() => setNavMode(m)}
-                style={{ flex: 1, padding: '10px 0', fontSize: 13, fontWeight: 700, cursor: 'pointer', border: 'none',
-                  background: navMode === m ? (m === 'config' ? '#1677ff' : '#52c41a') : '#f5f5f5',
-                  color: navMode === m ? '#fff' : '#666' }}>
-                {m === 'config' ? 'Config 模式' : 'Field 模式'}
-              </button>
-            ))}
-          </div>
-          <div style={{ maxHeight: 'calc(100vh - 220px)', overflow: 'auto', padding: 8 }}>
+          <div style={{ maxHeight: 'calc(100vh - 180px)', overflow: 'auto', padding: 8 }}>
             {sceneGroups.map(group => (
               <div key={group.key} style={{ marginBottom: 8 }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: '#999', padding: '2px 4px' }}>{group.label}</div>
@@ -80,7 +69,7 @@ export function App(): React.ReactElement {
         {/* 右侧内容区 */}
         <div style={{ flex: 1, border: '1px solid #eee', borderRadius: 8, padding: 24, background: '#fff', minHeight: 400 }}>
           {sceneConfig
-            ? <SceneRenderer config={sceneConfig} mode={navMode} />
+            ? <SceneRenderer config={sceneConfig} />
             : <div style={{ textAlign: 'center', color: '#999', padding: 40 }}>{loading ? '加载中...' : '请选择场景'}</div>}
         </div>
       </div>

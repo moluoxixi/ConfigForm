@@ -2,7 +2,7 @@
   <div style="max-width: 1400px; margin: 0 auto; padding: 16px; font-family: system-ui, sans-serif;">
     <h1 style="margin-bottom: 4px;">ConfigForm - Vue Playground</h1>
     <p style="color: #666; margin-bottom: 16px; font-size: 13px;">
-      基于 @vue/reactivity 的响应式配置化表单 · {{ totalScenes }} 个场景 × 2 套 UI 库 · Config（Schema 驱动） / Field（自定义渲染）
+      基于 @vue/reactivity 的响应式配置化表单 · {{ totalScenes }} 个场景 × 2 套 UI 库 · ConfigForm + SchemaField 递归渲染
     </p>
 
     <!-- UI 库切换 -->
@@ -23,23 +23,7 @@
     <div style="display: flex; gap: 16px;">
       <!-- 左侧导航 -->
       <div style="width: 280px; flex-shrink: 0; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
-        <div style="display: flex; border-bottom: 1px solid #eee;">
-          <button
-            :style="{ flex: 1, padding: '10px 0', fontSize: '13px', fontWeight: 700, cursor: 'pointer', border: 'none',
-                      background: navMode === 'config' ? '#1677ff' : '#f5f5f5', color: navMode === 'config' ? '#fff' : '#666' }"
-            @click="navMode = 'config'"
-          >
-            Config 模式
-          </button>
-          <button
-            :style="{ flex: 1, padding: '10px 0', fontSize: '13px', fontWeight: 700, cursor: 'pointer', border: 'none',
-                      background: navMode === 'field' ? '#52c41a' : '#f5f5f5', color: navMode === 'field' ? '#fff' : '#666' }"
-            @click="navMode = 'field'"
-          >
-            Field 模式
-          </button>
-        </div>
-        <div style="max-height: calc(100vh - 220px); overflow: auto; padding: 8px;">
+        <div style="max-height: calc(100vh - 180px); overflow: auto; padding: 8px;">
           <div v-for="group in sceneGroups" :key="group.key" style="margin-bottom: 8px;">
             <div style="font-size: 11px; font-weight: 600; color: #999; padding: 2px 4px;">{{ group.label }}</div>
             <button v-for="name in group.items" :key="name" :style="navBtnStyle(name)" @click="currentDemo = name">
@@ -51,7 +35,7 @@
 
       <!-- 右侧内容区 -->
       <div style="flex: 1; border: 1px solid #eee; border-radius: 8px; padding: 24px; background: #fff; min-height: 400px;">
-        <SceneRenderer v-if="sceneConfig" :config="sceneConfig" :mode="navMode" />
+        <SceneRenderer v-if="sceneConfig" :config="sceneConfig" />
         <div v-else style="text-align: center; color: #999; padding: 40px;">{{ loading ? '加载中...' : '请选择场景' }}</div>
       </div>
     </div>
@@ -70,7 +54,6 @@ type UILib = 'antd-vue' | 'element-plus'
 
 const currentUI = ref<UILib>('antd-vue')
 const currentDemo = ref('BasicForm')
-const navMode = ref<'config' | 'field'>('config')
 const loading = ref(false)
 const sceneConfig = ref<SceneConfig | null>(null)
 
