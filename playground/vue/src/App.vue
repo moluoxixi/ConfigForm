@@ -51,7 +51,7 @@
 
       <!-- 右侧内容区 -->
       <div style="flex: 1; border: 1px solid #eee; border-radius: 8px; padding: 24px; background: #fff; min-height: 400px;">
-        <SceneRenderer v-if="sceneConfig" :key="`${renderKey}-${navMode}-${currentDemo}`" :config="sceneConfig" :mode="navMode" />
+        <SceneRenderer v-if="sceneConfig" :config="sceneConfig" :mode="navMode" />
         <div v-else style="text-align: center; color: #999; padding: 40px;">{{ loading ? '加载中...' : '请选择场景' }}</div>
       </div>
     </div>
@@ -73,7 +73,6 @@ const currentDemo = ref('BasicForm')
 const navMode = ref<'config' | 'field'>('config')
 const loading = ref(false)
 const sceneConfig = ref<SceneConfig | null>(null)
-const renderKey = ref(0)
 
 const uiLibs = [
   { key: 'antd-vue' as UILib, label: 'Ant Design Vue', color: '#1677ff' },
@@ -83,14 +82,14 @@ const uiLibs = [
 const sceneGroups = getSceneGroups()
 const totalScenes = sceneGroups.reduce((sum, g) => sum + g.items.length, 0)
 
-/** 根据 UI 库调用 setup */
+/** 根据 UI 库调用 setup（覆盖全局注册表） */
 function applyUISetup(lib: UILib): void {
   if (lib === 'antd-vue') setupAntdVue()
   else setupElementPlus()
 }
 applyUISetup(currentUI.value)
 
-watch(currentUI, (lib) => { applyUISetup(lib); renderKey.value++ })
+watch(currentUI, (lib) => applyUISetup(lib))
 
 /** 加载场景配置 */
 async function loadScene(name: string): Promise<void> {
@@ -103,8 +102,8 @@ async function loadScene(name: string): Promise<void> {
 }
 watch(currentDemo, (name) => loadScene(name), { immediate: true })
 
-function navBtnStyle(key: string): Record<string, string> {
-  const active = currentDemo.value === key
+function navBtnStyle(name: string): Record<string, string> {
+  const active = currentDemo.value === name
   const color = currentUI.value === 'antd-vue' ? '#1677ff' : '#409eff'
   return {
     display: 'block', width: '100%', textAlign: 'left', padding: '3px 8px',

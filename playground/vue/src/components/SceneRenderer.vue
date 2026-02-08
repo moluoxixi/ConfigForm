@@ -43,7 +43,7 @@
  * 场景渲染器
  *
  * 根据 SceneConfig 通用渲染 Config / Field 两种模式。
- * App 只需传入 config 和 mode，无需关心渲染细节。
+ * 通过 watch 响应 config/mode 变化，无需外部 key 强制销毁重建。
  */
 import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/core'
@@ -64,6 +64,14 @@ const stField = ref<InstanceType<typeof StatusTabs>>()
 const fieldForm = useCreateForm({
   labelWidth: (props.config.schema.decoratorProps?.labelWidth as string) ?? '120px',
   initialValues: { ...props.config.initialValues },
+})
+
+/** config 变化时重置 Field 模式的表单 */
+watch(() => props.config, (newConfig) => {
+  fieldForm.labelWidth = (newConfig.schema.decoratorProps?.labelWidth as string) ?? '120px'
+  fieldForm.reset()
+  Object.assign(fieldForm.values, { ...newConfig.initialValues })
+  Object.assign(fieldForm.initialValues, { ...newConfig.initialValues })
 })
 
 /** 同步三态 */

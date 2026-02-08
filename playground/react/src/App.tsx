@@ -80,7 +80,7 @@ export function App(): React.ReactElement {
         {/* 右侧内容区 */}
         <div style={{ flex: 1, border: '1px solid #eee', borderRadius: 8, padding: 24, background: '#fff', minHeight: 400 }}>
           {sceneConfig
-            ? <SceneRenderer key={`${navMode}-${currentDemo}`} config={sceneConfig} mode={navMode} />
+            ? <SceneRenderer config={sceneConfig} mode={navMode} />
             : <div style={{ textAlign: 'center', color: '#999', padding: 40 }}>{loading ? '加载中...' : '请选择场景'}</div>}
         </div>
       </div>
