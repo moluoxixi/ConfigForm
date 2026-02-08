@@ -215,6 +215,9 @@ App 使用 `import.meta.glob` 自动扫描，新增示例只需创建文件夹�
 | G6 | React BasicForm config.tsx 缺少 `decoratorProps.actions` 配置，导致无提交/重置按钮 | React | ✅ 已修复 | `playground-react/src/antd/01-basic/BasicForm/config.tsx` |
 | G7 | `LayoutFormActions` 在 Field 模式的 readOnly/disabled 下未自动隐藏提交/重置按钮 | 全部 | ✅ 已修复 | `packages/ui-antd-vue/src/components/LayoutFormActions.ts`, `packages/ui-element-plus/src/components/LayoutFormActions.ts`, `packages/ui-antd/src/components/LayoutFormActions.tsx` |
 | G8 | React `ConfigForm` 缺少 schema 变化时同步 `form.pattern` 的 useEffect，导致三态切换不生效 | React | ✅ 已修复 | `packages/react/src/components/ConfigForm.tsx` 添加 useEffect 同步 pattern/labelPosition/labelWidth |
+| G9 | antd-vue 垂直布局（`labelCol.span=24`）冒号消失，因 antd CSS 伪元素自动隐藏。改为手动追加冒号到 label 文本，禁用 antd 内置 colon | Vue AntdVue | ✅ 已修复 | `packages/ui-antd-vue/src/components/FormItem.ts` 设 `colon: false`，label 追加 ` :` |
+| G10 | 阅读态/禁用态仍显示必填 `*` 标记。参考 Formily `takeAsterisk`，pattern 非 editable 时隐藏 | 全部 | ✅ 已修复 | FormItem（3个UI库）添加 `pattern` prop + ReactiveField（Vue+React）传递 `pattern` |
+| G11 | React ReactiveField `{...componentProps}` 在 value/onChange 之后展开可能覆盖核心绑定 | React | ✅ 已修复 | `packages/react/src/components/ReactiveField.tsx` 调整 props 顺序 |
 
 ### 场景级问题
 
@@ -258,13 +261,18 @@ App 使用 `import.meta.glob` 自动扫描，新增示例只需创建文件夹�
 
 ### 场景 2：表单布局（LayoutForm）
 
-覆盖：labelPosition / labelWidth、4 种布局切换
+覆盖：labelPosition / labelWidth、4 种布局切换（水平/垂直/行内/栅格两列）
 
 | 平台 | Config 编辑 | Config 阅读 | Config 禁用 | Field 编辑 | Field 阅读 | Field 禁用 |
 |------|:-----------:|:-----------:|:-----------:|:----------:|:----------:|:----------:|
-| Vue AntdVue | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ |
-| Vue ElementPlus | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ |
-| React Antd | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ |
+| Vue AntdVue | ✅ | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| Vue ElementPlus | ✅ | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| React Antd | ⚠️ | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+
+**验证详情：**
+- Vue AntdVue Config：4 种布局 UI 截图全部正确（水平/垂直/行内/栅格两列）✅ | 填写提交正确 ✅ | 阅读态纯文本+按钮隐藏 ✅ | 禁用态全部 disabled ✅
+- Vue ElementPlus Config：水平+栅格两列 UI 截图正确（标签右对齐+冒号）✅ | 阅读态+禁用态正确 ✅
+- React Antd Config：UI 正确但缺少提交按钮（decoratorProps.actions 缺失）⚠️ | 阅读态+禁用态三态切换正常（G8 修复生效）✅
 
 ### 场景 3：必填与格式验证（BasicValidationForm）
 

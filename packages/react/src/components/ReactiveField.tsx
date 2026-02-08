@@ -45,8 +45,18 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
   if (!Comp)
     return null
 
+  /**
+   * 参考 Formily ReactiveField：
+   * 1. componentProps 在前，value/onChange 在后，确保不被覆盖
+   * 2. 使用 field.onInput 代替 setValue（Formily 行为）
+   */
   const fieldElement = (
     <Comp
+      disabled={isDisabled}
+      readOnly={isReadOnly}
+      loading={dataField.loading}
+      dataSource={dataField.dataSource}
+      {...dataField.componentProps}
       value={dataField.value}
       onChange={(val: unknown) => dataField.setValue(val)}
       onFocus={() => dataField.focus()}
@@ -54,11 +64,6 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
         dataField.blur()
         dataField.validate('blur').catch(() => {})
       }}
-      disabled={isDisabled}
-      readOnly={isReadOnly}
-      loading={dataField.loading}
-      dataSource={dataField.dataSource}
-      {...dataField.componentProps}
     />
   )
 
@@ -67,6 +72,9 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
   const Wrapper = typeof wrapperName === 'string'
     ? registry.wrappers.get(wrapperName)
     : (wrapperName as ComponentType<any>)
+
+  /** 参考 Formily：将表单 pattern 传递给 Wrapper，用于 readOnly/disabled 时隐藏必填标记 */
+  const effectivePattern = form?.pattern ?? 'editable'
 
   if (Wrapper) {
     return (
@@ -78,6 +86,7 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
         description={dataField.description}
         labelPosition={form?.labelPosition}
         labelWidth={form?.labelWidth}
+        pattern={effectivePattern}
         {...dataField.wrapperProps}
       >
         {fieldElement}

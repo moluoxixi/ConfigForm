@@ -158,6 +158,8 @@ export const ReactiveField = defineComponent({
 
       if (Wrapper && !props.isVoid) {
         const dataField = field as FieldInstance
+        /** 参考 Formily：将表单 pattern 传递给 Wrapper，用于 readOnly/disabled 时隐藏必填标记 */
+        const effectivePattern = form?.pattern ?? 'editable'
         return h(Wrapper, {
           label: dataField.label,
           required: dataField.required,
@@ -166,6 +168,7 @@ export const ReactiveField = defineComponent({
           description: dataField.description,
           labelPosition: form?.labelPosition,
           labelWidth: form?.labelWidth,
+          pattern: effectivePattern,
           ...dataField.wrapperProps,
         }, () => componentNode)
       }

@@ -1,18 +1,11 @@
-fix: 场景1测试修复8个全局bug + Element Plus样式优化
+fix: 参考Formily修复冒号/必填标记/ReactiveField props顺序
 
-核心库修复：
-- vue/react index.ts 补全 ArrayItems 等缺失导出
-- ConfigForm FormActionsRenderer 传递 submit/submitFailed 事件
-- SchemaField 对 type:array+显式组件使用 FormField 而非 FormArrayField
-- LayoutFormActions 在 readOnly/disabled 模式自动隐藏按钮
-- React ConfigForm 添加 useEffect 同步 schema.pattern 变化
-
-UI/样式修复：
-- Element Plus 导入 CSS，修复图标尺寸失控
-- Element Plus FormItem 标签右对齐+冒号后缀
-- setupElementPlus 注入全局 label 右对齐样式
-
-Playground 修复：
-- React PaginatedSearchForm JSX 语法错误
-- React BasicForm 添加 decoratorProps.actions
-- Field 模式添加 labelWidth: 120px
+参考 Formily 源码实现：
+- antd-vue FormItem：手动追加冒号到label文本，禁用antd内置colon
+  解决垂直布局(labelCol.span=24)触发CSS伪元素隐藏冒号的问题
+- 三个UI库FormItem：添加pattern prop，readOnly/disabled时隐藏必填*标记
+  对齐Formily takeAsterisk逻辑(field.pattern !== 'readPretty')
+- Vue/React ReactiveField：向Wrapper传递form.pattern
+- React ReactiveField：componentProps放前面，value/onChange放后面
+  确保核心绑定不被componentProps覆盖（对齐Formily props顺序）
+- React antd FormItem：补齐labelPosition/labelWidth/colon支持
