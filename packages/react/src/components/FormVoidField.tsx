@@ -22,9 +22,10 @@ export const FormVoidField = observer<FormVoidFieldProps>(({ name, fieldProps, c
   if (!form)
     throw new Error('[ConfigForm] <FormVoidField> 必须在 <FormProvider> 内部使用')
 
+  /** 兼容 React 18 StrictMode 双挂载（同 FormField） */
   const fieldRef = useRef<VoidFieldInstance | null>(null)
   const createdByThisRef = useRef(false)
-  if (!fieldRef.current) {
+  if (!fieldRef.current || !form.getAllVoidFields().get(name)) {
     let field = form.getAllVoidFields().get(name)
     if (!field) {
       field = form.createVoidField({ name, ...fieldProps })

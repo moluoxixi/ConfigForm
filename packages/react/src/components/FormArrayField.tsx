@@ -41,9 +41,10 @@ export const FormArrayField = observer<FormArrayFieldComponentProps>(
       throw new Error('[ConfigForm] <FormArrayField> 必须在 <FormProvider> 内部使用')
     }
 
+    /** 兼容 React 18 StrictMode 双挂载（同 FormField） */
     const fieldRef = useRef<ArrayFieldInstance | null>(null)
     const createdByThisRef = useRef(false)
-    if (!fieldRef.current) {
+    if (!fieldRef.current || !form.getArrayField(name)) {
       let field = form.getArrayField(name)
       if (!field) {
         field = form.createArrayField({ name, ...fieldProps })

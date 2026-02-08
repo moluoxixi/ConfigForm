@@ -34,10 +34,16 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
     throw new Error('[ConfigForm] <FormField> 必须在 <FormProvider> 内部使用')
   }
 
-  /* 获取或创建字段，并记录是否由本组件创建 */
+  /**
+   * 获取或创建字段，并记录是否由本组件创建。
+   *
+   * 兼容 React 18 StrictMode 双挂载：
+   * 首次挂载 → 创建 field → StrictMode 卸载 → removeField → 二次挂载
+   * 此时 fieldRef.current 仍存在，但 form 中已无该 field，需重新注册。
+   */
   const fieldRef = useRef<FieldInstance | null>(null)
   const createdByThisRef = useRef(false)
-  if (!fieldRef.current) {
+  if (!fieldRef.current || !form.getField(name)) {
     let field = form.getField(name)
     if (!field) {
       const mergedProps: Record<string, unknown> = { ...fieldProps, name }

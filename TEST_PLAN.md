@@ -223,7 +223,7 @@ App 使用 `import.meta.glob` 自动扫描，新增示例只需创建文件夹�
 
 | # | 场景 | 平台 | 问题 | 状态 | 修复文件 |
 |---|------|------|------|------|----------|
-| S1 | BasicForm | React Antd | Playwright fill/pressSequentially/dispatchEvent 均无法触发 React+MobX 受控组件的 onChange→setValue 链路，DOM 值正确但 MobX model 值未更新，导致提交结果全空。需深入排查 ReactiveField 的值绑定机制。Checkbox 点击、Radio 点击、Switch 切换也有同样问题。 | 🔧 调查中 | `packages/react/src/components/ReactiveField.tsx` |
+| S1 | BasicForm | React Antd | React 18 StrictMode 双挂载导致字段注册丢失。首次挂载创建 field → StrictMode 卸载 cleanup 移除 field → 二次挂载 fieldRef 已存在跳过 createField → form.fields 永远为空 → submit 返回初始值。修复：检查 `!form.getField(name)` 重新注册。 | ✅ 已修复 | `packages/react/src/components/FormField.tsx`, `FormArrayField.tsx`, `FormVoidField.tsx` |
 
 ---
 
