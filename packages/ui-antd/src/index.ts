@@ -1,4 +1,4 @@
-import { registerFieldComponents } from '@moluoxixi/react'
+import { ArrayItems, registerFieldComponents } from '@moluoxixi/react'
 import {
   CheckboxGroup,
   DatePicker,
@@ -44,7 +44,7 @@ export function setupAntd(): void {
   registerFieldComponents(
     { Input, Password, Textarea, InputNumber, Select, RadioGroup, CheckboxGroup, Switch, DatePicker },
     { name: 'FormItem', component: FormItem },
-    { LayoutTabs, LayoutCard, LayoutCollapse, LayoutSteps, LayoutStepActions, LayoutFormActions },
+    { ArrayItems, LayoutTabs, LayoutCard, LayoutCollapse, LayoutSteps, LayoutStepActions, LayoutFormActions },
     {
       Input: PreviewInput,
       Password: PreviewPassword,

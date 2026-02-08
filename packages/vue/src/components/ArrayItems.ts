@@ -72,8 +72,14 @@ export const ArrayItems = defineComponent({
       }
 
       const arrayValue = Array.isArray(field.value) ? field.value : []
-      const pattern = field.pattern || form?.pattern || 'editable'
-      const isEditable = pattern === 'editable'
+
+      /**
+       * 与 ReactiveField 对齐：form.pattern 作为全局覆盖
+       * 只要 form 或 field 任一为 readOnly/disabled 就非编辑态
+       */
+      const fp = field.pattern || 'editable'
+      const formP = form?.pattern ?? 'editable'
+      const isEditable = fp === 'editable' && formP === 'editable'
       const maxItems = field.maxItems === Infinity ? '∞' : field.maxItems
 
       /* 渲染每个数组项 */
@@ -133,10 +139,8 @@ export const ArrayItems = defineComponent({
           ]),
           /* 数组项列表 */
           ...items,
-          /* 添加按钮 */
-          isEditable && h('div', { style: { marginTop: '4px' } }, [
-            h(ArrayBase.Addition),
-          ]),
+          /* 添加按钮（虚线全宽，视觉上与上方项目卡片同组） */
+          isEditable && h(ArrayBase.Addition),
         ]),
       })
     }

@@ -42,8 +42,12 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
   const componentName = dataField.component
   const Comp = typeof componentName === 'string' ? registry.components.get(componentName) : componentName as ComponentType<any>
 
+  /**
+   * 参考 Formily ReactiveField：
+   * 无 component 时直接渲染 children（用于 object 容器字段，如数组项 contacts.0）
+   */
   if (!Comp)
-    return null
+    return <>{children}</>
 
   /**
    * 参考 Formily ReactiveField：

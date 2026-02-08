@@ -113,8 +113,13 @@ function useEditable(): { isEditable: () => boolean, getField: () => ArrayFieldI
     isEditable: () => {
       if (!ctx) return false
       const field = ctx.field.value
-      const pattern = field.pattern || form?.pattern || 'editable'
-      return pattern === 'editable'
+      /**
+       * 与 ReactiveField 对齐：form.pattern 作为全局覆盖
+       * 只要 form 或 field 任一为 readOnly/disabled 就非编辑态
+       */
+      const fp = field.pattern || 'editable'
+      const formP = form?.pattern ?? 'editable'
+      return fp === 'editable' && formP === 'editable'
     },
     getField: () => ctx?.field.value ?? null,
   }
@@ -128,7 +133,7 @@ function useEditable(): { isEditable: () => boolean, getField: () => ArrayFieldI
 const ArrayBaseAddition = defineComponent({
   name: 'ArrayBaseAddition',
   props: {
-    title: { type: String, default: '+ 添加' },
+    title: { type: String, default: '+ 添加条目' },
     method: { type: String as PropType<'push' | 'unshift'>, default: 'push' },
   },
   setup(props) {
@@ -143,13 +148,24 @@ const ArrayBaseAddition = defineComponent({
         type: 'button',
         disabled: !field.canAdd,
         style: {
-          padding: '6px 16px',
-          background: field.canAdd ? '#409eff' : '#eee',
-          color: field.canAdd ? '#fff' : '#999',
-          border: 'none',
+          width: '100%',
+          padding: '8px 0',
+          background: field.canAdd ? '#fff' : '#f5f5f5',
+          color: field.canAdd ? '#1677ff' : '#999',
+          border: `1px dashed ${field.canAdd ? '#1677ff' : '#d9d9d9'}`,
           borderRadius: '4px',
           cursor: field.canAdd ? 'pointer' : 'not-allowed',
-          fontSize: '13px',
+          fontSize: '14px',
+          lineHeight: '22px',
+          transition: 'all 0.2s',
+        },
+        onMouseenter: (e: MouseEvent) => {
+          if (field.canAdd) {
+            (e.currentTarget as HTMLElement).style.background = '#e6f4ff'
+          }
+        },
+        onMouseleave: (e: MouseEvent) => {
+          (e.currentTarget as HTMLElement).style.background = field.canAdd ? '#fff' : '#f5f5f5'
         },
         onClick: () => {
           if (props.method === 'unshift') {

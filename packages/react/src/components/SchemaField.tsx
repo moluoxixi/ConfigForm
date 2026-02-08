@@ -38,7 +38,19 @@ export const SchemaField = observer<SchemaFieldProps>(({ schema, compileOptions 
       if (comp && comp !== 'ArrayItems') {
         return <FormField key={cf.address} name={cf.dataPath} fieldProps={toFieldProps(cf)} />
       }
-      return <FormArrayField key={cf.address} name={cf.dataPath} fieldProps={toArrayFieldProps(cf)} />
+      {
+        /**
+         * 参考 Formily + Vue 端 SchemaField：
+         * 将 items schema 通过 componentProps.itemsSchema 传递给 ArrayItems 组件，
+         * 由 ArrayItems 使用 FormField/FormObjectField 递归渲染每个数组项。
+         */
+        const arrayProps = toArrayFieldProps(cf)
+        arrayProps.componentProps = {
+          ...arrayProps.componentProps,
+          itemsSchema: cf.schema.items,
+        }
+        return <FormArrayField key={cf.address} name={cf.dataPath} fieldProps={arrayProps} />
+      }
     }
     if (cf.schema.type === 'object' && cf.children.length > 0) {
       return renderObjectNode(cf)

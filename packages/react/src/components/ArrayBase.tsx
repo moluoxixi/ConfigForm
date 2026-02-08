@@ -38,8 +38,13 @@ function useEditable(): { isEditable: boolean, field: ArrayFieldInstance | null 
   if (!ctx) return { isEditable: false, field: null }
 
   const field = ctx.field
-  const pattern = field.pattern || form?.pattern || 'editable'
-  return { isEditable: pattern === 'editable', field }
+  /**
+   * 与 ReactiveField 对齐：form.pattern 作为全局覆盖
+   * 只要 form 或 field 任一为 readOnly/disabled 就非编辑态
+   */
+  const fp = field.pattern || 'editable'
+  const formP = form?.pattern ?? 'editable'
+  return { isEditable: fp === 'editable' && formP === 'editable', field }
 }
 
 /* ======================== 组件 ======================== */
@@ -71,8 +76,8 @@ function ArrayBaseIndex(): React.ReactElement {
   return <span style={{ color: '#999', minWidth: 30, flexShrink: 0 }}>#{index + 1}</span>
 }
 
-/** ArrayBase.Addition — 添加按钮 */
-function ArrayBaseAddition({ title = '+ 添加' }: { title?: string }): React.ReactElement | null {
+/** ArrayBase.Addition — 添加按钮（虚线全宽，参考 Formily dashed block 风格） */
+function ArrayBaseAddition({ title = '+ 添加条目' }: { title?: string }): React.ReactElement | null {
   const { isEditable, field } = useEditable()
   if (!isEditable || !field) return null
 
@@ -81,15 +86,26 @@ function ArrayBaseAddition({ title = '+ 添加' }: { title?: string }): React.Re
       type="button"
       disabled={!field.canAdd}
       style={{
-        padding: '6px 16px',
-        background: field.canAdd ? '#1677ff' : '#eee',
-        color: field.canAdd ? '#fff' : '#999',
-        border: 'none',
-        borderRadius: 6,
+        width: '100%',
+        padding: '8px 0',
+        background: field.canAdd ? '#fff' : '#f5f5f5',
+        color: field.canAdd ? '#1677ff' : '#999',
+        border: `1px dashed ${field.canAdd ? '#1677ff' : '#d9d9d9'}`,
+        borderRadius: 4,
         cursor: field.canAdd ? 'pointer' : 'not-allowed',
-        fontSize: 13,
+        fontSize: 14,
+        lineHeight: '22px',
+        transition: 'all 0.2s',
       }}
       onClick={() => field.push()}
+      onMouseEnter={(e) => {
+        if (field.canAdd) {
+          e.currentTarget.style.background = '#e6f4ff'
+        }
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = field.canAdd ? '#fff' : '#f5f5f5'
+      }}
     >
       {title}
     </button>

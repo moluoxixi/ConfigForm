@@ -1,5 +1,6 @@
 /* 组件 */
 export {
+  ArrayItems,
   ConfigForm,
   FormArrayField,
   FormField,
@@ -7,9 +8,11 @@ export {
   FormProvider,
   FormVoidField,
   ReactiveField,
+  RecursionField,
   SchemaField,
 } from './components'
 export type {
+  ArrayItemsProps,
   ConfigFormProps,
   FormArrayFieldComponentProps,
   FormFieldProps,
@@ -17,6 +20,7 @@ export type {
   FormProviderProps,
   FormVoidFieldProps,
   ReactiveFieldProps,
+  RecursionFieldProps,
   SchemaFieldProps,
 } from './components'
 
