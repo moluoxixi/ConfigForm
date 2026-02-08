@@ -1,11 +1,10 @@
-fix: 参考Formily修复冒号/必填标记/ReactiveField props顺序
+refactor: 统一三个UI库FormItem的colon属性控制
 
-参考 Formily 源码实现：
-- antd-vue FormItem：手动追加冒号到label文本，禁用antd内置colon
-  解决垂直布局(labelCol.span=24)触发CSS伪元素隐藏冒号的问题
-- 三个UI库FormItem：添加pattern prop，readOnly/disabled时隐藏必填*标记
-  对齐Formily takeAsterisk逻辑(field.pattern !== 'readPretty')
-- Vue/React ReactiveField：向Wrapper传递form.pattern
-- React ReactiveField：componentProps放前面，value/onChange放后面
-  确保核心绑定不被componentProps覆盖（对齐Formily props顺序）
-- React antd FormItem：补齐labelPosition/labelWidth/colon支持
+三个 UI 库 FormItem 统一 colon prop（默认 true）：
+- antd-vue: 添加 colon prop，手动追加冒号到 label 文本
+- element-plus: 已有 colon prop，保持一致
+- react antd: 添加 colon prop，手动追加冒号，禁用内置 colon
+
+用户可通过以下方式控制：
+- 表单级: decoratorProps: { colon: false }
+- 字段级: wrapperProps: { colon: false }

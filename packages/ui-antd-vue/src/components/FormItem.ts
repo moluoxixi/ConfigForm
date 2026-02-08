@@ -14,6 +14,8 @@ export const FormItem = defineComponent({
     description: String,
     labelPosition: String as PropType<'top' | 'left' | 'right'>,
     labelWidth: { type: [String, Number], default: undefined },
+    /** 是否显示冒号后缀，默认 true；可通过 decoratorProps.colon 或 wrapperProps.colon 控制 */
+    colon: { type: Boolean, default: true },
     /** 表单模式（editable/readOnly/disabled），readOnly/disabled 时隐藏必填标记 */
     pattern: { type: String as PropType<'editable' | 'readOnly' | 'disabled'>, default: 'editable' },
   },
@@ -36,8 +38,13 @@ export const FormItem = defineComponent({
        */
       const showRequired = props.required && props.pattern === 'editable'
 
+      /** 冒号由 colon prop 控制，手动追加到 label 文本（绕过 antd 垂直布局 CSS 隐藏） */
+      const labelText = props.label
+        ? (props.colon ? `${props.label} :` : props.label)
+        : undefined
+
       return h(AFormItem, {
-        label: props.label ? `${props.label} :` : undefined,
+        label: labelText,
         required: showRequired,
         colon: false,
         validateStatus,

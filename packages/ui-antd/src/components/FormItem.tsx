@@ -8,6 +8,8 @@ export interface CfFormItemProps {
   errors?: ValidationFeedback[]
   warnings?: ValidationFeedback[]
   description?: string
+  /** 是否显示冒号后缀，默认 true；可通过 decoratorProps.colon 或 wrapperProps.colon 控制 */
+  colon?: boolean
   /** 表单模式（editable/readOnly/disabled），readOnly/disabled 时隐藏必填标记 */
   pattern?: 'editable' | 'readOnly' | 'disabled'
   labelPosition?: 'top' | 'left' | 'right'
@@ -20,7 +22,7 @@ export interface CfFormItemProps {
  *
  * readOnly/disabled 时隐藏必填星号标记
  */
-export function FormItem({ label, required, errors = [], warnings = [], description, pattern = 'editable', labelPosition, labelWidth, children }: CfFormItemProps): React.ReactElement {
+export function FormItem({ label, required, errors = [], warnings = [], description, colon = true, pattern = 'editable', labelPosition, labelWidth, children }: CfFormItemProps): React.ReactElement {
   const validateStatus = errors.length > 0
     ? 'error' as const
     : warnings.length > 0
@@ -40,11 +42,16 @@ export function FormItem({ label, required, errors = [], warnings = [], descript
   const hasLabelWidth = !isVertical && labelWidth !== undefined
   const labelWidthPx = typeof labelWidth === 'number' ? `${labelWidth}px` : labelWidth
 
+  /** 冒号由 colon prop 控制，手动追加到 label 文本（绕过 antd 垂直布局 CSS 隐藏） */
+  const labelText = label
+    ? (colon ? `${label} :` : label)
+    : undefined
+
   return (
     <AForm.Item
-      label={label}
+      label={labelText}
       required={showRequired}
-      colon
+      colon={false}
       validateStatus={validateStatus}
       help={helpMsg}
       {...(isVertical
