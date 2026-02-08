@@ -208,11 +208,15 @@ playground/
 | G9 | React ReactiveField componentProps 展开顺序覆盖 value/onChange | ✅ | ReactiveField.tsx 调整顺序 |
 | G10 | React 18 StrictMode 字段注册丢失 | ✅ | FormField/FormArrayField/FormVoidField.tsx |
 | G11 | 三个 UI 库 FormItem colon 属性统一 | ✅ | 三个 FormItem 添加 colon prop |
+| G12 | SceneRenderer 切换场景时表单数据残留（异步加载竞态 + 缺少 key） | ✅ | Vue App.vue + React App.tsx：loadScene 先清空 sceneConfig + 添加 :key |
+| G13 | reactions 动态设置 field.required 后提交不触发验证 | ✅ | `packages/core/src/models/Field.ts` validate() 前 syncRequiredRule |
 
 ### 场景级问题
 
 | # | 场景 | 问题 | 状态 |
 |---|------|------|:----:|
+| S1 | CascadeSelectForm | 城市/区县/二三级分类字段缺少 component:'Select'，渲染为 Input | ✅ |
+| S2 | ConditionalRequiredForm | reactions 动态设置 required 后提交不触发验证（UI *标记正常但验证跳过） | ✅ |
 
 ---
 
@@ -226,11 +230,101 @@ playground/
 
 | 平台 | 编辑态 | 阅读态 | 禁用态 |
 |------|:------:|:------:|:------:|
-| Vue AntdVue | ✅ | ✅ | ⏳ |
-| Vue ElementPlus | ✅ | ⏳ | ⏳ |
-| React Antd | ✅ | ✅ | ⏳ |
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
 
-### 场景 2~56：待测
+### 场景 2：表单布局（LayoutForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+### 场景 3：必填与格式验证（BasicValidationForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+### 场景 4：默认值（DefaultValueForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+### 场景 5：显隐联动（VisibilityLinkageForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+### 场景 6：值联动（ValueLinkageForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+### 场景 7：属性联动（PropertyLinkageForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+### 场景 8：级联选择（CascadeSelectForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+### 场景 9：计算字段（ComputedFieldForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+### 场景 10：条件必填（ConditionalRequiredForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> G13 已修复 — Field.validate() 前同步 required 到 rules，4 种条件必填模式全部验证通过
+
+### 场景 11：自定义验证（CustomValidationForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+### 场景 12：异步验证（AsyncValidationForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+### 场景 13~56：待测
 
 > 逐个测试时展开，格式同上。
 

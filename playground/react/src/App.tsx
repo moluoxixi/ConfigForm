@@ -22,6 +22,7 @@ export function App(): React.ReactElement {
   const loadScene = useCallback(async (name: string) => {
     const entry = sceneRegistry[name]
     if (!entry) { setSceneConfig(null); return }
+    setSceneConfig(null)
     setLoading(true)
     try { setSceneConfig((await entry.loader()).default) }
     catch (e) { console.error(`加载场景 ${name} 失败:`, e); setSceneConfig(null) }
@@ -69,7 +70,7 @@ export function App(): React.ReactElement {
         {/* 右侧内容区 */}
         <div style={{ flex: 1, border: '1px solid #eee', borderRadius: 8, padding: 24, background: '#fff', minHeight: 400 }}>
           {sceneConfig
-            ? <SceneRenderer config={sceneConfig} />
+            ? <SceneRenderer key={currentDemo} config={sceneConfig} />
             : <div style={{ textAlign: 'center', color: '#999', padding: 40 }}>{loading ? '加载中...' : '请选择场景'}</div>}
         </div>
       </div>

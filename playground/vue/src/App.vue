@@ -37,6 +37,7 @@
       <div style="flex: 1; border: 1px solid #eee; border-radius: 8px; padding: 24px; background: #fff; min-height: 400px;">
         <SceneRenderer
           v-if="sceneConfig && currentAdapter"
+          :key="currentDemo + '-' + currentUI"
           :config="sceneConfig"
           :status-tabs="currentAdapter.StatusTabs"
         />
@@ -76,10 +77,11 @@ async function switchUI(lib: UILib): Promise<void> {
 switchUI(currentUI.value)
 watch(currentUI, switchUI)
 
-/** 加载场景配置 */
+/** 加载场景配置（切换场景时先清空，确保 ConfigForm 完全重建） */
 async function loadScene(name: string): Promise<void> {
   const entry = sceneRegistry[name]
   if (!entry) { sceneConfig.value = null; return }
+  sceneConfig.value = null
   loading.value = true
   try { sceneConfig.value = (await entry.loader()).default }
   catch (e) { console.error(`加载场景 ${name} 失败:`, e); sceneConfig.value = null }

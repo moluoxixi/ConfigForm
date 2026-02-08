@@ -60,7 +60,7 @@ const config: SceneConfig = {
     properties: {
       province: { type: 'string', title: '省份', required: true, placeholder: '请选择', enum: PROVINCES },
       city: {
-        type: 'string', title: '城市', required: true, placeholder: '请先选择省份',
+        type: 'string', title: '城市', required: true, component: 'Select', placeholder: '请先选择省份',
         reactions: [{
           watch: 'province',
           fulfill: {
@@ -74,7 +74,7 @@ const config: SceneConfig = {
         }],
       },
       district: {
-        type: 'string', title: '区县', placeholder: '请先选择城市',
+        type: 'string', title: '区县', component: 'Select', placeholder: '请先选择城市',
         reactions: [{
           watch: 'city',
           fulfill: {
@@ -89,7 +89,7 @@ const config: SceneConfig = {
       },
       categoryL1: { type: 'string', title: '一级分类', required: true, placeholder: '请选择', enum: CAT_L1 },
       categoryL2: {
-        type: 'string', title: '二级分类', required: true, placeholder: '请先选择一级',
+        type: 'string', title: '二级分类', required: true, component: 'Select', placeholder: '请先选择一级',
         reactions: [{
           watch: 'categoryL1',
           fulfill: {
@@ -102,7 +102,7 @@ const config: SceneConfig = {
         }],
       },
       categoryL3: {
-        type: 'string', title: '三级分类', placeholder: '请先选择二级',
+        type: 'string', title: '三级分类', component: 'Select', placeholder: '请先选择二级',
         reactions: [{
           watch: 'categoryL2',
           fulfill: {

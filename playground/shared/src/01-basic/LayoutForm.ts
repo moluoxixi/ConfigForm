@@ -76,6 +76,14 @@ const config: SceneConfig = {
 
   /** 默认水平布局 schema */
   schema: createSchema('horizontal'),
+
+  /** 布局变体切换 */
+  schemaVariants: {
+    label: '布局方式',
+    options: LAYOUT_OPTIONS,
+    defaultValue: 'horizontal',
+    factory: (value: string) => createSchema(value as LayoutType),
+  },
 }
 
 export default config
