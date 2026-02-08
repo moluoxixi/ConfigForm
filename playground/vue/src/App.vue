@@ -35,7 +35,11 @@
 
       <!-- 右侧内容区 -->
       <div style="flex: 1; border: 1px solid #eee; border-radius: 8px; padding: 24px; background: #fff; min-height: 400px;">
-        <SceneRenderer v-if="sceneConfig" :config="sceneConfig" />
+        <SceneRenderer
+          v-if="sceneConfig && currentAdapter"
+          :config="sceneConfig"
+          :status-tabs="currentAdapter.StatusTabs"
+        />
         <div v-else style="text-align: center; color: #999; padding: 40px;">{{ loading ? '加载中...' : '请选择场景' }}</div>
       </div>
     </div>
@@ -45,17 +49,15 @@
 <script setup lang="ts">
 import type { SceneConfig } from '@playground/shared'
 import { getSceneGroups, sceneRegistry } from '@playground/shared'
-import { setupAntdVue } from '@moluoxixi/ui-antd-vue'
-import { setupElementPlus } from '@moluoxixi/ui-element-plus'
-import { ref, watch } from 'vue'
+import { ref, shallowRef, watch } from 'vue'
+import { adapters, type UIAdapter, type UILib } from './ui'
 import SceneRenderer from './components/SceneRenderer.vue'
-
-type UILib = 'antd-vue' | 'element-plus'
 
 const currentUI = ref<UILib>('antd-vue')
 const currentDemo = ref('BasicForm')
 const loading = ref(false)
 const sceneConfig = ref<SceneConfig | null>(null)
+const currentAdapter = shallowRef<UIAdapter | null>(null)
 
 const uiLibs = [
   { key: 'antd-vue' as UILib, label: 'Ant Design Vue', color: '#1677ff' },
@@ -65,14 +67,14 @@ const uiLibs = [
 const sceneGroups = getSceneGroups()
 const totalScenes = sceneGroups.reduce((sum, g) => sum + g.items.length, 0)
 
-/** 根据 UI 库调用 setup（覆盖全局注册表） */
-function applyUISetup(lib: UILib): void {
-  if (lib === 'antd-vue') setupAntdVue()
-  else setupElementPlus()
+/** 切换 UI 库：加载适配器 → 注册组件 → 更新引用 */
+async function switchUI(lib: UILib): Promise<void> {
+  const adapter = await adapters[lib]()
+  adapter.setup()
+  currentAdapter.value = adapter
 }
-applyUISetup(currentUI.value)
-
-watch(currentUI, (lib) => applyUISetup(lib))
+switchUI(currentUI.value)
+watch(currentUI, switchUI)
 
 /** 加载场景配置 */
 async function loadScene(name: string): Promise<void> {

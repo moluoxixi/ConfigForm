@@ -5,36 +5,37 @@
       {{ props.config.description }}
     </p>
 
-    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+    <component :is="props.statusTabs" ref="st" v-slot="{ mode, showResult }">
       <ConfigForm
         :schema="withMode(props.config.schema, mode)"
         :initial-values="props.config.initialValues"
         @submit="showResult"
         @submit-failed="(e: any) => st?.showErrors(e)"
       />
-    </StatusTabs>
+    </component>
   </div>
 </template>
 
 <script setup lang="ts">
 /**
- * 场景渲染器
+ * 场景渲染器（UI 库无关）
  *
- * 使用 ConfigForm + SchemaField 递归渲染 schema.properties。
- * StatusTabs 提供编辑态/阅读态/禁用态三态切换。
+ * StatusTabs 通过 prop 注入，由 App 根据当前 UI 库提供。
+ * ConfigForm 内部通过全局注册表解析字段组件，自动匹配当前 UI 库。
  */
 import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/core'
 import type { SceneConfig } from '@playground/shared'
-import { StatusTabs } from '@moluoxixi/ui-antd-vue'
+import type { Component } from 'vue'
 import { ConfigForm } from '@moluoxixi/vue'
 import { ref } from 'vue'
 
 const props = defineProps<{
   config: SceneConfig
+  statusTabs: Component
 }>()
 
-const st = ref<InstanceType<typeof StatusTabs>>()
+const st = ref<{ showErrors: (errors: unknown[]) => void } | null>(null)
 
 /** 注入 pattern 到 schema */
 function withMode(s: ISchema, mode: FieldPattern): ISchema {
