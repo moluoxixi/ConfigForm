@@ -6,8 +6,10 @@ import { defineComponent, h } from 'vue'
 /**
  * FormItem 装饰器适配
  *
- * 支持 labelPosition（top 时标签独占一行）和 labelWidth。
- * 与 antd-vue 版行为对齐。
+ * 与 antd-vue 版行为对齐：
+ * - label 默认右对齐（通过 CSS 覆盖）
+ * - label 默认带冒号后缀
+ * - 支持 labelPosition（top 时标签独占一行、左对齐）和 labelWidth
  */
 export const FormItem = defineComponent({
   name: 'CfFormItem',
@@ -19,6 +21,8 @@ export const FormItem = defineComponent({
     description: String,
     labelPosition: String as PropType<'top' | 'left' | 'right'>,
     labelWidth: { type: [String, Number], default: undefined },
+    /** 是否显示冒号后缀，默认 true */
+    colon: { type: Boolean, default: true },
   },
   setup(props, { slots }) {
     return () => {
@@ -30,12 +34,26 @@ export const FormItem = defineComponent({
       const lw = props.labelWidth
       const computedLabelWidth = isVertical ? 'auto' : (typeof lw === 'number' ? `${lw}px` : lw)
 
+      /** 标签文本：追加冒号后缀（对齐 antd-vue 行为） */
+      const labelText = props.label
+        ? (props.colon ? `${props.label} :` : props.label)
+        : undefined
+
+      /**
+       * 标签右对齐样式（非 top 模式时）
+       * Element Plus 的 ElFormItem 默认 label 左对齐，通过 CSS 覆盖为右对齐
+       */
+      const alignStyle = !isVertical
+        ? '--el-form-label-text-align: right; --el-form-item-label-text-align: right;'
+        : ''
+
       return h(ElFormItem, {
-        label: props.label,
+        label: labelText,
         required: props.required,
         error: errorMsg || undefined,
         labelWidth: computedLabelWidth,
-        style: isVertical ? 'display: block' : undefined,
+        style: `${isVertical ? 'display: block;' : ''} ${alignStyle}`.trim() || undefined,
+        class: !isVertical ? 'cf-form-item--right' : undefined,
       }, {
         default: () => [
           slots.default?.(),

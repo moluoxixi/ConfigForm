@@ -17,7 +17,7 @@ const FormActionsRenderer = defineComponent({
     submitLabel: { type: String, default: '提交' },
     resetLabel: { type: String, default: '重置' },
   },
-  emits: ['reset'],
+  emits: ['reset', 'submit', 'submitFailed'],
   setup(props, { emit }) {
     const registryRef = inject(ComponentRegistrySymbol)
 
@@ -31,6 +31,8 @@ const FormActionsRenderer = defineComponent({
           submitLabel: props.submitLabel,
           resetLabel: props.resetLabel,
           onReset: () => emit('reset'),
+          onSubmit: (values: Record<string, unknown>) => emit('submit', values),
+          onSubmitFailed: (errors: Array<{ path: string, message: string }>) => emit('submitFailed', errors),
         })
       }
 
@@ -191,6 +193,8 @@ export const ConfigForm = defineComponent({
                 submitLabel,
                 resetLabel,
                 onReset: () => form.reset(),
+                onSubmit: (values: Record<string, unknown>) => emit('submit', values),
+                onSubmitFailed: (errors: Array<{ path: string, message: string }>) => emit('submitFailed', errors),
               })
             : null,
 

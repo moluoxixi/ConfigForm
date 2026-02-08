@@ -1,5 +1,7 @@
 /* 组件 */
 export {
+  ArrayBase,
+  ArrayItems,
   ConfigForm,
   FormArrayField,
   FormField,
@@ -7,7 +9,10 @@ export {
   FormProvider,
   FormVoidField,
   ReactiveField,
+  RecursionField,
   SchemaField,
+  useArray,
+  useIndex,
 } from './components'
 
 /* Composables */

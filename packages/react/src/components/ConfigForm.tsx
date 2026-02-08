@@ -78,6 +78,19 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
   })
   const form = externalForm ?? internalForm
 
+  /** schema 变化时同步更新表单级配置（对齐 Vue 版 watch 逻辑） */
+  useEffect(() => {
+    if (rootDecoratorProps.labelPosition !== undefined) {
+      form.labelPosition = rootDecoratorProps.labelPosition as 'top' | 'left' | 'right'
+    }
+    if (rootDecoratorProps.labelWidth !== undefined) {
+      form.labelWidth = rootDecoratorProps.labelWidth as string | number
+    }
+    if (rootDecoratorProps.pattern !== undefined) {
+      form.pattern = rootDecoratorProps.pattern as FieldPattern
+    }
+  }, [form, rootDecoratorProps.labelPosition, rootDecoratorProps.labelWidth, rootDecoratorProps.pattern])
+
   /* 注册值变化监听 */
   useEffect(() => {
     if (onValuesChange) {
@@ -122,6 +135,8 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
             submitLabel={submitLabel}
             resetLabel={resetLabel}
             onReset={() => form.reset()}
+            onSubmit={(values) => onSubmit?.(values as Values)}
+            onSubmitFailed={(errors) => onSubmitFailed?.(errors as ValidationFeedback[])}
           />
         )}
 
@@ -140,9 +155,11 @@ interface FormActionsRendererProps {
   submitLabel: string
   resetLabel: string
   onReset: () => void
+  onSubmit?: (values: Record<string, unknown>) => void
+  onSubmitFailed?: (errors: unknown[]) => void
 }
 
-function FormActionsRenderer({ showSubmit, showReset, submitLabel, resetLabel, onReset }: FormActionsRendererProps): ReactElement {
+function FormActionsRenderer({ showSubmit, showReset, submitLabel, resetLabel, onReset, onSubmit, onSubmitFailed }: FormActionsRendererProps): ReactElement {
   const registry = useContext(ComponentRegistryContext)
   const LayoutActions = registry.components.get('LayoutFormActions')
 
@@ -154,6 +171,8 @@ function FormActionsRenderer({ showSubmit, showReset, submitLabel, resetLabel, o
         submitLabel={submitLabel}
         resetLabel={resetLabel}
         onReset={onReset}
+        onSubmit={onSubmit}
+        onSubmitFailed={onSubmitFailed}
       />
     )
   }

@@ -46,6 +46,11 @@ export function LayoutFormActions({
     onReset?.()
   }, [form, onReset])
 
+  /** readOnly/disabled 模式下自动隐藏操作按钮 */
+  if (form && form.pattern !== 'editable') {
+    return <></>
+  }
+
   return (
     <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center', gap: 8 }}>
       {showSubmit && <AButton type="primary" onClick={handleSubmit}>{submitLabel}</AButton>}

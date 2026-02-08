@@ -43,9 +43,16 @@ export const LayoutFormActions = defineComponent({
       emit('reset')
     }
 
-    return () => h('div', { style: 'margin-top: 24px; display: flex; justify-content: center; gap: 8px' }, [
-      props.showSubmit ? h(AButton, { type: 'primary', onClick: handleSubmit }, () => props.submitLabel) : null,
-      props.showReset ? h(AButton, { onClick: handleReset }, () => props.resetLabel) : null,
-    ])
+    return () => {
+      /** readOnly/disabled 模式下自动隐藏操作按钮 */
+      if (form && form.pattern !== 'editable') {
+        return null
+      }
+
+      return h('div', { style: 'margin-top: 24px; display: flex; justify-content: center; gap: 8px' }, [
+        props.showSubmit ? h(AButton, { type: 'primary', onClick: handleSubmit }, () => props.submitLabel) : null,
+        props.showReset ? h(AButton, { onClick: handleReset }, () => props.resetLabel) : null,
+      ])
+    }
   },
 })
