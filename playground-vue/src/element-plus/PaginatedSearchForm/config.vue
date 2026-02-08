@@ -23,7 +23,7 @@
  * 通过 dataSource 配置远程数据源，框架自动处理加载。
  */
 import type { ISchema } from '@moluoxixi/schema'
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { setupElementPlus, StatusTabs } from '@moluoxixi/ui-element-plus'
 import { ConfigForm } from '@moluoxixi/vue'
 import { ref } from 'vue'

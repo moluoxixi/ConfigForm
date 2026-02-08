@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <h2>oneOf/anyOf 条件 Schema</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -38,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { LayoutFormActions, setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
 /**

@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { LayoutFormActions, setupElementPlus, StatusTabs } from '@moluoxixi/ui-element-plus'
 import { FormField, FormProvider, FormVoidField, useCreateForm } from '@moluoxixi/vue'
 import { ref, watch } from 'vue'

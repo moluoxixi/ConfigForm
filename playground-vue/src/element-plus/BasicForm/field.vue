@@ -30,7 +30,7 @@
  * 使用 FormProvider + FormField 声明式渲染，等价 Formily 的 Field 模式。
  * 通过 FormField 的 fieldProps 配置字段，ReactiveField 自动处理组件查找和三态。
  */
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { LayoutFormActions, setupElementPlus, StatusTabs } from '@moluoxixi/ui-element-plus'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
 import { ref, watch } from 'vue'

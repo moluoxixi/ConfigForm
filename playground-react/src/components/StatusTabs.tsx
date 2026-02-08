@@ -1,4 +1,4 @@
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 /**
  * Playground ??????React ??
  *

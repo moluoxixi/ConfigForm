@@ -41,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 /**
  * Playground 通用表单包装器
  *

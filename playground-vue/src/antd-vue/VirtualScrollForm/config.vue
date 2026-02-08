@@ -74,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { createForm } from '@moluoxixi/core'
 import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { FormProvider } from '@moluoxixi/vue'

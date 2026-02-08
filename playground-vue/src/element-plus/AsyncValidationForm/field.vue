@@ -55,7 +55,7 @@
  * 使用 FormProvider + FormField 实现异步验证。
  * 已注册用户名: admin / test / root，有效邀请码: INVITE2024 / VIP888
  */
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { LayoutFormActions, setupElementPlus, StatusTabs } from '@moluoxixi/ui-element-plus'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
 import { ref, watch } from 'vue'

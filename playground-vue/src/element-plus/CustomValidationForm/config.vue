@@ -27,7 +27,7 @@
  * - 条件规则（证件号码随证件类型变化）
  */
 import type { ISchema } from '@moluoxixi/schema'
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { setupElementPlus, StatusTabs } from '@moluoxixi/ui-element-plus'
 import { ConfigForm } from '@moluoxixi/vue'
 import { ref } from 'vue'

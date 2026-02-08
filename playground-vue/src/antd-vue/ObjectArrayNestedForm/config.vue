@@ -23,7 +23,7 @@
  * 通过 type: 'array' + items 定义多层嵌套。
  */
 import type { ISchema } from '@moluoxixi/schema'
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { ConfigForm } from '@moluoxixi/vue'
 import { ref } from 'vue'

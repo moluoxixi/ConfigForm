@@ -26,7 +26,7 @@
  * - 条件计算：含税/不含税 计税
  */
 import type { ISchema } from '@moluoxixi/schema'
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { setupElementPlus, StatusTabs } from '@moluoxixi/ui-element-plus'
 import { ConfigForm } from '@moluoxixi/vue'
 import { ref } from 'vue'

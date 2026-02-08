@@ -26,7 +26,7 @@
  * - mergeSchema 保留基础字段并追加场景特有字段
  */
 import type { ISchema } from '@moluoxixi/schema'
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { mergeSchema } from '@moluoxixi/schema'
 import { setupElementPlus, StatusTabs } from '@moluoxixi/ui-element-plus'
 import { ConfigForm } from '@moluoxixi/vue'

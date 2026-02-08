@@ -63,7 +63,7 @@
 
 <script setup lang="ts">
 import type { FieldInstance } from '@moluoxixi/core'
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { setupElementPlus } from '@moluoxixi/ui-element-plus'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
 import { onMounted, ref } from 'vue'

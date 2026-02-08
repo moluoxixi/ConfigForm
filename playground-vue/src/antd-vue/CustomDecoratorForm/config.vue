@@ -17,7 +17,7 @@
 
 <script setup lang="ts">
 import type { ISchema } from '@moluoxixi/schema'
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { ConfigForm, registerWrapper } from '@moluoxixi/vue'
 /**

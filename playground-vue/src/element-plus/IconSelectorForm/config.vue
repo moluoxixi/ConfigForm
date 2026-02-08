@@ -16,7 +16,7 @@
 <script setup lang="ts">
 import type { PropType } from 'vue'
 import type { ISchema } from '@moluoxixi/schema'
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { setupElementPlus, StatusTabs } from '@moluoxixi/ui-element-plus'
 import { ConfigForm, registerComponent } from '@moluoxixi/vue'
 /**

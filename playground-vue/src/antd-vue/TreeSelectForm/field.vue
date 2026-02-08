@@ -17,7 +17,7 @@
 
 <script setup lang="ts">
 import type { PropType } from 'vue'
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { LayoutFormActions, setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { FormField, FormProvider, registerComponent, useCreateForm } from '@moluoxixi/vue'
 // TODO: ATreeSelect 暂时保留 ant-design-vue 依赖，后续替换为自定义树选择组件

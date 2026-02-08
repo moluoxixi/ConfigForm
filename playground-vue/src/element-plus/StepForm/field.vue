@@ -52,7 +52,7 @@
  * 使用 FormProvider + FormField + ElSteps 实现分步填写。
  * 通过 currentStep 控制可见步骤，下一步前校验当前步骤字段。
  */
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { LayoutFormActions, setupElementPlus, StatusTabs } from '@moluoxixi/ui-element-plus'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
 import { ref, watch } from 'vue'

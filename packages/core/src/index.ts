@@ -33,3 +33,6 @@ export type {
   VoidFieldInstance,
   VoidFieldProps,
 } from './types'
+
+/* re-export 常用类型（供 playground 直接使用，避免依赖 @moluoxixi/shared） */
+export type { FieldPattern } from '@moluoxixi/shared'

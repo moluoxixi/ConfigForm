@@ -27,7 +27,7 @@
  * 不使用 v-for 渲染按钮，完全由 schema 驱动。
  */
 import type { ISchema } from '@moluoxixi/schema'
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { ConfigForm } from '@moluoxixi/vue'
 import { computed, ref } from 'vue'

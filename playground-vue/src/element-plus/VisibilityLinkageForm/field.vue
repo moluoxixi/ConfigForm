@@ -27,7 +27,7 @@
  * - Switch 控制一组字段显隐
  * - RadioGroup 控制互斥字段显隐
  */
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { LayoutFormActions, setupElementPlus, StatusTabs } from '@moluoxixi/ui-element-plus'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
 import { computed, ref, watch } from 'vue'

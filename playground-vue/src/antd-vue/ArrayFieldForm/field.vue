@@ -29,7 +29,7 @@
  * 操作按钮通过 ArrayBase 子组件声明式渲染，
  * 框架根据 form.pattern 自动控制按钮显隐。
  */
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { LayoutFormActions, setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { FormArrayField, FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
 import { ref, watch } from 'vue'

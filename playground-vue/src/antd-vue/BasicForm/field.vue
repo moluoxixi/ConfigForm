@@ -31,7 +31,7 @@
  * 通过 FormField 的 fieldProps 配置字段，ReactiveField 自动处理组件查找和三态。
  * 提交/重置由 LayoutFormActions 自动处理，无需 <form> 标签和手动 submit。
  */
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { LayoutFormActions, setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
 import { ref, watch } from 'vue'

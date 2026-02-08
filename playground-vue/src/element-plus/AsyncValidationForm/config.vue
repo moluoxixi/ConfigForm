@@ -26,7 +26,7 @@
  * 已注册用户名: admin / test / root，有效邀请码: INVITE2024 / VIP888
  */
 import type { ISchema } from '@moluoxixi/schema'
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { setupElementPlus, StatusTabs } from '@moluoxixi/ui-element-plus'
 import { ConfigForm } from '@moluoxixi/vue'
 import { ref } from 'vue'

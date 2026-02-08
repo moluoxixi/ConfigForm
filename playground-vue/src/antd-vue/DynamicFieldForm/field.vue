@@ -30,7 +30,7 @@
  * 增删操作由 FormArrayField（ArrayBase）自动处理。
  * 框架根据 form.pattern 自动控制操作按钮显隐。
  */
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { LayoutFormActions, setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { FormArrayField, FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
 import { ref, watch } from 'vue'

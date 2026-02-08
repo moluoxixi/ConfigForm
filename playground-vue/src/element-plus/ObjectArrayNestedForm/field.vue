@@ -27,7 +27,7 @@
  * 使用 FormProvider + FormArrayField 嵌套实现多层数组结构。
  * FormArrayField 自动检测 itemTemplate 中的数组属性并递归渲染。
  */
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { LayoutFormActions, setupElementPlus, StatusTabs } from '@moluoxixi/ui-element-plus'
 import { FormArrayField, FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
 import { ref, watch } from 'vue'
