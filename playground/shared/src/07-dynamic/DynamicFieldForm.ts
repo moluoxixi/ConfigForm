@@ -47,10 +47,6 @@ const config: SceneConfig = {
       remark: { type: 'string', title: '备注', component: 'Textarea', componentProps: { rows: 3 } },
     },
   },
-
-  fields: [
-    { name: 'title', label: '表单标题', required: true, component: 'Input', componentProps: { placeholder: '请输入标题' } },
-  ],
 }
 
 export default config

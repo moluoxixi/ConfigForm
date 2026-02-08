@@ -74,20 +74,6 @@ const config: SceneConfig = {
       },
     },
   },
-
-  fields: [
-    { name: 'name', label: '姓名', required: true, component: 'Input', componentProps: { placeholder: '请输入姓名' } },
-    { name: 'email', label: '邮箱', required: true, component: 'Input', rules: [{ format: 'email', message: '无效邮箱' }], componentProps: { placeholder: '请输入邮箱' } },
-    { name: 'phone', label: '手机号', component: 'Input', componentProps: { placeholder: '请输入手机号' } },
-    { name: 'company', label: '公司', component: 'Input', componentProps: { placeholder: '请输入公司' } },
-    { name: 'position', label: '职位', component: 'Input', componentProps: { placeholder: '请输入职位' } },
-    { name: 'salary', label: '薪资', component: 'InputNumber', componentProps: { min: 0, style: { width: '100%' } } },
-    { name: 'school', label: '学校', component: 'Input', componentProps: { placeholder: '请输入学校' } },
-    { name: 'major', label: '专业', component: 'Input', componentProps: { placeholder: '请输入专业' } },
-    { name: 'degree', label: '学历', component: 'Select', dataSource: DEGREE_OPTIONS, componentProps: { placeholder: '请选择学历' } },
-    { name: 'bio', label: '简介', component: 'Textarea', componentProps: { placeholder: '请输入简介' } },
-    { name: 'hobby', label: '爱好', component: 'Input', componentProps: { placeholder: '请输入爱好' } },
-  ],
 }
 
 export default config

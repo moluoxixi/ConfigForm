@@ -32,15 +32,6 @@ const config: SceneConfig = {
       bio: { type: 'string', title: '简介', component: 'Textarea', componentProps: { rows: 2 } },
     },
   },
-
-  fields: [
-    { name: 'name', label: '姓名', component: 'Input' },
-    { name: 'email', label: '邮箱', component: 'Input', rules: [{ format: 'email', message: '无效邮箱' }] },
-    { name: 'phone', label: '电话', component: 'Input', rules: [{ format: 'phone', message: '无效手机号' }] },
-    { name: 'salary', label: '薪资', component: 'InputNumber', componentProps: { style: 'width: 100%' } },
-    { name: 'department', label: '部门', component: 'Input' },
-    { name: 'bio', label: '简介', component: 'Textarea', componentProps: { rows: 2 } },
-  ],
 }
 
 export default config

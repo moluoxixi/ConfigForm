@@ -115,38 +115,6 @@ const config: SceneConfig = {
       },
     },
   },
-
-  fields: [
-    /* 👤 个人信息 */
-    { name: 'title', label: '标题', required: true, component: 'Input', componentProps: { placeholder: '请输入标题' } },
-    { name: 'name', label: '姓名', required: true, component: 'Input', componentProps: { placeholder: '请输入姓名' } },
-    { name: 'age', label: '年龄', component: 'InputNumber', componentProps: { min: 0, max: 150, style: { width: '100%' } } },
-    { name: 'gender', label: '性别', component: 'Select', dataSource: GENDER_OPTIONS, componentProps: { placeholder: '请选择' } },
-    /* 📞 联系方式 */
-    { name: 'phone', label: '手机号', component: 'Input', componentProps: { placeholder: '请输入手机号' }, rules: [{ format: 'phone', message: '无效手机号' }] },
-    { name: 'email', label: '邮箱', component: 'Input', componentProps: { placeholder: '请输入邮箱' }, rules: [{ format: 'email', message: '无效邮箱' }] },
-    { name: 'emergencyName', label: '紧急联系人', component: 'Input', componentProps: { placeholder: '请输入' } },
-    { name: 'emergencyRelation', label: '关系', component: 'Select', dataSource: RELATION_OPTIONS, componentProps: { placeholder: '请选择' } },
-    { name: 'emergencyPhone', label: '紧急联系电话', component: 'Input', componentProps: { placeholder: '请输入' } },
-    /* 📍 地址 */
-    { name: 'province', label: '省份', component: 'Select', dataSource: PROVINCE_OPTIONS, componentProps: { placeholder: '请选择' } },
-    { name: 'city', label: '城市', component: 'Input', componentProps: { placeholder: '请输入城市' } },
-    { name: 'zipCode', label: '邮编', component: 'Input', componentProps: { placeholder: '请输入邮编' } },
-    { name: 'addressDetail', label: '详细地址', component: 'Textarea', componentProps: { placeholder: '请输入详细地址' } },
-    /* 🏢 公司信息 */
-    { name: 'companyName', label: '公司名称', component: 'Input', componentProps: { placeholder: '请输入' } },
-    { name: 'department', label: '部门', component: 'Input', componentProps: { placeholder: '请输入' } },
-    { name: 'position', label: '职位', component: 'Input', componentProps: { placeholder: '请输入' } },
-    { name: 'building', label: '楼栋', component: 'Input', componentProps: { placeholder: '请输入' } },
-    { name: 'floor', label: '楼层', component: 'Input', componentProps: { placeholder: '请输入' } },
-    { name: 'seat', label: '工位号', component: 'Input', componentProps: { placeholder: '请输入' } },
-    /* ⚙️ 偏好设置 */
-    { name: 'theme', label: '主题', component: 'RadioGroup', dataSource: THEME_OPTIONS },
-    { name: 'customColor', label: '自定义颜色', component: 'Input', componentProps: { placeholder: '请输入颜色值' } },
-    { name: 'emailNotify', label: '邮件通知', component: 'Switch' },
-    { name: 'smsNotify', label: '短信通知', component: 'Switch' },
-    { name: 'dnd', label: '免打扰', component: 'Switch' },
-  ],
 }
 
 export default config

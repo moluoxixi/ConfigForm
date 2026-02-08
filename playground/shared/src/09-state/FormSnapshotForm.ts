@@ -35,13 +35,6 @@ const config: SceneConfig = {
       priority: { type: 'string', title: '优先级', enum: PRIORITY_OPTIONS },
     },
   },
-
-  fields: [
-    { name: 'title', label: '标题', required: true, component: 'Input' },
-    { name: 'description', label: '描述', component: 'Textarea', componentProps: { rows: 3 } },
-    { name: 'category', label: '分类', component: 'Input' },
-    { name: 'priority', label: '优先级', component: 'Input' },
-  ],
 }
 
 export default config

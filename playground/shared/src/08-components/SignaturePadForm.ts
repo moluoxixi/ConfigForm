@@ -21,11 +21,6 @@ const config: SceneConfig = {
       signatureData: { type: 'string', title: '手写签名', component: 'SignaturePad' },
     },
   },
-
-  fields: [
-    { name: 'signerName', label: '签名人', required: true, component: 'Input', componentProps: { style: 'width: 300px' } },
-    { name: 'signatureData', label: '手写签名', component: 'SignaturePad' },
-  ],
 }
 
 export default config

@@ -42,11 +42,6 @@ const config: SceneConfig = {
       },
     },
   },
-
-  fields: [
-    { name: 'groupName', label: '分组名称', required: true, component: 'Input', componentProps: { placeholder: '请输入分组名称', style: 'width: 300px' } },
-    { name: 'contacts', label: '联系人列表', component: 'ArrayField', componentProps: { minItems: 1, maxItems: 8, itemTemplate: { name: '', phone: '', email: '' } } },
-  ],
 }
 
 export default config

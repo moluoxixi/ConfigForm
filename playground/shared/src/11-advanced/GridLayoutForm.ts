@@ -54,19 +54,6 @@ const config: SceneConfig = {
       notification: { type: 'boolean', title: '接收通知', span: 12 },
     },
   },
-
-  fields: [
-    { name: 'firstName', label: '姓', required: true, component: 'Input', componentProps: { placeholder: '请输入姓氏' } },
-    { name: 'lastName', label: '名', required: true, component: 'Input', componentProps: { placeholder: '请输入名字' } },
-    { name: 'email', label: '邮箱', component: 'Input', rules: [{ format: 'email', message: '请输入有效邮箱' }], componentProps: { placeholder: 'user@example.com' } },
-    { name: 'age', label: '年龄', component: 'InputNumber', componentProps: { min: 0, max: 150, style: 'width: 100%' } },
-    { name: 'address', label: '详细地址', component: 'Textarea', componentProps: { placeholder: '请输入详细地址', rows: 2 } },
-    { name: 'province', label: '省份', component: 'Select', dataSource: PROVINCE_OPTIONS },
-    { name: 'city', label: '城市', component: 'Input', componentProps: { placeholder: '请输入城市' } },
-    { name: 'zipCode', label: '邮编', component: 'Input', componentProps: { placeholder: '100000' } },
-    { name: 'phone', label: '手机号', component: 'Input', rules: [{ format: 'phone', message: '请输入有效手机号' }] },
-    { name: 'notification', label: '接收通知', component: 'Switch' },
-  ],
 }
 
 export default config

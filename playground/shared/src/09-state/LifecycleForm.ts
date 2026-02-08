@@ -26,12 +26,6 @@ const config: SceneConfig = {
       description: { type: 'string', title: '描述', component: 'Textarea', componentProps: { rows: 3 } },
     },
   },
-
-  fields: [
-    { name: 'title', label: '标题', required: true, component: 'Input' },
-    { name: 'price', label: '价格', component: 'InputNumber', componentProps: { style: 'width: 100%' } },
-    { name: 'description', label: '描述', component: 'Textarea', componentProps: { rows: 3 } },
-  ],
 }
 
 export default config

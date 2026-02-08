@@ -21,11 +21,6 @@ const config: SceneConfig = {
       icon: { type: 'string', title: '图标', required: true, component: 'IconSelector' },
     },
   },
-
-  fields: [
-    { name: 'menuName', label: '菜单名称', required: true, component: 'Input', componentProps: { placeholder: '请输入菜单名称', style: 'width: 300px' } },
-    { name: 'icon', label: '图标', required: true, component: 'IconSelector' },
-  ],
 }
 
 export default config

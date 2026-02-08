@@ -79,17 +79,6 @@ const config: SceneConfig = {
       },
     },
   },
-
-  fields: [
-    { name: 'projectName', label: '项目名称', required: true, component: 'Input', description: '请输入项目的完整名称', componentProps: { placeholder: '请输入项目名称' } },
-    { name: 'projectCode', label: '项目编号', required: true, component: 'Input', rules: [{ pattern: '^[A-Z]{2}-\\d{4}$', message: '格式：XX-0000' }] },
-    { name: 'description', label: '项目描述', component: 'Textarea', description: '不超过500字' },
-    { name: 'contactName', label: '联系人', required: true, component: 'Input' },
-    { name: 'contactPhone', label: '电话', component: 'Input', rules: [{ format: 'phone', message: '请输入有效手机号' }] },
-    { name: 'contactEmail', label: '邮箱', component: 'Input', rules: [{ format: 'email', message: '请输入有效邮箱' }] },
-    { name: 'budget', label: '预算（万元）', component: 'InputNumber', componentProps: { min: 0 } },
-    { name: 'startDate', label: '开始日期', component: 'DatePicker', componentProps: { style: 'width: 100%' } },
-  ],
 }
 
 export default config

@@ -104,18 +104,6 @@ const config: SceneConfig = {
       },
     },
   },
-
-  fields: [
-    { name: 'enableRemark', label: '启用备注', component: 'Switch' },
-    { name: 'remark', label: '备注内容', component: 'Textarea', componentProps: { placeholder: '请先开启' } },
-    { name: 'contactType', label: '联系方式类型', component: 'Select', dataSource: CONTACT_TYPE_OPTIONS, componentProps: { placeholder: '请选择' } },
-    { name: 'contactValue', label: '联系方式', required: true, component: 'Input', componentProps: { placeholder: '请输入手机号' } },
-    { name: 'productType', label: '产品类型', component: 'RadioGroup', dataSource: PRODUCT_TYPE_OPTIONS },
-    { name: 'quantity', label: '数量', component: 'InputNumber', description: '根据产品类型调整 step', componentProps: { min: 1, step: 1, addonAfter: '件' } },
-    { name: 'isVip', label: 'VIP 用户', component: 'Switch', description: '开启后公司名称和工号必填' },
-    { name: 'vipCompany', label: '公司名称', component: 'Input', componentProps: { placeholder: 'VIP 必填' } },
-    { name: 'vipId', label: '工号', component: 'Input', componentProps: { placeholder: 'VIP 必填' } },
-  ],
 }
 
 export default config

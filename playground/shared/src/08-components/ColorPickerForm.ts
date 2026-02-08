@@ -28,13 +28,6 @@ const config: SceneConfig = {
       textColor: { type: 'string', title: '文字颜色', component: 'ColorPicker', componentProps: { presets: PRESETS } },
     },
   },
-
-  fields: [
-    { name: 'themeName', label: '主题名称', required: true, component: 'Input', componentProps: { placeholder: '请输入主题名称' } },
-    { name: 'primaryColor', label: '主色调', required: true, component: 'ColorEditor', componentProps: { presets: PRESETS } },
-    { name: 'bgColor', label: '背景色', component: 'ColorEditor', componentProps: { presets: PRESETS } },
-    { name: 'textColor', label: '文字颜色', component: 'ColorEditor', componentProps: { presets: PRESETS } },
-  ],
 }
 
 export default config

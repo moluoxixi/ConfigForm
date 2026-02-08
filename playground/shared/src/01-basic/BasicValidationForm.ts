@@ -40,18 +40,6 @@ const config: SceneConfig = {
       password: { type: 'string', title: '密码', required: true, component: 'Password', componentProps: { placeholder: '8-32 位' }, rules: passwordRules },
     },
   },
-
-  fields: [
-    { name: 'username', label: '用户名（必填）', required: true, component: 'Input', componentProps: { placeholder: '请输入' }, rules: [{ minLength: 3, maxLength: 20, message: '3-20 字符' }] },
-    { name: 'email', label: '邮箱', required: true, component: 'Input', componentProps: { placeholder: '请输入邮箱' }, rules: [{ format: 'email', message: '无效邮箱' }] },
-    { name: 'phone', label: '手机号', required: true, component: 'Input', componentProps: { placeholder: '11 位手机号' }, rules: [{ format: 'phone', message: '无效手机号' }] },
-    { name: 'website', label: '个人网站', component: 'Input', componentProps: { placeholder: 'https://...' }, rules: [{ format: 'url', message: '无效 URL' }] },
-    { name: 'nickname', label: '昵称', component: 'Input', componentProps: { placeholder: '2-10 字符' }, rules: [{ minLength: 2, message: '至少 2 字符' }, { maxLength: 10, message: '最多 10 字符' }] },
-    { name: 'age', label: '年龄', required: true, component: 'InputNumber', rules: [{ min: 1, max: 150, message: '1-150' }] },
-    { name: 'zipCode', label: '邮编', component: 'Input', componentProps: { placeholder: '6 位数字' }, rules: zipCodeRules },
-    { name: 'idCard', label: '身份证号', component: 'Input', componentProps: { placeholder: '18 位' }, rules: idCardRules },
-    { name: 'password', label: '密码', required: true, component: 'Password', componentProps: { placeholder: '8-32 位' }, rules: passwordRules },
-  ],
 }
 
 export default config

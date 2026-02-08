@@ -93,22 +93,6 @@ const config: SceneConfig = {
       },
     },
   },
-
-  fields: [
-    { name: 'firstName', label: '姓', component: 'Input', componentProps: { placeholder: '请输入姓' } },
-    { name: 'lastName', label: '名', component: 'Input', componentProps: { placeholder: '请输入名' } },
-    { name: 'fullName', label: '全名（自动拼接）', component: 'Input', componentProps: { disabled: true } },
-    { name: 'rawInput', label: '输入文本', component: 'Input', componentProps: { placeholder: '输入任意文本' } },
-    { name: 'upperCase', label: '大写转换', component: 'Input', componentProps: { disabled: true } },
-    { name: 'trimmed', label: '去空格', component: 'Input', componentProps: { disabled: true } },
-    { name: 'country', label: '国家', component: 'Select', dataSource: COUNTRY_OPTIONS, componentProps: { placeholder: '请选择国家' } },
-    { name: 'areaCode', label: '区号（自动）', component: 'Input', componentProps: { disabled: true } },
-    { name: 'currency', label: '货币（自动）', component: 'Input', componentProps: { disabled: true } },
-    { name: 'province', label: '省', component: 'Input', componentProps: { placeholder: '省' } },
-    { name: 'city', label: '市', component: 'Input', componentProps: { placeholder: '市' } },
-    { name: 'district', label: '区', component: 'Input', componentProps: { placeholder: '区' } },
-    { name: 'fullAddress', label: '完整地址（聚合）', component: 'Input', componentProps: { disabled: true } },
-  ],
 }
 
 export default config

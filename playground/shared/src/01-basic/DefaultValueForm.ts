@@ -49,17 +49,6 @@ const config: SceneConfig = {
       },
     },
   },
-
-  fields: [
-    { name: 'country', label: '国家', component: 'Select', description: '静态默认值', dataSource: COUNTRY_OPTIONS, componentProps: { placeholder: '请选择国家' } },
-    { name: 'status', label: '状态', component: 'RadioGroup', dataSource: STATUS_OPTIONS },
-    { name: 'enableNotify', label: '开启通知', component: 'Switch' },
-    { name: 'quantity', label: '数量', component: 'InputNumber', componentProps: { min: 1 } },
-    { name: 'unitPrice', label: '单价', component: 'InputNumber', componentProps: { min: 0, step: 0.1 } },
-    { name: 'totalPrice', label: '总价（自动计算）', component: 'InputNumber', description: '数量 × 单价', componentProps: { disabled: true } },
-    { name: 'level', label: '会员等级', component: 'Select', dataSource: LEVEL_OPTIONS, componentProps: { placeholder: '请选择等级' } },
-    { name: 'discountRate', label: '折扣率（%）', component: 'InputNumber', description: '根据等级动态设置', componentProps: { disabled: true } },
-  ],
 }
 
 export default config

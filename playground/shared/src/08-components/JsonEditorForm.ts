@@ -24,11 +24,6 @@ const config: SceneConfig = {
       jsonContent: { type: 'string', title: 'JSON 内容', required: true, component: 'JsonEditor' },
     },
   },
-
-  fields: [
-    { name: 'configName', label: '配置名称', required: true, component: 'Input', componentProps: { placeholder: '请输入配置名称' } },
-    { name: 'jsonContent', label: 'JSON 内容', required: true, component: 'JsonEditor' },
-  ],
 }
 
 export default config

@@ -31,11 +31,6 @@ const config: SceneConfig = {
       cronExpr: { type: 'string', title: 'Cron 表达式', required: true, component: 'CronEditor', componentProps: { presets: CRON_PRESETS } },
     },
   },
-
-  fields: [
-    { name: 'taskName', label: '任务名称', required: true, component: 'Input', componentProps: { placeholder: '请输入任务名称', style: 'width: 300px' } },
-    { name: 'cronExpr', label: 'Cron 表达式', required: true, component: 'CronEditor', componentProps: { presets: CRON_PRESETS } },
-  ],
 }
 
 export default config

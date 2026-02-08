@@ -50,16 +50,6 @@ const config: SceneConfig = {
       },
     },
   },
-
-  fields: [
-    {
-      name: 'userId',
-      label: '选择用户',
-      required: true,
-      component: 'Select',
-      componentProps: { showSearch: true, filterOption: false, style: 'width: 400px', placeholder: '输入关键词搜索用户' },
-    },
-  ],
 }
 
 export default config

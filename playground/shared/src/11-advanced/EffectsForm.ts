@@ -54,14 +54,6 @@ const config: SceneConfig = {
       },
     },
   },
-
-  fields: [
-    { name: 'unitPrice', label: '单价', component: 'InputNumber', componentProps: { min: 0 } },
-    { name: 'quantity', label: '数量', component: 'InputNumber', componentProps: { min: 1 } },
-    { name: 'totalPrice', label: '总价（自动计算）', component: 'InputNumber', componentProps: { disabled: true } },
-    { name: 'discount', label: '折扣(%)', component: 'InputNumber', componentProps: { min: 0, max: 100 } },
-    { name: 'finalPrice', label: '实付（自动计算）', component: 'InputNumber', componentProps: { disabled: true } },
-  ],
 }
 
 export default config

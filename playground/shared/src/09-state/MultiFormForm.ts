@@ -46,15 +46,6 @@ const config: SceneConfig = {
       },
     },
   },
-
-  fields: [
-    { name: 'orderName', label: '订单名称', required: true, component: 'Input' },
-    { name: 'customer', label: '客户', required: true, component: 'Input' },
-    { name: 'total', label: '金额', required: true, component: 'InputNumber', componentProps: { min: 0, style: 'width: 100%' } },
-    { name: 'contactName', label: '联系人', required: true, component: 'Input' },
-    { name: 'contactPhone', label: '电话', required: true, component: 'Input', rules: [{ format: 'phone', message: '无效手机号' }] },
-    { name: 'contactEmail', label: '邮箱', component: 'Input', rules: [{ format: 'email', message: '无效邮箱' }] },
-  ],
 }
 
 export default config

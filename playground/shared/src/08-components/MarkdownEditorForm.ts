@@ -24,11 +24,6 @@ const config: SceneConfig = {
       content: { type: 'string', title: 'Markdown', required: true, component: 'MarkdownEditor' },
     },
   },
-
-  fields: [
-    { name: 'docTitle', label: '文档标题', required: true, component: 'Input', componentProps: { placeholder: '请输入文档标题' } },
-    { name: 'content', label: 'Markdown', required: true, component: 'MarkdownEditor' },
-  ],
 }
 
 export default config

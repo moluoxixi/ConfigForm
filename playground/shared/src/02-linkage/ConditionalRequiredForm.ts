@@ -96,19 +96,6 @@ const config: SceneConfig = {
       },
     },
   },
-
-  fields: [
-    { name: 'needInvoice', label: '需要发票', component: 'Switch', description: '开启后抬头和税号必填' },
-    { name: 'invoiceTitle', label: '发票抬头', component: 'Input', componentProps: { placeholder: '请输入发票抬头' } },
-    { name: 'invoiceTaxNo', label: '纳税人识别号', component: 'Input', componentProps: { placeholder: '请输入纳税人识别号' } },
-    { name: 'amount', label: '报销金额', required: true, component: 'InputNumber', description: `超 ${THRESHOLD.toLocaleString()} 需填审批人`, componentProps: { min: 0, step: 100, style: { width: '100%' } } },
-    { name: 'approver', label: '审批人', component: 'Input', componentProps: { placeholder: '选填' } },
-    { name: 'leaveType', label: '请假类型', required: true, component: 'Select', dataSource: LEAVE_TYPE_OPTIONS, componentProps: { placeholder: '请选择' } },
-    { name: 'leaveReason', label: '请假原因', component: 'Textarea', componentProps: { placeholder: '选择其他时必填' } },
-    { name: 'isOverseas', label: '海外出差', component: 'Switch' },
-    { name: 'travelDays', label: '出差天数', component: 'InputNumber', componentProps: { min: 1, style: { width: '100%' } } },
-    { name: 'travelInsurance', label: '保险单号', component: 'Input', description: '海外且>3天必填', componentProps: { placeholder: '请输入保险单号' } },
-  ],
 }
 
 export default config

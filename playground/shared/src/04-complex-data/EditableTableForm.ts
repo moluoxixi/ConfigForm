@@ -38,10 +38,6 @@ const config: SceneConfig = {
       },
     },
   },
-
-  fields: [
-    { name: 'items', label: '订单明细', component: 'ArrayField', componentProps: { minItems: 1, maxItems: 20, itemTemplate: { productName: '', quantity: 1, unitPrice: 0 } } },
-  ],
 }
 
 export default config

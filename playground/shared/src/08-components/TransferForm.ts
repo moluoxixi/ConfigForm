@@ -33,11 +33,6 @@ const config: SceneConfig = {
       permissions: { type: 'string', title: '权限分配', required: true, component: 'TransferPicker', componentProps: { dataSource: PERMISSIONS } },
     },
   },
-
-  fields: [
-    { name: 'roleName', label: '角色名称', required: true, component: 'Input', componentProps: { placeholder: '请输入角色名称', style: 'width: 300px' } },
-    { name: 'permissions', label: '权限分配', required: true, component: 'TransferPicker', componentProps: { dataSource: PERMISSIONS } },
-  ],
 }
 
 export default config

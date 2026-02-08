@@ -34,12 +34,6 @@ const config: SceneConfig = {
       code: { type: 'string', title: '代码', required: true, component: 'CodeEditor' },
     },
   },
-
-  fields: [
-    { name: 'title', label: '标题', required: true, component: 'Input', componentProps: { placeholder: '请输入标题', style: 'width: 250px' } },
-    { name: 'language', label: '语言', component: 'Select', dataSource: LANGUAGE_OPTIONS, componentProps: { style: 'width: 160px' } },
-    { name: 'code', label: '代码', required: true, component: 'CodeEditor' },
-  ],
 }
 
 export default config

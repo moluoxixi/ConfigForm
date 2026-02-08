@@ -76,15 +76,6 @@ const config: SceneConfig = {
 
   /** 默认水平布局 schema */
   schema: createSchema('horizontal'),
-
-  fields: [
-    { name: 'name', label: '姓名', required: true, component: 'Input', componentProps: { placeholder: '请输入姓名' } },
-    { name: 'email', label: '邮箱', required: true, component: 'Input', componentProps: { placeholder: '请输入邮箱' }, rules: [{ format: 'email', message: '无效邮箱' }] },
-    { name: 'phone', label: '手机号', component: 'Input', componentProps: { placeholder: '请输入手机号' } },
-    { name: 'department', label: '部门', component: 'Select', dataSource: DEPARTMENT_OPTIONS, componentProps: { placeholder: '请选择' } },
-    { name: 'role', label: '职位', component: 'Input', componentProps: { placeholder: '请输入职位' } },
-    { name: 'joinDate', label: '入职日期', component: 'DatePicker' },
-  ],
 }
 
 export default config

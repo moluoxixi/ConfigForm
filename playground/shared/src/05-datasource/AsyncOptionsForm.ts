@@ -59,13 +59,6 @@ const config: SceneConfig = {
       },
     },
   },
-
-  fields: [
-    { name: 'dynamicType', label: '类型', component: 'Select', dataSource: TYPE_OPTIONS, componentProps: { placeholder: '请选择类型' } },
-    { name: 'dynamicItem', label: '品种（异步）', component: 'Select', componentProps: { placeholder: '加载中...' } },
-    { name: 'country', label: '国家', component: 'Select', dataSource: COUNTRY_OPTIONS, componentProps: { placeholder: '请选择国家' } },
-    { name: 'remark', label: '备注', component: 'Textarea', componentProps: { placeholder: '请输入' } },
-  ],
 }
 
 export default config

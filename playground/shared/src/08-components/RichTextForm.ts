@@ -24,11 +24,6 @@ const config: SceneConfig = {
       content: { type: 'string', title: '正文', required: true, component: 'RichTextEditor' },
     },
   },
-
-  fields: [
-    { name: 'title', label: '标题', required: true, component: 'Input', componentProps: { placeholder: '请输入标题' } },
-    { name: 'content', label: '正文', required: true, component: 'RichTextEditor' },
-  ],
 }
 
 export default config

@@ -58,16 +58,6 @@ const config: SceneConfig = {
       },
     },
   },
-
-  fields: [
-    { name: 'username', label: '用户名', required: true, component: 'Input', rules: [{ minLength: 3, message: '至少 3 字符' }], componentProps: { placeholder: '请输入用户名' } },
-    { name: 'password', label: '密码', required: true, component: 'Password', rules: [{ minLength: 8, message: '至少 8 字符' }], componentProps: { placeholder: '请输入密码' } },
-    { name: 'realName', label: '真实姓名', required: true, component: 'Input', componentProps: { placeholder: '请输入真实姓名' } },
-    { name: 'gender', label: '性别', component: 'RadioGroup', dataSource: GENDER_OPTIONS },
-    { name: 'email', label: '邮箱', required: true, component: 'Input', rules: [{ format: 'email', message: '无效邮箱' }], componentProps: { placeholder: '请输入邮箱' } },
-    { name: 'phone', label: '手机号', component: 'Input', rules: [{ format: 'phone', message: '无效手机号' }], componentProps: { placeholder: '请输入手机号' } },
-    { name: 'address', label: '地址', component: 'Textarea', componentProps: { placeholder: '请输入地址' } },
-  ],
 }
 
 export default config

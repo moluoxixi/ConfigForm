@@ -49,12 +49,6 @@ const config: SceneConfig = {
       accessDepts: { type: 'string', title: '可访问部门', component: 'TreeSelectPicker', componentProps: { treeData: TREE_DATA, treeCheckable: true, placeholder: '多选可访问部门', style: 'width: 100%' } },
     },
   },
-
-  fields: [
-    { name: 'memberName', label: '成员姓名', required: true, component: 'Input', componentProps: { placeholder: '请输入姓名', style: 'width: 300px' } },
-    { name: 'department', label: '所属部门', required: true, component: 'TreeSelectPicker', componentProps: { treeData: TREE_DATA, placeholder: '请选择部门', style: 'width: 300px' } },
-    { name: 'accessDepts', label: '可访问部门', component: 'TreeSelectPicker', componentProps: { treeData: TREE_DATA, treeCheckable: true, placeholder: '多选可访问部门', style: 'width: 100%' } },
-  ],
 }
 
 export default config

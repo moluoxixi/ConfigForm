@@ -29,13 +29,6 @@ const config: SceneConfig = {
       note: { type: 'string', title: '备注', component: 'Textarea', componentProps: { rows: 3 } },
     },
   },
-
-  fields: [
-    { name: 'title', label: '标题', required: true, component: 'Input' },
-    { name: 'category', label: '分类', component: 'Input' },
-    { name: 'amount', label: '金额', component: 'InputNumber', componentProps: { style: 'width: 100%' } },
-    { name: 'note', label: '备注', component: 'Textarea', componentProps: { rows: 3 } },
-  ],
 }
 
 export default config

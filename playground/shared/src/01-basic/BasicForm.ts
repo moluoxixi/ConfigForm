@@ -52,20 +52,6 @@ const config: SceneConfig = {
       bio: { type: 'string', title: '个人简介', component: 'Textarea', rules: [{ maxLength: 200, message: '最多 200 字' }] },
     },
   },
-
-  fields: [
-    { name: 'username', label: '用户名', required: true, component: 'Input', rules: [{ minLength: 3, maxLength: 20, message: '3-20 个字符' }], componentProps: { placeholder: '请输入用户名' } },
-    { name: 'password', label: '密码', required: true, component: 'Password', rules: [{ minLength: 8, message: '至少 8 个字符' }], componentProps: { placeholder: '请输入密码' } },
-    { name: 'email', label: '邮箱', required: true, component: 'Input', rules: [{ format: 'email', message: '邮箱格式不正确' }], componentProps: { placeholder: '请输入邮箱' } },
-    { name: 'phone', label: '手机号', component: 'Input', rules: [{ format: 'phone', message: '手机号格式不正确' }], componentProps: { placeholder: '请输入手机号' } },
-    { name: 'age', label: '年龄', required: true, component: 'InputNumber', componentProps: { min: 0, max: 150, style: 'width: 100%' } },
-    { name: 'gender', label: '性别', component: 'Select', dataSource: GENDER_OPTIONS, componentProps: { placeholder: '请选择性别' } },
-    { name: 'marital', label: '婚姻状况', component: 'RadioGroup', dataSource: MARITAL_OPTIONS },
-    { name: 'hobbies', label: '爱好', component: 'CheckboxGroup', dataSource: HOBBY_OPTIONS },
-    { name: 'notification', label: '开启通知', component: 'Switch' },
-    { name: 'birthday', label: '生日', component: 'DatePicker', componentProps: { style: 'width: 100%' } },
-    { name: 'bio', label: '个人简介', component: 'Textarea', rules: [{ maxLength: 200, message: '最多 200 字' }], componentProps: { placeholder: '请输入简介', rows: 3 } },
-  ],
 }
 
 export default config

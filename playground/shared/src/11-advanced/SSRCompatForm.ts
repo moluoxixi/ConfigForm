@@ -27,11 +27,6 @@ const config: SceneConfig = {
       email: { type: 'string', title: '邮箱', rules: [{ format: 'email' }] },
     },
   },
-
-  fields: [
-    { name: 'username', label: '用户名', required: true, component: 'Input' },
-    { name: 'email', label: '邮箱', component: 'Input', rules: [{ format: 'email' }] },
-  ],
 }
 
 export default config

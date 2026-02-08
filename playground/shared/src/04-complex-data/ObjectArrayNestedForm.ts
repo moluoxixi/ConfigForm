@@ -58,11 +58,6 @@ const config: SceneConfig = {
       },
     },
   },
-
-  fields: [
-    { name: 'teamName', label: '团队名称', required: true, component: 'Input', componentProps: { placeholder: '请输入团队名称', style: 'width: 300px' } },
-    { name: 'contacts', label: '团队成员', component: 'ArrayField', componentProps: { minItems: 1, maxItems: 10, itemTemplate: { name: '', role: '', phones: [{ number: '', label: '手机' }] } } },
-  ],
 }
 
 export default config

@@ -85,21 +85,6 @@ const config: SceneConfig = {
       },
     },
   },
-
-  fields: [
-    { name: 'userType', label: '用户类型', required: true, component: 'RadioGroup', dataSource: USER_TYPE_OPTIONS },
-    { name: 'realName', label: '真实姓名', required: true, component: 'Input', componentProps: { placeholder: '请输入' } },
-    { name: 'idCard', label: '身份证号', component: 'Input', componentProps: { placeholder: '18 位' }, rules: [{ pattern: /^\d{17}[\dX]$/i, message: '无效身份证' }] },
-    { name: 'companyName', label: '公司名称', required: true, component: 'Input', componentProps: { placeholder: '请输入' } },
-    { name: 'taxNumber', label: '税号', component: 'Input', componentProps: { placeholder: '请输入' } },
-    { name: 'enableNotify', label: '开启通知', component: 'Switch' },
-    { name: 'notifyEmail', label: '通知邮箱', component: 'Input', componentProps: { placeholder: '邮箱' }, rules: [{ format: 'email', message: '无效邮箱' }] },
-    { name: 'notifyFrequency', label: '通知频率', component: 'Select', dataSource: FREQUENCY_OPTIONS, componentProps: { placeholder: '请选择' } },
-    { name: 'hasAddress', label: '填写地址', component: 'Switch' },
-    { name: 'city', label: '城市', component: 'Input', componentProps: { placeholder: '请输入城市' } },
-    { name: 'hasDetailAddress', label: '填写详细地址', component: 'Switch' },
-    { name: 'detailAddress', label: '详细地址', component: 'Textarea', componentProps: { placeholder: '请输入详细地址' } },
-  ],
 }
 
 export default config

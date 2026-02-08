@@ -23,12 +23,6 @@ const config: SceneConfig = {
       lat: { type: 'number', title: '纬度', componentProps: { step: 0.0001, style: 'width: 200px' } },
     },
   },
-
-  fields: [
-    { name: 'locationName', label: '地点名称', required: true, component: 'Input', componentProps: { placeholder: '请输入地点名称' } },
-    { name: 'lng', label: '经度', component: 'InputNumber', componentProps: { step: 0.0001, style: 'width: 150px' } },
-    { name: 'lat', label: '纬度', component: 'InputNumber', componentProps: { step: 0.0001, style: 'width: 150px' } },
-  ],
 }
 
 export default config

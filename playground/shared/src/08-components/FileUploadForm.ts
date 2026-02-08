@@ -21,12 +21,6 @@ const config: SceneConfig = {
       description: { type: 'string', title: '说明', component: 'Textarea', componentProps: { rows: 3, placeholder: '上传说明' } },
     },
   },
-
-  fields: [
-    { name: 'title', label: '标题', required: true, component: 'Input', componentProps: { placeholder: '请输入标题' } },
-    { name: 'files', label: '附件上传', component: 'FileUpload' },
-    { name: 'images', label: '图片上传', component: 'ImageUpload', componentProps: { maxCount: 6 } },
-  ],
 }
 
 export default config

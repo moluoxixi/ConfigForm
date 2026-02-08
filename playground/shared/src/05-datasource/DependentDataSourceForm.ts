@@ -68,14 +68,6 @@ const config: SceneConfig = {
       },
     },
   },
-
-  fields: [
-    { name: 'brand', label: '品牌', required: true, component: 'Select', dataSource: BRAND_OPTIONS, componentProps: { placeholder: '请选择品牌' } },
-    { name: 'model', label: '型号', required: true, component: 'Select', componentProps: { placeholder: '请先选择品牌' } },
-    { name: 'config', label: '配置', component: 'Select', componentProps: { placeholder: '请先选择型号' } },
-    { name: 'grade', label: '年级', required: true, component: 'Select', dataSource: GRADE_OPTIONS, componentProps: { placeholder: '请选择年级' } },
-    { name: 'classNo', label: '班级', required: true, component: 'Select', componentProps: { placeholder: '请先选择年级' } },
-  ],
 }
 
 export default config

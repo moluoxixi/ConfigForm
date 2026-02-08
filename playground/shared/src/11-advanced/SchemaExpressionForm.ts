@@ -127,17 +127,6 @@ const config: SceneConfig = {
       },
     },
   },
-
-  fields: [
-    { name: 'orderType', label: '订单类型', component: 'Select', dataSource: ORDER_TYPE_OPTIONS },
-    { name: 'amount', label: '订单金额', required: true, component: 'InputNumber', componentProps: { min: 0, style: 'width: 100%' } },
-    { name: 'urgentFee', label: '加急费用', component: 'InputNumber', componentProps: { min: 0, style: 'width: 100%' } },
-    { name: 'totalAmount', label: '订单总额（自动计算）', component: 'InputNumber', componentProps: { disabled: true, style: 'width: 100%' } },
-    { name: 'needInvoice', label: '需要发票', component: 'Switch' },
-    { name: 'invoiceTitle', label: '发票抬头', required: true, component: 'Input' },
-    { name: 'invoiceType', label: '发票类型', component: 'RadioGroup', dataSource: INVOICE_TYPE_OPTIONS },
-    { name: 'taxNumber', label: '税号', required: true, component: 'Input', componentProps: { placeholder: '请输入税号' } },
-  ],
 }
 
 export default config

@@ -108,16 +108,6 @@ const config: SceneConfig = {
       ipAddress: { type: 'string', title: 'IP 地址', componentProps: { placeholder: '192.168.1.1' }, rules: ipAddressRules },
     },
   },
-
-  fields: [
-    { name: 'licensePlate', label: '车牌号', component: 'Input', componentProps: { placeholder: '京A12345' }, rules: licensePlateRules },
-    { name: 'phone', label: '手机号', required: true, component: 'Input', componentProps: { placeholder: '中国大陆手机号' }, rules: phoneRules },
-    { name: 'password', label: '密码', required: true, component: 'Password', componentProps: { placeholder: '8-32 位' }, rules: passwordRules },
-    { name: 'age', label: '年龄', required: true, component: 'InputNumber', rules: ageRules },
-    { name: 'idType', label: '证件类型', required: true, component: 'Select', dataSource: ID_TYPE_OPTIONS, componentProps: { placeholder: '请选择' } },
-    { name: 'idNumber', label: '证件号码', required: true, component: 'Input', componentProps: { placeholder: '18 位身份证' } },
-    { name: 'ipAddress', label: 'IP 地址', component: 'Input', componentProps: { placeholder: '192.168.1.1' }, rules: ipAddressRules },
-  ],
 }
 
 export default config

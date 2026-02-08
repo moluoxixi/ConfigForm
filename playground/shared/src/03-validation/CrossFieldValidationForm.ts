@@ -87,20 +87,6 @@ const config: SceneConfig = {
       expense: { type: 'number', title: '实际支出', required: true, default: 0, componentProps: { min: 0, style: { width: '100%' } }, rules: expenseRules },
     },
   },
-
-  fields: [
-    { name: 'password', label: '密码', required: true, component: 'Password', componentProps: { placeholder: '请输入密码' }, rules: [{ minLength: 8, message: '至少 8 字符' }] },
-    { name: 'confirmPassword', label: '确认密码', required: true, component: 'Password', componentProps: { placeholder: '请再次输入密码' }, rules: confirmPasswordRules },
-    { name: 'startDate', label: '开始日期', required: true, component: 'Input', componentProps: { placeholder: '如 2024-01-01' } },
-    { name: 'endDate', label: '结束日期', required: true, component: 'Input', componentProps: { placeholder: '如 2024-12-31' }, rules: endDateRules },
-    { name: 'ratioA', label: '项目 A（%）', required: true, component: 'InputNumber', description: 'A+B+C=100', componentProps: { min: 0, max: 100, style: { width: '100%' } } },
-    { name: 'ratioB', label: '项目 B（%）', required: true, component: 'InputNumber', componentProps: { min: 0, max: 100, style: { width: '100%' } } },
-    { name: 'ratioC', label: '项目 C（%）', required: true, component: 'InputNumber', componentProps: { min: 0, max: 100, style: { width: '100%' } }, rules: ratioCRules },
-    { name: 'minAge', label: '最小年龄', required: true, component: 'InputNumber', componentProps: { min: 0, max: 150, style: { width: '100%' } } },
-    { name: 'maxAge', label: '最大年龄', required: true, component: 'InputNumber', componentProps: { min: 0, max: 150, style: { width: '100%' } }, rules: maxAgeRules },
-    { name: 'budget', label: '预算上限', required: true, component: 'InputNumber', componentProps: { min: 0, style: { width: '100%' } } },
-    { name: 'expense', label: '实际支出', required: true, component: 'InputNumber', componentProps: { min: 0, style: { width: '100%' } }, rules: expenseRules },
-  ],
 }
 
 export default config

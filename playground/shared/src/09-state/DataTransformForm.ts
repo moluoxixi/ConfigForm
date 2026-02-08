@@ -28,13 +28,6 @@ const config: SceneConfig = {
       tags: { type: 'string', title: '标签（逗号分隔）', description: '提交时可转为数组', componentProps: { style: 'width: 300px' } },
     },
   },
-
-  fields: [
-    { name: 'priceCent', label: '价格（分→元）', component: 'Input', description: 'format: 分转元, parse: 元转分', componentProps: { style: 'width: 300px' } },
-    { name: 'phoneRaw', label: '手机号（脱敏）', component: 'Input', componentProps: { style: 'width: 300px' } },
-    { name: 'fullName', label: '姓名', component: 'Input', componentProps: { style: 'width: 300px' } },
-    { name: 'tags', label: '标签（逗号分隔）', component: 'Input', description: '提交时转为数组', componentProps: { style: 'width: 300px' } },
-  ],
 }
 
 export default config

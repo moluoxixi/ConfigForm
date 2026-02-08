@@ -41,14 +41,6 @@ const config: SceneConfig = {
       },
     },
   },
-
-  fields: [
-    { name: 'name', label: '姓名', required: true, component: 'Input', rules: [{ minLength: 2, message: '至少 2 字' }] },
-    { name: 'phone', label: '手机号', required: true, component: 'Input', rules: [{ format: 'phone', message: '无效手机号' }] },
-    { name: 'email', label: '邮箱', required: true, component: 'Input', rules: [{ format: 'email', message: '无效邮箱' }] },
-    { name: 'company', label: '公司', required: true, component: 'Input' },
-    { name: 'position', label: '职位', required: true, component: 'Input' },
-  ],
 }
 
 export default config

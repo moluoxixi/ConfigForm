@@ -106,23 +106,6 @@ const config: SceneConfig = {
       },
     },
   },
-
-  fields: [
-    { name: 'unitPrice', label: '单价（元）', component: 'InputNumber', componentProps: { min: 0, step: 0.01, style: { width: '100%' } } },
-    { name: 'quantity', label: '数量', component: 'InputNumber', componentProps: { min: 1, step: 1, style: { width: '100%' } } },
-    { name: 'totalPrice', label: '总价（自动）', component: 'InputNumber', description: '单价 × 数量', componentProps: { disabled: true, style: { width: '100%' } } },
-    { name: 'originalPrice', label: '原价', component: 'InputNumber', componentProps: { min: 0, style: { width: '100%' } } },
-    { name: 'discountRate', label: '折扣率（%）', component: 'InputNumber', componentProps: { min: 0, max: 100, style: { width: '100%' } } },
-    { name: 'discountedPrice', label: '折后价（自动）', component: 'InputNumber', componentProps: { disabled: true, style: { width: '100%' } } },
-    { name: 'scoreA', label: '科目 A', component: 'InputNumber', componentProps: { min: 0, max: 100, style: { width: '100%' } } },
-    { name: 'scoreB', label: '科目 B', component: 'InputNumber', componentProps: { min: 0, max: 100, style: { width: '100%' } } },
-    { name: 'scoreC', label: '科目 C', component: 'InputNumber', componentProps: { min: 0, max: 100, style: { width: '100%' } } },
-    { name: 'totalScore', label: '总分（自动）', component: 'InputNumber', componentProps: { disabled: true, style: { width: '100%' } } },
-    { name: 'avgScore', label: '平均分（自动）', component: 'InputNumber', componentProps: { disabled: true, style: { width: '100%' } } },
-    { name: 'calcType', label: '计税方式', component: 'RadioGroup', dataSource: CALC_TYPE_OPTIONS },
-    { name: 'amount', label: '金额', component: 'InputNumber', componentProps: { min: 0, style: { width: '100%' } } },
-    { name: 'taxAmount', label: '税额（自动）', component: 'InputNumber', componentProps: { disabled: true, style: { width: '100%' } } },
-  ],
 }
 
 export default config

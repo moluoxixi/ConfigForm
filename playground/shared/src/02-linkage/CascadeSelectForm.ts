@@ -116,15 +116,6 @@ const config: SceneConfig = {
       },
     },
   },
-
-  fields: [
-    { name: 'province', label: '省份', required: true, component: 'Select', dataSource: PROVINCES, componentProps: { placeholder: '请选择' } },
-    { name: 'city', label: '城市', required: true, component: 'Select', componentProps: { placeholder: '请先选择省份' } },
-    { name: 'district', label: '区县', component: 'Select', componentProps: { placeholder: '请先选择城市' } },
-    { name: 'categoryL1', label: '一级分类', required: true, component: 'Select', dataSource: CAT_L1, componentProps: { placeholder: '请选择' } },
-    { name: 'categoryL2', label: '二级分类', required: true, component: 'Select', componentProps: { placeholder: '请先选择一级' } },
-    { name: 'categoryL3', label: '三级分类', component: 'Select', componentProps: { placeholder: '请先选择二级' } },
-  ],
 }
 
 export default config

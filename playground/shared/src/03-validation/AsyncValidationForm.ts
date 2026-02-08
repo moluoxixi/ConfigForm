@@ -89,13 +89,6 @@ const config: SceneConfig = {
       nickname: { type: 'string', title: '昵称', componentProps: { placeholder: '无需异步验证' }, rules: [{ maxLength: 20, message: '不超过 20 字' }] },
     },
   },
-
-  fields: [
-    { name: 'username', label: '用户名', required: true, component: 'Input', componentProps: { placeholder: '试试 admin / test' }, rules: usernameRules },
-    { name: 'email', label: '邮箱', required: true, component: 'Input', componentProps: { placeholder: '试试 admin@test.com' }, rules: emailRules },
-    { name: 'inviteCode', label: '邀请码', required: true, component: 'Input', componentProps: { placeholder: 'INVITE2024 / VIP888' }, rules: inviteCodeRules },
-    { name: 'nickname', label: '昵称', component: 'Input', componentProps: { placeholder: '无需异步验证' }, rules: [{ maxLength: 20, message: '不超过 20 字' }] },
-  ],
 }
 
 export default config

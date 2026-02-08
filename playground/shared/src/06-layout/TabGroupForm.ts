@@ -62,18 +62,6 @@ const config: SceneConfig = {
       },
     },
   },
-
-  fields: [
-    { name: 'name', label: '姓名', required: true, component: 'Input', componentProps: { placeholder: '请输入姓名' } },
-    { name: 'email', label: '邮箱', required: true, component: 'Input', rules: [{ format: 'email', message: '无效邮箱' }], componentProps: { placeholder: '请输入邮箱' } },
-    { name: 'phone', label: '手机号', component: 'Input', componentProps: { placeholder: '请输入手机号' } },
-    { name: 'company', label: '公司', required: true, component: 'Input', componentProps: { placeholder: '请输入公司' } },
-    { name: 'position', label: '职位', component: 'Input', componentProps: { placeholder: '请输入职位' } },
-    { name: 'department', label: '部门', component: 'Select', dataSource: DEPARTMENT_OPTIONS, componentProps: { placeholder: '请选择' } },
-    { name: 'bio', label: '简介', component: 'Textarea', rules: [{ maxLength: 200, message: '不超过 200 字' }], componentProps: { placeholder: '请输入简介' } },
-    { name: 'website', label: '网站', component: 'Input', rules: [{ format: 'url', message: '无效 URL' }], componentProps: { placeholder: '请输入网站' } },
-    { name: 'github', label: 'GitHub', component: 'Input', componentProps: { placeholder: '请输入 GitHub' } },
-  ],
 }
 
 export default config

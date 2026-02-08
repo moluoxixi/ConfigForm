@@ -32,15 +32,6 @@ const config: SceneConfig = {
       remark: { type: 'string', title: '备注', component: 'Textarea', componentProps: { rows: 2 } },
     },
   },
-
-  fields: [
-    { name: 'orderNo', label: '订单号', component: 'Input' },
-    { name: 'customer', label: '客户', component: 'Input' },
-    { name: 'amount', label: '金额', component: 'InputNumber', componentProps: { style: 'width: 100%' } },
-    { name: 'date', label: '日期', component: 'Input' },
-    { name: 'address', label: '地址', component: 'Input' },
-    { name: 'remark', label: '备注', component: 'Textarea', componentProps: { rows: 2 } },
-  ],
 }
 
 export default config

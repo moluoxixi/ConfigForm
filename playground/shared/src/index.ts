@@ -1,4 +1,4 @@
-export type { FieldConfig, OptionItem, SceneConfig } from './types'
+export type { SceneConfig } from './types'
 
 /** 场景分组标签 */
 export const GROUP_LABELS: Record<string, string> = {
