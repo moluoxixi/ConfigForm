@@ -12,44 +12,34 @@
 
 ### 开发服务器
 
-- Vue: http://localhost:3001 (playground-vue)
-- React: http://localhost:3002 (playground-react)
+- Vue: http://localhost:3001 (playground/vue)
+- React: http://localhost:3002 (playground/react)
 
 ### 目录结构
 
-示例按场景分组，两层目录结构：
-
 ```
-{ui-lib}/
-  01-basic/BasicForm/{config,field}.vue
-  02-linkage/VisibilityLinkageForm/{config,field}.vue
-  ...
-  11-advanced/VirtualScrollForm/{config,field}.vue
+playground/
+  shared/src/                    # 56 个场景的共享配置（SceneConfig）
+    01-basic/BasicForm.ts        # schema + initialValues + fields
+    02-linkage/...
+    index.ts                     # sceneRegistry 注册表
+    types.ts                     # SceneConfig / FieldConfig 类型
+  vue/src/
+    App.vue                      # 场景导航 + UI 库切换
+    components/SceneRenderer.vue # 通用场景渲染器（Config/Field 模式）
+  react/src/
+    App.tsx                      # 场景导航
+    components/SceneRenderer.tsx # 通用场景渲染器（Config/Field 模式）
 ```
 
-App 使用 `import.meta.glob` 自动扫描，新增示例只需创建文件夹。
+新增场景只需：在 `playground/shared/src/{group}/` 添加 `.ts` 文件 + 注册到 `index.ts`。
 
-### 文件完成度
+### 架构
 
-| 平台 | Config | Field | 合计 |
-|------|--------|-------|------|
-| React Antd | 56/56 | 56/56 | 112 |
-| Vue AntdVue | 56/56 | 56/56 | 112 |
-| Vue ElementPlus | 56/56 | 56/56 | 112 |
-
-### 实现规范
-
-| 文件类型 | 组件 | 规则 |
-|----------|------|------|
-| config | StatusTabs + ConfigForm | 纯 ISchema 声明（`type: 'object', properties: {}`），withMode 注入模式，`decoratorProps.actions` 配置提交/重置 |
-| field | StatusTabs + FormProvider + FormField | 所有表单输入用 FormField + component，布局用 FormVoidField + LayoutCard/LayoutTabs 等，数组用 FormArrayField + ArrayBase，提交/重置用 LayoutFormActions（自动调用 form.submit()） |
-
-**field 文件禁止**：
-- `<form>` 标签（LayoutFormActions 自动处理提交）
-- `<button>`/`<input>`/`<select>`/`<textarea>` 原生标签
-- 直接 import UI 库组件（antd/element-plus/ant-design-vue）
-- 手动 `mode === 'editable'`/`readOnly`/`disabled` 判断
-- 手动 handleSubmit 函数
+- **@playground/shared**：56 个场景配置，每个导出 `SceneConfig`（title/description/schema/initialValues/fields）
+- **SceneRenderer**：通用渲染组件，根据 mode 切换 Config（ConfigForm + schema）或 Field（FormField 循环渲染）
+- **App**：仅负责导航、场景加载、UI 库切换，不包含表单渲染逻辑
+- 三平台（Vue AntdVue / Vue ElementPlus / React Antd）共享同一份 schema 配置
 
 ### 测试标准
 
