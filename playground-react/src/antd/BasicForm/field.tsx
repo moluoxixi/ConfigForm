@@ -11,9 +11,6 @@ import React from 'react'
 import { observer } from 'mobx-react-lite'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Typography } from 'antd'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 
@@ -44,10 +41,10 @@ export const BasicForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>基础表单 (Field 版)</Title>
-      <Paragraph type="secondary">
-        Input / Password / Textarea / InputNumber / Select / RadioGroup / CheckboxGroup / Switch / DatePicker —— FormField + fieldProps 实现
-      </Paragraph>
+      <h2>基础表单（Field 版）</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
+        Input / Password / Textarea / InputNumber / Select / RadioGroup / CheckboxGroup / Switch / DatePicker — FormField + fieldProps 实现
+      </p>
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
           form.pattern = mode
@@ -151,7 +148,7 @@ export const BasicForm = observer((): React.ReactElement => {
                   rules: [{ maxLength: 200, message: '简介不超过 200 字' }],
                 }}
                 />
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

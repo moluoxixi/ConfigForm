@@ -4,10 +4,14 @@
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       字段模板复用 + 继承覆盖 — FormField + 条件渲染实现
     </p>
-    <ASegmented v-model:value="template" :options="templateOptions" style="margin-bottom: 12px" />
-    <ATag color="blue" style="display: inline-block; margin-bottom: 12px">
+    <div style="display: inline-flex; background: #f5f5f5; border-radius: 6px; padding: 2px; margin-bottom: 12px">
+      <button v-for="opt in templateOptions" :key="opt.value" type="button" :style="{ padding: '4px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', background: template === opt.value ? '#fff' : 'transparent', boxShadow: template === opt.value ? '0 1px 2px rgba(0,0,0,0.1)' : 'none', fontWeight: template === opt.value ? '600' : '400' }" @click="template = opt.value as TKey">
+        {{ opt.label }}
+      </button>
+    </div>
+    <span style="display: inline-block; margin-left: 8px; margin-bottom: 12px; padding: 2px 8px; border-radius: 4px; font-size: 12px; border: 1px solid #91caff; background: #e6f4ff; color: #0958d9">
       复用片段：个人信息 + 地址 + 备注
-    </ATag>
+    </span>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <FormProvider :form="form">
         <form @submit.prevent="handleSubmit(showResult)" novalidate>
@@ -33,7 +37,7 @@
           <FormField name="city" :field-props="{ label: '城市', component: 'Input' }" />
           <FormField name="address" :field-props="{ label: '详细地址', component: 'Textarea' }" />
           <FormField name="remark" :field-props="{ label: '备注', component: 'Textarea', rules: [{ maxLength: 500, message: '不超过 500 字' }] }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>
@@ -50,7 +54,6 @@ import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
  * 使用 FormProvider + FormField + 条件渲染实现不同业务模板。
  * 公共字段（个人信息、地址、备注）始终显示，模板特有字段通过 v-if 切换。
  */
-import { Segmented as ASegmented, Tag as ATag } from 'ant-design-vue'
 import { ref, watch } from 'vue'
 
 setupAntdVue()

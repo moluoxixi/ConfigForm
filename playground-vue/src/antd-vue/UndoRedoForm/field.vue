@@ -8,21 +8,21 @@
       <FormProvider :form="form">
         <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <!-- 撤销/重做工具栏（附加内容） -->
-          <ASpace style="margin-bottom: 16px">
-            <AButton :disabled="!canUndo || mode !== 'editable'" @click="undo">
+          <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 16px">
+            <button type="button" :disabled="!canUndo || mode !== 'editable'" :style="{ padding: '4px 15px', border: '1px solid #d9d9d9', borderRadius: '6px', background: '#fff', cursor: (!canUndo || mode !== 'editable') ? 'not-allowed' : 'pointer', fontSize: '14px', opacity: (!canUndo || mode !== 'editable') ? 0.5 : 1 }" @click="undo">
               撤销 (Ctrl+Z)
-            </AButton>
-            <AButton :disabled="!canRedo || mode !== 'editable'" @click="redo">
+            </button>
+            <button type="button" :disabled="!canRedo || mode !== 'editable'" :style="{ padding: '4px 15px', border: '1px solid #d9d9d9', borderRadius: '6px', background: '#fff', cursor: (!canRedo || mode !== 'editable') ? 'not-allowed' : 'pointer', fontSize: '14px', opacity: (!canRedo || mode !== 'editable') ? 0.5 : 1 }" @click="redo">
               重做 (Ctrl+Shift+Z)
-            </AButton>
-            <ATag>历史：{{ historyIdx + 1 }} / {{ historyLen }}</ATag>
-          </ASpace>
+            </button>
+            <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; border: 1px solid #d9d9d9; background: #fafafa">历史：{{ historyIdx + 1 }} / {{ historyLen }}</span>
+          </div>
           <!-- 表单字段 -->
           <FormField name="title" :field-props="{ label: '标题', required: true, component: 'Input' }" />
           <FormField name="category" :field-props="{ label: '分类', component: 'Input' }" />
           <FormField name="amount" :field-props="{ label: '金额', component: 'InputNumber', componentProps: { style: 'width: 100%' } }" />
           <FormField name="note" :field-props="{ label: '备注', component: 'Textarea', componentProps: { rows: 3 } }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>
@@ -40,7 +40,6 @@ import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
  * 通过 form.onValuesChange 监听值变化，维护操作栈支持 undo/redo。
  * 支持 Ctrl+Z 撤销、Ctrl+Shift+Z 重做快捷键。
  */
-import { Button as AButton, Space as ASpace, Tag as ATag } from 'ant-design-vue'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 setupAntdVue()

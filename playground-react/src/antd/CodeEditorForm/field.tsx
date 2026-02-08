@@ -14,9 +14,6 @@ import React from 'react'
 import { observer } from 'mobx-react-lite'
 import { FormField, FormProvider, registerComponent, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Alert, Typography } from 'antd'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 
@@ -120,9 +117,9 @@ export const CodeEditorForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>代码编辑器</Title>
-      <Paragraph type="secondary">Textarea 模拟（可接入 @monaco-editor/react） / 语言选择 / 三种模式</Paragraph>
-      <Alert type="info" showIcon style={{ marginBottom: 16 }} message="此为简化版，实际项目请安装 @monaco-editor/react 获得语法高亮、自动补全等功能。" />
+      <h2>代码编辑器</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>Textarea 模拟（可接入 @monaco-editor/react） / 语言选择 / 三种模式</p>
+      <div style={{ padding: '8px 16px', marginBottom: 16, background: '#e6f4ff', border: '1px solid #91caff', borderRadius: 6, fontSize: 13 }}>此为简化版，实际项目请安装 @monaco-editor/react 获得语法高亮、自动补全等功能。</div>
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
           form.pattern = mode
@@ -137,7 +134,7 @@ export const CodeEditorForm = observer((): React.ReactElement => {
                 <FormField name="title" fieldProps={{ label: '标题', required: true, component: 'Input', componentProps: { style: { width: 250 } } }} />
                 <FormField name="language" fieldProps={{ label: '语言', component: 'Select', dataSource: LANGUAGES, componentProps: { style: { width: 160 } } }} />
                 <FormField name="code" fieldProps={{ label: '代码', required: true, component: 'CodeEditor' }} />
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

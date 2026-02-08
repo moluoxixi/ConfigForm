@@ -2,7 +2,6 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { ConfigForm } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 8：级联选择
@@ -14,8 +13,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React from 'react'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 
@@ -210,10 +207,10 @@ const schema: ISchema = {
 export const CascadeSelectForm = observer((): React.ReactElement => {
   return (
     <div>
-      <Title level={3}>级联选择</Title>
-      <Paragraph type="secondary">
+      <h2>级联选择</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
         省市区三级联动 / 多级分类联动 / 选择后自动清空下级
-      </Paragraph>
+      </p>
       <StatusTabs>
         {({ mode, showResult, showErrors }) => (
           <ConfigForm

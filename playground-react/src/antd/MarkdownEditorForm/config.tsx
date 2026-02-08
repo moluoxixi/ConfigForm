@@ -2,7 +2,6 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { ConfigForm, registerComponent } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Col, Input, Row, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 37：Markdown 编辑器 — ConfigForm + Schema
@@ -13,8 +12,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React from 'react'
-
-const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
@@ -87,24 +84,24 @@ const MarkdownEditor = observer(({ value, onChange, disabled, readOnly }: Markdo
 
   if (isEditable) {
     return (
-      <Row gutter={16}>
-        <Col span={12}>
-          <Text type="secondary" style={{ display: 'block', marginBottom: 4, fontSize: 12 }}>编辑区</Text>
-          <Input.TextArea
+      <div style={{ display: 'flex', gap: 16 }}>
+        <div style={{ flex: 1 }}>
+          <span style={{ color: 'rgba(0,0,0,0.45)', display: 'block', marginBottom: 4, fontSize: 12 }}>编辑区</span>
+          <textarea
             value={content}
             onChange={e => onChange?.(e.target.value)}
             rows={16}
-            style={{ fontFamily: 'Consolas, Monaco, monospace', fontSize: 13 }}
+            style={{ width: '100%', fontFamily: 'Consolas, Monaco, monospace', fontSize: 13, padding: '4px 8px', border: '1px solid #d9d9d9', borderRadius: 6 }}
           />
-        </Col>
-        <Col span={12}>
-          <Text type="secondary" style={{ display: 'block', marginBottom: 4, fontSize: 12 }}>预览区</Text>
+        </div>
+        <div style={{ flex: 1 }}>
+          <span style={{ color: 'rgba(0,0,0,0.45)', display: 'block', marginBottom: 4, fontSize: 12 }}>预览区</span>
           <div
             style={{ border: '1px solid #d9d9d9', borderRadius: 6, padding: 12, minHeight: 380, overflow: 'auto', background: '#fafafa' }}
             dangerouslySetInnerHTML={{ __html: simpleMarkdownToHtml(content) }}
           />
-        </Col>
-      </Row>
+        </div>
+      </div>
     )
   }
 
@@ -157,8 +154,8 @@ const schema: ISchema = {
  */
 export const MarkdownEditorForm = observer((): React.ReactElement => (
   <div>
-    <Title level={3}>Markdown 编辑器</Title>
-    <Paragraph type="secondary">Markdown 编写 + 实时预览 / 三种模式（可接入 @bytemd/react） — ConfigForm + Schema</Paragraph>
+    <h2>Markdown 编辑器</h2>
+    <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>Markdown 编写 + 实时预览 / 三种模式（可接入 @bytemd/react） — ConfigForm + Schema</p>
     <StatusTabs>
       {({ mode, showResult, showErrors }) => (
         <ConfigForm

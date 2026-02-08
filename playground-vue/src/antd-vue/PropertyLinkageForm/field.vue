@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>属性联动（Field 版）</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -16,7 +16,7 @@
           <FormField name="isVip" :field-props="{ label: 'VIP 用户', component: 'Switch', description: '开启后公司名称和工号必填' }" />
           <FormField name="vipCompany" :field-props="{ label: '公司名称', component: 'Input', componentProps: { placeholder: 'VIP 必填' } }" />
           <FormField name="vipId" :field-props="{ label: '工号', component: 'Input', componentProps: { placeholder: 'VIP 必填' } }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

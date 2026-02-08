@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>必填与格式验证（Field 版）</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -16,7 +16,7 @@
           <FormField name="zipCode" :field-props="{ label: '邮编', component: 'Input', componentProps: { placeholder: '6 位数字' }, rules: zipCodeRules }" />
           <FormField name="idCard" :field-props="{ label: '身份证号', component: 'Input', componentProps: { placeholder: '18 位' }, rules: idCardRules }" />
           <FormField name="password" :field-props="{ label: '密码', required: true, component: 'Password', componentProps: { placeholder: '8-32 位' }, rules: passwordRules }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

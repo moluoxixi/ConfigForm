@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>Markdown 编辑器</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -9,7 +9,7 @@
         <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <FormField name="docTitle" :field-props="{ label: '文档标题', required: true, component: 'Input', componentProps: { placeholder: '请输入文档标题' } }" />
           <FormField name="content" :field-props="{ label: 'Markdown', required: true, component: 'MarkdownEditor' }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

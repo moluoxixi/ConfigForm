@@ -15,10 +15,6 @@ import React from 'react'
 import { observer } from 'mobx-react-lite'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Typography } from 'antd'
-
-const { Title, Paragraph } = Typography
-
 setupAntd()
 
 /** 中国大陆手机号正则 */
@@ -48,10 +44,10 @@ export const CustomValidationForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>自定义验证规则 (Field 版)</Title>
-      <Paragraph type="secondary">
+      <h2>自定义验证规则 (Field 版)</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
         正则 / 自定义函数 / 多规则组合 / 警告级验证 / 条件切换规则 / IP 验证 —— FormField + fieldProps 实现
-      </Paragraph>
+      </p>
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
           form.pattern = mode
@@ -202,7 +198,7 @@ export const CustomValidationForm = observer((): React.ReactElement => {
                   }],
                 }}
                 />
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

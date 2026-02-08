@@ -14,10 +14,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { observer } from 'mobx-react-lite'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Alert, Button, Card, Spin, Typography } from 'antd'
 import { clearApiLogs, getApiLogs, setupMockAdapter } from '../../mock/dataSourceAdapter'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 setupMockAdapter()
@@ -35,12 +32,11 @@ function ApiLogPanel(): React.ReactElement {
   }, [])
 
   return (
-    <Card
-      size="small"
-      style={{ marginTop: 16, background: '#f9f9f9' }}
-      title={<span style={{ fontSize: 13, color: '#666' }}>📡 Mock API 调用日志（{logs.length} 条）</span>}
-      extra={logs.length > 0 ? <Button size="small" onClick={() => { clearApiLogs(); setLogs([]) }}>清空</Button> : null}
-    >
+    <div style={{ marginTop: 16, background: '#f9f9f9', border: '1px solid #f0f0f0', borderRadius: 8, padding: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <span style={{ fontSize: 13, color: '#666' }}>📡 Mock API 调用日志（{logs.length} 条）</span>
+        {logs.length > 0 ? <button type="button" onClick={() => { clearApiLogs(); setLogs([]) }} style={{ padding: '2px 8px', background: '#fff', border: '1px solid #d9d9d9', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>清空</button> : null}
+      </div>
       {logs.length === 0
         ? <div style={{ color: '#aaa', fontSize: 12 }}>暂无请求</div>
         : (
@@ -48,7 +44,7 @@ function ApiLogPanel(): React.ReactElement {
               {logs.map((log, i) => <div key={i} style={{ color: '#52c41a' }}>{log}</div>)}
             </div>
           )}
-    </Card>
+    </div>
   )
 }
 
@@ -129,16 +125,13 @@ export const PaginatedSearchForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>分页搜索数据源 (Field 版)</Title>
-      <Paragraph type="secondary">
+      <h3>分页搜索数据源 (Field 版)</h3>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
         远程搜索 / 分页加载 / 防抖 {DEBOUNCE_DELAY}ms / 走 field.loadDataSource() 管线 —— FormField + fieldProps 实现
-      </Paragraph>
-      <Alert
-        type="info"
-        showIcon
-        style={{ marginBottom: 16 }}
-        message={<span>使用 <code>field.loadDataSource(&#123; url: '/api/users', params &#125;)</code> 加载，共 1000 条模拟数据，每页 {PAGE_SIZE} 条</span>}
-      />
+      </p>
+      <div style={{ padding: '8px 16px', marginBottom: 16, background: '#e6f4ff', border: '1px solid #91caff', borderRadius: 6, fontSize: 13 }}>
+        <span>使用 <code>field.loadDataSource(&#123; url: '/api/users', params &#125;)</code> 加载，共 1000 条模拟数据，每页 {PAGE_SIZE} 条</span>
+      </div>
 
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
@@ -167,7 +160,7 @@ export const PaginatedSearchForm = observer((): React.ReactElement => {
                       options,
                       loading,
                       style: { width: 400 },
-                      notFoundContent: loading ? <Spin size="small" /> : '无匹配结果',
+                      notFoundContent: loading ? <span>加载中...</span> : '无匹配结果',
                       dropdownRender: (menu: React.ReactNode) => (
                         <>
                           {menu}
@@ -179,7 +172,7 @@ export const PaginatedSearchForm = observer((): React.ReactElement => {
                     },
                   }}
                 />
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

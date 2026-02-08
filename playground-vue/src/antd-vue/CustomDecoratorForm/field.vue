@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>自定义装饰器</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -44,7 +44,7 @@
           <!-- 默认 FormItem 装饰器 -->
           <FormField name="budget" :field-props="{ label: '预算（万元）', component: 'InputNumber', componentProps: { min: 0 } }" />
           <FormField name="startDate" :field-props="{ label: '开始日期', component: 'DatePicker', componentProps: { style: 'width: 100%' } }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

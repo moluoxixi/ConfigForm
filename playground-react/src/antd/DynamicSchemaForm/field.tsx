@@ -12,10 +12,6 @@ import React, { useState } from 'react'
 import { observer } from 'mobx-react-lite'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Segmented, Tag, Typography } from 'antd'
-
-const { Title, Paragraph } = Typography
-
 setupAntd()
 
 type ScenarioKey = 'individual' | 'enterprise' | 'student'
@@ -55,21 +51,23 @@ export const DynamicSchemaForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>动态 Schema (Field 版)</Title>
-      <Paragraph type="secondary">场景切换 / 动态字段集合 —— FormField + fieldProps 实现</Paragraph>
+      <h3>动态 Schema (Field 版)</h3>
+      <p style={{ color: 'rgba(0,0,0,0.45)' }}>场景切换 / 动态字段集合 —— FormField + fieldProps 实现</p>
 
-      <div style={{ marginBottom: 16 }}>
-        <Segmented
-          value={scenario}
-          onChange={v => setScenario(v as ScenarioKey)}
-          options={Object.entries(SCENARIO_LABELS).map(([k, v]) => ({ label: v, value: k }))}
-        />
+      <div style={{ display: 'inline-flex', gap: 4, marginBottom: 16 }}>
+        {Object.entries(SCENARIO_LABELS).map(([k, v]) => (
+          <button key={k} type="button"
+            style={{ padding: '4px 12px', background: scenario === k ? '#1677ff' : '#fff', color: scenario === k ? '#fff' : '#000', border: '1px solid #d9d9d9', borderRadius: 4, cursor: 'pointer' }}
+            onClick={() => setScenario(k as ScenarioKey)}>
+            {v}
+          </button>
+        ))}
       </div>
 
-      <Tag color="green" style={{ marginBottom: 12 }}>
+      <span style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, lineHeight: '20px', background: '#f0f0f0', border: '1px solid #d9d9d9', borderRadius: 4, marginBottom: 12 }}>
         当前：
         {SCENARIO_LABELS[scenario]}
-      </Tag>
+      </span>
 
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
@@ -131,7 +129,7 @@ export const DynamicSchemaForm = observer((): React.ReactElement => {
 
                 {/* 公共备注 */}
                 <FormField name="remark" fieldProps={{ label: '备注', component: 'Textarea', componentProps: { placeholder: '请输入备注' } }} />
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

@@ -2,7 +2,6 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { ConfigForm, registerComponent } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Button, Input, Space, Tag, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 33：JSON 编辑器 — ConfigForm + Schema
@@ -14,8 +13,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React, { useState } from 'react'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 
@@ -106,23 +103,25 @@ const JsonEditor = observer(({ value, onChange, disabled, readOnly }: JsonEditor
   return (
     <div>
       {/* 状态标签 + 操作按钮 */}
-      <Space style={{ marginBottom: 8 }}>
-        {jsonError ? <Tag color="error">语法错误</Tag> : <Tag color="success">合法 JSON</Tag>}
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+        {jsonError
+          ? <span style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, background: '#fff2f0', border: '1px solid #ffccc7', borderRadius: 4, color: '#ff4d4f' }}>语法错误</span>
+          : <span style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 4, color: '#52c41a' }}>合法 JSON</span>}
         {isEditable && (
           <>
-            <Button size="small" onClick={formatJson}>格式化</Button>
-            <Button size="small" onClick={minifyJson}>压缩</Button>
+            <button type="button" onClick={formatJson} style={{ padding: '2px 8px', border: '1px solid #d9d9d9', borderRadius: 4, background: '#fff', cursor: 'pointer', fontSize: 13 }}>格式化</button>
+            <button type="button" onClick={minifyJson} style={{ padding: '2px 8px', border: '1px solid #d9d9d9', borderRadius: 4, background: '#fff', cursor: 'pointer', fontSize: 13 }}>压缩</button>
           </>
         )}
-      </Space>
+      </div>
 
       {isEditable
         ? (
-            <Input.TextArea
+            <textarea
               value={content}
               onChange={e => handleChange(e.target.value)}
               rows={14}
-              style={{ fontFamily: 'Consolas, Monaco, monospace', fontSize: 13 }}
+              style={{ width: '100%', fontFamily: 'Consolas, Monaco, monospace', fontSize: 13, padding: '4px 8px', border: '1px solid #d9d9d9', borderRadius: 6 }}
             />
           )
         : (
@@ -190,8 +189,8 @@ const schema: ISchema = {
  */
 export const JsonEditorForm = observer((): React.ReactElement => (
   <div>
-    <Title level={3}>JSON 编辑器</Title>
-    <Paragraph type="secondary">JSON 编辑 + 格式化 + 压缩 + 实时语法检查 — ConfigForm + Schema</Paragraph>
+    <h2>JSON 编辑器</h2>
+    <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>JSON 编辑 + 格式化 + 压缩 + 实时语法检查 — ConfigForm + Schema</p>
     <StatusTabs>
       {({ mode, showResult, showErrors }) => (
         <ConfigForm

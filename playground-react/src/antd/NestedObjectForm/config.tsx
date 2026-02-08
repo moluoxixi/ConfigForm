@@ -2,7 +2,6 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { ConfigForm } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 14：嵌套对象
@@ -14,8 +13,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React from 'react'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 
@@ -161,10 +158,10 @@ const schema: ISchema = {
 export const NestedObjectForm = observer((): React.ReactElement => {
   return (
     <div>
-      <Title level={3}>嵌套对象</Title>
-      <Paragraph type="secondary">
+      <h2>嵌套对象</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
         一级嵌套（profile.name） / 多层嵌套（profile.contact.phone） / 嵌套内联动（settings.theme → customColor）
-      </Paragraph>
+      </p>
       <StatusTabs resultTitle="提交结果（嵌套结构）">
         {({ mode, showResult, showErrors }) => (
           <ConfigForm

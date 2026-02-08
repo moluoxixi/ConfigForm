@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>大表单性能</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -34,7 +34,7 @@
             :name="f.name"
             :field-props="{ label: f.label, component: f.component, ...(f.required ? { required: true } : {}) }"
           />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

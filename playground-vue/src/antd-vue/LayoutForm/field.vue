@@ -6,7 +6,11 @@
     </p>
     <div style="margin-bottom: 16px">
       <span style="font-weight: 600; margin-right: 12px">布局类型：</span>
-      <ASegmented v-model:value="layoutType" :options="LAYOUT_OPTIONS" />
+      <div style="display: inline-flex; border: 1px solid #d9d9d9; border-radius: 6px; overflow: hidden">
+        <button v-for="opt in LAYOUT_OPTIONS" :key="opt.value" :style="{ padding: '4px 12px', border: 'none', cursor: 'pointer', background: layoutType === opt.value ? '#1677ff' : '#fff', color: layoutType === opt.value ? '#fff' : 'inherit', fontSize: '14px' }" @click="layoutType = opt.value as LayoutType">
+          {{ opt.label }}
+        </button>
+      </div>
     </div>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <FormProvider :form="form">
@@ -19,7 +23,7 @@
             <FormField name="role" :field-props="{ label: '职位', component: 'Input', componentProps: { placeholder: '请输入职位' } }" />
             <FormField name="joinDate" :field-props="{ label: '入职日期', component: 'DatePicker' }" />
           </div>
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>
@@ -30,7 +34,6 @@
 import type { FieldPattern } from '@moluoxixi/shared'
 import { LayoutFormActions, setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
-import { Segmented as ASegmented } from 'ant-design-vue'
 import { computed, ref, watch } from 'vue'
 
 setupAntdVue()

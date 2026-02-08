@@ -2,40 +2,40 @@
   <div>
     <h2>级联选择</h2>
     <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">
-      省市区三级联动 / 多级分类联动
+      省市区三级联动 / 多级分类联动 — ConfigForm + ISchema 实现
     </p>
-    <el-radio-group v-model="mode" size="small" style="margin-bottom: 16px">
-      <el-radio-button v-for="opt in MODE_OPTIONS" :key="opt.value" :value="opt.value">
-        {{ opt.label }}
-      </el-radio-button>
-    </el-radio-group>
-    <ConfigForm :key="mode" :schema="schema" :initial-values="savedValues" @values-change="(v: Record<string, unknown>) => savedValues = v" @submit="(v: Record<string, unknown>) => result = JSON.stringify(v, null, 2)" @submit-failed="(e: any[]) => result = `验证失败:\n${e.map((x: any) => `[${x.path}] ${x.message}`).join('\n')}`">
-      <template #default="{ form }">
-        <el-divider /><el-space v-if="mode === 'editable'">
-          <el-button type="primary" native-type="submit">
-            提交
-          </el-button><el-button @click="form.reset()">
-            重置
-          </el-button>
-        </el-space>
-      </template>
-    </ConfigForm>
-    <el-alert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" :title="result.startsWith('验证失败') ? '验证失败' : '提交成功'" :description="result" show-icon style="margin-top: 16px" />
+    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+      <ConfigForm
+        :schema="withMode(schema, mode)"
+        :initial-values="initialValues"
+        @submit="showResult"
+        @submit-failed="(e: any) => st?.showErrors(e)"
+      />
+    </StatusTabs>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { FormSchema } from '@moluoxixi/schema'
+/**
+ * 级联选择 — Config 模式（Element Plus）
+ *
+ * 使用 ConfigForm + ISchema + reactions 实现级联选择：
+ * - 省→市→区 三级联动
+ * - 分类 三级联动
+ */
+import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
-import { setupElementPlus } from '@moluoxixi/ui-element-plus'
+import { setupElementPlus, StatusTabs } from '@moluoxixi/ui-element-plus'
 import { ConfigForm } from '@moluoxixi/vue'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 
 setupElementPlus()
-const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅读态', value: 'readOnly' }, { label: '禁用态', value: 'disabled' }]
-const mode = ref<FieldPattern>('editable')
-const result = ref('')
-const savedValues = ref<Record<string, unknown>>({ province: undefined, city: undefined, district: undefined, categoryL1: undefined, categoryL2: undefined, categoryL3: undefined })
+
+const st = ref<InstanceType<typeof StatusTabs>>()
+
+function withMode(s: ISchema, mode: FieldPattern): ISchema {
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
+}
 
 const PROVINCES = [{ label: '北京', value: 'beijing' }, { label: '上海', value: 'shanghai' }, { label: '广东', value: 'guangdong' }]
 const CITIES: Record<string, Array<{ label: string, value: string }>> = {
@@ -58,33 +58,61 @@ const CAT_L3: Record<string, Array<{ label: string, value: string }>> = {
   computer: [{ label: '笔记本', value: 'laptop' }, { label: '台式机', value: 'desktop' }],
 }
 
-const schema = computed<FormSchema>(() => ({
-  form: { labelPosition: 'right', labelWidth: '120px', pattern: mode.value },
-  fields: {
-    province: { type: 'string', label: '省份', required: true, component: 'Select', wrapper: 'FormItem', placeholder: '请选择', enum: PROVINCES },
-    city: { type: 'string', label: '城市', required: true, component: 'Select', wrapper: 'FormItem', placeholder: '请先选择省份', reactions: [{ watch: 'province', fulfill: { run: (f: any, ctx: any) => {
-      const p = ctx.values.province as string
-      f.setValue(undefined)
-      f.setDataSource(p ? (CITIES[p] ?? []) : [])
-      f.setComponentProps({ placeholder: p ? '请选择城市' : '请先选择省份' })
-    } } }] },
-    district: { type: 'string', label: '区县', component: 'Select', wrapper: 'FormItem', placeholder: '请先选择城市', reactions: [{ watch: 'city', fulfill: { run: (f: any, ctx: any) => {
-      const c = ctx.values.city as string
-      f.setValue(undefined)
-      f.setDataSource(c ? (DISTRICTS[c] ?? []) : [])
-      f.setComponentProps({ placeholder: c ? '请选择区县' : '请先选择城市' })
-    } } }] },
-    categoryL1: { type: 'string', label: '一级分类', required: true, component: 'Select', wrapper: 'FormItem', placeholder: '请选择', enum: CAT_L1 },
-    categoryL2: { type: 'string', label: '二级分类', required: true, component: 'Select', wrapper: 'FormItem', placeholder: '请先选择一级', reactions: [{ watch: 'categoryL1', fulfill: { run: (f: any, ctx: any) => {
-      const l1 = ctx.values.categoryL1 as string
-      f.setValue(undefined)
-      f.setDataSource(l1 ? (CAT_L2[l1] ?? []) : [])
-    } } }] },
-    categoryL3: { type: 'string', label: '三级分类', component: 'Select', wrapper: 'FormItem', placeholder: '请先选择二级', reactions: [{ watch: 'categoryL2', fulfill: { run: (f: any, ctx: any) => {
-      const l2 = ctx.values.categoryL2 as string
-      f.setValue(undefined)
-      f.setDataSource(l2 ? (CAT_L3[l2] ?? []) : [])
-    } } }] },
+const initialValues = {
+  province: undefined, city: undefined, district: undefined,
+  categoryL1: undefined, categoryL2: undefined, categoryL3: undefined,
+}
+
+const schema: ISchema = {
+  type: 'object',
+  decoratorProps: { labelPosition: 'right', labelWidth: '120px', actions: { submit: '提交', reset: '重置' } },
+  properties: {
+    province: {
+      type: 'string', title: '省份', required: true, component: 'Select',
+      componentProps: { placeholder: '请选择' }, enum: PROVINCES,
+    },
+    city: {
+      type: 'string', title: '城市', required: true, component: 'Select',
+      componentProps: { placeholder: '请先选择省份' },
+      reactions: [{ watch: 'province', fulfill: { run: (f: any, ctx: any) => {
+        const p = ctx.values.province as string
+        f.setValue(undefined)
+        f.setDataSource(p ? (CITIES[p] ?? []) : [])
+        f.setComponentProps({ placeholder: p ? '请选择城市' : '请先选择省份' })
+      } } }],
+    },
+    district: {
+      type: 'string', title: '区县', component: 'Select',
+      componentProps: { placeholder: '请先选择城市' },
+      reactions: [{ watch: 'city', fulfill: { run: (f: any, ctx: any) => {
+        const c = ctx.values.city as string
+        f.setValue(undefined)
+        f.setDataSource(c ? (DISTRICTS[c] ?? []) : [])
+        f.setComponentProps({ placeholder: c ? '请选择区县' : '请先选择城市' })
+      } } }],
+    },
+    categoryL1: {
+      type: 'string', title: '一级分类', required: true, component: 'Select',
+      componentProps: { placeholder: '请选择' }, enum: CAT_L1,
+    },
+    categoryL2: {
+      type: 'string', title: '二级分类', required: true, component: 'Select',
+      componentProps: { placeholder: '请先选择一级' },
+      reactions: [{ watch: 'categoryL1', fulfill: { run: (f: any, ctx: any) => {
+        const l1 = ctx.values.categoryL1 as string
+        f.setValue(undefined)
+        f.setDataSource(l1 ? (CAT_L2[l1] ?? []) : [])
+      } } }],
+    },
+    categoryL3: {
+      type: 'string', title: '三级分类', component: 'Select',
+      componentProps: { placeholder: '请先选择二级' },
+      reactions: [{ watch: 'categoryL2', fulfill: { run: (f: any, ctx: any) => {
+        const l2 = ctx.values.categoryL2 as string
+        f.setValue(undefined)
+        f.setDataSource(l2 ? (CAT_L3[l2] ?? []) : [])
+      } } }],
+    },
   },
-}))
+}
 </script>

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>Cron 表达式编辑器</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -9,7 +9,7 @@
         <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <FormField name="taskName" :field-props="{ label: '任务名称', required: true, component: 'Input', componentProps: { placeholder: '请输入任务名称', style: 'width: 300px' } }" />
           <FormField name="cronExpr" :field-props="{ label: 'Cron 表达式', required: true, component: 'CronEditor', componentProps: { presets: CRON_PRESETS } }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

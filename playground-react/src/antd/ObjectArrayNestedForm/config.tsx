@@ -3,14 +3,6 @@ import type { FieldPattern } from '@moluoxixi/shared'
 import { DeleteOutlined, PhoneOutlined, PlusOutlined } from '@ant-design/icons'
 import { FormArrayField, FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import {
-  Button,
-  Card,
-  Input,
-  Space,
-  Tag,
-  Typography,
-} from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 17：对象数组嵌套
@@ -22,8 +14,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React, { useEffect } from 'react'
-
-const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
@@ -55,11 +45,11 @@ const PhoneItem = observer(({
   const basePath = `contacts.${contactIdx}.phones.${phoneIdx}`
 
   return (
-    <Space size={4} style={{ width: '100%', marginBottom: 4 }}>
+    <div style={{ display: 'flex', gap: 4, alignItems: 'center', width: '100%', marginBottom: 4 }}>
       <PhoneOutlined style={{ color: '#999' }} />
       <FormField name={`${basePath}.label`}>
         {(field: FieldInstance) => (
-          <Input
+          <input
             value={(field.value as string) ?? ''}
             onChange={e => field.setValue(e.target.value)}
             placeholder="标签"
@@ -72,7 +62,7 @@ const PhoneItem = observer(({
       </FormField>
       <FormField name={`${basePath}.number`}>
         {(field: FieldInstance) => (
-          <Input
+          <input
             value={(field.value as string) ?? ''}
             onChange={e => field.setValue(e.target.value)}
             placeholder="电话号码"
@@ -84,15 +74,9 @@ const PhoneItem = observer(({
         )}
       </FormField>
       {isEditable && (
-        <Button
-          size="small"
-          danger
-          icon={<DeleteOutlined />}
-          disabled={!phoneArray.canRemove}
-          onClick={() => phoneArray.remove(phoneIdx)}
-        />
+        <button style={{ padding: '0 8px', height: 24, fontSize: 12, background: '#fff', color: '#ff4d4f', border: '1px solid #ff4d4f', borderRadius: 4, cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }} disabled={!phoneArray.canRemove} onClick={() => phoneArray.remove(phoneIdx)}>{<DeleteOutlined />}</button>
       )}
-    </Space>
+    </div>
   )
 })
 
@@ -112,34 +96,29 @@ const ContactCard = observer(({
   const basePath = `contacts.${index}`
 
   return (
-    <Card
-      size="small"
-      title={(
+    <div style={{ border: '1px solid #f0f0f0', borderRadius: 8, marginBottom: 12 }}><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 16px', borderBottom: '1px solid #f0f0f0' }}><span style={{ fontWeight: 500 }}>{(
         <span>
           联系人 #
           {index + 1}
         </span>
-      )}
-      extra={
+      )}</span>{
         isEditable
           ? (
-              <Button size="small" danger icon={<DeleteOutlined />} disabled={!arrayField.canRemove} onClick={() => arrayField.remove(index)}>
+              <button style={{ padding: '0 8px', height: 24, fontSize: 12, background: '#fff', color: '#ff4d4f', border: '1px solid #ff4d4f', borderRadius: 4, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }} disabled={!arrayField.canRemove} onClick={() => arrayField.remove(index)}>{<DeleteOutlined />} 
                 删除
-              </Button>
+              </button>
             )
           : null
-      }
-      style={{ marginBottom: 12 }}
-    >
-      <Space direction="vertical" style={{ width: '100%' }}>
-        <Space>
+      }</div><div style={{ padding: 16 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <FormField name={`${basePath}.name`}>
             {(field: FieldInstance) => (
-              <Input
+              <input
                 value={(field.value as string) ?? ''}
                 onChange={e => field.setValue(e.target.value)}
                 placeholder="姓名"
-                addonBefore="姓名"
+                placeholder="姓名"
                 disabled={pattern === 'disabled'}
                 readOnly={pattern === 'readOnly'}
               />
@@ -147,17 +126,17 @@ const ContactCard = observer(({
           </FormField>
           <FormField name={`${basePath}.role`}>
             {(field: FieldInstance) => (
-              <Input
+              <input
                 value={(field.value as string) ?? ''}
                 onChange={e => field.setValue(e.target.value)}
                 placeholder="角色"
-                addonBefore="角色"
+                placeholder="角色"
                 disabled={pattern === 'disabled'}
                 readOnly={pattern === 'readOnly'}
               />
             )}
           </FormField>
-        </Space>
+        </div>
 
         {/* 嵌套电话数组 */}
         <FormArrayField
@@ -167,24 +146,18 @@ const ContactCard = observer(({
           {(phoneArray: ArrayFieldInstance) => (
             <div style={{ padding: '8px 12px', background: '#fafafa', borderRadius: 4 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                <Text type="secondary" style={{ fontSize: 12 }}>
+                <span style={{ color: 'rgba(0,0,0,0.45)', fontSize: 12 }}>
                   电话列表
                   {' '}
-                  <Tag>
+                  <span style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, background: '#f0f0f0', border: '1px solid #d9d9d9', borderRadius: 4 }}>
                     {((phoneArray.value as unknown[]) ?? []).length}
                     /5
-                  </Tag>
-                </Text>
+                  </span>
+                </span>
                 {isEditable && (
-                  <Button
-                    size="small"
-                    type="dashed"
-                    icon={<PlusOutlined />}
-                    disabled={!phoneArray.canAdd}
-                    onClick={() => phoneArray.push({ ...PHONE_TEMPLATE })}
-                  >
+                  <button style={{ padding: '0 8px', height: 24, fontSize: 12, background: '#fff', border: '1px dashed #d9d9d9', borderRadius: 4, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }} disabled={!phoneArray.canAdd} onClick={() => phoneArray.push({ ...PHONE_TEMPLATE })}><PlusOutlined />
                     添加电话
-                  </Button>
+                  </button>
                 )}
               </div>
               {((phoneArray.value as unknown[]) ?? []).map((_: unknown, phoneIdx: number) => (
@@ -199,8 +172,8 @@ const ContactCard = observer(({
             </div>
           )}
         </FormArrayField>
-      </Space>
-    </Card>
+      </div>
+    </div></div>
   )
 })
 
@@ -224,10 +197,10 @@ export const ObjectArrayNestedForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>对象数组嵌套</Title>
-      <Paragraph type="secondary">
+      <h2>对象数组嵌套</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
         联系人数组 → 每人含嵌套电话数组（多层增删）
-      </Paragraph>
+      </p>
 
       <StatusTabs resultTitle="提交结果（嵌套结构）">
         {({ mode }) => {
@@ -243,7 +216,7 @@ export const ObjectArrayNestedForm = observer((): React.ReactElement => {
                         {' '}
                         *
                       </label>
-                      <Input
+                      <input
                         value={(field.value as string) ?? ''}
                         onChange={e => field.setValue(e.target.value)}
                         style={{ width: 300 }}
@@ -261,17 +234,17 @@ export const ObjectArrayNestedForm = observer((): React.ReactElement => {
                   {(arrayField: ArrayFieldInstance) => (
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-                        <Space>
-                          <Text strong>团队成员</Text>
-                          <Tag>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <strong>团队成员</strong>
+                          <span style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, background: '#f0f0f0', border: '1px solid #d9d9d9', borderRadius: 4 }}>
                             {((arrayField.value as unknown[]) ?? []).length}
                             /10
-                          </Tag>
-                        </Space>
+                          </span>
+                        </div>
                         {mode === 'editable' && (
-                          <Button type="primary" icon={<PlusOutlined />} disabled={!arrayField.canAdd} onClick={() => arrayField.push({ ...CONTACT_TEMPLATE })}>
+                          <button style={{ padding: '4px 12px', fontSize: 14, background: '#1677ff', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }} disabled={!arrayField.canAdd} onClick={() => arrayField.push({ ...CONTACT_TEMPLATE })}><PlusOutlined />
                             添加联系人
-                          </Button>
+                          </button>
                         )}
                       </div>
                       {((arrayField.value as unknown[]) ?? []).map((_: unknown, idx: number) => (

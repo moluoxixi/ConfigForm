@@ -3,16 +3,6 @@ import type { FieldPattern } from '@moluoxixi/shared'
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import {
-  Button,
-  Card,
-  Form,
-  Input,
-  Select,
-  Space,
-  Tag,
-  Typography,
-} from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 25：动态增删字段
@@ -24,8 +14,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React, { useCallback, useEffect, useState } from 'react'
-
-const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
@@ -87,7 +75,7 @@ export const DynamicFieldForm = observer((): React.ReactElement => {
   const renderDynamicField = (field: FieldInstance, fieldType: string, mode: FieldPattern): React.ReactElement => {
     if (fieldType === 'select') {
       return (
-        <Select
+        <select
           value={(field.value as string) ?? undefined}
           onChange={v => field.setValue(v)}
           options={[{ label: '选项 A', value: 'a' }, { label: '选项 B', value: 'b' }, { label: '选项 C', value: 'c' }]}
@@ -98,7 +86,7 @@ export const DynamicFieldForm = observer((): React.ReactElement => {
       )
     }
     return (
-      <Input
+      <input
         value={(field.value as string) ?? ''}
         onChange={e => field.setValue(e.target.value)}
         placeholder={`请输入${field.label}`}
@@ -110,8 +98,8 @@ export const DynamicFieldForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>动态增删字段</Title>
-      <Paragraph type="secondary">运行时添加 / 移除字段 / 动态字段参与验证提交</Paragraph>
+      <h2>动态增删字段</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>运行时添加 / 移除字段 / 动态字段参与验证提交</p>
 
       <StatusTabs>
         {({ mode }) => {
@@ -121,40 +109,40 @@ export const DynamicFieldForm = observer((): React.ReactElement => {
               <>
                 {/* 添加字段面板 */}
                 {mode === 'editable' && (
-                  <Card size="small" title="添加新字段" style={{ marginBottom: 16 }}>
-                    <Space>
-                      <Input
+                  <div style={{ border: '1px solid #f0f0f0', borderRadius: 8, marginBottom: 16 }}><div style={{ padding: '8px 16px', borderBottom: '1px solid #f0f0f0', fontWeight: 500 }}>添加新字段</div><div style={{ padding: 16 }}>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <input
                         value={newFieldLabel}
                         onChange={e => setNewFieldLabel(e.target.value)}
                         placeholder="字段标签"
                         style={{ width: 200 }}
                       />
-                      <Select
+                      <select
                         value={newFieldType}
                         onChange={v => setNewFieldType(v)}
                         options={FIELD_TYPE_OPTIONS}
                         style={{ width: 120 }}
                       />
-                      <Button type="primary" icon={<PlusOutlined />} onClick={addField} disabled={!newFieldLabel.trim()}>
+                      <button style={{ padding: '4px 12px', fontSize: 14, background: '#1677ff', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }} onClick={addField} disabled={!newFieldLabel.trim()}>{<PlusOutlined />} 
                         添加
-                      </Button>
-                    </Space>
+                      </button>
+                    </div>
                     <div style={{ marginTop: 8 }}>
-                      <Text type="secondary">
+                      <span style={{ color: 'rgba(0,0,0,0.45)' }}>
                         已添加
                         {dynamicFields.length}
                         {' '}
                         个动态字段
-                      </Text>
+                      </span>
                     </div>
-                  </Card>
+                  </div></div>
                 )}
 
                 {/* 固定字段 */}
                 <FormField name="title">
                   {(field: FieldInstance) => (
-                    <Form.Item label={field.label} required={field.required} validateStatus={field.errors.length > 0 ? 'error' : undefined} help={field.errors[0]?.message}>
-                      <Input
+                    <div style={{ marginBottom: 16 }}><label style={{ display: 'block', marginBottom: 4, fontWeight: 500 }}>{field.label}{field.required && <span style={{ color: 'red' }}> *</span>}</label>
+                      <input
                         value={(field.value as string) ?? ''}
                         onChange={e => field.setValue(e.target.value)}
                         onBlur={() => {
@@ -165,7 +153,7 @@ export const DynamicFieldForm = observer((): React.ReactElement => {
                         readOnly={mode === 'readOnly'}
                         placeholder="请输入表单标题"
                       />
-                    </Form.Item>
+                    </div>
                   )}
                 </FormField>
 
@@ -173,21 +161,14 @@ export const DynamicFieldForm = observer((): React.ReactElement => {
                 {dynamicFields.map(df => (
                   <FormField key={df.id} name={df.name}>
                     {(field: FieldInstance) => (
-                      <Form.Item
-                        label={(
-                          <Space>
-                            {field.label}
-                            <Tag color="blue" style={{ fontSize: 11 }}>{df.fieldType}</Tag>
-                          </Space>
-                        )}
-                      >
-                        <Space style={{ width: '100%' }}>
+                      <div style={{ marginBottom: 16 }}>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center', width: '100%' }}>
                           <div style={{ flex: 1 }}>{renderDynamicField(field, df.fieldType, mode)}</div>
                           {mode === 'editable' && (
-                            <Button danger icon={<DeleteOutlined />} onClick={() => removeField(df.id)} />
+                            <button style={{ padding: '4px 8px', fontSize: 14, background: '#fff', color: '#ff4d4f', border: '1px solid #ff4d4f', borderRadius: 6, cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }} onClick={() => removeField(df.id)}>{<DeleteOutlined />}</button>
                           )}
-                        </Space>
-                      </Form.Item>
+                        </div>
+                      </div>
                     )}
                   </FormField>
                 ))}

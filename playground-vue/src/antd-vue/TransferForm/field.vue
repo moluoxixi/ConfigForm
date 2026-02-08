@@ -9,7 +9,7 @@
         <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <FormField name="roleName" :field-props="{ label: '角色名称', required: true, component: 'Input', componentProps: { placeholder: '请输入角色名称', style: 'width: 300px' } }" />
           <FormField name="permissions" :field-props="{ label: '权限分配', required: true, component: 'TransferPicker', componentProps: { dataSource: PERMISSIONS } }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>
@@ -21,7 +21,8 @@ import type { PropType } from 'vue'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { LayoutFormActions, setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { FormField, FormProvider, registerComponent, useCreateForm } from '@moluoxixi/vue'
-import { Tag as ATag, Transfer as ATransfer } from 'ant-design-vue'
+// TODO: ATransfer 暂时保留 ant-design-vue 依赖，后续替换为自定义穿梭框组件
+import { Transfer as ATransfer } from 'ant-design-vue'
 import { defineComponent, h, ref, watch } from 'vue'
 
 setupAntdVue()
@@ -76,7 +77,7 @@ const TransferPicker = defineComponent({
         return h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '4px' } },
           selected.map((k) => {
             const item = props.dataSource.find(p => p.key === k)
-            return h(ATag, { color: 'blue', key: k }, () => item?.title ?? k)
+            return h('span', { key: k, style: { display: 'inline-block', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', border: '1px solid #91caff', background: '#e6f4ff', color: '#0958d9' } }, item?.title ?? k)
           }),
         )
       }

@@ -8,16 +8,16 @@
       <FormProvider :form="form">
         <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <!-- 语言切换器（附加内容） -->
-          <ASegmented
-            v-model:value="locale"
-            :options="LOCALE_OPTIONS"
-            style="margin-bottom: 16px"
-          />
+          <div style="display: inline-flex; border: 1px solid #d9d9d9; border-radius: 6px; overflow: hidden; margin-bottom: 16px">
+            <button v-for="opt in LOCALE_OPTIONS" :key="opt.value" :style="{ padding: '4px 12px', border: 'none', cursor: 'pointer', background: locale === opt.value ? '#1677ff' : '#fff', color: locale === opt.value ? '#fff' : 'inherit', fontSize: '14px' }" @click="locale = opt.value as Locale">
+              {{ opt.label }}
+            </button>
+          </div>
           <FormField name="name" :field-props="{ label: t('field.name'), required: true, component: 'Input', rules: [{ required: true, message: t('field.name.required') }], componentProps: { placeholder: t('field.name.placeholder') } }" />
           <FormField name="email" :field-props="{ label: t('field.email'), component: 'Input', rules: [{ format: 'email', message: t('field.email.invalid') }], componentProps: { placeholder: t('field.email.placeholder') } }" />
           <FormField name="phone" :field-props="{ label: t('field.phone'), component: 'Input', componentProps: { placeholder: t('field.phone.placeholder') } }" />
           <FormField name="bio" :field-props="{ label: t('field.bio'), component: 'Textarea', componentProps: { placeholder: t('field.bio.placeholder'), rows: 3 } }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>
@@ -34,7 +34,6 @@ import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
  * 所有字段使用 FormField + fieldProps，标签/placeholder/验证消息通过 t() 翻译函数动态获取。
  * 切换语言时通过 watch 同步更新已创建字段的属性。
  */
-import { Segmented as ASegmented } from 'ant-design-vue'
 import { ref, watch } from 'vue'
 
 setupAntdVue()

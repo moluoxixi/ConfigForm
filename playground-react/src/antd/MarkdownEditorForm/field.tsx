@@ -12,9 +12,6 @@ import React from 'react'
 import { observer } from 'mobx-react-lite'
 import { FormField, FormProvider, registerComponent, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Col, Input, Row, Typography } from 'antd'
-
-const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
@@ -77,24 +74,24 @@ const MarkdownEditor = observer(({ value, onChange, disabled, readOnly }: Markdo
 
   if (isEditable) {
     return (
-      <Row gutter={16}>
-        <Col span={12}>
-          <Text type="secondary" style={{ display: 'block', marginBottom: 4, fontSize: 12 }}>编辑区</Text>
-          <Input.TextArea
+      <div style={{ display: 'flex', gap: 16 }}>
+        <div style={{ flex: 1 }}>
+          <span style={{ display: 'block', marginBottom: 4, fontSize: 12, color: '#999' }}>编辑区</span>
+          <textarea
             value={content}
             onChange={e => onChange?.(e.target.value)}
             rows={16}
-            style={{ fontFamily: 'Consolas, Monaco, monospace', fontSize: 13 }}
+            style={{ width: '100%', fontFamily: 'Consolas, Monaco, monospace', fontSize: 13, padding: 8, border: '1px solid #d9d9d9', borderRadius: 6, resize: 'vertical' }}
           />
-        </Col>
-        <Col span={12}>
-          <Text type="secondary" style={{ display: 'block', marginBottom: 4, fontSize: 12 }}>预览区</Text>
+        </div>
+        <div style={{ flex: 1 }}>
+          <span style={{ display: 'block', marginBottom: 4, fontSize: 12, color: '#999' }}>预览区</span>
           <div
             style={{ border: '1px solid #d9d9d9', borderRadius: 6, padding: 12, minHeight: 380, overflow: 'auto', background: '#fafafa' }}
             dangerouslySetInnerHTML={{ __html: simpleMarkdownToHtml(content) }}
           />
-        </Col>
-      </Row>
+        </div>
+      </div>
     )
   }
 
@@ -120,8 +117,8 @@ export const MarkdownEditorForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>Markdown 编辑器</Title>
-      <Paragraph type="secondary">Markdown 编写 + 实时预览 / 三种模式（可接入 @bytemd/react）</Paragraph>
+      <h3>Markdown 编辑器</h3>
+      <p style={{ color: '#666' }}>Markdown 编写 + 实时预览 / 三种模式（可接入 @bytemd/react）</p>
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
           form.pattern = mode
@@ -135,7 +132,7 @@ export const MarkdownEditorForm = observer((): React.ReactElement => {
               }} noValidate>
                 <FormField name="docTitle" fieldProps={{ label: '文档标题', required: true, component: 'Input' }} />
                 <FormField name="content" fieldProps={{ label: 'Markdown 内容', required: true, component: 'MarkdownEditor' }} />
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

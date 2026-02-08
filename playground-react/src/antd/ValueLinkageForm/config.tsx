@@ -2,7 +2,6 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { ConfigForm } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 6：值联动
@@ -15,8 +14,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React from 'react'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 
@@ -230,10 +227,10 @@ const schema: ISchema = {
 export const ValueLinkageForm = observer((): React.ReactElement => {
   return (
     <div>
-      <Title level={3}>值联动</Title>
-      <Paragraph type="secondary">
+      <h2>值联动</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
         单向同步（姓+名→全名） / 格式转换（大写、去空格） / 映射转换（国家→区号/货币） / 多对一聚合
-      </Paragraph>
+      </p>
       <StatusTabs>
         {({ mode, showResult, showErrors }) => (
           <ConfigForm

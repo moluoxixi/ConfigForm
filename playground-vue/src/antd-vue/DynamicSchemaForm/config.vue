@@ -4,10 +4,19 @@
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       mergeSchema 合并 / 场景切换 / 热更新
     </p>
-    <ASegmented v-model:value="scenario" :options="scenarioOptions" style="margin-bottom: 12px" />
-    <ATag color="green" style="margin-bottom: 12px">
+    <div style="display: inline-flex; margin-bottom: 12px">
+      <button
+        v-for="(opt, idx) in scenarioOptions" :key="opt.value"
+        :style="{ padding: '4px 12px', fontSize: '13px', border: '1px solid #d9d9d9', background: scenario === opt.value ? '#1677ff' : '#fff', color: scenario === opt.value ? '#fff' : 'rgba(0,0,0,0.88)', cursor: 'pointer', marginLeft: idx > 0 ? '-1px' : '0', borderRadius: idx === 0 ? '4px 0 0 4px' : idx === scenarioOptions.length - 1 ? '0 4px 4px 0' : '0', position: 'relative', zIndex: scenario === opt.value ? 1 : 0 }"
+        @click="scenario = opt.value as ScenarioKey"
+      >
+        {{ opt.label }}
+      </button>
+    </div>
+    <br>
+    <span style="display: inline-block; margin-bottom: 12px; padding: 0 7px; font-size: 12px; line-height: 20px; border-radius: 4px; border: 1px solid #b7eb8f; color: #389e0d; background: #f6ffed">
       当前：{{ SCENARIOS[scenario].label }} | 字段数：{{ Object.keys(schema.properties || {}).length }}
-    </ATag>
+    </span>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <ConfigForm
         :schema="withMode(schema, mode)"
@@ -24,7 +33,6 @@ import type { FieldPattern } from '@moluoxixi/shared'
 import { mergeSchema } from '@moluoxixi/schema'
 import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { ConfigForm } from '@moluoxixi/vue'
-import { Segmented as ASegmented, Tag as ATag } from 'ant-design-vue'
 import { computed, ref } from 'vue'
 
 setupAntdVue()

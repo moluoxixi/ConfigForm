@@ -4,57 +4,73 @@
     <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">
       两个独立表单 / 联合提交 / 弹窗表单
     </p>
-    <ElRadioGroup v-model="mode" size="small" style="margin-bottom: 16px">
-      <ElRadioButton v-for="opt in MODE_OPTIONS" :key="opt.value" :value="opt.value">
+    <div style="display: flex; gap: 8px; margin-bottom: 16px">
+      <button v-for="opt in MODE_OPTIONS" :key="opt.value" type="button" :style="{ padding: '4px 12px', borderRadius: '4px', border: '1px solid #dcdfe6', background: mode === opt.value ? '#409eff' : '#fff', color: mode === opt.value ? '#fff' : '#606266', cursor: 'pointer', fontSize: '12px' }" @click="mode = opt.value as FieldPattern">
         {{ opt.label }}
-      </ElRadioButton>
-    </ElRadioGroup>
-    <ElRow :gutter="16">
-      <ElCol :span="12">
-        <ElCard title="主表单 - 订单信息" shadow="never">
-          <FormProvider :form="mainForm">
-            <FormField v-for="n in ['orderName', 'customer', 'total']" :key="n" v-slot="{ field }" :name="n">
-              <ElFormItem :label="field.label">
-                <ElInputNumber v-if="n === 'total'" :model-value="(field.value as number)" :disabled="mode === 'disabled'" :min="0" style="width: 100%" @update:model-value="field.setValue($event)" /><ElInput v-else :model-value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" @update:model-value="field.setValue($event)" />
-              </ElFormItem>
-            </FormField><ElButton v-if="mode === 'editable'" type="info" @click="modalOpen = true">
-              从弹窗填写联系人
-            </ElButton>
-          </FormProvider>
-        </ElCard>
-      </ElCol>
-      <ElCol :span="12">
-        <ElCard title="子表单 - 联系人" shadow="never">
-          <FormProvider :form="subForm">
-            <FormField v-for="n in ['contactName', 'contactPhone', 'contactEmail']" :key="n" v-slot="{ field }" :name="n">
-              <ElFormItem :label="field.label" :required="field.required" :error="field.errors[0]?.message">
-                <ElInput :model-value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" @update:model-value="field.setValue($event)" @blur="field.blur(); field.validate('blur').catch(() => {})" />
-              </ElFormItem>
-            </FormField>
-          </FormProvider>
-        </ElCard>
-      </ElCol>
-    </ElRow>
-    <ElButton v-if="mode === 'editable'" type="primary" style="margin-top: 16px" @click="jointSubmit">
+      </button>
+    </div>
+    <div style="display: flex; gap: 16px">
+      <div style="flex: 1; border: 1px solid #e4e7ed; border-radius: 4px; padding: 16px">
+        <h4 style="margin: 0 0 12px">主表单 - 订单信息</h4>
+        <FormProvider :form="mainForm">
+          <FormField v-for="n in ['orderName', 'customer', 'total']" :key="n" v-slot="{ field }" :name="n">
+            <div style="margin-bottom: 18px">
+              <label style="display: block; margin-bottom: 4px; font-size: 14px; color: #606266">{{ field.label }}</label>
+              <input v-if="n === 'total'" type="number" :value="(field.value as number)" :disabled="mode === 'disabled'" min="0" style="width: 100%; padding: 8px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; box-sizing: border-box" @input="field.setValue(Number(($event.target as HTMLInputElement).value) || 0)" />
+              <input v-else :value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" style="width: 100%; padding: 8px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; box-sizing: border-box" @input="field.setValue(($event.target as HTMLInputElement).value)" />
+            </div>
+          </FormField>
+          <button type="button" style="padding: 8px 16px; background: #909399; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 14px" @click="modalOpen = true">
+            从弹窗填写联系人
+          </button>
+        </FormProvider>
+      </div>
+      <div style="flex: 1; border: 1px solid #e4e7ed; border-radius: 4px; padding: 16px">
+        <h4 style="margin: 0 0 12px">子表单 - 联系人</h4>
+        <FormProvider :form="subForm">
+          <FormField v-for="n in ['contactName', 'contactPhone', 'contactEmail']" :key="n" v-slot="{ field }" :name="n">
+            <div style="margin-bottom: 18px">
+              <label style="display: block; margin-bottom: 4px; font-size: 14px; color: #606266">
+                <span v-if="field.required" style="color: #f56c6c; margin-right: 4px">*</span>{{ field.label }}
+              </label>
+              <input :value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" style="width: 100%; padding: 8px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; box-sizing: border-box" @input="field.setValue(($event.target as HTMLInputElement).value)" @blur="field.blur(); field.validate('blur').catch(() => {})" />
+              <div v-if="field.errors[0]?.message" style="color: #f56c6c; font-size: 12px; margin-top: 4px">
+                {{ field.errors[0]?.message }}
+              </div>
+            </div>
+          </FormField>
+        </FormProvider>
+      </div>
+    </div>
+    <button type="button" style="margin-top: 16px; padding: 8px 16px; background: #409eff; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 14px" @click="jointSubmit">
       联合提交
-    </ElButton>
-    <ElDialog v-model="modalOpen" title="编辑联系人">
-      <FormProvider :form="subForm">
-        <FormField v-for="n in ['contactName', 'contactPhone', 'contactEmail']" :key="n" v-slot="{ field }" :name="n">
-          <ElFormItem :label="field.label">
-            <ElInput :model-value="(field.value as string) ?? ''" @update:model-value="field.setValue($event)" />
-          </ElFormItem>
-        </FormField>
-      </FormProvider>
-      <template #footer>
-        <ElButton @click="modalOpen = false">
-          取消
-        </ElButton><ElButton type="primary" @click="modalOk">
-          确定
-        </ElButton>
-      </template>
-    </ElDialog>
-    <ElAlert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" title="联合提交结果" style="margin-top: 16px" :description="result" show-icon />
+    </button>
+    <!-- 弹窗 -->
+    <div v-if="modalOpen" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000" @click.self="modalOpen = false">
+      <div style="background: #fff; border-radius: 8px; padding: 24px; min-width: 500px; max-width: 90vw; box-shadow: 0 2px 12px rgba(0,0,0,0.15)">
+        <h3 style="margin: 0 0 16px">编辑联系人</h3>
+        <FormProvider :form="subForm">
+          <FormField v-for="n in ['contactName', 'contactPhone', 'contactEmail']" :key="n" v-slot="{ field }" :name="n">
+            <div style="margin-bottom: 18px">
+              <label style="display: block; margin-bottom: 4px; font-size: 14px; color: #606266">{{ field.label }}</label>
+              <input :value="(field.value as string) ?? ''" style="width: 100%; padding: 8px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; box-sizing: border-box" @input="field.setValue(($event.target as HTMLInputElement).value)" />
+            </div>
+          </FormField>
+        </FormProvider>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px">
+          <button type="button" style="padding: 8px 16px; background: #fff; color: #606266; border: 1px solid #dcdfe6; border-radius: 4px; cursor: pointer; font-size: 14px" @click="modalOpen = false">
+            取消
+          </button>
+          <button type="button" style="padding: 8px 16px; background: #409eff; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 14px" @click="modalOk">
+            确定
+          </button>
+        </div>
+      </div>
+    </div>
+    <div v-if="result" :style="{ marginTop: '16px', padding: '12px 16px', borderRadius: '4px', background: result.startsWith('验证失败') ? '#fef0f0' : '#f0f9eb', color: result.startsWith('验证失败') ? '#f56c6c' : '#67c23a', border: result.startsWith('验证失败') ? '1px solid #fde2e2' : '1px solid #e1f3d8' }">
+      <strong>联合提交结果</strong>
+      <div style="margin-top: 4px; white-space: pre-wrap">{{ result }}</div>
+    </div>
   </div>
 </template>
 
@@ -62,7 +78,6 @@
 import type { FieldPattern } from '@moluoxixi/shared'
 import { setupElementPlus } from '@moluoxixi/ui-element-plus'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
-import { ElAlert, ElButton, ElCard, ElCol, ElDialog, ElFormItem, ElInput, ElInputNumber, ElRadioButton, ElRadioGroup, ElRow } from 'element-plus'
 import { onMounted, ref } from 'vue'
 
 setupElementPlus()

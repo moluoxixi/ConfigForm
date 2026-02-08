@@ -2,7 +2,6 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { ConfigForm } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Segmented, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 46：国际化 — ConfigForm + Schema
@@ -16,8 +15,6 @@ import { observer } from 'mobx-react-lite'
  * 通过动态生成 schema 实现语言切换，切换时重新生成 schema 传入 ConfigForm。
  */
 import React, { useState } from 'react'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 
@@ -149,16 +146,29 @@ export const I18nForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>国际化（i18n）</Title>
-      <Paragraph type="secondary">多语言标签 / 验证消息国际化 / placeholder 国际化 — ConfigForm + Schema</Paragraph>
+      <h2>国际化（i18n）</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>多语言标签 / 验证消息国际化 / placeholder 国际化 — ConfigForm + Schema</p>
 
       {/* 语言切换器 */}
-      <Segmented
-        value={locale}
-        onChange={v => setLocale(v as Locale)}
-        options={LOCALE_OPTIONS}
-        style={{ marginBottom: 16 }}
-      />
+      <div style={{ display: 'inline-flex', gap: 0, marginBottom: 16, border: '1px solid #d9d9d9', borderRadius: 6, overflow: 'hidden' }}>
+        {LOCALE_OPTIONS.map(opt => (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => setLocale(opt.value as Locale)}
+            style={{
+              padding: '4px 12px',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: 14,
+              background: locale === opt.value ? '#1677ff' : '#fff',
+              color: locale === opt.value ? '#fff' : 'rgba(0,0,0,0.88)',
+            }}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
 
       <StatusTabs>
         {({ mode, showResult, showErrors }) => (

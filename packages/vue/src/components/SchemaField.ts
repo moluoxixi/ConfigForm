@@ -45,11 +45,7 @@ export const SchemaField = defineComponent({
         return renderVoidNode(cf)
       }
       if (cf.isArray) {
-        return h(FormArrayField, {
-          key: cf.address,
-          name: cf.dataPath,
-          fieldProps: toArrayFieldProps(cf),
-        })
+        return renderArrayNode(cf)
       }
       if (cf.schema.type === 'object' && cf.children.length > 0) {
         return renderObjectNode(cf)
@@ -59,6 +55,28 @@ export const SchemaField = defineComponent({
         key: cf.address,
         name: cf.dataPath,
         fieldProps: toFieldProps(cf),
+      })
+    }
+
+    /**
+     * array 节点 → FormArrayField
+     *
+     * 参考 Formily：将 items schema 通过 componentProps.itemsSchema 传递给
+     * ArrayItems 组件，由 ArrayItems 使用 RecursionField 递归渲染每个数组项。
+     */
+    function renderArrayNode(cf: CompiledField): VNode {
+      const arrayProps = toArrayFieldProps(cf)
+
+      /* 将 items schema 注入 componentProps，供 ArrayItems 使用 */
+      arrayProps.componentProps = {
+        ...arrayProps.componentProps,
+        itemsSchema: cf.schema.items,
+      }
+
+      return h(FormArrayField, {
+        key: cf.address,
+        name: cf.dataPath,
+        fieldProps: arrayProps,
       })
     }
 

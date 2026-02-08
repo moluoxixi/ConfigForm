@@ -2,7 +2,6 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { ConfigForm } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 10：条件必填
@@ -15,8 +14,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React from 'react'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 
@@ -185,10 +182,10 @@ const schema: ISchema = {
 export const ConditionalRequiredForm = observer((): React.ReactElement => {
   return (
     <div>
-      <Title level={3}>条件必填</Title>
-      <Paragraph type="secondary">
+      <h2>条件必填</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
         开关控制必填 / 金额阈值必填 / 选择「其他」必填 / 多条件组合必填
-      </Paragraph>
+      </p>
       <StatusTabs>
         {({ mode, showResult, showErrors }) => (
           <ConfigForm

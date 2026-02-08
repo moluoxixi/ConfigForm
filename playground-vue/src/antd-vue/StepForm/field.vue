@@ -8,33 +8,39 @@
       <FormProvider :form="form">
         <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <!-- 步骤导航 -->
-          <ASteps :current="currentStep" size="small" style="margin-bottom: 24px">
-            <AStep title="基本信息" />
-            <AStep title="工作信息" />
-            <AStep title="确认提交" />
-          </ASteps>
+          <div style="display: flex; margin-bottom: 24px">
+            <div v-for="(title, idx) in STEP_TITLES" :key="idx" style="flex: 1; text-align: center; position: relative">
+              <div :style="{ width: '24px', height: '24px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '600', color: '#fff', background: idx < currentStep ? '#52c41a' : idx === currentStep ? '#1677ff' : '#d9d9d9' }">
+                {{ idx < currentStep ? '✓' : idx + 1 }}
+              </div>
+              <div :style="{ fontSize: '14px', marginTop: '4px', color: idx === currentStep ? '#1677ff' : 'rgba(0,0,0,0.45)' }">{{ title }}</div>
+            </div>
+          </div>
           <!-- 步骤 1：基本信息 -->
-          <ACard v-show="currentStep === 0" size="small" title="第 1 步：基本信息">
+          <div v-show="currentStep === 0" style="border: 1px solid #d9d9d9; border-radius: 8px; padding: 16px; margin-bottom: 16px">
+            <div style="font-weight: 600; margin-bottom: 12px; font-size: 14px">第 1 步：基本信息</div>
             <FormField name="name" :field-props="{ label: '姓名', required: true, component: 'Input', rules: [{ minLength: 2, message: '至少 2 字' }] }" />
             <FormField name="phone" :field-props="{ label: '手机号', required: true, component: 'Input', rules: [{ format: 'phone', message: '无效手机号' }] }" />
             <FormField name="email" :field-props="{ label: '邮箱', required: true, component: 'Input', rules: [{ format: 'email', message: '无效邮箱' }] }" />
-          </ACard>
+          </div>
           <!-- 步骤 2：工作信息 -->
-          <ACard v-show="currentStep === 1" size="small" title="第 2 步：工作信息">
+          <div v-show="currentStep === 1" style="border: 1px solid #d9d9d9; border-radius: 8px; padding: 16px; margin-bottom: 16px">
+            <div style="font-weight: 600; margin-bottom: 12px; font-size: 14px">第 2 步：工作信息</div>
             <FormField name="company" :field-props="{ label: '公司', required: true, component: 'Input' }" />
             <FormField name="position" :field-props="{ label: '职位', required: true, component: 'Input' }" />
-          </ACard>
+          </div>
           <!-- 步骤 3：确认 -->
-          <ACard v-show="currentStep === 2" size="small" title="第 3 步：确认提交">
+          <div v-show="currentStep === 2" style="border: 1px solid #d9d9d9; border-radius: 8px; padding: 16px; margin-bottom: 16px">
+            <div style="font-weight: 600; margin-bottom: 12px; font-size: 14px">第 3 步：确认提交</div>
             <p>姓名：{{ form.getFieldValue('name') || '—' }}</p>
             <p>手机：{{ form.getFieldValue('phone') || '—' }}</p>
             <p>邮箱：{{ form.getFieldValue('email') || '—' }}</p>
             <p>公司：{{ form.getFieldValue('company') || '—' }}</p>
             <p>职位：{{ form.getFieldValue('position') || '—' }}</p>
-          </ACard>
-          <div v-if="mode === 'editable'" style="margin-top: 16px; display: flex; gap: 8px">
-            <AButton v-if="currentStep > 0" @click="currentStep--">上一步</AButton>
-            <AButton v-if="currentStep < 2" type="primary" @click="nextStep">下一步</AButton>
+          </div>
+          <div style="margin-top: 16px; display: flex; gap: 8px">
+            <button v-if="currentStep > 0" type="button" style="padding: 4px 15px; border: 1px solid #d9d9d9; border-radius: 6px; background: #fff; cursor: pointer; font-size: 14px" @click="currentStep--">上一步</button>
+            <button v-if="currentStep < 2" type="button" style="padding: 4px 15px; border: none; border-radius: 6px; background: #1677ff; color: #fff; cursor: pointer; font-size: 14px" @click="nextStep">下一步</button>
             <LayoutFormActions @reset="form.reset(); currentStep = 0" />
           </div>
         </form>
@@ -53,11 +59,13 @@ import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
  * 使用 FormProvider + FormField + ASteps 实现分步填写。
  * 通过 currentStep 控制可见步骤，下一步前校验当前步骤字段。
  */
-import { Button as AButton, Card as ACard, Step as AStep, Steps as ASteps } from 'ant-design-vue'
 import { ref, watch } from 'vue'
 
 setupAntdVue()
 const st = ref<InstanceType<typeof StatusTabs>>()
+
+/** 步骤标题 */
+const STEP_TITLES = ['基本信息', '工作信息', '确认提交']
 
 /** 当前步骤索引 */
 const currentStep = ref(0)

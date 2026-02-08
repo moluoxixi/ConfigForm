@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>级联选择（Field 版）</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -13,7 +13,7 @@
           <FormField name="categoryL1" :field-props="{ label: '一级分类', required: true, component: 'Select', dataSource: CAT_L1, componentProps: { placeholder: '请选择' } }" />
           <FormField name="categoryL2" :field-props="{ label: '二级分类', required: true, component: 'Select', componentProps: { placeholder: '请先选择一级' } }" />
           <FormField name="categoryL3" :field-props="{ label: '三级分类', component: 'Select', componentProps: { placeholder: '请先选择二级' } }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

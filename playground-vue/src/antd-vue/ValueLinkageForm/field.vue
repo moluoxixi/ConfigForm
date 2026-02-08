@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>值联动（Field 版）</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -20,7 +20,7 @@
           <FormField name="city" :field-props="{ label: '市', component: 'Input', componentProps: { placeholder: '市' } }" />
           <FormField name="district" :field-props="{ label: '区', component: 'Input', componentProps: { placeholder: '区' } }" />
           <FormField name="fullAddress" :field-props="{ label: '完整地址（聚合）', component: 'Input', componentProps: { disabled: true } }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

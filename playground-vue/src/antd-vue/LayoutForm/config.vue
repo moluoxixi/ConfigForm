@@ -6,7 +6,15 @@
     </p>
     <div style="margin-bottom: 16px">
       <span style="font-weight: 600; margin-right: 12px">布局类型：</span>
-      <ASegmented v-model:value="layoutType" :options="LAYOUT_OPTIONS" />
+      <div style="display: inline-flex">
+        <button
+          v-for="(opt, idx) in LAYOUT_OPTIONS" :key="opt.value"
+          :style="{ padding: '4px 12px', fontSize: '13px', border: '1px solid #d9d9d9', background: layoutType === opt.value ? '#1677ff' : '#fff', color: layoutType === opt.value ? '#fff' : 'rgba(0,0,0,0.88)', cursor: 'pointer', marginLeft: idx > 0 ? '-1px' : '0', borderRadius: idx === 0 ? '4px 0 0 4px' : idx === LAYOUT_OPTIONS.length - 1 ? '0 4px 4px 0' : '0', position: 'relative', zIndex: layoutType === opt.value ? 1 : 0 }"
+          @click="layoutType = opt.value as LayoutType"
+        >
+          {{ opt.label }}
+        </button>
+      </div>
     </div>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <ConfigForm
@@ -24,7 +32,6 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { ConfigForm } from '@moluoxixi/vue'
-import { Segmented as ASegmented } from 'ant-design-vue'
 /**
  * 场景 2：表单布局（Ant Design Vue）
  */

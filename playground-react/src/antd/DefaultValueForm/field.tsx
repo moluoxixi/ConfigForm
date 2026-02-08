@@ -14,9 +14,6 @@ import React from 'react'
 import { observer } from 'mobx-react-lite'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Alert, Typography } from 'antd'
-
-const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
@@ -58,26 +55,14 @@ export const DefaultValueForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>默认值 (Field 版)</Title>
-      <Paragraph type="secondary">
+      <h2>默认值 (Field 版)</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
         静态 defaultValue / 动态计算默认值 / initialValues 外部注入 / 重置恢复 —— FormField + fieldProps 实现
-      </Paragraph>
+      </p>
 
-      <Alert
-        type="info"
-        showIcon
-        style={{ marginBottom: 16 }}
-        message={(
-          <span>
-            外部注入初始值：订单号
-            {' '}
-            <Text code>{INITIAL_VALUES.orderNo as string}</Text>
-            ，日期
-            {' '}
-            <Text code>{INITIAL_VALUES.createDate as string}</Text>
-          </span>
-        )}
-      />
+      <div style={{ padding: '8px 16px', marginBottom: 16, background: '#e6f4ff', border: '1px solid #91caff', borderRadius: 6, fontSize: 13 }}>
+        外部注入初始值：订单号 <code>{INITIAL_VALUES.orderNo as string}</code>，日期 <code>{INITIAL_VALUES.createDate as string}</code>
+      </div>
 
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
@@ -165,7 +150,7 @@ export const DefaultValueForm = observer((): React.ReactElement => {
                   }],
                 }}
                 />
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

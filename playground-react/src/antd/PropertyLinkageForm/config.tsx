@@ -2,7 +2,6 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { ConfigForm } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 7：属性联动
@@ -15,8 +14,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React from 'react'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 
@@ -185,10 +182,10 @@ const schema: ISchema = {
 export const PropertyLinkageForm = observer((): React.ReactElement => {
   return (
     <div>
-      <Title level={3}>属性联动</Title>
-      <Paragraph type="secondary">
+      <h2>属性联动</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
         动态 disabled / 动态 required + placeholder / 动态 componentProps（min/max/step） / 多字段必填切换
-      </Paragraph>
+      </p>
       <StatusTabs>
         {({ mode, showResult, showErrors }) => (
           <ConfigForm

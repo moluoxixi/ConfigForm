@@ -12,6 +12,7 @@ const DEFAULT_COMPONENT_MAPPING: Record<string, string> = {
   number: 'InputNumber',
   boolean: 'Switch',
   date: 'DatePicker',
+  array: 'ArrayItems',
 }
 
 /** 默认装饰器 */

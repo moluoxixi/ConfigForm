@@ -4,39 +4,46 @@
     <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">
       打印预览 / 导出 JSON / 导出 CSV
     </p>
-    <ElRadioGroup v-model="mode" size="small" style="margin-bottom: 16px">
-      <ElRadioButton v-for="opt in MODE_OPTIONS" :key="opt.value" :value="opt.value">
+    <div style="display: flex; gap: 8px; margin-bottom: 16px">
+      <button v-for="opt in MODE_OPTIONS" :key="opt.value" type="button" :style="{ padding: '4px 12px', borderRadius: '4px', border: '1px solid #dcdfe6', background: mode === opt.value ? '#409eff' : '#fff', color: mode === opt.value ? '#fff' : '#606266', cursor: 'pointer', fontSize: '12px' }" @click="mode = opt.value as FieldPattern">
         {{ opt.label }}
-      </ElRadioButton>
-    </ElRadioGroup>
-    <ElSpace style="margin-bottom: 16px">
-      <ElButton @click="handlePrint">
-        打印
-      </ElButton><ElButton @click="exportJson">
-        导出 JSON
-      </ElButton><ElButton @click="exportCsv">
-        导出 CSV
-      </ElButton>
-    </ElSpace>
+      </button>
+    </div>
+    <div style="display: flex; gap: 8px; margin-bottom: 16px">
+      <button type="button" style="padding: 8px 16px; background: #fff; color: #606266; border: 1px solid #dcdfe6; border-radius: 4px; cursor: pointer; font-size: 14px" @click="handlePrint">
+        🖨️ 打印
+      </button>
+      <button type="button" style="padding: 8px 16px; background: #fff; color: #606266; border: 1px solid #dcdfe6; border-radius: 4px; cursor: pointer; font-size: 14px" @click="exportJson">
+        📄 导出 JSON
+      </button>
+      <button type="button" style="padding: 8px 16px; background: #fff; color: #606266; border: 1px solid #dcdfe6; border-radius: 4px; cursor: pointer; font-size: 14px" @click="exportCsv">
+        📊 导出 CSV
+      </button>
+    </div>
     <FormProvider :form="form">
       <form novalidate @submit.prevent="handleSubmit">
         <FormField v-for="d in FIELDS" :key="d.name" v-slot="{ field }" :name="d.name">
-          <ElFormItem :label="d.label">
-            <ElInputNumber v-if="d.type === 'number'" :model-value="(field.value as number)" :disabled="mode === 'disabled'" style="width: 100%" @update:model-value="field.setValue($event)" />
-            <ElInput v-else-if="d.type === 'textarea'" type="textarea" :model-value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" :rows="2" @update:model-value="field.setValue($event)" />
-            <ElInput v-else :model-value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" @update:model-value="field.setValue($event)" />
-          </ElFormItem>
+          <div style="margin-bottom: 18px">
+            <label style="display: block; margin-bottom: 4px; font-size: 14px; color: #606266">{{ d.label }}</label>
+            <input v-if="d.type === 'number'" type="number" :value="(field.value as number)" :disabled="mode === 'disabled'" style="width: 100%; padding: 8px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; box-sizing: border-box" @input="field.setValue(Number(($event.target as HTMLInputElement).value) || 0)" />
+            <textarea v-else-if="d.type === 'textarea'" :value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" rows="2" style="width: 100%; padding: 8px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; resize: vertical; box-sizing: border-box" @input="field.setValue(($event.target as HTMLTextAreaElement).value)" />
+            <input v-else :value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" style="width: 100%; padding: 8px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; box-sizing: border-box" @input="field.setValue(($event.target as HTMLInputElement).value)" />
+          </div>
         </FormField>
-        <ElSpace v-if="mode === 'editable'">
-          <ElButton type="primary" native-type="submit">
+        <div style="display: flex; gap: 8px">
+          <button type="submit" style="padding: 8px 16px; background: #409eff; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 14px">
             提交
-          </ElButton><ElButton @click="form.reset()">
+          </button>
+          <button type="button" style="padding: 8px 16px; background: #fff; color: #606266; border: 1px solid #dcdfe6; border-radius: 4px; cursor: pointer; font-size: 14px" @click="form.reset()">
             重置
-          </ElButton>
-        </ElSpace>
+          </button>
+        </div>
       </form>
     </FormProvider>
-    <ElAlert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" title="提交结果" style="margin-top: 16px" :description="result" show-icon />
+    <div v-if="result" :style="{ marginTop: '16px', padding: '12px 16px', borderRadius: '4px', background: result.startsWith('验证失败') ? '#fef0f0' : '#f0f9eb', color: result.startsWith('验证失败') ? '#f56c6c' : '#67c23a', border: result.startsWith('验证失败') ? '1px solid #fde2e2' : '1px solid #e1f3d8' }">
+      <strong>提交结果</strong>
+      <div style="margin-top: 4px; white-space: pre-wrap">{{ result }}</div>
+    </div>
   </div>
 </template>
 
@@ -44,7 +51,6 @@
 import type { FieldPattern } from '@moluoxixi/shared'
 import { setupElementPlus } from '@moluoxixi/ui-element-plus'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
-import { ElAlert, ElButton, ElFormItem, ElInput, ElInputNumber, ElRadioButton, ElRadioGroup, ElSpace } from 'element-plus'
 import { onMounted, ref } from 'vue'
 
 setupElementPlus()

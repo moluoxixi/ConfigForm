@@ -4,40 +4,47 @@
     <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">
       Canvas 手写签名 / Base64 数据同步
     </p>
-    <ElRadioGroup v-model="mode" size="small" style="margin-bottom: 16px">
-      <ElRadioButton v-for="opt in MODE_OPTIONS" :key="opt.value" :value="opt.value">
+    <div style="display: flex; gap: 8px; margin-bottom: 16px">
+      <button v-for="opt in MODE_OPTIONS" :key="opt.value" type="button" :style="{ padding: '4px 12px', borderRadius: '4px', border: '1px solid #dcdfe6', background: mode === opt.value ? '#409eff' : '#fff', color: mode === opt.value ? '#fff' : '#606266', cursor: 'pointer', fontSize: '12px' }" @click="mode = opt.value as FieldPattern">
         {{ opt.label }}
-      </ElRadioButton>
-    </ElRadioGroup>
+      </button>
+    </div>
     <FormProvider :form="form">
       <form novalidate @submit.prevent="handleSubmit">
         <FormField v-slot="{ field }" name="signerName">
-          <ElFormItem :label="field.label" :required="field.required">
-            <ElInput :model-value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" style="width: 300px" @update:model-value="field.setValue($event)" />
-          </ElFormItem>
+          <div style="margin-bottom: 18px">
+            <label style="display: block; margin-bottom: 4px; font-size: 14px; color: #606266">
+              <span v-if="field.required" style="color: #f56c6c; margin-right: 4px">*</span>{{ field.label }}
+            </label>
+            <input :value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" style="width: 300px; padding: 8px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; box-sizing: border-box" @input="field.setValue(($event.target as HTMLInputElement).value)" />
+          </div>
         </FormField>
-        <ElFormItem label="手写签名">
+        <div style="margin-bottom: 18px">
+          <label style="display: block; margin-bottom: 4px; font-size: 14px; color: #606266">手写签名</label>
           <div v-if="mode === 'readOnly'">
-            <img v-if="signatureData" :src="signatureData" alt="签名" style="border: 1px solid #dcdfe6; border-radius: 8px; max-width: 500px">
+            <img v-if="signatureData" :src="signatureData" alt="签名" style="border: 1px solid #dcdfe6; border-radius: 8px; max-width: 500px" />
             <span v-else style="color: #999">暂无签名</span>
           </div>
           <div v-else>
             <canvas ref="canvasRef" width="500" height="200" :style="{ border: '1px solid #dcdfe6', borderRadius: '8px', cursor: mode === 'disabled' ? 'not-allowed' : 'crosshair', background: mode === 'disabled' ? '#f5f7fa' : '#fff', display: 'block' }" @mousedown="startDraw" @mousemove="drawing" @mouseup="endDraw" @mouseleave="endDraw" />
-            <ElButton v-if="mode === 'editable'" size="small" style="margin-top: 8px" @click="clearCanvas">
+            <button type="button" style="margin-top: 8px; padding: 4px 12px; background: #fff; color: #606266; border: 1px solid #dcdfe6; border-radius: 4px; cursor: pointer; font-size: 12px" @click="clearCanvas">
               清空签名
-            </ElButton>
+            </button>
           </div>
-        </ElFormItem>
-        <ElSpace v-if="mode === 'editable'">
-          <ElButton type="primary" native-type="submit">
+        </div>
+        <div style="display: flex; gap: 8px">
+          <button type="submit" style="padding: 8px 16px; background: #409eff; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 14px">
             提交
-          </ElButton><ElButton @click="form.reset()">
+          </button>
+          <button type="button" style="padding: 8px 16px; background: #fff; color: #606266; border: 1px solid #dcdfe6; border-radius: 4px; cursor: pointer; font-size: 14px" @click="form.reset()">
             重置
-          </ElButton>
-        </ElSpace>
+          </button>
+        </div>
       </form>
     </FormProvider>
-    <ElAlert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" :description="result" show-icon style="margin-top: 16px" />
+    <div v-if="result" :style="{ marginTop: '16px', padding: '12px 16px', borderRadius: '4px', background: result.startsWith('验证失败') ? '#fef0f0' : '#f0f9eb', color: result.startsWith('验证失败') ? '#f56c6c' : '#67c23a', border: result.startsWith('验证失败') ? '1px solid #fde2e2' : '1px solid #e1f3d8' }">
+      <div style="white-space: pre-wrap">{{ result }}</div>
+    </div>
   </div>
 </template>
 
@@ -45,7 +52,6 @@
 import type { FieldPattern } from '@moluoxixi/shared'
 import { setupElementPlus } from '@moluoxixi/ui-element-plus'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
-import { ElAlert, ElButton, ElFormItem, ElInput, ElRadioButton, ElRadioGroup, ElSpace } from 'element-plus'
 import { onMounted, ref } from 'vue'
 
 setupElementPlus()

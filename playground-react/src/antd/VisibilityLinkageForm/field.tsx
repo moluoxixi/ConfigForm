@@ -14,10 +14,6 @@ import React from 'react'
 import { observer } from 'mobx-react-lite'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Typography } from 'antd'
-
-const { Title, Paragraph } = Typography
-
 setupAntd()
 
 /** 默认初始值 */
@@ -46,10 +42,10 @@ export const VisibilityLinkageForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>显隐联动 (Field 版)</Title>
-      <Paragraph type="secondary">
+      <h2>显隐联动 (Field 版)</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
         用户类型切换 / 开关控制多字段 / 嵌套显隐（A→B→C） / 隐藏字段排除提交 —— FormField + fieldProps 实现
-      </Paragraph>
+      </p>
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
           form.pattern = mode
@@ -212,7 +208,7 @@ export const VisibilityLinkageForm = observer((): React.ReactElement => {
                   }],
                 }}
                 />
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

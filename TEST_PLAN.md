@@ -21,7 +21,42 @@
 |------|--------|-------|------|
 | React Antd | 48/48 ✅ | 48/48 ✅ | 96 个文件 |
 | Vue AntdVue | 56/56 ✅ | 56/56 ✅ | 112 个文件 |
-| Vue ElementPlus | 48/48 ✅ | 48/48 ✅ | 96 个文件 |
+| Vue ElementPlus | 48/48 🔧 | 48/48 🔧 | 96 个文件（部分需修复）|
+
+### 已发现问题
+
+| 编号 | UI 库 | 问题描述 | 状态 |
+|------|-------|----------|------|
+| 001 | element-plus | 缺少 StatusTabs 组件 | ✅ 已修复 |
+| 002 | element-plus | 使用 FormSchema 而非 ISchema | 🔧 修复中 |
+| 003 | element-plus | 直接使用 el-input/el-select 而非 FormField | 🔧 修复中 |
+| 004 | element-plus | 使用 el-radio-group 切换模式而非 StatusTabs | 🔧 修复中 |
+| 005 | antd-vue | 部分 config.vue 手动判断 mode === 'readOnly'/'disabled' | 🔧 修复中 |
+
+### 修复记录
+
+| 日期 | 修复内容 |
+|------|----------|
+| 2026-02-08 | 创建 element-plus StatusTabs 组件 |
+| 2026-02-08 | 修复 element-plus/BasicForm (config + field) |
+| 2026-02-08 | 修复 element-plus/ArrayFieldForm (config + field) - 改为 ConfigForm + ISchema |
+| 2026-02-08 | 修复 element-plus/BasicValidationForm (config + field) |
+| 2026-02-08 | 修复 element-plus/LayoutForm (config + field) |
+| 2026-02-08 | 修复 element-plus/CardGroupForm (config + field) |
+| 2026-02-08 | 修复 element-plus/StepForm (config + field) - config 改为 ConfigForm + ISchema |
+| 2026-02-08 | 修复 element-plus/EditableTableForm (config + field) - config 改为 ConfigForm + ISchema |
+| 2026-02-08 | 修复 element-plus/DynamicFieldForm (config + field) - config 改为动态 Schema 切换 |
+| 2026-02-08 | 修复 element-plus/PaginatedSearchForm config - 改为 ConfigForm + ISchema |
+| 2026-02-08 | 修复 element-plus/ObjectArrayNestedForm (config + field) - config 改为 ConfigForm + ISchema |
+| 2026-02-08 | 创建 element-plus/ValueLinkageForm field |
+| 2026-02-08 | 创建 element-plus/VisibilityLinkageForm field |
+| 2026-02-08 | 创建 element-plus/TabGroupForm field |
+| 2026-02-08 | 创建 element-plus/CollapseGroupForm field |
+| 2026-02-08 | 修复 antd-vue/ArrayFieldForm config - 改为 ConfigForm + ISchema |
+| 2026-02-08 | 修复 antd-vue/EditableTableForm config - 改为 ConfigForm + ISchema |
+| 2026-02-08 | 修复 antd-vue/DynamicFieldForm config - 改为动态 Schema 切换 |
+| 2026-02-08 | 修复 antd-vue/ObjectArrayNestedForm config - 改为 ConfigForm + ISchema |
+| 2026-02-08 | 修复 antd-vue/PaginatedSearchForm config - 改为 ConfigForm + ISchema |
 
 ### 测试标准
 

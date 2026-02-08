@@ -24,7 +24,6 @@ import { ConfigForm, registerComponent } from '@moluoxixi/vue'
  *
  * 自定义 TransferPicker 组件注册后，在 schema 中通过 component: 'TransferPicker' 引用。
  */
-import { Tag as ATag, Transfer as ATransfer } from 'ant-design-vue'
 import { defineComponent, h, ref } from 'vue'
 
 setupAntdVue()
@@ -46,13 +45,42 @@ const TransferPicker = defineComponent({
     dataSource: { type: Array as PropType<PermissionItem[]>, default: () => [] },
   },
   setup(props) {
+    const searchLeft = ref('')
+    const searchRight = ref('')
+    const panelStyle = { border: '1px solid #d9d9d9', borderRadius: '8px', width: '320px', overflow: 'hidden' }
+    const headerStyle = { padding: '8px 12px', borderBottom: '1px solid #d9d9d9', fontWeight: '600', fontSize: '14px', background: '#fafafa' }
+    const searchStyle = { width: '100%', padding: '6px 8px', border: 'none', borderBottom: '1px solid #f0f0f0', outline: 'none', fontSize: '13px', boxSizing: 'border-box' as const }
+    const listStyle = { height: '260px', overflow: 'auto', padding: '4px 0' }
+    const itemStyle = { padding: '6px 12px', cursor: 'pointer', fontSize: '13px', transition: 'background .15s' }
     return (): ReturnType<typeof h> => {
       const selected = props.value ?? []
       if (props.readOnly) {
         if (selected.length === 0) return h('span', { style: { color: '#999' } }, '—')
-        return h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '4px' } }, selected.map(k => { const item = props.dataSource.find(p => p.key === k); return h(ATag, { color: 'blue', key: k }, () => item?.title ?? k) }))
+        return h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '4px' } }, selected.map(k => { const item = props.dataSource.find(p => p.key === k); return h('span', { key: k, style: { display: 'inline-block', padding: '0 7px', fontSize: '12px', lineHeight: '20px', borderRadius: '4px', border: '1px solid #91caff', color: '#1677ff', background: '#e6f4ff' } }, item?.title ?? k) }))
       }
-      return h(ATransfer, { dataSource: props.dataSource, targetKeys: selected, render: (item: PermissionItem) => item.title, showSearch: true, listStyle: { width: '320px', height: '340px' }, titles: ['可选权限', '已选权限'], disabled: props.disabled, filterOption: (input: string, item: PermissionItem) => item.title.includes(input), onChange: (keys: string[]) => props.onChange?.(keys) })
+      const leftItems = props.dataSource.filter(p => !selected.includes(p.key))
+      const rightItems = props.dataSource.filter(p => selected.includes(p.key))
+      const filteredLeft = searchLeft.value ? leftItems.filter(i => i.title.includes(searchLeft.value)) : leftItems
+      const filteredRight = searchRight.value ? rightItems.filter(i => i.title.includes(searchRight.value)) : rightItems
+      return h('div', { style: { display: 'flex', gap: '12px', alignItems: 'flex-start', opacity: props.disabled ? 0.5 : 1, pointerEvents: props.disabled ? 'none' as const : 'auto' as const } }, [
+        h('div', { style: panelStyle }, [
+          h('div', { style: headerStyle }, `可选权限（${filteredLeft.length}）`),
+          h('input', { placeholder: '搜索', value: searchLeft.value, style: searchStyle, onInput: (e: Event) => { searchLeft.value = (e.target as HTMLInputElement).value } }),
+          h('div', { style: listStyle }, filteredLeft.map(item =>
+            h('div', { key: item.key, style: itemStyle, onClick: () => props.onChange?.([...selected, item.key]), onMouseenter: (e: MouseEvent) => { (e.currentTarget as HTMLElement).style.background = '#f0f0f0' }, onMouseleave: (e: MouseEvent) => { (e.currentTarget as HTMLElement).style.background = '' } }, item.title),
+          )),
+        ]),
+        h('div', { style: panelStyle }, [
+          h('div', { style: headerStyle }, `已选权限（${filteredRight.length}）`),
+          h('input', { placeholder: '搜索', value: searchRight.value, style: searchStyle, onInput: (e: Event) => { searchRight.value = (e.target as HTMLInputElement).value } }),
+          h('div', { style: listStyle }, filteredRight.map(item =>
+            h('div', { key: item.key, style: { ...itemStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }, onClick: () => props.onChange?.(selected.filter(k => k !== item.key)), onMouseenter: (e: MouseEvent) => { (e.currentTarget as HTMLElement).style.background = '#fff1f0' }, onMouseleave: (e: MouseEvent) => { (e.currentTarget as HTMLElement).style.background = '' } }, [
+              h('span', null, item.title),
+              h('span', { style: { color: '#ff4d4f', fontSize: '12px' } }, '×'),
+            ]),
+          )),
+        ]),
+      ])
     }
   },
 })

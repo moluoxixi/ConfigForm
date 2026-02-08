@@ -10,7 +10,7 @@
           <FormField name="title" :field-props="{ label: '标题', required: true, component: 'Input', componentProps: { placeholder: '请输入标题' } }" />
           <FormField name="files" :field-props="{ label: '附件上传', component: 'FileUpload' }" />
           <FormField name="images" :field-props="{ label: '图片上传', component: 'ImageUpload', componentProps: { maxCount: 6 } }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>
@@ -27,7 +27,8 @@ import { FormField, FormProvider, registerComponent, useCreateForm } from '@molu
  * 自定义 FileUpload / ImageUpload 组件注册后，在 fieldProps 中通过名称引用。
  * 文件列表存储在表单字段中，三态由框架自动传播。
  */
-import { Button as AButton, Upload as AUpload } from 'ant-design-vue'
+// TODO: AUpload 待替换为自定义上传组件
+import { Upload as AUpload } from 'ant-design-vue'
 import { defineComponent, h, ref, watch } from 'vue'
 
 setupAntdVue()
@@ -72,7 +73,7 @@ const FileUpload = defineComponent({
         onChange: (info: UploadFileInfo) => emit('update:modelValue', info.fileList),
       }, {
         default: () => !props.disabled
-          ? h(AButton, null, () => '选择文件')
+          ? h('button', { type: 'button', style: { border: '1px solid #d9d9d9', background: '#fff', padding: '4px 15px', borderRadius: '6px', cursor: 'pointer' } }, '选择文件')
           : null,
       })
     }

@@ -4,7 +4,10 @@
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       模拟地图选点（可接入 @vuemap/vue-amap）
     </p>
-    <AAlert type="info" show-icon style="margin-bottom: 16px" message="此为模拟地图，点击区域可选点。" />
+    <div style="margin-bottom: 16px; padding: 8px 12px; background: #e6f4ff; border: 1px solid #91caff; border-radius: 6px; color: #0958d9; font-size: 14px; display: flex; align-items: center; gap: 8px">
+      <span>ℹ️</span>
+      <span>此为模拟地图，点击区域可选点。</span>
+    </div>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <FormProvider :form="form">
         <form @submit.prevent="handleSubmit(showResult)" novalidate>
@@ -48,7 +51,7 @@
             <FormField name="lng" :field-props="{ label: '经度', component: 'InputNumber', componentProps: { step: 0.0001, style: 'width: 150px' } }" />
             <FormField name="lat" :field-props="{ label: '纬度', component: 'InputNumber', componentProps: { step: 0.0001, style: 'width: 150px' } }" />
           </div>
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>
@@ -65,7 +68,6 @@ import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
  * 标准字段（地点名称、经纬度）使用 FormField + fieldProps。
  * 模拟地图为附加内容（非表单字段组件），通过 form.setFieldValue 更新经纬度。
  */
-import { Alert as AAlert } from 'ant-design-vue'
 import { computed, ref, watch } from 'vue'
 
 setupAntdVue()

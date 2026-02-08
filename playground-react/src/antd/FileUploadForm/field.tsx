@@ -10,15 +10,13 @@
  * 自定义 FileUpload / ImageUpload 组件注册后，在 fieldProps 中通过 component 引用。
  * 注：react-image-crop 可用于图片裁剪，此处使用 antd Upload 做核心集成演示
  */
+/* TODO: 注册为 FormField component */
 import type { UploadFile } from 'antd'
 import React, { useState } from 'react'
-import { PlusOutlined, UploadOutlined } from '@ant-design/icons'
 import { observer } from 'mobx-react-lite'
 import { FormField, FormProvider, registerComponent, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Button, message, Typography, Upload } from 'antd'
-
-const { Title, Paragraph } = Typography
+import { Upload } from 'antd'
 
 setupAntd()
 
@@ -53,12 +51,12 @@ const FileUpload = observer(({ onChange, disabled, readOnly }: FileUploadProps):
         onChange?.(fl.map(f => f.name))
       }}
       beforeUpload={(file) => {
-        message.success(`${file.name} 上传成功（模拟）`)
+        alert(`${file.name} 上传成功（模拟）`)
         return false
       }}
       disabled={isDisabled}
     >
-      {!isDisabled && <Button icon={<UploadOutlined />}>选择文件</Button>}
+      {!isDisabled && <button type="button" style={{ padding: '4px 15px', background: '#fff', border: '1px solid #d9d9d9', borderRadius: 6, cursor: 'pointer' }}>📁 选择文件</button>}
     </Upload>
   )
 })
@@ -101,7 +99,7 @@ const ImageUpload = observer(({ onChange, disabled, readOnly }: ImageUploadProps
       }}
       beforeUpload={(file) => {
         const url = URL.createObjectURL(file)
-        message.success(`${file.name} 上传成功（模拟）`)
+        alert(`${file.name} 上传成功（模拟）`)
         setImageList(prev => [...prev, { uid: String(Date.now()), name: file.name, status: 'done', url }])
         return false
       }}
@@ -109,7 +107,7 @@ const ImageUpload = observer(({ onChange, disabled, readOnly }: ImageUploadProps
     >
       {!isDisabled && imageList.length < MAX_IMAGE_COUNT && (
         <div>
-          <PlusOutlined />
+          <span style={{ fontSize: 20 }}>+</span>
           <div style={{ marginTop: 8 }}>上传</div>
         </div>
       )}
@@ -133,8 +131,8 @@ export const FileUploadForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>文件、图片上传</Title>
-      <Paragraph type="secondary">antd Upload / 文件上传 / 图片上传 / 预览</Paragraph>
+      <h3>文件、图片上传</h3>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>antd Upload / 文件上传 / 图片上传 / 预览</p>
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
           form.pattern = mode
@@ -149,7 +147,7 @@ export const FileUploadForm = observer((): React.ReactElement => {
                 <FormField name="title" fieldProps={{ label: '标题', required: true, component: 'Input' }} />
                 <FormField name="files" fieldProps={{ label: '附件上传', component: 'FileUpload' }} />
                 <FormField name="images" fieldProps={{ label: '图片上传', component: 'ImageUpload' }} />
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

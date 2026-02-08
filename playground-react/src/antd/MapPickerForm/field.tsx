@@ -15,9 +15,6 @@ import { EnvironmentOutlined } from '@ant-design/icons'
 import { observer } from 'mobx-react-lite'
 import { FormField, FormProvider, registerComponent, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Alert, InputNumber, Space, Typography } from 'antd'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 
@@ -136,24 +133,26 @@ const MapCoordinatePicker = observer(({ value, onChange, disabled, readOnly }: M
       </div>
 
       {/* 经度/纬度输入 */}
-      <Space style={{ marginTop: 8 }}>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 }}>
         <span>经度：</span>
-        <InputNumber
+        <input
+          type="number"
           value={coords.lng}
-          onChange={v => onChange?.({ ...coords, lng: (v as number) ?? coords.lng })}
+          onChange={e => onChange?.({ ...coords, lng: Number(e.target.value) || coords.lng })}
           disabled={isDisabled}
-          style={{ width: 150 }}
+          style={{ width: 150, padding: '4px 8px', border: '1px solid #d9d9d9', borderRadius: 6 }}
           step={0.0001}
         />
         <span>纬度：</span>
-        <InputNumber
+        <input
+          type="number"
           value={coords.lat}
-          onChange={v => onChange?.({ ...coords, lat: (v as number) ?? coords.lat })}
+          onChange={e => onChange?.({ ...coords, lat: Number(e.target.value) || coords.lat })}
           disabled={isDisabled}
-          style={{ width: 150 }}
+          style={{ width: 150, padding: '4px 8px', border: '1px solid #d9d9d9', borderRadius: 6 }}
           step={0.0001}
         />
-      </Space>
+      </div>
     </div>
   )
 })
@@ -188,9 +187,9 @@ export const MapPickerForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>地图选点</Title>
-      <Paragraph type="secondary">模拟地图选点（实际项目可接入 react-amap） / 经纬度同步 / 三种模式</Paragraph>
-      <Alert type="info" showIcon style={{ marginBottom: 16 }} message="此为模拟地图，点击区域可选点。实际项目请安装 react-amap 并接入高德地图 API。" />
+      <h3>地图选点</h3>
+      <p style={{ color: '#666' }}>模拟地图选点（实际项目可接入 react-amap） / 经纬度同步 / 三种模式</p>
+      <div style={{ padding: '8px 16px', marginBottom: 16, background: '#e6f4ff', border: '1px solid #91caff', borderRadius: 6, fontSize: 13 }}>此为模拟地图，点击区域可选点。实际项目请安装 react-amap 并接入高德地图 API。</div>
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
           form.pattern = mode
@@ -205,7 +204,7 @@ export const MapPickerForm = observer((): React.ReactElement => {
                 <FormField name="locationName" fieldProps={{ label: '地点名称', required: true, component: 'Input' }} />
                 <FormField name="coordinates" fieldProps={{ label: '地图选点', required: true, component: 'MapCoordinatePicker' }} />
                 <FormField name="address" fieldProps={{ label: '详细地址', component: 'Input' }} />
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

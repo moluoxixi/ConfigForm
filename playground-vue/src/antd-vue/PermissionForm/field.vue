@@ -8,22 +8,26 @@
       <FormProvider :form="form">
         <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <!-- 角色选择器（附加内容） -->
-          <ASpace style="margin-bottom: 16px">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px">
             <span style="font-weight: 600">当前角色：</span>
-            <ASegmented v-model:value="role" :options="ROLE_OPTIONS" />
-          </ASpace>
+            <div style="display: inline-flex; background: #f5f5f5; border-radius: 6px; padding: 2px">
+              <button v-for="opt in ROLE_OPTIONS" :key="opt.value" type="button" :style="{ padding: '4px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', background: role === opt.value ? '#fff' : 'transparent', boxShadow: role === opt.value ? '0 1px 2px rgba(0,0,0,0.1)' : 'none', fontWeight: role === opt.value ? '600' : '400' }" @click="role = opt.value as Role">
+                {{ opt.label }}
+              </button>
+            </div>
+          </div>
           <!-- 权限矩阵展示（附加内容） -->
-          <ACard size="small" style="margin-bottom: 16px">
+          <div style="border: 1px solid #d9d9d9; border-radius: 8px; padding: 12px; margin-bottom: 16px">
             <span style="font-weight: 600">权限矩阵（当前角色：{{ role }}）</span>
             <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px">
-              <ATag v-for="d in FIELD_DEFS" :key="d.name" :color="getPermColor(d.name)">
+              <span v-for="d in FIELD_DEFS" :key="d.name" :style="{ display: 'inline-block', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', border: '1px solid', borderColor: getPermColor(d.name) === 'green' ? '#b7eb8f' : getPermColor(d.name) === 'orange' ? '#ffd591' : '#ffa39e', background: getPermColor(d.name) === 'green' ? '#f6ffed' : getPermColor(d.name) === 'orange' ? '#fff7e6' : '#fff2f0', color: getPermColor(d.name) === 'green' ? '#389e0d' : getPermColor(d.name) === 'orange' ? '#d46b08' : '#cf1322' }">
                 {{ d.label }}: {{ PERM_MATRIX[d.name]?.[role] ?? 'hidden' }}
-              </ATag>
+              </span>
             </div>
-          </ACard>
+          </div>
           <!-- 表单字段：可见性和读写权限由 watch 动态控制 -->
           <FormField v-for="d in FIELD_DEFS" :key="d.name" :name="d.name" :field-props="getFieldProps(d)" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>
@@ -40,7 +44,6 @@ import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
  * 所有字段使用 FormField + fieldProps。基于角色的可见性和读写权限通过 watch 动态设置
  * 字段实例的 visible / pattern 属性，框架自动将权限状态传播到组件。
  */
-import { Card as ACard, Segmented as ASegmented, Space as ASpace, Tag as ATag } from 'ant-design-vue'
 import { ref, watch } from 'vue'
 
 setupAntdVue()

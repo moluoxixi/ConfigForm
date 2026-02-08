@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>Grid 栅格布局</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -44,7 +44,7 @@
               <FormField name="notification" :field-props="{ label: '接收通知', component: 'Switch' }" />
             </div>
           </div>
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

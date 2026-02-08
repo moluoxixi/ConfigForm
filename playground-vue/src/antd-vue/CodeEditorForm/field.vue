@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>代码编辑器</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -11,7 +11,7 @@
           <FormField name="language" :field-props="{ label: '语言', component: 'Select', dataSource: LANGUAGE_OPTIONS, componentProps: { style: 'width: 160px' } }" />
           <FormField name="code" :field-props="{ label: '代码', required: true, component: 'CodeEditor' }" />
           <!-- 提交/重置按钮（仅编辑态可见） -->
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

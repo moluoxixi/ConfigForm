@@ -1,4 +1,4 @@
-import type { FieldInstance, FormInstance, VoidFieldInstance } from '@moluoxixi/core'
+import type { ArrayFieldInstance, FieldInstance, FormInstance, VoidFieldInstance } from '@moluoxixi/core'
 import type { Component, PropType, VNode } from 'vue'
 import { defineComponent, h, inject } from 'vue'
 import { ComponentRegistrySymbol, FormSymbol } from '../context'
@@ -10,8 +10,11 @@ import { getReadPrettyComponent } from '../registry'
  * 统一处理所有字段类型的渲染管线：
  * - 判断 visible（不可见则不渲染）
  * - 渲染 decorator（FormItem 等包装器）
- * - 渲染 component（Input / Card 等业务组件）
+ * - 渲染 component（Input / Card / ArrayItems 等业务组件）
  * - 注入字段属性（value / disabled / readonly / loading / dataSource 等）
+ *
+ * 对于数组字段（isArray=true），不传 modelValue/onUpdate:modelValue，
+ * 而是将组件作为容器渲染（如 ArrayItems），由组件内部通过 inject 访问字段实例。
  *
  * 由 FormField / FormVoidField / FormArrayField 调用，不直接在模板中使用。
  */
@@ -25,6 +28,11 @@ export const ReactiveField = defineComponent({
     },
     /** 是否是 void 字段（不绑定数据） */
     isVoid: {
+      type: Boolean,
+      default: false,
+    },
+    /** 是否是数组字段 */
+    isArray: {
       type: Boolean,
       default: false,
     },
@@ -77,7 +85,7 @@ export const ReactiveField = defineComponent({
       const componentName = field.component
       const Comp = resolveComp(componentName)
 
-      if (!Comp && !props.isVoid) {
+      if (!Comp && !props.isVoid && !props.isArray) {
         console.warn(`[ConfigForm] 字段 "${field.path}" 未找到组件 "${String(componentName)}"`)
         return null
       }
@@ -91,6 +99,23 @@ export const ReactiveField = defineComponent({
         }
         else {
           /* 无组件的 void 节点：透明容器 */
+          componentNode = slots.children?.() ?? null
+        }
+      }
+      else if (props.isArray) {
+        /*
+         * 数组字段（参考 Formily）：
+         * 不传 modelValue/onUpdate:modelValue，组件（如 ArrayItems）
+         * 通过 inject(FieldSymbol) 访问 ArrayField 实例。
+         */
+        const arrayField = field as unknown as ArrayFieldInstance
+        if (Comp) {
+          componentNode = h(Comp, {
+            ...arrayField.componentProps,
+          })
+        }
+        else {
+          /* 无注册组件时：渲染子插槽或空 */
           componentNode = slots.children?.() ?? null
         }
       }

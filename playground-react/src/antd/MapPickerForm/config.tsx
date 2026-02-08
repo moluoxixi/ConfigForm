@@ -3,7 +3,6 @@ import type { FieldPattern } from '@moluoxixi/shared'
 import { EnvironmentOutlined } from '@ant-design/icons'
 import { ConfigForm, registerComponent } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { InputNumber, Space, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 30：地图选点 — ConfigForm + Schema
@@ -15,8 +14,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React from 'react'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 
@@ -140,24 +137,26 @@ const MapCoordinatePicker = observer(({ value, onChange, disabled, readOnly }: M
       </div>
 
       {/* 经度/纬度输入 */}
-      <Space style={{ marginTop: 8 }}>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 }}>
         <span>经度：</span>
-        <InputNumber
+        <input
+          type="number"
           value={coords.lng}
-          onChange={v => onChange?.({ ...coords, lng: (v as number) ?? coords.lng })}
+          onChange={e => onChange?.({ ...coords, lng: Number(e.target.value) || coords.lng })}
           disabled={isDisabled}
-          style={{ width: 150 }}
+          style={{ width: 150, padding: '4px 8px', border: '1px solid #d9d9d9', borderRadius: 6 }}
           step={0.0001}
         />
         <span>纬度：</span>
-        <InputNumber
+        <input
+          type="number"
           value={coords.lat}
-          onChange={v => onChange?.({ ...coords, lat: (v as number) ?? coords.lat })}
+          onChange={e => onChange?.({ ...coords, lat: Number(e.target.value) || coords.lat })}
           disabled={isDisabled}
-          style={{ width: 150 }}
+          style={{ width: 150, padding: '4px 8px', border: '1px solid #d9d9d9', borderRadius: 6 }}
           step={0.0001}
         />
-      </Space>
+      </div>
     </div>
   )
 })
@@ -209,8 +208,8 @@ const schema: ISchema = {
  */
 export const MapPickerForm = observer((): React.ReactElement => (
   <div>
-    <Title level={3}>地图选点</Title>
-    <Paragraph type="secondary">模拟地图选点 / 经纬度同步 / 三种模式 — ConfigForm + Schema</Paragraph>
+    <h2>地图选点</h2>
+    <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>模拟地图选点 / 经纬度同步 / 三种模式 — ConfigForm + Schema</p>
     <StatusTabs>
       {({ mode, showResult, showErrors }) => (
         <ConfigForm

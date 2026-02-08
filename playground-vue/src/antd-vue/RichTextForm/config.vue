@@ -24,7 +24,6 @@ import { ConfigForm, registerComponent } from '@moluoxixi/vue'
  * 自定义 RichTextEditor 组件注册后，在 schema 中通过 component: 'RichTextEditor' 引用。
  * 编辑态使用 Textarea 降级；只读/禁用态渲染 HTML 预览。
  */
-import { Textarea as ATextarea } from 'ant-design-vue'
 import { defineComponent, h, ref } from 'vue'
 
 setupAntdVue()
@@ -43,7 +42,7 @@ const RichTextEditor = defineComponent({
       if (props.readonly || props.disabled) {
         return h('div', { innerHTML: props.modelValue || '<span style="color:#999">暂无内容</span>', style: { padding: '12px', border: '1px solid #d9d9d9', borderRadius: '6px', minHeight: '100px', background: '#fafafa', opacity: props.disabled ? 0.6 : 1 } })
       }
-      return h(ATextarea, { 'value': props.modelValue ?? '', 'rows': 8, 'placeholder': '输入 HTML 内容', 'onUpdate:value': (v: string) => emit('update:modelValue', v) })
+      return h('textarea', { value: props.modelValue ?? '', rows: 8, placeholder: '输入 HTML 内容', style: { width: '100%', padding: '8px', border: '1px solid #d9d9d9', borderRadius: '6px', fontSize: '14px', resize: 'vertical', boxSizing: 'border-box' }, onInput: (e: Event) => emit('update:modelValue', (e.target as HTMLTextAreaElement).value) })
     }
   },
 })

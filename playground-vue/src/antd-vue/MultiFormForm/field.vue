@@ -7,37 +7,47 @@
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <FormProvider :form="mainForm">
         <form @submit.prevent="handleSubmit(showResult)" novalidate>
-          <ARow :gutter="16">
+          <div style="display: flex; gap: 16px">
             <!-- 左侧：主表单 -->
-            <ACol :span="12">
-              <ACard title="主表单 - 订单信息" size="small">
+            <div style="flex: 1">
+              <div style="border: 1px solid #d9d9d9; border-radius: 8px; padding: 16px; margin-bottom: 16px">
+                <div style="font-weight: 600; margin-bottom: 12px; font-size: 14px">主表单 - 订单信息</div>
                 <FormField name="orderName" :field-props="{ label: '订单名称', required: true, component: 'Input' }" />
                 <FormField name="customer" :field-props="{ label: '客户', required: true, component: 'Input' }" />
                 <FormField name="total" :field-props="{ label: '金额', required: true, component: 'InputNumber', componentProps: { min: 0, style: 'width: 100%' } }" />
-                <AButton v-if="mode === 'editable'" type="dashed" @click="modalOpen = true">
+                <button type="button" style="padding: 4px 15px; border: 1px dashed #d9d9d9; border-radius: 6px; background: #fff; cursor: pointer; font-size: 14px" @click="modalOpen = true">
                   从弹窗填写联系人
-                </AButton>
-              </ACard>
-            </ACol>
+                </button>
+              </div>
+            </div>
             <!-- 右侧：子表单 -->
-            <ACol :span="12">
-              <ACard title="子表单 - 联系人" size="small">
+            <div style="flex: 1">
+              <div style="border: 1px solid #d9d9d9; border-radius: 8px; padding: 16px; margin-bottom: 16px">
+                <div style="font-weight: 600; margin-bottom: 12px; font-size: 14px">子表单 - 联系人</div>
                 <FormProvider :form="subForm">
                   <FormField v-for="n in SUB_FIELDS" :key="n" :name="n" :field-props="getSubFieldProps(n)" />
                 </FormProvider>
-              </ACard>
-            </ACol>
-          </ARow>
-          <LayoutFormActions v-if="mode === 'editable'" @reset="mainForm.reset(); subForm.reset()" />
+              </div>
+            </div>
+          </div>
+          <LayoutFormActions @reset="mainForm.reset(); subForm.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>
     <!-- 弹窗表单（编辑联系人） -->
-    <AModal v-model:open="modalOpen" title="编辑联系人" @ok="modalOk">
-      <FormProvider :form="subForm">
-        <FormField v-for="n in SUB_FIELDS" :key="n" :name="n" :field-props="getSubFieldProps(n)" />
-      </FormProvider>
-    </AModal>
+    <div v-if="modalOpen" style="position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center">
+      <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.45)" @click="modalOpen = false" />
+      <div style="position: relative; background: #fff; border-radius: 8px; padding: 24px; width: 520px; max-width: 90vw; box-shadow: 0 6px 16px rgba(0,0,0,0.08)">
+        <div style="font-weight: 600; font-size: 16px; margin-bottom: 16px">编辑联系人</div>
+        <FormProvider :form="subForm">
+          <FormField v-for="n in SUB_FIELDS" :key="n" :name="n" :field-props="getSubFieldProps(n)" />
+        </FormProvider>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px">
+          <button type="button" style="padding: 4px 15px; border: 1px solid #d9d9d9; border-radius: 6px; background: #fff; cursor: pointer; font-size: 14px" @click="modalOpen = false">取消</button>
+          <button type="button" style="padding: 4px 15px; border: none; border-radius: 6px; background: #1677ff; color: #fff; cursor: pointer; font-size: 14px" @click="modalOk">确定</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -51,7 +61,6 @@ import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
  * 主表单（订单）和子表单（联系人）各自使用 FormProvider + FormField + fieldProps。
  * 弹窗表单复用 subForm 实例，联合提交同时校验两个表单。
  */
-import { Button as AButton, Card as ACard, Col as ACol, Modal as AModal, Row as ARow } from 'ant-design-vue'
 import { ref, watch } from 'vue'
 
 setupAntdVue()

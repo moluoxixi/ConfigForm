@@ -105,6 +105,13 @@ function validateRuleSync(
 
 /**
  * 根据触发时机过滤规则
+ *
+ * 参考 Formily 设计：
+ * - 规则未设置 trigger → 在所有时机执行（change / blur / submit）
+ * - 规则显式设置 trigger → 严格按 trigger 匹配
+ * - 调用方未传 trigger → 执行所有规则（手动调用 / submit 场景）
+ *
+ * 如需某条规则仅在 blur 时验证，显式设置 `trigger: 'blur'`。
  */
 function filterRulesByTrigger(
   rules: ValidationRule[],

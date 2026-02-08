@@ -9,7 +9,7 @@
         <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <FormField name="signerName" :field-props="{ label: '签名人', required: true, component: 'Input', componentProps: { style: 'width: 300px' } }" />
           <FormField name="signatureData" :field-props="{ label: '手写签名', component: 'SignaturePad' }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>
@@ -26,7 +26,6 @@ import { FormField, FormProvider, registerComponent, useCreateForm } from '@molu
  * 自定义 SignaturePad 组件注册后，在 fieldProps 中通过 component: 'SignaturePad' 引用。
  * 编辑态提供 Canvas 手写签名 + 清空按钮；只读态展示 Base64 图片；禁用态禁止绘制。
  */
-import { Button as AButton } from 'ant-design-vue'
 import { defineComponent, h, ref, watch } from 'vue'
 
 setupAntdVue()
@@ -145,7 +144,11 @@ const SignaturePad = defineComponent({
       /* 编辑态显示清空按钮 */
       if (!props.disabled) {
         children.push(
-          h(AButton, { size: 'small', style: { marginTop: '8px' }, onClick: clearCanvas }, () => '清空签名'),
+          h('button', {
+            type: 'button',
+            style: { marginTop: '8px', padding: '2px 8px', border: '1px solid #d9d9d9', borderRadius: '4px', background: '#fff', cursor: 'pointer', fontSize: '12px' },
+            onClick: clearCanvas,
+          }, '清空签名'),
         )
       }
 

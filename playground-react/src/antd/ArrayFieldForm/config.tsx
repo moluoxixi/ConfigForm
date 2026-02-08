@@ -3,13 +3,6 @@ import type { FieldPattern } from '@moluoxixi/shared'
 import { ArrowDownOutlined, ArrowUpOutlined, CopyOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons'
 import { FormArrayField, FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import {
-  Button,
-  Input,
-  Space,
-  Tag,
-  Typography,
-} from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 15：数组字段
@@ -22,8 +15,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React, { useEffect } from 'react'
-
-const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
@@ -62,13 +53,13 @@ const ContactRow = observer(({
         borderRadius: 4,
       }}
     >
-      <Text type="secondary">
+      <span style={{ color: 'rgba(0,0,0,0.45)' }}>
         #
         {index + 1}
-      </Text>
+      </span>
       <FormField name={`${basePath}.name`}>
         {(field: FieldInstance) => (
-          <Input
+          <input
             value={(field.value as string) ?? ''}
             onChange={e => field.setValue(e.target.value)}
             placeholder="姓名"
@@ -80,7 +71,7 @@ const ContactRow = observer(({
       </FormField>
       <FormField name={`${basePath}.phone`}>
         {(field: FieldInstance) => (
-          <Input
+          <input
             value={(field.value as string) ?? ''}
             onChange={e => field.setValue(e.target.value)}
             placeholder="电话"
@@ -92,7 +83,7 @@ const ContactRow = observer(({
       </FormField>
       <FormField name={`${basePath}.email`}>
         {(field: FieldInstance) => (
-          <Input
+          <input
             value={(field.value as string) ?? ''}
             onChange={e => field.setValue(e.target.value)}
             placeholder="邮箱"
@@ -103,12 +94,12 @@ const ContactRow = observer(({
         )}
       </FormField>
       {isEditable && (
-        <Space size={4}>
-          <Button size="small" icon={<ArrowUpOutlined />} disabled={index === 0} onClick={() => arrayField.moveUp(index)} />
-          <Button size="small" icon={<ArrowDownOutlined />} disabled={index === total - 1} onClick={() => arrayField.moveDown(index)} />
-          <Button size="small" icon={<CopyOutlined />} disabled={!arrayField.canAdd} onClick={() => arrayField.duplicate(index)} />
-          <Button size="small" danger icon={<DeleteOutlined />} disabled={!arrayField.canRemove} onClick={() => arrayField.remove(index)} />
-        </Space>
+        <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+          <button style={{ padding: '0 8px', height: 24, fontSize: 12, background: '#fff', border: '1px solid #d9d9d9', borderRadius: 4, cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }} disabled={index === 0} onClick={() => arrayField.moveUp(index)}>{<ArrowUpOutlined />}</button>
+          <button style={{ padding: '0 8px', height: 24, fontSize: 12, background: '#fff', border: '1px solid #d9d9d9', borderRadius: 4, cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }} disabled={index === total - 1} onClick={() => arrayField.moveDown(index)}>{<ArrowDownOutlined />}</button>
+          <button style={{ padding: '0 8px', height: 24, fontSize: 12, background: '#fff', border: '1px solid #d9d9d9', borderRadius: 4, cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }} disabled={!arrayField.canAdd} onClick={() => arrayField.duplicate(index)}>{<CopyOutlined />}</button>
+          <button style={{ padding: '0 8px', height: 24, fontSize: 12, background: '#fff', color: '#ff4d4f', border: '1px solid #ff4d4f', borderRadius: 4, cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }} disabled={!arrayField.canRemove} onClick={() => arrayField.remove(index)}>{<DeleteOutlined />}</button>
+        </div>
       )}
     </div>
   )
@@ -131,8 +122,8 @@ export const ArrayFieldForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>数组字段</Title>
-      <Paragraph type="secondary">
+      <h2>数组字段</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
         增删 / 排序 / 复制 / min=
         {MIN_ITEMS}
         {' '}
@@ -140,7 +131,7 @@ export const ArrayFieldForm = observer((): React.ReactElement => {
         {MAX_ITEMS}
         {' '}
         数量限制
-      </Paragraph>
+      </p>
 
       <StatusTabs>
         {({ mode }) => {
@@ -157,7 +148,7 @@ export const ArrayFieldForm = observer((): React.ReactElement => {
                         {' '}
                         <span style={{ color: 'red' }}>*</span>
                       </label>
-                      <Input
+                      <input
                         value={(field.value as string) ?? ''}
                         onChange={e => field.setValue(e.target.value)}
                         onBlur={() => {
@@ -168,7 +159,7 @@ export const ArrayFieldForm = observer((): React.ReactElement => {
                         style={{ width: 300 }}
                         disabled={mode === 'disabled'}
                         readOnly={mode === 'readOnly'}
-                        status={field.errors.length > 0 ? 'error' : undefined}
+                        
                       />
                       {field.errors.length > 0 && (
                         <div style={{ color: '#ff4d4f', fontSize: 12, marginTop: 4 }}>{field.errors[0].message}</div>
@@ -185,24 +176,18 @@ export const ArrayFieldForm = observer((): React.ReactElement => {
                   {(arrayField: ArrayFieldInstance) => (
                     <div style={{ marginBottom: 16 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                        <Space>
-                          <Text strong>联系人列表</Text>
-                          <Tag>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <strong>联系人列表</strong>
+                          <span style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, background: '#f0f0f0', border: '1px solid #d9d9d9', borderRadius: 4 }}>
                             {((arrayField.value as unknown[]) ?? []).length}
                             /
                             {MAX_ITEMS}
-                          </Tag>
-                        </Space>
+                          </span>
+                        </div>
                         {mode === 'editable' && (
-                          <Button
-                            type="primary"
-                            icon={<PlusOutlined />}
-                            size="small"
-                            disabled={!arrayField.canAdd}
-                            onClick={() => arrayField.push({ ...CONTACT_TEMPLATE })}
-                          >
+                          <button style={{ padding: '0 8px', height: 24, fontSize: 12, background: '#1677ff', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }} disabled={!arrayField.canAdd} onClick={() => arrayField.push({ ...CONTACT_TEMPLATE })}><PlusOutlined />
                             添加联系人
-                          </Button>
+                          </button>
                         )}
                       </div>
 

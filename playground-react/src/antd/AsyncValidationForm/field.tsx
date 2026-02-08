@@ -13,9 +13,6 @@ import React from 'react'
 import { observer } from 'mobx-react-lite'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Alert, Typography } from 'antd'
-
-const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
@@ -66,29 +63,14 @@ export const AsyncValidationForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>异步验证 (Field 版)</Title>
-      <Paragraph type="secondary">
+      <h2>异步验证 (Field 版)</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
         用户名唯一性 / 邮箱可用性 / 邀请码有效性 / 防抖 + AbortSignal 取消 —— FormField + fieldProps 实现
-      </Paragraph>
+      </p>
 
-      <Alert
-        type="info"
-        showIcon
-        style={{ marginBottom: 16 }}
-        message={(
-          <span>
-            测试数据：已注册用户名
-            {' '}
-            <Text code>admin / test / root</Text>
-            ，已注册邮箱
-            {' '}
-            <Text code>admin@test.com</Text>
-            ，有效邀请码
-            {' '}
-            <Text code>INVITE2024 / VIP888</Text>
-          </span>
-        )}
-      />
+      <div style={{ padding: '8px 16px', marginBottom: 16, background: '#e6f4ff', border: '1px solid #91caff', borderRadius: 6, fontSize: 13 }}>
+        测试数据：已注册用户名 <code>admin / test / root</code>，已注册邮箱 <code>admin@test.com</code>，有效邀请码 <code>INVITE2024 / VIP888</code>
+      </div>
 
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
@@ -219,7 +201,7 @@ export const AsyncValidationForm = observer((): React.ReactElement => {
                   rules: [{ maxLength: 20, message: '昵称不超过 20 字' }],
                 }}
                 />
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

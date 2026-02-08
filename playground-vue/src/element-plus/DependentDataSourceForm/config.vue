@@ -2,40 +2,40 @@
   <div>
     <h2>依赖数据源</h2>
     <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">
-      品牌→型号→配置（三级依赖链） / 年级→班级
+      品牌→型号→配置（三级依赖链） / 年级→班级 — ConfigForm + ISchema 实现
     </p>
-    <el-radio-group v-model="mode" size="small" style="margin-bottom: 16px">
-      <el-radio-button v-for="opt in MODE_OPTIONS" :key="opt.value" :value="opt.value">
-        {{ opt.label }}
-      </el-radio-button>
-    </el-radio-group>
-    <ConfigForm :key="mode" :schema="schema" :initial-values="savedValues" @values-change="(v: Record<string, unknown>) => savedValues = v" @submit="(v: Record<string, unknown>) => result = JSON.stringify(v, null, 2)" @submit-failed="(e: any[]) => result = `验证失败:\n${e.map((x: any) => `[${x.path}] ${x.message}`).join('\n')}`">
-      <template #default="{ form }">
-        <el-space v-if="mode === 'editable'" style="margin-top: 16px">
-          <el-button type="primary" native-type="submit">
-            提交
-          </el-button><el-button @click="form.reset()">
-            重置
-          </el-button>
-        </el-space>
-      </template>
-    </ConfigForm>
-    <el-alert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" :description="result" show-icon style="margin-top: 16px" />
+    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+      <ConfigForm
+        :schema="withMode(schema, mode)"
+        :initial-values="initialValues"
+        @submit="showResult"
+        @submit-failed="(e: any) => st?.showErrors(e)"
+      />
+    </StatusTabs>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { FormSchema } from '@moluoxixi/schema'
+/**
+ * 依赖数据源 — Config 模式（Element Plus）
+ *
+ * 使用 ConfigForm + ISchema + reactions 实现依赖数据源：
+ * - 品牌→型号→配置 三级依赖链（异步加载）
+ * - 年级→班级 两级依赖
+ */
+import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
-import { setupElementPlus } from '@moluoxixi/ui-element-plus'
+import { setupElementPlus, StatusTabs } from '@moluoxixi/ui-element-plus'
 import { ConfigForm } from '@moluoxixi/vue'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 
 setupElementPlus()
-const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅读态', value: 'readOnly' }, { label: '禁用态', value: 'disabled' }]
-const mode = ref<FieldPattern>('editable')
-const result = ref('')
-const savedValues = ref<Record<string, unknown>>({ brand: undefined, model: undefined, config: undefined, grade: undefined, classNo: undefined })
+
+const st = ref<InstanceType<typeof StatusTabs>>()
+
+function withMode(s: ISchema, mode: FieldPattern): ISchema {
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
+}
 
 const MODELS: Record<string, Array<{ label: string, value: string }>> = {
   apple: [{ label: 'iPhone 15', value: 'iphone15' }, { label: 'MacBook Pro', value: 'macbook-pro' }],
@@ -52,48 +52,63 @@ const CLASSES: Record<string, Array<{ label: string, value: string }>> = {
   grade2: [{ label: '1班', value: 'c1' }, { label: '2班', value: 'c2' }],
 }
 
-const schema = computed<FormSchema>(() => ({
-  form: { labelPosition: 'right', labelWidth: '140px', pattern: mode.value },
-  fields: {
-    brand: { type: 'string', label: '品牌', required: true, component: 'Select', wrapper: 'FormItem', enum: [{ label: 'Apple', value: 'apple' }, { label: '华为', value: 'huawei' }, { label: '小米', value: 'xiaomi' }] },
-    model: { type: 'string', label: '型号', required: true, component: 'Select', wrapper: 'FormItem', placeholder: '请先选择品牌', reactions: [{ watch: 'brand', fulfill: { run: async (f: any, ctx: any) => {
-      const b = ctx.values.brand as string
-      f.setValue(undefined)
-      if (!b) {
-        f.setDataSource([])
-        return
-      }
-      f.loading = true
-      await new Promise(r => setTimeout(r, 400))
-      f.setDataSource(MODELS[b] ?? [])
-      f.loading = false
-      f.setComponentProps({ placeholder: '请选择型号' })
-    } } }] },
-    config: { type: 'string', label: '配置', component: 'Select', wrapper: 'FormItem', placeholder: '请先选择型号', reactions: [{ watch: 'model', fulfill: { run: async (f: any, ctx: any) => {
-      const m = ctx.values.model as string
-      f.setValue(undefined)
-      if (!m) {
-        f.setDataSource([])
-        return
-      }
-      f.loading = true
-      await new Promise(r => setTimeout(r, 300))
-      f.setDataSource(CONFIGS[m] ?? [])
-      f.loading = false
-    } } }] },
-    grade: { type: 'string', label: '年级', required: true, component: 'Select', wrapper: 'FormItem', enum: [{ label: '一年级', value: 'grade1' }, { label: '二年级', value: 'grade2' }] },
-    classNo: { type: 'string', label: '班级', required: true, component: 'Select', wrapper: 'FormItem', placeholder: '请先选择年级', reactions: [{ watch: 'grade', fulfill: { run: async (f: any, ctx: any) => {
-      const g = ctx.values.grade as string
-      f.setValue(undefined)
-      if (!g) {
-        f.setDataSource([])
-        return
-      }
-      f.loading = true
-      await new Promise(r => setTimeout(r, 300))
-      f.setDataSource(CLASSES[g] ?? [])
-      f.loading = false
-    } } }] },
+const initialValues = {
+  brand: undefined, model: undefined, config: undefined,
+  grade: undefined, classNo: undefined,
+}
+
+const schema: ISchema = {
+  type: 'object',
+  decoratorProps: { labelPosition: 'right', labelWidth: '140px', actions: { submit: '提交', reset: '重置' } },
+  properties: {
+    brand: {
+      type: 'string', title: '品牌', required: true, component: 'Select',
+      enum: [{ label: 'Apple', value: 'apple' }, { label: '华为', value: 'huawei' }, { label: '小米', value: 'xiaomi' }],
+    },
+    model: {
+      type: 'string', title: '型号', required: true, component: 'Select',
+      componentProps: { placeholder: '请先选择品牌' },
+      reactions: [{ watch: 'brand', fulfill: { run: async (f: any, ctx: any) => {
+        const b = ctx.values.brand as string
+        f.setValue(undefined)
+        if (!b) { f.setDataSource([]); return }
+        f.loading = true
+        await new Promise(r => setTimeout(r, 400))
+        f.setDataSource(MODELS[b] ?? [])
+        f.loading = false
+        f.setComponentProps({ placeholder: '请选择型号' })
+      } } }],
+    },
+    config: {
+      type: 'string', title: '配置', component: 'Select',
+      componentProps: { placeholder: '请先选择型号' },
+      reactions: [{ watch: 'model', fulfill: { run: async (f: any, ctx: any) => {
+        const m = ctx.values.model as string
+        f.setValue(undefined)
+        if (!m) { f.setDataSource([]); return }
+        f.loading = true
+        await new Promise(r => setTimeout(r, 300))
+        f.setDataSource(CONFIGS[m] ?? [])
+        f.loading = false
+      } } }],
+    },
+    grade: {
+      type: 'string', title: '年级', required: true, component: 'Select',
+      enum: [{ label: '一年级', value: 'grade1' }, { label: '二年级', value: 'grade2' }],
+    },
+    classNo: {
+      type: 'string', title: '班级', required: true, component: 'Select',
+      componentProps: { placeholder: '请先选择年级' },
+      reactions: [{ watch: 'grade', fulfill: { run: async (f: any, ctx: any) => {
+        const g = ctx.values.grade as string
+        f.setValue(undefined)
+        if (!g) { f.setDataSource([]); return }
+        f.loading = true
+        await new Promise(r => setTimeout(r, 300))
+        f.setDataSource(CLASSES[g] ?? [])
+        f.loading = false
+      } } }],
+    },
   },
-}))
+}
 </script>

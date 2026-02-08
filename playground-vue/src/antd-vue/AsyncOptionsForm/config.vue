@@ -4,7 +4,10 @@
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       远程 dataSource / reactions 异步加载 / loading 状态
     </p>
-    <AAlert type="info" show-icon style="margin-bottom: 16px" message="切换「类型」下拉可看到异步加载过程（模拟 600ms 延迟）" />
+    <div style="padding: 8px 12px; background: #e6f7ff; border: 1px solid #91caff; border-radius: 6px; color: rgba(0,0,0,0.88); font-size: 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px">
+      <span style="color: #1677ff">ℹ</span>
+      <span>切换「类型」下拉可看到异步加载过程（模拟 600ms 延迟）</span>
+    </div>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <ConfigForm
         :schema="withMode(schema, mode)"
@@ -21,7 +24,6 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { ConfigForm } from '@moluoxixi/vue'
-import { Alert as AAlert } from 'ant-design-vue'
 import { ref } from 'vue'
 
 setupAntdVue()

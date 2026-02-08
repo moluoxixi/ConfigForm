@@ -15,15 +15,16 @@
               <FormField name="category" :field-props="{ label: '分类', component: 'Input' }" />
               <FormField name="priority" :field-props="{ label: '优先级', component: 'Input' }" />
               <!-- 暂存草稿按钮（仅编辑态） -->
-              <AButton v-if="mode === 'editable'" style="margin-bottom: 8px" @click="saveDraft">
+              <button style="border: 1px solid #d9d9d9; background: #fff; padding: 4px 15px; border-radius: 6px; cursor: pointer; margin-bottom: 8px" @click="saveDraft">
                 暂存草稿
-              </AButton>
-              <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+              </button>
+              <LayoutFormActions @reset="form.reset()" />
             </form>
           </FormProvider>
         </div>
         <!-- 右侧：草稿列表（附加内容） -->
-        <ACard :title="`草稿列表 (${drafts.length})`" size="small" style="width: 280px">
+        <div style="border: 1px solid #f0f0f0; border-radius: 8px; padding: 16px; width: 280px">
+          <div style="font-weight: 600; margin-bottom: 8px">草稿列表 ({{ drafts.length }})</div>
           <span v-if="!drafts.length" style="color: #999">暂无草稿</span>
           <div v-for="d in drafts" :key="d.id" style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid #f0f0f0">
             <div>
@@ -34,16 +35,16 @@
                 {{ new Date(d.ts).toLocaleString() }}
               </div>
             </div>
-            <ASpace :size="4">
-              <AButton size="small" @click="restoreDraft(d)">
+            <div style="display: flex; gap: 4px; align-items: center">
+              <button style="border: 1px solid #d9d9d9; background: #fff; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 12px" @click="restoreDraft(d)">
                 恢复
-              </AButton>
-              <AButton size="small" danger @click="deleteDraft(d.id)">
+              </button>
+              <button style="color: #ff4d4f; border: 1px solid #ff4d4f; background: #fff; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 12px" @click="deleteDraft(d.id)">
                 删
-              </AButton>
-            </ASpace>
+              </button>
+            </div>
           </div>
-        </ACard>
+        </div>
       </div>
     </StatusTabs>
   </div>
@@ -59,7 +60,6 @@ import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
  * 所有字段使用 FormField + fieldProps。草稿列表和暂存/恢复逻辑作为附加内容。
  * 草稿数据存储在 localStorage，支持多版本管理。
  */
-import { Button as AButton, Card as ACard, Space as ASpace, message } from 'ant-design-vue'
 import { ref, watch } from 'vue'
 
 setupAntdVue()
@@ -113,13 +113,22 @@ function saveDraft(): void {
     ...drafts.value,
   ].slice(0, MAX_DRAFTS)
   saveDraftsToStorage()
-  message.success('草稿已暂存')
+  notify('草稿已暂存')
+}
+
+/** 简单消息提示 */
+function notify(msg: string): void {
+  const el = document.createElement('div')
+  el.textContent = msg
+  el.style.cssText = 'position:fixed;top:24px;left:50%;transform:translateX(-50%);padding:8px 16px;background:#52c41a;color:#fff;border-radius:6px;z-index:9999;font-size:14px'
+  document.body.appendChild(el)
+  setTimeout(() => el.remove(), 2000)
 }
 
 /** 恢复草稿到表单 */
 function restoreDraft(d: Draft): void {
   form.setValues(d.values)
-  message.success(`已恢复：${d.label}`)
+  notify(`已恢复：${d.label}`)
 }
 
 /** 删除草稿 */

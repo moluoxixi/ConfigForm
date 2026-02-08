@@ -1,18 +1,6 @@
 import type { FieldInstance } from '@moluoxixi/core'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import {
-  Button,
-  Card,
-  Col,
-  Descriptions,
-  Input,
-  InputNumber,
-  Row,
-  Space,
-  Steps,
-  Typography,
-} from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 21：分步表单
@@ -25,8 +13,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React, { useEffect, useState } from 'react'
-
-const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
@@ -89,10 +75,10 @@ export const StepForm = observer((): React.ReactElement => {
       </label>
       {isLast
         ? (
-            <Text>{(field.value as string) || '—'}</Text>
+            <span>{(field.value as string) || '—'}</span>
           )
         : (
-            <Input
+            <input
               value={(field.value as string) ?? ''}
               onChange={e => field.setValue(e.target.value)}
               onBlur={() => {
@@ -102,7 +88,7 @@ export const StepForm = observer((): React.ReactElement => {
               placeholder={placeholder}
               disabled={mode === 'disabled'}
               readOnly={mode === 'readOnly'}
-              status={field.errors.length > 0 ? 'error' : undefined}
+              
             />
           )}
       {field.errors.length > 0 && <div style={{ color: '#ff4d4f', fontSize: 12, marginTop: 4 }}>{field.errors[0].message}</div>}
@@ -111,8 +97,8 @@ export const StepForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>分步表单</Title>
-      <Paragraph type="secondary">Steps 导航 / 步骤验证 / 预览汇总 / Modal.confirm 拦截</Paragraph>
+      <h2>分步表单</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>Steps 导航 / 步骤验证 / 预览汇总 / Modal.confirm 拦截</p>
 
       <StatusTabs>
         {({ mode }) => {
@@ -120,22 +106,29 @@ export const StepForm = observer((): React.ReactElement => {
           return (
             <FormProvider form={form}>
               <>
-                <Steps current={step} items={STEPS.map(s => ({ title: s.title }))} style={{ marginBottom: 24 }} />
+                <div style={{ display: 'flex', marginBottom: 24 }}>
+                {STEPS.map((s, i) => (
+                  <div key={i} style={{ flex: 1, textAlign: 'center' }}>
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: i <= step ? '#1677ff' : '#f0f0f0', color: i <= step ? '#fff' : '#999', fontSize: 14, fontWeight: 600 }}>{i + 1}</div>
+                    <div style={{ fontSize: 13, marginTop: 4, color: i <= step ? '#000' : '#999' }}>{s.title}</div>
+                  </div>
+                ))}
+              </div>
 
                 {/* Step 1 */}
                 {step === 0 && (
-                  <Card title="基本信息">
+                  <div style={{ border: '1px solid #f0f0f0', borderRadius: 8 }}><div style={{ padding: '8px 16px', borderBottom: '1px solid #f0f0f0', fontWeight: 500 }}>基本信息</div><div style={{ padding: 16 }}>
                     <Row gutter={24}>
                       <Col span={12}><FormField name="name">{(f: FieldInstance) => renderInput(f, '姓名', mode)}</FormField></Col>
                       <Col span={12}><FormField name="phone">{(f: FieldInstance) => renderInput(f, '手机号', mode)}</FormField></Col>
                       <Col span={12}><FormField name="email">{(f: FieldInstance) => renderInput(f, '邮箱', mode)}</FormField></Col>
                     </Row>
-                  </Card>
+                  </div></div>
                 )}
 
                 {/* Step 2 */}
                 {step === 1 && (
-                  <Card title="工作信息">
+                  <div style={{ border: '1px solid #f0f0f0', borderRadius: 8 }}><div style={{ padding: '8px 16px', borderBottom: '1px solid #f0f0f0', fontWeight: 500 }}>工作信息</div><div style={{ padding: 16 }}>
                     <Row gutter={24}>
                       <Col span={12}><FormField name="company">{(f: FieldInstance) => renderInput(f, '公司名称', mode)}</FormField></Col>
                       <Col span={12}><FormField name="position">{(f: FieldInstance) => renderInput(f, '职位', mode)}</FormField></Col>
@@ -144,7 +137,7 @@ export const StepForm = observer((): React.ReactElement => {
                           {(f: FieldInstance) => (
                             <div style={{ marginBottom: 16 }}>
                               <label style={{ display: 'block', marginBottom: 4, fontWeight: 500, fontSize: 13 }}>{f.label}</label>
-                              <InputNumber
+                              <input type="number"
                                 value={f.value as number}
                                 onChange={v => f.setValue(v)}
                                 placeholder="期望薪资"
@@ -158,30 +151,30 @@ export const StepForm = observer((): React.ReactElement => {
                         </FormField>
                       </Col>
                     </Row>
-                  </Card>
+                  </div></div>
                 )}
 
                 {/* Step 3：预览 */}
                 {step === 2 && (
-                  <Card title="确认信息">
-                    <Descriptions bordered column={2}>
-                      <Descriptions.Item label="姓名">{(form.getFieldValue('name') as string) || '—'}</Descriptions.Item>
-                      <Descriptions.Item label="手机号">{(form.getFieldValue('phone') as string) || '—'}</Descriptions.Item>
-                      <Descriptions.Item label="邮箱">{(form.getFieldValue('email') as string) || '—'}</Descriptions.Item>
-                      <Descriptions.Item label="公司">{(form.getFieldValue('company') as string) || '—'}</Descriptions.Item>
-                      <Descriptions.Item label="职位">{(form.getFieldValue('position') as string) || '—'}</Descriptions.Item>
-                      <Descriptions.Item label="薪资">{form.getFieldValue('salary') != null ? `¥${form.getFieldValue('salary')}` : '—'}</Descriptions.Item>
-                    </Descriptions>
-                  </Card>
+                  <div style={{ border: '1px solid #f0f0f0', borderRadius: 8 }}><div style={{ padding: '8px 16px', borderBottom: '1px solid #f0f0f0', fontWeight: 500 }}>确认信息</div><div style={{ padding: 16 }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #f0f0f0' }}><tbody>
+                      <tr style={{ borderBottom: '1px solid #f0f0f0' }}><td style={{ padding: '8px 16px', background: '#fafafa', fontWeight: 500, width: 120 }}>姓名</td><td style={{ padding: '8px 16px' }}>{(form.getFieldValue('name') as string) || '—'}</td></tr>
+                      <tr style={{ borderBottom: '1px solid #f0f0f0' }}><td style={{ padding: '8px 16px', background: '#fafafa', fontWeight: 500, width: 120 }}>手机号</td><td style={{ padding: '8px 16px' }}>{(form.getFieldValue('phone') as string) || '—'}</td></tr>
+                      <tr style={{ borderBottom: '1px solid #f0f0f0' }}><td style={{ padding: '8px 16px', background: '#fafafa', fontWeight: 500, width: 120 }}>邮箱</td><td style={{ padding: '8px 16px' }}>{(form.getFieldValue('email') as string) || '—'}</td></tr>
+                      <tr style={{ borderBottom: '1px solid #f0f0f0' }}><td style={{ padding: '8px 16px', background: '#fafafa', fontWeight: 500, width: 120 }}>公司</td><td style={{ padding: '8px 16px' }}>{(form.getFieldValue('company') as string) || '—'}</td></tr>
+                      <tr style={{ borderBottom: '1px solid #f0f0f0' }}><td style={{ padding: '8px 16px', background: '#fafafa', fontWeight: 500, width: 120 }}>职位</td><td style={{ padding: '8px 16px' }}>{(form.getFieldValue('position') as string) || '—'}</td></tr>
+                      <tr style={{ borderBottom: '1px solid #f0f0f0' }}><td style={{ padding: '8px 16px', background: '#fafafa', fontWeight: 500, width: 120 }}>薪资</td><td style={{ padding: '8px 16px' }}>{form.getFieldValue('salary') != null ? `¥${form.getFieldValue('salary')}` : '—'}</td></tr>
+                    </tbody></table>
+                  </div></div>
                 )}
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
-                  <div>{step > 0 && <Button onClick={() => setStep(s => s - 1)}>上一步</Button>}</div>
-                  <Space>
+                  <div>{step > 0 && <button style={{ padding: '4px 12px', fontSize: 14, background: '#fff', border: '1px solid #d9d9d9', borderRadius: 6, cursor: 'pointer' }} onClick={() => setStep(s => s - 1)}>上一步</button>}</div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     {!isLast && (
-                      <Button type="primary" onClick={handleNext}>下一步</Button>
+                      <button style={{ padding: '4px 12px', fontSize: 14, background: '#1677ff', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }} onClick={handleNext}>下一步</button>
                     )}
-                  </Space>
+                  </div>
                 </div>
               </>
             </FormProvider>

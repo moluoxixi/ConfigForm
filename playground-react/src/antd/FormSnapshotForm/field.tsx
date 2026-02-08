@@ -1,14 +1,5 @@
-import { DeleteOutlined, SaveOutlined, UndoOutlined } from '@ant-design/icons'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import {
-  Button,
-  Card,
-  List,
-  message,
-  Tag,
-  Typography,
-} from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 42：表单快照
@@ -20,8 +11,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React, { useState } from 'react'
-
-const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
@@ -71,13 +60,13 @@ export const FormSnapshotForm = observer((): React.ReactElement => {
     const newDrafts = [draft, ...drafts].slice(0, MAX_DRAFTS)
     setDrafts(newDrafts)
     saveDraftsToStorage(newDrafts)
-    message.success('草稿已暂存')
+    alert('草稿已暂存')
   }
 
   /** 恢复草稿 */
   const restoreDraft = (draft: DraftItem): void => {
     form.setValues(draft.values)
-    message.success(`已恢复草稿：${draft.label}`)
+    alert(`已恢复草稿：${draft.label}`)
   }
 
   /** 删除草稿 */
@@ -89,8 +78,8 @@ export const FormSnapshotForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>表单快照</Title>
-      <Paragraph type="secondary">暂存草稿（localStorage） / 恢复草稿 / 多版本管理</Paragraph>
+      <h3>表单快照</h3>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>暂存草稿（localStorage） / 恢复草稿 / 多版本管理</p>
 
       <div style={{ display: 'flex', gap: 16 }}>
         {/* 左侧：表单区域 */}
@@ -110,10 +99,10 @@ export const FormSnapshotForm = observer((): React.ReactElement => {
                     <FormField name="description" fieldProps={{ label: '描述', component: 'Textarea', componentProps: { rows: 3 } }} />
                     <FormField name="category" fieldProps={{ label: '分类', component: 'Input' }} />
                     <FormField name="priority" fieldProps={{ label: '优先级', component: 'Input' }} />
-                    {mode === 'editable' && (
-                      <Button icon={<SaveOutlined />} onClick={saveDraft}>暂存草稿</Button>
+                    {(
+                      <button type="button" onClick={saveDraft} style={{ padding: '4px 15px', background: '#fff', border: '1px solid #d9d9d9', borderRadius: 6, cursor: 'pointer' }}>💾 暂存草稿</button>
                     )}
-                    {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                    {<LayoutFormActions onReset={() => form.reset()} />}
                   </form>
                 </FormProvider>
               )
@@ -122,39 +111,30 @@ export const FormSnapshotForm = observer((): React.ReactElement => {
         </div>
 
         {/* 右侧：草稿列表（附加内容） */}
-        <Card
-          title={(
-            <span>
-              草稿列表
-              <Tag>{drafts.length}</Tag>
-            </span>
-          )}
-          size="small"
-          style={{ width: 280 }}
-        >
+        <div style={{ border: '1px solid #f0f0f0', borderRadius: 8, padding: 16, width: 280 }}>
+          <div style={{ fontWeight: 600, marginBottom: 12 }}>
+            草稿列表
+            <span style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, lineHeight: '20px', background: '#f0f0f0', border: '1px solid #d9d9d9', borderRadius: 4, marginLeft: 8 }}>{drafts.length}</span>
+          </div>
           {drafts.length === 0
-            ? <Text type="secondary">暂无草稿</Text>
+            ? <span style={{ color: '#999' }}>暂无草稿</span>
             : (
-                <List
-                  size="small"
-                  dataSource={drafts}
-                  renderItem={draft => (
-                    <List.Item
-                      actions={[
-                        <Button key="restore" size="small" icon={<UndoOutlined />} onClick={() => restoreDraft(draft)} />,
-                        <Button key="delete" size="small" danger icon={<DeleteOutlined />} onClick={() => deleteDraft(draft.id)} />,
-                      ]}
-                    >
+                <div>
+                  {drafts.map(draft => (
+                    <div key={draft.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>
                       <div>
-                        <Text ellipsis style={{ maxWidth: 120 }}>{draft.label}</Text>
-                        <br />
-                        <Text type="secondary" style={{ fontSize: 11 }}>{new Date(draft.timestamp).toLocaleString()}</Text>
+                        <div style={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{draft.label}</div>
+                        <span style={{ color: '#999', fontSize: 11 }}>{new Date(draft.timestamp).toLocaleString()}</span>
                       </div>
-                    </List.Item>
-                  )}
-                />
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        <button type="button" onClick={() => restoreDraft(draft)} style={{ padding: '2px 8px', background: '#fff', border: '1px solid #d9d9d9', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>↩</button>
+                        <button type="button" onClick={() => deleteDraft(draft.id)} style={{ padding: '2px 8px', background: '#fff', border: '1px solid #d9d9d9', borderRadius: 4, cursor: 'pointer', fontSize: 12, color: '#ff4d4f' }}>✕</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
-        </Card>
+        </div>
       </div>
     </div>
   )

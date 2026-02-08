@@ -13,9 +13,8 @@ import React from 'react'
 import { observer } from 'mobx-react-lite'
 import { FormField, FormProvider, registerComponent, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Space, Tag, TreeSelect, Typography } from 'antd'
-
-const { Title, Paragraph } = Typography
+/* TODO: 注册为 FormField component */
+import { TreeSelect } from 'antd'
 
 setupAntd()
 
@@ -70,10 +69,10 @@ const DepartmentTreeSelect = observer(({ value, onChange, disabled, readOnly, mu
     if (multiple) {
       const values = (value as string[]) ?? []
       return values.length > 0
-        ? <Space wrap>{values.map(v => <Tag key={v} color="green">{v}</Tag>)}</Space>
+        ? <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>{values.map(v => <span key={v} style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, lineHeight: '20px', background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 4, color: '#52c41a' }}>{v}</span>)}</div>
         : <span>—</span>
     }
-    return <Tag color="blue">{(value as string) ?? '—'}</Tag>
+    return <span style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, lineHeight: '20px', background: '#e6f4ff', border: '1px solid #91caff', borderRadius: 4, color: '#1677ff' }}>{(value as string) ?? '—'}</span>
   }
 
   /* 编辑态：多选 TreeSelect */
@@ -123,8 +122,8 @@ export const TreeSelectForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>树形选择</Title>
-      <Paragraph type="secondary">antd TreeSelect / 单选 + 多选 / 组织树结构 / 三种模式</Paragraph>
+      <h3>树形选择</h3>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>antd TreeSelect / 单选 + 多选 / 组织树结构 / 三种模式</p>
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
           form.pattern = mode
@@ -139,7 +138,7 @@ export const TreeSelectForm = observer((): React.ReactElement => {
                 <FormField name="memberName" fieldProps={{ label: '成员姓名', required: true, component: 'Input', componentProps: { style: { width: 300 } } }} />
                 <FormField name="department" fieldProps={{ label: '所属部门', required: true, component: 'DepartmentTreeSelect' }} />
                 <FormField name="accessDepts" fieldProps={{ label: '可访问部门（多选）', component: 'DepartmentTreeSelect', componentProps: { multiple: true } }} />
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

@@ -14,10 +14,6 @@ import React from 'react'
 import { observer } from 'mobx-react-lite'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Typography } from 'antd'
-
-const { Title, Paragraph } = Typography
-
 setupAntd()
 
 /** 默认初始值 */
@@ -48,10 +44,10 @@ export const ComputedFieldForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>计算字段 (Field 版)</Title>
-      <Paragraph type="secondary">
+      <h2>计算字段 (Field 版)</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
         乘法（单价×数量） / 百分比（折后价） / 聚合（总分+平均分） / 条件计算（含税/不含税） —— FormField + fieldProps 实现
-      </Paragraph>
+      </p>
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
           form.pattern = mode
@@ -180,7 +176,7 @@ export const ComputedFieldForm = observer((): React.ReactElement => {
                   }],
                 }}
                 />
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

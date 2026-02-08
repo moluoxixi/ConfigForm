@@ -2,21 +2,18 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { ConfigForm, registerComponent } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Tag, Transfer, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 35：穿梭框 — ConfigForm + Schema
  *
  * 覆盖：
  * - 自定义 TransferPicker 组件注册
- * - antd Transfer 组件集成
+ * - 原生双栏穿梭组件
  * - 数据双向穿梭
  * - 搜索过滤
  * - 三种模式切换
  */
-import React from 'react'
-
-const { Title, Paragraph } = Typography
+import React, { useState } from 'react'
 
 setupAntd()
 
@@ -59,18 +56,25 @@ interface TransferPickerProps {
   dataSource?: PermissionItem[]
 }
 
+/** 列表样式 */
+const LIST_STYLE: React.CSSProperties = { width: 320, height: 340, border: '1px solid #d9d9d9', borderRadius: 8, overflow: 'auto' }
+
 /**
  * 穿梭框选择器自定义组件
  *
- * - 编辑态：antd Transfer（双栏穿梭，支持搜索）
- * - 禁用态：antd Transfer（disabled）
- * - 只读态：已选权限 Tag 标签列表
+ * - 编辑态：原生双栏穿梭（支持搜索）
+ * - 禁用态：原生双栏穿梭（disabled）
+ * - 只读态：已选权限标签列表
  */
 const TransferPicker = observer(({ value, onChange, disabled, readOnly, dataSource }: TransferPickerProps): React.ReactElement => {
   const selected = value ?? []
   const source = dataSource ?? PERMISSIONS
+  const [leftSearch, setLeftSearch] = useState('')
+  const [rightSearch, setRightSearch] = useState('')
+  const [leftChecked, setLeftChecked] = useState<string[]>([])
+  const [rightChecked, setRightChecked] = useState<string[]>([])
 
-  /* 只读态：Tag 标签列表 */
+  /* 只读态：标签列表 */
   if (readOnly) {
     if (selected.length === 0) {
       return <span style={{ color: '#999' }}>—</span>
@@ -79,25 +83,66 @@ const TransferPicker = observer(({ value, onChange, disabled, readOnly, dataSour
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
         {selected.map((key) => {
           const perm = source.find(p => p.key === key)
-          return <Tag key={key} color="blue">{perm?.title ?? key}</Tag>
+          return <span key={key} style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, background: '#e6f4ff', border: '1px solid #91caff', borderRadius: 4, color: '#1677ff' }}>{perm?.title ?? key}</span>
         })}
       </div>
     )
   }
 
-  /* 编辑态 / 禁用态：antd Transfer */
+  /* 编辑态 / 禁用态：双栏穿梭 */
+  const leftItems = source.filter(p => !selected.includes(p.key) && p.title.includes(leftSearch))
+  const rightItems = source.filter(p => selected.includes(p.key) && p.title.includes(rightSearch))
+
+  /** 左→右 */
+  const moveRight = (): void => {
+    onChange?.([...selected, ...leftChecked])
+    setLeftChecked([])
+  }
+  /** 右→左 */
+  const moveLeft = (): void => {
+    onChange?.(selected.filter(k => !rightChecked.includes(k)))
+    setRightChecked([])
+  }
+
+  /** 切换勾选 */
+  const toggle = (key: string, list: string[], setList: React.Dispatch<React.SetStateAction<string[]>>): void => {
+    setList(list.includes(key) ? list.filter(k => k !== key) : [...list, key])
+  }
+
   return (
-    <Transfer
-      dataSource={source}
-      targetKeys={selected}
-      onChange={keys => onChange?.(keys as string[])}
-      render={item => item.title}
-      showSearch
-      listStyle={{ width: 320, height: 340 }}
-      titles={['可选权限', '已选权限']}
-      disabled={disabled}
-      filterOption={(input, item) => (item?.title ?? '').includes(input)}
-    />
+    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      {/* 左侧：可选 */}
+      <div style={LIST_STYLE}>
+        <div style={{ padding: '4px 8px', borderBottom: '1px solid #f0f0f0', fontSize: 13, fontWeight: 500 }}>可选权限</div>
+        <input value={leftSearch} onChange={e => setLeftSearch(e.target.value)} placeholder="搜索" disabled={disabled} style={{ width: 'calc(100% - 16px)', margin: '4px 8px', padding: '2px 8px', border: '1px solid #d9d9d9', borderRadius: 4, fontSize: 12 }} />
+        <div style={{ padding: '0 8px' }}>
+          {leftItems.map(item => (
+            <label key={item.key} style={{ display: 'flex', gap: 4, padding: '2px 0', fontSize: 12, cursor: disabled ? 'default' : 'pointer' }}>
+              <input type="checkbox" checked={leftChecked.includes(item.key)} disabled={disabled} onChange={() => toggle(item.key, leftChecked, setLeftChecked)} />
+              {item.title}
+            </label>
+          ))}
+        </div>
+      </div>
+      {/* 中间：按钮 */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <button disabled={disabled || leftChecked.length === 0} onClick={moveRight} style={{ padding: '4px 12px', border: '1px solid #d9d9d9', borderRadius: 4, cursor: 'pointer', background: '#fff' }}>→</button>
+        <button disabled={disabled || rightChecked.length === 0} onClick={moveLeft} style={{ padding: '4px 12px', border: '1px solid #d9d9d9', borderRadius: 4, cursor: 'pointer', background: '#fff' }}>←</button>
+      </div>
+      {/* 右侧：已选 */}
+      <div style={LIST_STYLE}>
+        <div style={{ padding: '4px 8px', borderBottom: '1px solid #f0f0f0', fontSize: 13, fontWeight: 500 }}>已选权限</div>
+        <input value={rightSearch} onChange={e => setRightSearch(e.target.value)} placeholder="搜索" disabled={disabled} style={{ width: 'calc(100% - 16px)', margin: '4px 8px', padding: '2px 8px', border: '1px solid #d9d9d9', borderRadius: 4, fontSize: 12 }} />
+        <div style={{ padding: '0 8px' }}>
+          {rightItems.map(item => (
+            <label key={item.key} style={{ display: 'flex', gap: 4, padding: '2px 0', fontSize: 12, cursor: disabled ? 'default' : 'pointer' }}>
+              <input type="checkbox" checked={rightChecked.includes(item.key)} disabled={disabled} onChange={() => toggle(item.key, rightChecked, setRightChecked)} />
+              {item.title}
+            </label>
+          ))}
+        </div>
+      </div>
+    </div>
   )
 })
 
@@ -140,12 +185,12 @@ const schema: ISchema = {
 /**
  * 穿梭框表单 — ConfigForm + Schema
  *
- * 展示 antd Transfer 权限分配、搜索过滤、三种模式切换
+ * 展示原生穿梭框权限分配、搜索过滤、三种模式切换
  */
 export const TransferForm = observer((): React.ReactElement => (
   <div>
-    <Title level={3}>穿梭框</Title>
-    <Paragraph type="secondary">antd Transfer / 权限分配 / 搜索过滤 / 三种模式 — ConfigForm + Schema</Paragraph>
+    <h2>穿梭框</h2>
+    <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>原生 Transfer / 权限分配 / 搜索过滤 / 三种模式 — ConfigForm + Schema</p>
     <StatusTabs>
       {({ mode, showResult, showErrors }) => (
         <ConfigForm

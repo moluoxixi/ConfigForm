@@ -15,9 +15,6 @@ import React from 'react'
 import { observer } from 'mobx-react-lite'
 import { FormField, FormProvider, registerComponent, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Input, Space, Tag, Typography } from 'antd'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 
@@ -42,19 +39,19 @@ interface TransformDisplayInputProps {
  */
 const TransformDisplayInput = observer(({ value, onChange, disabled, readOnly }: TransformDisplayInputProps): React.ReactElement => {
   return (
-    <Space>
-      <Input
+    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      <input
         value={String(value ?? '')}
         onChange={e => onChange?.(e.target.value)}
         disabled={disabled}
         readOnly={readOnly}
-        style={{ width: 300 }}
+        style={{ width: 300, padding: '4px 11px', borderRadius: 6, border: '1px solid #d9d9d9', outline: 'none' }}
       />
-      <Tag color="blue">
+      <span style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, lineHeight: '20px', background: '#e6f4ff', color: '#1677ff', border: '1px solid #91caff', borderRadius: 4 }}>
         原始值:
         {JSON.stringify(value)}
-      </Tag>
-    </Space>
+      </span>
+    </div>
   )
 })
 
@@ -79,8 +76,8 @@ export const DataTransformForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>数据转换</Title>
-      <Paragraph type="secondary">format（显示格式化） / parse（输入解析） / transform（提交转换）</Paragraph>
+      <h3>数据转换</h3>
+      <p style={{ color: '#666' }}>format（显示格式化） / parse（输入解析） / transform（提交转换）</p>
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
           form.pattern = mode
@@ -132,7 +129,7 @@ export const DataTransformForm = observer((): React.ReactElement => {
                     transform: (v: unknown) => String(v ?? '').split(',').map((s: string) => s.trim()).filter(Boolean),
                   }}
                 />
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

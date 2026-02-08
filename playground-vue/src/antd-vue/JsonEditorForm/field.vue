@@ -9,7 +9,7 @@
         <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <FormField name="configName" :field-props="{ label: '配置名称', required: true, component: 'Input', componentProps: { placeholder: '请输入配置名称' } }" />
           <FormField name="jsonContent" :field-props="{ label: 'JSON 内容', required: true, component: 'JsonEditor' }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>
@@ -26,7 +26,6 @@ import { FormField, FormProvider, registerComponent, useCreateForm } from '@molu
  * 自定义 JsonEditor 组件注册后，在 fieldProps 中通过 component: 'JsonEditor' 引用。
  * 编辑态提供格式化/压缩工具栏和实时语法检查；只读态渲染 pre；禁用态禁用输入。
  */
-import { Button as AButton, Tag as ATag, Textarea as ATextarea } from 'ant-design-vue'
 import { defineComponent, h, ref, watch } from 'vue'
 
 setupAntdVue()
@@ -106,21 +105,21 @@ const JsonEditor = defineComponent({
       if (!props.disabled) {
         children.push(
           h('div', { style: { display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' } }, [
-            h(AButton, { size: 'small', onClick: formatJson }, () => '格式化'),
-            h(AButton, { size: 'small', onClick: minifyJson }, () => '压缩'),
-            h(ATag, { color: jsonError.value ? 'error' : 'success' }, () => jsonError.value ? '语法错误' : '合法 JSON'),
+            h('button', { type: 'button', style: { border: '1px solid #d9d9d9', background: '#fff', padding: '2px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }, onClick: formatJson }, '格式化'),
+            h('button', { type: 'button', style: { border: '1px solid #d9d9d9', background: '#fff', padding: '2px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }, onClick: minifyJson }, '压缩'),
+            h('span', { style: { display: 'inline-block', padding: '0 7px', fontSize: '12px', lineHeight: '20px', borderRadius: '4px', background: jsonError.value ? '#fff1f0' : '#f6ffed', border: jsonError.value ? '1px solid #ffa39e' : '1px solid #b7eb8f', color: jsonError.value ? '#f5222d' : '#52c41a' } }, jsonError.value ? '语法错误' : '合法 JSON'),
           ]),
         )
       }
 
       /* 文本输入区 */
       children.push(
-        h(ATextarea, {
-          'value': props.modelValue ?? '',
-          'rows': 14,
-          'disabled': props.disabled,
-          'style': MONO_STYLE,
-          'onUpdate:value': handleChange,
+        h('textarea', {
+          value: props.modelValue ?? '',
+          rows: 14,
+          disabled: props.disabled,
+          style: { ...MONO_STYLE, width: '100%', padding: '8px', border: '1px solid #d9d9d9', borderRadius: '6px', resize: 'vertical', boxSizing: 'border-box' },
+          onInput: (e: Event) => handleChange((e.target as HTMLTextAreaElement).value),
         }),
       )
 

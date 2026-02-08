@@ -13,9 +13,6 @@ import React from 'react'
 import { observer } from 'mobx-react-lite'
 import { FormField, FormProvider, registerComponent, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Input, Space, Tag, Typography } from 'antd'
-
-const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
@@ -88,52 +85,54 @@ const CronEditor = observer(({ value, onChange, disabled, readOnly }: CronEditor
   const isEditable = !disabled && !readOnly
 
   return (
-    <Space direction="vertical" style={{ width: '100%' }}>
-      <Input
-        value={cronValue}
-        onChange={e => onChange?.(e.target.value)}
-        disabled={disabled}
-        readOnly={readOnly}
-        placeholder="如：0 8 * * 1-5"
-        addonBefore="Cron"
-        style={{ width: 400 }}
-      />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
+      {/* 带前缀标签的输入框 */}
+      <div style={{ display: 'inline-flex', width: 400 }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', padding: '0 11px', background: '#fafafa', border: '1px solid #d9d9d9', borderRight: 'none', borderRadius: '6px 0 0 6px', fontSize: 14, color: '#666' }}>Cron</span>
+        <input
+          value={cronValue}
+          onChange={e => onChange?.(e.target.value)}
+          disabled={disabled}
+          readOnly={readOnly}
+          placeholder="如：0 8 * * 1-5"
+          style={{ flex: 1, padding: '4px 11px', border: '1px solid #d9d9d9', borderRadius: '0 6px 6px 0', outline: 'none' }}
+        />
+      </div>
 
       {/* 解析结果 */}
       <div>
-        <Text type="secondary">解析结果：</Text>
-        <Tag color={cronDesc.includes('错误') ? 'error' : 'blue'}>{cronDesc}</Tag>
+        <span style={{ color: '#999' }}>解析结果：</span>
+        <span style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, lineHeight: '20px', background: cronDesc.includes('错误') ? '#fff2f0' : '#e6f4ff', color: cronDesc.includes('错误') ? '#ff4d4f' : '#1677ff', border: `1px solid ${cronDesc.includes('错误') ? '#ffccc7' : '#91caff'}`, borderRadius: 4 }}>{cronDesc}</span>
       </div>
 
       {/* 快捷预设（仅编辑态） */}
       {isEditable && (
         <div>
-          <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>快捷预设：</Text>
-          <Space wrap>
+          <span style={{ color: '#999', fontSize: 12, display: 'block', marginBottom: 4 }}>快捷预设：</span>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
             {CRON_PRESETS.map(preset => (
-              <Tag
+              <span
                 key={preset.value}
-                color={value === preset.value ? 'blue' : 'default'}
-                style={{ cursor: 'pointer' }}
+                style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, lineHeight: '20px', background: value === preset.value ? '#e6f4ff' : '#f0f0f0', color: value === preset.value ? '#1677ff' : 'inherit', border: `1px solid ${value === preset.value ? '#91caff' : '#d9d9d9'}`, borderRadius: 4, cursor: 'pointer' }}
                 onClick={() => onChange?.(preset.value)}
               >
                 {preset.label}
-              </Tag>
+              </span>
             ))}
-          </Space>
+          </div>
         </div>
       )}
 
       {/* Cron 字段说明 */}
       <div style={{ background: '#f6f8fa', padding: 8, borderRadius: 4, fontSize: 12 }}>
-        <Text type="secondary">
+        <span style={{ color: '#999' }}>
           格式：分 时 日 月 周 | 示例：
-          <Text code>0 8 * * 1-5</Text>
+          <code style={{ padding: '2px 6px', background: '#f5f5f5', borderRadius: 4, fontSize: 12 }}>0 8 * * 1-5</code>
           {' '}
           = 工作日 8:00
-        </Text>
+        </span>
       </div>
-    </Space>
+    </div>
   )
 })
 
@@ -153,8 +152,8 @@ export const CronEditorForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>Cron 表达式编辑器</Title>
-      <Paragraph type="secondary">Cron 输入 / 快捷预设 / 实时解析 / 三种模式</Paragraph>
+      <h3>Cron 表达式编辑器</h3>
+      <p style={{ color: '#666' }}>Cron 输入 / 快捷预设 / 实时解析 / 三种模式</p>
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
           form.pattern = mode
@@ -168,7 +167,7 @@ export const CronEditorForm = observer((): React.ReactElement => {
               }} noValidate>
                 <FormField name="taskName" fieldProps={{ label: '任务名称', required: true, component: 'Input', componentProps: { style: { width: 300 } } }} />
                 <FormField name="cronExpr" fieldProps={{ label: 'Cron 表达式', required: true, component: 'CronEditor' }} />
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

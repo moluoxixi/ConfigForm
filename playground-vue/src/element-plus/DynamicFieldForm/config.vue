@@ -2,96 +2,111 @@
   <div>
     <h2>动态增删字段</h2>
     <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">
-      运行时添加/移除字段
+      预设字段组合 / Schema 切换 — ConfigForm + ISchema 实现
     </p>
-    <el-radio-group v-model="mode" size="small" style="margin-bottom: 16px">
-      <el-radio-button v-for="opt in MODE_OPTIONS" :key="opt.value" :value="opt.value">
-        {{ opt.label }}
-      </el-radio-button>
-    </el-radio-group>
-    <el-card v-if="mode === 'editable'" shadow="never" header="添加新字段" style="margin-bottom: 16px">
-      <el-space>
-        <el-input v-model="newLabel" placeholder="字段标签" style="width: 200px" /><el-select v-model="newType" style="width: 120px">
-          <el-option label="文本" value="text" /><el-option label="数字" value="number" /><el-option label="选择" value="select" />
-        </el-select><el-button type="primary" :disabled="!newLabel.trim()" @click="addField">
-          添加
-        </el-button>
-      </el-space>
-      <div style="margin-top: 8px; color: #909399; font-size: 12px">
-        已添加 {{ dynamicFields.length }} 个动态字段
-      </div>
-    </el-card>
-    <FormProvider :form="form">
-      <form novalidate @submit.prevent="handleSubmit">
-        <FormField v-slot="{ field }" name="title">
-          <el-form-item :label="field.label" :required="field.required">
-            <el-input :model-value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" :readonly="mode === 'readOnly'" @update:model-value="field.setValue($event)" />
-          </el-form-item>
-        </FormField>
-        <FormField v-for="df in dynamicFields" :key="df.id" v-slot="{ field }" :name="df.name">
-          <el-form-item :label="field.label">
-            <el-space style="width: 100%">
-              <el-select v-if="df.fieldType === 'select'" :model-value="(field.value as string)" placeholder="请选择" style="width: 200px" :disabled="mode === 'disabled'" @change="(v: string) => field.setValue(v)">
-                <el-option label="A" value="a" /><el-option label="B" value="b" /><el-option label="C" value="c" />
-              </el-select>
-              <el-input v-else :model-value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" :readonly="mode === 'readOnly'" style="width: 200px" @update:model-value="field.setValue($event)" />
-              <el-button v-if="mode === 'editable'" type="danger" @click="removeField(df.id)">
-                删除
-              </el-button>
-            </el-space>
-          </el-form-item>
-        </FormField>
-        <el-button v-if="mode === 'editable'" type="primary" native-type="submit">
-          提交
-        </el-button>
-      </form>
-    </FormProvider>
-    <el-alert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" :description="result" show-icon style="margin-top: 16px" />
+    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+      <ConfigForm
+        :key="schemaKey"
+        :schema="withMode(computedSchema, mode)"
+        :initial-values="initialValues"
+        @submit="showResult"
+        @submit-failed="(e: any) => st?.showErrors(e)"
+        @values-change="handleValuesChange"
+      />
+    </StatusTabs>
   </div>
 </template>
 
 <script setup lang="ts">
+/**
+ * 动态增删字段 — Config 模式（Element Plus）
+ *
+ * 使用 ConfigForm + ISchema 实现动态字段切换。
+ * 通过 schema 中的 CheckboxGroup 控制哪些字段显示，
+ * 通过 @values-change 监听选择变化并动态重建 schema。
+ * 不使用 v-for 渲染按钮，完全由 schema 驱动。
+ */
+import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
-import { setupElementPlus } from '@moluoxixi/ui-element-plus'
-import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
-import { onMounted, ref } from 'vue'
+import { setupElementPlus, StatusTabs } from '@moluoxixi/ui-element-plus'
+import { ConfigForm } from '@moluoxixi/vue'
+import { computed, ref } from 'vue'
 
 setupElementPlus()
-const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅读态', value: 'readOnly' }, { label: '禁用态', value: 'disabled' }]
-const mode = ref<FieldPattern>('editable')
-const result = ref('')
-const newLabel = ref('')
-const newType = ref('text')
-let counter = 0
 
-interface DynField { id: string, name: string, label: string, fieldType: string }
-const dynamicFields = ref<DynField[]>([])
+const st = ref<InstanceType<typeof StatusTabs>>()
 
-const form = useCreateForm({ initialValues: { title: '' } })
-onMounted(() => {
-  form.createField({ name: 'title', label: '表单标题', required: true })
+/** 工具：将 mode 注入 schema */
+function withMode(s: ISchema, mode: FieldPattern): ISchema {
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
+}
+
+/** 可选字段配置 */
+const fieldOptions = [
+  { label: '姓名', value: 'name' },
+  { label: '邮箱', value: 'email' },
+  { label: '电话', value: 'phone' },
+  { label: '公司', value: 'company' },
+  { label: '职位', value: 'position' },
+  { label: '备注', value: 'remark' },
+]
+
+/** 字段定义 */
+const FIELD_DEFINITIONS: Record<string, ISchema> = {
+  name: { type: 'string', title: '姓名', required: true, rules: [{ minLength: 2, message: '至少 2 字' }] },
+  email: { type: 'string', title: '邮箱', rules: [{ format: 'email', message: '无效邮箱' }] },
+  phone: { type: 'string', title: '电话', rules: [{ format: 'phone', message: '无效手机号' }] },
+  company: { type: 'string', title: '公司' },
+  position: { type: 'string', title: '职位' },
+  remark: { type: 'string', title: '备注', component: 'Textarea', componentProps: { rows: 3 } },
+}
+
+/** 当前激活的字段 */
+const activeFields = ref<string[]>(['name', 'email'])
+const schemaKey = ref(0)
+
+/** 监听表单值变化，检测 _selectedFields 的改变 */
+function handleValuesChange(values: Record<string, unknown>): void {
+  const selected = values._selectedFields
+  if (Array.isArray(selected)) {
+    activeFields.value = selected as string[]
+    schemaKey.value++
+  }
+}
+
+/** 计算当前 schema：使用 CheckboxGroup 控制字段选择 */
+const computedSchema = computed<ISchema>(() => {
+  const properties: Record<string, ISchema> = {
+    /* 字段选择器 — 使用 CheckboxGroup 组件，由 schema 驱动 */
+    _selectedFields: {
+      type: 'string',
+      title: '显示字段',
+      component: 'CheckboxGroup',
+      default: activeFields.value,
+      dataSource: fieldOptions,
+      order: -1,
+    },
+  }
+  /* 根据选择动态添加字段 */
+  for (const field of activeFields.value) {
+    if (FIELD_DEFINITIONS[field]) {
+      properties[field] = { ...FIELD_DEFINITIONS[field], order: fieldOptions.findIndex(f => f.value === field) }
+    }
+  }
+  return {
+    type: 'object',
+    decoratorProps: { labelPosition: 'right', labelWidth: '100px', actions: { submit: '提交', reset: '重置' } },
+    properties,
+  }
 })
 
-function addField(): void {
-  if (!newLabel.value.trim())
-    return
-  counter++
-  const id = `dyn_${counter}`
-  form.createField({ name: id, label: newLabel.value.trim(), pattern: mode.value })
-  dynamicFields.value.push({ id, name: id, label: newLabel.value.trim(), fieldType: newType.value })
-  newLabel.value = ''
-}
-function removeField(id: string): void {
-  form.removeField(id)
-  dynamicFields.value = dynamicFields.value.filter(f => f.id !== id)
-}
-async function handleSubmit(): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    result.value = `验证失败: ${res.errors.map(e => e.message).join(', ')}`
-  }
-  else {
-    result.value = JSON.stringify(res.values, null, 2)
-  }
+const initialValues = {
+  _selectedFields: ['name', 'email'],
+  name: '',
+  email: '',
+  phone: '',
+  company: '',
+  position: '',
+  remark: '',
 }
 </script>

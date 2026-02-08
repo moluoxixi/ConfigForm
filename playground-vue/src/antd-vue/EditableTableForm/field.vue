@@ -11,9 +11,9 @@
             <div>
               <div style="display: flex; justify-content: space-between; margin-bottom: 8px">
                 <span style="font-weight: 600">订单明细 ({{ ((arrayField.value as unknown[]) ?? []).length }}/20)</span>
-                <AButton v-if="mode === 'editable'" type="primary" size="small" :disabled="!arrayField.canAdd" @click="arrayField.push({ productName: '', quantity: 1, unitPrice: 0, subtotal: 0 })">
+                <button style="background: #1677ff; color: #fff; border: none; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 12px" :disabled="!arrayField.canAdd" @click="arrayField.push({ productName: '', quantity: 1, unitPrice: 0, subtotal: 0 })">
                   添加行
-                </AButton>
+                </button>
               </div>
               <table style="width: 100%; border-collapse: collapse; border: 1px solid #f0f0f0">
                 <thead>
@@ -23,7 +23,7 @@
                     <th style="padding: 8px; width: 120px">数量</th>
                     <th style="padding: 8px; width: 140px">单价</th>
                     <th style="padding: 8px; width: 100px; text-align: right">小计</th>
-                    <th v-if="mode === 'editable'" style="padding: 8px; width: 60px">操作</th>
+                    <th style="padding: 8px; width: 60px">操作</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -41,15 +41,15 @@
                     <td style="padding: 6px 8px; text-align: right">
                       <FormField :name="`items.${idx}.subtotal`" :field-props="{ component: 'InputNumber', componentProps: { controls: false, bordered: false, readOnly: true, formatter: (v: string | number | undefined) => `¥${Number(v ?? 0).toFixed(2)}`, parser: (v: string | undefined) => (v ?? '').replace(/[¥,]/g, ''), style: 'font-weight: bold; color: #52c41a; width: 100%; text-align: right; background: transparent; cursor: default' } }" />
                     </td>
-                    <td v-if="mode === 'editable'" style="padding: 6px 8px; text-align: center">
-                      <AButton size="small" danger :disabled="!arrayField.canRemove" @click="arrayField.remove(idx)">删</AButton>
+                    <td style="padding: 6px 8px; text-align: center">
+                      <button style="color: #ff4d4f; border: 1px solid #ff4d4f; background: #fff; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 12px" :disabled="!arrayField.canRemove" @click="arrayField.remove(idx)">删</button>
                     </td>
                   </tr>
                 </tbody>
                 <tfoot>
                   <tr style="background: #f6ffed; border-top: 2px solid #52c41a">
-                    <td :colspan="mode === 'editable' ? 4 : 4" style="padding: 8px; text-align: right; font-weight: 600">合计：</td>
-                    <td style="padding: 8px; text-align: right" :colspan="mode === 'editable' ? 2 : 1">
+                    <td colspan="4" style="padding: 8px; text-align: right; font-weight: 600">合计：</td>
+                    <td colspan="2" style="padding: 8px; text-align: right">
                       <strong style="font-size: 16px; color: #52c41a">¥{{ getTotal().toFixed(2) }}</strong>
                     </td>
                   </tr>
@@ -57,7 +57,7 @@
               </table>
             </div>
           </FormArrayField>
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>
@@ -75,7 +75,6 @@ import { FormArrayField, FormField, FormProvider, useCreateForm } from '@moluoxi
  * 数量/单价通过 componentProps.onChange 触发小计重算，底部显示合计行。
  * 所有字段通过 fieldProps 声明式渲染，框架自动处理三种模式。
  */
-import { Button as AButton } from 'ant-design-vue'
 import { ref, watch } from 'vue'
 
 setupAntdVue()

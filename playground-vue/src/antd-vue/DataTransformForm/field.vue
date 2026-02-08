@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>数据转换</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -11,7 +11,7 @@
           <FormField name="phoneRaw" :field-props="{ label: '手机号（脱敏）', component: 'TransformInput', format: formatPhone, componentProps: { style: 'width: 300px' } }" />
           <FormField name="fullName" :field-props="{ label: '姓名', component: 'TransformInput', componentProps: { style: 'width: 300px' } }" />
           <FormField name="tags" :field-props="{ label: '标签（逗号分隔）', description: '提交时转为数组', component: 'TransformInput', transform: transformTags, componentProps: { style: 'width: 300px' } }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

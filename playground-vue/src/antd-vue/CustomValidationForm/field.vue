@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>自定义验证规则（Field 版）</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -14,7 +14,7 @@
           <FormField name="idType" :field-props="{ label: '证件类型', required: true, component: 'Select', dataSource: ID_TYPE_OPTIONS, componentProps: { placeholder: '请选择' } }" />
           <FormField name="idNumber" :field-props="{ label: '证件号码', required: true, component: 'Input', componentProps: { placeholder: '18 位身份证' } }" />
           <FormField name="ipAddress" :field-props="{ label: 'IP 地址', component: 'Input', componentProps: { placeholder: '192.168.1.1' }, rules: ipAddressRules }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

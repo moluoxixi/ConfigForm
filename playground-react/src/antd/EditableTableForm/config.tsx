@@ -3,14 +3,6 @@ import type { FieldPattern } from '@moluoxixi/shared'
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons'
 import { FormArrayField, FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import {
-  Button,
-  Input,
-  InputNumber,
-  Space,
-  Tag,
-  Typography,
-} from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 16：可编辑表格
@@ -23,8 +15,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React from 'react'
-
-const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
@@ -61,12 +51,12 @@ const EditableRow = observer(({
   return (
     <tr style={{ borderBottom: '1px solid #f0f0f0' }}>
       <td style={{ padding: '6px 8px', textAlign: 'center' }}>
-        <Text type="secondary">{index + 1}</Text>
+        <span style={{ color: 'rgba(0,0,0,0.45)' }}>{index + 1}</span>
       </td>
       <td style={{ padding: '6px 8px' }}>
         <FormField name={`${basePath}.productName`}>
           {(field: FieldInstance) => (
-            <Input
+            <input
               value={(field.value as string) ?? ''}
               onChange={e => field.setValue(e.target.value)}
               placeholder="商品名称"
@@ -80,7 +70,7 @@ const EditableRow = observer(({
       <td style={{ padding: '6px 8px' }}>
         <FormField name={`${basePath}.quantity`}>
           {(field: FieldInstance) => (
-            <InputNumber
+            <input type="number"
               value={(field.value as number) ?? 1}
               min={1}
               size="small"
@@ -98,7 +88,7 @@ const EditableRow = observer(({
       <td style={{ padding: '6px 8px' }}>
         <FormField name={`${basePath}.unitPrice`}>
           {(field: FieldInstance) => (
-            <InputNumber
+            <input type="number"
               value={(field.value as number) ?? 0}
               min={0}
               step={0.01}
@@ -117,22 +107,16 @@ const EditableRow = observer(({
       <td style={{ padding: '6px 8px', textAlign: 'right' }}>
         <FormField name={`${basePath}.subtotal`}>
           {(field: FieldInstance) => (
-            <Text strong type="success">
+            <strong style={{ color: '#52c41a' }}>
               ¥
               {((field.value as number) ?? 0).toFixed(2)}
-            </Text>
+            </strong>
           )}
         </FormField>
       </td>
       {isEditable && (
         <td style={{ padding: '6px 8px', textAlign: 'center' }}>
-          <Button
-            size="small"
-            danger
-            icon={<DeleteOutlined />}
-            disabled={!arrayField.canRemove}
-            onClick={() => arrayField.remove(index)}
-          />
+          <button style={{ padding: '0 8px', height: 24, fontSize: 12, background: '#fff', color: '#ff4d4f', border: '1px solid #ff4d4f', borderRadius: 4, cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }} disabled={!arrayField.canRemove} onClick={() => arrayField.remove(index)}>{<DeleteOutlined />}</button>
         </td>
       )}
     </tr>
@@ -160,10 +144,10 @@ export const EditableTableForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>可编辑表格</Title>
-      <Paragraph type="secondary">
+      <h2>可编辑表格</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
         表格行内编辑 / 行级联动（数量×单价=小计） / 列统计（合计行）
-      </Paragraph>
+      </p>
 
       <StatusTabs>
         {({ mode }) => {
@@ -177,18 +161,18 @@ export const EditableTableForm = observer((): React.ReactElement => {
                 {(arrayField: ArrayFieldInstance) => (
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <Space>
-                        <Text strong>订单明细</Text>
-                        <Tag>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <strong>订单明细</strong>
+                        <span style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, background: '#f0f0f0', border: '1px solid #d9d9d9', borderRadius: 4 }}>
                           {((arrayField.value as unknown[]) ?? []).length}
                           /
                           {MAX_ROWS}
-                        </Tag>
-                      </Space>
+                        </span>
+                      </div>
                       {mode === 'editable' && (
-                        <Button type="primary" icon={<PlusOutlined />} size="small" disabled={!arrayField.canAdd} onClick={() => arrayField.push({ ...ROW_TEMPLATE })}>
+                        <button style={{ padding: '0 8px', height: 24, fontSize: 12, background: '#1677ff', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }} disabled={!arrayField.canAdd} onClick={() => arrayField.push({ ...ROW_TEMPLATE })}><PlusOutlined />
                           添加行
-                        </Button>
+                        </button>
                       )}
                     </div>
 
@@ -212,10 +196,10 @@ export const EditableTableForm = observer((): React.ReactElement => {
                         <tr style={{ background: '#f6ffed', borderTop: '2px solid #52c41a' }}>
                           <td colSpan={mode === 'editable' ? 4 : 4} style={{ padding: '8px', textAlign: 'right', fontWeight: 600 }}>合计：</td>
                           <td style={{ padding: '8px', textAlign: 'right' }} colSpan={mode === 'editable' ? 2 : 1}>
-                            <Text strong style={{ fontSize: 16, color: '#52c41a' }}>
+                            <strong style={{ fontSize: 16, color: '#52c41a' }}>
                               ¥
                               {getTotal().toFixed(2)}
-                            </Text>
+                            </strong>
                           </td>
                         </tr>
                       </tfoot>

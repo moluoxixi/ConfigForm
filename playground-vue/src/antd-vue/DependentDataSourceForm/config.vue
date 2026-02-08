@@ -4,12 +4,13 @@
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       品牌→型号→配置（三级远程数据源链） / 年级→班级 / 完整走 fetchDataSource 管线
     </p>
-    <AAlert type="info" show-icon style="margin-bottom: 12px">
-      <template #message>
+    <div style="padding: 8px 12px; background: #e6f7ff; border: 1px solid #91caff; border-radius: 6px; color: rgba(0,0,0,0.88); font-size: 14px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 8px">
+      <span style="color: #1677ff">ℹ</span>
+      <span>
         使用核心库的 <b>registerRequestAdapter('mock')</b> + <b>DataSourceConfig</b> 驱动，
         所有 Select 选项通过 <code>field.loadDataSource({ url, params })</code> 远程加载（模拟 600ms 延迟）
-      </template>
-    </AAlert>
+      </span>
+    </div>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <ConfigForm
         :schema="withMode(schema, mode)"
@@ -20,22 +21,24 @@
     </StatusTabs>
 
     <!-- API 调用日志 -->
-    <ACard size="small" style="margin-top: 16px; background: #f9f9f9">
-      <template #title>
+    <div style="margin-top: 16px; background: #f9f9f9; border: 1px solid #d9d9d9; border-radius: 8px; overflow: hidden">
+      <div style="padding: 8px 12px; border-bottom: 1px solid #d9d9d9; display: flex; justify-content: space-between; align-items: center">
         <span style="font-size: 13px; color: #666">📡 Mock API 调用日志（{{ apiLogs.length }} 条）</span>
-        <AButton v-if="apiLogs.length > 0" size="small" style="float:right" @click="onClearLogs">
+        <button v-if="apiLogs.length > 0" style="padding: 2px 8px; font-size: 13px; border: 1px solid #d9d9d9; border-radius: 4px; background: #fff; cursor: pointer" @click="onClearLogs">
           清空
-        </AButton>
-      </template>
-      <div v-if="apiLogs.length === 0" style="color: #aaa; font-size: 12px">
-        暂无请求，选择下拉触发远程加载
+        </button>
       </div>
-      <div v-else style="font-family: monospace; font-size: 11px; line-height: 1.8; max-height: 200px; overflow: auto">
-        <div v-for="(log, i) in apiLogs" :key="i" :style="{ color: log.includes('404') ? '#f5222d' : '#52c41a' }">
-          {{ log }}
+      <div style="padding: 12px">
+        <div v-if="apiLogs.length === 0" style="color: #aaa; font-size: 12px">
+          暂无请求，选择下拉触发远程加载
+        </div>
+        <div v-else style="font-family: monospace; font-size: 11px; line-height: 1.8; max-height: 200px; overflow: auto">
+          <div v-for="(log, i) in apiLogs" :key="i" :style="{ color: log.includes('404') ? '#f5222d' : '#52c41a' }">
+            {{ log }}
+          </div>
         </div>
       </div>
-    </ACard>
+    </div>
   </div>
 </template>
 
@@ -44,7 +47,6 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { ConfigForm } from '@moluoxixi/vue'
-import { Alert as AAlert, Button as AButton, Card as ACard } from 'ant-design-vue'
 import { onBeforeUnmount, ref } from 'vue'
 
 import { clearApiLogs, getApiLogs, setupMockAdapter } from '../../mock/dataSourceAdapter'

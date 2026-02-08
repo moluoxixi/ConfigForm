@@ -2,7 +2,6 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { ConfigForm } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Alert, Button, Card, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 19：依赖数据源
@@ -12,8 +11,6 @@ import { observer } from 'mobx-react-lite'
  */
 import React, { useEffect, useState } from 'react'
 import { clearApiLogs, getApiLogs, setupMockAdapter } from '../../mock/dataSourceAdapter'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 setupMockAdapter()
@@ -165,65 +162,57 @@ function ApiLogPanel(): React.ReactElement {
   }, [])
 
   return (
-    <Card
-      size="small"
-      style={{ marginTop: 16, background: '#f9f9f9' }}
-      title={(
+    <div style={{ marginTop: 16, background: '#f9f9f9', border: '1px solid #f0f0f0', borderRadius: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 16px', borderBottom: '1px solid #f0f0f0' }}>
         <span style={{ fontSize: 13, color: '#666' }}>
           📡 Mock API 调用日志（
           {logs.length}
           {' '}
           条）
         </span>
-      )}
-      extra={logs.length > 0
-        ? (
-            <Button
-              size="small"
-              onClick={() => {
-                clearApiLogs()
-                setLogs([])
-              }}
-            >
-              清空
-            </Button>
-          )
-        : null}
-    >
-      {logs.length === 0
-        ? <div style={{ color: '#aaa', fontSize: 12 }}>暂无请求，选择下拉触发远程加载</div>
-        : (
-            <div style={{ fontFamily: 'monospace', fontSize: 11, lineHeight: 1.8, maxHeight: 200, overflow: 'auto' }}>
-              {logs.map((log, i) => <div key={i} style={{ color: log.includes('404') ? '#f5222d' : '#52c41a' }}>{log}</div>)}
-            </div>
-          )}
-    </Card>
+        {logs.length > 0 && (
+          <button
+            style={{ padding: '2px 8px', fontSize: 12, background: '#fff', border: '1px solid #d9d9d9', borderRadius: 4, cursor: 'pointer' }}
+            onClick={() => {
+              clearApiLogs()
+              setLogs([])
+            }}
+          >
+            清空
+          </button>
+        )}
+      </div>
+      <div style={{ padding: '8px 16px' }}>
+        {logs.length === 0
+          ? <div style={{ color: '#aaa', fontSize: 12 }}>暂无请求，选择下拉触发远程加载</div>
+          : (
+              <div style={{ fontFamily: 'monospace', fontSize: 11, lineHeight: 1.8, maxHeight: 200, overflow: 'auto' }}>
+                {logs.map((log, i) => <div key={i} style={{ color: log.includes('404') ? '#f5222d' : '#52c41a' }}>{log}</div>)}
+              </div>
+            )}
+      </div>
+    </div>
   )
 }
 
 export const DependentDataSourceForm = observer((): React.ReactElement => {
   return (
     <div>
-      <Title level={3}>依赖数据源</Title>
-      <Paragraph type="secondary">
+      <h2>依赖数据源</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
         品牌→型号→配置（三级远程数据源链） / 年级→班级 / 完整走 fetchDataSource 管线
-      </Paragraph>
-      <Alert
-        type="info"
-        showIcon
-        style={{ marginBottom: 16 }}
-        message={(
-          <span>
-            使用核心库
-            <b>registerRequestAdapter('mock')</b>
-            {' '}
-            +
-            <code>field.loadDataSource(&#123; url, params &#125;)</code>
-            {' '}
-            远程加载（模拟 600ms 延迟）
-          </span>
-        )}
-      />
+      </p>
+      <div style={{ padding: '8px 16px', marginBottom: 16, background: '#e6f4ff', border: '1px solid #91caff', borderRadius: 6, fontSize: 13 }}>
+        <span>
+          使用核心库
+          <b>registerRequestAdapter('mock')</b>
+          {' '}
+          +
+          <code>field.loadDataSource(&#123; url, params &#125;)</code>
+          {' '}
+          远程加载（模拟 600ms 延迟）
+        </span>
+      </div>
       <StatusTabs>
         {({ mode, showResult, showErrors }) => (
           <ConfigForm

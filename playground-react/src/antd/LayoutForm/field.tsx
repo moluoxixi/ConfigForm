@@ -11,9 +11,6 @@ import React, { useState } from 'react'
 import { observer } from 'mobx-react-lite'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Col, Row, Segmented, Typography } from 'antd'
-
-const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
@@ -54,26 +51,26 @@ export const LayoutForm = observer((): React.ReactElement => {
     /* 栅格两列 */
     if (layoutType === 'grid-2col') {
       return (
-        <Row gutter={24}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
           {FIELDS.map(f => (
-            <Col key={f.name} span={12}>
+            <div key={f.name}>
               <FormField name={f.name} fieldProps={f as any} />
-            </Col>
+            </div>
           ))}
-        </Row>
+        </div>
       )
     }
 
     /* 栅格三列 */
     if (layoutType === 'grid-3col') {
       return (
-        <Row gutter={16}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
           {FIELDS.map(f => (
-            <Col key={f.name} span={8}>
+            <div key={f.name}>
               <FormField name={f.name} fieldProps={f as any} />
-            </Col>
+            </div>
           ))}
-        </Row>
+        </div>
       )
     }
 
@@ -92,14 +89,34 @@ export const LayoutForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>表单布局 (Field 版)</Title>
-      <Paragraph type="secondary">
+      <h3>表单布局 (Field 版)</h3>
+      <p style={{ color: '#666' }}>
         水平布局 / 垂直布局 / 行内布局 / 栅格两列 / 栅格三列 —— FormField + fieldProps 实现
-      </Paragraph>
+      </p>
 
       <div style={{ marginBottom: 16 }}>
-        <Text strong style={{ marginRight: 12 }}>布局类型：</Text>
-        <Segmented value={layoutType} onChange={val => setLayoutType(val as LayoutType)} options={LAYOUT_OPTIONS} />
+        <strong style={{ marginRight: 12 }}>布局类型：</strong>
+        <div style={{ display: 'inline-flex', background: '#f5f5f5', borderRadius: 6, padding: 2 }}>
+          {LAYOUT_OPTIONS.map(opt => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setLayoutType(opt.value)}
+              style={{
+                padding: '4px 12px',
+                border: 'none',
+                borderRadius: 4,
+                cursor: 'pointer',
+                fontSize: 14,
+                background: layoutType === opt.value ? '#fff' : 'transparent',
+                boxShadow: layoutType === opt.value ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
+                color: layoutType === opt.value ? '#1677ff' : '#666',
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <StatusTabs>
@@ -114,7 +131,7 @@ export const LayoutForm = observer((): React.ReactElement => {
                 else showResult(res.values)
               }} noValidate>
                 {renderFields()}
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

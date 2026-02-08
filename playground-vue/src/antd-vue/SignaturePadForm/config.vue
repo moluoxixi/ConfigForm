@@ -23,7 +23,6 @@ import { ConfigForm, registerComponent } from '@moluoxixi/vue'
  *
  * 自定义 SignaturePad 组件注册后，在 schema 中通过 component: 'SignaturePad' 引用。
  */
-import { Button as AButton } from 'ant-design-vue'
 import { defineComponent, h, ref } from 'vue'
 
 setupAntdVue()
@@ -56,7 +55,7 @@ const SignaturePad = defineComponent({
         return h('span', { style: { color: '#999' } }, '暂无签名')
       }
       const children = [h('canvas', { ref: canvasRef, width: CANVAS_WIDTH, height: CANVAS_HEIGHT, style: { border: '1px solid #d9d9d9', borderRadius: '8px', cursor: props.disabled ? 'not-allowed' : 'crosshair', background: props.disabled ? '#f5f5f5' : '#fff', display: 'block' }, onMousedown: startDraw, onMousemove: drawing, onMouseup: endDraw, onMouseleave: endDraw })]
-      if (!props.disabled) children.push(h(AButton, { size: 'small', style: { marginTop: '8px' }, onClick: clearCanvas }, () => '清空签名'))
+      if (!props.disabled) children.push(h('button', { style: { marginTop: '8px', padding: '2px 8px', fontSize: '13px', border: '1px solid #d9d9d9', borderRadius: '4px', background: '#fff', cursor: 'pointer' }, onClick: clearCanvas }, '清空签名'))
       return h('div', children)
     }
   },

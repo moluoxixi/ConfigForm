@@ -8,20 +8,20 @@
       <FormProvider :form="form">
         <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <!-- 导出操作按钮（附加内容） -->
-          <ASpace style="margin-bottom: 16px">
-            <AButton @click="handlePrint">
+          <div style="display: flex; gap: 8px; margin-bottom: 16px">
+            <button type="button" style="padding: 4px 15px; border: 1px solid #d9d9d9; border-radius: 6px; background: #fff; cursor: pointer; font-size: 14px" @click="handlePrint">
               打印
-            </AButton>
-            <AButton @click="exportJson">
+            </button>
+            <button type="button" style="padding: 4px 15px; border: 1px solid #d9d9d9; border-radius: 6px; background: #fff; cursor: pointer; font-size: 14px" @click="exportJson">
               导出 JSON
-            </AButton>
-            <AButton @click="exportCsv">
+            </button>
+            <button type="button" style="padding: 4px 15px; border: 1px solid #d9d9d9; border-radius: 6px; background: #fff; cursor: pointer; font-size: 14px" @click="exportCsv">
               导出 CSV
-            </AButton>
-          </ASpace>
+            </button>
+          </div>
           <!-- 表单字段 -->
           <FormField v-for="d in FIELD_DEFS" :key="d.name" :name="d.name" :field-props="getFieldProps(d)" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>
@@ -38,7 +38,6 @@ import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
  * 所有字段使用 FormField + fieldProps。打印和导出按钮作为附加内容，
  * 通过 form.getFieldValue 读取表单值进行打印/导出。
  */
-import { Button as AButton, Space as ASpace } from 'ant-design-vue'
 import { ref, watch } from 'vue'
 
 setupAntdVue()

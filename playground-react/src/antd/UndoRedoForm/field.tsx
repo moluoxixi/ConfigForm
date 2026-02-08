@@ -1,12 +1,6 @@
 import { RedoOutlined, UndoOutlined } from '@ant-design/icons'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import {
-  Button,
-  Space,
-  Tag,
-  Typography,
-} from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 43：撤销重做
@@ -21,8 +15,6 @@ import { observer } from 'mobx-react-lite'
  * 通过 form.onValuesChange 监听值变化，维护操作栈支持 undo/redo。
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 
@@ -107,25 +99,27 @@ export const UndoRedoForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>撤销重做</Title>
-      <Paragraph type="secondary">undo / redo 操作栈 / Ctrl+Z 撤销 / Ctrl+Shift+Z 重做</Paragraph>
+      <h3>撤销重做</h3>
+      <p style={{ color: '#666' }}>undo / redo 操作栈 / Ctrl+Z 撤销 / Ctrl+Shift+Z 重做</p>
 
       {/* 撤销/重做工具栏（附加内容） */}
-      <Space style={{ marginBottom: 16 }}>
-        <Button icon={<UndoOutlined />} disabled={!canUndo} onClick={undo}>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16 }}>
+        <button type="button" disabled={!canUndo} onClick={undo} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 12px', borderRadius: 6, border: '1px solid #d9d9d9', background: '#fff', cursor: canUndo ? 'pointer' : 'not-allowed', opacity: canUndo ? 1 : 0.5 }}>
+          <UndoOutlined />
           撤销 (Ctrl+Z)
-        </Button>
-        <Button icon={<RedoOutlined />} disabled={!canRedo} onClick={redo}>
+        </button>
+        <button type="button" disabled={!canRedo} onClick={redo} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 12px', borderRadius: 6, border: '1px solid #d9d9d9', background: '#fff', cursor: canRedo ? 'pointer' : 'not-allowed', opacity: canRedo ? 1 : 0.5 }}>
+          <RedoOutlined />
           重做 (Ctrl+Shift+Z)
-        </Button>
-        <Tag>
+        </button>
+        <span style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, lineHeight: '20px', background: '#f0f0f0', border: '1px solid #d9d9d9', borderRadius: 4 }}>
           历史记录：
           {currentIdx + 1}
           {' '}
           /
           {historyLen}
-        </Tag>
-      </Space>
+        </span>
+      </div>
 
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
@@ -142,7 +136,7 @@ export const UndoRedoForm = observer((): React.ReactElement => {
                 <FormField name="category" fieldProps={{ label: '分类', component: 'Input' }} />
                 <FormField name="amount" fieldProps={{ label: '金额', component: 'InputNumber', componentProps: { style: { width: '100%' } } }} />
                 <FormField name="note" fieldProps={{ label: '备注', component: 'Textarea', componentProps: { rows: 3 } }} />
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

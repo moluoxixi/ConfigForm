@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>虚拟滚动</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -31,7 +31,6 @@
                   <FormField :name="`items.${vis.index}.name`" :field-props="{ component: 'Input', componentProps: { placeholder: '姓名', size: 'small', style: 'flex: 1' } }" />
                   <FormField :name="`items.${vis.index}.email`" :field-props="{ component: 'Input', componentProps: { placeholder: '邮箱', size: 'small', style: 'flex: 1' } }" />
                   <button
-                    v-if="mode === 'editable'"
                     style="padding: 2px 8px; border: 1px solid #ff4d4f; border-radius: 4px; cursor: pointer; font-size: 13px; background: #fff; color: #ff4d4f"
                     @click="arrayField.remove(vis.index)"
                   >
@@ -41,7 +40,7 @@
               </div>
             </div>
           </FormArrayField>
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

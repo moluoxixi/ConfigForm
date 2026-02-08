@@ -2,7 +2,6 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { ConfigForm } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 22：标签页切换分组
@@ -14,8 +13,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React from 'react'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 
@@ -77,10 +74,10 @@ const schema: ISchema = {
 export const TabGroupForm = observer((): React.ReactElement => {
   return (
     <div>
-      <Title level={3}>标签页切换分组</Title>
-      <Paragraph type="secondary">
+      <h2>标签页切换分组</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
         Tabs 分组 / 切换保留数据 / Tab 错误徽标 / 独立验证
-      </Paragraph>
+      </p>
       <StatusTabs>
         {({ mode, showResult, showErrors }) => (
           <ConfigForm

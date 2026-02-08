@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>基础表单（Field 版）</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -18,7 +18,7 @@
           <FormField name="notification" :field-props="{ label: '开启通知', component: 'Switch' }" />
           <FormField name="birthday" :field-props="{ label: '生日', component: 'DatePicker', componentProps: { style: 'width: 100%' } }" />
           <FormField name="bio" :field-props="{ label: '个人简介', component: 'Textarea', rules: [{ maxLength: 200, message: '最多 200 字' }], componentProps: { placeholder: '请输入简介', rows: 3 } }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

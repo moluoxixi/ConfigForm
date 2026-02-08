@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>跨字段验证（Field 版）</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -18,7 +18,7 @@
           <FormField name="maxAge" :field-props="{ label: '最大年龄', required: true, component: 'InputNumber', componentProps: { min: 0, max: 150, style: { width: '100%' } }, rules: maxAgeRules }" />
           <FormField name="budget" :field-props="{ label: '预算上限', required: true, component: 'InputNumber', componentProps: { min: 0, style: { width: '100%' } } }" />
           <FormField name="expense" :field-props="{ label: '实际支出', required: true, component: 'InputNumber', componentProps: { min: 0, style: { width: '100%' } }, rules: expenseRules }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

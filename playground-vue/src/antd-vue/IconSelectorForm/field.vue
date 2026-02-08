@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>图标选择器</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -9,7 +9,7 @@
         <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <FormField name="menuName" :field-props="{ label: '菜单名称', required: true, component: 'Input', componentProps: { placeholder: '请输入菜单名称', style: 'width: 300px' } }" />
           <FormField name="icon" :field-props="{ label: '图标', required: true, component: 'IconSelector' }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

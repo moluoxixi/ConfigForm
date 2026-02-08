@@ -3,7 +3,6 @@ import type { FieldPattern } from '@moluoxixi/shared'
 import * as Icons from '@ant-design/icons'
 import { ConfigForm, registerComponent } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Input, Tag, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 38：图标选择器 — ConfigForm + Schema
@@ -16,8 +15,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React, { useMemo, useState } from 'react'
-
-const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
@@ -79,21 +76,20 @@ const IconSelector = observer(({ value, onChange, disabled, readOnly }: IconSele
     <div>
       {/* 当前选中 */}
       <div style={{ marginBottom: 8 }}>
-        <Text>当前选中：</Text>
+        <span>当前选中：</span>
         {value
-          ? <Tag icon={renderIcon(value)} color="blue" style={{ fontSize: 14 }}>{value}</Tag>
-          : <Text type="secondary">未选择</Text>}
+          ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '0 7px', fontSize: 14, background: '#e6f4ff', border: '1px solid #91caff', borderRadius: 4, color: '#1677ff' }}>{renderIcon(value)}{value}</span>
+          : <span style={{ color: 'rgba(0,0,0,0.45)' }}>未选择</span>}
       </div>
 
       {/* 搜索和图标网格（仅编辑态） */}
       {isEditable && (
         <>
-          <Input
+          <input
             placeholder="搜索图标名称"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            style={{ width: 300, marginBottom: 8 }}
-            allowClear
+            style={{ width: 300, marginBottom: 8, padding: '4px 8px', border: '1px solid #d9d9d9', borderRadius: 6 }}
           />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 4, maxHeight: 300, overflow: 'auto', border: '1px solid #d9d9d9', borderRadius: 6, padding: 8 }}>
             {filteredIcons.map(name => (
@@ -112,9 +108,9 @@ const IconSelector = observer(({ value, onChange, disabled, readOnly }: IconSele
                 }}
               >
                 {renderIcon(name, { fontSize: 24 })}
-                <Text style={{ fontSize: 10, marginTop: 4, textAlign: 'center', wordBreak: 'break-all' }}>
+                <span style={{ fontSize: 10, marginTop: 4, textAlign: 'center', wordBreak: 'break-all' }}>
                   {name.replace('Outlined', '')}
-                </Text>
+                </span>
               </div>
             ))}
           </div>
@@ -166,8 +162,8 @@ const schema: ISchema = {
  */
 export const IconSelectorForm = observer((): React.ReactElement => (
   <div>
-    <Title level={3}>图标选择器</Title>
-    <Paragraph type="secondary">@ant-design/icons 图标网格 / 搜索过滤 / 选中高亮 — ConfigForm + Schema</Paragraph>
+    <h2>图标选择器</h2>
+    <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>@ant-design/icons 图标网格 / 搜索过滤 / 选中高亮 — ConfigForm + Schema</p>
     <StatusTabs>
       {({ mode, showResult, showErrors }) => (
         <ConfigForm

@@ -2,7 +2,6 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { ConfigForm, registerComponent } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Input, Space, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 31：颜色选择器 — ConfigForm + Schema
@@ -14,8 +13,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React from 'react'
-
-const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
@@ -71,30 +68,30 @@ const ColorPicker = observer(({ value, onChange, disabled, readOnly }: ColorPick
 
   if (readOnly || disabled) {
     return (
-      <Space>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
         <ColorSwatch color={color} size={32} />
-        <Text code>{color}</Text>
-      </Space>
+        <code>{color}</code>
+      </div>
     )
   }
 
   return (
     <div>
-      <Space style={{ marginBottom: 8 }}>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
         <input
           type="color"
           value={color}
           onChange={e => onChange?.(e.target.value)}
           style={{ width: 48, height: 48, border: 'none', cursor: 'pointer', padding: 0 }}
         />
-        <Input
+        <input
           value={color}
           onChange={e => onChange?.(e.target.value)}
-          style={{ width: 120 }}
+          style={{ width: 120, padding: '4px 8px', border: '1px solid #d9d9d9', borderRadius: 6 }}
           placeholder="#000000"
         />
         <ColorSwatch color={color} size={32} />
-      </Space>
+      </div>
       <div style={{ display: 'flex', gap: 4 }}>
         {PRESET_COLORS.map(c => (
           <div
@@ -168,8 +165,8 @@ const schema: ISchema = {
  */
 export const ColorPickerForm = observer((): React.ReactElement => (
   <div>
-    <Title level={3}>颜色选择器</Title>
-    <Paragraph type="secondary">原生 color input + 预设色板 / HEX 输入 / 三种模式 — ConfigForm + Schema</Paragraph>
+    <h2>颜色选择器</h2>
+    <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>原生 color input + 预设色板 / HEX 输入 / 三种模式 — ConfigForm + Schema</p>
     <StatusTabs>
       {({ mode, showResult, showErrors }) => (
         <ConfigForm

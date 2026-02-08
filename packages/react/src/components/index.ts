@@ -1,3 +1,4 @@
+export { ArrayBase, useArray, useIndex } from './ArrayBase'
 export { ConfigForm } from './ConfigForm'
 export type { ConfigFormProps } from './ConfigForm'
 export { FormArrayField } from './FormArrayField'

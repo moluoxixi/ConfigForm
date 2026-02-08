@@ -11,37 +11,43 @@
           <FormProvider :form="form">
             <form @submit.prevent="handleSubmit(showResult)" novalidate>
               <!-- 自动保存开关（附加内容） -->
-              <ASpace style="margin-bottom: 12px">
+              <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px">
                 <span>自动保存：</span>
-                <ASwitch v-model:checked="autoSave" />
-              </ASpace>
+                <label style="position: relative; display: inline-block; width: 44px; height: 22px">
+                  <input type="checkbox" v-model="autoSave" style="opacity: 0; width: 0; height: 0">
+                  <span :style="{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, background: autoSave ? '#1677ff' : '#ccc', borderRadius: '11px', transition: 'background 0.3s' }">
+                    <span :style="{ position: 'absolute', height: '18px', width: '18px', left: autoSave ? '24px' : '2px', bottom: '2px', background: '#fff', borderRadius: '50%', transition: 'left 0.3s' }" />
+                  </span>
+                </label>
+              </div>
               <FormField name="title" :field-props="{ label: '标题', required: true, component: 'Input' }" />
               <FormField name="price" :field-props="{ label: '价格', component: 'InputNumber', componentProps: { style: 'width: 100%' } }" />
               <FormField name="description" :field-props="{ label: '描述', component: 'Textarea', componentProps: { rows: 3 } }" />
-              <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+              <LayoutFormActions @reset="form.reset()" />
             </form>
           </FormProvider>
         </StatusTabs>
       </div>
       <!-- 右侧：事件日志（附加内容） -->
-      <ACard :title="`事件日志 (${logs.length})`" size="small" style="width: 360px">
-        <template #extra>
-          <AButton size="small" @click="logs = []">
+      <div style="border: 1px solid #f0f0f0; border-radius: 8px; padding: 16px; width: 360px">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px">
+          <span style="font-weight: 600">事件日志 ({{ logs.length }})</span>
+          <button style="border: 1px solid #d9d9d9; background: #fff; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 12px" @click="logs = []">
             清空
-          </AButton>
-        </template>
+          </button>
+        </div>
         <div style="max-height: 400px; overflow: auto; font-size: 12px">
           <div v-for="log in logs" :key="log.id" style="padding: 2px 0; border-bottom: 1px solid #f0f0f0">
-            <ATag :color="TYPE_COLORS[log.type]" style="font-size: 10px">
+            <span :style="{ display: 'inline-block', padding: '0 4px', fontSize: '10px', lineHeight: '18px', borderRadius: '3px', color: '#fff', background: TAG_BG_COLORS[log.type] || '#999', marginRight: '4px' }">
               {{ log.type }}
-            </ATag>
+            </span>
             <span style="color: #999">{{ log.time }}</span>
             <div style="color: #555; margin-top: 2px">
               {{ log.message }}
             </div>
           </div>
         </div>
-      </ACard>
+      </div>
     </div>
   </div>
 </template>
@@ -56,7 +62,6 @@ import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
  * 所有字段使用 FormField + fieldProps。事件日志和自动保存作为附加内容。
  * 通过 form.onValuesChange 监听值变化，支持自动保存到 localStorage。
  */
-import { Button as AButton, Card as ACard, Space as ASpace, Switch as ASwitch, Tag as ATag } from 'ant-design-vue'
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 
 setupAntdVue()
@@ -72,13 +77,22 @@ const AUTO_SAVE_DELAY = 1500
 /** 最大日志条数 */
 const MAX_LOGS = 50
 
-/** 日志类型颜色映射 */
+/** 日志类型颜色映射（antd 色名，保留备用） */
 const TYPE_COLORS: Record<string, string> = {
   'mount': 'purple',
   'change': 'blue',
   'submit': 'green',
   'reset': 'orange',
   'auto-save': 'cyan',
+}
+
+/** 日志类型背景色映射（原生标签使用） */
+const TAG_BG_COLORS: Record<string, string> = {
+  'mount': '#722ed1',
+  'change': '#1677ff',
+  'submit': '#52c41a',
+  'reset': '#fa8c16',
+  'auto-save': '#13c2c2',
 }
 
 /** 事件日志 */

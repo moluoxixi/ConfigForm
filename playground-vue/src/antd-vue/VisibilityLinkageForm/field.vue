@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>显隐联动（Field 版）</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -19,7 +19,7 @@
           <FormField name="city" :field-props="{ label: '城市', component: 'Input', excludeWhenHidden: true, componentProps: { placeholder: '请输入城市' } }" />
           <FormField name="hasDetailAddress" :field-props="{ label: '填写详细地址', component: 'Switch' }" />
           <FormField name="detailAddress" :field-props="{ label: '详细地址', component: 'Textarea', excludeWhenHidden: true, componentProps: { placeholder: '请输入详细地址' } }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

@@ -1,6 +1,5 @@
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Card, Space, Tag, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 47：表单比对
@@ -12,8 +11,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React, { useEffect, useMemo, useState } from 'react'
-
-const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
@@ -84,27 +81,27 @@ export const FormDiffForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>表单比对</Title>
-      <Paragraph type="secondary">变更高亮 / 原始值 vs 当前值 / 变更摘要</Paragraph>
+      <h3>表单比对</h3>
+      <p style={{ color: '#666' }}>变更高亮 / 原始值 vs 当前值 / 变更摘要</p>
 
       {/* 变更摘要（附加内容） */}
-      <Card size="small" style={{ marginBottom: 16 }}>
-        <Space>
-          <Text strong>变更摘要：</Text>
+      <div style={{ marginBottom: 16, padding: 12, border: '1px solid #d9d9d9', borderRadius: 6 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <strong>变更摘要：</strong>
           {changedFields.length === 0
-            ? <Tag color="green">无变更</Tag>
+            ? <span style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, lineHeight: '20px', background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 4 }}>无变更</span>
             : (
                 <>
-                  <Tag color="orange">
+                  <span style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, lineHeight: '20px', background: '#fff7e6', border: '1px solid #ffd591', borderRadius: 4 }}>
                     {changedFields.length}
                     {' '}
                     个字段已修改
-                  </Tag>
-                  {changedFields.map(d => <Tag key={d.name} color="red">{d.label}</Tag>)}
+                  </span>
+                  {changedFields.map(d => <span key={d.name} style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, lineHeight: '20px', background: '#fff2f0', border: '1px solid #ffccc7', borderRadius: 4 }}>{d.label}</span>)}
                 </>
               )}
-        </Space>
-      </Card>
+        </div>
+      </div>
 
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
@@ -138,7 +135,7 @@ export const FormDiffForm = observer((): React.ReactElement => {
                     </div>
                   )
                 })}
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

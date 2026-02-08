@@ -14,10 +14,6 @@ import React from 'react'
 import { observer } from 'mobx-react-lite'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Typography } from 'antd'
-
-const { Title, Paragraph } = Typography
-
 setupAntd()
 
 /** 金额阈值：超过此值需要填写审批人 */
@@ -47,10 +43,10 @@ export const ConditionalRequiredForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>条件必填 (Field 版)</Title>
-      <Paragraph type="secondary">
+      <h2>条件必填 (Field 版)</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
         开关控制必填 / 金额阈值必填 / 选择「其他」必填 / 多条件组合必填 —— FormField + fieldProps 实现
-      </Paragraph>
+      </p>
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
           form.pattern = mode
@@ -176,7 +172,7 @@ export const ConditionalRequiredForm = observer((): React.ReactElement => {
                   }],
                 }}
                 />
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

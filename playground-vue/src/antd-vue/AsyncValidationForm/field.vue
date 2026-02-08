@@ -4,7 +4,7 @@
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       用户名唯一性 / 邮箱可用性 / 邀请码 / 防抖 + AbortSignal - FormField + fieldProps 实现
     </p>
-    <AAlert type="info" show-icon style="margin-bottom: 16px" message="已注册用户名: admin / test / root，有效邀请码: INVITE2024 / VIP888" />
+    <div style="padding: 8px 16px; margin-bottom: 16px; background: #e6f4ff; border: 1px solid #91caff; border-radius: 6px; font-size: 13px">已注册用户名: admin / test / root，有效邀请码: INVITE2024 / VIP888</div>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <FormProvider :form="form">
         <form @submit.prevent="handleSubmit(showResult)" novalidate>
@@ -12,7 +12,7 @@
           <FormField name="email" :field-props="{ label: '邮箱', required: true, component: 'Input', componentProps: { placeholder: '试试 admin@test.com' }, rules: emailRules }" />
           <FormField name="inviteCode" :field-props="{ label: '邀请码', required: true, component: 'Input', componentProps: { placeholder: 'INVITE2024 / VIP888' }, rules: inviteCodeRules }" />
           <FormField name="nickname" :field-props="{ label: '昵称', component: 'Input', componentProps: { placeholder: '无需异步验证' }, rules: [{ maxLength: 20, message: '不超过 20 字' }] }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>
@@ -23,7 +23,6 @@
 import type { FieldPattern } from '@moluoxixi/shared'
 import { LayoutFormActions, setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
-import { Alert as AAlert } from 'ant-design-vue'
 import { ref, watch } from 'vue'
 
 setupAntdVue()

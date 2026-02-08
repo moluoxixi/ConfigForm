@@ -1,10 +1,8 @@
 import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
-import type { UploadFile } from 'antd'
 import { PlusOutlined, UploadOutlined } from '@ant-design/icons'
 import { ConfigForm, registerComponent } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Button, message, Typography, Upload } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 29：文件、图片上传 — ConfigForm + Schema
@@ -14,9 +12,7 @@ import { observer } from 'mobx-react-lite'
  * - 文件上传 + 图片上传
  * - 三种模式切换
  */
-import React, { useState } from 'react'
-
-const { Title, Paragraph } = Typography
+import React, { useRef, useState } from 'react'
 
 setupAntd()
 
@@ -26,6 +22,12 @@ function withMode(s: ISchema, mode: FieldPattern): ISchema {
 }
 
 // ========== 自定义组件：文件上传 ==========
+
+/** 已上传文件信息 */
+interface UploadedFile {
+  uid: string
+  name: string
+}
 
 /** 文件上传 Props */
 interface FileUploadProps {
@@ -42,27 +44,49 @@ interface FileUploadProps {
 /**
  * 文件上传组件
  *
- * 封装 antd Upload，支持禁用/只读态
+ * 原生 input[type=file] 实现，支持禁用/只读态
  */
 const FileUpload = observer(({ onChange, disabled, readOnly }: FileUploadProps): React.ReactElement => {
-  const [fileList, setFileList] = useState<UploadFile[]>([])
+  const [fileList, setFileList] = useState<UploadedFile[]>([])
+  const inputRef = useRef<HTMLInputElement>(null)
   const isDisabled = disabled || readOnly
 
+  /** 处理文件选择 */
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const files = e.target.files
+    if (!files) return
+    const newFiles: UploadedFile[] = Array.from(files).map(f => ({ uid: String(Date.now() + Math.random()), name: f.name }))
+    const updated = [...fileList, ...newFiles]
+    setFileList(updated)
+    onChange?.(updated.map(f => f.name))
+    if (inputRef.current) inputRef.current.value = ''
+  }
+
+  /** 删除文件 */
+  const handleRemove = (uid: string): void => {
+    const updated = fileList.filter(f => f.uid !== uid)
+    setFileList(updated)
+    onChange?.(updated.map(f => f.name))
+  }
+
   return (
-    <Upload
-      fileList={fileList}
-      onChange={({ fileList: fl }) => {
-        setFileList(fl)
-        onChange?.(fl.map(f => f.name))
-      }}
-      beforeUpload={(file) => {
-        message.success(`${file.name} 上传成功（模拟）`)
-        return false
-      }}
-      disabled={isDisabled}
-    >
-      {!isDisabled && <Button icon={<UploadOutlined />}>选择文件</Button>}
-    </Upload>
+    <div>
+      {fileList.map(f => (
+        <div key={f.uid} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <span style={{ fontSize: 13 }}>{f.name}</span>
+          {!isDisabled && (
+            <button onClick={() => handleRemove(f.uid)} style={{ border: 'none', background: 'none', color: '#ff4d4f', cursor: 'pointer', fontSize: 12 }}>删除</button>
+          )}
+        </div>
+      ))}
+      {!isDisabled && (
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 12px', border: '1px solid #d9d9d9', borderRadius: 4, cursor: 'pointer', fontSize: 14, background: '#fff' }}>
+          <UploadOutlined />
+          选择文件
+          <input ref={inputRef} type="file" multiple style={{ display: 'none' }} onChange={handleFileChange} />
+        </label>
+      )}
+    </div>
   )
 })
 
@@ -82,41 +106,71 @@ interface ImageUploadProps {
   readOnly?: boolean
 }
 
+/** 已上传图片信息 */
+interface UploadedImage {
+  uid: string
+  name: string
+  url: string
+}
+
 /** 最大图片数量 */
 const MAX_IMAGE_COUNT = 6
 
 /**
  * 图片上传组件
  *
- * 封装 antd Upload（picture-card 模式），支持禁用/只读态
+ * 原生 input[type=file] + 预览卡片实现，支持禁用/只读态
  */
 const ImageUpload = observer(({ onChange, disabled, readOnly }: ImageUploadProps): React.ReactElement => {
-  const [imageList, setImageList] = useState<UploadFile[]>([])
+  const [imageList, setImageList] = useState<UploadedImage[]>([])
+  const inputRef = useRef<HTMLInputElement>(null)
   const isDisabled = disabled || readOnly
 
+  /** 处理图片选择 */
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const files = e.target.files
+    if (!files) return
+    const newImages: UploadedImage[] = Array.from(files).map(f => ({
+      uid: String(Date.now() + Math.random()),
+      name: f.name,
+      url: URL.createObjectURL(f),
+    }))
+    const updated = [...imageList, ...newImages].slice(0, MAX_IMAGE_COUNT)
+    setImageList(updated)
+    onChange?.(updated.map(f => f.name))
+    if (inputRef.current) inputRef.current.value = ''
+  }
+
+  /** 删除图片 */
+  const handleRemove = (uid: string): void => {
+    const updated = imageList.filter(f => f.uid !== uid)
+    setImageList(updated)
+    onChange?.(updated.map(f => f.name))
+  }
+
   return (
-    <Upload
-      listType="picture-card"
-      fileList={imageList}
-      onChange={({ fileList: fl }) => {
-        setImageList(fl)
-        onChange?.(fl.map(f => f.name))
-      }}
-      beforeUpload={(file) => {
-        const url = URL.createObjectURL(file)
-        message.success(`${file.name} 上传成功（模拟）`)
-        setImageList(prev => [...prev, { uid: String(Date.now()), name: file.name, status: 'done', url }])
-        return false
-      }}
-      disabled={isDisabled}
-    >
-      {!isDisabled && imageList.length < MAX_IMAGE_COUNT && (
-        <div>
-          <PlusOutlined />
-          <div style={{ marginTop: 8 }}>上传</div>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+      {imageList.map(img => (
+        <div key={img.uid} style={{ width: 104, height: 104, border: '1px solid #d9d9d9', borderRadius: 8, overflow: 'hidden', position: 'relative' }}>
+          <img src={img.url} alt={img.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          {!isDisabled && (
+            <button
+              onClick={() => handleRemove(img.uid)}
+              style={{ position: 'absolute', top: 2, right: 2, border: 'none', background: 'rgba(0,0,0,0.5)', color: '#fff', borderRadius: '50%', width: 20, height: 20, cursor: 'pointer', fontSize: 12, lineHeight: '20px', padding: 0 }}
+            >
+              ×
+            </button>
+          )}
         </div>
+      ))}
+      {!isDisabled && imageList.length < MAX_IMAGE_COUNT && (
+        <label style={{ width: 104, height: 104, border: '1px dashed #d9d9d9', borderRadius: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: '#fafafa' }}>
+          <PlusOutlined />
+          <div style={{ marginTop: 8, fontSize: 12 }}>上传</div>
+          <input ref={inputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleImageChange} />
+        </label>
       )}
-    </Upload>
+    </div>
   )
 })
 
@@ -166,8 +220,8 @@ const schema: ISchema = {
  */
 export const FileUploadForm = observer((): React.ReactElement => (
   <div>
-    <Title level={3}>文件、图片上传</Title>
-    <Paragraph type="secondary">antd Upload / 文件上传 / 图片上传 — ConfigForm + Schema</Paragraph>
+    <h2>文件、图片上传</h2>
+    <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>原生 Upload / 文件上传 / 图片上传 — ConfigForm + Schema</p>
     <StatusTabs>
       {({ mode, showResult, showErrors }) => (
         <ConfigForm

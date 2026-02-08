@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>默认值（Field 版）</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -15,7 +15,7 @@
           <FormField name="totalPrice" :field-props="{ label: '总价（自动计算）', component: 'InputNumber', description: '数量 × 单价', componentProps: { disabled: true } }" />
           <FormField name="level" :field-props="{ label: '会员等级', component: 'Select', dataSource: LEVEL_OPTIONS, componentProps: { placeholder: '请选择等级' } }" />
           <FormField name="discountRate" :field-props="{ label: '折扣率（%）', component: 'InputNumber', description: '根据等级动态设置', componentProps: { disabled: true } }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

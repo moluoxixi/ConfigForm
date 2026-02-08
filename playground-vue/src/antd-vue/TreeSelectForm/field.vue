@@ -10,7 +10,7 @@
           <FormField name="memberName" :field-props="{ label: '成员姓名', required: true, component: 'Input', componentProps: { placeholder: '请输入姓名', style: 'width: 300px' } }" />
           <FormField name="department" :field-props="{ label: '所属部门', required: true, component: 'TreeSelectPicker', componentProps: { treeData: TREE, placeholder: '请选择部门', style: 'width: 300px' } }" />
           <FormField name="accessDepts" :field-props="{ label: '可访问部门', component: 'TreeSelectPicker', componentProps: { treeData: TREE, treeCheckable: true, placeholder: '多选可访问部门', style: 'width: 100%' } }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>
@@ -22,7 +22,8 @@ import type { PropType } from 'vue'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { LayoutFormActions, setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { FormField, FormProvider, registerComponent, useCreateForm } from '@moluoxixi/vue'
-import { Tag as ATag, TreeSelect as ATreeSelect } from 'ant-design-vue'
+// TODO: ATreeSelect 暂时保留 ant-design-vue 依赖，后续替换为自定义树选择组件
+import { TreeSelect as ATreeSelect } from 'ant-design-vue'
 import { defineComponent, h, ref, watch } from 'vue'
 
 setupAntdVue()
@@ -64,7 +65,7 @@ const TreeSelectPicker = defineComponent({
           return h('span', { style: { color: '#999' } }, '—')
         }
         return h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '4px' } },
-          values.map(v => h(ATag, { color: 'blue', key: v }, () => v)),
+          values.map(v => h('span', { key: v, style: { display: 'inline-block', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', border: '1px solid #91caff', background: '#e6f4ff', color: '#0958d9' } }, v)),
         )
       }
 

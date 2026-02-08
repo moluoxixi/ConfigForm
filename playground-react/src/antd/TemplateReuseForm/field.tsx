@@ -13,10 +13,6 @@ import React, { useState } from 'react'
 import { observer } from 'mobx-react-lite'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Segmented, Space, Tag, Typography } from 'antd'
-
-const { Title, Paragraph } = Typography
-
 setupAntd()
 
 type TemplateKey = 'employee' | 'customer' | 'supplier'
@@ -86,23 +82,25 @@ export const TemplateReuseForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>模板复用 (Field 版)</Title>
-      <Paragraph type="secondary">
+      <h3>模板复用 (Field 版)</h3>
+      <p style={{ color: 'rgba(0,0,0,0.45)' }}>
         公共字段组件复用（个人信息 / 地址 / 备注） + 场景扩展 —— FormField + fieldProps 实现
-      </Paragraph>
+      </p>
 
-      <div style={{ marginBottom: 16 }}>
-        <Segmented
-          value={template}
-          onChange={v => setTemplate(v as TemplateKey)}
-          options={Object.entries(TEMPLATES).map(([k, v]) => ({ label: v.label, value: k }))}
-        />
+      <div style={{ display: 'inline-flex', gap: 4, marginBottom: 16 }}>
+        {Object.entries(TEMPLATES).map(([k, v]) => (
+          <button key={k} type="button"
+            style={{ padding: '4px 12px', background: template === k ? '#1677ff' : '#fff', color: template === k ? '#fff' : '#000', border: '1px solid #d9d9d9', borderRadius: 4, cursor: 'pointer' }}
+            onClick={() => setTemplate(k as TemplateKey)}>
+            {v.label}
+          </button>
+        ))}
       </div>
 
-      <Space style={{ marginBottom: 12 }}>
-        <Tag color="blue">复用片段：个人信息 + 地址 + 备注</Tag>
-        <Tag color="green">当前模板：{TEMPLATES[template].label}</Tag>
-      </Space>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+        <span style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, lineHeight: '20px', background: '#f0f0f0', border: '1px solid #d9d9d9', borderRadius: 4 }}>复用片段：个人信息 + 地址 + 备注</span>
+        <span style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, lineHeight: '20px', background: '#f0f0f0', border: '1px solid #d9d9d9', borderRadius: 4 }}>当前模板：{TEMPLATES[template].label}</span>
+      </div>
 
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
@@ -168,7 +166,7 @@ export const TemplateReuseForm = observer((): React.ReactElement => {
                 {/* 公共：地址 + 备注 */}
                 <AddressFields />
                 <RemarkField />
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

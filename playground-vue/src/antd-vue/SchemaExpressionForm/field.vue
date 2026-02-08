@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>Schema 表达式</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -20,7 +20,7 @@
             <FormField name="invoiceType" :field-props="{ label: '发票类型', component: 'RadioGroup', dataSource: [{ label: '个人', value: 'personal' }, { label: '企业', value: 'company' }] }" />
             <FormField v-if="isCompanyInvoice" name="taxNumber" :field-props="{ label: '税号', required: true, component: 'Input', componentProps: { placeholder: '请输入税号' } }" />
           </template>
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

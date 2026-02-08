@@ -23,7 +23,6 @@ import { ConfigForm, registerComponent } from '@moluoxixi/vue'
  *
  * 自定义 JsonEditor 组件注册后，在 schema 中通过 component: 'JsonEditor' 引用。
  */
-import { Button as AButton, Tag as ATag, Textarea as ATextarea } from 'ant-design-vue'
 import { defineComponent, h, ref } from 'vue'
 
 setupAntdVue()
@@ -53,12 +52,12 @@ const JsonEditor = defineComponent({
       const children = []
       if (!props.disabled) {
         children.push(h('div', { style: { display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' } }, [
-          h(AButton, { size: 'small', onClick: formatJson }, () => '格式化'),
-          h(AButton, { size: 'small', onClick: minifyJson }, () => '压缩'),
-          h(ATag, { color: jsonError.value ? 'error' : 'success' }, () => jsonError.value ? '语法错误' : '合法 JSON'),
+          h('button', { style: { padding: '2px 8px', fontSize: '13px', border: '1px solid #d9d9d9', borderRadius: '4px', background: '#fff', cursor: 'pointer' }, onClick: formatJson }, '格式化'),
+          h('button', { style: { padding: '2px 8px', fontSize: '13px', border: '1px solid #d9d9d9', borderRadius: '4px', background: '#fff', cursor: 'pointer' }, onClick: minifyJson }, '压缩'),
+          h('span', { style: { display: 'inline-block', padding: '0 7px', fontSize: '12px', lineHeight: '20px', borderRadius: '4px', border: jsonError.value ? '1px solid #ffa39e' : '1px solid #b7eb8f', color: jsonError.value ? '#cf1322' : '#389e0d', background: jsonError.value ? '#fff2f0' : '#f6ffed' } }, jsonError.value ? '语法错误' : '合法 JSON'),
         ]))
       }
-      children.push(h(ATextarea, { 'value': props.modelValue ?? '', 'rows': 14, 'disabled': props.disabled, 'style': MONO_STYLE, 'onUpdate:value': handleChange }))
+      children.push(h('textarea', { value: props.modelValue ?? '', rows: 14, disabled: props.disabled, style: { ...MONO_STYLE, width: '100%', padding: '8px', border: '1px solid #d9d9d9', borderRadius: '6px', resize: 'vertical', boxSizing: 'border-box' }, onInput: (e: Event) => handleChange((e.target as HTMLTextAreaElement).value) }))
       if (jsonError.value) children.push(h('div', { style: { color: '#ff4d4f', fontSize: '12px', marginTop: '4px' } }, jsonError.value))
       return h('div', children)
     }

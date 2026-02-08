@@ -2,7 +2,6 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { ConfigForm } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Alert, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 4：默认值
@@ -15,8 +14,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React from 'react'
-
-const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
@@ -172,27 +169,20 @@ const schema: ISchema = {
 export const DefaultValueForm = observer((): React.ReactElement => {
   return (
     <div>
-      <Title level={3}>默认值</Title>
-      <Paragraph type="secondary">
+      <h2>默认值</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
         静态 defaultValue / 动态计算默认值 / initialValues 外部注入 / 重置恢复
-      </Paragraph>
+      </p>
 
-      <Alert
-        type="info"
-        showIcon
-        style={{ marginBottom: 16 }}
-        message={(
-          <span>
-            外部注入初始值：订单号
-            {' '}
-            <Text code>{INITIAL_VALUES.orderNo as string}</Text>
-            ，
-            日期
-            {' '}
-            <Text code>{INITIAL_VALUES.createDate as string}</Text>
-          </span>
-        )}
-      />
+      <div style={{ padding: '8px 16px', marginBottom: 16, background: '#e6f4ff', border: '1px solid #91caff', borderRadius: 6, fontSize: 13 }}>
+        外部注入初始值：订单号
+        {' '}
+        <code>{INITIAL_VALUES.orderNo as string}</code>
+        ，
+        日期
+        {' '}
+        <code>{INITIAL_VALUES.createDate as string}</code>
+      </div>
 
       <StatusTabs>
         {({ mode, showResult, showErrors }) => (

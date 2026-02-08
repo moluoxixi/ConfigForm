@@ -2,99 +2,87 @@
   <div>
     <h2>对象数组嵌套</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
-      联系人数组 → 每人含嵌套电话数组
+      联系人数组 → 每人含嵌套电话数组 — ConfigForm + ISchema 实现
     </p>
-    <StatusTabs ref="st" v-slot="{ mode, showResult }" result-title="提交结果（嵌套结构）">
-      <FormProvider :form="form">
-        <FormField v-slot="{ field }" name="teamName">
-          <AFormItem :label="field.label" :required="field.required">
-            <span v-if="mode === 'readOnly'">{{ (field.value as string) || '—' }}</span><AInput v-else :value="(field.value as string) ?? ''" style="width: 300px" :disabled="mode === 'disabled'" @update:value="field.setValue($event)" />
-          </AFormItem>
-        </FormField>
-        <FormArrayField v-slot="{ arrayField }" name="contacts" :field-props="{ minItems: 1, maxItems: 10, itemTemplate: () => ({ name: '', role: '', phones: [{ number: '', label: '手机' }] }) }">
-          <div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 12px">
-              <span style="font-weight: 600">团队成员 ({{ ((arrayField.value as unknown[]) ?? []).length }}/10)</span>
-              <AButton v-if="mode === 'editable'" type="primary" :disabled="!arrayField.canAdd" @click="arrayField.push({ name: '', role: '', phones: [{ number: '', label: '手机' }] })">
-                添加联系人
-              </AButton>
-            </div>
-            <ACard v-for="(_, idx) in ((arrayField.value as unknown[]) ?? [])" :key="idx" size="small" :title="`联系人 #${idx + 1}`" style="margin-bottom: 12px">
-              <template v-if="mode === 'editable'" #extra>
-                <AButton size="small" danger :disabled="!arrayField.canRemove" @click="arrayField.remove(idx)">
-                  删除
-                </AButton>
-              </template>
-              <ASpace>
-                <FormField v-slot="{ field }" :name="`contacts.${idx}.name`">
-                  <span v-if="mode === 'readOnly'">{{ (field.value as string) || '—' }}</span><AInput v-else :value="(field.value as string) ?? ''" placeholder="姓名" addon-before="姓名" :disabled="mode === 'disabled'" @update:value="field.setValue($event)" />
-                </FormField>
-                <FormField v-slot="{ field }" :name="`contacts.${idx}.role`">
-                  <span v-if="mode === 'readOnly'">{{ (field.value as string) || '—' }}</span><AInput v-else :value="(field.value as string) ?? ''" placeholder="角色" addon-before="角色" :disabled="mode === 'disabled'" @update:value="field.setValue($event)" />
-                </FormField>
-              </ASpace>
-              <FormArrayField v-slot="{ arrayField: phoneArray }" :name="`contacts.${idx}.phones`" :field-props="{ minItems: 1, maxItems: 5, itemTemplate: () => ({ number: '', label: '手机' }) }">
-                <div style="padding: 8px 12px; background: #fafafa; border-radius: 4px; margin-top: 8px">
-                  <div style="display: flex; justify-content: space-between; margin-bottom: 8px">
-                    <span style="color: #999; font-size: 12px">电话列表 ({{ ((phoneArray.value as unknown[]) ?? []).length }}/5)</span>
-                    <AButton v-if="mode === 'editable'" size="small" type="dashed" :disabled="!phoneArray.canAdd" @click="phoneArray.push({ number: '', label: '手机' })">
-                      添加电话
-                    </AButton>
-                  </div>
-                  <ASpace v-for="(__, pIdx) in ((phoneArray.value as unknown[]) ?? [])" :key="pIdx" :size="4" style="width: 100%; margin-bottom: 4px">
-                    <FormField v-slot="{ field }" :name="`contacts.${idx}.phones.${pIdx}.label`">
-                      <span v-if="mode === 'readOnly'">{{ (field.value as string) || '—' }}</span><AInput v-else :value="(field.value as string) ?? ''" placeholder="标签" size="small" style="width: 80px" :disabled="mode === 'disabled'" @update:value="field.setValue($event)" />
-                    </FormField>
-                    <FormField v-slot="{ field }" :name="`contacts.${idx}.phones.${pIdx}.number`">
-                      <span v-if="mode === 'readOnly'">{{ (field.value as string) || '—' }}</span><AInput v-else :value="(field.value as string) ?? ''" placeholder="号码" size="small" style="width: 180px" :disabled="mode === 'disabled'" @update:value="field.setValue($event)" />
-                    </FormField>
-                    <AButton v-if="mode === 'editable'" size="small" danger :disabled="!phoneArray.canRemove" @click="phoneArray.remove(pIdx)">
-                      删
-                    </AButton>
-                  </ASpace>
-                </div>
-              </FormArrayField>
-            </ACard>
-          </div>
-        </FormArrayField>
-        <div v-if="mode === 'editable'" style="margin-top: 16px; display: flex; gap: 8px">
-          <button type="button" style="padding: 4px 15px; background: #1677ff; color: #fff; border: none; border-radius: 6px; cursor: pointer" @click="handleSubmit(showResult)">
-            提交
-          </button>
-          <button type="button" style="padding: 4px 15px; background: #fff; border: 1px solid #d9d9d9; border-radius: 6px; cursor: pointer" @click="form.reset()">
-            重置
-          </button>
-        </div>
-      </FormProvider>
+    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+      <ConfigForm
+        :schema="withMode(schema, mode)"
+        :initial-values="initialValues"
+        @submit="showResult"
+        @submit-failed="(e: any) => st?.showErrors(e)"
+      />
     </StatusTabs>
   </div>
 </template>
 
 <script setup lang="ts">
+/**
+ * 对象数组嵌套 — Config 模式（Ant Design Vue）
+ *
+ * 使用 ConfigForm + ISchema 实现嵌套数组结构。
+ * 通过 type: 'array' + items 定义多层嵌套。
+ */
+import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
-import { FormArrayField, FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
-import { Button as AButton, Card as ACard, FormItem as AFormItem, Input as AInput, Space as ASpace } from 'ant-design-vue'
-import { onMounted, ref, watch } from 'vue'
+import { ConfigForm } from '@moluoxixi/vue'
+import { ref } from 'vue'
 
 setupAntdVue()
+
 const st = ref<InstanceType<typeof StatusTabs>>()
 
-const form = useCreateForm({ initialValues: { teamName: '开发团队', contacts: [{ name: '张三', role: '负责人', phones: [{ number: '13800138001', label: '手机' }] }, { name: '李四', role: '成员', phones: [{ number: '13800138002', label: '手机' }, { number: '010-12345678', label: '座机' }] }] } })
-onMounted(() => {
-  form.createField({ name: 'teamName', label: '团队名称', required: true })
-})
-watch(() => st.value?.mode, (v) => {
-  if (v)
-    form.pattern = v as FieldPattern
-}, { immediate: true })
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
+/** 工具：将 mode 注入 schema */
+function withMode(s: ISchema, mode: FieldPattern): ISchema {
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
+}
+
+const initialValues = {
+  teamName: '开发团队',
+  contacts: [
+    { name: '张三', role: '负责人', phones: [{ number: '13800138001', label: '手机' }] },
+    { name: '李四', role: '成员', phones: [{ number: '13800138002', label: '手机' }, { number: '010-12345678', label: '座机' }] },
+  ],
+}
+
+const schema: ISchema = {
+  type: 'object',
+  decoratorProps: { labelPosition: 'right', labelWidth: '120px', actions: { submit: '提交', reset: '重置' } },
+  properties: {
+    teamName: {
+      type: 'string',
+      title: '团队名称',
+      required: true,
+      componentProps: { placeholder: '请输入团队名称', style: 'width: 300px' },
+    },
+    contacts: {
+      type: 'array',
+      title: '团队成员',
+      minItems: 1,
+      maxItems: 10,
+      itemTemplate: { name: '', role: '', phones: [{ number: '', label: '手机' }] },
+      items: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', title: '姓名', required: true, componentProps: { placeholder: '姓名' } },
+          role: { type: 'string', title: '角色', componentProps: { placeholder: '角色' } },
+          phones: {
+            type: 'array',
+            title: '电话列表',
+            minItems: 1,
+            maxItems: 5,
+            itemTemplate: { number: '', label: '手机' },
+            items: {
+              type: 'object',
+              properties: {
+                label: { type: 'string', title: '标签', componentProps: { placeholder: '标签', style: 'width: 80px' } },
+                number: { type: 'string', title: '号码', componentProps: { placeholder: '号码' } },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
 }
 </script>

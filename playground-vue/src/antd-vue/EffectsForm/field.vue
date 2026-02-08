@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>Effects 副作用联动</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -14,7 +14,7 @@
               <FormField name="totalPrice" :field-props="{ label: '总价（自动计算）', component: 'InputNumber', disabled: true }" />
               <FormField name="discount" :field-props="{ label: '折扣(%)', component: 'InputNumber', componentProps: { min: 0, max: 100 } }" />
               <FormField name="finalPrice" :field-props="{ label: '实付（自动计算）', component: 'InputNumber', disabled: true }" />
-              <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+              <LayoutFormActions @reset="form.reset()" />
             </form>
           </FormProvider>
         </div>

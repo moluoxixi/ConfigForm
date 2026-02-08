@@ -2,7 +2,6 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { ConfigForm, registerComponent } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Space, Tag, TreeSelect, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 36：树形选择 — ConfigForm + Schema
@@ -14,8 +13,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React from 'react'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 
@@ -75,10 +72,10 @@ const DepartmentTreeSelect = observer(({ value, onChange, disabled, readOnly, mu
     if (multiple) {
       const values = (value as string[]) ?? []
       return values.length > 0
-        ? <Space wrap>{values.map(v => <Tag key={v} color="green">{v}</Tag>)}</Space>
+        ? <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>{values.map(v => <span key={v} style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 4, color: '#52c41a' }}>{v}</span>)}</div>
         : <span>—</span>
     }
-    return <Tag color="blue">{(value as string) ?? '—'}</Tag>
+    return <span style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, background: '#e6f4ff', border: '1px solid #91caff', borderRadius: 4, color: '#1677ff' }}>{(value as string) ?? '—'}</span>
   }
 
   /* 编辑态：多选 TreeSelect */
@@ -161,8 +158,8 @@ const schema: ISchema = {
  */
 export const TreeSelectForm = observer((): React.ReactElement => (
   <div>
-    <Title level={3}>树形选择</Title>
-    <Paragraph type="secondary">antd TreeSelect / 单选 + 多选 / 组织树结构 / 三种模式 — ConfigForm + Schema</Paragraph>
+    <h2>树形选择</h2>
+    <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>antd TreeSelect / 单选 + 多选 / 组织树结构 / 三种模式 — ConfigForm + Schema</p>
     <StatusTabs>
       {({ mode, showResult, showErrors }) => (
         <ConfigForm

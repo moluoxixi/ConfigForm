@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>oneOf/anyOf 条件 Schema</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -30,7 +30,7 @@
           <!-- 公共字段 -->
           <FormField name="amount" :field-props="{ label: '支付金额', required: true, component: 'InputNumber', componentProps: { min: 0.01, style: 'width: 100%' } }" />
           <FormField name="remark" :field-props="{ label: '备注', component: 'Textarea' }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

@@ -2,7 +2,6 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { ConfigForm } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 44：生命周期钩子 — ConfigForm + Schema
@@ -15,8 +14,6 @@ import { observer } from 'mobx-react-lite'
  * 此 Schema 版本仅覆盖字段声明与提交流程。
  */
 import React from 'react'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 
@@ -68,8 +65,8 @@ const schema: ISchema = {
  */
 export const LifecycleForm = observer((): React.ReactElement => (
   <div>
-    <Title level={3}>生命周期钩子</Title>
-    <Paragraph type="secondary">表单字段声明（Input / InputNumber / Textarea） / 三种模式 — ConfigForm + Schema</Paragraph>
+    <h2>生命周期钩子</h2>
+    <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>表单字段声明（Input / InputNumber / Textarea） / 三种模式 — ConfigForm + Schema</p>
     <StatusTabs>
       {({ mode, showResult, showErrors }) => (
         <ConfigForm

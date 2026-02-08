@@ -2,7 +2,6 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { ConfigForm, registerComponent } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Alert, Input, Spin, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 28：富文本编辑器 — ConfigForm + Schema
@@ -13,8 +12,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React, { lazy, Suspense } from 'react'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 
@@ -83,7 +80,7 @@ const RichTextEditor = observer(({ value, onChange, disabled, readOnly }: RichTe
   /* 编辑态：ReactQuill（可用时） */
   if (ReactQuill) {
     return (
-      <Suspense fallback={<Spin />}>
+      <Suspense fallback={<span style={{ color: '#999', fontSize: 13 }}>加载中...</span>}>
         <ReactQuill
           value={html}
           onChange={(v: string) => onChange?.(v)}
@@ -97,12 +94,15 @@ const RichTextEditor = observer(({ value, onChange, disabled, readOnly }: RichTe
   /* 未安装 react-quill，降级为 Textarea */
   return (
     <div>
-      <Alert type="warning" showIcon message="react-quill 未安装，使用 Textarea 替代" style={{ marginBottom: 8 }} />
-      <Input.TextArea
+      <div style={{ padding: '8px 16px', marginBottom: 8, background: '#fffbe6', border: '1px solid #ffe58f', borderRadius: 6, fontSize: 13 }}>
+        react-quill 未安装，使用 Textarea 替代
+      </div>
+      <textarea
         value={html}
         onChange={e => onChange?.(e.target.value)}
         rows={8}
         placeholder="在此输入 HTML 内容"
+        style={{ width: '100%', padding: 8, border: '1px solid #d9d9d9', borderRadius: 6, fontSize: 14, resize: 'vertical' }}
       />
     </div>
   )
@@ -150,8 +150,8 @@ const schema: ISchema = {
  */
 export const RichTextForm = observer((): React.ReactElement => (
   <div>
-    <Title level={3}>富文本编辑器</Title>
-    <Paragraph type="secondary">react-quill 集成 / 三种模式 / 未安装时 Textarea 降级 — ConfigForm + Schema</Paragraph>
+    <h2>富文本编辑器</h2>
+    <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>react-quill 集成 / 三种模式 / 未安装时 Textarea 降级 — ConfigForm + Schema</p>
     <StatusTabs>
       {({ mode, showResult, showErrors }) => (
         <ConfigForm

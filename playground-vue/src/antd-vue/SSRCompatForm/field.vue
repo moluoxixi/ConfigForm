@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>SSR 兼容性测试</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -17,7 +17,7 @@
         <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <FormField name="username" :field-props="{ label: '用户名', required: true, component: 'Input' }" />
           <FormField name="email" :field-props="{ label: '邮箱', component: 'Input', rules: [{ format: 'email' }] }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

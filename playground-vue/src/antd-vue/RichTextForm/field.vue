@@ -9,7 +9,7 @@
         <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <FormField name="title" :field-props="{ label: '标题', required: true, component: 'Input', componentProps: { placeholder: '请输入标题' } }" />
           <FormField name="content" :field-props="{ label: '正文', required: true, component: 'RichTextEditor' }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>
@@ -27,7 +27,6 @@ import { FormField, FormProvider, registerComponent, useCreateForm } from '@molu
  * 编辑态使用 Textarea 降级方案（实际项目可接入 @wangeditor/editor-for-vue）；
  * 只读/禁用态渲染 HTML 预览。
  */
-import { Textarea as ATextarea } from 'ant-design-vue'
 import { defineComponent, h, ref, watch } from 'vue'
 
 setupAntdVue()
@@ -64,12 +63,13 @@ const RichTextEditor = defineComponent({
         })
       }
 
-      /* 编辑态：Textarea 降级方案 */
-      return h(ATextarea, {
-        'value': props.modelValue ?? '',
-        'rows': 8,
-        'placeholder': '输入 HTML 内容（实际项目可接入 @wangeditor/editor-for-vue）',
-        'onUpdate:value': (v: string) => emit('update:modelValue', v),
+      /* 编辑态：原生 textarea 降级方案 */
+      return h('textarea', {
+        value: props.modelValue ?? '',
+        rows: 8,
+        placeholder: '输入 HTML 内容（实际项目可接入 @wangeditor/editor-for-vue）',
+        style: { width: '100%', padding: '8px 12px', border: '1px solid #d9d9d9', borderRadius: '6px', fontSize: '14px', resize: 'vertical', outline: 'none', fontFamily: 'inherit' },
+        onInput: (e: Event) => emit('update:modelValue', (e.target as HTMLTextAreaElement).value),
       })
     }
   },

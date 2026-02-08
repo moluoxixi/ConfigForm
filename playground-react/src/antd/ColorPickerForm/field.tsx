@@ -13,9 +13,6 @@ import React from 'react'
 import { observer } from 'mobx-react-lite'
 import { FormField, FormProvider, registerComponent, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Input, Space, Typography } from 'antd'
-
-const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
@@ -67,30 +64,30 @@ const ColorPicker = observer(({ value, onChange, disabled, readOnly }: ColorPick
   /* 只读或禁用：仅展示色块和值 */
   if (readOnly || disabled) {
     return (
-      <Space>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
         <ColorSwatch color={color} size={32} />
-        <Text code>{color}</Text>
-      </Space>
+        <code style={{ padding: '2px 6px', background: '#f5f5f5', borderRadius: 4, fontSize: 13 }}>{color}</code>
+      </div>
     )
   }
 
   return (
     <div>
-      <Space style={{ marginBottom: 8 }}>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
         <input
           type="color"
           value={color}
           onChange={e => onChange?.(e.target.value)}
           style={{ width: 48, height: 48, border: 'none', cursor: 'pointer', padding: 0 }}
         />
-        <Input
+        <input
           value={color}
           onChange={e => onChange?.(e.target.value)}
-          style={{ width: 120 }}
+          style={{ width: 120, padding: '4px 11px', borderRadius: 6, border: '1px solid #d9d9d9', outline: 'none' }}
           placeholder="#000000"
         />
         <ColorSwatch color={color} size={32} />
-      </Space>
+      </div>
       <div style={{ display: 'flex', gap: 4 }}>
         {PRESET_COLORS.map(c => (
           <div
@@ -127,8 +124,8 @@ export const ColorPickerForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>颜色选择器</Title>
-      <Paragraph type="secondary">原生 color input + 预设色板 / HEX 输入 / 三种模式</Paragraph>
+      <h3>颜色选择器</h3>
+      <p style={{ color: '#666' }}>原生 color input + 预设色板 / HEX 输入 / 三种模式</p>
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
           form.pattern = mode
@@ -168,7 +165,7 @@ export const ColorPickerForm = observer((): React.ReactElement => {
                     主色调按钮
                   </button>
                 </div>
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

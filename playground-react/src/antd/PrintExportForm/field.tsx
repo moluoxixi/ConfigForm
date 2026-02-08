@@ -1,11 +1,6 @@
 import { DownloadOutlined, FileTextOutlined, PrinterOutlined } from '@ant-design/icons'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import {
-  Button,
-  Space,
-  Typography,
-} from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 48：打印、导出
@@ -20,8 +15,6 @@ import { observer } from 'mobx-react-lite'
  * 通过 form.getFieldValue 读取表单值进行打印/导出。
  */
 import React from 'react'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 
@@ -107,15 +100,24 @@ export const PrintExportForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>打印、导出</Title>
-      <Paragraph type="secondary">打印预览（window.print） / 导出 JSON / 导出 CSV</Paragraph>
+      <h3>打印、导出</h3>
+      <p style={{ color: '#666' }}>打印预览（window.print） / 导出 JSON / 导出 CSV</p>
 
       {/* 导出操作按钮（附加内容） */}
-      <Space style={{ marginBottom: 16 }}>
-        <Button icon={<PrinterOutlined />} onClick={handlePrint}>打印</Button>
-        <Button icon={<DownloadOutlined />} onClick={exportJson}>导出 JSON</Button>
-        <Button icon={<FileTextOutlined />} onClick={exportCsv}>导出 CSV</Button>
-      </Space>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16 }}>
+        <button type="button" onClick={handlePrint} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 12px', borderRadius: 6, border: '1px solid #d9d9d9', background: '#fff', cursor: 'pointer' }}>
+          <PrinterOutlined />
+          打印
+        </button>
+        <button type="button" onClick={exportJson} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 12px', borderRadius: 6, border: '1px solid #d9d9d9', background: '#fff', cursor: 'pointer' }}>
+          <DownloadOutlined />
+          导出 JSON
+        </button>
+        <button type="button" onClick={exportCsv} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 12px', borderRadius: 6, border: '1px solid #d9d9d9', background: '#fff', cursor: 'pointer' }}>
+          <FileTextOutlined />
+          导出 CSV
+        </button>
+      </div>
 
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
@@ -131,7 +133,7 @@ export const PrintExportForm = observer((): React.ReactElement => {
                 {FIELD_DEFS.map(d => (
                   <FormField key={d.name} name={d.name} fieldProps={getFieldProps(d)} />
                 ))}
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

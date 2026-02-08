@@ -1,7 +1,6 @@
 import type { FieldInstance } from '@moluoxixi/core'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Alert, Button, Card, Form, Select, Spin, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 20：分页搜索数据源
@@ -11,8 +10,6 @@ import { observer } from 'mobx-react-lite'
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { clearApiLogs, getApiLogs, setupMockAdapter } from '../../mock/dataSourceAdapter'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 setupMockAdapter()
@@ -30,28 +27,26 @@ function ApiLogPanel(): React.ReactElement {
   }, [])
 
   return (
-    <Card
-      size="small"
-      style={{ marginTop: 16, background: '#f9f9f9' }}
-      title={(
+    <div style={{ marginTop: 16, background: '#f9f9f9', border: '1px solid #f0f0f0', borderRadius: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 16px', borderBottom: '1px solid #f0f0f0' }}>
         <span style={{ fontSize: 13, color: '#666' }}>
           📡 Mock API 调用日志（
           {logs.length}
           {' '}
           条）
         </span>
-      )}
-      extra={logs.length > 0
-        ? (
-            <Button
-              size="small"
-              onClick={() => {
-                clearApiLogs()
-                setLogs([])
-              }}
-            >
+        {logs.length > 0 && (
+          <button
+            style={{ padding: '2px 8px', fontSize: 12, background: '#fff', border: '1px solid #d9d9d9', borderRadius: 4, cursor: 'pointer' }}
+            onClick={() => { clearApiLogs(); setLogs([]) }}
+          >
+            清空
+          </button>
+        )}
+      </div>
+      <div style={{ padding: '8px 16px' }}>
               清空
-            </Button>
+            </button>
           )
         : null}
     >
@@ -62,7 +57,7 @@ function ApiLogPanel(): React.ReactElement {
               {logs.map((log, i) => <div key={i} style={{ color: '#52c41a' }}>{log}</div>)}
             </div>
           )}
-    </Card>
+    </div></div>
   )
 }
 
@@ -148,18 +143,14 @@ export const PaginatedSearchForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>分页搜索数据源</Title>
-      <Paragraph type="secondary">
+      <h2>分页搜索数据源</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
         远程搜索 / 分页加载 / 防抖
         {' '}
         {DEBOUNCE_DELAY}
         ms / 走 field.loadDataSource() 管线
-      </Paragraph>
-      <Alert
-        type="info"
-        showIcon
-        style={{ marginBottom: 16 }}
-        message={(
+      </p>
+      <div style={{ padding: '8px 16px', marginBottom: 16, background: '#e6f4ff', border: '1px solid #91caff', borderRadius: 6, fontSize: 13 }}>{(
           <span>
             使用
             <code>field.loadDataSource(&#123; url: '/api/users', params &#125;)</code>
@@ -181,41 +172,27 @@ export const PaginatedSearchForm = observer((): React.ReactElement => {
               <>
                 <FormField name="userId">
                   {(field: FieldInstance) => (
-                    <Form.Item
-                      label={field.label}
-                      required={field.required}
-                      validateStatus={field.errors.length > 0 ? 'error' : undefined}
-                      help={field.errors.length > 0 ? field.errors[0].message : undefined}
-                    >
+                    <div style={{ marginBottom: 16 }}>
+                    <label style={{ display: 'block', marginBottom: 4, fontWeight: 500 }}>{field.label}{field.required && <span style={{ color: 'red' }}> *</span>}</label>
+                    {field.errors.length > 0 && <div style={{ color: '#ff4d4f', fontSize: 12, marginTop: 4 }}>{field.errors[0].message}</div>}
                       {mode === 'readOnly'
                         ? (
                             <span>{options.find(o => o.value === field.value)?.label ?? '—'}</span>
                           )
                         : (
-                            <Select
-                              value={(field.value as string) ?? undefined}
-                              onChange={val => field.setValue(val)}
-                              showSearch
-                              filterOption={false}
-                              onSearch={handleSearch}
-                              onPopupScroll={handlePopupScroll}
-                              placeholder={loading ? '加载中...' : `输入关键词搜索（已加载 ${options.length} / ${total} 条）`}
-                              options={options}
-                              loading={loading}
+                            <select
+                              value={(field.value as string) ?? ''}
+                              onChange={e => field.setValue(e.target.value || undefined)}
                               disabled={mode === 'disabled'}
-                              style={{ width: 400 }}
-                              notFoundContent={loading ? <Spin size="small" /> : '无匹配结果'}
-                              dropdownRender={menu => (
-                                <>
-                                  {menu}
-                                  <div style={{ padding: '4px 8px', textAlign: 'center', color: '#999', fontSize: 12 }}>
-                                    {loading ? '加载中...' : `已加载 ${options.length} / ${total} 条`}
-                                  </div>
-                                </>
+                              style={{ width: 400, padding: '4px 8px', border: '1px solid #d9d9d9', borderRadius: 6, fontSize: 14 }}
+                            >
+                              <option value="">输入关键词搜索（已加载 {options.length} / {total} 条）</option>
+                              {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                            </select/>
                               )}
                             />
                           )}
-                    </Form.Item>
+                    </div>
                   )}
                 </FormField>
               </>

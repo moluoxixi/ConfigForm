@@ -1,6 +1,5 @@
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Segmented, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 46：国际化
@@ -15,8 +14,6 @@ import { observer } from 'mobx-react-lite'
  * 切换语言时通过 useEffect 同步更新已创建字段的属性。
  */
 import React, { useEffect, useState } from 'react'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 
@@ -112,16 +109,19 @@ export const I18nForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>国际化（i18n）</Title>
-      <Paragraph type="secondary">多语言标签 / 验证消息国际化 / placeholder 国际化</Paragraph>
+      <h3>国际化（i18n）</h3>
+      <p style={{ color: 'rgba(0,0,0,0.45)' }}>多语言标签 / 验证消息国际化 / placeholder 国际化</p>
 
       {/* 语言切换器（附加内容） */}
-      <Segmented
-        value={locale}
-        onChange={v => setLocale(v as Locale)}
-        options={LOCALE_OPTIONS}
-        style={{ marginBottom: 16 }}
-      />
+      <div style={{ display: 'inline-flex', gap: 4, marginBottom: 16 }}>
+        {LOCALE_OPTIONS.map(opt => (
+          <button key={opt.value} type="button"
+            style={{ padding: '4px 12px', background: locale === opt.value ? '#1677ff' : '#fff', color: locale === opt.value ? '#fff' : '#000', border: '1px solid #d9d9d9', borderRadius: 4, cursor: 'pointer' }}
+            onClick={() => setLocale(opt.value as Locale)}>
+            {opt.label}
+          </button>
+        ))}
+      </div>
 
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
@@ -169,7 +169,7 @@ export const I18nForm = observer((): React.ReactElement => {
                     componentProps: { placeholder: t(locale, 'field.bio.placeholder'), rows: 3 },
                   }}
                 />
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

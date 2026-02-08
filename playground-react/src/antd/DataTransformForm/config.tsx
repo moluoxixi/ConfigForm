@@ -2,7 +2,6 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { ConfigForm, registerComponent } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Input, Space, Tag, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 40：数据转换 — ConfigForm + Schema
@@ -15,8 +14,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React from 'react'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 
@@ -46,19 +43,19 @@ interface TransformDisplayInputProps {
  */
 const TransformDisplayInput = observer(({ value, onChange, disabled, readOnly }: TransformDisplayInputProps): React.ReactElement => {
   return (
-    <Space>
-      <Input
+    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      <input
         value={String(value ?? '')}
         onChange={e => onChange?.(e.target.value)}
         disabled={disabled}
         readOnly={readOnly}
-        style={{ width: 300 }}
+        style={{ width: 300, padding: '4px 8px', border: '1px solid #d9d9d9', borderRadius: 6 }}
       />
-      <Tag color="blue">
+      <span style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, background: '#e6f4ff', border: '1px solid #91caff', borderRadius: 4, color: '#1677ff' }}>
         原始值:
         {JSON.stringify(value)}
-      </Tag>
-    </Space>
+      </span>
+    </div>
   )
 })
 
@@ -128,8 +125,8 @@ const schema: ISchema = {
  */
 export const DataTransformForm = observer((): React.ReactElement => (
   <div>
-    <Title level={3}>数据转换</Title>
-    <Paragraph type="secondary">format（显示格式化） / parse（输入解析） / transform（提交转换） — ConfigForm + Schema</Paragraph>
+    <h2>数据转换</h2>
+    <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>format（显示格式化） / parse（输入解析） / transform（提交转换） — ConfigForm + Schema</p>
     <StatusTabs>
       {({ mode, showResult, showErrors }) => (
         <ConfigForm

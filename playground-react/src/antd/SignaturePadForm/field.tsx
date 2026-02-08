@@ -1,7 +1,6 @@
 import { ClearOutlined } from '@ant-design/icons'
 import { FormField, FormProvider, registerComponent, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Button, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 34：手写签名板
@@ -13,8 +12,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React, { useCallback, useEffect, useRef } from 'react'
-
-const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
@@ -111,7 +108,7 @@ const SignaturePad = observer(({ value, onChange, disabled, readOnly }: Signatur
     if (value) {
       return <img src={value} alt="签名" style={{ border: '1px solid #d9d9d9', borderRadius: 8, maxWidth: 500 }} />
     }
-    return <Text type="secondary">暂无签名</Text>
+    return <span style={{ color: '#999' }}>暂无签名</span>
   }
 
   /* 编辑/禁用态：Canvas + 清空按钮 */
@@ -134,9 +131,10 @@ const SignaturePad = observer(({ value, onChange, disabled, readOnly }: Signatur
         }}
       />
       {!disabled && (
-        <Button icon={<ClearOutlined />} size="small" onClick={clear} style={{ marginTop: 8 }}>
+        <button type="button" onClick={clear} style={{ marginTop: 8, padding: '4px 15px', background: '#fff', border: '1px solid #d9d9d9', borderRadius: 6, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          <ClearOutlined />
           清空签名
-        </Button>
+        </button>
       )}
     </div>
   )
@@ -151,8 +149,8 @@ export const SignaturePadForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>手写签名板</Title>
-      <Paragraph type="secondary">Canvas 手写签名 / Base64 数据同步 / 清空操作 / 三种模式</Paragraph>
+      <h3>手写签名板</h3>
+      <p style={{ color: '#666' }}>Canvas 手写签名 / Base64 数据同步 / 清空操作 / 三种模式</p>
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
           form.pattern = mode
@@ -166,7 +164,7 @@ export const SignaturePadForm = observer((): React.ReactElement => {
               }} noValidate>
                 <FormField name="signerName" fieldProps={{ label: '签名人', required: true, component: 'Input', componentProps: { style: { width: 300 } } }} />
                 <FormField name="signatureData" fieldProps={{ label: '手写签名', component: 'SignaturePad' }} />
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

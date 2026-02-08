@@ -4,35 +4,46 @@
     <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">
       多语言标签 / 验证消息国际化 / placeholder 国际化
     </p>
-    <ElSpace direction="vertical" :style="{ width: '100%', marginBottom: '16px' }">
-      <ElRadioGroup v-model="mode" size="small">
-        <ElRadioButton v-for="opt in MODE_OPTIONS" :key="opt.value" :value="opt.value">
+    <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; margin-bottom: 16px">
+      <div style="display: flex; gap: 8px">
+        <button v-for="opt in MODE_OPTIONS" :key="opt.value" type="button" :style="{ padding: '4px 12px', borderRadius: '4px', border: '1px solid #dcdfe6', background: mode === opt.value ? '#409eff' : '#fff', color: mode === opt.value ? '#fff' : '#606266', cursor: 'pointer', fontSize: '12px' }" @click="mode = opt.value as FieldPattern">
           {{ opt.label }}
-        </ElRadioButton>
-      </ElRadioGroup><ElRadioGroup v-model="locale" size="small">
-        <ElRadioButton v-for="l in [{ label: '🇨🇳 中文', value: 'zh-CN' }, { label: '🇺🇸 English', value: 'en-US' }, { label: '🇯🇵 日本語', value: 'ja-JP' }]" :key="l.value" :value="l.value">
+        </button>
+      </div>
+      <div style="display: flex; gap: 8px">
+        <button v-for="l in LOCALE_OPTIONS" :key="l.value" type="button" :style="{ padding: '4px 12px', borderRadius: '4px', border: '1px solid #dcdfe6', background: locale === l.value ? '#409eff' : '#fff', color: locale === l.value ? '#fff' : '#606266', cursor: 'pointer', fontSize: '12px' }" @click="locale = l.value as Locale">
           {{ l.label }}
-        </ElRadioButton>
-      </ElRadioGroup>
-    </ElSpace>
+        </button>
+      </div>
+    </div>
     <FormProvider :form="form">
       <form novalidate @submit.prevent="handleSubmit">
         <FormField v-for="n in ['name', 'email', 'phone', 'bio']" :key="n" v-slot="{ field }" :name="n">
-          <ElFormItem :label="field.label" :required="field.required" :error="field.errors[0]?.message">
-            <ElInput v-if="n === 'bio'" type="textarea" :model-value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" :placeholder="t(`field.${n}.placeholder`)" :rows="3" @update:model-value="field.setValue($event)" @blur="field.blur(); field.validate('blur').catch(() => {})" />
-            <ElInput v-else :model-value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" :placeholder="t(`field.${n}.placeholder`)" @update:model-value="field.setValue($event)" @blur="field.blur(); field.validate('blur').catch(() => {})" />
-          </ElFormItem>
+          <div style="margin-bottom: 18px">
+            <label style="display: block; margin-bottom: 4px; font-size: 14px; color: #606266">
+              <span v-if="field.required" style="color: #f56c6c; margin-right: 4px">*</span>{{ field.label }}
+            </label>
+            <textarea v-if="n === 'bio'" :value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" :placeholder="t(`field.${n}.placeholder`)" rows="3" style="width: 100%; padding: 8px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; resize: vertical; box-sizing: border-box" @input="field.setValue(($event.target as HTMLTextAreaElement).value)" @blur="field.blur(); field.validate('blur').catch(() => {})" />
+            <input v-else :value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" :placeholder="t(`field.${n}.placeholder`)" style="width: 100%; padding: 8px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; box-sizing: border-box" @input="field.setValue(($event.target as HTMLInputElement).value)" @blur="field.blur(); field.validate('blur').catch(() => {})" />
+            <div v-if="field.errors[0]?.message" style="color: #f56c6c; font-size: 12px; margin-top: 4px">
+              {{ field.errors[0]?.message }}
+            </div>
+          </div>
         </FormField>
-        <ElSpace v-if="mode === 'editable'">
-          <ElButton type="primary" native-type="submit">
+        <div style="display: flex; gap: 8px">
+          <button type="submit" style="padding: 8px 16px; background: #409eff; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 14px">
             {{ t('btn.submit') }}
-          </ElButton><ElButton native-type="reset">
+          </button>
+          <button type="reset" style="padding: 8px 16px; background: #fff; color: #606266; border: 1px solid #dcdfe6; border-radius: 4px; cursor: pointer; font-size: 14px">
             {{ t('btn.reset') }}
-          </ElButton>
-        </ElSpace>
+          </button>
+        </div>
       </form>
     </FormProvider>
-    <ElAlert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" title="提交结果" style="margin-top: 16px" :description="result" show-icon />
+    <div v-if="result" :style="{ marginTop: '16px', padding: '12px 16px', borderRadius: '4px', background: result.startsWith('验证失败') ? '#fef0f0' : '#f0f9eb', color: result.startsWith('验证失败') ? '#f56c6c' : '#67c23a', border: result.startsWith('验证失败') ? '1px solid #fde2e2' : '1px solid #e1f3d8' }">
+      <strong>提交结果</strong>
+      <div style="margin-top: 4px; white-space: pre-wrap">{{ result }}</div>
+    </div>
   </div>
 </template>
 
@@ -40,11 +51,11 @@
 import type { FieldPattern } from '@moluoxixi/shared'
 import { setupElementPlus } from '@moluoxixi/ui-element-plus'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
-import { ElAlert, ElButton, ElFormItem, ElInput, ElRadioButton, ElRadioGroup, ElSpace } from 'element-plus'
 import { onMounted, ref, watch } from 'vue'
 
 setupElementPlus()
 const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅读态', value: 'readOnly' }, { label: '禁用态', value: 'disabled' }]
+const LOCALE_OPTIONS = [{ label: '🇨🇳 中文', value: 'zh-CN' }, { label: '🇺🇸 English', value: 'en-US' }, { label: '🇯🇵 日本語', value: 'ja-JP' }]
 const mode = ref<FieldPattern>('editable')
 const result = ref('')
 type Locale = 'zh-CN' | 'en-US' | 'ja-JP'

@@ -4,10 +4,14 @@
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       场景切换 / 动态字段组合 — FormField + 条件渲染实现
     </p>
-    <ASegmented v-model:value="scenario" :options="scenarioOptions" style="margin-bottom: 12px" />
-    <ATag color="green" style="margin-bottom: 12px">
+    <div style="display: inline-flex; border: 1px solid #d9d9d9; border-radius: 6px; overflow: hidden; margin-bottom: 12px">
+      <button v-for="opt in scenarioOptions" :key="opt.value" :style="{ padding: '4px 12px', border: 'none', cursor: 'pointer', background: scenario === opt.value ? '#1677ff' : '#fff', color: scenario === opt.value ? '#fff' : 'inherit', fontSize: '14px' }" @click="scenario = opt.value as ScenarioKey">
+        {{ opt.label }}
+      </button>
+    </div>
+    <span style="display: inline-block; padding: 0 7px; font-size: 12px; line-height: 20px; background: #f6ffed; border: 1px solid #b7eb8f; border-radius: 4px; color: #52c41a; margin-bottom: 12px">
       当前：{{ SCENARIOS[scenario].label }} | 字段数：{{ SCENARIOS[scenario].fields.length }}
-    </ATag>
+    </span>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <FormProvider :form="form">
         <form @submit.prevent="handleSubmit(showResult)" novalidate>
@@ -33,7 +37,7 @@
           </template>
           <!-- 公共备注 -->
           <FormField name="remark" :field-props="{ label: '备注', component: 'Textarea' }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>
@@ -50,7 +54,6 @@ import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
  * 使用 FormProvider + FormField + 条件渲染（v-if）实现场景切换。
  * 不同场景展示不同字段组合，公共字段始终显示。
  */
-import { Segmented as ASegmented, Tag as ATag } from 'ant-design-vue'
 import { ref, watch } from 'vue'
 
 setupAntdVue()

@@ -2,95 +2,111 @@
   <div>
     <h2>动态增删字段</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
-      运行时添加/移除字段
+      预设字段组合 / Schema 切换 — ConfigForm + ISchema 实现
     </p>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
-      <FormProvider :form="form">
-        <ACard v-if="mode === 'editable'" size="small" title="添加新字段" style="margin-bottom: 16px">
-          <ASpace>
-            <AInput v-model:value="newLabel" placeholder="字段标签" style="width: 200px" /><ASelect v-model:value="newType" :options="[{ label: '文本', value: 'text' }, { label: '数字', value: 'number' }, { label: '选择', value: 'select' }]" style="width: 120px" /><AButton type="primary" :disabled="!newLabel.trim()" @click="addField">
-              添加
-            </AButton>
-          </ASpace>
-          <div style="margin-top: 8px; color: #999; font-size: 12px">
-            已添加 {{ dynamicFields.length }} 个动态字段
-          </div>
-        </ACard>
-        <FormField v-slot="{ field }" name="title">
-          <AFormItem :label="field.label" :required="field.required">
-            <AInput :value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" :readonly="mode === 'readOnly'" @update:value="field.setValue($event)" />
-          </AFormItem>
-        </FormField>
-        <FormField v-for="df in dynamicFields" :key="df.id" v-slot="{ field }" :name="df.name">
-          <AFormItem :label="field.label">
-            <ASpace style="width: 100%">
-              <ASelect v-if="df.fieldType === 'select'" :value="(field.value as string)" :options="[{ label: 'A', value: 'a' }, { label: 'B', value: 'b' }, { label: 'C', value: 'c' }]" placeholder="请选择" style="width: 200px" :disabled="mode === 'disabled'" @change="(v: string) => field.setValue(v)" />
-              <AInput v-else :value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" :readonly="mode === 'readOnly'" style="width: 200px" @update:value="field.setValue($event)" />
-              <AButton v-if="mode === 'editable'" danger @click="removeField(df.id)">
-                删除
-              </AButton>
-            </ASpace>
-          </AFormItem>
-        </FormField>
-        <div v-if="mode === 'editable'" style="margin-top: 16px; display: flex; gap: 8px">
-          <button type="button" style="padding: 4px 15px; background: #1677ff; color: #fff; border: none; border-radius: 6px; cursor: pointer" @click="handleSubmit(showResult)">
-            提交
-          </button>
-          <button type="button" style="padding: 4px 15px; background: #fff; border: 1px solid #d9d9d9; border-radius: 6px; cursor: pointer" @click="form.reset()">
-            重置
-          </button>
-        </div>
-      </FormProvider>
+      <ConfigForm
+        :key="schemaKey"
+        :schema="withMode(computedSchema, mode)"
+        :initial-values="initialValues"
+        @submit="showResult"
+        @submit-failed="(e: any) => st?.showErrors(e)"
+        @values-change="handleValuesChange"
+      />
     </StatusTabs>
   </div>
 </template>
 
 <script setup lang="ts">
+/**
+ * 动态增删字段 — Config 模式（Ant Design Vue）
+ *
+ * 使用 ConfigForm + ISchema 实现动态字段切换。
+ * 通过 schema 中的 CheckboxGroup 控制哪些字段显示，
+ * 通过 @values-change 监听选择变化并动态重建 schema。
+ * 不使用 v-for 渲染按钮，完全由 schema 驱动。
+ */
+import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
-import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
-import { Button as AButton, Card as ACard, FormItem as AFormItem, Input as AInput, Select as ASelect, Space as ASpace } from 'ant-design-vue'
-import { onMounted, ref, watch } from 'vue'
+import { ConfigForm } from '@moluoxixi/vue'
+import { computed, ref } from 'vue'
 
 setupAntdVue()
+
 const st = ref<InstanceType<typeof StatusTabs>>()
 
-const newLabel = ref('')
-const newType = ref('text')
-let counter = 0
+/** 工具：将 mode 注入 schema */
+function withMode(s: ISchema, mode: FieldPattern): ISchema {
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
+}
 
-interface DynField { id: string, name: string, label: string, fieldType: string }
-const dynamicFields = ref<DynField[]>([])
+/** 可选字段配置 */
+const fieldOptions = [
+  { label: '姓名', value: 'name' },
+  { label: '邮箱', value: 'email' },
+  { label: '电话', value: 'phone' },
+  { label: '公司', value: 'company' },
+  { label: '职位', value: 'position' },
+  { label: '备注', value: 'remark' },
+]
 
-const form = useCreateForm({ initialValues: { title: '' } })
-onMounted(() => {
-  form.createField({ name: 'title', label: '表单标题', required: true })
+/** 字段定义 */
+const FIELD_DEFINITIONS: Record<string, ISchema> = {
+  name: { type: 'string', title: '姓名', required: true, rules: [{ minLength: 2, message: '至少 2 字' }] },
+  email: { type: 'string', title: '邮箱', rules: [{ format: 'email', message: '无效邮箱' }] },
+  phone: { type: 'string', title: '电话', rules: [{ format: 'phone', message: '无效手机号' }] },
+  company: { type: 'string', title: '公司' },
+  position: { type: 'string', title: '职位' },
+  remark: { type: 'string', title: '备注', component: 'Textarea', componentProps: { rows: 3 } },
+}
+
+/** 当前激活的字段 */
+const activeFields = ref<string[]>(['name', 'email'])
+const schemaKey = ref(0)
+
+/** 监听表单值变化，检测 _selectedFields 的改变 */
+function handleValuesChange(values: Record<string, unknown>): void {
+  const selected = values._selectedFields
+  if (Array.isArray(selected)) {
+    activeFields.value = selected as string[]
+    schemaKey.value++
+  }
+}
+
+/** 计算当前 schema：使用 CheckboxGroup 控制字段选择 */
+const computedSchema = computed<ISchema>(() => {
+  const properties: Record<string, ISchema> = {
+    /* 字段选择器 — 使用 CheckboxGroup 组件，由 schema 驱动 */
+    _selectedFields: {
+      type: 'string',
+      title: '显示字段',
+      component: 'CheckboxGroup',
+      default: activeFields.value,
+      dataSource: fieldOptions,
+      order: -1,
+    },
+  }
+  /* 根据选择动态添加字段 */
+  for (const field of activeFields.value) {
+    if (FIELD_DEFINITIONS[field]) {
+      properties[field] = { ...FIELD_DEFINITIONS[field], order: fieldOptions.findIndex(f => f.value === field) }
+    }
+  }
+  return {
+    type: 'object',
+    decoratorProps: { labelPosition: 'right', labelWidth: '100px', actions: { submit: '提交', reset: '重置' } },
+    properties,
+  }
 })
 
-function addField(): void {
-  if (!newLabel.value.trim())
-    return
-  counter++
-  const id = `dyn_${counter}`
-  form.createField({ name: id, label: newLabel.value.trim() })
-  dynamicFields.value.push({ id, name: id, label: newLabel.value.trim(), fieldType: newType.value })
-  newLabel.value = ''
-}
-function removeField(id: string): void {
-  form.removeField(id)
-  dynamicFields.value = dynamicFields.value.filter(f => f.id !== id)
-}
-watch(() => st.value?.mode, (v) => {
-  if (v)
-    form.pattern = v as FieldPattern
-}, { immediate: true })
-async function handleSubmit(showResult: (data: Record<string, unknown>) => void): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    st.value?.showErrors(res.errors)
-  }
-  else {
-    showResult(res.values)
-  }
+const initialValues = {
+  _selectedFields: ['name', 'email'],
+  name: '',
+  email: '',
+  phone: '',
+  company: '',
+  position: '',
+  remark: '',
 }
 </script>

@@ -2,7 +2,6 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { ConfigForm } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Segmented, Space, Tag, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 27：模板复用
@@ -14,8 +13,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React, { useMemo, useState } from 'react'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 
@@ -114,6 +111,9 @@ const TEMPLATES: Record<TemplateKey, { label: string, fragments: Array<Record<st
   },
 }
 
+/** 模板选项 */
+const TEMPLATE_OPTIONS: Array<{ label: string, value: TemplateKey }> = Object.entries(TEMPLATES).map(([k, v]) => ({ label: v.label, value: k as TemplateKey }))
+
 export const TemplateReuseForm = observer((): React.ReactElement => {
   const [template, setTemplate] = useState<TemplateKey>('employee')
 
@@ -125,28 +125,42 @@ export const TemplateReuseForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>模板复用</Title>
-      <Paragraph type="secondary">
+      <h2>模板复用</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
         Schema 片段（个人信息 / 地址 / 备注）+ 继承覆盖 = 不同业务表单
-      </Paragraph>
+      </p>
 
-      <div style={{ marginBottom: 16 }}>
-        <Segmented
-          value={template}
-          onChange={v => setTemplate(v as TemplateKey)}
-          options={Object.entries(TEMPLATES).map(([k, v]) => ({ label: v.label, value: k }))}
-        />
+      {/* Segmented → 原生按钮组 */}
+      <div style={{ display: 'inline-flex', background: '#f5f5f5', borderRadius: 6, padding: 2, marginBottom: 16 }}>
+        {TEMPLATE_OPTIONS.map(opt => (
+          <button
+            key={opt.value}
+            onClick={() => setTemplate(opt.value)}
+            style={{
+              padding: '4px 16px',
+              fontSize: 14,
+              border: 'none',
+              borderRadius: 4,
+              cursor: 'pointer',
+              background: template === opt.value ? '#fff' : 'transparent',
+              boxShadow: template === opt.value ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
+              fontWeight: template === opt.value ? 500 : 400,
+            }}
+          >
+            {opt.label}
+          </button>
+        ))}
       </div>
 
-      <Space style={{ marginBottom: 12 }}>
-        <Tag color="blue">复用片段：个人信息 + 地址 + 备注</Tag>
-        <Tag color="green">
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+        <span style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, background: '#e6f4ff', border: '1px solid #91caff', borderRadius: 4, color: '#1677ff' }}>复用片段：个人信息 + 地址 + 备注</span>
+        <span style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 4, color: '#52c41a' }}>
           扩展字段：
           {Object.keys(currentTemplate.overrides).filter(k => !['name', 'phone', 'email'].includes(k)).length}
           {' '}
           个
-        </Tag>
-      </Space>
+        </span>
+      </div>
 
       <StatusTabs>
         {({ mode, showResult, showErrors }) => (

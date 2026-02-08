@@ -1,6 +1,7 @@
 import { FormField, FormProvider, registerComponent, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Tag, Transfer, Typography } from 'antd'
+/* TODO: 注册为 FormField component */
+import { Transfer } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 35：穿梭框
@@ -12,8 +13,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React from 'react'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 
@@ -63,7 +62,7 @@ const TransferPicker = observer(({ value, onChange, disabled, readOnly, dataSour
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
         {selected.map((key) => {
           const perm = dataSource.find(p => p.key === key)
-          return <Tag key={key} color="blue">{perm?.title ?? key}</Tag>
+          return <span key={key} style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, lineHeight: '20px', background: '#e6f4ff', border: '1px solid #91caff', borderRadius: 4, color: '#1677ff' }}>{perm?.title ?? key}</span>
         })}
       </div>
     )
@@ -94,8 +93,8 @@ export const TransferForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>穿梭框</Title>
-      <Paragraph type="secondary">antd Transfer / 权限分配 / 搜索过滤 / 三种模式</Paragraph>
+      <h3>穿梭框</h3>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>antd Transfer / 权限分配 / 搜索过滤 / 三种模式</p>
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
           form.pattern = mode
@@ -109,7 +108,7 @@ export const TransferForm = observer((): React.ReactElement => {
               }} noValidate>
                 <FormField name="roleName" fieldProps={{ label: '角色名称', required: true, component: 'Input', componentProps: { placeholder: '请输入角色名称', style: { width: 300 } } }} />
                 <FormField name="permissions" fieldProps={{ label: '权限分配', required: true, component: 'TransferPicker', componentProps: { dataSource: PERMISSIONS } }} />
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

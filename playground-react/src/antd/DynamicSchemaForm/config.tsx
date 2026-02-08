@@ -3,7 +3,6 @@ import type { FieldPattern } from '@moluoxixi/shared'
 import { ConfigForm } from '@moluoxixi/react'
 import { mergeSchema } from '@moluoxixi/schema'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Collapse, Segmented, Tag, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 26：动态 Schema
@@ -15,8 +14,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React, { useMemo, useState } from 'react'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 
@@ -76,6 +73,9 @@ const SCENARIO_SCHEMAS: Record<ScenarioKey, { label: string, override: Partial<I
   },
 }
 
+/** 场景选项 */
+const SCENARIO_OPTIONS: Array<{ label: string, value: ScenarioKey }> = Object.entries(SCENARIO_SCHEMAS).map(([k, v]) => ({ label: v.label, value: k as ScenarioKey }))
+
 export const DynamicSchemaForm = observer((): React.ReactElement => {
   const [scenario, setScenario] = useState<ScenarioKey>('individual')
 
@@ -85,24 +85,40 @@ export const DynamicSchemaForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>动态 Schema</Title>
-      <Paragraph type="secondary">mergeSchema 合并 / 场景切换 / 热更新</Paragraph>
+      <h2>动态 Schema</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>mergeSchema 合并 / 场景切换 / 热更新</p>
 
-      <div style={{ marginBottom: 16 }}>
-        <Segmented
-          value={scenario}
-          onChange={v => setScenario(v as ScenarioKey)}
-          options={Object.entries(SCENARIO_SCHEMAS).map(([k, v]) => ({ label: v.label, value: k }))}
-        />
+      {/* Segmented → 原生按钮组 */}
+      <div style={{ display: 'inline-flex', background: '#f5f5f5', borderRadius: 6, padding: 2, marginBottom: 16 }}>
+        {SCENARIO_OPTIONS.map(opt => (
+          <button
+            key={opt.value}
+            onClick={() => setScenario(opt.value)}
+            style={{
+              padding: '4px 16px',
+              fontSize: 14,
+              border: 'none',
+              borderRadius: 4,
+              cursor: 'pointer',
+              background: scenario === opt.value ? '#fff' : 'transparent',
+              boxShadow: scenario === opt.value ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
+              fontWeight: scenario === opt.value ? 500 : 400,
+            }}
+          >
+            {opt.label}
+          </button>
+        ))}
       </div>
 
-      <Tag color="green" style={{ marginBottom: 12 }}>
-        当前：
-        {SCENARIO_SCHEMAS[scenario].label}
-        {' '}
-        | 字段数：
-        {Object.keys(mergedSchema.fields).length}
-      </Tag>
+      <div style={{ marginBottom: 12 }}>
+        <span style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 4, color: '#52c41a' }}>
+          当前：
+          {SCENARIO_SCHEMAS[scenario].label}
+          {' '}
+          | 字段数：
+          {Object.keys(mergedSchema.fields).length}
+        </span>
+      </div>
 
       <StatusTabs>
         {({ mode, showResult, showErrors }) => (
@@ -114,7 +130,13 @@ export const DynamicSchemaForm = observer((): React.ReactElement => {
         )}
       </StatusTabs>
 
-      <Collapse style={{ marginTop: 16 }} items={[{ key: '1', label: '查看合并后 Schema', children: <pre style={{ margin: 0, fontSize: 12, maxHeight: 300, overflow: 'auto' }}>{JSON.stringify(mergedSchema, null, 2)}</pre> }]} />
+      {/* Collapse → details/summary */}
+      <details style={{ marginTop: 16, border: '1px solid #d9d9d9', borderRadius: 8 }}>
+        <summary style={{ padding: '8px 16px', cursor: 'pointer', background: '#fafafa', borderRadius: '8px 8px 0 0', fontSize: 14 }}>查看合并后 Schema</summary>
+        <div style={{ padding: '8px 16px' }}>
+          <pre style={{ margin: 0, fontSize: 12, maxHeight: 300, overflow: 'auto' }}>{JSON.stringify(mergedSchema, null, 2)}</pre>
+        </div>
+      </details>
     </div>
   )
 })

@@ -4,34 +4,43 @@
     <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">
       富文本集成 / 三种模式（未安装三方库时使用 Textarea 降级）
     </p>
-    <ElRadioGroup v-model="mode" size="small" style="margin-bottom: 16px">
-      <ElRadioButton v-for="opt in MODE_OPTIONS" :key="opt.value" :value="opt.value">
+    <div style="display: flex; gap: 8px; margin-bottom: 16px">
+      <button v-for="opt in MODE_OPTIONS" :key="opt.value" type="button" :style="{ padding: '4px 12px', borderRadius: '4px', border: '1px solid #dcdfe6', background: mode === opt.value ? '#409eff' : '#fff', color: mode === opt.value ? '#fff' : '#606266', cursor: 'pointer', fontSize: '12px' }" @click="mode = opt.value as FieldPattern">
         {{ opt.label }}
-      </ElRadioButton>
-    </ElRadioGroup>
+      </button>
+    </div>
     <FormProvider :form="form">
       <form novalidate @submit.prevent="handleSubmit">
         <FormField v-slot="{ field }" name="title">
-          <ElFormItem :label="field.label" :required="field.required">
-            <ElInput :model-value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" :readonly="mode === 'readOnly'" @update:model-value="field.setValue($event)" />
-          </ElFormItem>
+          <div style="margin-bottom: 18px">
+            <label style="display: block; margin-bottom: 4px; font-size: 14px; color: #606266">
+              <span v-if="field.required" style="color: #f56c6c; margin-right: 4px">*</span>{{ field.label }}
+            </label>
+            <input :value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" :readonly="mode === 'readOnly'" style="width: 100%; padding: 8px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; box-sizing: border-box" @input="field.setValue(($event.target as HTMLInputElement).value)" />
+          </div>
         </FormField>
         <FormField v-slot="{ field }" name="content">
-          <ElFormItem :label="field.label" :required="field.required">
+          <div style="margin-bottom: 18px">
+            <label style="display: block; margin-bottom: 4px; font-size: 14px; color: #606266">
+              <span v-if="field.required" style="color: #f56c6c; margin-right: 4px">*</span>{{ field.label }}
+            </label>
             <div v-if="mode !== 'editable'" style="padding: 12px; border: 1px solid #dcdfe6; border-radius: 4px; min-height: 100px; background: #f5f7fa" :style="{ opacity: mode === 'disabled' ? 0.6 : 1 }" v-html="(field.value as string) || '<span style=color:#999>暂无内容</span>'" />
-            <ElInput v-else type="textarea" :model-value="(field.value as string) ?? ''" :rows="8" placeholder="输入 HTML 内容（实际项目可接入 @wangeditor/editor-for-vue）" @update:model-value="field.setValue($event)" />
-          </ElFormItem>
+            <textarea v-else :value="(field.value as string) ?? ''" rows="8" placeholder="输入 HTML 内容（实际项目可接入 @wangeditor/editor-for-vue）" style="width: 100%; padding: 8px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; resize: vertical; box-sizing: border-box" @input="field.setValue(($event.target as HTMLTextAreaElement).value)" />
+          </div>
         </FormField>
-        <ElSpace v-if="mode === 'editable'">
-          <ElButton type="primary" native-type="submit">
+        <div style="display: flex; gap: 8px">
+          <button type="submit" style="padding: 8px 16px; background: #409eff; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 14px">
             提交
-          </ElButton><ElButton @click="form.reset()">
+          </button>
+          <button type="button" style="padding: 8px 16px; background: #fff; color: #606266; border: 1px solid #dcdfe6; border-radius: 4px; cursor: pointer; font-size: 14px" @click="form.reset()">
             重置
-          </ElButton>
-        </ElSpace>
+          </button>
+        </div>
       </form>
     </FormProvider>
-    <ElAlert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" :description="result" show-icon style="margin-top: 16px" />
+    <div v-if="result" :style="{ marginTop: '16px', padding: '12px 16px', borderRadius: '4px', background: result.startsWith('验证失败') ? '#fef0f0' : '#f0f9eb', color: result.startsWith('验证失败') ? '#f56c6c' : '#67c23a', border: result.startsWith('验证失败') ? '1px solid #fde2e2' : '1px solid #e1f3d8' }">
+      <div style="white-space: pre-wrap">{{ result }}</div>
+    </div>
   </div>
 </template>
 
@@ -39,7 +48,6 @@
 import type { FieldPattern } from '@moluoxixi/shared'
 import { setupElementPlus } from '@moluoxixi/ui-element-plus'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
-import { ElAlert, ElButton, ElFormItem, ElInput, ElRadioButton, ElRadioGroup, ElSpace } from 'element-plus'
 import { onMounted, ref } from 'vue'
 
 setupElementPlus()

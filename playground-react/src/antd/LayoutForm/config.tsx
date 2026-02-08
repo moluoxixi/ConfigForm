@@ -2,7 +2,6 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { ConfigForm } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Segmented, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 2：表单布局
@@ -15,8 +14,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React, { useMemo, useState } from 'react'
-
-const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
@@ -154,18 +151,32 @@ export const LayoutForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>表单布局</Title>
-      <Paragraph type="secondary">
+      <h2>表单布局</h2>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
         水平布局 / 垂直布局 / 行内布局 / 栅格两列 / 栅格三列
-      </Paragraph>
+      </p>
 
       <div style={{ marginBottom: 16 }}>
-        <Text strong style={{ marginRight: 12 }}>布局类型：</Text>
-        <Segmented
-          value={layoutType}
-          onChange={val => setLayoutType(val as LayoutType)}
-          options={LAYOUT_OPTIONS}
-        />
+        <strong style={{ marginRight: 12 }}>布局类型：</strong>
+        <span style={{ display: 'inline-flex', gap: 0, border: '1px solid #d9d9d9', borderRadius: 6, overflow: 'hidden' }}>
+          {LAYOUT_OPTIONS.map(opt => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setLayoutType(opt.value)}
+              style={{
+                padding: '4px 12px',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 14,
+                background: layoutType === opt.value ? '#1677ff' : '#fff',
+                color: layoutType === opt.value ? '#fff' : 'rgba(0,0,0,0.88)',
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </span>
       </div>
 
       <StatusTabs>

@@ -4,12 +4,10 @@
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       品牌→型号→配置（三级远程数据源链） / 年级→班级 / 完整走 fetchDataSource 管线 - FormField + fieldProps 实现
     </p>
-    <AAlert type="info" show-icon style="margin-bottom: 12px">
-      <template #message>
-        使用核心库的 <b>registerRequestAdapter('mock')</b> + <b>DataSourceConfig</b> 驱动，
-        所有 Select 选项通过 <code>field.loadDataSource({ url, params })</code> 远程加载（模拟 600ms 延迟）
-      </template>
-    </AAlert>
+    <div style="padding: 8px 16px; margin-bottom: 12px; background: #e6f4ff; border: 1px solid #91caff; border-radius: 6px; font-size: 13px">
+      使用核心库的 <b>registerRequestAdapter('mock')</b> + <b>DataSourceConfig</b> 驱动，
+      所有 Select 选项通过 <code>field.loadDataSource({ url, params })</code> 远程加载（模拟 600ms 延迟）
+    </div>
     <StatusTabs ref="st" v-slot="{ mode, showResult }">
       <FormProvider :form="form">
         <form @submit.prevent="handleSubmit(showResult)" novalidate>
@@ -18,19 +16,19 @@
           <FormField name="config" :field-props="{ label: '配置', component: 'Select', componentProps: { placeholder: '请先选择型号' } }" />
           <FormField name="grade" :field-props="{ label: '年级', required: true, component: 'Select', dataSource: GRADE_OPTIONS, componentProps: { placeholder: '请选择年级' } }" />
           <FormField name="classNo" :field-props="{ label: '班级', required: true, component: 'Select', componentProps: { placeholder: '请先选择年级' } }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>
 
     <!-- API 调用日志 -->
-    <ACard size="small" style="margin-top: 16px; background: #f9f9f9">
-      <template #title>
+    <div style="border: 1px solid #f0f0f0; border-radius: 8px; padding: 16px; margin-top: 16px; background: #f9f9f9">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px">
         <span style="font-size: 13px; color: #666">📡 Mock API 调用日志（{{ apiLogs.length }} 条）</span>
-        <AButton v-if="apiLogs.length > 0" size="small" style="float:right" @click="onClearLogs">
+        <button v-if="apiLogs.length > 0" style="border: 1px solid #d9d9d9; background: #fff; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 12px" @click="onClearLogs">
           清空
-        </AButton>
-      </template>
+        </button>
+      </div>
       <div v-if="apiLogs.length === 0" style="color: #aaa; font-size: 12px">
         暂无请求，选择下拉触发远程加载
       </div>
@@ -39,7 +37,7 @@
           {{ log }}
         </div>
       </div>
-    </ACard>
+    </div>
   </div>
 </template>
 
@@ -47,7 +45,6 @@
 import type { FieldPattern } from '@moluoxixi/shared'
 import { LayoutFormActions, setupAntdVue, StatusTabs } from '@moluoxixi/ui-antd-vue'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
-import { Alert as AAlert, Button as AButton, Card as ACard } from 'ant-design-vue'
 import { onBeforeUnmount, ref, watch } from 'vue'
 
 import { clearApiLogs, getApiLogs, setupMockAdapter } from '../../mock/dataSourceAdapter'

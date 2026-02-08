@@ -2,7 +2,6 @@ import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
 import { ConfigForm, registerComponent } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Input, Space, Tag, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 39：Cron 表达式编辑器 — ConfigForm + Schema
@@ -14,8 +13,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React from 'react'
-
-const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
@@ -98,52 +95,53 @@ const CronEditor = observer(({ value, onChange, disabled, readOnly }: CronEditor
   const isEditable = !disabled && !readOnly
 
   return (
-    <Space direction="vertical" style={{ width: '100%' }}>
-      <Input
-        value={cronValue}
-        onChange={e => onChange?.(e.target.value)}
-        disabled={disabled}
-        readOnly={readOnly}
-        placeholder="如：0 8 * * 1-5"
-        addonBefore="Cron"
-        style={{ width: 400 }}
-      />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <span style={{ padding: '4px 8px', background: '#fafafa', border: '1px solid #d9d9d9', borderRight: 'none', borderRadius: '6px 0 0 6px', fontSize: 14 }}>Cron</span>
+        <input
+          value={cronValue}
+          onChange={e => onChange?.(e.target.value)}
+          disabled={disabled}
+          readOnly={readOnly}
+          placeholder="如：0 8 * * 1-5"
+          style={{ width: 340, padding: '4px 8px', border: '1px solid #d9d9d9', borderRadius: '0 6px 6px 0', outline: 'none' }}
+        />
+      </div>
 
       {/* 解析结果 */}
       <div>
-        <Text type="secondary">解析结果：</Text>
-        <Tag color={cronDesc.includes('错误') ? 'error' : 'blue'}>{cronDesc}</Tag>
+        <span style={{ color: 'rgba(0,0,0,0.45)' }}>解析结果：</span>
+        <span style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, background: cronDesc.includes('错误') ? '#fff2f0' : '#e6f4ff', border: `1px solid ${cronDesc.includes('错误') ? '#ffccc7' : '#91caff'}`, borderRadius: 4, color: cronDesc.includes('错误') ? '#ff4d4f' : '#1677ff' }}>{cronDesc}</span>
       </div>
 
       {/* 快捷预设（仅编辑态） */}
       {isEditable && (
         <div>
-          <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>快捷预设：</Text>
-          <Space wrap>
+          <span style={{ color: 'rgba(0,0,0,0.45)', fontSize: 12, display: 'block', marginBottom: 4 }}>快捷预设：</span>
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
             {CRON_PRESETS.map(preset => (
-              <Tag
+              <span
                 key={preset.value}
-                color={value === preset.value ? 'blue' : 'default'}
-                style={{ cursor: 'pointer' }}
+                style={{ display: 'inline-block', padding: '0 7px', fontSize: 12, background: value === preset.value ? '#e6f4ff' : '#f0f0f0', border: `1px solid ${value === preset.value ? '#91caff' : '#d9d9d9'}`, borderRadius: 4, cursor: 'pointer', color: value === preset.value ? '#1677ff' : 'rgba(0,0,0,0.88)' }}
                 onClick={() => onChange?.(preset.value)}
               >
                 {preset.label}
-              </Tag>
+              </span>
             ))}
-          </Space>
+          </div>
         </div>
       )}
 
       {/* Cron 字段说明 */}
       <div style={{ background: '#f6f8fa', padding: 8, borderRadius: 4, fontSize: 12 }}>
-        <Text type="secondary">
+        <span style={{ color: 'rgba(0,0,0,0.45)' }}>
           格式：分 时 日 月 周 | 示例：
-          <Text code>0 8 * * 1-5</Text>
+          <code>0 8 * * 1-5</code>
           {' '}
           = 工作日 8:00
-        </Text>
+        </span>
       </div>
-    </Space>
+    </div>
   )
 })
 
@@ -189,8 +187,8 @@ const schema: ISchema = {
  */
 export const CronEditorForm = observer((): React.ReactElement => (
   <div>
-    <Title level={3}>Cron 表达式编辑器</Title>
-    <Paragraph type="secondary">Cron 输入 / 快捷预设 / 实时解析 / 三种模式 — ConfigForm + Schema</Paragraph>
+    <h2>Cron 表达式编辑器</h2>
+    <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>Cron 输入 / 快捷预设 / 实时解析 / 三种模式 — ConfigForm + Schema</p>
     <StatusTabs>
       {({ mode, showResult, showErrors }) => (
         <ConfigForm

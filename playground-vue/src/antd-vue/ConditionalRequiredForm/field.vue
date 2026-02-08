@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>条件必填（Field 版）</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -17,7 +17,7 @@
           <FormField name="isOverseas" :field-props="{ label: '海外出差', component: 'Switch' }" />
           <FormField name="travelDays" :field-props="{ label: '出差天数', component: 'InputNumber', componentProps: { min: 1, style: { width: '100%' } } }" />
           <FormField name="travelInsurance" :field-props="{ label: '保险单号', component: 'Input', description: '海外且>3天必填', componentProps: { placeholder: '请输入保险单号' } }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

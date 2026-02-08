@@ -3,7 +3,6 @@ import type { FieldPattern } from '@moluoxixi/shared'
 import { ClearOutlined } from '@ant-design/icons'
 import { ConfigForm, registerComponent } from '@moluoxixi/react'
 import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
-import { Button, Typography } from 'antd'
 import { observer } from 'mobx-react-lite'
 /**
  * 场景 34：手写签名板 — ConfigForm + Schema
@@ -16,8 +15,6 @@ import { observer } from 'mobx-react-lite'
  * - 三种模式切换
  */
 import React, { useCallback, useEffect, useRef } from 'react'
-
-const { Title, Paragraph, Text } = Typography
 
 setupAntd()
 
@@ -125,7 +122,7 @@ const SignaturePad = observer(({ value, onChange, disabled, readOnly }: Signatur
     if (value) {
       return <img src={value} alt="签名" style={{ border: '1px solid #d9d9d9', borderRadius: 8, maxWidth: 500 }} />
     }
-    return <Text type="secondary">暂无签名</Text>
+    return <span style={{ color: 'rgba(0,0,0,0.45)' }}>暂无签名</span>
   }
 
   /* 编辑/禁用态：Canvas + 清空按钮 */
@@ -148,9 +145,10 @@ const SignaturePad = observer(({ value, onChange, disabled, readOnly }: Signatur
         }}
       />
       {!disabled && (
-        <Button icon={<ClearOutlined />} size="small" onClick={clear} style={{ marginTop: 8 }}>
+        <button type="button" onClick={clear} style={{ marginTop: 8, padding: '2px 8px', border: '1px solid #d9d9d9', borderRadius: 4, background: '#fff', cursor: 'pointer', fontSize: 13 }}>
+          <ClearOutlined style={{ marginRight: 4 }} />
           清空签名
-        </Button>
+        </button>
       )}
     </div>
   )
@@ -197,8 +195,8 @@ const schema: ISchema = {
  */
 export const SignaturePadForm = observer((): React.ReactElement => (
   <div>
-    <Title level={3}>手写签名板</Title>
-    <Paragraph type="secondary">Canvas 手写签名 / Base64 数据同步 / 清空操作 / 三种模式 — ConfigForm + Schema</Paragraph>
+    <h2>手写签名板</h2>
+    <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>Canvas 手写签名 / Base64 数据同步 / 清空操作 / 三种模式 — ConfigForm + Schema</p>
     <StatusTabs>
       {({ mode, showResult, showErrors }) => (
         <ConfigForm

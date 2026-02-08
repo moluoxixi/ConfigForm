@@ -8,22 +8,22 @@
       <FormProvider :form="form">
         <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <!-- 变更摘要卡片（附加内容） -->
-          <ACard size="small" style="margin-bottom: 16px">
-            <ASpace>
+          <div style="border: 1px solid #f0f0f0; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px">
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap">
               <span style="font-weight: 600">变更摘要：</span>
-              <ATag v-if="changedFields.length === 0" color="green">
+              <span v-if="changedFields.length === 0" style="display: inline-block; padding: 0 7px; font-size: 12px; line-height: 20px; background: #f6ffed; border: 1px solid #b7eb8f; border-radius: 4px; color: #52c41a">
                 无变更
-              </ATag>
+              </span>
               <template v-else>
-                <ATag color="orange">
+                <span style="display: inline-block; padding: 0 7px; font-size: 12px; line-height: 20px; background: #fff7e6; border: 1px solid #ffd591; border-radius: 4px; color: #fa8c16">
                   {{ changedFields.length }} 个已修改
-                </ATag>
-                <ATag v-for="d in changedFields" :key="d.name" color="red">
+                </span>
+                <span v-for="d in changedFields" :key="d.name" style="display: inline-block; padding: 0 7px; font-size: 12px; line-height: 20px; background: #fff1f0; border: 1px solid #ffa39e; border-radius: 4px; color: #f5222d">
                   {{ d.label }}
-                </ATag>
+                </span>
               </template>
-            </ASpace>
-          </ACard>
+            </div>
+          </div>
           <!-- 表单字段：外层 div 添加 diff 高亮样式 -->
           <div
             v-for="d in FIELD_DEFS" :key="d.name"
@@ -39,7 +39,7 @@
               原始值: {{ String(ORIGINAL[d.name] ?? '—') }}
             </div>
           </div>
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>
@@ -56,7 +56,6 @@ import { FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
  * 所有字段使用 FormField + fieldProps，diff 高亮通过外层 div 样式实现。
  * 变更摘要卡片作为附加内容，实时展示已修改字段。
  */
-import { Card as ACard, Space as ASpace, Tag as ATag } from 'ant-design-vue'
 import { computed, ref, watch } from 'vue'
 
 setupAntdVue()

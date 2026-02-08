@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>分页搜索数据源</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -8,7 +8,7 @@
       <FormProvider :form="form">
         <form @submit.prevent="handleSubmit(showResult)" novalidate>
           <FormField name="userId" :field-props="{ label: '选择用户', required: true, component: 'Select', componentProps: { showSearch: true, filterOption: false, style: 'width: 400px', placeholder: '输入关键词搜索用户' } }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

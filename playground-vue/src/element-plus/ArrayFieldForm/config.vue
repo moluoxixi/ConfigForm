@@ -2,83 +2,73 @@
   <div>
     <h2>数组字段</h2>
     <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">
-      增删 / 排序 / 复制 / min-max 数量限制
+      增删 / 排序 / min-max 数量限制 — ConfigForm + ISchema 实现
     </p>
-    <el-radio-group v-model="mode" size="small" style="margin-bottom: 16px">
-      <el-radio-button v-for="opt in MODE_OPTIONS" :key="opt.value" :value="opt.value">
-        {{ opt.label }}
-      </el-radio-button>
-    </el-radio-group>
-    <FormProvider :form="form">
-      <form novalidate @submit.prevent="handleSubmit">
-        <FormField v-slot="{ field }" name="groupName">
-          <el-form-item :label="field.label" :required="field.required">
-            <el-input :model-value="(field.value as string) ?? ''" :disabled="mode === 'disabled'" :readonly="mode === 'readOnly'" style="width: 300px" @update:model-value="field.setValue($event)" />
-          </el-form-item>
-        </FormField>
-        <FormArrayField v-slot="{ arrayField }" name="contacts" :field-props="{ minItems: 1, maxItems: 8, itemTemplate: () => ({ name: '', phone: '', email: '' }) }">
-          <div style="margin-bottom: 16px">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 8px">
-              <span style="font-weight: 600">联系人列表 ({{ ((arrayField.value as unknown[]) ?? []).length }}/8)</span>
-              <el-button v-if="mode === 'editable'" type="primary" size="small" :disabled="!arrayField.canAdd" @click="arrayField.push({ name: '', phone: '', email: '' })">
-                添加
-              </el-button>
-            </div>
-            <div v-for="(_, idx) in ((arrayField.value as unknown[]) ?? [])" :key="idx" :style="{ display: 'grid', gridTemplateColumns: '40px 1fr 1fr 1fr auto', gap: '8px', padding: '8px 12px', background: idx % 2 === 0 ? '#fafafa' : '#fff', borderRadius: '4px', alignItems: 'center' }">
-              <span style="color: #999">#{{ idx + 1 }}</span>
-              <FormField v-slot="{ field }" :name="`contacts.${idx}.name`">
-                <el-input :model-value="(field.value as string) ?? ''" placeholder="姓名" size="small" :disabled="mode === 'disabled'" @update:model-value="field.setValue($event)" />
-              </FormField>
-              <FormField v-slot="{ field }" :name="`contacts.${idx}.phone`">
-                <el-input :model-value="(field.value as string) ?? ''" placeholder="电话" size="small" :disabled="mode === 'disabled'" @update:model-value="field.setValue($event)" />
-              </FormField>
-              <FormField v-slot="{ field }" :name="`contacts.${idx}.email`">
-                <el-input :model-value="(field.value as string) ?? ''" placeholder="邮箱" size="small" :disabled="mode === 'disabled'" @update:model-value="field.setValue($event)" />
-              </FormField>
-              <el-space v-if="mode === 'editable'" :size="4">
-                <el-button size="small" :disabled="idx === 0" @click="arrayField.moveUp(idx)">
-                  ↑
-                </el-button>
-                <el-button size="small" :disabled="idx === ((arrayField.value as unknown[]) ?? []).length - 1" @click="arrayField.moveDown(idx)">
-                  ↓
-                </el-button>
-                <el-button size="small" type="danger" :disabled="!arrayField.canRemove" @click="arrayField.remove(idx)">
-                  删
-                </el-button>
-              </el-space>
-            </div>
-          </div>
-        </FormArrayField>
-        <el-button v-if="mode === 'editable'" type="primary" native-type="submit">
-          提交
-        </el-button>
-      </form>
-    </FormProvider>
-    <el-alert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" :description="result" show-icon style="margin-top: 16px" />
+    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+      <ConfigForm
+        :schema="withMode(schema, mode)"
+        :initial-values="initialValues"
+        @submit="showResult"
+        @submit-failed="(e: any) => st?.showErrors(e)"
+      />
+    </StatusTabs>
   </div>
 </template>
 
 <script setup lang="ts">
+/**
+ * 数组字段 — Config 模式（Element Plus）
+ *
+ * 使用 ConfigForm + ISchema 实现数组字段的增删。
+ * Schema 中通过 type: 'array' + items 定义数组结构，
+ * minItems/maxItems 控制数量限制，itemTemplate 定义新增模板。
+ * 框架自动处理三种模式的渲染。
+ */
+import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
-import { setupElementPlus } from '@moluoxixi/ui-element-plus'
-import { FormArrayField, FormField, FormProvider, useCreateForm } from '@moluoxixi/vue'
-import { onMounted, ref } from 'vue'
+import { setupElementPlus, StatusTabs } from '@moluoxixi/ui-element-plus'
+import { ConfigForm } from '@moluoxixi/vue'
+import { ref } from 'vue'
 
 setupElementPlus()
-const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅读态', value: 'readOnly' }, { label: '禁用态', value: 'disabled' }]
-const mode = ref<FieldPattern>('editable')
-const result = ref('')
-const form = useCreateForm({ initialValues: { groupName: '默认分组', contacts: [{ name: '', phone: '', email: '' }] } })
-onMounted(() => {
-  form.createField({ name: 'groupName', label: '分组名称', required: true })
-})
-async function handleSubmit(): Promise<void> {
-  const res = await form.submit()
-  if (res.errors.length > 0) {
-    result.value = `验证失败: ${res.errors.map(e => e.message).join(', ')}`
-  }
-  else {
-    result.value = JSON.stringify(res.values, null, 2)
-  }
+
+const st = ref<InstanceType<typeof StatusTabs>>()
+
+/** 工具：将 mode 注入 schema */
+function withMode(s: ISchema, mode: FieldPattern): ISchema {
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
+}
+
+const initialValues = {
+  groupName: '默认分组',
+  contacts: [{ name: '', phone: '', email: '' }],
+}
+
+const schema: ISchema = {
+  type: 'object',
+  decoratorProps: { labelPosition: 'right', labelWidth: '120px', actions: { submit: '提交', reset: '重置' } },
+  properties: {
+    groupName: {
+      type: 'string',
+      title: '分组名称',
+      required: true,
+      componentProps: { placeholder: '请输入分组名称', style: 'width: 300px' },
+    },
+    contacts: {
+      type: 'array',
+      title: '联系人列表',
+      minItems: 1,
+      maxItems: 8,
+      itemTemplate: { name: '', phone: '', email: '' },
+      items: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', title: '姓名', componentProps: { placeholder: '姓名' } },
+          phone: { type: 'string', title: '电话', componentProps: { placeholder: '电话' } },
+          email: { type: 'string', title: '邮箱', componentProps: { placeholder: '邮箱' } },
+        },
+      },
+    },
+  },
 }
 </script>

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h2>计算字段（Field 版）</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
@@ -21,7 +21,7 @@
           <FormField name="calcType" :field-props="{ label: '计税方式', component: 'RadioGroup', dataSource: CALC_TYPE_OPTIONS }" />
           <FormField name="amount" :field-props="{ label: '金额', component: 'InputNumber', componentProps: { min: 0, style: { width: '100%' } } }" />
           <FormField name="taxAmount" :field-props="{ label: '税额（自动）', component: 'InputNumber', componentProps: { disabled: true, style: { width: '100%' } } }" />
-          <LayoutFormActions v-if="mode === 'editable'" @reset="form.reset()" />
+          <LayoutFormActions @reset="form.reset()" />
         </form>
       </FormProvider>
     </StatusTabs>

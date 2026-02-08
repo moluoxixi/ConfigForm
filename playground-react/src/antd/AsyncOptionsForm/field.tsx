@@ -13,10 +13,7 @@ import React, { useEffect, useState } from 'react'
 import { observer } from 'mobx-react-lite'
 import { FormField, FormProvider, useCreateForm } from '@moluoxixi/react'
 import { LayoutFormActions, StatusTabs, setupAntd } from '@moluoxixi/ui-antd'
-import { Alert, Button, Card, Typography } from 'antd'
 import { clearApiLogs, getApiLogs, setupMockAdapter } from '../../mock/dataSourceAdapter'
-
-const { Title, Paragraph } = Typography
 
 setupAntd()
 setupMockAdapter()
@@ -31,31 +28,29 @@ function ApiLogPanel(): React.ReactElement {
   }, [])
 
   return (
-    <Card
-      size="small"
-      style={{ marginTop: 16, background: '#f9f9f9' }}
-      title={(
+    <div style={{ marginTop: 16, background: '#f9f9f9', border: '1px solid #f0f0f0', borderRadius: 8, padding: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <span style={{ fontSize: 13, color: '#666' }}>
           📡 Mock API 调用日志（
           {logs.length}
           {' '}
           条）
         </span>
-      )}
-      extra={logs.length > 0
-        ? (
-            <Button
-              size="small"
-              onClick={() => {
-                clearApiLogs()
-                setLogs([])
-              }}
-            >
-              清空
-            </Button>
-          )
-        : null}
-    >
+        {logs.length > 0
+          ? (
+              <button
+                type="button"
+                onClick={() => {
+                  clearApiLogs()
+                  setLogs([])
+                }}
+                style={{ padding: '2px 8px', background: '#fff', border: '1px solid #d9d9d9', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}
+              >
+                清空
+              </button>
+            )
+          : null}
+      </div>
       {logs.length === 0
         ? <div style={{ color: '#aaa', fontSize: 12 }}>暂无请求，选择下拉触发远程加载</div>
         : (
@@ -63,7 +58,7 @@ function ApiLogPanel(): React.ReactElement {
               {logs.map((log, i) => <div key={i} style={{ color: log.includes('404') ? '#f5222d' : '#52c41a' }}>{log}</div>)}
             </div>
           )}
-    </Card>
+    </div>
   )
 }
 
@@ -82,28 +77,23 @@ export const AsyncOptionsForm = observer((): React.ReactElement => {
 
   return (
     <div>
-      <Title level={3}>异步选项加载 (Field 版)</Title>
-      <Paragraph type="secondary">
+      <h3>异步选项加载 (Field 版)</h3>
+      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
         远程 dataSource / reactions 异步加载 / loading 状态 / 走 field.loadDataSource() 管线 —— FormField + fieldProps 实现
-      </Paragraph>
-      <Alert
-        type="info"
-        showIcon
-        style={{ marginBottom: 16 }}
-        message={(
-          <span>
-            使用核心库的
-            <b>registerRequestAdapter('mock')</b>
-            {' '}
-            +
-            <b>DataSourceConfig</b>
-            ，通过
-            <code>field.loadDataSource()</code>
-            {' '}
-            远程加载（模拟 600ms 延迟）
-          </span>
-        )}
-      />
+      </p>
+      <div style={{ padding: '8px 16px', marginBottom: 16, background: '#e6f4ff', border: '1px solid #91caff', borderRadius: 6, fontSize: 13 }}>
+        <span>
+          使用核心库的
+          <b>registerRequestAdapter('mock')</b>
+          {' '}
+          +
+          <b>DataSourceConfig</b>
+          ，通过
+          <code>field.loadDataSource()</code>
+          {' '}
+          远程加载（模拟 600ms 延迟）
+        </span>
+      </div>
       <StatusTabs>
         {({ mode, showResult, showErrors }) => {
           form.pattern = mode
@@ -172,7 +162,7 @@ export const AsyncOptionsForm = observer((): React.ReactElement => {
                   componentProps: { placeholder: '请输入' },
                 }}
                 />
-                {mode === 'editable' && <LayoutFormActions onReset={() => form.reset()} />}
+                {<LayoutFormActions onReset={() => form.reset()} />}
               </form>
             </FormProvider>
           )

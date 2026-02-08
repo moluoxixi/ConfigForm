@@ -2,41 +2,40 @@
   <div>
     <h2>异步选项加载</h2>
     <p style="color: #909399; margin-bottom: 16px; font-size: 14px;">
-      远程 dataSource / reactions 异步加载 / loading 状态
+      远程 dataSource / reactions 异步加载 / loading 状态 — ConfigForm + ISchema 实现
     </p>
-    <el-alert type="info" show-icon style="margin-bottom: 16px" title="切换「类型」下拉可看到异步加载过程（模拟 600ms 延迟）" />
-    <el-radio-group v-model="mode" size="small" style="margin-bottom: 16px">
-      <el-radio-button v-for="opt in MODE_OPTIONS" :key="opt.value" :value="opt.value">
-        {{ opt.label }}
-      </el-radio-button>
-    </el-radio-group>
-    <ConfigForm :key="mode" :schema="schema" :initial-values="savedValues" @values-change="(v: Record<string, unknown>) => savedValues = v" @submit="(v: Record<string, unknown>) => result = JSON.stringify(v, null, 2)" @submit-failed="(e: any[]) => result = `验证失败:\n${e.map((x: any) => `[${x.path}] ${x.message}`).join('\n')}`">
-      <template #default="{ form }">
-        <el-space v-if="mode === 'editable'" style="margin-top: 16px">
-          <el-button type="primary" native-type="submit">
-            提交
-          </el-button><el-button @click="form.reset()">
-            重置
-          </el-button>
-        </el-space>
-      </template>
-    </ConfigForm>
-    <el-alert v-if="result" :type="result.startsWith('验证失败') ? 'error' : 'success'" :description="result" show-icon style="margin-top: 16px" />
+    <StatusTabs ref="st" v-slot="{ mode, showResult }">
+      <ConfigForm
+        :schema="withMode(schema, mode)"
+        :initial-values="initialValues"
+        @submit="showResult"
+        @submit-failed="(e: any) => st?.showErrors(e)"
+      />
+    </StatusTabs>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { FormSchema } from '@moluoxixi/schema'
+/**
+ * 异步选项加载 — Config 模式（Element Plus）
+ *
+ * 使用 ConfigForm + ISchema + reactions 实现异步选项加载：
+ * - 切换「类型」下拉时异步加载「品种」选项（模拟 600ms 延迟）
+ * - 自动管理 loading 状态
+ */
+import type { ISchema } from '@moluoxixi/schema'
 import type { FieldPattern } from '@moluoxixi/shared'
-import { setupElementPlus } from '@moluoxixi/ui-element-plus'
+import { setupElementPlus, StatusTabs } from '@moluoxixi/ui-element-plus'
 import { ConfigForm } from '@moluoxixi/vue'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 
 setupElementPlus()
-const MODE_OPTIONS = [{ label: '编辑态', value: 'editable' }, { label: '阅读态', value: 'readOnly' }, { label: '禁用态', value: 'disabled' }]
-const mode = ref<FieldPattern>('editable')
-const result = ref('')
-const savedValues = ref<Record<string, unknown>>({ dynamicType: 'fruit', dynamicItem: undefined, country: 'china', remark: '' })
+
+const st = ref<InstanceType<typeof StatusTabs>>()
+
+function withMode(s: ISchema, mode: FieldPattern): ISchema {
+  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
+}
 
 const mockData: Record<string, Array<{ label: string, value: string }>> = {
   fruit: [{ label: '苹果', value: 'apple' }, { label: '香蕉', value: 'banana' }, { label: '橙子', value: 'orange' }],
@@ -44,22 +43,27 @@ const mockData: Record<string, Array<{ label: string, value: string }>> = {
   meat: [{ label: '猪肉', value: 'pork' }, { label: '牛肉', value: 'beef' }],
 }
 
-const schema = computed<FormSchema>(() => ({
-  form: { labelPosition: 'right', labelWidth: '140px', pattern: mode.value },
-  fields: {
-    dynamicType: { type: 'string', label: '类型', component: 'Select', wrapper: 'FormItem', defaultValue: 'fruit', enum: [{ label: '水果', value: 'fruit' }, { label: '蔬菜', value: 'vegetable' }, { label: '肉类', value: 'meat' }] },
+const initialValues = { dynamicType: 'fruit', dynamicItem: undefined, country: 'china', remark: '' }
+
+const schema: ISchema = {
+  type: 'object',
+  decoratorProps: {
+    labelPosition: 'right',
+    labelWidth: '140px',
+    actions: { submit: '提交', reset: '重置' },
+    description: '切换「类型」下拉可看到异步加载过程（模拟 600ms 延迟）',
+  },
+  properties: {
+    dynamicType: {
+      type: 'string', title: '类型', default: 'fruit', component: 'Select',
+      enum: [{ label: '水果', value: 'fruit' }, { label: '蔬菜', value: 'vegetable' }, { label: '肉类', value: 'meat' }],
+    },
     dynamicItem: {
-      type: 'string',
-      label: '品种（异步）',
-      component: 'Select',
-      wrapper: 'FormItem',
-      placeholder: '根据类型异步加载',
+      type: 'string', title: '品种（异步）', component: 'Select',
+      componentProps: { placeholder: '根据类型异步加载' },
       reactions: [{ watch: 'dynamicType', fulfill: { run: async (f: any, ctx: any) => {
         const t = ctx.values.dynamicType as string
-        if (!t) {
-          f.setDataSource([])
-          return
-        }
+        if (!t) { f.setDataSource([]); return }
         f.loading = true
         f.setValue(undefined)
         await new Promise(r => setTimeout(r, 600))
@@ -67,8 +71,14 @@ const schema = computed<FormSchema>(() => ({
         f.loading = false
       } } }],
     },
-    country: { type: 'string', label: '国家', component: 'Select', wrapper: 'FormItem', defaultValue: 'china', enum: [{ label: '中国', value: 'china' }, { label: '美国', value: 'usa' }, { label: '日本', value: 'japan' }] },
-    remark: { type: 'string', label: '备注', component: 'Textarea', wrapper: 'FormItem', placeholder: '请输入' },
+    country: {
+      type: 'string', title: '国家', default: 'china', component: 'Select',
+      enum: [{ label: '中国', value: 'china' }, { label: '美国', value: 'usa' }, { label: '日本', value: 'japan' }],
+    },
+    remark: {
+      type: 'string', title: '备注', component: 'Textarea',
+      componentProps: { placeholder: '请输入' },
+    },
   },
-}))
+}
 </script>

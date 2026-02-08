@@ -1,4 +1,4 @@
-import { registerFieldComponents } from '@moluoxixi/vue'
+import { ArrayItems, registerFieldComponents } from '@moluoxixi/vue'
 import {
   CheckboxGroup,
   DatePicker,
@@ -14,6 +14,7 @@ import {
   Password,
   RadioGroup,
   Select,
+  StatusTabs,
   Switch,
   Textarea,
 } from './components'
@@ -29,7 +30,7 @@ import {
  */
 export function setupElementPlus(): void {
   registerFieldComponents(
-    { Input, Password, Textarea, InputNumber, Select, RadioGroup, CheckboxGroup, Switch, DatePicker },
+    { Input, Password, Textarea, InputNumber, Select, RadioGroup, CheckboxGroup, Switch, DatePicker, ArrayItems },
     { name: 'FormItem', component: FormItem },
     { LayoutTabs, LayoutCard, LayoutCollapse, LayoutSteps, LayoutStepActions, LayoutFormActions },
   )
@@ -51,6 +52,7 @@ export {
   Password,
   RadioGroup,
   Select,
+  StatusTabs,
   Switch,
   Textarea,
 } from './components'
