@@ -1,7 +1,7 @@
-import type { Disposer } from '@moluoxixi/shared'
+import type { Disposer } from '@moluoxixi/core'
 import type { FormConfig, FormInstance, FormPlugin, PluginContext, PluginInstallResult } from '@moluoxixi/core'
 import { createForm, FormLifeCycle } from '@moluoxixi/core'
-import { deepClone, FormPath } from '@moluoxixi/shared'
+import { deepClone, FormPath } from '@moluoxixi/core'
 
 /**
  * 子表单同步模式

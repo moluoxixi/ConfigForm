@@ -1,19 +1,7 @@
-refactor: 统一命名 + JSON Schema 适配插件 + 依赖门面重构
+refactor: 插件包和schema包也统一从core导入，彻底贯彻门面模式
 
-1. 命名统一（破坏性）:
-   - FieldProps/FieldInstance: wrapper/wrapperProps -> decorator/decoratorProps
-   - Registry API: registerWrapper -> registerDecorator, getWrapper -> getDecorator
-   - FormProvider/ConfigForm: wrappers prop -> decorators prop
-   - ISchema: format/parse/transform -> displayFormat/inputParse/submitTransform
-
-2. 新增 @moluoxixi/plugin-json-schema:
-   - fromJsonSchema(): 标准 JSON Schema (Draft-07/2020-12) -> 表单 ISchema
-   - toJsonSchema(): 表单 ISchema -> 标准 JSON Schema
-   - 支持 if/then/else, allOf, oneOf, dependentRequired 等标准语法转换
-   - 新增 playground 示例 JsonSchemaAdapterForm
-
-3. 依赖门面重构:
-   - core re-export shared/validator 公共类型（门面模式）
-   - 上层包 import 路径统一改为 from core
-   - 移除上层包对 shared/validator 的直接依赖
-   - 仅需运行时函数的包保留 shared 依赖
+- core re-export shared 的运行时工具函数（deepClone, FormPath, isArray 等）
+- plugin-lower-code: 所有 shared import 改为 from core，移除 shared 依赖
+- plugin-json-schema: shared import 改为 from core，移除 shared 依赖
+- schema: 所有 shared import 改为 from core，移除 shared 依赖
+- 现在只有 core/reactive/validator 三个底层包直接依赖 shared

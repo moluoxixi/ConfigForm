@@ -6,8 +6,8 @@ import type {
   ISchema,
   ISchemaConditionBranch,
 } from './types'
-import type { ComponentType } from '@moluoxixi/shared'
-import { isArray, isObject, isString } from '@moluoxixi/shared'
+import type { ComponentType } from '@moluoxixi/core'
+import { isArray, isObject, isString } from '@moluoxixi/core'
 import { resolveSchemaRefs } from './ref-resolver'
 
 /** 默认类型 → 组件映射 */

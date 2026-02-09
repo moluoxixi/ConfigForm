@@ -1,6 +1,6 @@
 import type { ISchema } from '@moluoxixi/schema'
 import type { JsonSchemaAdapterOptions, StandardJsonSchema } from './types'
-import { isArray, isObject, isString } from '@moluoxixi/shared'
+import { isArray, isObject, isString } from '@moluoxixi/core'
 
 /* ======================== 常量 ======================== */
 

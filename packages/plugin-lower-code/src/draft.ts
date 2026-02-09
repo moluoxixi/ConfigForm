@@ -1,7 +1,7 @@
 import type { FormGraph, FormInstance, FormPlugin, PluginContext, PluginInstallResult } from '@moluoxixi/core'
-import type { Disposer } from '@moluoxixi/shared'
+import type { Disposer } from '@moluoxixi/core'
 import { FormLifeCycle } from '@moluoxixi/core'
-import { debounce } from '@moluoxixi/shared'
+import { debounce } from '@moluoxixi/core'
 
 /**
  * 存储适配器接口

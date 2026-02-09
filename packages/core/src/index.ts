@@ -87,6 +87,26 @@ export type {
   FieldStateUpdate,
 } from '@moluoxixi/shared'
 
+/* re-export 底层公共运行时工具（门面模式） */
+export {
+  debounce,
+  deepClone,
+  deepMerge,
+  evaluateExpression,
+  FormPath,
+  isArray,
+  isBoolean,
+  isEmpty,
+  isExpression,
+  isFunction,
+  isNullish,
+  isNumber,
+  isObject,
+  isPlainObject,
+  isString,
+  isValid,
+} from '@moluoxixi/shared'
+
 export type {
   ValidationFeedback,
   ValidationRule,

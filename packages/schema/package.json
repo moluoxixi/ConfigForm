@@ -33,8 +33,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@moluoxixi/core": "workspace:*",
-    "@moluoxixi/shared": "workspace:*"
+    "@moluoxixi/core": "workspace:*"
   },
   "devDependencies": {
     "tsup": "catalog:type",

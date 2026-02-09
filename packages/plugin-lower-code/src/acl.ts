@@ -1,6 +1,6 @@
-import type { FieldDisplay, FieldPattern } from '@moluoxixi/shared'
+import type { FieldDisplay, FieldPattern } from '@moluoxixi/core'
 import type { FieldInstance, FormInstance, FormPlugin, PluginContext, PluginInstallResult } from '@moluoxixi/core'
-import { FormPath } from '@moluoxixi/shared'
+import { FormPath } from '@moluoxixi/core'
 
 /**
  * 字段权限等级

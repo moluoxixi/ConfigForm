@@ -29,8 +29,7 @@
     "dev": "tsup src/index.ts --format esm,cjs --dts --watch"
   },
   "dependencies": {
-    "@moluoxixi/core": "workspace:*",
-    "@moluoxixi/shared": "workspace:*"
+    "@moluoxixi/core": "workspace:*"
   },
   "devDependencies": {
     "tsup": "catalog:type",

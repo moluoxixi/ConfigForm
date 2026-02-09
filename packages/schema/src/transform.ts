@@ -1,6 +1,6 @@
 import type { ArrayFieldProps, FieldProps, VoidFieldProps } from '@moluoxixi/core'
 import type { CompiledField, CompiledSchema } from './types'
-import { evaluateExpression, isExpression, isFunction } from '@moluoxixi/shared'
+import { evaluateExpression, isExpression, isFunction } from '@moluoxixi/core'
 
 /**
  * 将编译后的字段转为 FieldProps

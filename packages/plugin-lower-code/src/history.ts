@@ -1,7 +1,7 @@
-import type { Disposer } from '@moluoxixi/shared'
+import type { Disposer } from '@moluoxixi/core'
 import type { FormGraph, FormInstance, FormPlugin, PluginContext, PluginInstallResult } from '@moluoxixi/core'
 import { FormLifeCycle } from '@moluoxixi/core'
-import { deepClone } from '@moluoxixi/shared'
+import { deepClone } from '@moluoxixi/core'
 
 /**
  * 操作记录

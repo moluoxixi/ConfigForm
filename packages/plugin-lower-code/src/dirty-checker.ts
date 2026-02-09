@@ -1,5 +1,5 @@
 import type { FormInstance, FormPlugin, PluginContext, PluginInstallResult } from '@moluoxixi/core'
-import { FormPath } from '@moluoxixi/shared'
+import { FormPath } from '@moluoxixi/core'
 
 /**
  * 字段级别的 Diff 信息
