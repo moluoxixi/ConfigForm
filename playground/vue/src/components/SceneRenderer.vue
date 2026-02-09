@@ -46,8 +46,7 @@
  * ConfigForm 内部通过全局注册表解析字段组件，自动匹配当前 UI 库。
  * 当场景配置包含 schemaVariants 时，渲染变体切换 UI（如布局切换）。
  */
-import type { ISchema } from '@moluoxixi/schema'
-import type { FieldPattern } from '@moluoxixi/core'
+import type { FieldPattern,ISchema } from '@moluoxixi/core'
 import type { SceneConfig } from '@playground/shared'
 import type { Component } from 'vue'
 import { ConfigForm } from '@moluoxixi/vue'

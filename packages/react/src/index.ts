@@ -75,5 +75,5 @@ export {
 } from './registry'
 export type { RegisterComponentOptions } from './registry'
 
-/* 类型 re-export（供 playground 直接使用，避免依赖 @moluoxixi/shared） */
+/* 类型 re-export（供 playground 直接使用 */
 export type { FieldPattern } from '@moluoxixi/core'
