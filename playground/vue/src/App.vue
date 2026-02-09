@@ -44,13 +44,46 @@
         <div v-else style="text-align: center; color: #999; padding: 40px;">{{ loading ? '加载中...' : '请选择场景' }}</div>
       </div>
     </div>
+
+    <!-- DevTools 浮动面板 -->
+    <DevToolsFloating />
   </div>
 </template>
 
 <script setup lang="ts">
 import type { SceneConfig } from '@playground/shared'
+import type { DevToolsPluginAPI } from '@moluoxixi/plugin-devtools'
 import { getSceneGroups, sceneRegistry } from '@playground/shared'
-import { ref, shallowRef, watch } from 'vue'
+import { DevToolsPanel } from '@moluoxixi/plugin-devtools-vue'
+import { defineComponent, h, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
+
+/** DevTools 浮动面板包装器：从全局 Hook 获取 API */
+const DevToolsFloating = defineComponent({
+  name: 'DevToolsFloating',
+  setup() {
+    const api = shallowRef<DevToolsPluginAPI | null>(null)
+    let timer: ReturnType<typeof setInterval> | null = null
+
+    onMounted(() => {
+      const check = (): void => {
+        const hook = (window as unknown as Record<string, unknown>).__CONFIGFORM_DEVTOOLS_HOOK__ as
+          { forms: Map<string, DevToolsPluginAPI> } | undefined
+        if (hook?.forms.size) {
+          api.value = hook.forms.values().next().value!
+          if (timer) { clearInterval(timer); timer = null }
+        }
+      }
+      check()
+      timer = setInterval(check, 500)
+    })
+
+    onUnmounted(() => {
+      if (timer) clearInterval(timer)
+    })
+
+    return () => api.value ? h(DevToolsPanel, { api: api.value }) : null
+  },
+})
 import { adapters, type UIAdapter, type UILib } from './ui'
 import SceneRenderer from './components/SceneRenderer.vue'
 
