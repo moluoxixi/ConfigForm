@@ -1,5 +1,6 @@
 import { ArrayItems, ArrayTable, registerFieldComponents } from '@moluoxixi/vue'
 import {
+  AutoComplete,
   Cascader,
   CheckboxGroup,
   DatePicker,
@@ -12,15 +13,22 @@ import {
   LayoutStepActions,
   LayoutSteps,
   LayoutTabs,
+  Mentions,
+  MonthPicker,
   Password,
   RadioGroup,
+  RangePicker,
+  Rate,
   Select,
+  Slider,
   Switch,
   Textarea,
   TimePicker,
   Transfer,
   TreeSelect,
   Upload,
+  WeekPicker,
+  YearPicker,
 } from './components'
 import {
   PreviewCheckboxGroup,
@@ -47,7 +55,7 @@ import {
  */
 export function setupAntdVue(): void {
   registerFieldComponents(
-    { Input, Password, Textarea, InputNumber, Select, RadioGroup, CheckboxGroup, Switch, DatePicker, Cascader, TimePicker, Transfer, TreeSelect, Upload, ArrayItems },
+    { Input, Password, Textarea, InputNumber, Select, RadioGroup, CheckboxGroup, Switch, DatePicker, Cascader, TimePicker, Transfer, TreeSelect, Upload, ArrayItems, AutoComplete, Mentions, Rate, Slider, MonthPicker, WeekPicker, YearPicker, RangePicker },
     { name: 'FormItem', component: FormItem },
     { ArrayTable, LayoutTabs, LayoutCard, LayoutCollapse, LayoutSteps, LayoutStepActions, LayoutFormActions },
     {
@@ -66,6 +74,7 @@ export function setupAntdVue(): void {
 
 /* 导出所有组件（按需使用） */
 export {
+  AutoComplete,
   Cascader,
   CheckboxGroup,
   DatePicker,
@@ -80,9 +89,14 @@ export {
   LayoutStepActions,
   LayoutSteps,
   LayoutTabs,
+  Mentions,
+  MonthPicker,
   Password,
   RadioGroup,
+  RangePicker,
+  Rate,
   Select,
+  Slider,
   StatusTabs,
   Switch,
   Textarea,
@@ -90,4 +104,6 @@ export {
   Transfer,
   TreeSelect,
   Upload,
+  WeekPicker,
+  YearPicker,
 } from './components'

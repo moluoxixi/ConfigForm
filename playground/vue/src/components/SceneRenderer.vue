@@ -29,7 +29,7 @@
         :schema="withMode(currentSchema, mode)"
         :initial-values="props.config.initialValues"
         :effects="props.config.effects"
-        :plugins="props.config.plugins"
+        :plugins="[...(props.config.plugins ?? []), devTools]"
         @submit="showResult"
         @submit-failed="(e: any) => st?.showErrors(e)"
       />
@@ -49,7 +49,11 @@ import type { FieldPattern,ISchema } from '@moluoxixi/core'
 import type { SceneConfig } from '@playground/shared'
 import type { Component } from 'vue'
 import { ConfigForm } from '@moluoxixi/vue'
+import { devToolsPlugin } from '@moluoxixi/plugin-devtools'
 import { computed, ref } from 'vue'
+
+/** DevTools 插件单例 */
+const devTools = devToolsPlugin({ formId: 'vue-playground' })
 
 const props = defineProps<{
   config: SceneConfig

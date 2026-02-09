@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@moluoxixi/core": "workspace:*",
+    "@moluoxixi/plugin-devtools": "workspace:*",
     "@playground/shared": "workspace:*",
     "@moluoxixi/reactive-vue": "workspace:*",
     "@moluoxixi/ui-antd-vue": "workspace:*",

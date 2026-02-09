@@ -4,7 +4,7 @@
  * 纯数据 props 驱动，不依赖 form 实例。
  * 可直接复用于 Chrome Extension（数据来源改为 postMessage 即可）。
  */
-import type { DevToolsPluginAPI, EventLogEntry, FieldDetail, FieldTreeNode, FormOverview, ValueDiffEntry } from '../types'
+import type { DevToolsPluginAPI, EventLogEntry, FieldDetail, FieldTreeNode, FormOverview, ValueDiffEntry } from '@moluoxixi/plugin-devtools'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 /* ======================== 主题 ======================== */
