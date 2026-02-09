@@ -9,10 +9,10 @@ export interface CfRadioGroupProps {
   onBlur?: () => void
   dataSource?: DataSourceItem[]
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
 }
 
-export function RadioGroup({ value, onChange, onFocus, onBlur, dataSource = [], disabled, readOnly }: CfRadioGroupProps): ReactElement {
+export function RadioGroup({ value, onChange, onFocus, onBlur, dataSource = [], disabled, preview }: CfRadioGroupProps): ReactElement {
   return (
     <div onFocus={onFocus} onBlur={onBlur}>
       <ARadio.Group

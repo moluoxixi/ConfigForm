@@ -83,8 +83,7 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
   try {
   /* pattern 判断已收敛到 field 模型的计算属性，消费者直接读结论 */
   const isDisabled = !isVoid && (field as FieldInstance).effectiveDisabled
-  const isReadOnly = !isVoid && (field as FieldInstance).effectiveReadOnly
-  const isPreview = isReadOnly
+  const isPreview = !isVoid && (field as FieldInstance).isPreview
 
   /* void 字段：component 作容器 */
   if (isVoid) {
@@ -129,7 +128,7 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
   }
 
   /**
-   * readOnly 模式：查找 readPretty 替代组件，用纯文本替换输入框
+   * preview 模式：查找 readPretty 替代组件，用纯文本替换输入框
    */
   if (isPreview) {
     const compName = typeof componentName === 'string' ? componentName : ''
@@ -165,8 +164,7 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
   const fieldElement = (
     <FieldErrorBoundary fieldPath={dataField.path}>
       <Comp
-        disabled={isDisabled}
-        readOnly={isReadOnly}
+        disabled={isDisabled || isPreview}
         loading={dataField.loading}
         dataSource={dataField.dataSource}
         {...ariaProps}

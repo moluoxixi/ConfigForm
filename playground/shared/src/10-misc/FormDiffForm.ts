@@ -106,7 +106,7 @@ const config: SceneConfig = {
         type: 'string',
         title: '对比结果',
         component: 'Textarea',
-        readOnly: true,
+        preview: true,
         componentProps: { rows: 10, style: 'font-family: monospace; font-size: 13px; background: #1a1a2e; color: #e0e0e0; padding: 12px; border-radius: 8px; border: none; line-height: 1.6' },
         description: '修改上方任意字段后，实时显示 diff 结果',
       },

@@ -8,10 +8,10 @@ export interface CfInputProps {
   onBlur?: () => void
   placeholder?: string
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
 }
 
-export function Input({ value, onChange, onFocus, onBlur, placeholder, disabled, readOnly }: CfInputProps): React.ReactElement {
+export function Input({ value, onChange, onFocus, onBlur, placeholder, disabled, preview }: CfInputProps): React.ReactElement {
   return (
     <AInput
       value={value}

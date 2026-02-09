@@ -6,7 +6,7 @@ export interface CfTextareaProps extends CfInputProps {
   rows?: number
 }
 
-export function Textarea({ value, onChange, onFocus, onBlur, placeholder, disabled, readOnly, rows = 3 }: CfTextareaProps): React.ReactElement {
+export function Textarea({ value, onChange, onFocus, onBlur, placeholder, disabled, preview, rows = 3 }: CfTextareaProps): React.ReactElement {
   return (
     <AInput.TextArea
       value={value}

@@ -12,7 +12,7 @@ import { ReactiveField } from './ReactiveField'
  * 当 name prop 变化时（如数组项重排序），自动销毁旧字段并创建新字段。
  *
  * 支持两种渲染模式：
- * 1. 自定义插槽：`v-slot="{ field, isReadOnly, isDisabled }"`
+ * 1. 自定义插槽：`v-slot="{ field, isPreview, isDisabled }"`
  * 2. 自动渲染：根据 field.component + field.decorator 从 registry 查找组件
  */
 export const FormField = defineComponent({

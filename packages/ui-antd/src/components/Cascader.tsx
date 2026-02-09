@@ -11,7 +11,7 @@ export interface CfCascaderProps {
   options?: unknown[]
   placeholder?: string
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
   loading?: boolean
   showSearch?: boolean
   changeOnSelect?: boolean

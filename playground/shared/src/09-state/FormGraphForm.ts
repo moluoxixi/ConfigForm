@@ -69,7 +69,7 @@ const config: SceneConfig = {
         title: '状态快照 (JSON)',
         description: '这里展示 form.getGraph() 导出的完整状态。修改上方字段后提交可观察差异。',
         component: 'Textarea',
-        readOnly: true,
+        preview: true,
         componentProps: { rows: 8, style: 'font-family: monospace; font-size: 12px' },
       },
     },

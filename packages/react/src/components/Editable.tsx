@@ -14,7 +14,7 @@ export interface EditableProps {
  * Editable — 可编辑容器
  *
  * 阅读态点击切换为编辑态的内联编辑容器。
- * 包裹的字段默认以阅读态（readOnly）显示，
+ * 包裹的字段默认以阅读态（preview）显示，
  * 点击后切换为编辑态（editable），失焦后切回阅读态。
  *
  * @example
@@ -45,14 +45,14 @@ export const Editable = observer(({ children }: EditableProps): ReactElement => 
 
   const handleBlur = useCallback((): void => {
     if (editing && field) {
-      field.pattern = 'readOnly'
+      field.pattern = 'preview'
       setEditing(false)
     }
   }, [editing, field])
 
   /** 初始设置为阅读态 */
   if (field && !editing && field.pattern === 'editable') {
-    field.pattern = 'readOnly'
+    field.pattern = 'preview'
   }
 
   return (
@@ -119,14 +119,14 @@ export const EditablePopover = observer(({ children, title }: EditablePopoverPro
 
   const handleClose = useCallback((): void => {
     if (field) {
-      field.pattern = 'readOnly'
+      field.pattern = 'preview'
       setVisible(false)
     }
   }, [field])
 
   /** 初始设置为阅读态 */
   if (field && !visible && field.pattern === 'editable') {
-    field.pattern = 'readOnly'
+    field.pattern = 'preview'
   }
 
   return (

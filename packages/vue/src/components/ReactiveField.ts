@@ -11,7 +11,7 @@ import { getReadPrettyComponent } from '../registry'
  * - 判断 visible（不可见则不渲染）
  * - 渲染 decorator（FormItem 等包装器）
  * - 渲染 component（Input / Card / ArrayItems 等业务组件）
- * - 注入字段属性（value / disabled / readonly / loading / dataSource 等）
+ * - 注入字段属性（value / disabled / loading / dataSource 等）
  *
  * 对于数组字段（isArray=true），不传 modelValue/onUpdate:modelValue，
  * 而是将组件作为容器渲染（如 ArrayItems），由组件内部通过 inject 访问字段实例。
@@ -69,12 +69,11 @@ export const ReactiveField = defineComponent({
       try {
       /* pattern 判断已收敛到 field 模型的计算属性，消费者直接读结论 */
       const isDisabled = !props.isVoid && (field as FieldInstance).effectiveDisabled
-      const isReadOnly = !props.isVoid && (field as FieldInstance).effectiveReadOnly
-      const isPreview = isReadOnly
+      const isPreview = !props.isVoid && (field as FieldInstance).isPreview
 
       /* ---- 自定义插槽优先 ---- */
       if (slots.default) {
-        return slots.default({ field, isReadOnly, isDisabled })
+        return slots.default({ field, isPreview, isDisabled })
       }
 
       /* ---- 自动渲染：component ---- */
@@ -121,7 +120,7 @@ export const ReactiveField = defineComponent({
         /* 数据字段：注入 value / events / 状态 */
         const dataField = field as FieldInstance
 
-        /* readOnly 模式：查找 readPretty 替代组件，用纯文本替换输入框 */
+        /* preview 模式：查找 readPretty 替代组件，用纯文本替换输入框 */
         if (isPreview) {
           const compName = typeof componentName === 'string' ? componentName : ''
           const ReadPrettyComp = compName ? getReadPrettyComponent(compName) : undefined
@@ -134,15 +133,14 @@ export const ReactiveField = defineComponent({
           }
         }
 
-        /* 无 readPretty 替代或非阅读态：渲染原组件 */
+        /* 无 readPretty 替代或非预览态：渲染原组件 */
         if (!componentNode) {
           componentNode = h(Comp!, {
             'modelValue': dataField.value,
             'onUpdate:modelValue': (val: unknown) => dataField.onInput(val),
             'onFocus': () => dataField.focus(),
             'onBlur': () => dataField.blur(),
-            'disabled': isDisabled,
-            'readonly': isReadOnly,
+            'disabled': isDisabled || isPreview,
             'loading': dataField.loading,
             'dataSource': dataField.dataSource,
             ...dataField.componentProps,

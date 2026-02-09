@@ -86,14 +86,14 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     this.selfPattern = val
   }
 
-  /** 是否可编辑（综合 pattern + disabled + readOnly） */
+  /** 是否可编辑（综合 pattern + disabled + preview） */
   get editable(): boolean {
-    return this.pattern === 'editable' && !this.disabled && !this.readOnly
+    return this.pattern === 'editable' && !this.disabled && !this.preview
   }
 
-  /** 有效只读状态（综合 readOnly + pattern） */
-  get effectiveReadOnly(): boolean {
-    return this.readOnly || this.pattern === 'readOnly'
+  /** 有效预览状态（综合 preview + pattern） */
+  get isPreview(): boolean {
+    return this.preview || this.pattern === 'preview'
   }
 
   /** 有效禁用状态（综合 disabled + pattern） */
@@ -112,7 +112,7 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
    */
   display: FieldDisplay
   disabled: boolean
-  readOnly: boolean
+  preview: boolean
   loading: boolean
   active: boolean
   visited: boolean
@@ -173,7 +173,7 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     this.description = props.description ?? ''
     this.display = props.display ?? (props.visible === false ? 'none' : 'visible')
     this.disabled = props.disabled ?? false
-    this.readOnly = props.readOnly ?? false
+    this.preview = props.preview ?? false
     this.loading = false
     this.active = false
     this.visited = false

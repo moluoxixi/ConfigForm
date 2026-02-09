@@ -65,7 +65,7 @@ export const ArrayTable = defineComponent({
       const columns = extractColumns(props.itemsSchema)
 
       const isEditable = field.editable
-      const isReadOnly = field.effectiveReadOnly
+      const isPreview = field.isPreview
       const maxItems = field.maxItems === Infinity ? '∞' : field.maxItems
 
       /** 样式常量 */
@@ -112,7 +112,7 @@ export const ArrayTable = defineComponent({
             /* 数据列 */
             ...columns.map(col =>
               h('td', { key: col.key, style: tdStyle },
-                isReadOnly
+                isPreview
                   ? [h('span', { style: { color: '#303133' } },
                       `${(arrayValue[index] as Record<string, unknown>)?.[col.key] ?? '—'}`)]
                   : [h(RecursionField, {

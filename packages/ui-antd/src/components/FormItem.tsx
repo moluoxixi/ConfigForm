@@ -11,8 +11,8 @@ export interface CfFormItemProps {
   description?: string
   /** 是否显示冒号后缀，默认 true；可通过 decoratorProps.colon 控制 */
   colon?: boolean
-  /** 表单模式（editable/readOnly/disabled），readOnly/disabled 时隐藏必填标记 */
-  pattern?: 'editable' | 'readOnly' | 'disabled'
+  /** 表单模式（editable/preview/disabled），preview/disabled 时隐藏必填标记 */
+  pattern?: 'editable' | 'preview' | 'disabled'
   labelPosition?: 'top' | 'left' | 'right'
   labelWidth?: string | number
   children: React.ReactNode
@@ -21,7 +21,7 @@ export interface CfFormItemProps {
 /**
  * FormItem 装饰器适配（参考 Formily takeAsterisk）
  *
- * readOnly/disabled 时隐藏必填星号标记。
+ * preview/disabled 时隐藏必填星号标记。
  * 挂载时自动设置 field.domRef，支持 scrollToFirstError。
  */
 export function FormItem({ label, required, errors = [], warnings = [], description, colon: colonProp, pattern = 'editable', labelPosition: labelPositionProp, labelWidth: labelWidthProp, children }: CfFormItemProps): React.ReactElement {
@@ -57,7 +57,7 @@ export function FormItem({ label, required, errors = [], warnings = [], descript
       ? warnings[0].message
       : description
 
-  /** 参考 Formily takeAsterisk：readOnly/disabled 模式下隐藏必填标记 */
+  /** 参考 Formily takeAsterisk：preview/disabled 模式下隐藏必填标记 */
   const showRequired = required && pattern === 'editable'
 
   const isVertical = labelPosition === 'top'

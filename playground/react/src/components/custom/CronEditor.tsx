@@ -37,10 +37,10 @@ interface CronEditorProps {
   onChange?: (value: string) => void
   presets?: CronPreset[]
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
 }
 
-export function CronEditor({ value = '', onChange, presets = [], disabled, readOnly }: CronEditorProps): React.ReactElement {
+export function CronEditor({ value = '', onChange, presets = [], disabled, preview }: CronEditorProps): React.ReactElement {
   const parts = (value || '').trim().split(/\s+/)
 
   return (
@@ -51,7 +51,7 @@ export function CronEditor({ value = '', onChange, presets = [], disabled, readO
         value={value}
         onChange={e => onChange?.(e.target.value)}
         disabled={disabled}
-        readOnly={readOnly}
+        readOnly={preview}
         placeholder="* * * * *"
         style={{ width: '100%', padding: '6px 12px', border: '1px solid #d9d9d9', borderRadius: 4, fontFamily: 'monospace', fontSize: 14, marginBottom: 8 }}
       />
@@ -76,8 +76,8 @@ export function CronEditor({ value = '', onChange, presets = [], disabled, readO
           {presets.map(p => (
             <button
               key={p.value}
-              onClick={() => !disabled && !readOnly && onChange?.(p.value)}
-              disabled={disabled || readOnly}
+              onClick={() => !disabled && !preview && onChange?.(p.value)}
+              disabled={disabled || preview}
               style={{
                 padding: '2px 8px', fontSize: 11, border: '1px solid #d9d9d9', borderRadius: 4,
                 background: value === p.value ? '#e6f4ff' : '#fff', color: value === p.value ? '#1677ff' : '#333',

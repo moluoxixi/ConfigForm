@@ -10,11 +10,11 @@ interface CodeEditorProps {
   value?: string
   onChange?: (value: string) => void
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
   language?: string
 }
 
-export function CodeEditor({ value = '', onChange, disabled, readOnly, language }: CodeEditorProps): React.ReactElement {
+export function CodeEditor({ value = '', onChange, disabled, preview, language }: CodeEditorProps): React.ReactElement {
   const lines = (value || '').split('\n').length
 
   return (
@@ -28,7 +28,7 @@ export function CodeEditor({ value = '', onChange, disabled, readOnly, language 
         value={value}
         onChange={e => onChange?.(e.target.value)}
         disabled={disabled}
-        readOnly={readOnly}
+        readOnly={preview}
         spellCheck={false}
         style={{
           width: '100%', minHeight: 200, padding: '12px 16px', border: 'none', outline: 'none', resize: 'vertical',

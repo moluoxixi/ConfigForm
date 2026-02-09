@@ -5,17 +5,17 @@ export interface CfRateProps {
   value?: number
   onChange?: (value: number) => void
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
   count?: number
   allowHalf?: boolean
 }
 
-export function Rate({ value, onChange, disabled, readOnly, count = 5, allowHalf = false }: CfRateProps): ReactElement {
+export function Rate({ value, onChange, disabled, preview, count = 5, allowHalf = false }: CfRateProps): ReactElement {
   return (
     <ARate
       value={value}
       onChange={onChange}
-      disabled={disabled || readOnly}
+      disabled={disabled || preview}
       count={count}
       allowHalf={allowHalf}
     />

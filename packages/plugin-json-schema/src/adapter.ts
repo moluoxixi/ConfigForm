@@ -500,7 +500,7 @@ function convertNode(
 
   /* ---- 只读 ---- */
   if (schema.readOnly) {
-    result.readOnly = true
+    result.preview = true
   }
 
   /* ---- 枚举 → dataSource ---- */
@@ -596,7 +596,7 @@ function convertProperties(
  * - `oneOf` + `const` 鉴别 → `oneOf` + `discriminator`
  * - `dependentRequired` → `reactions` 条件必填
  * - `$defs` → `definitions`
- * - `readOnly: true` → `readOnly: true`
+ * - `readOnly: true` → `preview: true`
  *
  * @param jsonSchema - 标准 JSON Schema 对象
  * @param options - 转换选项
@@ -831,7 +831,7 @@ export function toJsonSchema(formSchema: ISchema): StandardJsonSchema {
   if (formSchema.title) result.title = formSchema.title
   if (formSchema.description) result.description = formSchema.description
   if (formSchema.default !== undefined) result.default = formSchema.default
-  if (formSchema.readOnly) result.readOnly = true
+  if (formSchema.preview) result.readOnly = true
 
   /* 枚举 */
   if (formSchema.enum) {

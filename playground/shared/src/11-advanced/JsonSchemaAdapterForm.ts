@@ -85,7 +85,7 @@ const backendJsonSchema: StandardJsonSchema = {
       default: false,
     },
 
-    /* readOnly */
+    /* readOnly（JSON Schema 标准关键字，由适配器转换为表单 preview） */
     employeeId: {
       type: 'string',
       title: '工号',

@@ -7,11 +7,11 @@ export interface CfYearPickerProps {
   onFocus?: () => void
   onBlur?: () => void
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
   placeholder?: string
 }
 
-export function YearPicker({ value, onChange, onFocus, onBlur, disabled, readOnly, placeholder }: CfYearPickerProps): ReactElement {
+export function YearPicker({ value, onChange, onFocus, onBlur, disabled, preview, placeholder }: CfYearPickerProps): ReactElement {
   return (
     <DatePicker
       picker="year"
@@ -19,7 +19,7 @@ export function YearPicker({ value, onChange, onFocus, onBlur, disabled, readOnl
       onChange={(_date: unknown, dateString: string | string[]) => onChange?.(dateString as string)}
       onFocus={onFocus}
       onBlur={onBlur}
-      disabled={disabled || readOnly}
+      disabled={disabled || preview}
       placeholder={placeholder}
       format="YYYY"
     />

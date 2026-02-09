@@ -9,13 +9,13 @@ export interface CfMentionsProps {
   onFocus?: () => void
   onBlur?: () => void
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
   placeholder?: string
   dataSource?: DataSourceItem[]
   prefix?: string
 }
 
-export function Mentions({ value, onChange, onFocus, onBlur, disabled, readOnly, placeholder, dataSource = [], prefix = '@' }: CfMentionsProps): ReactElement {
+export function Mentions({ value, onChange, onFocus, onBlur, disabled, preview, placeholder, dataSource = [], prefix = '@' }: CfMentionsProps): ReactElement {
   const options = useMemo(() => dataSource.map(item => ({ value: String(item.value), label: item.label })), [dataSource])
   
   return (
@@ -24,7 +24,7 @@ export function Mentions({ value, onChange, onFocus, onBlur, disabled, readOnly,
       onChange={onChange}
       onFocus={onFocus}
       onBlur={onBlur}
-      disabled={disabled || readOnly}
+      disabled={disabled || preview}
       placeholder={placeholder}
       options={options}
       prefix={prefix}

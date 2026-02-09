@@ -75,7 +75,7 @@ export const ArrayTable = observer<ArrayTableProps>(({ itemsSchema }) => {
   const columns = extractColumns(itemsSchema)
 
   const isEditable = field.editable
-  const isReadOnly = field.effectiveReadOnly
+  const isPreview = field.isPreview
   const maxItems = field.maxItems === Infinity ? '∞' : field.maxItems
 
   /** 表格样式 */
@@ -140,7 +140,7 @@ export const ArrayTable = observer<ArrayTableProps>(({ itemsSchema }) => {
                   {/* 数据列：逐列渲染单个字段 */}
                   {columns.map(col => (
                     <td key={col.key} style={tdStyle}>
-                      {isReadOnly
+                      {isPreview
                         ? (
                             <span style={{ color: '#303133' }}>
                               {arrayValue[index]?.[col.key] ?? '—'}

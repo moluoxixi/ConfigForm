@@ -77,7 +77,7 @@ const config: SceneConfig = {
         type: 'string',
         title: '计算字段',
         description: 'hidden 模式适用于需要隐藏 UI 但保留计算结果的场景',
-        readOnly: true,
+        preview: true,
         componentProps: { placeholder: '自动计算的值' },
         reactions: [
           {

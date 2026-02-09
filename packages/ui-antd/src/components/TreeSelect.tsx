@@ -11,7 +11,7 @@ export interface CfTreeSelectProps {
   treeData?: unknown[]
   placeholder?: string
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
   loading?: boolean
   multiple?: boolean
   treeCheckable?: boolean

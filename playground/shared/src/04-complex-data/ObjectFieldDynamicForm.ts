@@ -104,7 +104,7 @@ const config: SceneConfig = {
         type: 'string',
         title: '动态属性操作日志',
         component: 'Textarea',
-        readOnly: true,
+        preview: true,
         componentProps: { rows: 10, style: 'font-family: monospace; font-size: 12px' },
         description: '展示 addProperty / existProperty / getPropertyNames 的实时调用结果',
       },

@@ -22,7 +22,7 @@ export class VoidField implements VoidFieldInstance {
   label: string
   visible: boolean
   disabled: boolean
-  readOnly: boolean
+  preview: boolean
   /** 字段自身的 pattern（不含 form 级覆盖） */
   selfPattern: FieldPattern
   component: string | ComponentType
@@ -47,7 +47,7 @@ export class VoidField implements VoidFieldInstance {
 
   /** 是否可编辑 */
   get editable(): boolean {
-    return this.pattern === 'editable' && !this.disabled && !this.readOnly
+    return this.pattern === 'editable' && !this.disabled && !this.preview
   }
 
   constructor(form: FormInstance, props: VoidFieldProps, parentPath = '') {
@@ -60,7 +60,7 @@ export class VoidField implements VoidFieldInstance {
     this.label = props.label ?? ''
     this.visible = props.visible ?? true
     this.disabled = props.disabled ?? false
-    this.readOnly = props.readOnly ?? false
+    this.preview = props.preview ?? false
     this.selfPattern = props.pattern ?? 'editable'
     this.component = props.component ?? ''
     this.componentProps = props.componentProps ?? {}

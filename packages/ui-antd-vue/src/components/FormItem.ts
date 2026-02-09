@@ -16,8 +16,8 @@ export const FormItem = defineComponent({
     labelWidth: { type: [String, Number], default: undefined },
     /** 是否显示冒号后缀，默认 true；可通过 decoratorProps.colon 控制 */
     colon: { type: Boolean, default: true },
-    /** 表单模式（editable/readOnly/disabled），readOnly/disabled 时隐藏必填标记 */
-    pattern: { type: String as PropType<'editable' | 'readOnly' | 'disabled'>, default: 'editable' },
+    /** 表单模式（editable/preview/disabled），preview/disabled 时隐藏必填标记 */
+    pattern: { type: String as PropType<'editable' | 'preview' | 'disabled'>, default: 'editable' },
   },
   setup(props, { slots }) {
     return () => {
@@ -30,7 +30,7 @@ export const FormItem = defineComponent({
       const labelWidthPx = typeof lw === 'number' ? `${lw}px` : lw
 
       /**
-       * 参考 Formily takeAsterisk：readOnly/disabled 模式下隐藏必填标记
+       * 参考 Formily takeAsterisk：preview/disabled 模式下隐藏必填标记
        *
        * 冒号处理：antd-vue 的 colon 通过 CSS ::after 伪元素渲染，
        * 垂直布局（labelCol.span=24）会触发 .ant-form-vertical 样式隐藏冒号。

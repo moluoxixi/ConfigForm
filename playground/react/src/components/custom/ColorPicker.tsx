@@ -11,24 +11,24 @@ interface ColorPickerProps {
   onChange?: (value: string) => void
   presets?: string[]
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
 }
 
-export function ColorPicker({ value = '#000000', onChange, presets = [], disabled, readOnly }: ColorPickerProps): React.ReactElement {
+export function ColorPicker({ value = '#000000', onChange, presets = [], disabled, preview }: ColorPickerProps): React.ReactElement {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
       <input
         type="color"
         value={value}
         onChange={e => onChange?.(e.target.value)}
-        disabled={disabled || readOnly}
+        disabled={disabled || preview}
         style={{ width: 40, height: 32, border: '1px solid #d9d9d9', borderRadius: 4, cursor: disabled ? 'not-allowed' : 'pointer', padding: 2 }}
       />
       <input
         type="text"
         value={value}
         onChange={e => onChange?.(e.target.value)}
-        disabled={disabled || readOnly}
+        disabled={disabled || preview}
         style={{ width: 90, height: 32, border: '1px solid #d9d9d9', borderRadius: 4, padding: '0 8px', fontFamily: 'monospace', fontSize: 13 }}
         maxLength={7}
       />
@@ -37,8 +37,8 @@ export function ColorPicker({ value = '#000000', onChange, presets = [], disable
           {presets.map(color => (
             <button
               key={color}
-              onClick={() => !disabled && !readOnly && onChange?.(color)}
-              disabled={disabled || readOnly}
+              onClick={() => !disabled && !preview && onChange?.(color)}
+              disabled={disabled || preview}
               style={{
                 width: 20, height: 20, borderRadius: 4, border: value === color ? '2px solid #1677ff' : '1px solid #d9d9d9',
                 background: color, cursor: disabled ? 'not-allowed' : 'pointer', padding: 0,

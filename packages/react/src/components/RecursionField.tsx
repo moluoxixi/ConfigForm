@@ -81,7 +81,7 @@ export const RecursionField = observer<RecursionFieldProps>(
                 componentProps: fieldSchema.componentProps,
                 visible: fieldSchema.visible,
                 disabled: fieldSchema.disabled,
-                readOnly: fieldSchema.readOnly,
+                preview: fieldSchema.preview,
                 pattern: fieldSchema.pattern,
                 reactions: fieldSchema.reactions,
               }}
@@ -146,7 +146,7 @@ export const RecursionField = observer<RecursionFieldProps>(
             componentProps: fieldSchema.componentProps,
             rules: fieldSchema.rules,
             disabled: fieldSchema.disabled,
-            readOnly: fieldSchema.readOnly,
+            preview: fieldSchema.preview,
             pattern: fieldSchema.pattern,
             dataSource: fieldSchema.dataSource,
             displayFormat: fieldSchema.displayFormat as ((value: unknown) => unknown) | undefined,

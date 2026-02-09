@@ -7,11 +7,11 @@ export interface CfWeekPickerProps {
   onFocus?: () => void
   onBlur?: () => void
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
   placeholder?: string
 }
 
-export function WeekPicker({ value, onChange, onFocus, onBlur, disabled, readOnly, placeholder }: CfWeekPickerProps): ReactElement {
+export function WeekPicker({ value, onChange, onFocus, onBlur, disabled, preview, placeholder }: CfWeekPickerProps): ReactElement {
   return (
     <DatePicker
       picker="week"
@@ -19,7 +19,7 @@ export function WeekPicker({ value, onChange, onFocus, onBlur, disabled, readOnl
       onChange={(_date: unknown, dateString: string | string[]) => onChange?.(dateString as string)}
       onFocus={onFocus}
       onBlur={onBlur}
-      disabled={disabled || readOnly}
+      disabled={disabled || preview}
       placeholder={placeholder}
     />
   )

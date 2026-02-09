@@ -8,10 +8,10 @@ export interface CfDatePickerProps {
   onBlur?: () => void
   placeholder?: string
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
 }
 
-export function DatePicker({ value, onChange, onFocus, onBlur, placeholder, disabled, readOnly }: CfDatePickerProps): ReactElement {
+export function DatePicker({ value, onChange, onFocus, onBlur, placeholder, disabled, preview }: CfDatePickerProps): ReactElement {
   return (
     <ADatePicker
       value={value || undefined}

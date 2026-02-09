@@ -9,12 +9,12 @@ export interface CfAutoCompleteProps {
   onFocus?: () => void
   onBlur?: () => void
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
   placeholder?: string
   dataSource?: DataSourceItem[]
 }
 
-export function AutoComplete({ value, onChange, onFocus, onBlur, disabled, readOnly, placeholder, dataSource = [] }: CfAutoCompleteProps): ReactElement {
+export function AutoComplete({ value, onChange, onFocus, onBlur, disabled, preview, placeholder, dataSource = [] }: CfAutoCompleteProps): ReactElement {
   const options = useMemo(() => dataSource.map(item => ({ value: String(item.value), label: item.label })), [dataSource])
   
   return (
@@ -23,7 +23,7 @@ export function AutoComplete({ value, onChange, onFocus, onBlur, disabled, readO
       onChange={onChange}
       onFocus={onFocus}
       onBlur={onBlur}
-      disabled={disabled || readOnly}
+      disabled={disabled || preview}
       placeholder={placeholder}
       options={options}
     />

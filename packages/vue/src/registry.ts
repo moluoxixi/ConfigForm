@@ -4,7 +4,7 @@ import type { Component } from 'vue'
 export interface RegisterComponentOptions {
   /** 该组件的默认装饰器名称，字段未显式指定 decorator 时自动使用 */
   defaultDecorator?: string
-  /** 阅读态替代组件（readPretty），isReadOnly 时自动替换 */
+  /** 阅读态替代组件（readPretty），isPreview 时自动替换 */
   readPrettyComponent?: Component
 }
 

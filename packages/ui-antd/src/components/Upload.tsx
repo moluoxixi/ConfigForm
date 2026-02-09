@@ -5,7 +5,7 @@ export interface CfUploadProps {
   value?: unknown[]
   onChange?: (value: unknown[]) => void
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
   accept?: string
   maxCount?: number
   multiple?: boolean

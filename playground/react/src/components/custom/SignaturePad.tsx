@@ -9,10 +9,10 @@ interface SignaturePadProps {
   value?: string
   onChange?: (value: string) => void
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
 }
 
-export function SignaturePad({ value, onChange, disabled, readOnly }: SignaturePadProps): React.ReactElement {
+export function SignaturePad({ value, onChange, disabled, preview }: SignaturePadProps): React.ReactElement {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const isDrawing = useRef(false)
 
@@ -37,17 +37,17 @@ export function SignaturePad({ value, onChange, disabled, readOnly }: SignatureP
   }, [])
 
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (disabled || readOnly) return
+    if (disabled || preview) return
     isDrawing.current = true
     const ctx = getCtx()
     if (!ctx) return
     const rect = canvasRef.current!.getBoundingClientRect()
     ctx.beginPath()
     ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top)
-  }, [disabled, readOnly, getCtx])
+  }, [disabled, preview, getCtx])
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing.current || disabled || readOnly) return
+    if (!isDrawing.current || disabled || preview) return
     const ctx = getCtx()
     if (!ctx) return
     const rect = canvasRef.current!.getBoundingClientRect()
@@ -56,7 +56,7 @@ export function SignaturePad({ value, onChange, disabled, readOnly }: SignatureP
     ctx.strokeStyle = '#333'
     ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top)
     ctx.stroke()
-  }, [disabled, readOnly, getCtx])
+  }, [disabled, preview, getCtx])
 
   const handleMouseUp = useCallback(() => {
     if (!isDrawing.current) return
@@ -89,13 +89,13 @@ export function SignaturePad({ value, onChange, disabled, readOnly }: SignatureP
         onMouseLeave={handleMouseUp}
         style={{
           border: '1px solid #d9d9d9', borderRadius: 6,
-          cursor: disabled || readOnly ? 'not-allowed' : 'crosshair',
+          cursor: disabled || preview ? 'not-allowed' : 'crosshair',
           display: 'block', background: '#fff',
         }}
       />
       <button
         onClick={handleClear}
-        disabled={disabled || readOnly}
+        disabled={disabled || preview}
         style={{ marginTop: 4, padding: '2px 12px', fontSize: 12, border: '1px solid #d9d9d9', borderRadius: 4, background: '#fff', cursor: 'pointer' }}
       >
         清除

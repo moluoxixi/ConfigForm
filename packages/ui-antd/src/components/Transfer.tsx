@@ -7,7 +7,7 @@ export interface CfTransferProps {
   onChange?: (value: string[]) => void
   dataSource?: DataSourceItem[]
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
   showSearch?: boolean
   titles?: [string, string]
 }

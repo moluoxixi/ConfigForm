@@ -10,12 +10,12 @@ export interface CfSelectProps {
   dataSource?: DataSourceItem[]
   placeholder?: string
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
   loading?: boolean
   mode?: 'multiple' | 'tags'
 }
 
-export function Select({ value, onChange, onFocus, onBlur, dataSource = [], placeholder, disabled, readOnly, loading, mode }: CfSelectProps): React.ReactElement {
+export function Select({ value, onChange, onFocus, onBlur, dataSource = [], placeholder, disabled, preview, loading, mode }: CfSelectProps): React.ReactElement {
   return (
     <ASelect
       value={value}

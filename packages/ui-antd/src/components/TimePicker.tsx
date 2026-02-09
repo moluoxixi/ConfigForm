@@ -8,7 +8,7 @@ export interface CfTimePickerProps {
   onBlur?: () => void
   placeholder?: string
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
   format?: string
 }
 

@@ -2,7 +2,7 @@
  * 阅读态纯文本展示组件集（readPretty）
  *
  * 参考 Formily PreviewText 设计，每个组件对应一个编辑组件的阅读态替代。
- * 由 FormField 在 isReadOnly 时自动替换渲染，UI 组件无需关心阅读态。
+ * 由 FormField 在 isPreview 时自动替换渲染，UI 组件无需关心预览态。
  */
 import { Tag } from 'antd'
 import React from 'react'

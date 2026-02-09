@@ -70,7 +70,7 @@ const config: SceneConfig = {
         type: 'string',
         title: '事件日志',
         component: 'Textarea',
-        readOnly: true,
+        preview: true,
         componentProps: { rows: 10 },
         description: '实时记录生命周期事件和 Input/Value 变化事件',
       },

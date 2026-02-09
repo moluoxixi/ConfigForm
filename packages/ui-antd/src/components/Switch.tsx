@@ -7,10 +7,10 @@ export interface CfSwitchProps {
   onFocus?: () => void
   onBlur?: () => void
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
 }
 
-export function Switch({ value, onChange, onFocus, onBlur, disabled, readOnly }: CfSwitchProps): ReactElement {
+export function Switch({ value, onChange, onFocus, onBlur, disabled, preview }: CfSwitchProps): ReactElement {
   return (
     <span onFocus={onFocus} onBlur={onBlur}>
       <ASwitch checked={value} onChange={onChange} disabled={disabled} />

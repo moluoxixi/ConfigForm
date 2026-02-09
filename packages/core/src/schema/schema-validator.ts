@@ -30,7 +30,7 @@ const VALID_TYPES: Set<SchemaType> = new Set([
 ])
 
 /** 合法的 pattern 值 */
-const VALID_PATTERNS = new Set(['editable', 'readOnly', 'disabled'])
+const VALID_PATTERNS = new Set(['editable', 'preview', 'disabled'])
 
 /** 合法的验证触发时机 */
 const VALID_TRIGGERS = new Set(['change', 'blur', 'submit'])

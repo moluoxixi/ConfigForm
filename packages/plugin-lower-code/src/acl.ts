@@ -63,13 +63,13 @@ const PERMISSION_STATE_MAP: Record<FieldPermission, {
   display: FieldDisplay
   pattern: FieldPattern
   disabled: boolean
-  readOnly: boolean
+  preview: boolean
 }> = {
-  full: { display: 'visible', pattern: 'editable', disabled: false, readOnly: false },
-  edit: { display: 'visible', pattern: 'editable', disabled: false, readOnly: false },
-  view: { display: 'visible', pattern: 'readOnly', disabled: false, readOnly: true },
-  hidden: { display: 'hidden', pattern: 'editable', disabled: false, readOnly: false },
-  none: { display: 'none', pattern: 'editable', disabled: true, readOnly: false },
+  full: { display: 'visible', pattern: 'editable', disabled: false, preview: false },
+  edit: { display: 'visible', pattern: 'editable', disabled: false, preview: false },
+  view: { display: 'visible', pattern: 'preview', disabled: false, preview: true },
+  hidden: { display: 'hidden', pattern: 'editable', disabled: false, preview: false },
+  none: { display: 'none', pattern: 'editable', disabled: true, preview: false },
 }
 
 /** 权限等级数值（用于多角色权限合并：取最高权限） */
@@ -142,7 +142,7 @@ export function aclPlugin(config: ACLPluginConfig = {}): FormPlugin<ACLPluginAPI
         ;(field as { display: FieldDisplay }).display = state.display
         field.pattern = state.pattern
         field.disabled = state.disabled
-        field.readOnly = state.readOnly
+        field.preview = state.preview
       }
 
       const api: ACLPluginAPI = {

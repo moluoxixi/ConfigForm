@@ -39,7 +39,7 @@ const config: SceneConfig = {
       fullName: {
         type: 'string',
         title: '全名（自动计算）',
-        readOnly: true,
+        preview: true,
         description: '由 onFormReact 自动追踪 firstName + lastName 计算',
       },
       price: { type: 'number', title: '单价', componentProps: { min: 0, style: 'width: 100%' } },
@@ -47,14 +47,14 @@ const config: SceneConfig = {
       total: {
         type: 'number',
         title: '总价（自动计算）',
-        readOnly: true,
+        preview: true,
         description: '由 onFieldValueChange 监听 price/quantity 计算',
       },
       log: {
         type: 'string',
         title: '事件日志',
         component: 'Textarea',
-        readOnly: true,
+        preview: true,
         componentProps: { rows: 5 },
         description: '记录 effects 触发的事件（含 onFieldInputChange / onFieldMount）',
       },

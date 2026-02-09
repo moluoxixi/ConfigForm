@@ -4,14 +4,13 @@ import type { FormInstance } from '@moluoxixi/core'
 /**
  * 场景：表单模式切换
  *
- * 演示 pattern 四种模式：editable / readOnly / disabled / preview
+ * 演示 pattern 三种模式：editable / disabled / preview
  * - 表单级模式切换（影响所有字段）
  * - 字段级模式覆盖（个别字段不受表单模式影响）
  */
 
 const PATTERN_OPTIONS = [
   { label: '可编辑 (editable)', value: 'editable' },
-  { label: '只读 (readOnly)', value: 'readOnly' },
   { label: '禁用 (disabled)', value: 'disabled' },
   { label: '预览 (preview)', value: 'preview' },
 ]
@@ -23,7 +22,7 @@ const GENDER_OPTIONS = [
 
 const config: SceneConfig = {
   title: '表单模式切换',
-  description: 'pattern: editable / readOnly / disabled / preview — 表单级 + 字段级模式',
+  description: 'pattern: editable / disabled / preview — 表单级 + 字段级模式',
 
   initialValues: {
     name: '张三',
@@ -43,7 +42,7 @@ const config: SceneConfig = {
      * 注意：_patternSwitch 以下划线开头，表示控制字段（非业务数据）。
      */
     form.onFieldValueChange('_patternSwitch', (value: unknown) => {
-      const pattern = value as 'editable' | 'readOnly' | 'disabled' | 'preview'
+      const pattern = value as 'editable' | 'disabled' | 'preview'
       form.pattern = pattern
     })
   },

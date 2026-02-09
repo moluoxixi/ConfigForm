@@ -25,7 +25,7 @@ export interface Feedback {
 }
 
 /** 字段模式 */
-export type FieldPattern = 'editable' | 'readOnly' | 'disabled'
+export type FieldPattern = 'editable' | 'preview' | 'disabled'
 
 /**
  * 字段展示状态（参考 Formily display 三态）
@@ -44,7 +44,7 @@ export interface FieldStateUpdate {
   visible?: boolean
   display?: FieldDisplay
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
   loading?: boolean
   value?: unknown
   component?: string

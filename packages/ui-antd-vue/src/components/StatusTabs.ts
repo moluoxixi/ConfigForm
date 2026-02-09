@@ -5,7 +5,7 @@ import { computed, defineComponent, h, ref } from 'vue'
 /** 三态选项 */
 const MODE_OPTIONS = [
   { label: '编辑态', value: 'editable' as FieldPattern },
-  { label: '阅读态', value: 'readOnly' as FieldPattern },
+  { label: '预览态', value: 'preview' as FieldPattern },
   { label: '禁用态', value: 'disabled' as FieldPattern },
 ]
 

@@ -115,12 +115,12 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
 
   /* pattern 判断已收敛到 field 模型，直接读计算属性 */
   const isDisabled = field.effectiveDisabled
-  const isReadOnly = field.effectiveReadOnly
+  const isPreview = field.isPreview
 
   /* readPretty：阅读态时查找替代组件 */
   let fieldElement: React.ReactElement
   const compName = typeof field.component === 'string' ? field.component : ''
-  const ReadPrettyComp = isReadOnly && compName ? getReadPrettyComponent(compName) : undefined
+  const ReadPrettyComp = isPreview && compName ? getReadPrettyComponent(compName) : undefined
 
   if (ReadPrettyComp) {
     fieldElement = (
@@ -138,8 +138,7 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
         onChange={(val: unknown) => field.onInput(val)}
         onFocus={() => field.focus()}
         onBlur={() => field.blur()}
-        disabled={isDisabled}
-        readOnly={isReadOnly}
+        disabled={isDisabled || isPreview}
         loading={field.loading}
         dataSource={field.dataSource}
         {...field.componentProps}

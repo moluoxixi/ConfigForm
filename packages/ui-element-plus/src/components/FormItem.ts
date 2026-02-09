@@ -23,8 +23,8 @@ export const FormItem = defineComponent({
     labelWidth: { type: [String, Number], default: undefined },
     /** 是否显示冒号后缀，默认 true */
     colon: { type: Boolean, default: true },
-    /** 表单模式（editable/readOnly/disabled），readOnly/disabled 时隐藏必填标记 */
-    pattern: { type: String as PropType<'editable' | 'readOnly' | 'disabled'>, default: 'editable' },
+    /** 表单模式（editable/preview/disabled），preview/disabled 时隐藏必填标记 */
+    pattern: { type: String as PropType<'editable' | 'preview' | 'disabled'>, default: 'editable' },
   },
   setup(props, { slots }) {
     return () => {
@@ -49,7 +49,7 @@ export const FormItem = defineComponent({
         ? '--el-form-label-text-align: right; --el-form-item-label-text-align: right;'
         : ''
 
-      /** 参考 Formily takeAsterisk：readOnly/disabled 模式下隐藏必填标记 */
+      /** 参考 Formily takeAsterisk：preview/disabled 模式下隐藏必填标记 */
       const showRequired = props.required && props.pattern === 'editable'
 
       return h(ElFormItem, {

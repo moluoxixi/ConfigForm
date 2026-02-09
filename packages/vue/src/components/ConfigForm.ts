@@ -53,7 +53,7 @@ const FormActionsRenderer = defineComponent({
  *
  * 从 schema 根节点的 decoratorProps 读取表单级配置（labelWidth、actions 等）。
  * 操作按钮（提交/重置）通过 schema.decoratorProps.actions 配置，编辑态自动渲染，
- * readOnly/disabled 模式自动隐藏。
+ * preview/disabled 模式自动隐藏。
  *
  * @example
  * ```vue

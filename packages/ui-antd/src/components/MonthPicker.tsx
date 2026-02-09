@@ -7,11 +7,11 @@ export interface CfMonthPickerProps {
   onFocus?: () => void
   onBlur?: () => void
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
   placeholder?: string
 }
 
-export function MonthPicker({ value, onChange, onFocus, onBlur, disabled, readOnly, placeholder }: CfMonthPickerProps): ReactElement {
+export function MonthPicker({ value, onChange, onFocus, onBlur, disabled, preview, placeholder }: CfMonthPickerProps): ReactElement {
   return (
     <DatePicker
       picker="month"
@@ -19,7 +19,7 @@ export function MonthPicker({ value, onChange, onFocus, onBlur, disabled, readOn
       onChange={(_date: unknown, dateString: string | string[]) => onChange?.(dateString as string)}
       onFocus={onFocus}
       onBlur={onBlur}
-      disabled={disabled || readOnly}
+      disabled={disabled || preview}
       placeholder={placeholder}
       format="YYYY-MM"
     />

@@ -28,8 +28,8 @@ export interface FieldProps<Value = unknown> {
   display?: FieldDisplay
   /** 是否禁用 */
   disabled?: boolean
-  /** 是否只读 */
-  readOnly?: boolean
+  /** 是否预览 */
+  preview?: boolean
   /** 是否必填 */
   required?: boolean
   /** 验证规则 */
@@ -88,7 +88,7 @@ export interface VoidFieldProps {
   label?: string
   visible?: boolean
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
   component?: string | ComponentType
   componentProps?: Record<string, unknown>
   reactions?: ReactionRule[]
@@ -288,8 +288,8 @@ export interface FieldState {
   display: FieldDisplay
   /** 是否禁用 */
   disabled: boolean
-  /** 是否只读 */
-  readOnly: boolean
+  /** 是否预览 */
+  preview: boolean
   /** 是否必填 */
   required: boolean
   /** 字段模式 */
@@ -784,7 +784,7 @@ export interface FieldInstance<Value = unknown> {
   /** 兼容属性（映射到 display） */
   visible: boolean
   disabled: boolean
-  readOnly: boolean
+  preview: boolean
   loading: boolean
   active: boolean
   visited: boolean
@@ -792,10 +792,10 @@ export interface FieldInstance<Value = unknown> {
   selfPattern: FieldPattern
   /** 有效 pattern（已汇总 self + form.pattern，消费者直接读此属性） */
   pattern: FieldPattern
-  /** 是否可编辑（综合 pattern + disabled + readOnly） */
+  /** 是否可编辑（综合 pattern + disabled + preview） */
   readonly editable: boolean
-  /** 有效只读状态 */
-  readonly effectiveReadOnly: boolean
+  /** 有效预览状态 */
+  readonly isPreview: boolean
   /** 有效禁用状态 */
   readonly effectiveDisabled: boolean
   required: boolean
@@ -892,7 +892,7 @@ export interface VoidFieldInstance {
   label: string
   visible: boolean
   disabled: boolean
-  readOnly: boolean
+  preview: boolean
   selfPattern: FieldPattern
   /** 有效 pattern（已汇总 self + form.pattern） */
   pattern: FieldPattern

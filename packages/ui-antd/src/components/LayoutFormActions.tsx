@@ -46,7 +46,7 @@ export function LayoutFormActions({
     onReset?.()
   }, [form, onReset])
 
-  /** readOnly/disabled 模式下自动隐藏操作按钮 */
+  /** preview/disabled 模式下自动隐藏操作按钮 */
   if (form && form.pattern !== 'editable') {
     return <></>
   }

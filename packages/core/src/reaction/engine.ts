@@ -309,7 +309,7 @@ export class ReactionEngine {
         if (state.display !== undefined) (target as any).display = state.display;
         if (state.visible !== undefined) target.visible = state.visible;
         if (state.disabled !== undefined) target.disabled = state.disabled;
-        if (state.readOnly !== undefined) target.readOnly = state.readOnly;
+        if (state.preview !== undefined) target.preview = state.preview;
         if (state.loading !== undefined) target.loading = state.loading;
         if (state.required !== undefined) target.required = state.required;
         if (state.pattern !== undefined) target.pattern = state.pattern;

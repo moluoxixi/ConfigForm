@@ -739,7 +739,7 @@ implements FormInstance<Values> {
     display: 'visible' | 'hidden' | 'none'
     visible: boolean
     disabled: boolean
-    readOnly: boolean
+    preview: boolean
     loading: boolean
     required: boolean
     pattern: FieldPattern
@@ -757,7 +757,7 @@ implements FormInstance<Values> {
         if (state.display !== undefined) (field as any).display = state.display
         if (state.visible !== undefined) field.visible = state.visible
         if (state.disabled !== undefined) field.disabled = state.disabled
-        if (state.readOnly !== undefined) field.readOnly = state.readOnly
+        if (state.preview !== undefined) field.preview = state.preview
         if (state.loading !== undefined) field.loading = state.loading
         if (state.required !== undefined) field.required = state.required
         if (state.pattern !== undefined) field.pattern = state.pattern
@@ -814,7 +814,7 @@ implements FormInstance<Values> {
         initialValue: deepClone(FormPath.getIn(this.initialValues, path)),
         display: field.display,
         disabled: field.disabled,
-        readOnly: field.readOnly,
+        preview: field.preview,
         required: field.required,
         pattern: field.pattern,
         errors: deepClone(field.errors),
@@ -854,7 +854,7 @@ implements FormInstance<Values> {
 
         field.display = state.display
         field.disabled = state.disabled
-        field.readOnly = state.readOnly
+        field.preview = state.preview
         field.required = state.required
         field.pattern = state.pattern
         field.errors = deepClone(state.errors)

@@ -149,8 +149,8 @@ export interface ISchema {
   visible?: boolean
   /** 是否禁用 */
   disabled?: boolean
-  /** 是否只读 */
-  readOnly?: boolean
+  /** 是否预览 */
+  preview?: boolean
   /** 字段模式 */
   pattern?: FieldPattern
 

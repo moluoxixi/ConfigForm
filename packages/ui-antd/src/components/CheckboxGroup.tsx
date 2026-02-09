@@ -9,10 +9,10 @@ export interface CfCheckboxGroupProps {
   onBlur?: () => void
   dataSource?: DataSourceItem[]
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
 }
 
-export function CheckboxGroup({ value, onChange, onFocus, onBlur, dataSource = [], disabled, readOnly }: CfCheckboxGroupProps): ReactElement {
+export function CheckboxGroup({ value, onChange, onFocus, onBlur, dataSource = [], disabled, preview }: CfCheckboxGroupProps): ReactElement {
   return (
     <div onFocus={onFocus} onBlur={onBlur}>
       <ACheckbox.Group

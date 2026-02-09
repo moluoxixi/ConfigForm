@@ -8,7 +8,7 @@ export interface CfInputNumberProps {
   onBlur?: () => void
   placeholder?: string
   disabled?: boolean
-  readOnly?: boolean
+  preview?: boolean
   min?: number
   max?: number
   step?: number
@@ -20,7 +20,7 @@ export interface CfInputNumberProps {
  * Ant Design 的 InputNumber.onChange 传入 number | null，
  * 清空时传 null，统一转为 undefined 传递给表单字段。
  */
-export function InputNumber({ value, onChange, onFocus, onBlur, placeholder, disabled, readOnly, min, max, step = 1 }: CfInputNumberProps): ReactElement {
+export function InputNumber({ value, onChange, onFocus, onBlur, placeholder, disabled, preview, min, max, step = 1 }: CfInputNumberProps): ReactElement {
   return (
     <AInputNumber
       value={value}
