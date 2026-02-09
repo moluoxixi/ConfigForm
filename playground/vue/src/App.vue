@@ -57,6 +57,23 @@ import { getSceneGroups, sceneRegistry } from '@playground/shared'
 import { DevToolsPanel } from '@moluoxixi/plugin-devtools-vue'
 import { defineComponent, h, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
 
+/** 确保全局 Hook 存在（与 plugin 中逻辑一致，保证面板先于插件挂载时也能订阅） */
+type HookType = { forms: Map<string, DevToolsPluginAPI>, onChange: (fn: (forms: Map<string, DevToolsPluginAPI>) => void) => () => void }
+function getOrCreateHook(): HookType {
+  const g = window as unknown as Record<string, unknown>
+  if (!g.__CONFIGFORM_DEVTOOLS_HOOK__) {
+    const listeners = new Set<(forms: Map<string, DevToolsPluginAPI>) => void>()
+    const hook = {
+      forms: new Map<string, DevToolsPluginAPI>(),
+      register(id: string, api: DevToolsPluginAPI) { hook.forms.set(id, api); listeners.forEach(fn => fn(hook.forms)) },
+      unregister(id: string) { hook.forms.delete(id); listeners.forEach(fn => fn(hook.forms)) },
+      onChange(fn: (forms: Map<string, DevToolsPluginAPI>) => void) { listeners.add(fn); return () => listeners.delete(fn) },
+    }
+    g.__CONFIGFORM_DEVTOOLS_HOOK__ = hook
+  }
+  return g.__CONFIGFORM_DEVTOOLS_HOOK__ as HookType
+}
+
 /** DevTools 浮动面板包装器：通过全局 Hook 的 onChange 事件驱动更新（零轮询） */
 const DevToolsFloating = defineComponent({
   name: 'DevToolsFloating',
@@ -65,10 +82,7 @@ const DevToolsFloating = defineComponent({
     let dispose: (() => void) | null = null
 
     onMounted(() => {
-      type Hook = { forms: Map<string, DevToolsPluginAPI>, onChange: (fn: (forms: Map<string, DevToolsPluginAPI>) => void) => () => void }
-      const hook = (window as unknown as Record<string, unknown>).__CONFIGFORM_DEVTOOLS_HOOK__ as Hook | undefined
-      if (!hook) return
-
+      const hook = getOrCreateHook()
       const update = (forms: Map<string, DevToolsPluginAPI>): void => {
         api.value = forms.size > 0 ? forms.values().next().value! : null
       }

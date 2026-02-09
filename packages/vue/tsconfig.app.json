@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["DOM", "ESNext"],
+    "types": ["vite/client"],
+    "rootDir": "./src",
+    "outDir": "./dist"
+  },
+  "vueCompilerOptions": {
+    "plugins": [
+      "@vue-macros/volar/define-models",
+      "@vue-macros/volar/define-slots",
+      "@vue-macros/volar/define-props",
+      "@vue-macros/volar/define-emits"
+    ]
+  },
+  "include": ["src"]
+}

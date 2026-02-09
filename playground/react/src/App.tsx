@@ -113,16 +113,27 @@ export function App(): React.ReactElement {
   )
 }
 
+/** 确保全局 Hook 存在（与 plugin 中的 ensureGlobalHook 逻辑一致） */
+function getOrCreateHook(): { forms: Map<string, DevToolsPluginAPI>, onChange: (fn: (forms: Map<string, DevToolsPluginAPI>) => void) => () => void } {
+  const g = window as unknown as Record<string, unknown>
+  if (!g.__CONFIGFORM_DEVTOOLS_HOOK__) {
+    const listeners = new Set<(forms: Map<string, DevToolsPluginAPI>) => void>()
+    g.__CONFIGFORM_DEVTOOLS_HOOK__ = {
+      forms: new Map(),
+      register(id: string, api: DevToolsPluginAPI) { (g.__CONFIGFORM_DEVTOOLS_HOOK__ as { forms: Map<string, DevToolsPluginAPI> }).forms.set(id, api); listeners.forEach(fn => fn((g.__CONFIGFORM_DEVTOOLS_HOOK__ as { forms: Map<string, DevToolsPluginAPI> }).forms)) },
+      unregister(id: string) { (g.__CONFIGFORM_DEVTOOLS_HOOK__ as { forms: Map<string, DevToolsPluginAPI> }).forms.delete(id); listeners.forEach(fn => fn((g.__CONFIGFORM_DEVTOOLS_HOOK__ as { forms: Map<string, DevToolsPluginAPI> }).forms)) },
+      onChange(fn: (forms: Map<string, DevToolsPluginAPI>) => void) { listeners.add(fn); return () => listeners.delete(fn) },
+    }
+  }
+  return g.__CONFIGFORM_DEVTOOLS_HOOK__ as ReturnType<typeof getOrCreateHook>
+}
+
 /** DevTools 浮动面板包装器：通过全局 Hook 的 onChange 事件驱动更新（零轮询） */
 function DevToolsFloating(): React.ReactElement | null {
   const [api, setApi] = useState<DevToolsPluginAPI | null>(null)
 
   useEffect(() => {
-    type Hook = { forms: Map<string, DevToolsPluginAPI>, onChange: (fn: (forms: Map<string, DevToolsPluginAPI>) => void) => () => void }
-    const hook = (window as unknown as Record<string, unknown>).__CONFIGFORM_DEVTOOLS_HOOK__ as Hook | undefined
-    if (!hook) return
-
-    /** 从 forms Map 取最新 API */
+    const hook = getOrCreateHook()
     const update = (forms: Map<string, DevToolsPluginAPI>): void => {
       setApi(forms.size > 0 ? forms.values().next().value! : null)
     }

@@ -1,17 +1,8 @@
 {
-  "extends": "../../tsconfig.app.json",
-  "compilerOptions": {
-    "composite": true,
-    "rootDir": "./src",
-    "outDir": "./dist"
-  },
-  "vueCompilerOptions": {
-    "plugins": [
-      "@vue-macros/volar/define-models",
-      "@vue-macros/volar/define-slots",
-      "@vue-macros/volar/define-props",
-      "@vue-macros/volar/define-emits"
-    ]
-  },
-  "include": ["src"]
+  "extends": "./tsconfig.base.json",
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ],
+  "files": []
 }
