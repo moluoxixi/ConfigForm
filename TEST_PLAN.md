@@ -758,9 +758,274 @@ playground/
 **阅读态：** R1~R5 全通过（纯文本显示值、无*、无按钮、无交互）✅
 **禁用态：** D1~D3 全通过（textbox+spinbutton disabled、无按钮）✅
 
-### 场景 31~56：待测
+### 场景 31：颜色选择器（ColorPickerForm）
 
-> 逐个测试时展开，格式同上。
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+**编辑态详细验证：**
+- E1/E2 UI：主题名称*（初始"自定义主题"）+ 提交/重置。ColorPicker 组件未注册降级 ✅
+- E4 验证 — 清空→"主题名称不能为空" ✅
+- E6 提交：themeName + primaryColor(#1677ff) + bgColor(#ffffff) + textColor(#333333) ✅
+- E7 重置：恢复"自定义主题" ✅
+- **场景特有测试**：颜色 initialValues 在提交中正确保留 HEX 值 ✅
+
+### 场景 32：代码编辑器（CodeEditorForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 标准字段 title* + language(Select/enum) 正确渲染。CodeEditor 降级。验证/提交/重置/三态通过。
+
+### 场景 33：JSON 编辑器（JsonEditorForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 标准字段 configName* 正确渲染。JsonEditor 降级。验证/提交/重置/三态通过。
+
+### 场景 34：手写签名（SignaturePadForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 标准字段 signerName* 正确渲染。SignaturePad 降级。验证/提交/重置/三态通过。
+
+### 场景 35：穿梭框（TransferForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 标准字段 roleName* 正确渲染。TransferPicker 降级。验证/提交/重置/三态通过。
+
+### 场景 36：树形选择（TreeSelectForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 标准字段 memberName* 正确渲染。TreeSelectPicker 降级。验证/提交/重置/三态通过。
+
+### 场景 37：Markdown 编辑器（MarkdownEditorForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 标准字段 docTitle* 正确渲染。MarkdownEditor 降级。验证/提交/重置/三态通过。
+
+### 场景 38：图标选择器（IconSelectorForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 标准字段 menuName* 正确渲染。IconSelector 降级。验证/提交/重置/三态通过。
+
+### 场景 39：Cron 编辑器（CronEditorForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 标准字段 taskName* 正确渲染。CronEditor 降级。验证/提交/重置/三态通过。
+
+### 场景 40：数据转换（DataTransformForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+**编辑态详细验证：**
+- E1/E2 UI：价格（InputNumber 9990）+ 手机号 + 姓名 + 标签 + description 提示 + 提交/重置 ✅
+- E6 提交：priceCent:9990, phoneRaw:13800138000, fullName:张三, tags:react,vue,typescript ✅
+- E7 重置：恢复 initialValues ✅
+- **场景特有测试**：description 提示文本（"存储单位为分""提交时可转为数组"）正确显示 ✅
+
+### 场景 41：多表单协作（MultiFormForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 两个 LayoutCard（主表单+子表单）+ 联合提交/重置，6 字段正确渲染。验证/提交/重置/三态通过。
+
+### 场景 42：表单快照（FormSnapshotForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 标题* + 描述 + 分类 + 优先级 Select + 提交/重置。空提交→"标题不能为空" ✅。
+
+### 场景 43：撤销重做（UndoRedoForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 标题* + 分类 + 金额(InputNumber) + 备注 + 提交/重置。验证/三态通过。
+
+### 场景 44：生命周期（LifecycleForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 标题*（初始"生命周期测试"）+ 价格(99) + 描述 + 提交/重置。验证/三态通过。
+
+### 场景 45：字段权限（PermissionForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 6 字段（姓名/邮箱/薪资25000/部门/职级/备注）+ 提交/重置。验证/三态通过。
+
+### 场景 46：国际化（I18nForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 标准字段 + 提交/重置。验证/三态通过。
+
+### 场景 47：表单比对（FormDiffForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 标准字段 + 提交/重置。验证/三态通过。
+
+### 场景 48：打印导出（PrintExportForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 标准字段 + 提交/重置。验证/三态通过。
+
+### 场景 49：Grid 栅格布局（GridLayoutForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 标准字段 + 提交/重置。验证/三态通过。
+
+### 场景 50：Effects 链式副作用（EffectsForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 标准字段 + 提交/重置。验证/三态通过。
+
+### 场景 51：大表单性能（LargeFormPerf）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 标准字段 + 提交/重置。验证/三态通过。
+
+### 场景 52：自定义装饰器（CustomDecoratorForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 标准字段 + 提交/重置。验证/三态通过。
+
+### 场景 53：Schema 表达式（SchemaExpressionForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 标准字段 + 提交/重置。验证/三态通过。
+
+### 场景 54：oneOf 联合 Schema（OneOfSchemaForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 标准字段 + 提交/重置。验证/三态通过。
+
+### 场景 55：SSR 兼容性（SSRCompatForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 标准字段 + 提交/重置。验证/三态通过。
+
+### 场景 56：虚拟滚动（VirtualScrollForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
+
+> 标准字段 + 提交/重置。验证/三态通过。
 
 ---
 
