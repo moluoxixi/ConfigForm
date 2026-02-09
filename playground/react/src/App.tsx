@@ -4,7 +4,9 @@
  * 从 @playground/shared 动态加载场景配置，通过 SceneRenderer 渲染。
  */
 import type { SceneConfig } from '@playground/shared'
+import type { DevToolsPluginAPI } from '@moluoxixi/plugin-devtools'
 import { getSceneGroups, sceneRegistry } from '@playground/shared'
+import { DevToolsPanel } from '@moluoxixi/plugin-devtools'
 import { setupAntd } from '@moluoxixi/ui-antd'
 import { registerComponent, registerDecorator } from '@moluoxixi/react'
 import React, { useCallback, useEffect, useState } from 'react'
@@ -104,6 +106,30 @@ export function App(): React.ReactElement {
             : <div style={{ textAlign: 'center', color: '#999', padding: 40 }}>{loading ? '加载中...' : '请选择场景'}</div>}
         </div>
       </div>
+
+      {/* DevTools 浮动面板 — 从全局 Hook 读取 API */}
+      <DevToolsFloating />
     </div>
   )
+}
+
+/** DevTools 浮动面板包装器：从 window.__CONFIGFORM_DEVTOOLS_HOOK__ 获取 API */
+function DevToolsFloating(): React.ReactElement | null {
+  const [api, setApi] = useState<DevToolsPluginAPI | null>(null)
+
+  useEffect(() => {
+    const check = (): void => {
+      const hook = (window as unknown as Record<string, unknown>).__CONFIGFORM_DEVTOOLS_HOOK__ as
+        { forms: Map<string, DevToolsPluginAPI> } | undefined
+      if (hook?.forms.size) {
+        setApi(hook.forms.values().next().value!)
+      }
+    }
+    check()
+    const timer = setInterval(check, 500)
+    return () => clearInterval(timer)
+  }, [])
+
+  if (!api) return null
+  return <DevToolsPanel api={api} />
 }

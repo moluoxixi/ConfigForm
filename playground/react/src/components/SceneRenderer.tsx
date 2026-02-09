@@ -9,9 +9,13 @@ import type { ISchema } from '@moluoxixi/core'
 import type { FieldPattern } from '@moluoxixi/core'
 import type { SceneConfig } from '@playground/shared'
 import { ConfigForm } from '@moluoxixi/react'
+import { devToolsPlugin } from '@moluoxixi/plugin-devtools'
 import { StatusTabs } from '@moluoxixi/ui-antd'
 import { observer } from 'mobx-react-lite'
 import React, { useMemo, useState } from 'react'
+
+/** DevTools 插件单例（所有场景共用，避免重复创建） */
+const devTools = devToolsPlugin({ formId: 'playground' })
 
 /** 注入 pattern 到 schema */
 function withMode(s: ISchema, mode: FieldPattern): ISchema {
@@ -75,7 +79,7 @@ export const SceneRenderer = observer(({ config }: SceneRendererProps): React.Re
             initialValues={config.initialValues}
             formConfig={{
               effects: config.effects,
-              plugins: config.plugins,
+              plugins: [...(config.plugins ?? []), devTools],
             }}
             onSubmit={showResult}
             onSubmitFailed={errors => showErrors(errors)}
