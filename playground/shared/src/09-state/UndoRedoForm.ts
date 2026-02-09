@@ -1,16 +1,20 @@
 import type { SceneConfig } from '../types'
+import { lowerCodePlugin } from '@moluoxixi/plugin-lower-code'
 
 /**
  * 场景：撤销重做
  *
- * 演示 undo/redo 操作栈能力。
- * 通过 form.onValuesChange 监听值变化，维护历史快照栈支持撤销/重做。
- * 支持 Ctrl+Z 撤销、Ctrl+Shift+Z 重做快捷键。
+ * 演示 lowerCodePlugin 的 history 能力：
+ * - 值变化时自动记录快照（内置）
+ * - Ctrl+Z 撤销 / Ctrl+Y 重做（内置）
+ * - 历史记录数量可配置
+ *
+ * 无需任何 effects，插件自动处理一切。
  */
 
 const config: SceneConfig = {
   title: '撤销重做',
-  description: 'undo/redo 操作栈 — ConfigForm + Schema 实现',
+  description: '自动快照 + Ctrl+Z 撤销 / Ctrl+Y 重做（插件内置，零配置）',
 
   initialValues: {
     title: '',
@@ -29,6 +33,16 @@ const config: SceneConfig = {
       note: { type: 'string', title: '备注', component: 'Textarea', componentProps: { rows: 3 } },
     },
   },
+
+  plugins: [
+    lowerCodePlugin({
+      history: { maxLength: 30 },
+      dirtyChecker: false,
+      acl: false,
+      submitRetry: false,
+      subForm: false,
+    }),
+  ],
 }
 
 export default config

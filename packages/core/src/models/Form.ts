@@ -8,8 +8,10 @@ import type {
   FormConfig,
   FormGraph,
   FormInstance,
+  FormPlugin,
   ObjectFieldInstance,
   ObjectFieldProps,
+  PluginContext,
   ResetOptions,
   SubmitResult,
   VoidFieldInstance,
@@ -18,6 +20,7 @@ import type {
 import { getReactiveAdapter } from '@moluoxixi/reactive'
 import { deepClone, deepMerge, FormPath, uid } from '@moluoxixi/shared'
 import { FormEventEmitter, FormLifeCycle } from '../events'
+import { FormHookManager } from '../hooks'
 import { ReactionEngine } from '../reaction/engine'
 import { ArrayField } from './ArrayField'
 import { Field } from './Field'
@@ -70,6 +73,12 @@ implements FormInstance<Values> {
   private disposers: Disposer[] = []
   /** 并发提交防护：正在执行的提交 Promise */
   private _submitPromise: Promise<SubmitResult<Values>> | null = null
+  /** 已安装的插件 API 注册表（name → api） */
+  private _pluginAPIs = new Map<string, unknown>()
+  /** 已安装的插件销毁函数列表 */
+  private _pluginDisposers: Array<() => void> = []
+  /** Hook 管理器（管线拦截） */
+  private _hookManager = new FormHookManager()
 
   constructor(config: FormConfig<Values> = {}) {
     this.id = uid('form')
@@ -143,8 +152,17 @@ implements FormInstance<Values> {
     return result
   }
 
-  /** 创建普通字段 */
+  /** 创建普通字段（经过 hook 管线） */
   createField<V = unknown>(props: FieldProps<V>): FieldInstance<V> {
+    return this._hookManager.runCreateField<V>(
+      this as unknown as FormInstance,
+      props,
+      (p) => this._doCreateField(p),
+    )
+  }
+
+  /** 原始字段创建逻辑 */
+  private _doCreateField<V = unknown>(props: FieldProps<V>): FieldInstance<V> {
     const adapter = getReactiveAdapter()
     const rawField = new Field<V>(this as unknown as FormInstance, props)
 
@@ -332,18 +350,22 @@ implements FormInstance<Values> {
     return this.voidFields
   }
 
-  /** 设置表单值 */
+  /** 设置表单值（经过 hook 管线） */
   setValues(values: Partial<Values>, strategy: 'merge' | 'shallow' | 'replace' = 'merge'): void {
+    this._hookManager.runSetValues(
+      this as unknown as FormInstance,
+      values as Record<string, unknown>,
+      strategy,
+      () => this._doSetValues(values, strategy),
+    )
+  }
+
+  /** 原始赋值逻辑 */
+  private _doSetValues(values: Partial<Values>, strategy: 'merge' | 'shallow' | 'replace'): void {
     const adapter = getReactiveAdapter()
     adapter.batch(() => {
       switch (strategy) {
         case 'replace': {
-          /**
-           * 不创建新的 reactive 对象，而是在原引用上执行：
-           * 1. 删除不在新 values 中的旧 key
-           * 2. 赋值新 values 的所有 key
-           * 这样保持 this.values 的引用不变，避免破坏正在运行的 reactions。
-           */
           const target = this.values as Record<string, unknown>
           const source = values as Record<string, unknown>
           for (const key of Object.keys(target)) {
@@ -378,8 +400,17 @@ implements FormInstance<Values> {
     return FormPath.getIn(this.values, path)
   }
 
-  /** 重置表单 */
+  /** 重置表单（经过 hook 管线） */
   reset(options?: ResetOptions): void {
+    this._hookManager.runReset(
+      this as unknown as FormInstance,
+      options,
+      () => this._doReset(options),
+    )
+  }
+
+  /** 原始重置逻辑 */
+  private _doReset(options?: ResetOptions): void {
     const adapter = getReactiveAdapter()
     adapter.batch(() => {
       if (options?.fields) {
@@ -390,11 +421,6 @@ implements FormInstance<Values> {
         }
       }
       else {
-        /**
-         * 直接替换整个 values 引用。
-         * 不需要手动清理数组子字段——替换 values 后 React 重新渲染，
-         * 多余的 FormField 组件自动 unmount，触发 useEffect cleanup 移除字段。
-         */
         if (options?.forceClear) {
           this.values = {} as Values
         }
@@ -418,28 +444,34 @@ implements FormInstance<Values> {
   }
 
   /**
-   * 提交表单
+   * 提交表单（经过 hook 管线）
    *
    * 并发防护：多次调用（如用户快速双击）会复用同一个提交 Promise，
    * 所有调用方拿到相同结果，避免重复提交。
    */
   async submit(): Promise<SubmitResult<Values>> {
-    /* 并发提交防护：复用正在执行的提交 */
     if (this._submitPromise) {
       return this._submitPromise
     }
-    this._submitPromise = this._executeSubmit()
-    return this._submitPromise
+    this._submitPromise = this._hookManager.runSubmit(
+      this as unknown as FormInstance,
+      () => this._doSubmit(),
+    ) as Promise<SubmitResult<Values>>
+    try {
+      return await this._submitPromise
+    }
+    finally {
+      this._submitPromise = null
+    }
   }
 
-  /** 实际提交逻辑（内部使用） */
-  private async _executeSubmit(): Promise<SubmitResult<Values>> {
+  /** 原始提交逻辑 */
+  private async _doSubmit(): Promise<SubmitResult<Values>> {
     this.submitting = true
     this._emitter.emit(FormLifeCycle.ON_FORM_SUBMIT_START, this)
     try {
       const { valid, errors, warnings } = await this.validate()
       if (!valid) {
-        /* 聚焦到第一个错误字段 */
         if (errors.length > 0) {
           const firstErrorField = this.fields.get(errors[0].path)
           firstErrorField?.focus()
@@ -449,7 +481,6 @@ implements FormInstance<Values> {
         return result
       }
 
-      /* 收集提交数据（处理隐藏字段排除、路径映射、值转换） */
       const submitValues = this.collectSubmitValues()
       const result = { values: submitValues as Values, errors: [], warnings }
       this._emitter.emit(FormLifeCycle.ON_FORM_SUBMIT_SUCCESS, result)
@@ -458,12 +489,22 @@ implements FormInstance<Values> {
     finally {
       this.submitting = false
       this._emitter.emit(FormLifeCycle.ON_FORM_SUBMIT_END, this)
-      this._submitPromise = null
     }
   }
 
-  /** 验证全部或部分字段 */
+  /** 验证全部或部分字段（经过 hook 管线） */
   async validate(
+    pattern?: string,
+  ): Promise<{ valid: boolean, errors: ValidationFeedback[], warnings: ValidationFeedback[] }> {
+    return this._hookManager.runValidate(
+      this as unknown as FormInstance,
+      pattern,
+      () => this._doValidate(pattern),
+    )
+  }
+
+  /** 原始验证逻辑 */
+  private async _doValidate(
     pattern?: string,
   ): Promise<{ valid: boolean, errors: ValidationFeedback[], warnings: ValidationFeedback[] }> {
     this.validating = true
@@ -811,8 +852,116 @@ implements FormInstance<Values> {
     })
   }
 
+  /**
+   * 安装插件
+   *
+   * 同名插件重复安装会打印警告并跳过。
+   * 插件 install 返回的 dispose 会在表单 dispose 时自动调用。
+   *
+   * @param plugin - 插件实例
+   * @returns 插件暴露的 API（如无则返回 undefined）
+   */
+  use<API = Record<string, unknown>>(plugin: FormPlugin<API>): API | undefined {
+    /* 同名插件去重 */
+    if (this._pluginAPIs.has(plugin.name)) {
+      console.warn(
+        `[ConfigForm] 插件 "${plugin.name}" 已安装，跳过重复安装。`,
+      )
+      return this._pluginAPIs.get(plugin.name) as API | undefined
+    }
+
+    /* 检查依赖是否已安装 */
+    if (plugin.dependencies) {
+      for (const dep of plugin.dependencies) {
+        if (!this._pluginAPIs.has(dep)) {
+          throw new Error(
+            `[ConfigForm] 插件 "${plugin.name}" 依赖 "${dep}"，但该插件未安装。`
+            + ` 请确保 "${dep}" 在 "${plugin.name}" 之前安装。`,
+          )
+        }
+      }
+    }
+
+    /* 构建 PluginContext */
+    const hookManager = this._hookManager
+    const hookDisposers: Disposer[] = []
+    const context: PluginContext = {
+      getPlugin: <T = Record<string, unknown>>(name: string): T | undefined => {
+        return this._pluginAPIs.get(name) as T | undefined
+      },
+      hooks: {
+        onSubmit: (handler, priority) => {
+          const disposer = hookManager.submit.tap(handler, priority)
+          hookDisposers.push(disposer)
+          return disposer
+        },
+        onValidate: (handler, priority) => {
+          const disposer = hookManager.validate.tap(handler, priority)
+          hookDisposers.push(disposer)
+          return disposer
+        },
+        onSetValues: (handler, priority) => {
+          const disposer = hookManager.setValues.tap(handler, priority)
+          hookDisposers.push(disposer)
+          return disposer
+        },
+        onCreateField: (handler, priority) => {
+          const disposer = hookManager.createField.tap(handler, priority)
+          hookDisposers.push(disposer)
+          return disposer
+        },
+        onReset: (handler, priority) => {
+          const disposer = hookManager.reset.tap(handler, priority)
+          hookDisposers.push(disposer)
+          return disposer
+        },
+      },
+    }
+
+    const result = plugin.install(this as unknown as FormInstance, context)
+
+    /* 注册 API */
+    if (result.api !== undefined) {
+      this._pluginAPIs.set(plugin.name, result.api)
+    }
+    else {
+      this._pluginAPIs.set(plugin.name, undefined)
+    }
+
+    /* 注册销毁函数（包含 hook disposers） */
+    const pluginDispose = (): void => {
+      /* 先清理 hook 注册 */
+      for (const disposer of hookDisposers) {
+        disposer()
+      }
+      /* 再执行插件自身的 dispose */
+      result.dispose?.()
+    }
+    this._pluginDisposers.push(pluginDispose)
+
+    return result.api
+  }
+
+  /**
+   * 获取已安装的插件 API
+   *
+   * @param name - 插件名称
+   * @returns 插件 API（未安装则返回 undefined）
+   */
+  getPlugin<API = Record<string, unknown>>(name: string): API | undefined {
+    return this._pluginAPIs.get(name) as API | undefined
+  }
+
   /** 销毁表单 */
   dispose(): void {
+    /* 先销毁插件（插件可能依赖字段/事件系统） */
+    for (const disposer of this._pluginDisposers) {
+      disposer()
+    }
+    this._pluginDisposers = []
+    this._pluginAPIs.clear()
+    this._hookManager.dispose()
+
     this.reactionEngine.dispose()
     for (const field of this.fields.values()) {
       field.dispose()

@@ -8,6 +8,8 @@
     "./*": "./src/*"
   },
   "dependencies": {
+    "@moluoxixi/core": "workspace:*",
+    "@moluoxixi/plugin-lower-code": "workspace:*",
     "@moluoxixi/schema": "workspace:*"
   },
   "devDependencies": {

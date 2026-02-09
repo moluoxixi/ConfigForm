@@ -30,6 +30,7 @@
         :schema="withMode(currentSchema, mode)"
         :initial-values="props.config.initialValues"
         :effects="props.config.effects"
+        :plugins="props.config.plugins"
         @submit="showResult"
         @submit-failed="(e: any) => st?.showErrors(e)"
       />

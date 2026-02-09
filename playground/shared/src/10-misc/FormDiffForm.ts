@@ -1,15 +1,19 @@
 import type { SceneConfig } from '../types'
+import { lowerCodePlugin } from '@moluoxixi/plugin-lower-code'
 
 /**
  * 场景：表单比对
  *
- * 演示变更高亮 / 原始值 vs 当前值 / 变更摘要能力。
- * 通过 form.onValuesChange 监听值变化，与原始值进行 diff 对比。
+ * 演示 lowerCodePlugin 的 dirtyChecker 能力：
+ * - 深度对比 values 与 initialValues
+ * - 字段级 Diff（added / removed / changed）
+ * - 对比视图（initial vs current）
+ * - 脏字段数量统计
  */
 
 const config: SceneConfig = {
   title: '表单比对',
-  description: '变更高亮 / 原始值 vs 当前值 — ConfigForm + Schema 实现',
+  description: 'lowerCodePlugin.dirtyChecker — 变更高亮 / 原始值 vs 当前值',
 
   initialValues: {
     name: '张三',
@@ -32,6 +36,15 @@ const config: SceneConfig = {
       bio: { type: 'string', title: '简介', component: 'Textarea', componentProps: { rows: 2 } },
     },
   },
+
+  plugins: [
+    lowerCodePlugin({
+      history: false,
+      acl: false,
+      submitRetry: false,
+      subForm: false,
+    }),
+  ],
 }
 
 export default config

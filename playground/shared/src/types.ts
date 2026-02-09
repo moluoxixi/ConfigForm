@@ -1,4 +1,4 @@
-import type { FormInstance } from '@moluoxixi/core'
+import type { FormInstance, FormPlugin } from '@moluoxixi/core'
 import type { ISchema } from '@moluoxixi/schema'
 
 /**
@@ -36,4 +36,6 @@ export interface SceneConfig {
   schemaVariants?: SchemaVariants
   /** 可选：表单 effects（命令式监听，传递给 createForm） */
   effects?: (form: FormInstance) => void
+  /** 可选：表单插件列表（传递给 createForm） */
+  plugins?: FormPlugin[]
 }

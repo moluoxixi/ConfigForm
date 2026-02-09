@@ -1,35 +1,25 @@
-import type { FormGraph } from '@moluoxixi/core'
 import type { SceneConfig } from '../types'
-import { onFieldMount } from '@moluoxixi/core'
+import { lowerCodePlugin } from '@moluoxixi/plugin-lower-code'
 
 /**
- * 场景：Form Graph 序列化（状态快照与恢复）
+ * 场景：草稿保存与快照恢复
  *
- * 演示 form.getGraph() / form.setGraph() 能力：
- * - 导出完整表单状态快照（values + 字段状态）
- * - 从快照恢复表单状态
- * - 快照包含时间戳，支持多版本管理
- *
- * 核心功能覆盖：
- * - FormGraph 类型
- * - form.getGraph() 序列化
- * - form.setGraph() 反序列化
- * - Effects API（onFieldMount）
+ * 演示 lowerCodePlugin 的 draft + history 联合能力：
+ * - 自动保存草稿到 localStorage（防抖 2s）
+ * - 页面刷新后恢复草稿
+ * - 提交成功后清除草稿
+ * - 历史快照与草稿协作
  */
 
-/** 缓存的快照（模拟持久化存储） */
-let savedSnapshot: FormGraph | null = null
-
 const config: SceneConfig = {
-  title: 'Form Graph 状态快照',
-  description: 'getGraph / setGraph — 导出快照、恢复快照、草稿保存',
+  title: '草稿保存与快照',
+  description: 'lowerCodePlugin.draft + history — 自动保存 / 恢复草稿 / 快照',
 
   initialValues: {
     title: '',
     description: '',
     category: '',
     priority: '',
-    snapshotInfo: '尚未保存快照',
   },
 
   schema: {
@@ -48,56 +38,18 @@ const config: SceneConfig = {
         { label: '中', value: 'medium' },
         { label: '低', value: 'low' },
       ] },
-      snapshotInfo: {
-        type: 'string',
-        title: '快照信息',
-        component: 'Textarea',
-        readOnly: true,
-        componentProps: { rows: 4 },
-        description: '显示 getGraph() 返回的快照摘要（点击提交保存快照，点击重置恢复快照）',
-      },
     },
   },
 
-  effects: (form) => {
-    /**
-     * 劫持提交行为：将提交变为保存快照。
-     * 在实际业务中，getGraph() 的结果可以持久化到 localStorage 或后端。
-     */
-    form.on({ type: 'onFormSubmitStart' } as never, () => {
-      savedSnapshot = form.getGraph()
-      const info = [
-        `快照已保存 (${new Date(savedSnapshot.timestamp).toLocaleTimeString()})`,
-        `字段数: ${Object.keys(savedSnapshot.fields).length}`,
-        `values: ${JSON.stringify(savedSnapshot.values, null, 2).slice(0, 200)}`,
-      ].join('\n')
-      form.setFieldState('snapshotInfo', { value: info })
-    })
-
-    /**
-     * 劫持重置行为：从快照恢复。
-     * setGraph() 会恢复 values 和所有字段状态。
-     */
-    form.on({ type: 'onFormReset' } as never, () => {
-      if (savedSnapshot) {
-        form.setGraph(savedSnapshot)
-        form.setFieldState('snapshotInfo', {
-          value: `已从快照恢复 (原保存时间: ${new Date(savedSnapshot.timestamp).toLocaleTimeString()})`,
-        })
-      }
-      else {
-        form.setFieldState('snapshotInfo', { value: '没有已保存的快照' })
-      }
-    })
-
-    onFieldMount(form, 'snapshotInfo', () => {
-      form.setFieldState('snapshotInfo', {
-        value: savedSnapshot
-          ? `存在已保存的快照 (${new Date(savedSnapshot.timestamp).toLocaleTimeString()})，点击「重置」恢复`
-          : '尚未保存快照，填写表单后点击「提交」保存快照',
-      })
-    })
-  },
+  plugins: [
+    lowerCodePlugin({
+      history: { maxLength: 20 },
+      draft: { key: 'snapshot-demo', debounceMs: 2000 },
+      acl: false,
+      submitRetry: false,
+      subForm: false,
+    }),
+  ],
 }
 
 export default config

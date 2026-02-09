@@ -214,6 +214,23 @@ export interface FormConfig<Values extends Record<string, unknown> = Record<stri
   labelWidth?: number | string
   /** 表单生命周期 */
   effects?: (form: FormInstance) => void
+  /**
+   * 插件列表
+   *
+   * 在 createForm 完成响应式代理后自动安装。
+   * 插件按数组顺序依次安装，安装后通过 form.getPlugin() 获取 API。
+   *
+   * @example
+   * ```ts
+   * const form = createForm({
+   *   plugins: [
+   *     historyPlugin({ maxLength: 30 }),
+   *     draftPlugin({ key: 'user-form' }),
+   *   ],
+   * })
+   * ```
+   */
+  plugins?: FormPlugin[]
 }
 
 /** 重置选项 */
@@ -304,6 +321,313 @@ export interface FormGraph {
   timestamp: number
 }
 
+/* ======================== 插件系统 ======================== */
+
+/**
+ * 插件安装结果
+ *
+ * 插件 install 方法返回此对象，
+ * 包含暴露给外部的 API 和清理函数。
+ */
+export interface PluginInstallResult<API = unknown> {
+  /** 插件暴露的 API（可通过 form.getPlugin() 获取） */
+  api?: API
+  /** 插件销毁函数（表单 dispose 时自动调用） */
+  dispose?: () => void
+}
+
+/**
+ * 插件上下文
+ *
+ * 在 plugin.install() 中作为第二个参数传入，
+ * 提供跨插件通信和 Hook 拦截能力。
+ */
+export interface PluginContext {
+  /**
+   * 获取其他已安装插件的 API
+   *
+   * 注意：只能获取在当前插件之前安装的插件。
+   * 如果需要依赖其他插件，请声明 dependencies。
+   */
+  getPlugin: <T = Record<string, unknown>>(name: string) => T | undefined
+  /** 注册 Hook 拦截器（可拦截 Form 核心操作） */
+  hooks: FormHooks
+}
+
+/**
+ * 表单 Hook 注册接口
+ *
+ * 插件通过 hooks 注册拦截器，
+ * 拦截并修改 Form 的 5 个核心操作管线。
+ *
+ * 每个 Hook 使用洋葱模型：
+ * handler 接收 ctx（上下文）和 next（调用下一层），
+ * 可以在 next() 前后执行自定义逻辑、修改参数或结果。
+ */
+export interface FormHooks {
+  /**
+   * 拦截提交管线
+   *
+   * 可用于：重试、日志、转换提交数据、提交后清理草稿等。
+   *
+   * @param handler - 提交 Hook
+   * @param priority - 优先级（数字越小越先执行，默认 100）
+   */
+  onSubmit: (handler: SubmitHook, priority?: number) => Disposer
+  /**
+   * 拦截验证管线
+   *
+   * 可用于：自定义校验器、跳过验证、修改验证结果等。
+   *
+   * @param handler - 验证 Hook
+   * @param priority - 优先级（数字越小越先执行，默认 100）
+   */
+  onValidate: (handler: ValidateHook, priority?: number) => Disposer
+  /**
+   * 拦截赋值管线
+   *
+   * 可用于：值转换、拦截赋值、自动快照等。
+   *
+   * @param handler - 赋值 Hook
+   * @param priority - 优先级（数字越小越先执行，默认 100）
+   */
+  onSetValues: (handler: SetValuesHook, priority?: number) => Disposer
+  /**
+   * 拦截字段创建管线
+   *
+   * 可用于：注入默认属性、权限控制、修改 props 等。
+   * next() 接收可能被修改的 props，返回创建后的字段实例。
+   *
+   * @param handler - 字段创建 Hook
+   * @param priority - 优先级（数字越小越先执行，默认 100）
+   */
+  onCreateField: (handler: CreateFieldHook, priority?: number) => Disposer
+  /**
+   * 拦截重置管线
+   *
+   * 可用于：保留部分状态、清理副作用、重置后快照等。
+   *
+   * @param handler - 重置 Hook
+   * @param priority - 优先级（数字越小越先执行，默认 100）
+   */
+  onReset: (handler: ResetHook, priority?: number) => Disposer
+}
+
+/* ======================== Hook Handler 类型 ======================== */
+
+/** 提交管线上下文 */
+export interface SubmitHookContext {
+  /** 表单实例 */
+  form: FormInstance
+}
+
+/** 验证管线上下文 */
+export interface ValidateHookContext {
+  /** 表单实例 */
+  form: FormInstance
+  /** 验证模式（通配符匹配，undefined 表示全部验证） */
+  pattern?: string
+}
+
+/** 赋值管线上下文 */
+export interface SetValuesHookContext {
+  /** 表单实例 */
+  form: FormInstance
+  /** 要设置的值 */
+  values: Record<string, unknown>
+  /** 合并策略 */
+  strategy: string
+}
+
+/** 字段创建管线上下文 */
+export interface CreateFieldHookContext {
+  /** 表单实例 */
+  form: FormInstance
+  /** 字段属性（可被 hook 修改后传给 next） */
+  props: FieldProps
+}
+
+/** 重置管线上下文 */
+export interface ResetHookContext {
+  /** 表单实例 */
+  form: FormInstance
+  /** 重置选项 */
+  options?: ResetOptions
+}
+
+/** 验证结果 */
+export interface ValidateResult {
+  valid: boolean
+  errors: import('@moluoxixi/validator').ValidationFeedback[]
+  warnings: import('@moluoxixi/validator').ValidationFeedback[]
+}
+
+/**
+ * 提交 Hook
+ *
+ * 拦截 form.submit() 管线。
+ * 调用 next() 继续执行下一层 hook 或原始逻辑，
+ * 不调用 next() 则中断管线。
+ *
+ * @example
+ * ```ts
+ * // 提交后清除草稿
+ * hooks.onSubmit(async (ctx, next) => {
+ *   const result = await next()
+ *   if (result.errors.length === 0) {
+ *     ctx.form.getPlugin<DraftAPI>('draft')?.discard()
+ *   }
+ *   return result
+ * })
+ * ```
+ */
+export type SubmitHook = (
+  ctx: SubmitHookContext,
+  next: () => Promise<SubmitResult>,
+) => Promise<SubmitResult>
+
+/**
+ * 验证 Hook
+ *
+ * 拦截 form.validate() 管线。
+ *
+ * @example
+ * ```ts
+ * // 跳过特定条件下的验证
+ * hooks.onValidate(async (ctx, next) => {
+ *   if (shouldSkipValidation()) {
+ *     return { valid: true, errors: [], warnings: [] }
+ *   }
+ *   return next()
+ * })
+ * ```
+ */
+export type ValidateHook = (
+  ctx: ValidateHookContext,
+  next: () => Promise<ValidateResult>,
+) => Promise<ValidateResult>
+
+/**
+ * 赋值 Hook
+ *
+ * 拦截 form.setValues() 管线。
+ *
+ * @example
+ * ```ts
+ * // 赋值后自动保存快照
+ * hooks.onSetValues((ctx, next) => {
+ *   next()
+ *   ctx.form.getPlugin<HistoryAPI>('history')?.save('input')
+ * })
+ * ```
+ */
+export type SetValuesHook = (
+  ctx: SetValuesHookContext,
+  next: () => void,
+) => void
+
+/**
+ * 字段创建 Hook
+ *
+ * 拦截 form.createField() 管线。
+ * next() 接收 FieldProps，返回创建后的 FieldInstance。
+ * Hook 可以修改 props 后传给 next，也可以在 next 返回后修改字段实例。
+ *
+ * @example
+ * ```ts
+ * // 拦截字段创建，注入权限
+ * hooks.onCreateField((ctx, next) => {
+ *   const field = next(ctx.props)
+ *   applyPermission(field)
+ *   return field
+ * })
+ * ```
+ */
+export type CreateFieldHook = (
+  ctx: CreateFieldHookContext,
+  next: (props: FieldProps) => FieldInstance,
+) => FieldInstance
+
+/**
+ * 重置 Hook
+ *
+ * 拦截 form.reset() 管线。
+ *
+ * @example
+ * ```ts
+ * // 重置后清空历史
+ * hooks.onReset((ctx, next) => {
+ *   next()
+ *   ctx.form.getPlugin<HistoryAPI>('history')?.clear()
+ * })
+ * ```
+ */
+export type ResetHook = (
+  ctx: ResetHookContext,
+  next: () => void,
+) => void
+
+/**
+ * 表单插件接口
+ *
+ * 插件通过 install 方法挂载到表单实例上，
+ * 可以监听事件、注册 Hook 拦截器、暴露自定义 API。
+ *
+ * 设计原则：
+ * - 插件通过 PluginContext.hooks 拦截 Form 核心操作（洋葱模型）
+ * - 插件通过 PluginContext.getPlugin 实现跨插件通信
+ * - 插件通过 dependencies 声明依赖顺序
+ * - 插件生命周期由 Form 管理（dispose 时自动清理）
+ *
+ * @example
+ * ```ts
+ * function myPlugin(config: MyConfig): FormPlugin<MyAPI> {
+ *   return {
+ *     name: 'my-plugin',
+ *     install(form, { hooks, getPlugin }) {
+ *       // 拦截提交管线
+ *       hooks.onSubmit(async (ctx, next) => {
+ *         const result = await next()
+ *         console.log('提交结果:', result)
+ *         return result
+ *       })
+ *
+ *       return {
+ *         api: { doSomething: () => { ... } },
+ *         dispose: () => { ... },
+ *       }
+ *     },
+ *   }
+ * }
+ * ```
+ */
+export interface FormPlugin<API = unknown> {
+  /** 插件唯一名称（重复名称的插件安装时会打印警告并跳过） */
+  name: string
+  /**
+   * 插件依赖（这些插件必须先于当前插件安装）
+   *
+   * createForm 会根据 dependencies 自动排序插件安装顺序。
+   * 运行时调用 form.use() 安装时不会自动排序，需确保依赖已安装。
+   */
+  dependencies?: string[]
+  /**
+   * 安装顺序优先级（数字越小越先安装，默认 100）
+   *
+   * 当多个插件无依赖关系时，按 priority 排序。
+   * 同 priority 的插件按数组中的原始顺序安装。
+   */
+  priority?: number
+  /**
+   * 安装插件到表单实例
+   *
+   * @param form - 表单实例
+   * @param context - 插件上下文（提供 hooks 和 getPlugin）
+   * @returns 插件 API 和清理函数
+   */
+  install: (form: FormInstance, context: PluginContext) => PluginInstallResult<API>
+}
+
 /* ======================== 实例类型（避免循环依赖的接口） ======================== */
 
 /** Form 实例接口 */
@@ -388,6 +712,29 @@ export interface FormInstance<Values extends Record<string, unknown> = Record<st
   getGraph: () => FormGraph
   /** 从快照恢复表单状态 */
   setGraph: (graph: FormGraph) => void
+  /**
+   * 安装插件
+   *
+   * 运行时动态安装插件（通常通过 FormConfig.plugins 自动安装）。
+   * 同名插件重复安装会打印警告并跳过。
+   *
+   * @param plugin - 插件实例
+   * @returns 插件暴露的 API（如无则返回 undefined）
+   */
+  use: <API = unknown>(plugin: FormPlugin<API>) => API | undefined
+  /**
+   * 获取已安装的插件 API
+   *
+   * @param name - 插件名称
+   * @returns 插件 API（未安装则返回 undefined）
+   *
+   * @example
+   * ```ts
+   * const history = form.getPlugin<HistoryPluginAPI>('history')
+   * history?.undo()
+   * ```
+   */
+  getPlugin: <API = unknown>(name: string) => API | undefined
   dispose: () => void
 }
 

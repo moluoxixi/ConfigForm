@@ -1,15 +1,19 @@
 import type { SceneConfig } from '../types'
+import { lowerCodePlugin } from '@moluoxixi/plugin-lower-code'
 
 /**
- * 场景：多表单协作
+ * 场景：多表单协作（子表单插件）
  *
- * 演示两个独立表单的联合提交 / 弹窗表单复用 / 跨表单数据同步。
- * 主表单（订单信息）和子表单（联系人信息）各自独立管理，联合校验提交。
+ * 演示 lowerCodePlugin 的 subForm 能力：
+ * - 子表单挂载到父表单指定路径
+ * - 双向/单向/手动同步模式
+ * - 子表单独立验证
+ * - 子表单验证失败阻止父表单提交
  */
 
 const config: SceneConfig = {
   title: '多表单协作',
-  description: '两个独立表单 / 联合提交 — ConfigForm + Schema 实现',
+  description: 'lowerCodePlugin.subForm — 子表单挂载 / 同步 / 联合提交',
 
   initialValues: {
     orderName: '',
@@ -46,6 +50,15 @@ const config: SceneConfig = {
       },
     },
   },
+
+  plugins: [
+    lowerCodePlugin({
+      history: false,
+      dirtyChecker: false,
+      acl: false,
+      submitRetry: false,
+    }),
+  ],
 }
 
 export default config

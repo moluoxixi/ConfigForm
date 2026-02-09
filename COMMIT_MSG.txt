@@ -1,28 +1,11 @@
-feat(core): 核心引擎增强 — ObjectField、生命周期、Input分离、Graph序列化、oneOf、Effects API
+feat(plugin): 插件系统 + 低代码插件包
 
-Phase 1 — 核心模型增强：
-- 新增 6 个生命周期事件：ON_FORM_MOUNT/UNMOUNT、ON_FIELD_MOUNT/UNMOUNT、ON_FIELD_INPUT_VALUE_CHANGE、ON_FIELD_INITIAL_VALUE_CHANGE
-- Field.onInput/setValue 分离：用户输入走 onInput（触发验证），程序赋值走 setValue（不触发验证）
-- Field/VoidField/Form 新增 mounted 属性和 mount/unmount 方法
-- 新建 ObjectField 模型：支持 addProperty/removeProperty/existProperty/getPropertyNames
-- Form 新增 getGraph/setGraph 状态序列化，支持快照和恢复
-- React/Vue 桥接层更新：FormProvider 调用 form.mount/unmount，FormField 调用 field.mount/unmount，ReactiveField onChange 改用 onInput
-
-Phase 2 — Schema 协议增强：
-- ISchema 新增 oneOf/discriminator 条件分支，编译器自动生成隐式 reactions 切换分支
-- ISchema 新增 layout 属性（grid/inline 布局）
-
-Phase 3 — Effects API：
-- 新建 effects 模块：onFieldValueChange、onFieldInputChange、onFieldInit、onFieldMount、onFieldUnmount、onFormReact、onFieldReact
-
-修复预存问题：
-- vue 包缺少 @moluoxixi/shared 依赖声明
-- schema 包缺少 @moluoxixi/validator 依赖声明
-- CompiledField.resolvedComponent 类型从 string|unknown 改为 ComponentType
-- validator.ts rule.message 函数类型未处理
-- FormProvider ComponentType 与 Vue Component 类型不兼容
-
-示例补充（28->33）：
-- 新增 OneOfSchemaForm、EffectsAPIForm、ObjectFieldDynamicForm
-- 更新 LifecycleForm、FormSnapshotForm 使用新 API
-- SceneConfig 新增 effects 字段，ConfigForm/SceneRenderer 适配
+- core: 新增 Hook 拦截架构（洋葱模型），支持 submit/validate/setValues/createField/reset 5 条管线拦截
+- core: FormPlugin 接口升级，支持 dependencies 依赖声明、priority 安装排序、PluginContext（hooks + getPlugin）
+- core: createForm 支持插件拓扑排序（Kahn 算法），循环依赖/缺失依赖自动报错
+- plugin-lower-code: 聚合低代码插件包，包含撤销重做/脏检查/草稿保存/ACL权限/数据脱敏/提交重试/子表单 7 个子插件
+- plugin-lower-code: lowerCodePlugin() 一键注册，各子功能可单独开关
+- plugin-lower-code: history 插件内置自动快照 + Ctrl+Z/Ctrl+Y 键盘快捷键
+- vue: ConfigForm 组件新增 plugins prop 透传
+- playground: 示例注册扩展到 58 个场景 12 个分组，新增插件能力分组
+- playground: 插件场景示例使用 lowerCodePlugin 演示撤销重做/脏检查/权限控制/子表单

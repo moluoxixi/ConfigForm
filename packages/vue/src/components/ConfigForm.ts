@@ -1,4 +1,4 @@
-import type { FormConfig, FormInstance } from '@moluoxixi/core'
+import type { FormConfig, FormInstance, FormPlugin } from '@moluoxixi/core'
 import type { ISchema } from '@moluoxixi/schema'
 import type { ComponentType, FieldPattern } from '@moluoxixi/shared'
 import type { Component, PropType } from 'vue'
@@ -100,6 +100,10 @@ export const ConfigForm = defineComponent({
       type: Function as PropType<(form: FormInstance) => void>,
       default: undefined,
     },
+    plugins: {
+      type: Array as PropType<FormPlugin[]>,
+      default: undefined,
+    },
   },
   emits: ['submit', 'submitFailed', 'valuesChange'],
   setup(props, { slots, emit }) {
@@ -115,6 +119,7 @@ export const ConfigForm = defineComponent({
       ...props.formConfig,
       initialValues: props.initialValues ?? props.formConfig?.initialValues,
       effects: props.effects,
+      plugins: props.plugins,
     })
     const form = props.form ?? internalForm
 

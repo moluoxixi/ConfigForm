@@ -30,63 +30,40 @@ export { VoidField } from './models/VoidField'
 export { ReactionEngine, ReactionTracer } from './reaction/engine'
 export type { ReactionTraceRecord } from './reaction/engine'
 
-/* 功能增强模块 */
-export {
-  /* Undo/Redo */
-  FormHistory,
-  /* 脏检查 */
-  checkDirty,
-  deepEqual,
-  getDiffView,
-  isFieldDirty,
-  /* 草稿自动保存 */
-  FormDraftManager,
-  LocalStorageAdapter,
-  SessionStorageAdapter,
-  /* ACL 权限 */
-  FormACL,
-  /* 数据脱敏 */
-  createMasker,
-  maskValue,
-  registerMaskingType,
-  /* 提交重试 */
-  submitWithRetry,
-  withTimeout,
-  /* 子表单 */
-  createSubForm,
-  SubFormManager,
-} from './features'
-export type {
-  HistoryRecord,
-  FormHistoryConfig,
-  DirtyCheckResult,
-  FieldDiff,
-  DraftConfig,
-  DraftStorageAdapter,
-  FieldPermission,
-  FormACLConfig,
-  PermissionRule,
-  RolePermission,
-  MaskingConfig,
-  MaskingRule,
-  MaskingType,
-  RetryStrategy,
-  SubmitRetryConfig,
-  SubFormConfig,
-  SyncMode,
-} from './features'
+/* Hook 管理器 */
+export { FormHookManager } from './hooks'
 
 /* 类型导出 */
 export type {
+  /* 字段 */
   ArrayFieldInstance,
   ArrayFieldProps,
   DataSourceConfig,
   FieldInstance,
   FieldProps,
   FieldState,
+  /* 表单 */
   FormConfig,
   FormGraph,
   FormInstance,
+  /* 插件系统 */
+  FormPlugin,
+  PluginContext,
+  PluginInstallResult,
+  FormHooks,
+  /* Hook Handler 类型 */
+  SubmitHook,
+  SubmitHookContext,
+  ValidateHook,
+  ValidateHookContext,
+  ValidateResult,
+  SetValuesHook,
+  SetValuesHookContext,
+  CreateFieldHook,
+  CreateFieldHookContext,
+  ResetHook,
+  ResetHookContext,
+  /* 其他 */
   ObjectFieldInstance,
   ObjectFieldProps,
   ReactionContext,
