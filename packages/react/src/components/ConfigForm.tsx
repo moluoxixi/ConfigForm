@@ -121,10 +121,43 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
   const showSubmit = actions?.submit !== false
   const showReset = actions?.reset !== false
 
+  /* 布局配置 */
+  const layout = schema?.layout as {
+    type?: string
+    columns?: number
+    gutter?: number
+  } | undefined
+  const direction = rootDecoratorProps.direction as string | undefined
+
+  let fieldContainerStyle: CSSProperties | undefined
+  if (layout?.type === 'grid') {
+    const gap = layout.gutter ?? 16
+    const cols = layout.columns ?? 1
+    fieldContainerStyle = {
+      display: 'grid',
+      gridTemplateColumns: `repeat(${cols}, 1fr)`,
+      gap: `${gap}px`,
+      alignItems: 'start',
+    }
+  }
+  else if (layout?.type === 'inline' || direction === 'inline') {
+    const gap = (layout as { gap?: number } | undefined)?.gap ?? 16
+    fieldContainerStyle = {
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: `${gap}px`,
+      alignItems: 'flex-start',
+    }
+  }
+
   return (
     <FormProvider form={form} components={components} decorators={decorators}>
       <form onSubmit={handleSubmit} className={className} style={style} noValidate>
-        {schema && <SchemaField schema={schema} />}
+        {schema && (
+          fieldContainerStyle
+            ? <div style={fieldContainerStyle}><SchemaField schema={schema} /></div>
+            : <SchemaField schema={schema} />
+        )}
 
         {/* 操作按钮 */}
         {showActions && (
