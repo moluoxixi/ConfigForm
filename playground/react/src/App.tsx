@@ -6,7 +6,7 @@
 import type { SceneConfig } from '@playground/shared'
 import type { DevToolsPluginAPI } from '@moluoxixi/plugin-devtools'
 import { getSceneGroups, sceneRegistry } from '@playground/shared'
-import { DevToolsPanel } from '@moluoxixi/react'
+import { DevToolsPanel } from '@moluoxixi/plugin-devtools-react'
 import { setupAntd } from '@moluoxixi/ui-antd'
 import { registerComponent, registerDecorator } from '@moluoxixi/react'
 import React, { useCallback, useEffect, useState } from 'react'
