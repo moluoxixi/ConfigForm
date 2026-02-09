@@ -129,6 +129,8 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
   /** 数据源 */
   dataSource: DataSourceItem[]
   dataSourceLoading: boolean
+  /** 远程数据源配置（构造时保存，mount 时自动触发加载） */
+  private _dataSourceConfig: DataSourceConfig | null = null
 
   /** 验证状态 */
   errors: ValidationFeedback[]
@@ -186,8 +188,19 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     this.decorator = props.decorator ?? ''
     this.decoratorProps = props.decoratorProps ?? {}
 
-    /* 数据源 */
-    this.dataSource = isArray(props.dataSource) ? props.dataSource : []
+    /* 数据源：数组为静态选项，对象为远程配置（mount 时自动加载） */
+    if (isArray(props.dataSource)) {
+      this.dataSource = props.dataSource
+      this._dataSourceConfig = null
+    }
+    else if (props.dataSource && typeof props.dataSource === 'object' && 'url' in props.dataSource) {
+      this.dataSource = []
+      this._dataSourceConfig = props.dataSource as DataSourceConfig
+    }
+    else {
+      this.dataSource = []
+      this._dataSourceConfig = null
+    }
     this.dataSourceLoading = false
 
     /* 验证 */
@@ -459,11 +472,22 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
    *
    * 由框架桥接层在组件挂载到 DOM 后调用。
    * 标记字段已渲染完成，emit ON_FIELD_MOUNT 事件。
+   * 如果配置了远程数据源，自动触发加载。
    */
   mount(): void {
     if (this.mounted) return
     this.mounted = true
     this.form.notifyFieldMount(this as unknown as FieldInstance)
+
+    /* 远程数据源：mount 后微任务加载，兼容 React 18 StrictMode 双挂载 */
+    if (this._dataSourceConfig) {
+      const config = this._dataSourceConfig
+      queueMicrotask(() => {
+        if (this.mounted) {
+          this.loadDataSource(config).catch(() => { /* 静默处理 */ })
+        }
+      })
+    }
   }
 
   /**
