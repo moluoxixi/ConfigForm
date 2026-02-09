@@ -23,12 +23,32 @@ export class VoidField implements VoidFieldInstance {
   visible: boolean
   disabled: boolean
   readOnly: boolean
-  pattern: FieldPattern
+  /** 字段自身的 pattern（不含 form 级覆盖） */
+  selfPattern: FieldPattern
   component: string | ComponentType
   componentProps: Record<string, unknown>
   readonly reactions: ReactionRule[]
 
   private disposers: Disposer[] = []
+
+  /**
+   * 有效 pattern（计算属性，对齐 Formily）
+   *
+   * 优先级：字段自身 > 表单级。
+   */
+  get pattern(): FieldPattern {
+    if (this.selfPattern !== 'editable') return this.selfPattern
+    return this.form.pattern
+  }
+
+  set pattern(val: FieldPattern) {
+    this.selfPattern = val
+  }
+
+  /** 是否可编辑 */
+  get editable(): boolean {
+    return this.pattern === 'editable' && !this.disabled && !this.readOnly
+  }
 
   constructor(form: FormInstance, props: VoidFieldProps, parentPath = '') {
     this.id = uid('void')
@@ -41,7 +61,7 @@ export class VoidField implements VoidFieldInstance {
     this.visible = props.visible ?? true
     this.disabled = props.disabled ?? false
     this.readOnly = props.readOnly ?? false
-    this.pattern = props.pattern ?? 'editable'
+    this.selfPattern = props.pattern ?? 'editable'
     this.component = props.component ?? ''
     this.componentProps = props.componentProps ?? {}
     this.reactions = props.reactions ?? []

@@ -35,16 +35,6 @@ export const FormVoidField = observer<FormVoidFieldProps>(({ name, fieldProps, c
   }
   const field = fieldRef.current
 
-  /**
-   * 继承表单 pattern。在 useEffect 中设置而非 render 中，
-   * 避免在 MobX observer 渲染期间直接修改 observable 导致无限循环。
-   */
-  useEffect(() => {
-    if (form.pattern !== 'editable') {
-      field.pattern = form.pattern
-    }
-  }, [form.pattern, field])
-
   /* 组件卸载时清理由本组件创建的字段注册 */
   useEffect(() => {
     const fieldName = name

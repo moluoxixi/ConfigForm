@@ -70,6 +70,37 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     return this.errors.map(e => e.message).join('; ')
   }
 
+  /**
+   * 有效 pattern（计算属性，对齐 Formily）
+   *
+   * 优先级：字段自身 > 表单级。
+   * 当字段自身 pattern 为 'editable'（默认）时，回退到 form.pattern。
+   * 消费者只需读 field.pattern，无需手动合并 form.pattern。
+   */
+  get pattern(): FieldPattern {
+    if (this.selfPattern !== 'editable') return this.selfPattern
+    return this.form.pattern
+  }
+
+  set pattern(val: FieldPattern) {
+    this.selfPattern = val
+  }
+
+  /** 是否可编辑（综合 pattern + disabled + readOnly） */
+  get editable(): boolean {
+    return this.pattern === 'editable' && !this.disabled && !this.readOnly
+  }
+
+  /** 有效只读状态（综合 readOnly + pattern） */
+  get effectiveReadOnly(): boolean {
+    return this.readOnly || this.pattern === 'readOnly'
+  }
+
+  /** 有效禁用状态（综合 disabled + pattern） */
+  get effectiveDisabled(): boolean {
+    return this.disabled || this.pattern === 'disabled'
+  }
+
   /** UI 状态 */
   label: string
   description: string
@@ -85,7 +116,8 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
   loading: boolean
   active: boolean
   visited: boolean
-  pattern: FieldPattern
+  /** 字段自身的 pattern（不含 form 级覆盖，外部一般不直接使用） */
+  selfPattern: FieldPattern
   required: boolean
 
   /** 组件配置 */
@@ -145,7 +177,7 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     this.loading = false
     this.active = false
     this.visited = false
-    this.pattern = props.pattern ?? 'editable'
+    this.selfPattern = props.pattern ?? 'editable'
     this.required = props.required ?? false
 
     /* 组件 */

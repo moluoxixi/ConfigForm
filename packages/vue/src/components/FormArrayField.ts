@@ -124,9 +124,7 @@ export const FormArrayField = defineComponent({
  */
 function renderDefaultArrayItems(field: ArrayFieldInstance, props: { name: string, fieldProps?: Partial<ArrayFieldProps> }) {
   const arrayValue = Array.isArray(field.value) ? field.value : []
-  const form = field.form
-  const pattern = field.pattern || form?.pattern || 'editable'
-  const isEditable = pattern === 'editable'
+  const isEditable = field.editable
   const maxItems = field.maxItems === Infinity ? '∞' : field.maxItems
 
   /* 从 itemTemplate 推断字段 key */

@@ -43,9 +43,7 @@ export const FormObjectField = defineComponent({
     let createdByThis = false
     if (!field) {
       const mergedProps: Record<string, unknown> = { ...props.fieldProps, name: props.name }
-      if (!mergedProps.pattern && form.pattern !== 'editable') {
-        mergedProps.pattern = form.pattern
-      }
+      /* pattern 无需手动注入，field.pattern getter 已自动回退到 form.pattern */
       /* ObjectField 的初始值默认为空对象 */
       if (mergedProps.initialValue === undefined) {
         mergedProps.initialValue = {}

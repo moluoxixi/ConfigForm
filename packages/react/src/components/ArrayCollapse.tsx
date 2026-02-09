@@ -2,7 +2,7 @@ import type { ArrayFieldInstance } from '@moluoxixi/core'
 import type { ISchema } from '@moluoxixi/core'
 import { observer } from '@moluoxixi/reactive-react'
 import React, { useContext, useState } from 'react'
-import { FieldContext, FormContext } from '../context'
+import { FieldContext } from '../context'
 import { ArrayBase } from './ArrayBase'
 import { RecursionField } from './RecursionField'
 
@@ -33,7 +33,6 @@ export interface ArrayCollapseProps {
  */
 export const ArrayCollapse = observer<ArrayCollapseProps>(({ itemsSchema, defaultExpandAll = true }) => {
   const field = useContext(FieldContext) as ArrayFieldInstance | null
-  const form = useContext(FormContext)
 
   if (!field) {
     console.warn('[ArrayCollapse] 未找到 ArrayField 上下文')
@@ -42,9 +41,7 @@ export const ArrayCollapse = observer<ArrayCollapseProps>(({ itemsSchema, defaul
 
   const arrayValue = Array.isArray(field.value) ? field.value : []
 
-  const fp = field.pattern || 'editable'
-  const formP = form?.pattern ?? 'editable'
-  const isEditable = fp === 'editable' && formP === 'editable'
+  const isEditable = field.editable
   const maxItems = field.maxItems === Infinity ? '∞' : field.maxItems
 
   /** 管理每个面板的展开/折叠状态 */

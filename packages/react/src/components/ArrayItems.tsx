@@ -2,7 +2,7 @@ import type { ArrayFieldInstance } from '@moluoxixi/core'
 import type { ISchema } from '@moluoxixi/core'
 import { observer } from '@moluoxixi/reactive-react'
 import React, { useContext } from 'react'
-import { FieldContext, FormContext } from '../context'
+import { FieldContext } from '../context'
 import { ArrayBase } from './ArrayBase'
 import { ArraySortable } from './ArraySortable'
 import { RecursionField } from './RecursionField'
@@ -39,7 +39,6 @@ export interface ArrayItemsProps {
  */
 export const ArrayItems = observer<ArrayItemsProps>(({ itemsSchema, sortable = false }) => {
   const field = useContext(FieldContext) as ArrayFieldInstance | null
-  const form = useContext(FormContext)
 
   if (!field) {
     console.warn('[ArrayItems] 未找到 ArrayField 上下文')
@@ -48,13 +47,7 @@ export const ArrayItems = observer<ArrayItemsProps>(({ itemsSchema, sortable = f
 
   const arrayValue = Array.isArray(field.value) ? field.value : []
 
-  /**
-   * pattern 判断逻辑与 ReactiveField 对齐：
-   * form.pattern 作为全局覆盖，只要 form 或 field 任一为 readOnly/disabled 就非编辑态
-   */
-  const fp = field.pattern || 'editable'
-  const formP = form?.pattern ?? 'editable'
-  const isEditable = fp === 'editable' && formP === 'editable'
+  const isEditable = field.editable
   const maxItems = field.maxItems === Infinity ? '∞' : field.maxItems
 
   return (

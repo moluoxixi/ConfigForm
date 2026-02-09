@@ -47,9 +47,7 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
     let field = form.getField(name)
     if (!field) {
       const mergedProps: Record<string, unknown> = { ...fieldProps, name }
-      if (!mergedProps.pattern && form.pattern !== 'editable') {
-        mergedProps.pattern = form.pattern
-      }
+      /* pattern 无需手动注入 form.pattern，field.pattern getter 已自动回退 */
       /* 未显式指定 decorator 时，使用组件注册的默认 decorator */
       if (!mergedProps.decorator && typeof mergedProps.component === 'string') {
         const dd = getDefaultDecorator(mergedProps.component)
@@ -115,16 +113,11 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
     return null
   }
 
-  /**
-   * 根据 pattern 计算有效的交互状态
-   * 优先级：字段级 > 字段 pattern > 表单 pattern
-   */
-  const fp = field.pattern
-  const formP = form.pattern
-  const isDisabled = field.disabled || fp === 'disabled' || formP === 'disabled'
-  const isReadOnly = field.readOnly || fp === 'readOnly' || formP === 'readOnly'
+  /* pattern 判断已收敛到 field 模型，直接读计算属性 */
+  const isDisabled = field.effectiveDisabled
+  const isReadOnly = field.effectiveReadOnly
 
-  /* readPretty：阅读态时查找替代组件，由框架自动替换 */
+  /* readPretty：阅读态时查找替代组件 */
   let fieldElement: React.ReactElement
   const compName = typeof field.component === 'string' ? field.component : ''
   const ReadPrettyComp = isReadOnly && compName ? getReadPrettyComponent(compName) : undefined
@@ -154,9 +147,6 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
     )
   }
 
-  /** 参考 Formily：将表单 pattern 传递给 Wrapper，用于 readOnly/disabled 时隐藏必填标记 */
-  const effectivePattern = form.pattern ?? 'editable'
-
   const wrappedElement = Decorator
     ? (
         <Decorator
@@ -167,7 +157,7 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
           description={field.description}
           labelPosition={form.labelPosition}
           labelWidth={form.labelWidth}
-          pattern={effectivePattern}
+          pattern={field.pattern}
           {...field.decoratorProps}
         >
           {fieldElement}

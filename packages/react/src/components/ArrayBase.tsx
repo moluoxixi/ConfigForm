@@ -1,7 +1,7 @@
 import type { ArrayFieldInstance } from '@moluoxixi/core'
 import type { ReactNode } from 'react'
 import React, { createContext, useContext } from 'react'
-import { FieldContext, FormContext } from '../context'
+import { FieldContext } from '../context'
 
 /* ======================== Context ======================== */
 
@@ -33,18 +33,11 @@ export function useIndex(defaultIndex = 0): number {
 
 function useEditable(): { isEditable: boolean, field: ArrayFieldInstance | null } {
   const ctx = useArray()
-  const form = useContext(FormContext)
 
   if (!ctx) return { isEditable: false, field: null }
 
   const field = ctx.field
-  /**
-   * 与 ReactiveField 对齐：form.pattern 作为全局覆盖
-   * 只要 form 或 field 任一为 readOnly/disabled 就非编辑态
-   */
-  const fp = field.pattern || 'editable'
-  const formP = form?.pattern ?? 'editable'
-  return { isEditable: fp === 'editable' && formP === 'editable', field }
+  return { isEditable: field.editable, field }
 }
 
 /* ======================== 组件 ======================== */

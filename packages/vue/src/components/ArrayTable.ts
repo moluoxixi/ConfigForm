@@ -2,7 +2,7 @@ import type { ArrayFieldInstance } from '@moluoxixi/core'
 import type { ISchema } from '@moluoxixi/core'
 import type { PropType, VNode } from 'vue'
 import { defineComponent, h, inject } from 'vue'
-import { FieldSymbol, FormSymbol } from '../context'
+import { FieldSymbol } from '../context'
 import { ArrayBase } from './ArrayBase'
 import { RecursionField } from './RecursionField'
 
@@ -54,7 +54,6 @@ export const ArrayTable = defineComponent({
   },
   setup(props) {
     const field = inject(FieldSymbol, null) as ArrayFieldInstance | null
-    const form = inject(FormSymbol, null)
 
     return () => {
       if (!field) {
@@ -65,10 +64,8 @@ export const ArrayTable = defineComponent({
       const arrayValue = Array.isArray(field.value) ? field.value : []
       const columns = extractColumns(props.itemsSchema)
 
-      const fp = field.pattern || 'editable'
-      const formP = form?.pattern ?? 'editable'
-      const isEditable = fp === 'editable' && formP === 'editable'
-      const isReadOnly = fp === 'readOnly' || formP === 'readOnly'
+      const isEditable = field.editable
+      const isReadOnly = field.effectiveReadOnly
       const maxItems = field.maxItems === Infinity ? '∞' : field.maxItems
 
       /** 样式常量 */

@@ -2,7 +2,7 @@ import type { ArrayFieldInstance } from '@moluoxixi/core'
 import type { ISchema } from '@moluoxixi/core'
 import { observer } from '@moluoxixi/reactive-react'
 import React, { useContext } from 'react'
-import { FieldContext, FormContext } from '../context'
+import { FieldContext } from '../context'
 import { ArrayBase } from './ArrayBase'
 import { RecursionField } from './RecursionField'
 
@@ -31,7 +31,6 @@ export interface ArrayCardsProps {
  */
 export const ArrayCards = observer<ArrayCardsProps>(({ itemsSchema }) => {
   const field = useContext(FieldContext) as ArrayFieldInstance | null
-  const form = useContext(FormContext)
 
   if (!field) {
     console.warn('[ArrayCards] 未找到 ArrayField 上下文')
@@ -40,9 +39,7 @@ export const ArrayCards = observer<ArrayCardsProps>(({ itemsSchema }) => {
 
   const arrayValue = Array.isArray(field.value) ? field.value : []
 
-  const fp = field.pattern || 'editable'
-  const formP = form?.pattern ?? 'editable'
-  const isEditable = fp === 'editable' && formP === 'editable'
+  const isEditable = field.editable
   const maxItems = field.maxItems === Infinity ? '∞' : field.maxItems
 
   return (

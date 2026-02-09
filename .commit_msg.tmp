@@ -1,0 +1,9 @@
+refactor: field.pattern 改为计算属性，收敛三态判断逻辑（对齐 Formily）
+
+- Field/VoidField.pattern 从普通属性改为 getter，自动汇总 selfPattern + form.pattern
+- 新增 field.editable / field.effectiveReadOnly / field.effectiveDisabled 计算属性
+- ReactiveField（React+Vue）：移除手动 form.pattern 合并，直接读 field 计算属性
+- FormField/FormVoidField/FormObjectField：移除手动 pattern 注入（getter 自动回退）
+- ArrayItems/ArrayTable/ArrayCards/ArrayCollapse/ArrayBase（React+Vue）：fp+formP 拼凑改为 field.editable
+- FieldPattern 类型清理：移除 schema-validator 中的 preview 兼容
+- 20 个文件，代码量净减少 16 行

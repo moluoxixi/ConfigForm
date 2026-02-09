@@ -45,9 +45,7 @@ export const FormField = defineComponent({
         return { field: existing, created: false }
       }
       const mergedProps: Record<string, unknown> = { ...props.fieldProps, name }
-      if (!mergedProps.pattern && form!.pattern !== 'editable') {
-        mergedProps.pattern = form!.pattern
-      }
+      /* pattern 无需手动注入 form.pattern，field.pattern getter 已自动回退 */
       /* 未显式指定 decorator 时，使用组件注册的默认 decorator */
       if (!mergedProps.decorator && typeof mergedProps.component === 'string') {
         const defaultDecorator = getDefaultDecorator(mergedProps.component)

@@ -49,10 +49,7 @@ export const FormVoidField = defineComponent({
       createdByThis = true
     }
 
-    /* 继承表单 pattern */
-    if (form.pattern !== 'editable') {
-      field.pattern = form.pattern
-    }
+    /* pattern 无需手动继承，field.pattern getter 已自动回退到 form.pattern */
 
     provide(FieldSymbol, field as any)
 

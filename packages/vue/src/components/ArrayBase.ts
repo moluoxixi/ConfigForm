@@ -1,7 +1,7 @@
 import type { ArrayFieldInstance } from '@moluoxixi/core'
 import type { InjectionKey, PropType, Ref } from 'vue'
 import { defineComponent, h, inject, provide, ref, toRefs } from 'vue'
-import { FieldSymbol, FormSymbol } from '../context'
+import { FieldSymbol } from '../context'
 
 /* ======================== 类型定义 ======================== */
 
@@ -107,19 +107,12 @@ const ArrayBaseIndex = defineComponent({
 
 function useEditable(): { isEditable: () => boolean, getField: () => ArrayFieldInstance | null } {
   const ctx = useArray()
-  const form = inject(FormSymbol, null)
 
   return {
     isEditable: () => {
       if (!ctx) return false
       const field = ctx.field.value
-      /**
-       * 与 ReactiveField 对齐：form.pattern 作为全局覆盖
-       * 只要 form 或 field 任一为 readOnly/disabled 就非编辑态
-       */
-      const fp = field.pattern || 'editable'
-      const formP = form?.pattern ?? 'editable'
-      return fp === 'editable' && formP === 'editable'
+      return field.editable
     },
     getField: () => ctx?.field.value ?? null,
   }

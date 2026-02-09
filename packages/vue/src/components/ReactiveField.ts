@@ -67,17 +67,10 @@ export const ReactiveField = defineComponent({
         return null
 
       try {
-      /* 计算交互状态 */
-      const fp = field.pattern
-      const formP = form?.pattern ?? 'editable'
-      const isDisabled = !props.isVoid && (
-        (field as FieldInstance).disabled || fp === 'disabled' || formP === 'disabled'
-      )
-      const isReadOnly = !props.isVoid && (
-        (field as FieldInstance).readOnly || fp === 'readOnly' || formP === 'readOnly'
-      )
-      /** readOnly 模式：自动替换为 readPretty 组件（纯文本展示） */
-      const isPreview = !props.isVoid && (fp === 'readOnly' || formP === 'readOnly')
+      /* pattern 判断已收敛到 field 模型的计算属性，消费者直接读结论 */
+      const isDisabled = !props.isVoid && (field as FieldInstance).effectiveDisabled
+      const isReadOnly = !props.isVoid && (field as FieldInstance).effectiveReadOnly
+      const isPreview = isReadOnly
 
       /* ---- 自定义插槽优先 ---- */
       if (slots.default) {
@@ -163,8 +156,6 @@ export const ReactiveField = defineComponent({
 
       if (Decorator && !props.isVoid) {
         const dataField = field as FieldInstance
-        /** 参考 Formily：将表单 pattern 传递给 Wrapper，用于 readOnly/disabled 时隐藏必填标记 */
-        const effectivePattern = form?.pattern ?? 'editable'
         return h(Decorator, {
           label: dataField.label,
           required: dataField.required,
@@ -173,7 +164,7 @@ export const ReactiveField = defineComponent({
           description: dataField.description,
           labelPosition: form?.labelPosition,
           labelWidth: form?.labelWidth,
-          pattern: effectivePattern,
+          pattern: dataField.pattern,
           ...dataField.decoratorProps,
         }, () => componentNode)
       }

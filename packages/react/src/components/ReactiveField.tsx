@@ -81,10 +81,9 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
     return null
 
   try {
-  const fp = field.pattern ?? 'editable'
-  const formP = form?.pattern ?? 'editable'
-  const isDisabled = !isVoid && ((field as FieldInstance).disabled || fp === 'disabled' || formP === 'disabled')
-  const isReadOnly = !isVoid && ((field as FieldInstance).readOnly || fp === 'readOnly' || formP === 'readOnly' || fp === 'preview' || formP === 'preview')
+  /* pattern 判断已收敛到 field 模型的计算属性，消费者直接读结论 */
+  const isDisabled = !isVoid && (field as FieldInstance).effectiveDisabled
+  const isReadOnly = !isVoid && (field as FieldInstance).effectiveReadOnly
   const isPreview = isReadOnly
 
   /* void 字段：component 作容器 */
@@ -219,8 +218,6 @@ function wrapDecorator(
     ? registry.decorators.get(decoratorName)
     : (decoratorName as ComponentType<any>)
 
-  const effectivePattern = form?.pattern ?? 'editable'
-
   if (Decorator) {
     return (
       <Decorator
@@ -231,7 +228,7 @@ function wrapDecorator(
         description={dataField.description}
         labelPosition={form?.labelPosition}
         labelWidth={form?.labelWidth}
-        pattern={effectivePattern}
+        pattern={dataField.pattern}
         {...dataField.decoratorProps}
       >
         {fieldElement}

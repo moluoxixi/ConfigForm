@@ -2,7 +2,7 @@ import type { ArrayFieldInstance } from '@moluoxixi/core'
 import type { ISchema } from '@moluoxixi/core'
 import { observer } from '@moluoxixi/reactive-react'
 import React, { useContext } from 'react'
-import { FieldContext, FormContext } from '../context'
+import { FieldContext } from '../context'
 import { ArrayBase } from './ArrayBase'
 import { RecursionField } from './RecursionField'
 
@@ -65,7 +65,6 @@ function extractColumns(itemsSchema?: ISchema): ColumnDef[] {
  */
 export const ArrayTable = observer<ArrayTableProps>(({ itemsSchema }) => {
   const field = useContext(FieldContext) as ArrayFieldInstance | null
-  const form = useContext(FormContext)
 
   if (!field) {
     console.warn('[ArrayTable] 未找到 ArrayField 上下文')
@@ -75,10 +74,8 @@ export const ArrayTable = observer<ArrayTableProps>(({ itemsSchema }) => {
   const arrayValue = Array.isArray(field.value) ? field.value : []
   const columns = extractColumns(itemsSchema)
 
-  const fp = field.pattern || 'editable'
-  const formP = form?.pattern ?? 'editable'
-  const isEditable = fp === 'editable' && formP === 'editable'
-  const isReadOnly = fp === 'readOnly' || formP === 'readOnly'
+  const isEditable = field.editable
+  const isReadOnly = field.effectiveReadOnly
   const maxItems = field.maxItems === Infinity ? '∞' : field.maxItems
 
   /** 表格样式 */

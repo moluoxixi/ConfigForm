@@ -788,7 +788,16 @@ export interface FieldInstance<Value = unknown> {
   loading: boolean
   active: boolean
   visited: boolean
+  /** 字段自身 pattern（不含 form 级覆盖） */
+  selfPattern: FieldPattern
+  /** 有效 pattern（已汇总 self + form.pattern，消费者直接读此属性） */
   pattern: FieldPattern
+  /** 是否可编辑（综合 pattern + disabled + readOnly） */
+  readonly editable: boolean
+  /** 有效只读状态 */
+  readonly effectiveReadOnly: boolean
+  /** 有效禁用状态 */
+  readonly effectiveDisabled: boolean
   required: boolean
   component: string | ComponentType
   componentProps: Record<string, unknown>
@@ -884,7 +893,11 @@ export interface VoidFieldInstance {
   visible: boolean
   disabled: boolean
   readOnly: boolean
+  selfPattern: FieldPattern
+  /** 有效 pattern（已汇总 self + form.pattern） */
   pattern: FieldPattern
+  /** 是否可编辑 */
+  readonly editable: boolean
   component: string | ComponentType
   componentProps: Record<string, unknown>
   /** 字段挂载（由框架桥接层调用） */

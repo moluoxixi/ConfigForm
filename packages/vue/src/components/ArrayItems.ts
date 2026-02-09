@@ -2,7 +2,7 @@ import type { ArrayFieldInstance } from '@moluoxixi/core'
 import type { ISchema } from '@moluoxixi/core'
 import type { PropType, VNode } from 'vue'
 import { defineComponent, h, inject } from 'vue'
-import { FieldSymbol, FormSymbol } from '../context'
+import { FieldSymbol } from '../context'
 import { ArrayBase } from './ArrayBase'
 import { RecursionField } from './RecursionField'
 
@@ -63,7 +63,6 @@ export const ArrayItems = defineComponent({
   },
   setup(props) {
     const field = inject(FieldSymbol, null) as ArrayFieldInstance | null
-    const form = inject(FormSymbol, null)
 
     return () => {
       if (!field) {
@@ -73,13 +72,7 @@ export const ArrayItems = defineComponent({
 
       const arrayValue = Array.isArray(field.value) ? field.value : []
 
-      /**
-       * 与 ReactiveField 对齐：form.pattern 作为全局覆盖
-       * 只要 form 或 field 任一为 readOnly/disabled 就非编辑态
-       */
-      const fp = field.pattern || 'editable'
-      const formP = form?.pattern ?? 'editable'
-      const isEditable = fp === 'editable' && formP === 'editable'
+      const isEditable = field.editable
       const maxItems = field.maxItems === Infinity ? '∞' : field.maxItems
 
       /* 渲染每个数组项 */
