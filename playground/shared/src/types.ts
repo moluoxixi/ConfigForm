@@ -1,3 +1,4 @@
+import type { FormInstance } from '@moluoxixi/core'
 import type { ISchema } from '@moluoxixi/schema'
 
 /**
@@ -33,4 +34,6 @@ export interface SceneConfig {
   initialValues: Record<string, unknown>
   /** 可选：Schema 变体切换（如布局切换） */
   schemaVariants?: SchemaVariants
+  /** 可选：表单 effects（命令式监听，传递给 createForm） */
+  effects?: (form: FormInstance) => void
 }

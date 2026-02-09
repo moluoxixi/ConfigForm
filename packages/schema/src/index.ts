@@ -17,5 +17,6 @@ export type {
   CompileOptions,
   FormSchema,
   ISchema,
+  ISchemaConditionBranch,
   SchemaType,
 } from './types'

@@ -1,8 +1,60 @@
 import type { FieldInstance, FormInstance, VoidFieldInstance } from '@moluoxixi/core'
-import type { ComponentType, ReactNode } from 'react'
+import type { ComponentType, ErrorInfo, ReactNode } from 'react'
 import { observer } from 'mobx-react-lite'
-import { useContext } from 'react'
+import { Component, useContext } from 'react'
 import { ComponentRegistryContext, FormContext } from '../context'
+
+/** 错误边界样式 */
+const errorBoundaryStyle: React.CSSProperties = {
+  color: '#ff4d4f',
+  padding: '8px 12px',
+  border: '1px dashed #ff4d4f',
+  borderRadius: '4px',
+  fontSize: '12px',
+  background: '#fff2f0',
+}
+
+interface FieldErrorBoundaryProps {
+  fieldPath: string
+  children: ReactNode
+}
+
+interface FieldErrorBoundaryState {
+  hasError: boolean
+  error: Error | null
+}
+
+/**
+ * 字段级错误边界
+ *
+ * 防止单个字段的组件渲染异常导致整个表单白屏。
+ * 捕获子组件树中的渲染错误，展示友好的错误提示。
+ */
+class FieldErrorBoundary extends Component<FieldErrorBoundaryProps, FieldErrorBoundaryState> {
+  constructor(props: FieldErrorBoundaryProps) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+
+  static getDerivedStateFromError(error: Error): FieldErrorBoundaryState {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+    console.error(`[ConfigForm] 字段 "${this.props.fieldPath}" 子组件渲染异常:`, error, errorInfo)
+  }
+
+  render(): ReactNode {
+    if (this.state.hasError) {
+      return (
+        <div style={errorBoundaryStyle}>
+          ⚠ 字段 &quot;{this.props.fieldPath}&quot; 渲染异常: {this.state.error?.message}
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 
 export interface ReactiveFieldProps {
   field: FieldInstance | VoidFieldInstance
@@ -22,6 +74,7 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
   if (!field || !field.visible)
     return null
 
+  try {
   const fp = field.pattern
   const formP = form?.pattern ?? 'editable'
   const isDisabled = !isVoid && ((field as FieldInstance).disabled || fp === 'disabled' || formP === 'disabled')
@@ -32,7 +85,11 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
     const componentName = field.component
     const Comp = typeof componentName === 'string' ? registry.components.get(componentName) : componentName as ComponentType<any>
     if (Comp) {
-      return <Comp {...field.componentProps}>{children}</Comp>
+      return (
+        <FieldErrorBoundary fieldPath={field.path}>
+          <Comp {...field.componentProps}>{children}</Comp>
+        </FieldErrorBoundary>
+      )
     }
     return <>{children}</>
   }
@@ -43,11 +100,16 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
   const Comp = typeof componentName === 'string' ? registry.components.get(componentName) : componentName as ComponentType<any>
 
   /**
-   * 参考 Formily ReactiveField：
-   * 无 component 时直接渲染 children（用于 object 容器字段，如数组项 contacts.0）
+   * 组件未注册：渲染明确的错误提示，避免字段静默消失导致用户数据缺失。
+   * 对于 object 容器字段（无 component），仍然渲染 children。
    */
-  if (!Comp)
+  if (!Comp) {
+    if (componentName) {
+      console.warn(`[ConfigForm] 字段 "${field.path}" 未找到组件 "${String(componentName)}"`)
+      return <div style={errorBoundaryStyle}>⚠ 组件 &quot;{String(componentName)}&quot; 未注册</div>
+    }
     return <>{children}</>
+  }
 
   /**
    * 参考 Formily ReactiveField：
@@ -55,20 +117,22 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
    * 2. 使用 field.onInput 代替 setValue（Formily 行为）
    */
   const fieldElement = (
-    <Comp
-      disabled={isDisabled}
-      readOnly={isReadOnly}
-      loading={dataField.loading}
-      dataSource={dataField.dataSource}
-      {...dataField.componentProps}
-      value={dataField.value}
-      onChange={(val: unknown) => dataField.setValue(val)}
-      onFocus={() => dataField.focus()}
-      onBlur={() => {
-        dataField.blur()
-        dataField.validate('blur').catch(() => {})
-      }}
-    />
+    <FieldErrorBoundary fieldPath={dataField.path}>
+      <Comp
+        disabled={isDisabled}
+        readOnly={isReadOnly}
+        loading={dataField.loading}
+        dataSource={dataField.dataSource}
+        {...dataField.componentProps}
+        value={dataField.value}
+        onChange={(val: unknown) => dataField.onInput(val)}
+        onFocus={() => dataField.focus()}
+        onBlur={() => {
+          dataField.blur()
+          dataField.validate('blur').catch(() => {})
+        }}
+      />
+    </FieldErrorBoundary>
   )
 
   /* decorator — 支持字符串名和直接组件引用 */
@@ -99,4 +163,9 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
   }
 
   return fieldElement
+  }
+  catch (err) {
+    console.error(`[ConfigForm] 字段 "${field.path}" 渲染异常:`, err)
+    return <div style={errorBoundaryStyle}>⚠ 字段 &quot;{field.path}&quot; 渲染异常: {err instanceof Error ? err.message : String(err)}</div>
+  }
 })

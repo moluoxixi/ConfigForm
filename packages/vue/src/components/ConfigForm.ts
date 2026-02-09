@@ -96,6 +96,10 @@ export const ConfigForm = defineComponent({
       type: Object as PropType<Record<string, ComponentType>>,
       default: undefined,
     },
+    effects: {
+      type: Function as PropType<(form: FormInstance) => void>,
+      default: undefined,
+    },
   },
   emits: ['submit', 'submitFailed', 'valuesChange'],
   setup(props, { slots, emit }) {
@@ -110,6 +114,7 @@ export const ConfigForm = defineComponent({
       pattern: (rootDecoratorProps.value.pattern ?? 'editable') as FieldPattern,
       ...props.formConfig,
       initialValues: props.initialValues ?? props.formConfig?.initialValues,
+      effects: props.effects,
     })
     const form = props.form ?? internalForm
 

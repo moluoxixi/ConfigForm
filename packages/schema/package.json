@@ -10,6 +10,18 @@
   },
   "main": "./src/index.ts",
   "types": "./src/index.ts",
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js",
+        "require": "./dist/index.cjs"
+      }
+    },
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts"
+  },
   "files": ["dist", "src"],
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts",
@@ -17,7 +29,8 @@
   },
   "dependencies": {
     "@moluoxixi/core": "workspace:*",
-    "@moluoxixi/shared": "workspace:*"
+    "@moluoxixi/shared": "workspace:*",
+    "@moluoxixi/validator": "workspace:*"
   },
   "devDependencies": {
     "tsup": "catalog:type",

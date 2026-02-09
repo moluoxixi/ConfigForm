@@ -25,6 +25,7 @@ import { fetchDataSource } from '../datasource/manager'
  * - 字段状态（visible / disabled 等）各自独立管理
  * - 由 Form.createField() 创建后通过 adapter.makeObservable() 变为响应式
  * - 联动由外部 ReactionEngine 驱动
+ * - onInput 和 setValue 分离：用户输入走 onInput（触发验证），程序赋值走 setValue（不触发验证）
  *
  * 注意：不要直接 new Field()，应通过 form.createField() 创建。
  */
@@ -33,6 +34,9 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
   readonly form: FormInstance
   readonly path: string
   readonly name: string
+
+  /** 是否已挂载到 DOM */
+  mounted: boolean
 
   /** UI 状态 */
   label: string
@@ -84,12 +88,15 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
   private valueChangeHandlers: Array<(value: Value, oldValue: Value) => void> = []
   /** 异步验证取消控制器 */
   private validateAbortController: AbortController | null = null
+  /** 数据源请求取消控制器 */
+  private _dataSourceAbortController: AbortController | null = null
 
   constructor(form: FormInstance, props: FieldProps<Value>, parentPath = '') {
     this.id = uid('field')
     this.form = form
     this.name = props.name
     this.path = parentPath ? FormPath.join(parentPath, props.name) : props.name
+    this.mounted = false
 
     /* 初始化状态 */
     this.label = props.label ?? ''
@@ -178,7 +185,11 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
   }
 
   set initialValue(val: Value) {
+    const oldValue = this.initialValue
     FormPath.setIn(this.form.initialValues as Record<string, unknown>, this.path, val)
+    if (oldValue !== val) {
+      this.form.notifyFieldInitialValueChange(this.path, val)
+    }
   }
 
   /** 是否被修改 */
@@ -192,12 +203,18 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
   }
 
   /**
-   * 设置值（对应 Formily 的 onInput）
+   * 用户输入
    *
-   * 参考 Formily 设计：值变化后总是调用 validate('change')。
-   * 验证过滤交给规则的 trigger 属性（无 trigger 的规则在所有时机执行）。
+   * 由 UI 组件的 onChange 回调调用。
+   * 完整流程：parse → 写入 values → 通知字段回调 → 通知表单 → 触发 change 验证。
+   *
+   * 与 setValue 的区别：
+   * - onInput 触发 parse 处理
+   * - onInput 触发 change 验证
+   * - onInput emit ON_FIELD_INPUT_VALUE_CHANGE + ON_FIELD_VALUE_CHANGE
+   * - setValue 仅 emit ON_FIELD_VALUE_CHANGE
    */
-  setValue(value: Value): void {
+  onInput(value: Value): void {
     const oldValue = this.value
     const parsedValue = this.parse ? this.parse(value) : value
     FormPath.setIn(this.form.values as Record<string, unknown>, this.path, parsedValue)
@@ -207,12 +224,33 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
       handler(parsedValue, oldValue)
     }
 
-    /* 通知表单级（触发 onValuesChange + reactions） */
+    /* 通知表单级（触发 onValuesChange + reactions + INPUT 事件） */
+    this.form.notifyFieldInputChange(this.path, parsedValue)
     this.form.notifyFieldValueChange(this.path, parsedValue)
     this.form.notifyValuesChange()
 
     /* 值变化后触发 change 验证（规则级 trigger 过滤） */
     this.validate('change').catch(() => {})
+  }
+
+  /**
+   * 程序赋值（不触发验证）
+   *
+   * 用于联动赋值、初始化、reset 等程序控制场景。
+   * 不执行 parse，不触发 change 验证，避免联动赋值时误触发校验。
+   */
+  setValue(value: Value): void {
+    const oldValue = this.value
+    FormPath.setIn(this.form.values as Record<string, unknown>, this.path, value)
+
+    /* 通知字段级回调 */
+    for (const handler of this.valueChangeHandlers) {
+      handler(value, oldValue)
+    }
+
+    /* 通知表单级（触发 onValuesChange + reactions，不触发 INPUT 事件） */
+    this.form.notifyFieldValueChange(this.path, value)
+    this.form.notifyValuesChange()
   }
 
   /** 更新组件 Props */
@@ -229,18 +267,33 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
   async loadDataSource(config?: DataSourceConfig): Promise<void> {
     if (!config?.url)
       return
+
+    /* 取消上一次数据源请求，避免竞态覆盖 */
+    this._dataSourceAbortController?.abort()
+    this._dataSourceAbortController = new AbortController()
+    const signal = this._dataSourceAbortController.signal
+
     this.dataSourceLoading = true
     this.loading = true
     try {
-      const items = await fetchDataSource(config, this.form.values as Record<string, unknown>)
+      const items = await fetchDataSource(config, this.form.values as Record<string, unknown>, signal)
+
+      /* 请求期间被取消（用户快速切换选项），丢弃过期结果 */
+      if (signal.aborted) return
+
       this.dataSource = items
     }
     catch (err) {
+      /* 请求被取消时静默忽略 */
+      if (err instanceof DOMException && err.name === 'AbortError') return
       console.error(`[ConfigForm] 字段 ${this.path} 数据源加载失败:`, err)
     }
     finally {
-      this.dataSourceLoading = false
-      this.loading = false
+      /* 仅在未取消时重置 loading 状态，避免取消后闪烁 */
+      if (!signal.aborted) {
+        this.dataSourceLoading = false
+        this.loading = false
+      }
     }
   }
 
@@ -259,6 +312,7 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     /* 取消上一次异步验证 */
     this.validateAbortController?.abort()
     this.validateAbortController = new AbortController()
+    const signal = this.validateAbortController.signal
 
     this.validating = true
     try {
@@ -267,7 +321,13 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
         label: this.label || this.name,
         getFieldValue: (p: string) => this.form.getFieldValue(p),
         getValues: () => this.form.values as Record<string, unknown>,
-      }, trigger)
+      }, trigger, signal)
+
+      /* 验证期间被取消（用户快速输入），丢弃过期结果 */
+      if (signal.aborted) {
+        return this.errors
+      }
+
       this.errors = result.errors
       this.warnings = result.warnings
       return result.errors
@@ -324,6 +384,30 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     this.disabled = true
   }
 
+  /**
+   * 字段挂载
+   *
+   * 由框架桥接层在组件挂载到 DOM 后调用。
+   * 标记字段已渲染完成，emit ON_FIELD_MOUNT 事件。
+   */
+  mount(): void {
+    if (this.mounted) return
+    this.mounted = true
+    this.form.notifyFieldMount(this as unknown as FieldInstance)
+  }
+
+  /**
+   * 字段卸载
+   *
+   * 由框架桥接层在组件从 DOM 卸载前调用。
+   * 标记字段已卸载，emit ON_FIELD_UNMOUNT 事件。
+   */
+  unmount(): void {
+    if (!this.mounted) return
+    this.mounted = false
+    this.form.notifyFieldUnmount(this as unknown as FieldInstance)
+  }
+
   /** 监听值变化 */
   onValueChange(handler: (value: Value, oldValue: Value) => void): Disposer {
     this.valueChangeHandlers.push(handler)
@@ -337,10 +421,12 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
   /** 销毁字段 */
   dispose(): void {
     this.validateAbortController?.abort()
+    this._dataSourceAbortController?.abort()
     for (const disposer of this.disposers) {
       disposer()
     }
     this.disposers = []
     this.valueChangeHandlers = []
+    this.mounted = false
   }
 }

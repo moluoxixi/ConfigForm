@@ -80,7 +80,8 @@ function validateRuleSync(
     const regex = isString(rule.pattern) ? safeCreateRegExp(rule.pattern) : rule.pattern
     if (regex === null) {
       /* 无效正则字符串：视为验证失败，返回格式错误提示而非崩溃 */
-      return rule.message ?? `${label} 的验证正则表达式无效`
+      const msg = typeof rule.message === 'function' ? rule.message(rule) : rule.message
+      return msg ?? `${label} 的验证正则表达式无效`
     }
     if (!regex.test(String(value))) {
       return getMessage('pattern', rule, label)

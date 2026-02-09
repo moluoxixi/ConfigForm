@@ -134,7 +134,7 @@ export function transformSchema(
       fields.push({ path: address, props: toVoidFieldProps(compiled) as unknown as FieldProps, type: 'void' })
     }
     else if (compiled.isArray) {
-      fields.push({ path: address, props: toArrayFieldProps(compiled), type: 'array' })
+      fields.push({ path: address, props: toArrayFieldProps(compiled) as unknown as FieldProps, type: 'array' })
     }
     else {
       fields.push({ path: address, props: toFieldProps(compiled), type: 'field' })

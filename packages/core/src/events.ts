@@ -11,6 +11,10 @@ export enum FormLifeCycle {
 
   /** 表单初始化完成 */
   ON_FORM_INIT = 'onFormInit',
+  /** 表单挂载到 DOM（区分初始化和渲染完成） */
+  ON_FORM_MOUNT = 'onFormMount',
+  /** 表单从 DOM 卸载 */
+  ON_FORM_UNMOUNT = 'onFormUnmount',
   /** 表单值变化 */
   ON_FORM_VALUES_CHANGE = 'onFormValuesChange',
   /** 表单提交开始 */
@@ -34,8 +38,26 @@ export enum FormLifeCycle {
 
   /** 字段创建 */
   ON_FIELD_INIT = 'onFieldInit',
-  /** 字段值变化 */
+  /** 字段挂载到 DOM */
+  ON_FIELD_MOUNT = 'onFieldMount',
+  /** 字段从 DOM 卸载 */
+  ON_FIELD_UNMOUNT = 'onFieldUnmount',
+  /**
+   * 字段值变化（所有来源：用户输入 + 程序赋值）
+   *
+   * 如果只需监听用户输入，请使用 ON_FIELD_INPUT_VALUE_CHANGE。
+   */
   ON_FIELD_VALUE_CHANGE = 'onFieldValueChange',
+  /**
+   * 字段值变化（仅用户输入）
+   *
+   * 与 ON_FIELD_VALUE_CHANGE 的区别：
+   * - 程序调用 field.setValue() 不会触发此事件
+   * - 用户在 UI 上的输入（field.onInput()）才触发
+   */
+  ON_FIELD_INPUT_VALUE_CHANGE = 'onFieldInputValueChange',
+  /** 字段初始值变化 */
+  ON_FIELD_INITIAL_VALUE_CHANGE = 'onFieldInitialValueChange',
   /** 字段验证成功 */
   ON_FIELD_VALIDATE_SUCCESS = 'onFieldValidateSuccess',
   /** 字段验证失败 */

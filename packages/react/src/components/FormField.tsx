@@ -63,11 +63,14 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
   }
   const field = fieldRef.current
 
-  /* 组件卸载时清理由本组件创建的字段注册 */
+  /* 组件挂载时通知字段 mount，卸载时 unmount + 清理注册 */
   useEffect(() => {
+    const currentField = fieldRef.current
     const fieldName = name
     const created = createdByThisRef.current
+    currentField?.mount()
     return () => {
+      currentField?.unmount()
       if (created) {
         form.removeField(fieldName)
       }
@@ -139,7 +142,7 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
     fieldElement = (
       <Component
         value={field.value}
-        onChange={(val: unknown) => field.setValue(val)}
+        onChange={(val: unknown) => field.onInput(val)}
         onFocus={() => field.focus()}
         onBlur={() => field.blur()}
         disabled={isDisabled}

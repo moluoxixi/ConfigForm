@@ -1,11 +1,30 @@
 import type { DataSourceConfig, ReactionRule } from '@moluoxixi/core'
-import type { DataSourceItem, FieldPattern } from '@moluoxixi/shared'
+import type { ComponentType, DataSourceItem, FieldPattern } from '@moluoxixi/shared'
 import type { ValidationRule, ValidationTrigger } from '@moluoxixi/validator'
 
 /* ======================== Schema 定义 ======================== */
 
 /** Schema 节点数据类型 */
 export type SchemaType = 'string' | 'number' | 'boolean' | 'date' | 'array' | 'object' | 'void'
+
+/**
+ * oneOf 条件分支
+ *
+ * 每个分支定义一组条件和对应的字段定义。
+ * 条件不满足时，该分支下的字段自动隐藏（display: 'none'）。
+ */
+export interface ISchemaConditionBranch {
+  /**
+   * 分支激活条件
+   *
+   * 支持两种写法：
+   * - 对象：`{ fieldName: expectedValue }`（所有条件取 AND）
+   * - 表达式字符串：`'{{$values.type === "advanced"}}'`
+   */
+  when: Record<string, unknown> | string
+  /** 该分支的子字段定义 */
+  properties?: Record<string, ISchema>
+}
 
 /**
  * Schema 节点定义（JSON Schema 风格，语义化命名）
@@ -173,11 +192,66 @@ export interface ISchema {
   /** 隐藏时是否排除提交数据 */
   excludeWhenHidden?: boolean
 
+  /* ---- 条件 Schema ---- */
+  /**
+   * 条件分支（类似 JSON Schema oneOf，但更面向表单场景）
+   *
+   * 根据 discriminator 字段的值自动切换显示不同的字段组。
+   * 编译时会生成隐式 reactions：非活跃分支的字段 display 设为 'none'。
+   *
+   * @example
+   * ```ts
+   * const schema: ISchema = {
+   *   type: 'object',
+   *   properties: {
+   *     payType: { type: 'string', title: '支付方式', enum: ['credit_card', 'bank_transfer'] },
+   *   },
+   *   oneOf: [
+   *     {
+   *       when: { payType: 'credit_card' },
+   *       properties: {
+   *         cardNumber: { type: 'string', title: '卡号' },
+   *         expiry: { type: 'string', title: '有效期' },
+   *       },
+   *     },
+   *     {
+   *       when: { payType: 'bank_transfer' },
+   *       properties: {
+   *         bankAccount: { type: 'string', title: '银行账号' },
+   *         bankName: { type: 'string', title: '银行名称' },
+   *       },
+   *     },
+   *   ],
+   * }
+   * ```
+   */
+  oneOf?: ISchemaConditionBranch[]
+  /**
+   * 鉴别器字段路径
+   *
+   * 指定用于判断 oneOf 分支的字段路径。
+   * 如果不指定，从 oneOf[].when 的 key 中自动推断。
+   */
+  discriminator?: string
+
   /* ---- 布局提示 ---- */
   /** 栅格占比 */
   span?: number
   /** 排序权重 */
   order?: number
+  /**
+   * 布局配置（根节点使用）
+   *
+   * 用于 ConfigForm 根级别的字段容器布局。
+   */
+  layout?: {
+    /** 布局类型 */
+    type?: 'grid' | 'inline'
+    /** 栅格列数（type='grid' 时使用） */
+    columns?: number
+    /** 栅格间距（px） */
+    gutter?: number
+  }
 
   /* ---- 扩展 ---- */
   /** 自定义扩展属性 */
@@ -210,10 +284,10 @@ export interface CompiledField {
   dataPath: string
   /** 原始 schema 节点（已标准化 enum → dataSource） */
   schema: ISchema
-  /** 推断出的组件（字符串名或直接引用） */
-  resolvedComponent: string | unknown
-  /** 推断出的装饰器（字符串名或直接引用） */
-  resolvedDecorator: string | unknown
+  /** 推断出的组件（字符串名或直接组件引用） */
+  resolvedComponent: ComponentType
+  /** 推断出的装饰器（字符串名或直接组件引用） */
+  resolvedDecorator: ComponentType
   /** 是否是虚拟字段（type='void'） */
   isVoid: boolean
   /** 是否是数组字段（type='array'） */

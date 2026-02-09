@@ -1,6 +1,6 @@
 import type { FieldInstance, FieldProps } from '@moluoxixi/core'
 import type { Component, PropType } from 'vue'
-import { defineComponent, h, inject, onBeforeUnmount, provide, ref, watch } from 'vue'
+import { defineComponent, h, inject, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 import { FieldSymbol, FormSymbol } from '../context'
 import { getDefaultWrapper } from '../registry'
 import { ReactiveField } from './ReactiveField'
@@ -92,7 +92,12 @@ export const FormField = defineComponent({
       currentName = newName
     })
 
+    onMounted(() => {
+      fieldRef.value.mount()
+    })
+
     onBeforeUnmount(() => {
+      fieldRef.value.unmount()
       if (createdByThis) {
         form!.removeField(currentName)
       }

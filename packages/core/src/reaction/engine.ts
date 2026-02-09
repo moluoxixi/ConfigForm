@@ -88,6 +88,12 @@ function contextToScope(context: ReactionContext): ExpressionScope {
 }
 
 /**
+ * 每轮微任务批次内最大联动执行次数。
+ * 超过此阈值视为死循环，终止后续联动执行并输出错误日志。
+ */
+const MAX_REACTION_EXECUTIONS_PER_BATCH = 100;
+
+/**
  * 联动引擎
  *
  * 核心职责：
@@ -96,12 +102,17 @@ function contextToScope(context: ReactionContext): ExpressionScope {
  * 3. 使用响应式适配器的 reaction API 自动触发联动
  * 4. 编译并执行表达式字符串（{{expression}} 语法）
  * 5. 自动注入数组上下文（$record、$index）
+ * 6. 运行时死循环防护（计数器 + 微任务重置）
  */
 export class ReactionEngine {
   private form: FormInstance;
   /** 按字段路径索引的 disposer 映射，移除字段时可精确清理 */
   private fieldDisposers = new Map<string, Disposer[]>();
   private depGraph = new DependencyGraph();
+  /** 当前批次内联动执行计数（运行时死循环检测） */
+  private _executionCount = 0;
+  /** 是否已调度本轮微任务的计数器重置 */
+  private _resetScheduled = false;
 
   constructor(form: FormInstance) {
     this.form = form;
@@ -248,6 +259,29 @@ export class ReactionEngine {
 
     /** 联动执行函数 */
     const execute = (): void => {
+      /**
+       * 运行时死循环防护。
+       *
+       * 每次联动执行时递增计数器。在第一次执行时调度一个微任务重置计数器，
+       * 这样同一轮微任务批次（即同步联动链 A→B→C→...）内的所有执行共享一个计数窗口。
+       * 如果执行次数超过阈值，判定为死循环并终止。
+       */
+      this._executionCount++;
+      if (!this._resetScheduled) {
+        this._resetScheduled = true;
+        Promise.resolve().then(() => {
+          this._executionCount = 0;
+          this._resetScheduled = false;
+        });
+      }
+      if (this._executionCount > MAX_REACTION_EXECUTIONS_PER_BATCH) {
+        console.error(
+          `[ConfigForm] 联动执行次数超过 ${MAX_REACTION_EXECUTIONS_PER_BATCH} 次/批次，`
+          + `疑似死循环，已终止。涉及字段: "${field.path}"`,
+        );
+        return;
+      }
+
       /* 获取当前 watch 依赖值，注入到上下文中 */
       const deps = getWatchedValues();
       const context = buildContext(deps);

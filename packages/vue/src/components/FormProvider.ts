@@ -1,7 +1,7 @@
 import type { FormInstance } from '@moluoxixi/core'
 import type { ComponentType } from '@moluoxixi/shared'
-import type { PropType } from 'vue'
-import { computed, defineComponent, provide } from 'vue'
+import type { Component, PropType } from 'vue'
+import { computed, defineComponent, onBeforeUnmount, onMounted, provide } from 'vue'
 import { ComponentRegistrySymbol, FormSymbol } from '../context'
 import { getGlobalRegistry } from '../registry'
 
@@ -37,12 +37,12 @@ export const FormProvider = defineComponent({
 
       if (props.components) {
         for (const [name, comp] of Object.entries(props.components)) {
-          components.set(name, comp)
+          components.set(name, comp as Component)
         }
       }
       if (props.wrappers) {
         for (const [name, wrapper] of Object.entries(props.wrappers)) {
-          wrappers.set(name, wrapper)
+          wrappers.set(name, wrapper as Component)
         }
       }
 
@@ -50,6 +50,15 @@ export const FormProvider = defineComponent({
     })
 
     provide(ComponentRegistrySymbol, registry)
+
+    /* 表单挂载/卸载生命周期 */
+    onMounted(() => {
+      props.form.mount()
+    })
+
+    onBeforeUnmount(() => {
+      props.form.unmount()
+    })
 
     return () => slots.default?.()
   },

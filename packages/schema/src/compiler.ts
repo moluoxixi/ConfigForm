@@ -1,10 +1,13 @@
+import type { ReactionRule } from '@moluoxixi/core'
 import type {
   CompiledField,
   CompiledSchema,
   CompileOptions,
   ISchema,
+  ISchemaConditionBranch,
 } from './types'
-import { isArray, isObject } from '@moluoxixi/shared'
+import type { ComponentType } from '@moluoxixi/shared'
+import { isArray, isObject, isString } from '@moluoxixi/shared'
 import { resolveSchemaRefs } from './ref-resolver'
 
 /** 默认类型 → 组件映射 */
@@ -32,7 +35,7 @@ const DEFAULT_DECORATOR = 'FormItem'
  *
  * 优先级：schema.component > enum/dataSource → Select > type 映射
  */
-export function resolveComponent(schema: ISchema, mapping: Record<string, string>): string | unknown {
+export function resolveComponent(schema: ISchema, mapping: Record<string, string>): ComponentType {
   if (schema.component)
     return schema.component
 
@@ -54,7 +57,7 @@ export function resolveComponent(schema: ISchema, mapping: Record<string, string
  *
  * void 节点不需要 decorator；其他节点默认 FormItem。
  */
-function resolveDecorator(schema: ISchema, defaultDecorator: string): string | unknown {
+function resolveDecorator(schema: ISchema, defaultDecorator: string): ComponentType {
   if (schema.decorator)
     return schema.decorator
   if (schema.type === 'void')
@@ -82,6 +85,80 @@ function normalizeEnum(schema: ISchema): ISchema {
 function joinPath(parent: string, name: string): string {
   return parent ? `${parent}.${name}` : name
 }
+
+/**
+ * 从 oneOf 条件分支生成隐式 reactions
+ *
+ * 策略：将各分支的 properties 全部编译到 Schema 中，
+ * 并为每个分支字段自动注入 reactions 规则：
+ * - watch discriminator 字段
+ * - when 条件满足时 display: 'visible'
+ * - when 条件不满足时 display: 'none'
+ *
+ * 这样运行时通过已有的联动引擎自动切换分支，无需额外的运行时编译器。
+ *
+ * @param branches - oneOf 分支数组
+ * @param discriminator - 鉴别器字段路径（可选，自动推断）
+ * @param parentDataPath - 父节点的 dataPath
+ * @returns 合并后的 properties 和对应的 reactions 映射
+ */
+function compileOneOfBranches(
+  branches: ISchemaConditionBranch[],
+  discriminator: string | undefined,
+  parentDataPath: string,
+): Record<string, ISchema> {
+  const mergedProperties: Record<string, ISchema> = {}
+
+  for (const branch of branches) {
+    if (!branch.properties) continue
+
+    /* 推断 discriminator：取 when 对象的第一个 key */
+    const resolvedDiscriminator = discriminator ?? (
+      isString(branch.when) ? undefined : Object.keys(branch.when)[0]
+    )
+
+    /* 构建 watch 路径 */
+    const watchPath = resolvedDiscriminator
+      ? (parentDataPath ? `${parentDataPath}.${resolvedDiscriminator}` : resolvedDiscriminator)
+      : ''
+
+    /* 构建条件表达式 */
+    let whenExpression: string
+    if (isString(branch.when)) {
+      whenExpression = branch.when
+    }
+    else {
+      /* 对象条件：{ payType: 'credit_card' } → 表达式 */
+      const conditions = Object.entries(branch.when).map(([key, value]) => {
+        const valuePath = parentDataPath ? `$values.${parentDataPath}.${key}` : `$values.${key}`
+        return `${valuePath} === ${JSON.stringify(value)}`
+      })
+      whenExpression = `{{${conditions.join(' && ')}}}`
+    }
+
+    /* 为每个分支字段注入隐式 reactions */
+    for (const [childName, childSchema] of Object.entries(branch.properties)) {
+      const reaction: ReactionRule = {
+        watch: watchPath || Object.keys(isString(branch.when) ? {} : branch.when).map(
+          k => parentDataPath ? `${parentDataPath}.${k}` : k,
+        ),
+        when: whenExpression,
+        fulfill: { state: { display: 'visible' } },
+        otherwise: { state: { display: 'none' } },
+      }
+
+      /* 合并到 properties，附加 reactions */
+      const existingReactions = childSchema.reactions ?? []
+      mergedProperties[childName] = {
+        ...childSchema,
+        reactions: [reaction, ...existingReactions],
+      }
+    }
+  }
+
+  return mergedProperties
+}
+
 
 /**
  * 递归编译 schema 节点
@@ -114,9 +191,16 @@ function compileNode(
   const normalizedSchema = normalizeEnum(schema)
   const children: string[] = []
 
+  /* 合并 oneOf 分支到 properties */
+  let effectiveProperties = schema.properties ? { ...schema.properties } : undefined
+  if (schema.oneOf && schema.oneOf.length > 0) {
+    const oneOfProperties = compileOneOfBranches(schema.oneOf, schema.discriminator, dataPath)
+    effectiveProperties = { ...effectiveProperties, ...oneOfProperties }
+  }
+
   /* 递归编译 properties 子节点 */
-  if (schema.properties) {
-    const entries = Object.entries(schema.properties)
+  if (effectiveProperties) {
+    const entries = Object.entries(effectiveProperties)
     entries.sort(([, a], [, b]) => (a.order ?? 0) - (b.order ?? 0))
     for (const [childName, childSchema] of entries) {
       const childAddress = joinPath(address, childName)
@@ -171,8 +255,15 @@ export function compileSchema(schema: ISchema, options?: CompileOptions): Compil
    */
   const resolvedSchema = resolveSchemaRefs(schema)
 
-  if (resolvedSchema.properties) {
-    const entries = Object.entries(resolvedSchema.properties)
+  /* 合并根级 oneOf 分支 */
+  let rootProperties = resolvedSchema.properties ? { ...resolvedSchema.properties } : undefined
+  if (resolvedSchema.oneOf && resolvedSchema.oneOf.length > 0) {
+    const oneOfProperties = compileOneOfBranches(resolvedSchema.oneOf, resolvedSchema.discriminator, '')
+    rootProperties = { ...rootProperties, ...oneOfProperties }
+  }
+
+  if (rootProperties) {
+    const entries = Object.entries(rootProperties)
     entries.sort(([, a], [, b]) => (a.order ?? 0) - (b.order ?? 0))
     for (const [name, childSchema] of entries) {
       compileNode(name, childSchema, '', '', mapping, defaultDecorator, fields, fieldOrder)

@@ -6,7 +6,10 @@ import type {
   FieldInstance,
   FieldProps,
   FormConfig,
+  FormGraph,
   FormInstance,
+  ObjectFieldInstance,
+  ObjectFieldProps,
   ResetOptions,
   SubmitResult,
   VoidFieldInstance,
@@ -18,6 +21,7 @@ import { FormEventEmitter, FormLifeCycle } from '../events'
 import { ReactionEngine } from '../reaction/engine'
 import { ArrayField } from './ArrayField'
 import { Field } from './Field'
+import { ObjectField } from './ObjectField'
 import { VoidField } from './VoidField'
 
 /**
@@ -39,6 +43,8 @@ implements FormInstance<Values> {
   initialValues: Values
   submitting: boolean
   validating: boolean
+  /** 表单是否已挂载到 DOM */
+  mounted: boolean
   pattern: FieldPattern
   validateTrigger: ValidationTrigger | ValidationTrigger[]
   labelPosition: 'top' | 'left' | 'right'
@@ -48,6 +54,8 @@ implements FormInstance<Values> {
   private fields = new Map<string, Field>()
   /** 数组字段注册表 */
   private arrayFields = new Map<string, ArrayField>()
+  /** 对象字段注册表 */
+  private objectFields = new Map<string, ObjectField>()
   /** 虚拟字段注册表 */
   private voidFields = new Map<string, VoidField>()
   /** 值变化回调 */
@@ -60,6 +68,8 @@ implements FormInstance<Values> {
   private _emitter = new FormEventEmitter()
   /** 释放器 */
   private disposers: Disposer[] = []
+  /** 并发提交防护：正在执行的提交 Promise */
+  private _submitPromise: Promise<SubmitResult<Values>> | null = null
 
   constructor(config: FormConfig<Values> = {}) {
     this.id = uid('form')
@@ -67,6 +77,7 @@ implements FormInstance<Values> {
     this.initialValues = (config.initialValues ? deepClone(config.initialValues) : {}) as Values
     this.submitting = false
     this.validating = false
+    this.mounted = false
     this.pattern = config.pattern ?? 'editable'
     this.validateTrigger = config.validateTrigger ?? 'change'
     this.labelPosition = config.labelPosition ?? 'right'
@@ -174,6 +185,28 @@ implements FormInstance<Values> {
     return field as unknown as ArrayFieldInstance<V>
   }
 
+  /** 创建对象字段 */
+  createObjectField<V extends Record<string, unknown> = Record<string, unknown>>(
+    props: ObjectFieldProps<V>,
+  ): ObjectFieldInstance<V> {
+    const adapter = getReactiveAdapter()
+    const rawField = new ObjectField<V>(this as unknown as FormInstance, props)
+
+    const field = adapter.makeObservable(rawField)
+    this.objectFields.set(field.path, field as unknown as ObjectField)
+    this.fields.set(field.path, field as unknown as Field)
+
+    if (field.reactions.length > 0) {
+      this.reactionEngine.registerFieldReactions(
+        field as unknown as FieldInstance,
+        field.reactions,
+      )
+    }
+
+    this._emitter.emit(FormLifeCycle.ON_FIELD_INIT, field)
+    return field as unknown as ObjectFieldInstance<V>
+  }
+
   /** 创建虚拟字段 */
   createVoidField(props: VoidFieldProps): VoidFieldInstance {
     const adapter = getReactiveAdapter()
@@ -202,6 +235,11 @@ implements FormInstance<Values> {
     return this.arrayFields.get(path) as unknown as ArrayFieldInstance | undefined
   }
 
+  /** 获取对象字段 */
+  getObjectField(path: string): ObjectFieldInstance | undefined {
+    return this.objectFields.get(path) as unknown as ObjectFieldInstance | undefined
+  }
+
   /** 移除字段 */
   removeField(path: string): void {
     const field = this.fields.get(path)
@@ -209,6 +247,7 @@ implements FormInstance<Values> {
       field.dispose()
       this.fields.delete(path)
       this.arrayFields.delete(path)
+      this.objectFields.delete(path)
       this.reactionEngine.removeFieldReactions(path)
     }
     const voidField = this.voidFields.get(path)
@@ -378,8 +417,23 @@ implements FormInstance<Values> {
     }
   }
 
-  /** 提交表单 */
+  /**
+   * 提交表单
+   *
+   * 并发防护：多次调用（如用户快速双击）会复用同一个提交 Promise，
+   * 所有调用方拿到相同结果，避免重复提交。
+   */
   async submit(): Promise<SubmitResult<Values>> {
+    /* 并发提交防护：复用正在执行的提交 */
+    if (this._submitPromise) {
+      return this._submitPromise
+    }
+    this._submitPromise = this._executeSubmit()
+    return this._submitPromise
+  }
+
+  /** 实际提交逻辑（内部使用） */
+  private async _executeSubmit(): Promise<SubmitResult<Values>> {
     this.submitting = true
     this._emitter.emit(FormLifeCycle.ON_FORM_SUBMIT_START, this)
     try {
@@ -404,6 +458,7 @@ implements FormInstance<Values> {
     finally {
       this.submitting = false
       this._emitter.emit(FormLifeCycle.ON_FORM_SUBMIT_END, this)
+      this._submitPromise = null
     }
   }
 
@@ -553,10 +608,103 @@ implements FormInstance<Values> {
     })
   }
 
+  /**
+   * 表单挂载
+   *
+   * 由框架桥接层（FormProvider）在组件挂载到 DOM 后调用。
+   * 标记表单已渲染完成，emit ON_FORM_MOUNT 事件。
+   */
+  mount(): void {
+    if (this.mounted) return
+    this.mounted = true
+    this._emitter.emit(FormLifeCycle.ON_FORM_MOUNT, this)
+  }
+
+  /**
+   * 表单卸载
+   *
+   * 由框架桥接层（FormProvider）在组件卸载前调用。
+   * 标记表单已卸载，emit ON_FORM_UNMOUNT 事件。
+   */
+  unmount(): void {
+    if (!this.mounted) return
+    this.mounted = false
+    this._emitter.emit(FormLifeCycle.ON_FORM_UNMOUNT, this)
+  }
+
   /** 批量操作 */
   batch(fn: () => void): void {
     const adapter = getReactiveAdapter()
     adapter.batch(fn)
+  }
+
+  /**
+   * 导出表单状态快照
+   *
+   * 遍历所有字段，序列化其值和状态为可持久化的 FormGraph 对象。
+   * 用于：草稿保存、撤销/重做、表单状态对比。
+   */
+  getGraph(): FormGraph {
+    const fieldStates: Record<string, FormGraph['fields'][string]> = {}
+
+    for (const [path, field] of this.fields) {
+      fieldStates[path] = {
+        path,
+        value: deepClone(FormPath.getIn(this.values, path)),
+        initialValue: deepClone(FormPath.getIn(this.initialValues, path)),
+        display: field.display,
+        disabled: field.disabled,
+        readOnly: field.readOnly,
+        required: field.required,
+        pattern: field.pattern,
+        errors: deepClone(field.errors),
+        warnings: deepClone(field.warnings),
+        mounted: field.mounted,
+        modified: field.modified,
+        component: field.component,
+        componentProps: deepClone(field.componentProps) as Record<string, unknown>,
+      }
+    }
+
+    return {
+      values: deepClone(this.values) as Record<string, unknown>,
+      initialValues: deepClone(this.initialValues) as Record<string, unknown>,
+      fields: fieldStates,
+      timestamp: Date.now(),
+    }
+  }
+
+  /**
+   * 从快照恢复表单状态
+   *
+   * 恢复 values 和逐字段的状态（display / disabled / errors 等）。
+   * 不在快照中的字段保持不变，快照中不存在对应注册字段的状态被忽略。
+   */
+  setGraph(graph: FormGraph): void {
+    const adapter = getReactiveAdapter()
+    adapter.batch(() => {
+      /* 恢复表单值 */
+      this.setValues(deepClone(graph.values) as Partial<Values>, 'replace')
+      this.initialValues = deepClone(graph.initialValues) as Values
+
+      /* 逐字段恢复状态 */
+      for (const [path, state] of Object.entries(graph.fields)) {
+        const field = this.fields.get(path)
+        if (!field) continue
+
+        field.display = state.display
+        field.disabled = state.disabled
+        field.readOnly = state.readOnly
+        field.required = state.required
+        field.pattern = state.pattern
+        field.errors = deepClone(state.errors)
+        field.warnings = deepClone(state.warnings)
+        if (typeof state.component === 'string') {
+          field.component = state.component
+        }
+        field.componentProps = deepClone(state.componentProps) as Record<string, unknown>
+      }
+    })
   }
 
   /** 销毁表单 */
@@ -573,6 +721,7 @@ implements FormInstance<Values> {
     }
     this.fields.clear()
     this.arrayFields.clear()
+    this.objectFields.clear()
     this.voidFields.clear()
     this.valuesChangeHandlers = []
     this.fieldValueChangeHandlers.clear()
@@ -636,7 +785,7 @@ implements FormInstance<Values> {
     this._emitter.emit(FormLifeCycle.ON_FORM_VALUES_CHANGE, this.values)
   }
 
-  /** 通知字段值变化（供 Field.setValue 调用） */
+  /** 通知字段值变化（供 Field.setValue / Field.onInput 调用） */
   notifyFieldValueChange(path: string, value: unknown): void {
     const handlers = this.fieldValueChangeHandlers.get(path)
     if (handlers) {
@@ -645,5 +794,25 @@ implements FormInstance<Values> {
       }
     }
     this._emitter.emit(FormLifeCycle.ON_FIELD_VALUE_CHANGE, { path, value })
+  }
+
+  /** 通知字段用户输入（供 Field.onInput 调用，区分用户输入和程序赋值） */
+  notifyFieldInputChange(path: string, value: unknown): void {
+    this._emitter.emit(FormLifeCycle.ON_FIELD_INPUT_VALUE_CHANGE, { path, value })
+  }
+
+  /** 通知字段初始值变化（供 Field.initialValue setter 调用） */
+  notifyFieldInitialValueChange(path: string, value: unknown): void {
+    this._emitter.emit(FormLifeCycle.ON_FIELD_INITIAL_VALUE_CHANGE, { path, value })
+  }
+
+  /** 通知字段挂载（供 Field.mount 调用） */
+  notifyFieldMount(field: FieldInstance | VoidFieldInstance): void {
+    this._emitter.emit(FormLifeCycle.ON_FIELD_MOUNT, field)
+  }
+
+  /** 通知字段卸载（供 Field.unmount 调用） */
+  notifyFieldUnmount(field: FieldInstance | VoidFieldInstance): void {
+    this._emitter.emit(FormLifeCycle.ON_FIELD_UNMOUNT, field)
   }
 }

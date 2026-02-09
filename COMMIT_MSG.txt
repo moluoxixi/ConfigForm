@@ -1,0 +1,28 @@
+feat(core): 核心引擎增强 — ObjectField、生命周期、Input分离、Graph序列化、oneOf、Effects API
+
+Phase 1 — 核心模型增强：
+- 新增 6 个生命周期事件：ON_FORM_MOUNT/UNMOUNT、ON_FIELD_MOUNT/UNMOUNT、ON_FIELD_INPUT_VALUE_CHANGE、ON_FIELD_INITIAL_VALUE_CHANGE
+- Field.onInput/setValue 分离：用户输入走 onInput（触发验证），程序赋值走 setValue（不触发验证）
+- Field/VoidField/Form 新增 mounted 属性和 mount/unmount 方法
+- 新建 ObjectField 模型：支持 addProperty/removeProperty/existProperty/getPropertyNames
+- Form 新增 getGraph/setGraph 状态序列化，支持快照和恢复
+- React/Vue 桥接层更新：FormProvider 调用 form.mount/unmount，FormField 调用 field.mount/unmount，ReactiveField onChange 改用 onInput
+
+Phase 2 — Schema 协议增强：
+- ISchema 新增 oneOf/discriminator 条件分支，编译器自动生成隐式 reactions 切换分支
+- ISchema 新增 layout 属性（grid/inline 布局）
+
+Phase 3 — Effects API：
+- 新建 effects 模块：onFieldValueChange、onFieldInputChange、onFieldInit、onFieldMount、onFieldUnmount、onFormReact、onFieldReact
+
+修复预存问题：
+- vue 包缺少 @moluoxixi/shared 依赖声明
+- schema 包缺少 @moluoxixi/validator 依赖声明
+- CompiledField.resolvedComponent 类型从 string|unknown 改为 ComponentType
+- validator.ts rule.message 函数类型未处理
+- FormProvider ComponentType 与 Vue Component 类型不兼容
+
+示例补充（28->33）：
+- 新增 OneOfSchemaForm、EffectsAPIForm、ObjectFieldDynamicForm
+- 更新 LifecycleForm、FormSnapshotForm 使用新 API
+- SceneConfig 新增 effects 字段，ConfigForm/SceneRenderer 适配

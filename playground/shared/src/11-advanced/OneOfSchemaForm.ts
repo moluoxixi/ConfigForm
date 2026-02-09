@@ -1,46 +1,26 @@
 import type { SceneConfig } from '../types'
 
 /**
- * 场景：oneOf/anyOf 条件 Schema
+ * 场景：oneOf 条件 Schema（编译器自动切换分支）
  *
- * 演示根据支付方式切换字段组合的能力。
- * 模拟 JSON Schema oneOf 模式，通过 paymentType 值动态展示不同的表单字段组。
+ * 演示 oneOf + discriminator 能力：
+ * - 根据「支付方式」字段值自动切换显示不同的字段组
+ * - 编译器自动为每个分支字段生成隐式 reactions（watch discriminator，切换 display）
+ * - 无需手写 reactions，Schema 声明即驱动
+ *
+ * 核心功能覆盖：
+ * - ISchema.oneOf 条件分支
+ * - ISchema.discriminator 鉴别器
+ * - 编译器自动生成 reactions
  */
 
-/** 支付方式选项 */
-const PAYMENT_TYPE_OPTIONS = [
-  { label: '信用卡', value: 'credit_card' },
-  { label: '银行转账', value: 'bank_transfer' },
-  { label: '支付宝', value: 'alipay' },
-]
-
-/** 各支付方式对应的字段 schema */
-const TYPE_SCHEMAS: Record<string, Record<string, unknown>> = {
-  credit_card: {
-    cardNumber: { type: 'string', title: '卡号', required: true, rules: [{ pattern: '^\\d{16,19}$', message: '请输入16-19位数字' }] },
-    cardHolder: { type: 'string', title: '持卡人', required: true },
-    expiryDate: { type: 'string', title: '有效期', required: true, componentProps: { placeholder: 'MM/YY' } },
-    cvv: { type: 'string', title: 'CVV', required: true, component: 'Password', rules: [{ pattern: '^\\d{3,4}$', message: '3-4位数字' }] },
-  },
-  bank_transfer: {
-    bankName: { type: 'string', title: '开户银行', required: true },
-    accountNumber: { type: 'string', title: '账号', required: true },
-    accountName: { type: 'string', title: '户名', required: true },
-    swift: { type: 'string', title: 'SWIFT 代码', componentProps: { placeholder: '国际汇款时填写' } },
-  },
-  alipay: {
-    alipayAccount: { type: 'string', title: '支付宝账号', required: true, rules: [{ format: 'email', message: '请输入邮箱或手机号' }] },
-    alipayName: { type: 'string', title: '真实姓名', required: true },
-  },
-}
-
-const config: SceneConfig & { paymentTypeOptions: typeof PAYMENT_TYPE_OPTIONS; typeSchemas: typeof TYPE_SCHEMAS } = {
-  title: 'oneOf/anyOf 条件 Schema',
-  description: '根据支付方式切换字段组合 — 模拟 JSON Schema oneOf 模式',
+const config: SceneConfig = {
+  title: 'oneOf 条件 Schema',
+  description: 'oneOf + discriminator — 编译器自动切换分支，无需手写 reactions',
 
   initialValues: {
     paymentType: 'credit_card',
-    amount: 0,
+    amount: 100,
     remark: '',
   },
 
@@ -53,41 +33,47 @@ const config: SceneConfig & { paymentTypeOptions: typeof PAYMENT_TYPE_OPTIONS; t
         title: '支付方式',
         required: true,
         component: 'RadioGroup',
-        enum: PAYMENT_TYPE_OPTIONS,
+        enum: [
+          { label: '信用卡', value: 'credit_card' },
+          { label: '银行转账', value: 'bank_transfer' },
+          { label: '支付宝', value: 'alipay' },
+        ],
       },
-      /* 信用卡字段（默认展示） */
-      ...TYPE_SCHEMAS.credit_card,
-      /* 公共字段 */
-      amount: { type: 'number', title: '支付金额', required: true, componentProps: { min: 0.01 } },
-      remark: { type: 'string', title: '备注', component: 'Textarea' },
     },
+    /* 编译器自动处理：非活跃分支字段 display='none'，活跃分支 display='visible' */
+    discriminator: 'paymentType',
+    oneOf: [
+      {
+        when: { paymentType: 'credit_card' },
+        properties: {
+          cardNumber: { type: 'string', title: '卡号', required: true, rules: [{ pattern: '^\\d{16,19}$', message: '请输入 16-19 位数字' }] },
+          cardHolder: { type: 'string', title: '持卡人', required: true },
+          expiryDate: { type: 'string', title: '有效期', required: true, componentProps: { placeholder: 'MM/YY' } },
+          cvv: { type: 'string', title: 'CVV', required: true, component: 'Password', rules: [{ pattern: '^\\d{3,4}$', message: '3-4 位数字' }] },
+        },
+      },
+      {
+        when: { paymentType: 'bank_transfer' },
+        properties: {
+          bankName: { type: 'string', title: '开户银行', required: true },
+          accountNumber: { type: 'string', title: '银行账号', required: true },
+          accountName: { type: 'string', title: '户名', required: true },
+        },
+      },
+      {
+        when: { paymentType: 'alipay' },
+        properties: {
+          alipayAccount: { type: 'string', title: '支付宝账号', required: true },
+          alipayName: { type: 'string', title: '真实姓名', required: true },
+        },
+      },
+    ],
+    /* 公共字段在 properties 中正常定义 */
   },
-
-  fields: [
-    { name: 'paymentType', label: '支付方式', required: true, component: 'RadioGroup', dataSource: PAYMENT_TYPE_OPTIONS },
-    /* 信用卡字段 */
-    { name: 'cardNumber', label: '卡号', required: true, component: 'Input', rules: [{ pattern: '^\\d{16,19}$', message: '请输入16-19位数字' }] },
-    { name: 'cardHolder', label: '持卡人', required: true, component: 'Input' },
-    { name: 'expiryDate', label: '有效期', required: true, component: 'Input', componentProps: { placeholder: 'MM/YY' } },
-    { name: 'cvv', label: 'CVV', required: true, component: 'Password', rules: [{ pattern: '^\\d{3,4}$', message: '3-4位数字' }] },
-    /* 银行转账字段 */
-    { name: 'bankName', label: '开户银行', required: true, component: 'Input' },
-    { name: 'accountNumber', label: '账号', required: true, component: 'Input' },
-    { name: 'accountName', label: '户名', required: true, component: 'Input' },
-    { name: 'swift', label: 'SWIFT 代码', component: 'Input', componentProps: { placeholder: '国际汇款时填写' } },
-    /* 支付宝字段 */
-    { name: 'alipayAccount', label: '支付宝账号', required: true, component: 'Input', rules: [{ format: 'email', message: '请输入邮箱或手机号' }] },
-    { name: 'alipayName', label: '真实姓名', required: true, component: 'Input' },
-    /* 公共字段 */
-    { name: 'amount', label: '支付金额', required: true, component: 'InputNumber', componentProps: { min: 0.01, style: 'width: 100%' } },
-    { name: 'remark', label: '备注', component: 'Textarea' },
-  ],
-
-  /** 支付方式选项（供实现侧使用） */
-  paymentTypeOptions: PAYMENT_TYPE_OPTIONS,
-
-  /** 各支付方式字段 schema（供实现侧动态切换使用） */
-  typeSchemas: TYPE_SCHEMAS,
 }
+
+/* 追加公共字段到 properties（oneOf 之外的字段始终显示） */
+config.schema.properties!.amount = { type: 'number', title: '支付金额', required: true, componentProps: { min: 0.01, style: 'width: 100%' } }
+config.schema.properties!.remark = { type: 'string', title: '备注', component: 'Textarea' }
 
 export default config

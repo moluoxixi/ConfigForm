@@ -29,6 +29,7 @@
         :key="variantValue"
         :schema="withMode(currentSchema, mode)"
         :initial-values="props.config.initialValues"
+        :effects="props.config.effects"
         @submit="showResult"
         @submit-failed="(e: any) => st?.showErrors(e)"
       />

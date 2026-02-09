@@ -1,5 +1,5 @@
 import type { ComponentType, Disposer, FieldPattern } from '@moluoxixi/shared'
-import type { FormInstance, ReactionRule, VoidFieldInstance, VoidFieldProps } from '../types'
+import type { FieldInstance, FormInstance, ReactionRule, VoidFieldInstance, VoidFieldProps } from '../types'
 import { FormPath, uid } from '@moluoxixi/shared'
 
 /**
@@ -15,6 +15,9 @@ export class VoidField implements VoidFieldInstance {
   readonly form: FormInstance
   readonly path: string
   readonly name: string
+
+  /** 是否已挂载到 DOM */
+  mounted: boolean
 
   label: string
   visible: boolean
@@ -32,6 +35,7 @@ export class VoidField implements VoidFieldInstance {
     this.form = form
     this.name = props.name
     this.path = parentPath ? FormPath.join(parentPath, props.name) : props.name
+    this.mounted = false
 
     this.label = props.label ?? ''
     this.visible = props.visible ?? true
@@ -43,11 +47,34 @@ export class VoidField implements VoidFieldInstance {
     this.reactions = props.reactions ?? []
   }
 
+  /**
+   * 字段挂载
+   *
+   * 由框架桥接层在组件挂载到 DOM 后调用。
+   */
+  mount(): void {
+    if (this.mounted) return
+    this.mounted = true
+    this.form.notifyFieldMount(this as unknown as FieldInstance)
+  }
+
+  /**
+   * 字段卸载
+   *
+   * 由框架桥接层在组件从 DOM 卸载前调用。
+   */
+  unmount(): void {
+    if (!this.mounted) return
+    this.mounted = false
+    this.form.notifyFieldUnmount(this as unknown as FieldInstance)
+  }
+
   /** 销毁 */
   dispose(): void {
     for (const disposer of this.disposers) {
       disposer()
     }
     this.disposers = []
+    this.mounted = false
   }
 }

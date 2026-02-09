@@ -1,7 +1,7 @@
 import type { FormInstance } from '@moluoxixi/core'
 import type { ComponentType, ReactNode } from 'react'
 import { observer } from 'mobx-react-lite'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { ComponentRegistryContext, FormContext } from '../context'
 import { getGlobalRegistry } from '../registry'
 
@@ -21,6 +21,14 @@ export interface FormProviderProps {
  */
 export const FormProvider = observer<FormProviderProps>(({ form, components, wrappers, children }) => {
   const globalRegistry = getGlobalRegistry()
+
+  /* 表单挂载/卸载生命周期 */
+  useEffect(() => {
+    form.mount()
+    return () => {
+      form.unmount()
+    }
+  }, [form])
 
   const registry = React.useMemo(() => {
     const mergedComponents = new Map(globalRegistry.components)

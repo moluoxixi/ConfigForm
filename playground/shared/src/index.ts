@@ -10,13 +10,14 @@ export const GROUP_LABELS: Record<string, string> = {
   '06-layout': '布局分组',
   '07-dynamic': '动态表单',
   '08-advanced': '进阶能力',
+  '09-state': '状态管理',
 }
 
 /**
- * 场景注册表（精简版）
+ * 场景注册表
  *
- * 28 个核心场景，每个场景都展示实际可工作的功能。
- * 删除了功能未实现、自定义组件降级、只有普通字段等低价值场景。
+ * 33 个核心场景，覆盖所有已实现的核心功能。
+ * 包含基础、联动、验证、复杂数据、数据源、布局、动态表单、进阶能力、状态管理。
  */
 export const sceneRegistry: Record<string, { group: string, loader: () => Promise<{ default: import('./types').SceneConfig }> }> = {
   /* 01-basic — 基础场景（4 个） */
@@ -38,11 +39,12 @@ export const sceneRegistry: Record<string, { group: string, loader: () => Promis
   CrossFieldValidationForm: { group: '03-validation', loader: () => import('./03-validation/CrossFieldValidationForm') },
   CustomValidationForm: { group: '03-validation', loader: () => import('./03-validation/CustomValidationForm') },
 
-  /* 04-complex-data — 复杂数据（4 个） */
+  /* 04-complex-data — 复杂数据（5 个） */
   ArrayFieldForm: { group: '04-complex-data', loader: () => import('./04-complex-data/ArrayFieldForm') },
   EditableTableForm: { group: '04-complex-data', loader: () => import('./04-complex-data/EditableTableForm') },
   NestedObjectForm: { group: '04-complex-data', loader: () => import('./04-complex-data/NestedObjectForm') },
   ObjectArrayNestedForm: { group: '04-complex-data', loader: () => import('./04-complex-data/ObjectArrayNestedForm') },
+  ObjectFieldDynamicForm: { group: '04-complex-data', loader: () => import('./04-complex-data/ObjectFieldDynamicForm') },
 
   /* 05-datasource — 数据源（3 个） */
   AsyncOptionsForm: { group: '05-datasource', loader: () => import('./05-datasource/AsyncOptionsForm') },
@@ -58,12 +60,18 @@ export const sceneRegistry: Record<string, { group: string, loader: () => Promis
   /* 07-dynamic — 动态表单（1 个，保留有实际交互的） */
   DynamicFieldForm: { group: '07-dynamic', loader: () => import('./07-dynamic/DynamicFieldForm') },
 
-  /* 08-advanced — 进阶能力（5 个，保留有 reactions/decorator 等实际实现的） */
+  /* 08-advanced — 进阶能力（8 个） */
   SchemaExpressionForm: { group: '08-advanced', loader: () => import('./11-advanced/SchemaExpressionForm') },
   ExpressionEngineForm: { group: '08-advanced', loader: () => import('./11-advanced/ExpressionEngineForm') },
   SchemaRefForm: { group: '08-advanced', loader: () => import('./11-advanced/SchemaRefForm') },
   EffectsForm: { group: '08-advanced', loader: () => import('./11-advanced/EffectsForm') },
   CustomDecoratorForm: { group: '08-advanced', loader: () => import('./11-advanced/CustomDecoratorForm') },
+  OneOfSchemaForm: { group: '08-advanced', loader: () => import('./11-advanced/OneOfSchemaForm') },
+  EffectsAPIForm: { group: '08-advanced', loader: () => import('./11-advanced/EffectsAPIForm') },
+
+  /* 09-state — 状态管理（2 个） */
+  LifecycleForm: { group: '09-state', loader: () => import('./09-state/LifecycleForm') },
+  FormSnapshotForm: { group: '09-state', loader: () => import('./09-state/FormSnapshotForm') },
 }
 
 /** 场景分组列表（从 registry 自动生成） */

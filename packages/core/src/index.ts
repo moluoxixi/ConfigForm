@@ -7,11 +7,23 @@ export type { FormEvent, FormEventHandler } from './events'
 
 /* 数据源 */
 export { clearDataSourceCache, fetchDataSource, registerRequestAdapter } from './datasource/manager'
-export { ArrayField } from './models/ArrayField'
-export { Field } from './models/Field'
+
+/* Effects API */
+export {
+  onFieldInit,
+  onFieldInputChange,
+  onFieldMount,
+  onFieldReact,
+  onFieldUnmount,
+  onFieldValueChange,
+  onFormReact,
+} from './effects'
+
 /* 模型 */
 export { Form } from './models/Form'
-
+export { Field } from './models/Field'
+export { ArrayField } from './models/ArrayField'
+export { ObjectField } from './models/ObjectField'
 export { VoidField } from './models/VoidField'
 
 /* 联动引擎 */
@@ -24,9 +36,12 @@ export type {
   DataSourceConfig,
   FieldInstance,
   FieldProps,
-  FieldStateUpdate,
+  FieldState,
   FormConfig,
+  FormGraph,
   FormInstance,
+  ObjectFieldInstance,
+  ObjectFieldProps,
   ReactionContext,
   ReactionEffect,
   ReactionRule,

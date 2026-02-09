@@ -1,4 +1,5 @@
-import type { ArrayFieldInstance, ArrayFieldProps, Disposer, FormInstance } from '../types'
+import type { Disposer } from '@moluoxixi/shared'
+import type { ArrayFieldInstance, ArrayFieldProps, FormInstance } from '../types'
 import { deepClone, isArray, isFunction } from '@moluoxixi/shared'
 import { getReactiveAdapter } from '@moluoxixi/reactive'
 import { Field } from './Field'
@@ -120,7 +121,7 @@ export class ArrayField<Value extends unknown[] = unknown[]>
     const newItems = items.length > 0 ? items : [this.createItem()]
     const arr = [...this.arrayValue]
     arr.splice(index, 0, ...newItems)
-    this.setValue(arr as unknown as Value)
+    this.setArrayValueWithCleanup(arr, index)
   }
 
   /** 移除指定项 */
@@ -129,7 +130,22 @@ export class ArrayField<Value extends unknown[] = unknown[]>
       return
     const arr = [...this.arrayValue]
     arr.splice(index, 1)
-    this.setValue(arr as unknown as Value)
+    this.setArrayValueWithCleanup(arr, index)
+  }
+
+  /**
+   * 先清理受影响的子字段注册，再更新数组值。
+   *
+   * 数组操作（move/remove/insert/duplicate）会改变子字段的索引位置，
+   * 但字段的 path 在创建时就固定了。清理后让 UI 框架重新渲染时
+   * 以正确的索引创建新的字段实例，避免路径与值不匹配。
+   *
+   * @param newArr - 操作后的新数组
+   * @param fromIndex - 受影响的最小索引，该索引及之后的子字段全部清理
+   */
+  private setArrayValueWithCleanup(newArr: unknown[], fromIndex: number): void {
+    this.form.cleanupArrayChildren(this.path, fromIndex)
+    this.setValue(newArr as unknown as Value)
   }
 
   /** 移动项 */
@@ -137,9 +153,11 @@ export class ArrayField<Value extends unknown[] = unknown[]>
     const arr = [...this.arrayValue]
     if (from < 0 || from >= arr.length || to < 0 || to >= arr.length)
       return
+    if (from === to)
+      return
     const [item] = arr.splice(from, 1)
     arr.splice(to, 0, item)
-    this.setValue(arr as unknown as Value)
+    this.setArrayValueWithCleanup(arr, Math.min(from, to))
   }
 
   /** 上移 */
@@ -166,7 +184,7 @@ export class ArrayField<Value extends unknown[] = unknown[]>
     const cloned = deepClone(arr[index])
     const newArr = [...arr]
     newArr.splice(index + 1, 0, cloned)
-    this.setValue(newArr as unknown as Value)
+    this.setArrayValueWithCleanup(newArr, index + 1)
   }
 
   /** 替换项 */

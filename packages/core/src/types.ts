@@ -8,7 +8,7 @@ import type {
   FieldStateUpdate,
 } from '@moluoxixi/shared'
 import type { ValidationFeedback, ValidationRule, ValidationTrigger } from '@moluoxixi/validator'
-import type { FormEvent, FormEventHandler, FormLifeCycle } from './events'
+import type { FormEventHandler, FormLifeCycle } from './events'
 
 /* ======================== 字段属性 ======================== */
 
@@ -73,6 +73,10 @@ export interface ArrayFieldProps<Value extends unknown[] = unknown[]> extends Fi
   /** 数组项的字段定义 */
   itemProps?: Omit<FieldProps, 'name'>
 }
+
+/** 对象字段属性 */
+export interface ObjectFieldProps<Value extends Record<string, unknown> = Record<string, unknown>>
+  extends FieldProps<Value> {}
 
 /** 虚拟字段属性（不参与数据收集） */
 export interface VoidFieldProps {
@@ -245,6 +249,61 @@ export interface RequestConfig {
   signal?: AbortSignal
 }
 
+/* ======================== Form Graph（状态序列化） ======================== */
+
+/**
+ * 字段状态快照（序列化后的字段状态）
+ *
+ * 用于 Form Graph 的序列化/反序列化。
+ */
+export interface FieldState {
+  /** 字段路径 */
+  path: string
+  /** 当前值 */
+  value: unknown
+  /** 初始值 */
+  initialValue: unknown
+  /** 展示状态 */
+  display: FieldDisplay
+  /** 是否禁用 */
+  disabled: boolean
+  /** 是否只读 */
+  readOnly: boolean
+  /** 是否必填 */
+  required: boolean
+  /** 字段模式 */
+  pattern: FieldPattern
+  /** 错误信息 */
+  errors: ValidationFeedback[]
+  /** 警告信息 */
+  warnings: ValidationFeedback[]
+  /** 是否已挂载 */
+  mounted: boolean
+  /** 是否被修改 */
+  modified: boolean
+  /** 组件标识 */
+  component: string | ComponentType
+  /** 组件 Props */
+  componentProps: Record<string, unknown>
+}
+
+/**
+ * 表单状态图
+ *
+ * 完整的表单状态快照，支持序列化存储和反序列化恢复。
+ * 用于：草稿保存、撤销/重做、表单状态对比、设计器集成。
+ */
+export interface FormGraph {
+  /** 表单值 */
+  values: Record<string, unknown>
+  /** 初始值 */
+  initialValues: Record<string, unknown>
+  /** 所有字段状态（path → FieldState） */
+  fields: Record<string, FieldState>
+  /** 快照时间戳 */
+  timestamp: number
+}
+
 /* ======================== 实例类型（避免循环依赖的接口） ======================== */
 
 /** Form 实例接口 */
@@ -266,11 +325,16 @@ export interface FormInstance<Values extends Record<string, unknown> = Record<st
   /** 标签宽度 */
   labelWidth: number | string
 
+  /** 表单是否已挂载到 DOM */
+  mounted: boolean
+
   createField: <V = unknown>(props: FieldProps<V>) => FieldInstance<V>
   createArrayField: <V extends unknown[] = unknown[]>(props: ArrayFieldProps<V>) => ArrayFieldInstance<V>
+  createObjectField: <V extends Record<string, unknown> = Record<string, unknown>>(props: ObjectFieldProps<V>) => ObjectFieldInstance<V>
   createVoidField: (props: VoidFieldProps) => VoidFieldInstance
   getField: (path: string) => FieldInstance | undefined
   getArrayField: (path: string) => ArrayFieldInstance | undefined
+  getObjectField: (path: string) => ObjectFieldInstance | undefined
   removeField: (path: string) => void
   /** 清理数组字段中索引 >= start 的子字段注册（参考 Formily cleanupArrayChildren） */
   cleanupArrayChildren: (arrayPath: string, start: number) => void
@@ -291,13 +355,29 @@ export interface FormInstance<Values extends Record<string, unknown> = Record<st
   notifyValuesChange: () => void
   /** 通知字段值变化（供 Field 内部调用） */
   notifyFieldValueChange: (path: string, value: unknown) => void
+  /** 通知字段用户输入（供 Field.onInput 内部调用） */
+  notifyFieldInputChange: (path: string, value: unknown) => void
+  /** 通知字段初始值变化（供 Field 内部调用） */
+  notifyFieldInitialValueChange: (path: string, value: unknown) => void
+  /** 通知字段挂载（供框架桥接层调用） */
+  notifyFieldMount: (field: FieldInstance | VoidFieldInstance) => void
+  /** 通知字段卸载（供框架桥接层调用） */
+  notifyFieldUnmount: (field: FieldInstance | VoidFieldInstance) => void
   /** 设置字段状态（支持通配符批量） */
   setFieldState: (pattern: string, state: Partial<FieldStateUpdate>) => void
   /** 订阅特定生命周期事件 */
   on: (type: FormLifeCycle, handler: FormEventHandler) => Disposer
   /** 订阅所有生命周期事件 */
   subscribe: (handler: FormEventHandler) => Disposer
+  /** 表单挂载（由框架桥接层调用） */
+  mount: () => void
+  /** 表单卸载（由框架桥接层调用） */
+  unmount: () => void
   batch: (fn: () => void) => void
+  /** 导出表单状态快照 */
+  getGraph: () => FormGraph
+  /** 从快照恢复表单状态 */
+  setGraph: (graph: FormGraph) => void
   dispose: () => void
 }
 
@@ -309,6 +389,8 @@ export interface FieldInstance<Value = unknown> {
   value: Value
   initialValue: Value
   readonly modified: boolean
+  /** 是否已挂载到 DOM */
+  mounted: boolean
   label: string
   description: string
   /** 展示状态三态 */
@@ -339,6 +421,18 @@ export interface FieldInstance<Value = unknown> {
   submitPath?: string
   excludeWhenHidden: boolean
 
+  /**
+   * 用户输入（触发 parse + change 验证 + ON_FIELD_INPUT_VALUE_CHANGE）
+   *
+   * 由 UI 组件的 onChange 回调调用。
+   * 与 setValue 的区别：onInput 会触发 change 验证和 INPUT_VALUE_CHANGE 事件。
+   */
+  onInput: (value: Value) => void
+  /**
+   * 程序赋值（不触发验证，仅 emit ON_FIELD_VALUE_CHANGE）
+   *
+   * 用于联动赋值、初始化等程序控制场景。
+   */
   setValue: (value: Value) => void
   setComponentProps: (props: Record<string, unknown>) => void
   setDataSource: (items: DataSourceItem[]) => void
@@ -353,6 +447,10 @@ export interface FieldInstance<Value = unknown> {
   hide: () => void
   enable: () => void
   disable: () => void
+  /** 字段挂载（由框架桥接层调用） */
+  mount: () => void
+  /** 字段卸载（由框架桥接层调用） */
+  unmount: () => void
   onValueChange: (handler: (value: Value, oldValue: Value) => void) => Disposer
   dispose: () => void
 }
@@ -376,11 +474,26 @@ export interface ArrayFieldInstance<Value extends unknown[] = unknown[]> extends
   replace: (index: number, item: Value[number]) => void
 }
 
+/** ObjectField 实例接口 */
+export interface ObjectFieldInstance<Value extends Record<string, unknown> = Record<string, unknown>>
+  extends FieldInstance<Value> {
+  /** 动态添加属性 */
+  addProperty: (name: string, value: unknown) => void
+  /** 动态移除属性 */
+  removeProperty: (name: string) => void
+  /** 检查属性是否存在 */
+  existProperty: (name: string) => boolean
+  /** 获取所有属性名 */
+  getPropertyNames: () => string[]
+}
+
 /** VoidField 实例接口 */
 export interface VoidFieldInstance {
   readonly form: FormInstance
   readonly path: string
   readonly name: string
+  /** 是否已挂载到 DOM */
+  mounted: boolean
   label: string
   visible: boolean
   disabled: boolean
@@ -388,5 +501,9 @@ export interface VoidFieldInstance {
   pattern: FieldPattern
   component: string | ComponentType
   componentProps: Record<string, unknown>
+  /** 字段挂载（由框架桥接层调用） */
+  mount: () => void
+  /** 字段卸载（由框架桥接层调用） */
+  unmount: () => void
   dispose: () => void
 }
