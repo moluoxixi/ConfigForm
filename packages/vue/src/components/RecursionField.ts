@@ -1,10 +1,12 @@
 import type { ISchema } from '@moluoxixi/core'
 import { DEFAULT_COMPONENT_MAPPING, resolveComponent } from '@moluoxixi/core'
 import type { PropType, VNode } from 'vue'
-import { defineComponent, h } from 'vue'
+import { defineComponent, h, provide } from 'vue'
+import { SchemaSymbol } from '../context'
 import { FormField } from './FormField'
 import { FormArrayField } from './FormArrayField'
 import { FormObjectField } from './FormObjectField'
+import { FormVoidField } from './FormVoidField'
 
 /**
  * RecursionField — 递归 Schema 渲染器（参考 Formily RecursionField）
@@ -67,8 +69,40 @@ export const RecursionField = defineComponent({
     }
 
     /** 渲染单个 schema 节点 */
+    /** SchemaProvider 辅助组件 */
+    const SchemaProviderLocal = defineComponent({
+      name: 'SchemaProviderLocal',
+      props: { schema: { type: Object as PropType<ISchema>, required: true } },
+      setup(localProps, { slots }) {
+        provide(SchemaSymbol, localProps.schema)
+        return () => slots.default?.()
+      },
+    })
+
     function renderSchema(name: string, schema: ISchema, parentPath: string): VNode {
       const dataPath = schema.type === 'void' ? parentPath : (parentPath ? `${parentPath}.${name}` : name)
+      const address = parentPath ? `${parentPath}.${name}` : name
+
+      /* void 字段 — 通过 FormVoidField 渲染，注入 SchemaSymbol */
+      if (schema.type === 'void') {
+        return h(SchemaProviderLocal, { key: address, schema }, {
+          default: () => h(FormVoidField, {
+            name: address,
+            fieldProps: {
+              label: schema.title,
+              component: schema.component,
+              componentProps: schema.componentProps,
+              visible: schema.visible,
+              disabled: schema.disabled,
+              readOnly: schema.readOnly,
+              pattern: schema.pattern,
+              reactions: schema.reactions,
+            },
+          }, {
+            default: () => renderProperties(schema, dataPath),
+          }),
+        })
+      }
 
       /* 数组字段 */
       if (schema.type === 'array') {

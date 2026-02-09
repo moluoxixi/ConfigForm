@@ -1,21 +1,29 @@
-import type { PropType } from 'vue'
 import { ElTabPane, ElTabs } from 'element-plus'
-import { defineComponent, h } from 'vue'
+import { useField, useSchemaItems, RecursionField } from '@moluoxixi/vue'
+import { defineComponent, h, ref } from 'vue'
 
-/** Tabs 布局容器适配 */
+/**
+ * 标签页布局容器（Schema 感知模式）
+ */
 export const LayoutTabs = defineComponent({
   name: 'CfLayoutTabs',
-  props: {
-    activeKey: { type: String, default: undefined },
-    items: { type: Array as PropType<Array<{ key: string, label: string }>>, default: () => [] },
-  },
-  emits: ['update:activeKey'],
-  setup(props, { slots, emit }) {
+  setup() {
+    const field = useField()
+    const items = useSchemaItems()
+    const activeKey = ref(items.length > 0 ? items[0].name : '')
+
     return () => h(ElTabs, {
-      'modelValue': props.activeKey,
-      'onUpdate:modelValue': (k: string) => emit('update:activeKey', k),
-    }, () => props.items.map(item =>
-      h(ElTabPane, { key: item.key, name: item.key, label: item.label }, () => slots[item.key]?.()),
+      'modelValue': activeKey.value,
+      'onUpdate:modelValue': (k: string) => { activeKey.value = k },
+    }, () => items.map(item =>
+      h(ElTabPane, { key: item.name, name: item.name, label: item.title }, () =>
+        h(RecursionField, {
+          schema: item.schema,
+          name: item.name,
+          basePath: field.path,
+          onlyRenderProperties: true,
+        }),
+      ),
     ))
   },
 })

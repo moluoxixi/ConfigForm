@@ -1,4 +1,4 @@
-import type { FieldInstance, FormInstance } from '@moluoxixi/core'
+import type { FieldInstance, FormInstance, ISchema } from '@moluoxixi/core'
 import type { ComponentType } from '@moluoxixi/core'
 import type { ComputedRef, InjectionKey } from 'vue'
 
@@ -21,3 +21,11 @@ export interface ComponentRegistry {
  * components/decorators props 变化时，注入方能获取到最新注册表。
  */
 export const ComponentRegistrySymbol: InjectionKey<ComputedRef<ComponentRegistry>> = Symbol('ConfigComponentRegistry')
+
+/**
+ * Schema 注入 key
+ *
+ * SchemaField 在渲染每个节点时注入该节点的 ISchema。
+ * 布局组件通过 useFieldSchema() 读取。
+ */
+export const SchemaSymbol: InjectionKey<ISchema> = Symbol('ConfigSchema')

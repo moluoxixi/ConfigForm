@@ -1,21 +1,32 @@
-import type { PropType } from 'vue'
 import { TabPane as ATabPane, Tabs as ATabs } from 'ant-design-vue'
-import { defineComponent, h } from 'vue'
+import { useField, useSchemaItems, RecursionField } from '@moluoxixi/vue'
+import { defineComponent, h, ref } from 'vue'
 
-/** Tabs 布局容器适配 */
+/**
+ * 标签页布局容器（Schema 感知模式）
+ *
+ * 使用框架层 useSchemaItems() 发现子面板，
+ * 用 RecursionField 渲染每个面板内容。
+ */
 export const LayoutTabs = defineComponent({
   name: 'CfLayoutTabs',
-  props: {
-    activeKey: { type: String, default: undefined },
-    items: { type: Array as PropType<Array<{ key: string, label: string }>>, default: () => [] },
-  },
-  emits: ['update:activeKey'],
-  setup(props, { slots, emit }) {
+  setup() {
+    const field = useField()
+    const items = useSchemaItems()
+    const activeKey = ref(items.length > 0 ? items[0].name : '')
+
     return () => h(ATabs, {
-      'activeKey': props.activeKey,
-      'onUpdate:activeKey': (k: string) => emit('update:activeKey', k),
-    }, () => props.items.map(item =>
-      h(ATabPane, { key: item.key, tab: item.label }, () => slots[item.key]?.()),
+      'activeKey': activeKey.value,
+      'onUpdate:activeKey': (k: string) => { activeKey.value = k },
+    }, () => items.map(item =>
+      h(ATabPane, { key: item.name, tab: item.title, forceRender: true }, () =>
+        h(RecursionField, {
+          schema: item.schema,
+          name: item.name,
+          basePath: field.path,
+          onlyRenderProperties: true,
+        }),
+      ),
     ))
   },
 })

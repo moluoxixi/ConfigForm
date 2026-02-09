@@ -1,21 +1,31 @@
-import type { PropType } from 'vue'
 import { Collapse as ACollapse, CollapsePanel as ACollapsePanel } from 'ant-design-vue'
-import { defineComponent, h } from 'vue'
+import { useField, useSchemaItems, RecursionField } from '@moluoxixi/vue'
+import { defineComponent, h, ref } from 'vue'
 
-/** Collapse 布局容器适配 */
+/**
+ * 折叠面板布局容器（Schema 感知模式）
+ *
+ * 使用框架层 useSchemaItems() 发现子面板，默认全部展开。
+ */
 export const LayoutCollapse = defineComponent({
   name: 'CfLayoutCollapse',
-  props: {
-    activeKey: { type: Array as PropType<string[]>, default: undefined },
-    items: { type: Array as PropType<Array<{ key: string, label: string }>>, default: () => [] },
-  },
-  emits: ['update:activeKey'],
-  setup(props, { slots, emit }) {
+  setup() {
+    const field = useField()
+    const items = useSchemaItems()
+    const activeKeys = ref(items.map(item => item.name))
+
     return () => h(ACollapse, {
-      'activeKey': props.activeKey,
-      'onUpdate:activeKey': (keys: string[]) => emit('update:activeKey', keys),
-    }, () => props.items.map(item =>
-      h(ACollapsePanel, { key: item.key, header: item.label }, () => slots[item.key]?.()),
+      'activeKey': activeKeys.value,
+      'onUpdate:activeKey': (keys: string[]) => { activeKeys.value = keys },
+    }, () => items.map(item =>
+      h(ACollapsePanel, { key: item.name, header: item.title }, () =>
+        h(RecursionField, {
+          schema: item.schema,
+          name: item.name,
+          basePath: field.path,
+          onlyRenderProperties: true,
+        }),
+      ),
     ))
   },
 })

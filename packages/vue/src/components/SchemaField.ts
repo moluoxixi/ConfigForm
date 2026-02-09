@@ -1,12 +1,24 @@
 import type { CompiledField, CompileOptions, ISchema } from '@moluoxixi/core'
 import type { PropType, VNode } from 'vue'
 import { compileSchema, toArrayFieldProps, toFieldProps, toVoidFieldProps } from '@moluoxixi/core'
-import { computed, defineComponent, h, inject } from 'vue'
-import { FormSymbol } from '../context'
+import { computed, defineComponent, h, inject, provide } from 'vue'
+import { FormSymbol, SchemaSymbol } from '../context'
 import { FormArrayField } from './FormArrayField'
 import { FormField } from './FormField'
 import { FormObjectField } from './FormObjectField'
 import { FormVoidField } from './FormVoidField'
+
+/** 辅助组件：在运行时注入 SchemaSymbol（Vue 的 provide 必须在 setup 中调用） */
+const SchemaProvider = defineComponent({
+  name: 'SchemaProvider',
+  props: {
+    schema: { type: Object as PropType<ISchema>, required: true },
+  },
+  setup(props, { slots }) {
+    provide(SchemaSymbol, props.schema)
+    return () => slots.default?.()
+  },
+})
 
 /**
  * Schema 驱动的递归渲染器（参考 Formily RecursionField）
@@ -93,26 +105,40 @@ export const SchemaField = defineComponent({
       })
     }
 
-    /** void 节点 → FormVoidField + 递归 children */
+    /**
+     * void 节点 → FormVoidField + 递归 children
+     *
+     * 注入 SchemaSymbol，让布局组件能通过 useFieldSchema() 获取 Schema。
+     * 注意：Vue 的 provide 只能在 setup 中调用，
+     * 这里通过包裹一个 SchemaProvider 组件来实现运行时注入。
+     */
     function renderVoidNode(cf: CompiledField): VNode {
       const voidProps = toVoidFieldProps(cf)
-      return h(FormVoidField, {
+      return h(SchemaProvider, {
         key: cf.address,
-        name: cf.address,
-        fieldProps: voidProps,
+        schema: cf.schema,
       }, {
-        default: () => renderChildren(cf.children),
+        default: () => h(FormVoidField, {
+          name: cf.address,
+          fieldProps: voidProps,
+        }, {
+          default: () => renderChildren(cf.children),
+        }),
       })
     }
 
     /** object 节点 → FormObjectField + 递归 children */
     function renderObjectNode(cf: CompiledField): VNode {
-      return h(FormObjectField, {
+      return h(SchemaProvider, {
         key: cf.address,
-        name: cf.dataPath,
-        fieldProps: toFieldProps(cf),
+        schema: cf.schema,
       }, {
-        default: () => renderChildren(cf.children),
+        default: () => h(FormObjectField, {
+          name: cf.dataPath,
+          fieldProps: toFieldProps(cf),
+        }, {
+          default: () => renderChildren(cf.children),
+        }),
       })
     }
 

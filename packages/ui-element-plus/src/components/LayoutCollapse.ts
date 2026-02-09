@@ -1,21 +1,29 @@
-import type { PropType } from 'vue'
 import { ElCollapse, ElCollapseItem } from 'element-plus'
-import { defineComponent, h } from 'vue'
+import { useField, useSchemaItems, RecursionField } from '@moluoxixi/vue'
+import { defineComponent, h, ref } from 'vue'
 
-/** Collapse 布局容器适配 */
+/**
+ * 折叠面板布局容器（Schema 感知模式）
+ */
 export const LayoutCollapse = defineComponent({
   name: 'CfLayoutCollapse',
-  props: {
-    activeKey: { type: Array as PropType<string[]>, default: undefined },
-    items: { type: Array as PropType<Array<{ key: string, label: string }>>, default: () => [] },
-  },
-  emits: ['update:activeKey'],
-  setup(props, { slots, emit }) {
+  setup() {
+    const field = useField()
+    const items = useSchemaItems()
+    const activeKeys = ref(items.map(item => item.name))
+
     return () => h(ElCollapse, {
-      'modelValue': props.activeKey,
-      'onUpdate:modelValue': (keys: string[]) => emit('update:activeKey', keys),
-    }, () => props.items.map(item =>
-      h(ElCollapseItem, { key: item.key, name: item.key, title: item.label }, () => slots[item.key]?.()),
+      'modelValue': activeKeys.value,
+      'onUpdate:modelValue': (keys: string[]) => { activeKeys.value = keys },
+    }, () => items.map(item =>
+      h(ElCollapseItem, { key: item.name, name: item.name, title: item.title }, () =>
+        h(RecursionField, {
+          schema: item.schema,
+          name: item.name,
+          basePath: field.path,
+          onlyRenderProperties: true,
+        }),
+      ),
     ))
   },
 })

@@ -21,14 +21,17 @@ export {
   useCreateForm,
   useField,
   useFieldByPath,
+  useFieldSchema,
+  useSchemaItems,
   useForm,
   useFormSubmitting,
   useFormValid,
   useFormValues,
 } from './composables'
+export type { SchemaItem } from './composables'
 
 /* 上下文（高级用法） */
-export { ComponentRegistrySymbol, FieldSymbol, FormSymbol } from './context'
+export { ComponentRegistrySymbol, FieldSymbol, FormSymbol, SchemaSymbol } from './context'
 
 /* 注册 */
 export {
