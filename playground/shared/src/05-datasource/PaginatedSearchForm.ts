@@ -1,5 +1,12 @@
 import type { SceneConfig } from '../types'
 
+/**
+ * 场景：大数据量下拉搜索
+ *
+ * 演示 Select + showSearch 在大量选项下的客户端搜索过滤。
+ * 50 条预加载数据，通过 showSearch 在输入框内实时过滤。
+ */
+
 /** 模拟用户数据（50 条） */
 const USER_OPTIONS = Array.from({ length: 50 }, (_, i) => ({
   label: `用户${String(i + 1).padStart(4, '0')}（${['技术', '产品', '设计', '运营'][i % 4]}）`,
@@ -15,11 +22,12 @@ const DEPARTMENT_OPTIONS = [
 ]
 
 const config: SceneConfig = {
-  title: '分页搜索数据源',
-  description: '远程数据源配置 / 搜索防抖',
+  title: '大数据量下拉搜索',
+  description: 'Select + showSearch — 50 条预加载数据的客户端搜索过滤',
 
   initialValues: {
     userId: undefined,
+    department: undefined,
   },
 
   schema: {
@@ -38,7 +46,7 @@ const config: SceneConfig = {
         dataSource: USER_OPTIONS,
         componentProps: {
           showSearch: true,
-          placeholder: '输入关键词搜索用户',
+          placeholder: '输入关键词搜索用户（50 条本地数据）',
           style: 'width: 400px',
         },
       },

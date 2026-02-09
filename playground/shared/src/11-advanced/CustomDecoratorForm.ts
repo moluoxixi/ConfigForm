@@ -74,8 +74,9 @@ const config: SceneConfig = {
         componentProps: { min: 0 },
       },
       startDate: {
-        type: 'date',
+        type: 'string',
         title: '开始日期',
+        component: 'DatePicker',
       },
     },
   },

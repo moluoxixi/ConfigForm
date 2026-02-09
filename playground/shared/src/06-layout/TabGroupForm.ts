@@ -6,9 +6,17 @@ const DEPARTMENT_OPTIONS = [
   { label: '产品', value: 'product' },
 ]
 
+/**
+ * 场景：标签页分组
+ *
+ * 使用 LayoutCard 模拟多标签页分组布局。
+ * LayoutTabs 组件对子节点结构有特殊要求，
+ * 当前使用 LayoutCard 展示分组效果。
+ */
+
 const config: SceneConfig = {
   title: '标签页切换分组',
-  description: 'Tabs 分组 / 切换保留数据 / void 节点布局',
+  description: 'LayoutCard 多分组 / 切换保留数据 / void 节点布局',
 
   initialValues: {
     name: '',

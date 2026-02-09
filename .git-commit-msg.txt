@@ -1,0 +1,15 @@
+feat(playground): 补全场景覆盖 + 修复虚假示例 + 实现自定义组件
+
+场景变更：
+- 新增 8 个场景（ComponentSwitch/SectionValidation/RemoteDataSource/PatternSwitch/DisplayTriState/FormGraph/Masking/SubmitRetry）
+- 重写 4 个虚假场景（NestedObject/ObjectFieldDynamic/FormDiff/PrintExport）
+- 修复 5 个名不副实场景（DynamicField/DynamicSchema/TemplateReuse/Collapse/Step/Tab）
+- 删除 4 个无法运行的场景（FileUpload/MapPicker/Transfer/TreeSelect）
+
+自定义组件（playground/react 注册）：
+- 实现 8 个真实组件 + 2 个自定义装饰器
+- App.tsx 通过 registerComponent/registerDecorator 注册
+
+框架修复：
+- ReactiveField: type:object + component 时传 children 给容器
+- SceneRenderer: 传递 effects/plugins 到 ConfigForm

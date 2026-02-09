@@ -7,9 +7,17 @@ const DEGREE_OPTIONS = [
   { label: '博士', value: 'phd' },
 ]
 
+/**
+ * 场景：折叠面板分组
+ *
+ * 使用 LayoutCard 模拟折叠面板分组。
+ * LayoutCollapse 组件对子节点结构有特殊要求，
+ * 当前使用 LayoutCard 展示分组效果。
+ */
+
 const config: SceneConfig = {
   title: '折叠面板分组',
-  description: 'Collapse 分组 / void 节点布局',
+  description: 'LayoutCard 分组 / void 节点布局',
 
   initialValues: {
     name: '',

@@ -3,115 +3,146 @@ import type { SceneConfig } from '../types'
 /**
  * 场景：嵌套对象
  *
- * 覆盖：多级嵌套结构 / void Card 分组可视化 / void 不参与数据路径
+ * 演示 type: 'object' 的真正嵌套数据路径（非 void 分组）：
+ * - type: 'object' 创建嵌套数据路径（profile.name、address.city）
+ * - type: 'void' 仅做视觉分组（不影响数据路径）
+ * - 提交数据体现嵌套结构
+ *
+ * 关键区别：
+ * - void Card 下的字段 → 扁平路径（name, email）
+ * - object 下的字段 → 嵌套路径（profile.name, address.city）
  */
 
-/** 性别选项 */
 const GENDER_OPTIONS = [
   { label: '男', value: 'male' },
   { label: '女', value: 'female' },
 ]
 
-/** 紧急联系人关系选项 */
-const RELATION_OPTIONS = [
-  { label: '配偶', value: 'spouse' },
-  { label: '父母', value: 'parent' },
-  { label: '朋友', value: 'friend' },
-]
-
-/** 省份选项 */
 const PROVINCE_OPTIONS = [
   { label: '北京', value: 'beijing' },
   { label: '上海', value: 'shanghai' },
   { label: '广东', value: 'guangdong' },
 ]
 
-/** 主题选项 */
-const THEME_OPTIONS = [
-  { label: '亮色', value: 'light' },
-  { label: '暗色', value: 'dark' },
-  { label: '自定义', value: 'custom' },
-]
-
 const config: SceneConfig = {
   title: '嵌套对象',
-  description: '多级嵌套结构 / void Card 分组可视化 / void 不参与数据路径',
+  description: 'type: object 嵌套数据路径 — profile.name / address.city / emergency.contact.phone',
 
   initialValues: {
-    title: '员工档案', name: '张三', age: 28, gender: 'male',
-    phone: '13800138000', email: 'zhangsan@example.com',
-    emergencyName: '李女士', emergencyRelation: 'spouse', emergencyPhone: '13900139000',
-    province: 'beijing', city: '北京', zipCode: '100000', addressDetail: '朝阳区某某街道1号',
-    companyName: '科技有限公司', department: '研发部', position: '高级工程师',
-    building: 'A 栋', floor: '12F', seat: 'A-12-03',
-    theme: 'light', customColor: '', emailNotify: true, smsNotify: false, dnd: false,
+    profile: {
+      name: '张三',
+      age: 28,
+      gender: 'male',
+    },
+    address: {
+      province: 'beijing',
+      city: '北京',
+      detail: '朝阳区建国路88号',
+    },
+    emergency: {
+      contact: {
+        name: '李女士',
+        phone: '13900139000',
+        relation: '配偶',
+      },
+    },
+    remark: '这个字段不在嵌套对象内，是扁平路径',
   },
 
   schema: {
     type: 'object',
-    decoratorProps: { actions: { submit: '提交', reset: '重置' }, labelPosition: 'right', labelWidth: '120px' },
+    decoratorProps: { labelPosition: 'right', labelWidth: '140px', actions: { submit: '提交（查看嵌套结构）', reset: '重置' } },
     properties: {
-      profileCard: {
-        type: 'void',
+      profile: {
+        type: 'object',
+        title: '个人信息（type: object → 嵌套路径 profile.*）',
         component: 'LayoutCard',
-        componentProps: { title: '👤 个人信息' },
+        componentProps: { title: '个人信息 — 数据路径: profile.*' },
         properties: {
-          title: { type: 'string', title: '标题', required: true },
-          name: { type: 'string', title: '姓名', required: true },
-          age: { type: 'number', title: '年龄', componentProps: { min: 0, max: 150, style: { width: '100%' } } },
-          gender: { type: 'string', title: '性别', enum: GENDER_OPTIONS },
-        },
-      },
-      contactCard: {
-        type: 'void',
-        component: 'LayoutCard',
-        componentProps: { title: '📞 联系方式' },
-        properties: {
-          phone: { type: 'string', title: '手机号', rules: [{ format: 'phone', message: '无效手机号' }] },
-          email: { type: 'string', title: '邮箱', rules: [{ format: 'email', message: '无效邮箱' }] },
-          emergencyName: { type: 'string', title: '紧急联系人' },
-          emergencyRelation: { type: 'string', title: '关系', enum: RELATION_OPTIONS },
-          emergencyPhone: { type: 'string', title: '紧急联系电话' },
-        },
-      },
-      addressCard: {
-        type: 'void',
-        component: 'LayoutCard',
-        componentProps: { title: '📍 地址' },
-        properties: {
-          province: { type: 'string', title: '省份', enum: PROVINCE_OPTIONS },
-          city: { type: 'string', title: '城市' },
-          zipCode: { type: 'string', title: '邮编' },
-          addressDetail: { type: 'string', title: '详细地址', component: 'Textarea' },
-        },
-      },
-      companyCard: {
-        type: 'void',
-        component: 'LayoutCard',
-        componentProps: { title: '🏢 公司信息' },
-        properties: {
-          companyName: { type: 'string', title: '公司名称' },
-          department: { type: 'string', title: '部门' },
-          position: { type: 'string', title: '职位' },
-          building: { type: 'string', title: '楼栋' },
-          floor: { type: 'string', title: '楼层' },
-          seat: { type: 'string', title: '工位号' },
-        },
-      },
-      settingsCard: {
-        type: 'void',
-        component: 'LayoutCard',
-        componentProps: { title: '⚙️ 偏好设置' },
-        properties: {
-          theme: { type: 'string', title: '主题', component: 'RadioGroup', default: 'light', enum: THEME_OPTIONS },
-          customColor: {
-            type: 'string', title: '自定义颜色', visible: false,
-            reactions: [{ watch: 'theme', when: '{{$values.theme === "custom"}}', fulfill: { state: { visible: true, required: true } }, otherwise: { state: { visible: false, required: false } } }],
+          name: {
+            type: 'string',
+            title: '姓名',
+            required: true,
+            description: '数据路径: profile.name',
           },
-          emailNotify: { type: 'boolean', title: '邮件通知' },
-          smsNotify: { type: 'boolean', title: '短信通知' },
-          dnd: { type: 'boolean', title: '免打扰' },
+          age: {
+            type: 'number',
+            title: '年龄',
+            description: '数据路径: profile.age',
+            componentProps: { min: 0, max: 150, style: 'width: 200px' },
+          },
+          gender: {
+            type: 'string',
+            title: '性别',
+            description: '数据路径: profile.gender',
+            component: 'RadioGroup',
+            enum: GENDER_OPTIONS,
+          },
         },
+      },
+      address: {
+        type: 'object',
+        title: '地址（type: object → 嵌套路径 address.*）',
+        component: 'LayoutCard',
+        componentProps: { title: '地址信息 — 数据路径: address.*' },
+        properties: {
+          province: {
+            type: 'string',
+            title: '省份',
+            description: '数据路径: address.province',
+            enum: PROVINCE_OPTIONS,
+          },
+          city: {
+            type: 'string',
+            title: '城市',
+            description: '数据路径: address.city',
+          },
+          detail: {
+            type: 'string',
+            title: '详细地址',
+            description: '数据路径: address.detail',
+            component: 'Textarea',
+            componentProps: { rows: 2 },
+          },
+        },
+      },
+      emergency: {
+        type: 'object',
+        title: '紧急联系（type: object → 二级嵌套 emergency.contact.*）',
+        component: 'LayoutCard',
+        componentProps: { title: '紧急联系人 — 数据路径: emergency.contact.*' },
+        properties: {
+          contact: {
+            type: 'object',
+            properties: {
+              name: {
+                type: 'string',
+                title: '联系人姓名',
+                required: true,
+                description: '数据路径: emergency.contact.name',
+              },
+              phone: {
+                type: 'string',
+                title: '联系电话',
+                required: true,
+                description: '数据路径: emergency.contact.phone',
+                rules: [{ format: 'phone', message: '请输入有效手机号' }],
+              },
+              relation: {
+                type: 'string',
+                title: '关系',
+                description: '数据路径: emergency.contact.relation',
+              },
+            },
+          },
+        },
+      },
+      remark: {
+        type: 'string',
+        title: '备注（扁平路径）',
+        description: '数据路径: remark — 不在嵌套对象内，是顶层扁平字段',
+        component: 'Textarea',
+        componentProps: { rows: 2 },
       },
     },
   },

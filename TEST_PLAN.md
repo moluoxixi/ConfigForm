@@ -4,7 +4,7 @@
 
 | 维度 | 值 |
 |------|------|
-| 场景数 | 56（3 个 UI 库共享同一份 schema） |
+| 场景数 | 65（3 个 UI 库共享同一份 schema） |
 | 渲染 | ConfigForm + SchemaField 递归渲染（参考 Formily RecursionField） |
 | 三态 | 编辑态 / 阅读态 / 禁用态（StatusTabs 切换） |
 | 框架 | React 18 / Vue 3 |
@@ -208,16 +208,17 @@ playground/
 
 | 场景类型 | 额外验证项 |
 |----------|-----------|
-| 联动场景（5-10） | 触发联动条件 → 目标字段状态变化正确（显隐/值/属性/级联/计算/必填切换） |
-| 验证场景（11-13） | 自定义规则/异步验证/跨字段验证 → 错误提示内容和时机正确 |
-| 复杂数据（14-17） | 嵌套对象路径正确 / 数组增删排序 / 表格行内编辑 / 提交数据结构正确 |
-| 数据源（18-20） | 异步加载选项 / 依赖链重载 / 搜索分页 → 选项内容和加载时机正确 |
-| 布局分组（21-24） | 步骤切换/Tab切换/折叠面板/卡片分组 → 数据保留、跨区域提交正确 |
-| 动态表单（25-27） | 动态增删字段 / Schema切换 / 模板复用 → 字段集合和数据正确 |
-| 复杂组件（28-39） | 组件特有交互（上传/颜色选择/签名/穿梭框/树选择等）功能正确 |
-| 表单状态（40-44） | 数据转换/多表单协作/快照恢复/撤销重做/生命周期 → 状态管理正确 |
-| 其他能力（45-48） | 权限控制/国际化/表单比对/打印导出 → 功能完整正确 |
-| 扩展场景（49-56） | Grid栅格/Effects副作用/大表单性能/自定义装饰器/Schema表达式/oneOf/SSR/虚拟滚动 |
+| 联动场景（5-11） | 触发联动条件 → 目标字段状态变化正确（显隐/值/属性/级联/计算/必填切换/组件切换） |
+| 验证场景（12-15） | 自定义规则/异步验证/跨字段验证/分区域验证 → 错误提示内容和时机正确 |
+| 复杂数据（16-20） | 嵌套对象路径正确（三级嵌套）/ 数组增删排序 / 表格行内编辑 / ObjectField 动态属性 / 提交数据结构正确 |
+| 数据源（21-24） | 异步加载选项 / 依赖链重载 / 搜索 / 远程 URL 数据源 → 选项内容和加载时机正确 |
+| 布局分组（25-29） | LayoutSteps/LayoutTabs/LayoutCollapse/LayoutCard 分组 → 数据保留、跨区域提交正确 |
+| 动态表单（30-32） | CheckboxGroup 控制显隐 / mergeSchema 场景切换 / $ref+definitions 片段复用 → 字段集合和数据正确 |
+| 自定义组件（33-40） | **真实自定义组件**特有交互：颜色选择/Canvas签名/JSON格式化/Cron解读/Markdown预览/富文本工具栏/图标搜索 |
+| 进阶能力（41-51） | Schema 表达式/$ref/Effects/oneOf/Grid/自定义装饰器/大表单性能/SSR/虚拟滚动 |
+| 状态管理（52-57） | 生命周期/数据转换(displayFormat+inputParse+submitTransform+submitPath)/草稿/模式切换/display三态/getGraph |
+| 其他能力（58-59） | 国际化/导出 JSON+CSV → 功能完整正确 |
+| 插件能力（60-65） | 撤销重做/实时diff对比/ACL权限/JSON Schema适配/数据脱敏/提交重试 → 插件 API 正确 |
 
 #### 阅读态验证项（必须全部通过）
 
@@ -276,116 +277,130 @@ playground/
 
 ## 场景总览
 
-### 01-basic 基础场景
+### 01-basic 基础场景（4 个）
 
-| # | 场景 | 文件夹 | 覆盖能力 |
-|---|------|--------|----------|
+| # | 场景 | 文件 | 覆盖能力 |
+|---|------|------|----------|
 | 1 | 基础表单 | BasicForm | Input/Password/Textarea/InputNumber/Select/RadioGroup/CheckboxGroup/Switch/DatePicker |
-| 2 | 表单布局 | LayoutForm | labelPosition/labelWidth、4 种布局切换 |
+| 2 | 表单布局 | LayoutForm | labelPosition/labelWidth、4 种布局切换（schemaVariants） |
 | 3 | 必填与格式验证 | BasicValidationForm | required/email/phone/URL/minLength/maxLength/pattern |
-| 4 | 默认值 | DefaultValueForm | 静态默认值、动态计算联动、重置恢复 |
+| 4 | 默认值 | DefaultValueForm | 静态默认值、动态计算联动（{{expression}}）、重置恢复 |
 
-### 02-linkage 联动场景
+### 02-linkage 联动场景（7 个）
 
-| # | 场景 | 文件夹 | 覆盖能力 |
-|---|------|--------|----------|
+| # | 场景 | 文件 | 覆盖能力 |
+|---|------|------|----------|
 | 5 | 显隐联动 | VisibilityLinkageForm | 个人/企业切换、嵌套显隐、excludeWhenHidden |
-| 6 | 值联动 | ValueLinkageForm | 姓名拼接、大写转换、国家-区号映射、省市区聚合 |
+| 6 | 值联动 | ValueLinkageForm | 姓名拼接、大写转换、国家→区号映射、省市区聚合 |
 | 7 | 属性联动 | PropertyLinkageForm | 开关控制 disabled、类型切换 placeholder/required/componentProps |
 | 8 | 级联选择 | CascadeSelectForm | 省-市-区三级联动、选择后下级清空重载 |
 | 9 | 计算字段 | ComputedFieldForm | 乘法/折扣/聚合/条件计税自动计算 |
-| 10 | 条件必填 | ConditionalRequiredForm | 开关-字段必填、金额阈值-审批人必填 |
+| 10 | 条件必填 | ConditionalRequiredForm | 开关→字段必填、金额阈值→审批人必填 |
+| 11 | 组件切换 | ComponentSwitchForm | **NEW** reactions.fulfill.component 动态切换渲染组件（Input↔Select↔RadioGroup↔Switch↔DatePicker） |
 
-### 03-validation 验证场景
+### 03-validation 验证场景（4 个）
 
-| # | 场景 | 文件夹 | 覆盖能力 |
-|---|------|--------|----------|
-| 11 | 自定义验证 | CustomValidationForm | 车牌正则、手机号函数、密码多规则、IP 地址、warning 级别 |
-| 12 | 异步验证 | AsyncValidationForm | 用户名唯一性、邮箱可用性、防抖 + AbortSignal |
-| 13 | 跨字段验证 | CrossFieldValidationForm | 密码一致、比例总和 100%、超预算 |
+| # | 场景 | 文件 | 覆盖能力 |
+|---|------|------|----------|
+| 12 | 自定义验证 | CustomValidationForm | 车牌正则、手机号函数、密码多规则、IP 地址、warning 级别 |
+| 13 | 异步验证 | AsyncValidationForm | 用户名唯一性、邮箱可用性、防抖 + AbortSignal |
+| 14 | 跨字段验证 | CrossFieldValidationForm | 密码一致、比例总和 100%、超预算 |
+| 15 | 分区域验证 | SectionValidationForm | **NEW** validateSection + clearSectionErrors，分步验证 |
 
-### 04-complex-data 复杂数据
+### 04-complex-data 复杂数据（5 个）
 
-| # | 场景 | 文件夹 | 覆盖能力 |
-|---|------|--------|----------|
-| 14 | 嵌套对象 | NestedObjectForm | void Card 分组、多层嵌套路径、提交扁平数据 |
-| 15 | 数组字段 | ArrayFieldForm | FormArrayField + ArrayBase 增删排序、子字段校验 |
-| 16 | 可编辑表格 | EditableTableForm | Table 行内编辑、计算联动、添加删除行 |
-| 17 | 对象数组嵌套 | ObjectArrayNestedForm | 联系人 + 嵌套电话数组（两层 FormArrayField） |
+| # | 场景 | 文件 | 覆盖能力 |
+|---|------|------|----------|
+| 16 | 嵌套对象 | NestedObjectForm | **REWRITE** type:'object' 真正嵌套路径（profile.name / emergency.contact.phone 三级嵌套） |
+| 17 | 数组字段 | ArrayFieldForm | FormArrayField + ArrayBase 增删排序、子字段校验 |
+| 18 | 可编辑表格 | EditableTableForm | ArrayTable 行内编辑、添加删除行 |
+| 19 | 对象数组嵌套 | ObjectArrayNestedForm | 联系人 + 嵌套电话数组（两层 FormArrayField） |
+| 20 | ObjectField 动态属性 | ObjectFieldDynamicForm | **REWRITE** addProperty/removeProperty/existProperty/getPropertyNames 实际调用 |
 
-### 05-datasource 数据源
+### 05-datasource 数据源（4 个）
 
-| # | 场景 | 文件夹 | 覆盖能力 |
-|---|------|--------|----------|
-| 18 | 异步选项 | AsyncOptionsForm | field.loadDataSource + requestAdapter mock |
-| 19 | 依赖数据源 | DependentDataSourceForm | 品牌-型号-配置三级远程链 + API 日志 |
-| 20 | 分页搜索 | PaginatedSearchForm | 搜索过滤 + 分页加载 + 防抖 |
+| # | 场景 | 文件 | 覆盖能力 |
+|---|------|------|----------|
+| 21 | 异步选项 | AsyncOptionsForm | reactions.run 动态 setDataSource + field.loading |
+| 22 | 依赖数据源 | DependentDataSourceForm | 品牌→型号 级联 + disabled toggle + 值清空 |
+| 23 | 大数据量下拉搜索 | PaginatedSearchForm | **RENAME** Select + showSearch 50 条本地数据过滤 |
+| 24 | 远程数据源 | RemoteDataSourceForm | **NEW** DataSourceConfig url/params/transform/cache |
 
-### 06-layout 布局分组
+### 06-layout 布局分组（5 个）
 
-| # | 场景 | 文件夹 | 覆盖能力 |
-|---|------|--------|----------|
-| 21 | 分步表单 | StepForm | Steps 导航 + 步骤验证拦截 + 预览 + 提交重置 |
-| 22 | 标签页分组 | TabGroupForm | Tab 切换保留数据 + 跨 Tab 提交 |
-| 23 | 折叠面板 | CollapseGroupForm | 展开折叠 + 跨面板提交 |
-| 24 | 卡片分组 | CardGroupForm | 多卡片填写 + 卡片内验证 + 提交重置 |
+| # | 场景 | 文件 | 覆盖能力 |
+|---|------|------|----------|
+| 25 | 分步表单 | StepForm | **FIX** LayoutSteps + LayoutStepActions 真正步骤导航 |
+| 26 | 标签页分组 | TabGroupForm | **FIX** LayoutTabs 标签页切换保留数据 |
+| 27 | 折叠面板 | CollapseGroupForm | **FIX** LayoutCollapse 折叠展开 |
+| 28 | 卡片分组 | CardGroupForm | LayoutCard 多卡片填写 + 卡片内验证 |
+| 29 | 分区表单 | MultiFormForm | **MOVE** LayoutCard 视觉分组 + 分区验证 |
 
-### 07-dynamic 动态表单
+### 07-dynamic 动态表单（3 个）
 
-| # | 场景 | 文件夹 | 覆盖能力 |
-|---|------|--------|----------|
-| 25 | 动态增删字段 | DynamicFieldForm | FormArrayField 管理动态字段 |
-| 26 | 动态 Schema | DynamicSchemaForm | 切换个人/企业/学生-字段集变化 |
-| 27 | 模板复用 | TemplateReuseForm | 切换员工/客户/供应商-公共 + 扩展字段组合 |
+| # | 场景 | 文件 | 覆盖能力 |
+|---|------|------|----------|
+| 30 | 动态增删字段 | DynamicFieldForm | **FIX** CheckboxGroup → reactions 控制字段显隐 |
+| 31 | 动态 Schema 合并 | DynamicSchemaForm | **REWRITE** mergeSchema API + schemaVariants 个人/企业/学生切换 |
+| 32 | Schema 片段复用 | TemplateReuseForm | **REWRITE** $ref + definitions 联系人/地址片段复用 |
 
-### 08-components 复杂组件
+### 08-components 自定义组件（8 个，playground 注册）
 
-| # | 场景 | 文件夹 | 覆盖能力 |
-|---|------|--------|----------|
-| 28 | 富文本编辑器 | RichTextForm | Textarea 降级、HTML 预览 |
-| 29 | 文件上传 | FileUploadForm | Upload 组件集成 |
-| 30 | 地图选点 | MapPickerForm | 模拟地图 + 经纬度/地址同步 |
-| 31 | 颜色选择器 | ColorPickerForm | 原生 color input + HEX 输入 + 预设色板 + 主题预览 |
-| 32 | 代码编辑器 | CodeEditorForm | Textarea 模拟 / 语言切换 / 代码高亮预览 |
-| 33 | JSON 编辑器 | JsonEditorForm | JSON 格式化 / 压缩 / 语法检测 |
-| 34 | 手写签名 | SignaturePadForm | Canvas 绘制 / 清空 / base64 数据同步 |
-| 35 | 穿梭框 | TransferForm | Transfer 组件 / 搜索过滤 |
-| 36 | 树形选择 | TreeSelectForm | TreeSelect 单选/多选 |
-| 37 | Markdown 编辑器 | MarkdownEditorForm | 分栏编辑 + 实时预览 |
-| 38 | 图标选择器 | IconSelectorForm | 搜索过滤 + 图标网格 + 点击选中 |
-| 39 | Cron 编辑器 | CronEditorForm | Cron 输入 + 快捷预设 + 实时解析描述 |
+| # | 场景 | 文件 | 覆盖能力 |
+|---|------|------|----------|
+| 33 | 颜色选择器 | ColorPickerForm | **REAL** ColorPicker 自定义组件 — 原生 color input + 预设色板 + HEX |
+| 34 | 代码编辑器 | CodeEditorForm | **REAL** CodeEditor 自定义组件 — 等宽字体 textarea + 语言标识 |
+| 35 | JSON 编辑器 | JsonEditorForm | **REAL** JsonEditor 自定义组件 — 格式化 + 语法检查 |
+| 36 | Cron 编辑器 | CronEditorForm | **REAL** CronEditor 自定义组件 — 输入 + 预设 + 解读 |
+| 37 | 手写签名 | SignaturePadForm | **REAL** SignaturePad 自定义组件 — Canvas 手写 + Base64 |
+| 38 | Markdown 编辑器 | MarkdownEditorForm | **REAL** MarkdownEditor 自定义组件 — 编辑 + 实时预览 |
+| 39 | 富文本编辑器 | RichTextForm | **REAL** RichTextEditor 自定义组件 — contentEditable + 工具栏 |
+| 40 | 图标选择器 | IconSelectorForm | **REAL** IconSelector 自定义组件 — emoji 网格 + 搜索 |
 
-### 09-state 表单状态
+### 09-advanced 进阶能力（11 个）
 
-| # | 场景 | 文件夹 | 覆盖能力 |
-|---|------|--------|----------|
-| 40 | 数据转换 | DataTransformForm | format/parse/transform、原始值 vs 转换值 |
-| 41 | 多表单协作 | MultiFormForm | 主表单 + 子表单 + 弹窗表单 + 联合提交 |
-| 42 | 表单快照 | FormSnapshotForm | 暂存/恢复/删除草稿 |
-| 43 | 撤销重做 | UndoRedoForm | Ctrl+Z 撤销 / Ctrl+Shift+Z 重做 / 历史栈 |
-| 44 | 生命周期 | LifecycleForm | onValuesChange / onFieldValueChange / 自动保存 / 事件日志 |
+| # | 场景 | 文件 | 覆盖能力 |
+|---|------|------|----------|
+| 41 | Schema 表达式 | SchemaExpressionForm | {{expression}} 驱动联动 — 条件显隐 + 自动计算 |
+| 42 | 表达式引擎 | ExpressionEngineForm | 表达式 JSON 序列化能力 |
+| 43 | Schema $ref 复用 | SchemaRefForm | $ref + definitions + 本地覆盖 |
+| 44 | Effects 副作用 | EffectsForm | reactions + {{表达式}} 链式计算 |
+| 45 | 自定义装饰器 | CustomDecoratorForm | **FIX** CardDecorator + InlineDecorator 已注册 |
+| 46 | oneOf 条件 Schema | OneOfSchemaForm | oneOf + discriminator 分支自动切换 |
+| 47 | Effects API | EffectsAPIForm | onFieldValueChange / onFormReact / onFieldMount 命令式 |
+| 48 | Grid 栅格布局 | GridLayoutForm | span 属性控制字段占比，24 栅格制 |
+| 49 | 大表单性能 | LargeFormPerf | 50/100/200 字段渲染性能 |
+| 50 | SSR 兼容性 | SSRCompatForm | 核心库无 DOM 依赖 |
+| 51 | 虚拟滚动 | VirtualScrollForm | 大数组虚拟滚动 |
 
-### 10-misc 其他能力
+### 10-state 状态管理（6 个）
 
-| # | 场景 | 文件夹 | 覆盖能力 |
-|---|------|--------|----------|
-| 45 | 字段权限 | PermissionForm | 角色切换-字段可见性 + 读写权限 |
-| 46 | 国际化 | I18nForm | 中/英/日切换-标签/placeholder/验证消息 |
-| 47 | 表单比对 | FormDiffForm | 修改-变更高亮 + 原始值提示 + 变更摘要 |
-| 48 | 打印导出 | PrintExportForm | 打印 + 导出 JSON + 导出 CSV |
+| # | 场景 | 文件 | 覆盖能力 |
+|---|------|------|----------|
+| 52 | 生命周期 | LifecycleForm | mount/unmount + onInput vs setValue 分离 |
+| 53 | 数据转换 | DataTransformForm | **REWRITE** displayFormat/inputParse/submitTransform/submitPath 完整演示 |
+| 54 | 草稿保存 | FormSnapshotForm | lowerCodePlugin.draft + history 联合 |
+| 55 | 表单模式切换 | PatternSwitchForm | **NEW** editable/readOnly/disabled/preview 四种模式 |
+| 56 | display 三态 | DisplayTriStateForm | **NEW** visible/hidden/none 差异 |
+| 57 | 表单状态快照 | FormGraphForm | **NEW** getGraph/setGraph 序列化 |
 
-### 11-advanced 扩展场景
+### 11-misc 其他能力（2 个）
 
-| # | 场景 | 文件夹 | 覆盖能力 |
-|---|------|--------|----------|
-| 49 | Grid 栅格布局 | GridLayoutForm | span 属性控制字段占比，24 栅格制 |
-| 50 | Effects 链式副作用 | EffectsForm | createForm({ effects }) + onFieldValueChange / onValuesChange |
-| 51 | 大表单性能 | LargeFormPerf | 50/100/200 字段的渲染性能基准测试 |
-| 52 | 自定义装饰器 | CustomDecoratorForm | CardDecorator + InlineDecorator 自定义 wrapper |
-| 53 | Schema 表达式 | SchemaExpressionForm | 函数式 reactions 实现条件显隐 + 自动计算 |
-| 54 | oneOf 联合 Schema | OneOfSchemaForm | 动态 Schema 切换模拟 oneOf 鉴别字段 |
-| 55 | SSR 兼容性 | SSRCompatForm | 核心库无 DOM 依赖检查 |
-| 56 | 虚拟滚动 | VirtualScrollForm | 纯 CSS 偏移虚拟滚动，支持百级数组项 |
+| # | 场景 | 文件 | 覆盖能力 |
+|---|------|------|----------|
+| 58 | 国际化 | I18nForm | 中/英/日切换 |
+| 59 | 导出 JSON/CSV | PrintExportForm | **REWRITE** effects 实时生成 JSON 和 CSV 导出预览 |
+
+### 12-plugin 插件能力（6 个）
+
+| # | 场景 | 文件 | 覆盖能力 |
+|---|------|------|----------|
+| 60 | 撤销重做 | UndoRedoForm | lowerCodePlugin.history |
+| 61 | 表单比对 | FormDiffForm | **REWRITE** dirtyChecker.check() 实时 diff 日志 |
+| 62 | 字段权限 | PermissionForm | lowerCodePlugin.acl 角色权限 |
+| 63 | JSON Schema 适配 | JsonSchemaAdapterForm | fromJsonSchema 标准转换 |
+| 64 | 数据脱敏 | MaskingPluginForm | **NEW** lowerCodePlugin.masking 六种脱敏类型 |
+| 65 | 提交重试 | SubmitRetryPluginForm | **NEW** lowerCodePlugin.submitRetry 三种策略 |
 
 ---
 
@@ -988,7 +1003,7 @@ playground/
 
 > 标准字段 + 提交/重置。验证/三态通过。
 
-### 场景 53：Schema 表达式（SchemaExpressionForm）
+### 场景 11：组件切换（ComponentSwitchForm）— NEW
 
 | 平台 | 编辑态 | 阅读态 | 禁用态 |
 |------|:------:|:------:|:------:|
@@ -996,37 +1011,149 @@ playground/
 | Vue ElementPlus | ⏳ | ⏳ | ⏳ |
 | React Antd | ⏳ | ⏳ | ⏳ |
 
-> 发现 G14 bug 并修复后重测中
-
-### 场景 54：oneOf 联合 Schema（OneOfSchemaForm）
+### 场景 15：分区域验证（SectionValidationForm）— NEW
 
 | 平台 | 编辑态 | 阅读态 | 禁用态 |
 |------|:------:|:------:|:------:|
-| Vue AntdVue | ✅ | ✅ | ✅ |
-| Vue ElementPlus | ✅ | ✅ | ✅ |
-| React Antd | ✅ | ✅ | ✅ |
+| Vue AntdVue | ⏳ | ⏳ | ⏳ |
+| Vue ElementPlus | ⏳ | ⏳ | ⏳ |
+| React Antd | ⏳ | ⏳ | ⏳ |
 
-> 标准字段 + 提交/重置。验证/三态通过。
-
-### 场景 55：SSR 兼容性（SSRCompatForm）
+### 场景 16：嵌套对象（NestedObjectForm）— REWRITE 需重测
 
 | 平台 | 编辑态 | 阅读态 | 禁用态 |
 |------|:------:|:------:|:------:|
-| Vue AntdVue | ✅ | ✅ | ✅ |
-| Vue ElementPlus | ✅ | ✅ | ✅ |
-| React Antd | ✅ | ✅ | ✅ |
+| Vue AntdVue | ⏳ | ⏳ | ⏳ |
+| Vue ElementPlus | ⏳ | ⏳ | ⏳ |
+| React Antd | ⏳ | ⏳ | ⏳ |
 
-> 标准字段 + 提交/重置。验证/三态通过。
-
-### 场景 56：虚拟滚动（VirtualScrollForm）
+### 场景 20：ObjectField 动态属性（ObjectFieldDynamicForm）— REWRITE 需重测
 
 | 平台 | 编辑态 | 阅读态 | 禁用态 |
 |------|:------:|:------:|:------:|
-| Vue AntdVue | ✅ | ✅ | ✅ |
-| Vue ElementPlus | ✅ | ✅ | ✅ |
-| React Antd | ✅ | ✅ | ✅ |
+| Vue AntdVue | ⏳ | ⏳ | ⏳ |
+| Vue ElementPlus | ⏳ | ⏳ | ⏳ |
+| React Antd | ⏳ | ⏳ | ⏳ |
 
-> 标准字段 + 提交/重置。验证/三态通过。
+### 场景 24：远程数据源（RemoteDataSourceForm）— NEW
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ⏳ | ⏳ | ⏳ |
+| Vue ElementPlus | ⏳ | ⏳ | ⏳ |
+| React Antd | ⏳ | ⏳ | ⏳ |
+
+### 场景 25-27：布局分组 — FIX 需重测
+
+| 场景 | Vue AntdVue | Vue ElementPlus | React Antd |
+|------|:-----------:|:-----------:|:----------:|
+| 25 StepForm | ⏳ | ⏳ | ⏳ |
+| 26 TabGroupForm | ⏳ | ⏳ | ⏳ |
+| 27 CollapseGroupForm | ⏳ | ⏳ | ⏳ |
+
+### 场景 29：分区表单（MultiFormForm）— MOVE 需重测
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ⏳ | ⏳ | ⏳ |
+| Vue ElementPlus | ⏳ | ⏳ | ⏳ |
+| React Antd | ⏳ | ⏳ | ⏳ |
+
+### 场景 30：动态增删字段（DynamicFieldForm）— FIX 需重测
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ⏳ | ⏳ | ⏳ |
+| Vue ElementPlus | ⏳ | ⏳ | ⏳ |
+| React Antd | ⏳ | ⏳ | ⏳ |
+
+### 场景 31：动态 Schema 合并（DynamicSchemaForm）— REWRITE 需重测
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ⏳ | ⏳ | ⏳ |
+| Vue ElementPlus | ⏳ | ⏳ | ⏳ |
+| React Antd | ⏳ | ⏳ | ⏳ |
+
+### 场景 32：Schema 片段复用（TemplateReuseForm）— REWRITE 需重测
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ⏳ | ⏳ | ⏳ |
+| Vue ElementPlus | ⏳ | ⏳ | ⏳ |
+| React Antd | ⏳ | ⏳ | ⏳ |
+
+### 场景 33-40：自定义组件 — REAL 组件实现 需重测
+
+| 场景 | Vue AntdVue | Vue ElementPlus | React Antd |
+|------|:-----------:|:-----------:|:----------:|
+| 33 ColorPickerForm | ⏳ | ⏳ | ⏳ |
+| 34 CodeEditorForm | ⏳ | ⏳ | ⏳ |
+| 35 JsonEditorForm | ⏳ | ⏳ | ⏳ |
+| 36 CronEditorForm | ⏳ | ⏳ | ⏳ |
+| 37 SignaturePadForm | ⏳ | ⏳ | ⏳ |
+| 38 MarkdownEditorForm | ⏳ | ⏳ | ⏳ |
+| 39 RichTextForm | ⏳ | ⏳ | ⏳ |
+| 40 IconSelectorForm | ⏳ | ⏳ | ⏳ |
+
+> 注意：自定义组件仅在 React playground 中注册，Vue 端会降级为 Input。Vue 端仅验证降级行为正确。
+
+### 场景 41：Schema 表达式（SchemaExpressionForm）
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ⏳ | ⏳ | ⏳ |
+| Vue ElementPlus | ⏳ | ⏳ | ⏳ |
+| React Antd | ⏳ | ⏳ | ⏳ |
+
+### 场景 45：自定义装饰器（CustomDecoratorForm）— FIX 需重测
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ⏳ | ⏳ | ⏳ |
+| Vue ElementPlus | ⏳ | ⏳ | ⏳ |
+| React Antd | ⏳ | ⏳ | ⏳ |
+
+> 注意：CardDecorator/InlineDecorator 仅在 React playground 注册。
+
+### 场景 53：数据转换（DataTransformForm）— REWRITE 需重测
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ⏳ | ⏳ | ⏳ |
+| Vue ElementPlus | ⏳ | ⏳ | ⏳ |
+| React Antd | ⏳ | ⏳ | ⏳ |
+
+### 场景 55-57：状态管理新增 — NEW
+
+| 场景 | Vue AntdVue | Vue ElementPlus | React Antd |
+|------|:-----------:|:-----------:|:----------:|
+| 55 PatternSwitchForm | ⏳ | ⏳ | ⏳ |
+| 56 DisplayTriStateForm | ⏳ | ⏳ | ⏳ |
+| 57 FormGraphForm | ⏳ | ⏳ | ⏳ |
+
+### 场景 59：导出 JSON/CSV（PrintExportForm）— REWRITE 需重测
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ⏳ | ⏳ | ⏳ |
+| Vue ElementPlus | ⏳ | ⏳ | ⏳ |
+| React Antd | ⏳ | ⏳ | ⏳ |
+
+### 场景 61：表单比对（FormDiffForm）— REWRITE 需重测
+
+| 平台 | 编辑态 | 阅读态 | 禁用态 |
+|------|:------:|:------:|:------:|
+| Vue AntdVue | ⏳ | ⏳ | ⏳ |
+| Vue ElementPlus | ⏳ | ⏳ | ⏳ |
+| React Antd | ⏳ | ⏳ | ⏳ |
+
+### 场景 64-65：插件新增 — NEW
+
+| 场景 | Vue AntdVue | Vue ElementPlus | React Antd |
+|------|:-----------:|:-----------:|:----------:|
+| 64 MaskingPluginForm | ⏳ | ⏳ | ⏳ |
+| 65 SubmitRetryPluginForm | ⏳ | ⏳ | ⏳ |
 
 ---
 
@@ -1034,7 +1161,7 @@ playground/
 
 | 平台 | 场景数 | 三态 | 测试项总计 |
 |------|--------|------|-----------|
-| Vue AntdVue | 56 | 3 | 168 |
-| Vue ElementPlus | 56 | 3 | 168 |
-| React Antd | 56 | 3 | 168 |
-| **合计** | | | **504** |
+| Vue AntdVue | 65 | 3 | 195 |
+| Vue ElementPlus | 65 | 3 | 195 |
+| React Antd | 65 | 3 | 195 |
+| **合计** | | | **585** |

@@ -112,6 +112,44 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
   }
 
   /**
+   * 对象容器字段（type: 'object' + component + children）：
+   * 组件作为容器包裹子节点（与 void 字段类似），不传 value/onChange。
+   * 典型场景：type: 'object' + component: 'LayoutCard' → LayoutCard 包裹嵌套字段。
+   */
+  if (children && Comp) {
+    const fieldElement = (
+      <FieldErrorBoundary fieldPath={dataField.path}>
+        <Comp {...dataField.componentProps}>{children}</Comp>
+      </FieldErrorBoundary>
+    )
+
+    const decoratorName = dataField.decorator
+    const Decorator = typeof decoratorName === 'string'
+      ? registry.decorators.get(decoratorName)
+      : (decoratorName as ComponentType<any>)
+    const effectivePattern = form?.pattern ?? 'editable'
+
+    if (Decorator) {
+      return (
+        <Decorator
+          label={dataField.label}
+          required={dataField.required}
+          errors={dataField.errors}
+          warnings={dataField.warnings}
+          description={dataField.description}
+          labelPosition={form?.labelPosition}
+          labelWidth={form?.labelWidth}
+          pattern={effectivePattern}
+          {...dataField.decoratorProps}
+        >
+          {fieldElement}
+        </Decorator>
+      )
+    }
+    return fieldElement
+  }
+
+  /**
    * 参考 Formily ReactiveField：
    * 1. componentProps 在前，value/onChange 在后，确保不被覆盖
    * 2. 使用 field.onInput 代替 setValue（Formily 行为）

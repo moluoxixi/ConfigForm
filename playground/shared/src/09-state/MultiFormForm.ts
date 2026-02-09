@@ -1,19 +1,20 @@
 import type { SceneConfig } from '../types'
-import { lowerCodePlugin } from '@moluoxixi/plugin-lower-code'
 
 /**
- * 场景：多表单协作（子表单插件）
+ * 场景：分区表单（LayoutCard 视觉分组 + 分区验证）
  *
- * 演示 lowerCodePlugin 的 subForm 能力：
- * - 子表单挂载到父表单指定路径
- * - 双向/单向/手动同步模式
- * - 子表单独立验证
- * - 子表单验证失败阻止父表单提交
+ * 演示通过 void + LayoutCard 将表单分为多个逻辑区域：
+ * - 订单信息区：订单名称、客户、金额
+ * - 联系人信息区：联系人、电话、邮箱
+ * - 提交时两个区域统一验证
+ *
+ * 注意：这是单表单的视觉分组，不是多表单协作（SubForm）。
+ * 多表单协作需要通过 lowerCodePlugin.subForm 配置 mountPath 和 syncMode。
  */
 
 const config: SceneConfig = {
-  title: '多表单协作',
-  description: 'lowerCodePlugin.subForm — 子表单挂载 / 同步 / 联合提交',
+  title: '分区表单',
+  description: 'LayoutCard 视觉分组 + 分区验证 — 单表单内的逻辑区域划分',
 
   initialValues: {
     orderName: '',
@@ -26,12 +27,12 @@ const config: SceneConfig = {
 
   schema: {
     type: 'object',
-    decoratorProps: { labelPosition: 'right', labelWidth: '120px', actions: { submit: '联合提交', reset: '重置' } },
+    decoratorProps: { labelPosition: 'right', labelWidth: '120px', actions: { submit: '提交', reset: '重置' } },
     properties: {
       orderSection: {
         type: 'void',
         component: 'LayoutCard',
-        componentProps: { title: '主表单 - 订单信息' },
+        componentProps: { title: '订单信息' },
         properties: {
           orderName: { type: 'string', title: '订单名称', required: true },
           customer: { type: 'string', title: '客户', required: true },
@@ -41,7 +42,7 @@ const config: SceneConfig = {
       contactSection: {
         type: 'void',
         component: 'LayoutCard',
-        componentProps: { title: '子表单 - 联系人' },
+        componentProps: { title: '联系人信息' },
         properties: {
           contactName: { type: 'string', title: '联系人', required: true },
           contactPhone: { type: 'string', title: '电话', required: true, rules: [{ format: 'phone', message: '无效手机号' }] },
@@ -50,15 +51,6 @@ const config: SceneConfig = {
       },
     },
   },
-
-  plugins: [
-    lowerCodePlugin({
-      history: false,
-      dirtyChecker: false,
-      acl: false,
-      submitRetry: false,
-    }),
-  ],
 }
 
 export default config

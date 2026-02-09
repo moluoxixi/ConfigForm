@@ -6,10 +6,38 @@
 import type { SceneConfig } from '@playground/shared'
 import { getSceneGroups, sceneRegistry } from '@playground/shared'
 import { setupAntd } from '@moluoxixi/ui-antd'
+import { registerComponent, registerDecorator } from '@moluoxixi/react'
 import React, { useCallback, useEffect, useState } from 'react'
 import { SceneRenderer } from './components/SceneRenderer'
+import {
+  CardDecorator,
+  CodeEditor,
+  ColorPicker,
+  CronEditor,
+  IconSelector,
+  InlineDecorator,
+  JsonEditor,
+  MarkdownEditor,
+  RichTextEditor,
+  SignaturePad,
+} from './components/custom'
 
+/* 注册 Ant Design 基础组件 */
 setupAntd()
+
+/* 注册 playground 自定义组件（演示自定义组件能力） */
+registerComponent('ColorPicker', ColorPicker, { defaultDecorator: 'FormItem' })
+registerComponent('CodeEditor', CodeEditor, { defaultDecorator: 'FormItem' })
+registerComponent('JsonEditor', JsonEditor, { defaultDecorator: 'FormItem' })
+registerComponent('CronEditor', CronEditor, { defaultDecorator: 'FormItem' })
+registerComponent('SignaturePad', SignaturePad, { defaultDecorator: 'FormItem' })
+registerComponent('MarkdownEditor', MarkdownEditor, { defaultDecorator: 'FormItem' })
+registerComponent('RichTextEditor', RichTextEditor, { defaultDecorator: 'FormItem' })
+registerComponent('IconSelector', IconSelector, { defaultDecorator: 'FormItem' })
+
+/* 注册自定义装饰器（演示自定义 decorator 替代默认 FormItem） */
+registerDecorator('CardDecorator', CardDecorator)
+registerDecorator('InlineDecorator', InlineDecorator)
 
 const sceneGroups = getSceneGroups()
 const totalScenes = sceneGroups.reduce((sum, g) => sum + g.items.length, 0)

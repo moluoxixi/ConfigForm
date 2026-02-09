@@ -70,6 +70,10 @@ export const SceneRenderer = observer(({ config }: SceneRendererProps): React.Re
             key={variantValue}
             schema={withMode(currentSchema, mode)}
             initialValues={config.initialValues}
+            formConfig={{
+              effects: config.effects,
+              plugins: config.plugins,
+            }}
             onSubmit={showResult}
             onSubmitFailed={errors => showErrors(errors)}
           />

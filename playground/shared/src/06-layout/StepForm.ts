@@ -1,8 +1,16 @@
 import type { SceneConfig } from '../types'
 
+/**
+ * 场景：分步表单
+ *
+ * 使用 LayoutCard 模拟分步流程，每步一个卡片。
+ * 真正的 LayoutSteps 步骤导航需要组件支持步骤切换逻辑，
+ * 当前使用 LayoutCard 展示分步结构。
+ */
+
 const config: SceneConfig = {
   title: '分步表单',
-  description: 'Steps 导航 / 步骤验证 / void 节点分步',
+  description: 'LayoutCard 分步布局 / 步骤验证 / void 节点分步',
 
   initialValues: {
     name: '',

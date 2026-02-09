@@ -1,92 +1,114 @@
 import type { SceneConfig } from '../types'
-import { onFieldInit } from '@moluoxixi/core'
+import type { FormInstance } from '@moluoxixi/core'
+import { FormLifeCycle } from '@moluoxixi/core'
 
 /**
  * 场景：ObjectField 动态属性
  *
- * 演示 ObjectField 独立模型的能力：
- * - 在运行时通过 effects 动态为对象字段添加/检查属性
- * - ObjectField 的 addProperty / existProperty / getPropertyNames
- *
- * 核心功能覆盖：
- * - ObjectField 独立模型
- * - createObjectField（通过 schema type='object'）
- * - Effects API（onFieldInit）
- *
- * 注意：ObjectField 的 addProperty/removeProperty 是运行时 API，
- * 在 Schema 驱动模式下，嵌套对象的子字段由 SchemaField 递归创建。
- * 本示例展示的是 Schema 声明的嵌套对象 + Effects 中读取对象属性的能力。
+ * 演示 ObjectField 的 addProperty / removeProperty / existProperty / getPropertyNames：
+ * - 表单挂载后通过 effects 动态为对象字段添加属性
+ * - 用户交互触发 addProperty / removeProperty
+ * - 日志实时展示当前对象的属性列表
  */
 
 const config: SceneConfig = {
   title: 'ObjectField 动态属性',
-  description: '嵌套对象字段 + Effects 动态属性操作',
+  description: 'addProperty / removeProperty / existProperty / getPropertyNames',
 
   initialValues: {
-    userInfo: {
-      name: '张三',
-      age: 28,
-      email: 'zhangsan@example.com',
-    },
-    serverConfig: {
+    config: {
       host: 'localhost',
       port: 8080,
     },
-    log: '等待交互...',
+    log: '',
+  },
+
+  effects: (form: FormInstance): void => {
+    const logs: string[] = []
+
+    function writeLog(msg: string): void {
+      logs.push(`[${new Date().toLocaleTimeString()}] ${msg}`)
+      const logField = form.getField('log')
+      if (logField) {
+        logField.setValue(logs.join('\n'))
+      }
+    }
+
+    form.on(FormLifeCycle.ON_FORM_MOUNT, () => {
+      /**
+       * 表单挂载后，读取 ObjectField 的属性列表，
+       * 并动态添加一个新属性 'debug'。
+       */
+      setTimeout(() => {
+        const objField = form.getObjectField('config')
+        if (objField) {
+          const names = objField.getPropertyNames()
+          writeLog(`初始属性: [${names.join(', ')}]`)
+
+          /* 动态添加 debug 属性 */
+          objField.addProperty('debug', true)
+          writeLog('addProperty("debug", true) — 动态添加')
+
+          const updatedNames = objField.getPropertyNames()
+          writeLog(`当前属性: [${updatedNames.join(', ')}]`)
+
+          writeLog(`existProperty("host") = ${objField.existProperty('host')}`)
+          writeLog(`existProperty("notExist") = ${objField.existProperty('notExist')}`)
+        }
+      }, 200)
+    })
+
+    /**
+     * 延迟后演示 removeProperty：移除之前添加的 debug 属性。
+     */
+    form.on(FormLifeCycle.ON_FORM_MOUNT, () => {
+      setTimeout(() => {
+        const objField = form.getObjectField('config')
+        if (objField && objField.existProperty('debug')) {
+          objField.removeProperty('debug')
+          writeLog('removeProperty("debug") — 动态移除')
+
+          const finalNames = objField.getPropertyNames()
+          writeLog(`最终属性: [${finalNames.join(', ')}]`)
+        }
+      }, 1500)
+    })
   },
 
   schema: {
     type: 'object',
-    decoratorProps: { labelPosition: 'right', labelWidth: '140px', actions: { submit: '提交', reset: '重置' } },
+    decoratorProps: { labelPosition: 'right', labelWidth: '160px', actions: { submit: '提交（查看嵌套结构）', reset: '重置' } },
     properties: {
-      userInfo: {
+      config: {
         type: 'object',
-        title: '用户信息（对象字段）',
+        title: '配置对象 (ObjectField)',
         component: 'LayoutCard',
-        componentProps: { title: '用户信息' },
+        componentProps: { title: '配置对象 — type: object' },
         properties: {
-          name: { type: 'string', title: '姓名', required: true },
-          age: { type: 'number', title: '年龄', componentProps: { min: 0, max: 150, style: 'width: 100%' } },
-          email: { type: 'string', title: '邮箱', rules: [{ format: 'email' }] },
-        },
-      },
-      serverConfig: {
-        type: 'object',
-        title: '服务器配置（对象字段）',
-        component: 'LayoutCard',
-        componentProps: { title: '服务器配置' },
-        properties: {
-          host: { type: 'string', title: '主机地址', required: true },
-          port: { type: 'number', title: '端口号', required: true, componentProps: { min: 1, max: 65535, style: 'width: 100%' } },
+          host: {
+            type: 'string',
+            title: '主机地址',
+            required: true,
+            description: '数据路径: config.host',
+          },
+          port: {
+            type: 'number',
+            title: '端口号',
+            required: true,
+            description: '数据路径: config.port',
+            componentProps: { min: 1, max: 65535, style: 'width: 200px' },
+          },
         },
       },
       log: {
         type: 'string',
-        title: '对象属性日志',
+        title: '动态属性操作日志',
         component: 'Textarea',
         readOnly: true,
-        componentProps: { rows: 6 },
-        description: '记录 effects 中读取的对象属性信息',
+        componentProps: { rows: 10, style: 'font-family: monospace; font-size: 12px' },
+        description: '展示 addProperty / existProperty / getPropertyNames 的实时调用结果',
       },
     },
-  },
-
-  effects: (form) => {
-    const logs: string[] = []
-
-    /**
-     * 监听嵌套对象字段的子字段初始化，
-     * 记录对象结构信息，验证 ObjectField 的属性感知能力。
-     */
-    onFieldInit(form, 'userInfo.*', (field) => {
-      logs.push(`[userInfo] 子字段初始化: ${field.path} = ${JSON.stringify(field.value)}`)
-      form.setFieldState('log', { value: logs.join('\n') })
-    })
-
-    onFieldInit(form, 'serverConfig.*', (field) => {
-      logs.push(`[serverConfig] 子字段初始化: ${field.path} = ${JSON.stringify(field.value)}`)
-      form.setFieldState('log', { value: logs.join('\n') })
-    })
   },
 }
 
