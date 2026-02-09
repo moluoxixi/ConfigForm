@@ -107,7 +107,7 @@ export class ReactionEngine {
 
       /* 设置值 */
       if (effect.value !== undefined) {
-        const newValue = isFunction(effect.value) ? effect.value(context) : effect.value
+        const newValue = isFunction(effect.value) ? effect.value(field, context) : effect.value
         field.setValue(newValue)
       }
 
@@ -145,7 +145,7 @@ export class ReactionEngine {
       const context = buildContext()
 
       if (rule.when) {
-        const conditionMet = rule.when(watchedValues, context)
+        const conditionMet = rule.when(field, context)
         if (conditionMet && rule.fulfill) {
           executeEffect(rule.fulfill, context)
         }

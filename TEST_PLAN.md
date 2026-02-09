@@ -410,6 +410,7 @@ playground/
 | G11 | 三个 UI 库 FormItem colon 属性统一 | ✅ | 三个 FormItem 添加 colon prop |
 | G12 | SceneRenderer 切换场景时表单数据残留（异步加载竞态 + 缺少 key） | ✅ | Vue App.vue + React App.tsx：loadScene 先清空 sceneConfig + 添加 :key |
 | G13 | reactions 动态设置 field.required 后提交不触发验证 | ✅ | `packages/core/src/models/Field.ts` validate() 前 syncRequiredRule |
+| G14 | reaction engine 的 `fulfill.value` 和 `when` 回调传参不匹配 schema 签名 `(field, ctx)` | ✅ | `packages/core/src/reaction/engine.ts` 修复为 `effect.value(field, context)` 和 `rule.when(field, context)` |
 
 ### 场景级问题
 
@@ -991,11 +992,11 @@ playground/
 
 | 平台 | 编辑态 | 阅读态 | 禁用态 |
 |------|:------:|:------:|:------:|
-| Vue AntdVue | ✅ | ✅ | ✅ |
-| Vue ElementPlus | ✅ | ✅ | ✅ |
-| React Antd | ✅ | ✅ | ✅ |
+| Vue AntdVue | ⏳ | ⏳ | ⏳ |
+| Vue ElementPlus | ⏳ | ⏳ | ⏳ |
+| React Antd | ⏳ | ⏳ | ⏳ |
 
-> 标准字段 + 提交/重置。验证/三态通过。
+> 发现 G14 bug 并修复后重测中
 
 ### 场景 54：oneOf 联合 Schema（OneOfSchemaForm）
 
