@@ -23,7 +23,7 @@ export const FormObjectField = observer<FormObjectFieldProps>(({ name, fieldProp
     throw new Error('[ConfigForm] <FormObjectField> 必须在 <FormProvider> 内部使用')
 
   const fieldRef = useRef(
-    form.getField(name) ?? form.createField({ name, initialValue: {}, ...fieldProps } as any),
+    form.getField(name) ?? form.createField({ name, ...fieldProps } as any),
   )
   const field = fieldRef.current
 

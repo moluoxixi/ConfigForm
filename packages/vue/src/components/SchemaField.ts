@@ -46,12 +46,12 @@ export const SchemaField = defineComponent({
       }
       if (cf.isArray) {
         /**
-         * 当 type='array' 且有显式组件（如 CheckboxGroup/Transfer 等原子组件）时，
-         * 应作为普通字段渲染，而非 FormArrayField。
-         * 只有无显式组件或组件为 ArrayItems 时才使用 FormArrayField 管理动态数组。
+         * 结构化数组组件（管理动态数组项的增删排序）使用 FormArrayField。
+         * 原子组件（如 CheckboxGroup/Transfer）虽然值为数组，但作为普通字段渲染。
          */
         const comp = cf.schema.component
-        if (comp && comp !== 'ArrayItems') {
+        const isStructuralArray = !comp || comp === 'ArrayItems' || comp === 'ArrayTable'
+        if (!isStructuralArray) {
           return h(FormField, {
             key: cf.address,
             name: cf.dataPath,

@@ -131,7 +131,15 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
       if (currentVal === undefined) {
         FormPath.setIn(form.values as Record<string, unknown>, this.path, deepClone(props.initialValue))
       }
-      FormPath.setIn(form.initialValues as Record<string, unknown>, this.path, deepClone(props.initialValue))
+      /**
+       * 仅在 form.initialValues 中尚未设置该路径时才写入。
+       * 避免覆盖 ConfigForm 通过 initialValues prop 传入的值
+       * （例如数组字段的 initialValue 默认为 []，会覆盖 form 级的初始数组）。
+       */
+      const currentInitial = FormPath.getIn(form.initialValues, this.path)
+      if (currentInitial === undefined) {
+        FormPath.setIn(form.initialValues as Record<string, unknown>, this.path, deepClone(props.initialValue))
+      }
     }
   }
 

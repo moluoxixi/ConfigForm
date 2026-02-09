@@ -1,5 +1,5 @@
 import 'element-plus/dist/index.css'
-import { ArrayItems, registerFieldComponents } from '@moluoxixi/vue'
+import { ArrayItems, ArrayTable, registerFieldComponents } from '@moluoxixi/vue'
 import {
   CheckboxGroup,
   DatePicker,
@@ -50,7 +50,7 @@ export function setupElementPlus(): void {
   registerFieldComponents(
     { Input, Password, Textarea, InputNumber, Select, RadioGroup, CheckboxGroup, Switch, DatePicker, ArrayItems },
     { name: 'FormItem', component: FormItem },
-    { LayoutTabs, LayoutCard, LayoutCollapse, LayoutSteps, LayoutStepActions, LayoutFormActions },
+    { ArrayTable, LayoutTabs, LayoutCard, LayoutCollapse, LayoutSteps, LayoutStepActions, LayoutFormActions },
   )
 }
 

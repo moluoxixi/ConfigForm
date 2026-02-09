@@ -94,6 +94,7 @@ export const mobxAdapter: ReactiveAdapter = {
       'path',
       'name',
       'reactions',
+      'initialValues',
     ])
 
     // 遍历自身属性

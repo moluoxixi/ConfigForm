@@ -1,4 +1,4 @@
-import { ArrayItems, registerFieldComponents } from '@moluoxixi/vue'
+import { ArrayItems, ArrayTable, registerFieldComponents } from '@moluoxixi/vue'
 import {
   CheckboxGroup,
   DatePicker,
@@ -44,7 +44,7 @@ export function setupAntdVue(): void {
   registerFieldComponents(
     { Input, Password, Textarea, InputNumber, Select, RadioGroup, CheckboxGroup, Switch, DatePicker, ArrayItems },
     { name: 'FormItem', component: FormItem },
-    { LayoutTabs, LayoutCard, LayoutCollapse, LayoutSteps, LayoutStepActions, LayoutFormActions },
+    { ArrayTable, LayoutTabs, LayoutCard, LayoutCollapse, LayoutSteps, LayoutStepActions, LayoutFormActions },
     {
       Input: PreviewInput,
       Password: PreviewPassword,

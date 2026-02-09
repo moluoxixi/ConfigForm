@@ -1,13 +1,14 @@
 import type { ArrayFieldInstance, ArrayFieldProps } from '@moluoxixi/core'
 import type { ReactNode } from 'react'
 import { observer } from 'mobx-react-lite'
-import { useContext, useEffect, useRef } from 'react'
+import React, { useContext, useEffect, useRef } from 'react'
 import { FieldContext, FormContext } from '../context'
+import { ReactiveField } from './ReactiveField'
 
 export interface FormArrayFieldComponentProps {
   name: string
   fieldProps?: Partial<ArrayFieldProps>
-  children: (field: ArrayFieldInstance) => ReactNode
+  children?: ((field: ArrayFieldInstance) => ReactNode) | ReactNode
 }
 
 /**
@@ -70,7 +71,9 @@ export const FormArrayField = observer<FormArrayFieldComponentProps>(
 
     return (
       <FieldContext.Provider value={field}>
-        {children(field)}
+        {typeof children === 'function'
+          ? children(field)
+          : <ReactiveField field={field}>{children}</ReactiveField>}
       </FieldContext.Provider>
     )
   },

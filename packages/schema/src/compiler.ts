@@ -7,7 +7,7 @@ import type {
 import { isArray, isObject } from '@moluoxixi/shared'
 
 /** 默认类型 → 组件映射 */
-const DEFAULT_COMPONENT_MAPPING: Record<string, string> = {
+export const DEFAULT_COMPONENT_MAPPING: Record<string, string> = {
   string: 'Input',
   number: 'InputNumber',
   boolean: 'Switch',
@@ -31,7 +31,7 @@ const DEFAULT_DECORATOR = 'FormItem'
  *
  * 优先级：schema.component > enum/dataSource → Select > type 映射
  */
-function resolveComponent(schema: ISchema, mapping: Record<string, string>): string | unknown {
+export function resolveComponent(schema: ISchema, mapping: Record<string, string>): string | unknown {
   if (schema.component)
     return schema.component
 

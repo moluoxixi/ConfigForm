@@ -24,6 +24,7 @@ const config: SceneConfig = {
       items: {
         type: 'array',
         title: '订单明细',
+        component: 'ArrayTable',
         minItems: 1,
         maxItems: 20,
         itemTemplate: { productName: '', quantity: 1, unitPrice: 0 },

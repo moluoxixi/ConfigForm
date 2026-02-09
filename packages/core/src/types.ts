@@ -231,8 +231,8 @@ export interface FormInstance<Values extends Record<string, unknown> = Record<st
   getField: (path: string) => FieldInstance | undefined
   getArrayField: (path: string) => ArrayFieldInstance | undefined
   removeField: (path: string) => void
-  /** 清理指定路径下的所有子字段注册（供 ArrayField 操作时调用） */
-  cleanupChildFields: (parentPath: string) => void
+  /** 清理数组字段中索引 >= start 的子字段注册（参考 Formily cleanupArrayChildren） */
+  cleanupArrayChildren: (arrayPath: string, start: number) => void
   queryFields: (pattern: string) => FieldInstance[]
   /** 获取所有注册的字段（返回内部 Map 的只读快照） */
   getAllFields: () => ReadonlyMap<string, FieldInstance>

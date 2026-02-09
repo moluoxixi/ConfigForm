@@ -26,7 +26,11 @@ export function createForm<
 
   /* 先让数据对象变为深度响应式 */
   form.values = adapter.observable(form.values)
-  form.initialValues = adapter.observable(form.initialValues)
+  /**
+   * initialValues 不使用 observable 包装。
+   * 作为重置时的参考值，不需要响应式追踪。
+   * 避免被 MobX 代理后，FormPath.setIn 意外扩展数组条目。
+   */
 
   /* 让整个 Form 实例变为响应式，返回代理 */
   const reactiveForm = adapter.makeObservable(form)

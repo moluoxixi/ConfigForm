@@ -2,6 +2,7 @@
 export {
   ArrayBase,
   ArrayItems,
+  ArrayTable,
   ConfigForm,
   FormArrayField,
   FormField,

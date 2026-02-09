@@ -213,25 +213,36 @@ implements FormInstance<Values> {
   }
 
   /**
-   * 清理指定路径下的所有子字段注册
+   * 清理数组字段中索引 >= start 的子字段注册
    *
-   * 当数组字段执行 remove/move/setValue 等操作时调用，
-   * 避免已删除的数组子字段残留在 fields 映射中导致：
-   * - 验证时遍历到不存在的字段
-   * - 联动引擎处理幽灵字段
-   * - 提交数据收集时的额外过滤开销
+   * 参考 Formily cleanupArrayChildren：
+   * 当数组缩短时，只清理多余索引的子字段，保留有效部分。
+   *
+   * @param arrayPath - 数组字段路径（如 'contacts'）
+   * @param start - 起始索引，>= start 的子字段将被清理
    */
-  cleanupChildFields(parentPath: string): void {
-    /* 收集所有以 parentPath 为前缀的子字段路径 */
-    const childPaths: string[] = []
-    for (const path of this.fields.keys()) {
-      if (FormPath.isChildOf(path, parentPath)) {
-        childPaths.push(path)
-      }
+  cleanupArrayChildren(arrayPath: string, start: number): void {
+    const prefix = arrayPath + '.'
+    const indexRe = /^(\d+)/
+
+    /**
+     * 判断子字段路径是否属于 >= start 的数组项。
+     * 如 arrayPath='contacts', path='contacts.2.name' → 提取 index=2
+     */
+    const shouldCleanup = (path: string): boolean => {
+      if (!path.startsWith(prefix)) return false
+      const afterPrefix = path.slice(prefix.length)
+      const match = afterPrefix.match(indexRe)
+      if (!match) return false
+      return Number(match[1]) >= start
     }
 
-    /* 逐个移除子字段及其联动 */
-    for (const path of childPaths) {
+    /* 清理数据字段 */
+    const toRemove: string[] = []
+    for (const path of this.fields.keys()) {
+      if (shouldCleanup(path)) toRemove.push(path)
+    }
+    for (const path of toRemove) {
       const field = this.fields.get(path)
       if (field) {
         field.dispose()
@@ -241,14 +252,12 @@ implements FormInstance<Values> {
       }
     }
 
-    /* 同时清理子虚拟字段 */
-    const childVoidPaths: string[] = []
+    /* 清理虚拟字段 */
+    const toRemoveVoid: string[] = []
     for (const path of this.voidFields.keys()) {
-      if (FormPath.isChildOf(path, parentPath)) {
-        childVoidPaths.push(path)
-      }
+      if (shouldCleanup(path)) toRemoveVoid.push(path)
     }
-    for (const path of childVoidPaths) {
+    for (const path of toRemoveVoid) {
       const voidField = this.voidFields.get(path)
       if (voidField) {
         voidField.dispose()
@@ -336,15 +345,16 @@ implements FormInstance<Values> {
         }
       }
       else {
+        /**
+         * 直接替换整个 values 引用。
+         * 不需要手动清理数组子字段——替换 values 后 React 重新渲染，
+         * 多余的 FormField 组件自动 unmount，触发 useEffect cleanup 移除字段。
+         */
         if (options?.forceClear) {
-          const keys = Object.keys(this.values)
-          for (const key of keys) {
-            (this.values as Record<string, unknown>)[key] = undefined
-          }
+          this.values = {} as Values
         }
         else {
-          const cloned = deepClone(this.initialValues)
-          Object.assign(this.values, cloned)
+          this.values = deepClone(this.initialValues) as Values
         }
         for (const field of this.fields.values()) {
           field.errors = []

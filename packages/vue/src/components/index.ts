@@ -1,5 +1,6 @@
 export { ArrayBase, useArray, useIndex } from './ArrayBase'
 export { ArrayItems } from './ArrayItems'
+export { ArrayTable } from './ArrayTable'
 export { ConfigForm } from './ConfigForm'
 export { FormArrayField } from './FormArrayField'
 export { FormField } from './FormField'

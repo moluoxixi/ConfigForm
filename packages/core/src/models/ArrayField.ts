@@ -1,5 +1,6 @@
-import type { ArrayFieldInstance, ArrayFieldProps, FormInstance } from '../types'
+import type { ArrayFieldInstance, ArrayFieldProps, Disposer, FormInstance } from '../types'
 import { deepClone, isArray, isFunction } from '@moluoxixi/shared'
+import { getReactiveAdapter } from '@moluoxixi/reactive'
 import { Field } from './Field'
 
 /**
@@ -8,8 +9,10 @@ import { Field } from './Field'
  * 继承 Field，额外提供数组操作方法：
  * push / pop / insert / remove / move / duplicate 等
  *
- * 结构性操作（remove / pop / move / replace）会在修改数组前
- * 先清理所有子字段注册，避免残留的"幽灵字段"影响验证和联动。
+ * 参考 Formily ArrayField 设计：
+ * - 数组操作直接修改 value，不做操作前的全量子字段清理
+ * - 通过 reaction 监听 value.length 变化，自动清理多余索引的子字段
+ * - React/Vue 组件的 unmount 生命周期负责精确移除对应的子字段注册
  */
 export class ArrayField<Value extends unknown[] = unknown[]>
   extends Field<Value>
@@ -17,6 +20,9 @@ export class ArrayField<Value extends unknown[] = unknown[]>
   minItems: number
   maxItems: number
   itemTemplate?: Value[number] | (() => Value[number])
+
+  /** 自动清理的 reaction disposer（_ 前缀跳过 MobX observable 标注） */
+  private _autoCleanDisposer: Disposer | null = null
 
   constructor(form: FormInstance, props: ArrayFieldProps<Value>, parentPath = '') {
     super(form, props, parentPath)
@@ -29,6 +35,39 @@ export class ArrayField<Value extends unknown[] = unknown[]>
     if (!isArray(current)) {
       this.setValue([] as unknown as Value)
     }
+
+    this.setupAutoCleanup()
+  }
+
+  /**
+   * 参考 Formily ArrayField.makeAutoCleanable：
+   * 通过 reaction 监听数组长度变化，自动清理多余索引的子字段。
+   * 当数组缩短时（如 remove/pop/reset），索引 >= newLength 的子字段自动销毁。
+   */
+  private setupAutoCleanup(): void {
+    const adapter = getReactiveAdapter()
+    let prevLength = this.arrayValue.length
+
+    this._autoCleanDisposer = adapter.reaction(
+      () => {
+        const val = this.value
+        return isArray(val) ? val.length : 0
+      },
+      (newLength: number) => {
+        if (newLength < prevLength) {
+          this.cleanupChildrenFrom(newLength)
+        }
+        prevLength = newLength
+      },
+    )
+  }
+
+  /**
+   * 清理索引 >= start 的子字段注册。
+   * 参考 Formily cleanupArrayChildren：只清理多余部分，不影响保留的字段。
+   */
+  private cleanupChildrenFrom(start: number): void {
+    this.form.cleanupArrayChildren(this.path, start)
   }
 
   /** 获取当前数组值 */
@@ -56,14 +95,6 @@ export class ArrayField<Value extends unknown[] = unknown[]>
     return undefined as Value[number]
   }
 
-  /**
-   * 清理当前数组路径下的所有子字段注册。
-   * 在结构性数组操作前调用，避免子字段索引错位后残留。
-   */
-  private cleanupChildren(): void {
-    this.form.cleanupChildFields(this.path)
-  }
-
   /** 尾部添加 */
   push(...items: Value[number][]): void {
     if (!this.canAdd)
@@ -77,7 +108,6 @@ export class ArrayField<Value extends unknown[] = unknown[]>
   pop(): void {
     if (!this.canRemove)
       return
-    this.cleanupChildren()
     const arr = [...this.arrayValue]
     arr.pop()
     this.setValue(arr as unknown as Value)
@@ -87,7 +117,6 @@ export class ArrayField<Value extends unknown[] = unknown[]>
   insert(index: number, ...items: Value[number][]): void {
     if (!this.canAdd)
       return
-    this.cleanupChildren()
     const newItems = items.length > 0 ? items : [this.createItem()]
     const arr = [...this.arrayValue]
     arr.splice(index, 0, ...newItems)
@@ -98,7 +127,6 @@ export class ArrayField<Value extends unknown[] = unknown[]>
   remove(index: number): void {
     if (!this.canRemove)
       return
-    this.cleanupChildren()
     const arr = [...this.arrayValue]
     arr.splice(index, 1)
     this.setValue(arr as unknown as Value)
@@ -109,7 +137,6 @@ export class ArrayField<Value extends unknown[] = unknown[]>
     const arr = [...this.arrayValue]
     if (from < 0 || from >= arr.length || to < 0 || to >= arr.length)
       return
-    this.cleanupChildren()
     const [item] = arr.splice(from, 1)
     arr.splice(to, 0, item)
     this.setValue(arr as unknown as Value)
@@ -136,7 +163,6 @@ export class ArrayField<Value extends unknown[] = unknown[]>
     const arr = this.arrayValue
     if (index < 0 || index >= arr.length)
       return
-    this.cleanupChildren()
     const cloned = deepClone(arr[index])
     const newArr = [...arr]
     newArr.splice(index + 1, 0, cloned)
@@ -148,8 +174,14 @@ export class ArrayField<Value extends unknown[] = unknown[]>
     const arr = [...this.arrayValue]
     if (index < 0 || index >= arr.length)
       return
-    this.cleanupChildren()
     arr[index] = item
     this.setValue(arr as unknown as Value)
+  }
+
+  /** 销毁时清理 auto-cleanup reaction */
+  override dispose(): void {
+    this._autoCleanDisposer?.()
+    this._autoCleanDisposer = null
+    super.dispose()
   }
 }

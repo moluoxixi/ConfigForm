@@ -1,5 +1,5 @@
 /* 编译 */
-export { compileSchema } from './compiler'
+export { compileSchema, DEFAULT_COMPONENT_MAPPING, resolveComponent } from './compiler'
 
 /* 合并 */
 export { mergeSchema } from './merge'

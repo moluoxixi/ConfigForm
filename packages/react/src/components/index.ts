@@ -1,6 +1,8 @@
 export { ArrayBase, useArray, useIndex } from './ArrayBase'
 export { ArrayItems } from './ArrayItems'
 export type { ArrayItemsProps } from './ArrayItems'
+export { ArrayTable } from './ArrayTable'
+export type { ArrayTableProps } from './ArrayTable'
 export { ConfigForm } from './ConfigForm'
 export type { ConfigFormProps } from './ConfigForm'
 export { FormArrayField } from './FormArrayField'

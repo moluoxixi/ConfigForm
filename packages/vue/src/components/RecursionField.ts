@@ -1,4 +1,5 @@
 import type { ISchema } from '@moluoxixi/schema'
+import { DEFAULT_COMPONENT_MAPPING, resolveComponent } from '@moluoxixi/schema'
 import type { PropType, VNode } from 'vue'
 import { defineComponent, h } from 'vue'
 import { FormField } from './FormField'
@@ -103,7 +104,9 @@ export const RecursionField = defineComponent({
         })
       }
 
-      /* 普通数据字段 */
+      /* 普通数据字段 — 通过 resolveComponent 解析组件名（与 compileSchema 逻辑一致） */
+      const resolvedComp = resolveComponent(schema, DEFAULT_COMPONENT_MAPPING)
+
       return h(FormField, {
         key: dataPath,
         name: dataPath,
@@ -111,7 +114,7 @@ export const RecursionField = defineComponent({
           label: schema.title,
           description: schema.description,
           required: schema.required === true,
-          component: schema.component,
+          component: resolvedComp,
           componentProps: schema.componentProps,
           rules: schema.rules,
           disabled: schema.disabled,

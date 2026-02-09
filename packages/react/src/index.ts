@@ -1,6 +1,7 @@
 /* 组件 */
 export {
   ArrayItems,
+  ArrayTable,
   ConfigForm,
   FormArrayField,
   FormField,
@@ -13,6 +14,7 @@ export {
 } from './components'
 export type {
   ArrayItemsProps,
+  ArrayTableProps,
   ConfigFormProps,
   FormArrayFieldComponentProps,
   FormFieldProps,
