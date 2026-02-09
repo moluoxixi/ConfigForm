@@ -26,7 +26,6 @@
 
     <component :is="props.statusTabs" ref="st" v-slot="{ mode, showResult }">
       <ConfigForm
-        :key="variantValue"
         :schema="withMode(currentSchema, mode)"
         :initial-values="props.config.initialValues"
         :effects="props.config.effects"

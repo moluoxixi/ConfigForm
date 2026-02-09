@@ -165,7 +165,15 @@ function renderDefaultArrayItems(field: ArrayFieldInstance, props: { name: strin
                 fieldProps: { component: 'Input', componentProps: { size: 'small' } },
               })],
         ),
-        isEditable && h('div', { style: { display: 'flex', gap: '4px', flexShrink: 0 } }, [
+        /* 始终渲染按钮容器保持占位，非编辑态隐藏但保留空间 */
+        h('div', {
+          style: {
+            display: 'flex',
+            gap: '4px',
+            flexShrink: '0',
+            visibility: isEditable ? 'visible' : 'hidden',
+          },
+        }, [
           h(ArrayBase.MoveUp),
           h(ArrayBase.MoveDown),
           h(ArrayBase.Remove),

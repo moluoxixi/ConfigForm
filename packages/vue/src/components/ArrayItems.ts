@@ -109,9 +109,14 @@ export const ArrayItems = defineComponent({
                   })]
                 : [h('span', { style: { color: '#999' } }, `Item ${index}`)],
             ),
-            /* 操作按钮区域 */
-            isEditable && h('div', {
-              style: { display: 'flex', gap: '4px', flexShrink: 0 },
+            /* 始终渲染按钮容器保持占位，非编辑态隐藏但保留空间 */
+            h('div', {
+              style: {
+                display: 'flex',
+                gap: '4px',
+                flexShrink: '0',
+                visibility: isEditable ? 'visible' : 'hidden',
+              },
             }, [
               h(ArrayBase.MoveUp),
               h(ArrayBase.MoveDown),

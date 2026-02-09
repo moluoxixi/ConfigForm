@@ -239,15 +239,15 @@ export const ConfigForm = defineComponent({
           onSubmit: handleSubmit,
           novalidate: true,
         }, [
-          /* 字段容器（应用布局样式） */
-          fieldContainerStyle
+          /* 字段容器（始终使用 div 包裹，避免布局切换时因 DOM 结构变化导致字段树重建） */
+          props.schema
             ? h('div', {
                 ref: layout?.breakpoints ? gridContainerRef : undefined,
-                style: fieldContainerStyle,
+                style: fieldContainerStyle || undefined,
               }, [
-              props.schema ? h(SchemaField, { schema: props.schema }) : null,
-            ])
-            : (props.schema ? h(SchemaField, { schema: props.schema }) : null),
+                h(SchemaField, { schema: props.schema }),
+              ])
+            : null,
 
           /* 操作按钮 */
           showActions

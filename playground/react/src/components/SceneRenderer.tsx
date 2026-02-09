@@ -71,7 +71,6 @@ export const SceneRenderer = observer(({ config }: SceneRendererProps): React.Re
       <StatusTabs>
         {({ mode, showResult, showErrors }) => (
           <ConfigForm
-            key={variantValue}
             schema={withMode(currentSchema, mode)}
             initialValues={config.initialValues}
             formConfig={{

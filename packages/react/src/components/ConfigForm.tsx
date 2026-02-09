@@ -163,9 +163,9 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
     <FormProvider form={form} components={components} decorators={decorators}>
       <form onSubmit={handleSubmit} className={className} style={style} noValidate>
         {schema && (
-          fieldContainerStyle
-            ? <div style={fieldContainerStyle}><SchemaField schema={schema} /></div>
-            : <SchemaField schema={schema} />
+          <div style={fieldContainerStyle}>
+            <SchemaField schema={schema} />
+          </div>
         )}
 
         {/* 操作按钮 */}

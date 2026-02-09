@@ -260,7 +260,16 @@ implements FormInstance<Values> {
     return this.objectFields.get(path) as unknown as ObjectFieldInstance | undefined
   }
 
-  /** 移除字段 */
+  /**
+   * 移除字段
+   *
+   * 清理字段实例、联动订阅，以及 form.values / form.initialValues 中对应路径的值。
+   *
+   * 设计说明：条件可见性应使用 field.display（'hidden'/'none'），不触发 removeField，值自然保留。
+   * removeField 语义是字段从表单中彻底移除（如 schema 切换），残留值会导致：
+   * - 下次 createField 同路径时 initialValue 无法写入（被旧值覆盖）
+   * - form.submit() 提交多余数据
+   */
   removeField(path: string): void {
     const field = this.fields.get(path)
     if (field) {
@@ -269,6 +278,10 @@ implements FormInstance<Values> {
       this.arrayFields.delete(path)
       this.objectFields.delete(path)
       this.reactionEngine.removeFieldReactions(path)
+
+      /* 清理 values 和 initialValues 中该路径的值，防止状态残留 */
+      FormPath.deleteIn(this.values as Record<string, unknown>, path)
+      FormPath.deleteIn(this.initialValues as Record<string, unknown>, path)
     }
     const voidField = this.voidFields.get(path)
     if (voidField) {

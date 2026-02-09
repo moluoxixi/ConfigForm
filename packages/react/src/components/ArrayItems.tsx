@@ -107,13 +107,17 @@ function renderItems(
               ? <RecursionField schema={itemsSchema} name={index} basePath={field.path} />
               : <span style={{ color: '#999' }}>Item {index}</span>}
           </div>
-          {isEditable && (
-            <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-              <ArrayBase.MoveUp />
-              <ArrayBase.MoveDown />
-              <ArrayBase.Remove />
-            </div>
-          )}
+          {/* 始终渲染按钮容器保持占位，非编辑态隐藏但保留空间 */}
+          <div style={{
+            display: 'flex',
+            gap: 4,
+            flexShrink: 0,
+            visibility: isEditable ? 'visible' : 'hidden',
+          }}>
+            <ArrayBase.MoveUp />
+            <ArrayBase.MoveDown />
+            <ArrayBase.Remove />
+          </div>
         </div>
       </ArrayBase.Item>
     )

@@ -112,6 +112,11 @@ cd playground/react && pnpm dev # 启动 React playground (localhost:3002)
 cd playground/vue && pnpm dev   # 启动 Vue playground (localhost:3001)
 ```
 
+## TODO
+
+- [ ] 可视化表单设计器 — 拖拽式设计器，支持非技术人员通过拖拽创建表单
+- [ ] DevTools 调试工具 — 浏览器扩展，实时查看字段树、联动关系、值变化、验证状态
+
 ## 许可证
 
 MIT
