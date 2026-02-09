@@ -2,13 +2,9 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "composite": true,
-    "lib": [
-      "ESNext"
-    ],
+    "lib": ["ESNext"],
     "allowImportingTsExtensions": true,
     "noEmit": false,
     "rewriteRelativeImportExtensions": true
-  },
-  "include": [
-  ]
+  }
 }

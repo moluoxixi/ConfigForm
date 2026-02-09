@@ -1,10 +1,17 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../tsconfig.app.json",
   "compilerOptions": {
     "composite": true,
-    "lib": ["ESNext", "DOM"],
     "rootDir": "./src",
     "outDir": "./dist"
+  },
+  "vueCompilerOptions": {
+    "plugins": [
+      "@vue-macros/volar/define-models",
+      "@vue-macros/volar/define-slots",
+      "@vue-macros/volar/define-props",
+      "@vue-macros/volar/define-emits"
+    ]
   },
   "include": ["src"]
 }

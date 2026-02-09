@@ -403,13 +403,20 @@ function safeSerialize(value: unknown): unknown {
 function ensureGlobalHook(): DevToolsGlobalHook {
   const globalObj = window as unknown as Record<string, unknown>
   if (!globalObj.__CONFIGFORM_DEVTOOLS_HOOK__) {
+    const listeners = new Set<(forms: Map<string, DevToolsPluginAPI>) => void>()
     const hook: DevToolsGlobalHook = {
       forms: new Map(),
       register(id, api) {
         hook.forms.set(id, api)
+        for (const fn of listeners) fn(hook.forms)
       },
       unregister(id) {
         hook.forms.delete(id)
+        for (const fn of listeners) fn(hook.forms)
+      },
+      onChange(listener) {
+        listeners.add(listener)
+        return () => listeners.delete(listener)
       },
     }
     globalObj.__CONFIGFORM_DEVTOOLS_HOOK__ = hook

@@ -1,8 +1,7 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../tsconfig.app.json",
   "compilerOptions": {
     "composite": true,
-    "lib": ["ESNext", "DOM"],
     "rootDir": "./src",
     "outDir": "./dist"
   },

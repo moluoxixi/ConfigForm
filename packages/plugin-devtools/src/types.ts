@@ -155,4 +155,6 @@ export interface DevToolsGlobalHook {
   register: (formId: string, api: DevToolsPluginAPI) => void
   /** 注销表单 */
   unregister: (formId: string) => void
+  /** 订阅表单注册/注销事件（事件驱动，无需轮询） */
+  onChange: (listener: (forms: Map<string, DevToolsPluginAPI>) => void) => () => void
 }

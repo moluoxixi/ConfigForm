@@ -113,21 +113,21 @@ export function App(): React.ReactElement {
   )
 }
 
-/** DevTools 浮动面板包装器：持续从全局 Hook 获取最新 API（场景切换时自动更新） */
+/** DevTools 浮动面板包装器：通过全局 Hook 的 onChange 事件驱动更新（零轮询） */
 function DevToolsFloating(): React.ReactElement | null {
   const [api, setApi] = useState<DevToolsPluginAPI | null>(null)
 
   useEffect(() => {
-    const check = (): void => {
-      const hook = (window as unknown as Record<string, unknown>).__CONFIGFORM_DEVTOOLS_HOOK__ as
-        { forms: Map<string, DevToolsPluginAPI> } | undefined
-      if (hook?.forms.size) {
-        const latest = hook.forms.values().next().value!
-        setApi(prev => prev !== latest ? latest : prev)
-      }
+    type Hook = { forms: Map<string, DevToolsPluginAPI>, onChange: (fn: (forms: Map<string, DevToolsPluginAPI>) => void) => () => void }
+    const hook = (window as unknown as Record<string, unknown>).__CONFIGFORM_DEVTOOLS_HOOK__ as Hook | undefined
+    if (!hook) return
+
+    /** 从 forms Map 取最新 API */
+    const update = (forms: Map<string, DevToolsPluginAPI>): void => {
+      setApi(forms.size > 0 ? forms.values().next().value! : null)
     }
-    const timer = setInterval(check, 300)
-    return () => clearInterval(timer)
+    update(hook.forms)
+    return hook.onChange(update)
   }, [])
 
   if (!api) return null

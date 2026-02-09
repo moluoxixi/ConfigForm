@@ -57,27 +57,27 @@ import { getSceneGroups, sceneRegistry } from '@playground/shared'
 import { DevToolsPanel } from '@moluoxixi/plugin-devtools-vue'
 import { defineComponent, h, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
 
-/** DevTools 浮动面板包装器：持续从全局 Hook 获取最新 API（场景切换时自动更新） */
+/** DevTools 浮动面板包装器：通过全局 Hook 的 onChange 事件驱动更新（零轮询） */
 const DevToolsFloating = defineComponent({
   name: 'DevToolsFloating',
   setup() {
     const api = shallowRef<DevToolsPluginAPI | null>(null)
-    let timer: ReturnType<typeof setInterval> | null = null
+    let dispose: (() => void) | null = null
 
     onMounted(() => {
-      const check = (): void => {
-        const hook = (window as unknown as Record<string, unknown>).__CONFIGFORM_DEVTOOLS_HOOK__ as
-          { forms: Map<string, DevToolsPluginAPI> } | undefined
-        if (hook?.forms.size) {
-          const latest = hook.forms.values().next().value!
-          if (latest !== api.value) api.value = latest
-        }
+      type Hook = { forms: Map<string, DevToolsPluginAPI>, onChange: (fn: (forms: Map<string, DevToolsPluginAPI>) => void) => () => void }
+      const hook = (window as unknown as Record<string, unknown>).__CONFIGFORM_DEVTOOLS_HOOK__ as Hook | undefined
+      if (!hook) return
+
+      const update = (forms: Map<string, DevToolsPluginAPI>): void => {
+        api.value = forms.size > 0 ? forms.values().next().value! : null
       }
-      timer = setInterval(check, 300)
+      update(hook.forms)
+      dispose = hook.onChange(update)
     })
 
     onUnmounted(() => {
-      if (timer) clearInterval(timer)
+      dispose?.()
     })
 
     return () => api.value ? h(DevToolsPanel, { api: api.value }) : null
