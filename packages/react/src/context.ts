@@ -1,4 +1,4 @@
-import type { FieldInstance, FormInstance } from '@moluoxixi/core'
+import type { FieldInstance, FormInstance, ISchema } from '@moluoxixi/core'
 import { createContext } from 'react'
 
 /** 表单上下文 */
@@ -8,6 +8,18 @@ FormContext.displayName = 'ConfigFormContext'
 /** 字段上下文 */
 export const FieldContext = createContext<FieldInstance | null>(null)
 FieldContext.displayName = 'ConfigFieldContext'
+
+/**
+ * Schema 上下文
+ *
+ * SchemaField 在渲染每个节点时，将该节点的 ISchema 注入此上下文。
+ * 布局组件（LayoutTabs/LayoutCollapse/LayoutSteps）通过 useFieldSchema() 读取，
+ * 用于自行发现子面板并通过 RecursionField 渲染。
+ *
+ * 参考 Formily 的 SchemaContext + useFieldSchema()。
+ */
+export const SchemaContext = createContext<ISchema | null>(null)
+SchemaContext.displayName = 'ConfigSchemaContext'
 
 /**
  * 组件注册表上下文

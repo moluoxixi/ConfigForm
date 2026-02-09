@@ -2,7 +2,7 @@ import type { CompiledField, CompileOptions, ISchema } from '@moluoxixi/core'
 import { compileSchema, toArrayFieldProps, toFieldProps, toVoidFieldProps } from '@moluoxixi/core'
 import { observer } from 'mobx-react-lite'
 import React, { useContext, useMemo } from 'react'
-import { FormContext } from '../context'
+import { FormContext, SchemaContext } from '../context'
 import { FormArrayField } from './FormArrayField'
 import { FormField } from './FormField'
 import { FormObjectField } from './FormObjectField'
@@ -61,17 +61,21 @@ export const SchemaField = observer<SchemaFieldProps>(({ schema, compileOptions 
   function renderVoidNode(cf: CompiledField): React.ReactElement {
     const voidProps = toVoidFieldProps(cf)
     return (
-      <FormVoidField key={cf.address} name={cf.address} fieldProps={voidProps}>
-        {renderChildren(cf.children)}
-      </FormVoidField>
+      <SchemaContext.Provider key={cf.address} value={cf.schema}>
+        <FormVoidField name={cf.address} fieldProps={voidProps}>
+          {renderChildren(cf.children)}
+        </FormVoidField>
+      </SchemaContext.Provider>
     )
   }
 
   function renderObjectNode(cf: CompiledField): React.ReactElement {
     return (
-      <FormObjectField key={cf.address} name={cf.dataPath} fieldProps={toFieldProps(cf)}>
-        {renderChildren(cf.children)}
-      </FormObjectField>
+      <SchemaContext.Provider key={cf.address} value={cf.schema}>
+        <FormObjectField name={cf.dataPath} fieldProps={toFieldProps(cf)}>
+          {renderChildren(cf.children)}
+        </FormObjectField>
+      </SchemaContext.Provider>
     )
   }
 

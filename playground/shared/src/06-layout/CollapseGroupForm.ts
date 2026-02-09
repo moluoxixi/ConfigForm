@@ -10,14 +10,13 @@ const DEGREE_OPTIONS = [
 /**
  * 场景：折叠面板分组
  *
- * 使用 LayoutCard 模拟折叠面板分组。
- * LayoutCollapse 组件对子节点结构有特殊要求，
- * 当前使用 LayoutCard 展示分组效果。
+ * 使用 LayoutCollapse 作为外层容器，内部 void 子节点作为各面板。
+ * 与 TabGroupForm 结构对齐——容器 + 子面板模式。
  */
 
 const config: SceneConfig = {
   title: '折叠面板分组',
-  description: 'LayoutCard 分组 / void 节点布局',
+  description: 'LayoutCollapse 折叠分组 / 点击标题展开折叠',
 
   initialValues: {
     name: '',
@@ -41,43 +40,45 @@ const config: SceneConfig = {
       actions: { submit: '提交', reset: '重置' },
     },
     properties: {
-      basicCard: {
+      collapse: {
         type: 'void',
-        component: 'LayoutCard',
-        componentProps: { title: '基本信息' },
+        component: 'LayoutCollapse',
         properties: {
-          name: { type: 'string', title: '姓名', required: true },
-          email: { type: 'string', title: '邮箱', required: true, rules: [{ format: 'email', message: '无效邮箱' }] },
-          phone: { type: 'string', title: '手机号' },
-        },
-      },
-      workCard: {
-        type: 'void',
-        component: 'LayoutCard',
-        componentProps: { title: '工作信息' },
-        properties: {
-          company: { type: 'string', title: '公司' },
-          position: { type: 'string', title: '职位' },
-          salary: { type: 'number', title: '薪资', componentProps: { min: 0, style: { width: '100%' } } },
-        },
-      },
-      eduCard: {
-        type: 'void',
-        component: 'LayoutCard',
-        componentProps: { title: '教育经历' },
-        properties: {
-          school: { type: 'string', title: '学校' },
-          major: { type: 'string', title: '专业' },
-          degree: { type: 'string', title: '学历', enum: DEGREE_OPTIONS },
-        },
-      },
-      otherCard: {
-        type: 'void',
-        component: 'LayoutCard',
-        componentProps: { title: '其他' },
-        properties: {
-          bio: { type: 'string', title: '简介', component: 'Textarea' },
-          hobby: { type: 'string', title: '爱好' },
+          basicPanel: {
+            type: 'void',
+            componentProps: { title: '基本信息' },
+            properties: {
+              name: { type: 'string', title: '姓名', required: true },
+              email: { type: 'string', title: '邮箱', required: true, rules: [{ format: 'email', message: '无效邮箱' }] },
+              phone: { type: 'string', title: '手机号' },
+            },
+          },
+          workPanel: {
+            type: 'void',
+            componentProps: { title: '工作信息' },
+            properties: {
+              company: { type: 'string', title: '公司' },
+              position: { type: 'string', title: '职位' },
+              salary: { type: 'number', title: '薪资', componentProps: { min: 0, style: { width: '100%' } } },
+            },
+          },
+          eduPanel: {
+            type: 'void',
+            componentProps: { title: '教育经历' },
+            properties: {
+              school: { type: 'string', title: '学校' },
+              major: { type: 'string', title: '专业' },
+              degree: { type: 'string', title: '学历', enum: DEGREE_OPTIONS },
+            },
+          },
+          otherPanel: {
+            type: 'void',
+            componentProps: { title: '其他' },
+            properties: {
+              bio: { type: 'string', title: '简介', component: 'Textarea' },
+              hobby: { type: 'string', title: '爱好' },
+            },
+          },
         },
       },
     },

@@ -27,18 +27,21 @@ export type {
 } from './components'
 
 /* 上下文（高级用法） */
-export { ComponentRegistryContext, FieldContext, FormContext } from './context'
+export { ComponentRegistryContext, FieldContext, FormContext, SchemaContext } from './context'
 
 /* Hooks */
 export {
   useCreateForm,
   useField,
   useFieldByPath,
+  useFieldSchema,
+  useSchemaItems,
   useForm,
   useFormSubmitting,
   useFormValid,
   useFormValues,
 } from './hooks'
+export type { SchemaItem } from './hooks'
 
 /* 注册 */
 export {

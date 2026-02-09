@@ -2,9 +2,11 @@ import type { ISchema } from '@moluoxixi/core'
 import { DEFAULT_COMPONENT_MAPPING, resolveComponent } from '@moluoxixi/core'
 import { observer } from 'mobx-react-lite'
 import React from 'react'
+import { SchemaContext } from '../context'
 import { FormArrayField } from './FormArrayField'
 import { FormField } from './FormField'
 import { FormObjectField } from './FormObjectField'
+import { FormVoidField } from './FormVoidField'
 
 export interface RecursionFieldProps {
   /** 要渲染的 schema 节点 */
@@ -18,25 +20,21 @@ export interface RecursionFieldProps {
 }
 
 /**
- * RecursionField — 递归 Schema 渲染器（React 版，参考 Vue 端 RecursionField）
+ * RecursionField — 递归 Schema 渲染器（React 版）
  *
- * 根据 schema 定义递归渲染字段组件。
- * 主要用于 ArrayItems 内部渲染每个数组项的子字段。
+ * 参考 Formily RecursionField，根据 schema 定义递归渲染字段组件。
  *
- * 与 SchemaField 的区别：
- * - SchemaField 是顶层渲染器，编译整个 schema 树
- * - RecursionField 是局部渲染器，渲染指定 schema 节点及其子节点
+ * 用途：
+ * 1. ArrayItems 内部渲染每个数组项的子字段
+ * 2. 布局组件（LayoutTabs/LayoutCollapse/LayoutSteps）渲染各面板内容
  *
- * @example
- * ```tsx
- * <RecursionField schema={itemsSchema} name={index} basePath="contacts" />
- * ```
+ * 支持所有类型：string / number / boolean / date / array / object / void
  */
 export const RecursionField = observer<RecursionFieldProps>(
   ({ schema, name, basePath = '', onlyRenderProperties = false }) => {
     if (!schema) return null
 
-    /** 拼接完整数据路径 */
+    /** 拼接完整路径 */
     function fullPath(suffix?: string): string {
       const parts: string[] = []
       if (basePath) parts.push(basePath)
@@ -46,20 +44,53 @@ export const RecursionField = observer<RecursionFieldProps>(
     }
 
     /** 渲染 properties 子节点 */
-    function renderProperties(propSchema: ISchema, parentPath: string): React.ReactElement[] {
+    function renderProperties(propSchema: ISchema, parentPath: string, parentAddress?: string): React.ReactElement[] {
       if (!propSchema.properties) return []
 
       const entries = Object.entries(propSchema.properties)
       entries.sort(([, a], [, b]) => (a.order ?? 0) - (b.order ?? 0))
 
-      return entries.map(([key, childSchema]) => renderSchema(key, childSchema, parentPath))
+      return entries.map(([key, childSchema]) => renderSchema(key, childSchema, parentPath, parentAddress))
     }
 
     /** 渲染单个 schema 节点 */
-    function renderSchema(fieldName: string, fieldSchema: ISchema, parentPath: string): React.ReactElement {
-      const dataPath = fieldSchema.type === 'void'
+    function renderSchema(fieldName: string, fieldSchema: ISchema, parentPath: string, parentAddress?: string): React.ReactElement {
+      const isVoid = fieldSchema.type === 'void'
+
+      /**
+       * void 节点不参与数据路径但参与地址路径。
+       * - dataPath：跳过 void（用于 form.values 读写）
+       * - address：包含 void（用于字段注册和组件查找）
+       */
+      const dataPath = isVoid
         ? parentPath
         : (parentPath ? `${parentPath}.${fieldName}` : fieldName)
+      const address = parentAddress
+        ? `${parentAddress}.${fieldName}`
+        : (basePath ? `${basePath}.${fieldName}` : fieldName)
+
+      /* void 字段 — 通过 FormVoidField 渲染，注入 SchemaContext */
+      if (isVoid) {
+        return (
+          <SchemaContext.Provider key={address} value={fieldSchema}>
+            <FormVoidField
+              name={address}
+              fieldProps={{
+                label: fieldSchema.title,
+                component: fieldSchema.component,
+                componentProps: fieldSchema.componentProps,
+                visible: fieldSchema.visible,
+                disabled: fieldSchema.disabled,
+                readOnly: fieldSchema.readOnly,
+                pattern: fieldSchema.pattern,
+                reactions: fieldSchema.reactions,
+              }}
+            >
+              {renderProperties(fieldSchema, dataPath, address)}
+            </FormVoidField>
+          </SchemaContext.Provider>
+        )
+      }
 
       /* 数组字段 */
       if (fieldSchema.type === 'array') {
@@ -85,21 +116,22 @@ export const RecursionField = observer<RecursionFieldProps>(
       /* 对象字段（有 properties） */
       if (fieldSchema.type === 'object' && fieldSchema.properties) {
         return (
-          <FormObjectField
-            key={dataPath}
-            name={dataPath}
-            fieldProps={{
-              label: fieldSchema.title,
-              component: fieldSchema.component,
-              componentProps: fieldSchema.componentProps,
-            }}
-          >
-            {renderProperties(fieldSchema, dataPath)}
-          </FormObjectField>
+          <SchemaContext.Provider key={dataPath} value={fieldSchema}>
+            <FormObjectField
+              name={dataPath}
+              fieldProps={{
+                label: fieldSchema.title,
+                component: fieldSchema.component,
+                componentProps: fieldSchema.componentProps,
+              }}
+            >
+              {renderProperties(fieldSchema, dataPath, dataPath)}
+            </FormObjectField>
+          </SchemaContext.Provider>
         )
       }
 
-      /* 普通数据字段 — 通过 resolveComponent 解析组件名（与 compileSchema 逻辑一致） */
+      /* 普通数据字段 */
       const resolvedComp = resolveComponent(fieldSchema, DEFAULT_COMPONENT_MAPPING)
 
       return (
@@ -117,68 +149,28 @@ export const RecursionField = observer<RecursionFieldProps>(
             readOnly: fieldSchema.readOnly,
             pattern: fieldSchema.pattern,
             dataSource: fieldSchema.dataSource,
+            displayFormat: fieldSchema.displayFormat as ((value: unknown) => unknown) | undefined,
+            inputParse: fieldSchema.inputParse as ((value: unknown) => unknown) | undefined,
+            submitTransform: fieldSchema.submitTransform as ((value: unknown) => unknown) | undefined,
+            submitPath: fieldSchema.submitPath,
+            excludeWhenHidden: fieldSchema.excludeWhenHidden,
           }}
         />
       )
     }
 
-    /* 仅渲染 properties（用于 object/void 节点的子内容） */
+    /* 仅渲染 properties（用于布局组件渲染各面板内容） */
     if (onlyRenderProperties) {
       const path = fullPath()
-      return <>{renderProperties(schema, path)}</>
+      return <>{renderProperties(schema, path, path)}</>
     }
 
     /* 无 name：直接渲染 properties */
     if (name === undefined) {
-      return <>{renderProperties(schema, basePath)}</>
+      return <>{renderProperties(schema, basePath, basePath)}</>
     }
 
-    /* 完整渲染 */
-    const path = fullPath()
-
-    /* 对象类型 */
-    if (schema.type === 'object') {
-      if (schema.properties) {
-        return (
-          <FormObjectField
-            key={path}
-            name={path}
-            fieldProps={{
-              label: schema.title,
-              component: schema.component,
-              componentProps: schema.componentProps,
-            }}
-          >
-            {renderProperties(schema, path)}
-          </FormObjectField>
-        )
-      }
-      /* 无 properties 的对象：按普通字段渲染 */
-      return <FormField key={path} name={path} fieldProps={{ label: schema.title }} />
-    }
-
-    /* 数组类型 */
-    if (schema.type === 'array') {
-      return (
-        <FormArrayField
-          key={path}
-          name={path}
-          fieldProps={{
-            label: schema.title,
-            minItems: schema.minItems,
-            maxItems: schema.maxItems,
-            itemTemplate: schema.itemTemplate,
-            component: schema.component || 'ArrayItems',
-            componentProps: {
-              ...schema.componentProps,
-              itemsSchema: schema.items,
-            },
-          }}
-        />
-      )
-    }
-
-    /* 普通字段 */
-    return renderSchema(String(name), schema, basePath)
+    /* 完整渲染（有 name） */
+    return renderSchema(String(name), schema, basePath, basePath)
   },
 )

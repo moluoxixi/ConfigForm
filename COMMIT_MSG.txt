@@ -1,8 +1,23 @@
-refactor: 合并 schema 包到 core
+refactor: 布局组件架构重构 — Schema 感知 + 框架层抽离
 
-- schema 源码移入 core/src/schema/
-- core/index.ts 统一导出 Schema 编译引擎全部 API
-- 所有上层包 from '@moluoxixi/schema' 改为 from '@moluoxixi/core'
-- 移除 vue/react/plugin-json-schema/playground 的 schema 依赖
-- 删除 packages/schema 包
-- workspace 从 15 个项目减少到 14 个
+参照 Formily FormTab 架构，重构布局组件为 Schema 感知模式：
+
+框架层新增（@moluoxixi/react）：
+- SchemaContext + useFieldSchema hook：组件获取自身 Schema
+- useSchemaItems hook：从 Schema properties 发现子面板（通用逻辑）
+- RecursionField 增强：支持 void 节点渲染
+- SchemaField：注入 SchemaContext 到每个节点
+
+UI 层简化（@moluoxixi/ui-antd）：
+- LayoutTabs/LayoutCollapse/LayoutSteps 统一为纯渲染组件
+- 调用 useSchemaItems() 获取面板，用 RecursionField 渲染内容
+- 删除 LayoutCollapse 单面板模式，统一为容器+子面板结构
+- observer 统一从 @moluoxixi/reactive-mobx 导入
+
+ReactiveField 清理：
+- 删除 void+componentProps 渲染 div 的 hack
+- 保留 object 容器字段模式，提取 wrapDecorator 辅助函数
+
+文档：
+- README.md 重写为 ConfigForm 架构文档
+- TEST_PLAN.md 移除架构描述，聚焦测试

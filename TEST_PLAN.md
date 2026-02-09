@@ -10,63 +10,13 @@
 | 框架 | React 18 / Vue 3 |
 | UI 库 | Ant Design（React）/ Ant Design Vue / Element Plus |
 
-### 项目架构（与 Formily 的差异）
+### 项目架构
 
-本项目（`@moluoxixi/*`）基于 Formily 思想重新设计，核心区别如下：
+> 详见 [README.md](README.md) — 包结构、分层架构、与 Formily 的差异。
 
-#### 响应式架构：适配器模式
+#### 参考源码
 
-Formily 以自研的 MobX-like 响应式为核心，Vue/React 通过桥接层接入。本项目**拆分为适配器模式**，运行时注册响应式引擎：
-
-```
-@moluoxixi/reactive           ← 抽象适配器接口 + 注册表
-├── @moluoxixi/reactive-vue   ← Vue 3 原生 @vue/reactivity 适配器
-└── @moluoxixi/reactive-mobx  ← MobX 适配器（React 使用）
-```
-
-- **Vue 端**：直接使用 `@vue/reactivity`（ref / reactive / computed / watch），无需 MobX 桥接，性能更优
-- **React 端**：使用 MobX（与 Formily 一致）
-- **切换方式**：运行时 `setReactiveAdapter(vueAdapter)` 或 `setReactiveAdapter(mobxAdapter)`
-
-#### ConfigForm 封装（对比 Formily SchemaForm）
-
-本项目提供 `ConfigForm` 组件，比 Formily 的 `SchemaForm` **更开箱即用**：
-
-| 特性 | Formily SchemaForm | 本项目 ConfigForm |
-|------|-------------------|-------------------|
-| 表单配置来源 | Form 实例 + 外部 props | 统一从 `schema.decoratorProps` 读取 |
-| 操作按钮 | 需手动配置 FormButtonGroup | 自动从 `decoratorProps.actions` 渲染提交/重置 |
-| 三态切换 | 需外部管理 pattern | 支持 pattern 注入，按钮自动隐藏 |
-| 布局 | 需 FormLayout 等额外组件 | 内置 `grid` / `inline` / `vertical` 布局 |
-| 使用方式 | 需组合多个组件 | 单组件 `<ConfigForm :schema="..." />` |
-
-#### 包结构
-
-```
-@moluoxixi/core          ← 表单领域模型（Form / Field / ArrayField / VoidField）
-@moluoxixi/reactive      ← 响应式适配器抽象层
-@moluoxixi/reactive-vue  ← Vue 响应式适配器
-@moluoxixi/reactive-mobx ← MobX 响应式适配器
-@moluoxixi/schema        ← Schema 编译 / 合并 / 转换（compileSchema / mergeSchema）
-@moluoxixi/shared        ← 工具函数（clone / debounce / path / uid 等）
-@moluoxixi/vue           ← Vue 组件（ConfigForm / SchemaField / FormField / ArrayBase 等）
-@moluoxixi/react         ← React 组件（ConfigForm / SchemaField / FormField 等）
-@moluoxixi/validator     ← 验证引擎（格式验证 / 自定义规则 / 异步验证）
-@moluoxixi/ui-antd-vue   ← Ant Design Vue 适配（FormItem / Input / Select 等注册）
-@moluoxixi/ui-element-plus ← Element Plus 适配
-@moluoxixi/ui-antd       ← Ant Design (React) 适配
-```
-
-#### 关键设计差异汇总
-
-| 维度 | Formily (`@formily/*`) | 本项目 (`@moluoxixi/*`) |
-|------|----------------------|------------------------|
-| 响应式核心 | 自研 MobX-like 统一实现 | 适配器模式，Vue 用原生响应式，React 用 MobX |
-| 响应式切换 | 编译时决定 | 运行时 `setReactiveAdapter()` |
-| 表单入口组件 | `SchemaForm` + `FormLayout` + `FormButtonGroup` | `ConfigForm` 单组件开箱即用 |
-| 表单配置位置 | 分散在 Form 实例和多个组件 props | 集中在 `schema.decoratorProps` |
-| 操作按钮管理 | 手动 | 自动渲染，三态自动隐藏 |
-| 参考源码 | `formily/` 目录 | 遇到问题优先参考 Formily 源码实现 |
+> 根目录 `formily/` 是 Formily 的源码。**遇到问题时优先参考 Formily 源码**。
 
 ### 开发服务器
 

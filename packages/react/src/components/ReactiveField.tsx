@@ -65,7 +65,12 @@ export interface ReactiveFieldProps {
 /**
  * 响应式字段渲染桥接（React 版，参考 Formily ReactiveField）
  *
- * 处理 visible / decorator / component / 状态注入。
+ * 两条渲染路径：
+ * 1. void 字段：component 作容器，children 传入
+ * 2. 数据字段：component 作表单控件，注入 value/onChange
+ *
+ * 特殊处理：
+ * - object 容器字段（有 component + children）：component 作容器包裹子节点
  */
 export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = false, children }) => {
   const form = useContext(FormContext) as FormInstance
@@ -91,6 +96,7 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
         </FieldErrorBoundary>
       )
     }
+    /* 无 component 的 void 节点：直接透传 children */
     return <>{children}</>
   }
 
@@ -100,8 +106,9 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
   const Comp = typeof componentName === 'string' ? registry.components.get(componentName) : componentName as ComponentType<any>
 
   /**
-   * 组件未注册：渲染明确的错误提示，避免字段静默消失导致用户数据缺失。
-   * 对于 object 容器字段（无 component），仍然渲染 children。
+   * 组件未注册时的处理：
+   * - 有 componentName 但未注册：显示错误提示
+   * - 无 componentName 且有 children：object 容器，透传 children
    */
   if (!Comp) {
     if (componentName) {
@@ -112,44 +119,16 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
   }
 
   /**
-   * 对象容器字段（type: 'object' + component + children）：
-   * 组件作为容器包裹子节点（与 void 字段类似），不传 value/onChange。
+   * object 容器字段（type: 'object' + component + children）：
+   * 组件作为容器包裹子节点，不传 value/onChange。
    * 典型场景：type: 'object' + component: 'LayoutCard' → LayoutCard 包裹嵌套字段。
    */
-  if (children && Comp) {
-    const fieldElement = (
-      <FieldErrorBoundary fieldPath={dataField.path}>
-        <Comp {...dataField.componentProps}>{children}</Comp>
-      </FieldErrorBoundary>
-    )
-
-    const decoratorName = dataField.decorator
-    const Decorator = typeof decoratorName === 'string'
-      ? registry.decorators.get(decoratorName)
-      : (decoratorName as ComponentType<any>)
-    const effectivePattern = form?.pattern ?? 'editable'
-
-    if (Decorator) {
-      return (
-        <Decorator
-          label={dataField.label}
-          required={dataField.required}
-          errors={dataField.errors}
-          warnings={dataField.warnings}
-          description={dataField.description}
-          labelPosition={form?.labelPosition}
-          labelWidth={form?.labelWidth}
-          pattern={effectivePattern}
-          {...dataField.decoratorProps}
-        >
-          {fieldElement}
-        </Decorator>
-      )
-    }
-    return fieldElement
+  if (children) {
+    return renderContainerField(dataField, Comp, children, form, registry)
   }
 
   /**
+   * 叶子数据字段：组件作为表单控件
    * 参考 Formily ReactiveField：
    * 1. componentProps 在前，value/onChange 在后，确保不被覆盖
    * 2. 使用 field.onInput 代替 setValue（Formily 行为）
@@ -173,13 +152,42 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
     </FieldErrorBoundary>
   )
 
-  /* decorator — 支持字符串名和直接组件引用 */
+  return wrapDecorator(dataField, fieldElement, form, registry)
+  }
+  catch (err) {
+    console.error(`[ConfigForm] 字段 "${field.path}" 渲染异常:`, err)
+    return <div style={errorBoundaryStyle}>⚠ 字段 &quot;{field.path}&quot; 渲染异常: {err instanceof Error ? err.message : String(err)}</div>
+  }
+})
+
+/** object 容器字段渲染（component 作容器包裹 children） */
+function renderContainerField(
+  dataField: FieldInstance,
+  Comp: ComponentType<any>,
+  children: ReactNode,
+  form: FormInstance,
+  registry: { decorators: Map<string, ComponentType<any>> },
+): React.ReactElement {
+  const fieldElement = (
+    <FieldErrorBoundary fieldPath={dataField.path}>
+      <Comp {...dataField.componentProps}>{children}</Comp>
+    </FieldErrorBoundary>
+  )
+  return wrapDecorator(dataField, fieldElement, form, registry)
+}
+
+/** 用 decorator 包裹字段 */
+function wrapDecorator(
+  dataField: FieldInstance,
+  fieldElement: React.ReactElement,
+  form: FormInstance,
+  registry: { decorators: Map<string, ComponentType<any>> },
+): React.ReactElement {
   const decoratorName = dataField.decorator
   const Decorator = typeof decoratorName === 'string'
     ? registry.decorators.get(decoratorName)
     : (decoratorName as ComponentType<any>)
 
-  /** 参考 Formily：将表单 pattern 传递给 Wrapper，用于 readOnly/disabled 时隐藏必填标记 */
   const effectivePattern = form?.pattern ?? 'editable'
 
   if (Decorator) {
@@ -201,9 +209,4 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
   }
 
   return fieldElement
-  }
-  catch (err) {
-    console.error(`[ConfigForm] 字段 "${field.path}" 渲染异常:`, err)
-    return <div style={errorBoundaryStyle}>⚠ 字段 &quot;{field.path}&quot; 渲染异常: {err instanceof Error ? err.message : String(err)}</div>
-  }
-})
+}
