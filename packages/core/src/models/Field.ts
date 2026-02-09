@@ -2,6 +2,7 @@ import type {
   ComponentType,
   DataSourceItem,
   Disposer,
+  FieldDisplay,
   FieldPattern,
 } from '@moluoxixi/shared'
 import type { ValidationFeedback, ValidationRule, ValidationTrigger } from '@moluoxixi/validator'
@@ -36,7 +37,13 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
   /** UI 状态 */
   label: string
   description: string
-  visible: boolean
+  /**
+   * 展示状态（参考 Formily display 三态）
+   * - `visible`：正常显示
+   * - `hidden`：隐藏 UI 但保留数据
+   * - `none`：隐藏 UI 且排除数据
+   */
+  display: FieldDisplay
   disabled: boolean
   readOnly: boolean
   loading: boolean
@@ -87,7 +94,7 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     /* 初始化状态 */
     this.label = props.label ?? ''
     this.description = props.description ?? ''
-    this.visible = props.visible ?? true
+    this.display = props.display ?? (props.visible === false ? 'none' : 'visible')
     this.disabled = props.disabled ?? false
     this.readOnly = props.readOnly ?? false
     this.loading = false
@@ -141,6 +148,19 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
         FormPath.setIn(form.initialValues as Record<string, unknown>, this.path, deepClone(props.initialValue))
       }
     }
+  }
+
+  /**
+   * visible 兼容属性（映射到 display）
+   * - get: display !== 'none' 且 display !== 'hidden' 时为 true
+   * - set: true → 'visible', false → 'none'
+   */
+  get visible(): boolean {
+    return this.display === 'visible'
+  }
+
+  set visible(val: boolean) {
+    this.display = val ? 'visible' : 'none'
   }
 
   /** 当前值（从 form.values 读取） */
@@ -286,12 +306,12 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
 
   /** 显示 */
   show(): void {
-    this.visible = true
+    this.display = 'visible'
   }
 
-  /** 隐藏 */
+  /** 隐藏（排除数据，等价于 display='none'） */
   hide(): void {
-    this.visible = false
+    this.display = 'none'
   }
 
   /** 启用 */

@@ -505,6 +505,54 @@ implements FormInstance<Values> {
     return this._emitter.subscribe(handler)
   }
 
+  /**
+   * 设置字段状态（参考 Formily form.setFieldState）
+   *
+   * @param pattern - 字段路径或通配符模式
+   * @param state - 要设置的状态
+   *
+   * @example
+   * ```ts
+   * // 禁用单个字段
+   * form.setFieldState('name', { disabled: true })
+   *
+   * // 通配符批量隐藏
+   * form.setFieldState('address.*', { display: 'hidden' })
+   * ```
+   */
+  setFieldState(pattern: string, state: Partial<{
+    display: 'visible' | 'hidden' | 'none'
+    visible: boolean
+    disabled: boolean
+    readOnly: boolean
+    loading: boolean
+    required: boolean
+    pattern: FieldPattern
+    value: unknown
+    componentProps: Record<string, unknown>
+    component: string
+  }>): void {
+    const fields = pattern.includes('*')
+      ? this.queryFields(pattern)
+      : (() => { const f = this.getField(pattern); return f ? [f] : [] })()
+
+    const adapter = getReactiveAdapter()
+    adapter.batch(() => {
+      for (const field of fields) {
+        if (state.display !== undefined) (field as any).display = state.display
+        if (state.visible !== undefined) field.visible = state.visible
+        if (state.disabled !== undefined) field.disabled = state.disabled
+        if (state.readOnly !== undefined) field.readOnly = state.readOnly
+        if (state.loading !== undefined) field.loading = state.loading
+        if (state.required !== undefined) field.required = state.required
+        if (state.pattern !== undefined) field.pattern = state.pattern
+        if (state.value !== undefined) field.setValue(state.value)
+        if (state.componentProps !== undefined) field.setComponentProps(state.componentProps)
+        if (state.component !== undefined) field.component = state.component
+      }
+    })
+  }
+
   /** 批量操作 */
   batch(fn: () => void): void {
     const adapter = getReactiveAdapter()
@@ -549,8 +597,12 @@ implements FormInstance<Values> {
       if (!FormPath.existsIn(this.values, path))
         continue
 
-      /* 隐藏字段排除 */
-      if (!field.visible && field.excludeWhenHidden) {
+      /**
+       * display='none' 的字段排除提交数据。
+       * display='hidden' 的字段保留数据（只隐藏 UI）。
+       * 兼容旧的 excludeWhenHidden 逻辑。
+       */
+      if (field.display === 'none' || (!field.visible && field.excludeWhenHidden)) {
         FormPath.deleteIn(result, path)
         continue
       }

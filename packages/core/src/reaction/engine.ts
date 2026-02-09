@@ -86,76 +86,76 @@ export class ReactionEngine {
       values: this.form.values as Record<string, unknown>,
     })
 
-    /** 执行联动效果 */
-    const executeEffect = (effect: ReactionEffect, context: ReactionContext): void => {
-      /* 更新状态 */
+    /** 在指定字段上执行联动效果 */
+    const executeEffect = (target: FieldInstance, effect: ReactionEffect, context: ReactionContext): void => {
       if (effect.state) {
         const state = effect.state
-        if (state.visible !== undefined)
-          field.visible = state.visible
-        if (state.disabled !== undefined)
-          field.disabled = state.disabled
-        if (state.readOnly !== undefined)
-          field.readOnly = state.readOnly
-        if (state.loading !== undefined)
-          field.loading = state.loading
-        if (state.required !== undefined)
-          field.required = state.required
-        if (state.pattern !== undefined)
-          field.pattern = state.pattern
+        if (state.display !== undefined) (target as any).display = state.display
+        if (state.visible !== undefined) target.visible = state.visible
+        if (state.disabled !== undefined) target.disabled = state.disabled
+        if (state.readOnly !== undefined) target.readOnly = state.readOnly
+        if (state.loading !== undefined) target.loading = state.loading
+        if (state.required !== undefined) target.required = state.required
+        if (state.pattern !== undefined) target.pattern = state.pattern
       }
-
-      /* 设置值 */
       if (effect.value !== undefined) {
-        const newValue = isFunction(effect.value) ? effect.value(field, context) : effect.value
-        field.setValue(newValue)
+        const newValue = isFunction(effect.value) ? effect.value(target, context) : effect.value
+        target.setValue(newValue)
       }
-
-      /* 更新组件 Props */
-      if (effect.componentProps) {
-        field.setComponentProps(effect.componentProps)
-      }
-
-      /* 切换组件 */
-      if (effect.component) {
-        field.component = effect.component
-      }
-
-      /* 动态数据源 */
+      if (effect.componentProps) target.setComponentProps(effect.componentProps)
+      if (effect.component) target.component = effect.component
       if (effect.dataSource) {
-        if (isArray(effect.dataSource)) {
-          field.setDataSource(effect.dataSource)
-        }
-        else {
-          field.loadDataSource(effect.dataSource as DataSourceConfig).catch(() => {
-            /* 加载失败已在 Field 内部处理 */
-          })
-        }
+        if (isArray(effect.dataSource)) target.setDataSource(effect.dataSource)
+        else target.loadDataSource(effect.dataSource as DataSourceConfig).catch(() => {})
       }
+      if (effect.run) effect.run(target, context)
+    }
 
-      /* 自定义执行 */
-      if (effect.run) {
-        effect.run(field, context)
+    /**
+     * 解析联动目标字段。
+     * 有 target 时作用于目标字段，否则作用于自身。
+     */
+    const resolveTargetField = (): FieldInstance | null => {
+      if (!rule.target) return field
+      const targetField = this.form.getField(rule.target)
+      if (!targetField) {
+        console.warn(`[ConfigForm] reactions target "${rule.target}" 未找到`)
+        return null
       }
+      return targetField
+    }
+
+    /**
+     * 解析联动目标字段。
+     * 有 target 时作用于目标字段，否则作用于自身。
+     */
+    const resolveTarget = (): FieldInstance | null => {
+      if (!rule.target) return field
+      const t = this.form.getField(rule.target)
+      if (!t) {
+        console.warn(`[ConfigForm] reactions target "${rule.target}" 未找到`)
+        return null
+      }
+      return t
     }
 
     /** 联动执行函数 */
     const execute = (): void => {
-      const watchedValues = getWatchedValues()
       const context = buildContext()
+      const target = resolveTarget()
+      if (!target) return
 
       if (rule.when) {
         const conditionMet = rule.when(field, context)
         if (conditionMet && rule.fulfill) {
-          executeEffect(rule.fulfill, context)
+          executeEffect(target, rule.fulfill, context)
         }
         else if (!conditionMet && rule.otherwise) {
-          executeEffect(rule.otherwise, context)
+          executeEffect(target, rule.otherwise, context)
         }
       }
       else if (rule.fulfill) {
-        /* 无条件，直接执行 fulfill */
-        executeEffect(rule.fulfill, context)
+        executeEffect(target, rule.fulfill, context)
       }
     }
 

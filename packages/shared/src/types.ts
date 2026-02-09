@@ -27,12 +27,22 @@ export interface Feedback {
 /** 字段模式 */
 export type FieldPattern = 'editable' | 'readOnly' | 'disabled' | 'preview'
 
+/**
+ * 字段展示状态（参考 Formily display 三态）
+ *
+ * - `visible`：正常显示（默认）
+ * - `hidden`：隐藏 UI 但**保留数据**（提交时仍包含该字段值）
+ * - `none`：隐藏 UI 且**排除数据**（提交时不包含该字段值）
+ */
+export type FieldDisplay = 'visible' | 'hidden' | 'none'
+
 /** 验证触发时机 */
 export type ValidateTrigger = 'change' | 'blur' | 'submit'
 
 /** 字段状态更新 */
 export interface FieldStateUpdate {
   visible?: boolean
+  display?: FieldDisplay
   disabled?: boolean
   readOnly?: boolean
   loading?: boolean

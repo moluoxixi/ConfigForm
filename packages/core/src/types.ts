@@ -3,6 +3,7 @@ import type {
   DataSourceItem,
   Disposer,
   Feedback,
+  FieldDisplay,
   FieldPattern,
   FieldStateUpdate,
 } from '@moluoxixi/shared'
@@ -21,8 +22,10 @@ export interface FieldProps<Value = unknown> {
   label?: string
   /** 描述信息 */
   description?: string
-  /** 是否可见 */
+  /** 是否可见（兼容，建议用 display） */
   visible?: boolean
+  /** 展示状态：visible/hidden/none（优先于 visible） */
+  display?: FieldDisplay
   /** 是否禁用 */
   disabled?: boolean
   /** 是否只读 */
@@ -90,6 +93,12 @@ export interface VoidFieldProps {
 export interface ReactionRule {
   /** 监听的字段路径（支持通配符） */
   watch: string | string[]
+  /**
+   * 联动目标字段路径。
+   * 省略时影响自身，指定后影响目标字段。
+   * 参考 Formily x-reactions.target。
+   */
+  target?: string
   /** 条件判断：(field, ctx) => boolean */
   when?: (field: FieldInstance, context: ReactionContext) => boolean
   /** 满足条件时执行 */
@@ -251,6 +260,8 @@ export interface FormInstance<Values extends Record<string, unknown> = Record<st
   notifyValuesChange: () => void
   /** 通知字段值变化（供 Field 内部调用） */
   notifyFieldValueChange: (path: string, value: unknown) => void
+  /** 设置字段状态（支持通配符批量） */
+  setFieldState: (pattern: string, state: Partial<FieldStateUpdate>) => void
   /** 订阅特定生命周期事件 */
   on: (type: FormLifeCycle, handler: FormEventHandler) => Disposer
   /** 订阅所有生命周期事件 */
@@ -269,6 +280,9 @@ export interface FieldInstance<Value = unknown> {
   readonly modified: boolean
   label: string
   description: string
+  /** 展示状态三态 */
+  display: FieldDisplay
+  /** 兼容属性（映射到 display） */
   visible: boolean
   disabled: boolean
   readOnly: boolean
