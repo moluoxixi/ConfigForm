@@ -1,8 +1,9 @@
 import type { FieldInstance, FormInstance, VoidFieldInstance } from '@moluoxixi/core'
 import type { ComponentType, ErrorInfo, ReactNode } from 'react'
-import { observer } from 'mobx-react-lite'
+import { observer } from '@moluoxixi/reactive-react'
 import { Component, useContext } from 'react'
 import { ComponentRegistryContext, FormContext } from '../context'
+import { getReadPrettyComponent } from '../registry'
 
 /** 错误边界样式 */
 const errorBoundaryStyle: React.CSSProperties = {
@@ -80,10 +81,11 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
     return null
 
   try {
-  const fp = field.pattern
+  const fp = field.pattern ?? 'editable'
   const formP = form?.pattern ?? 'editable'
   const isDisabled = !isVoid && ((field as FieldInstance).disabled || fp === 'disabled' || formP === 'disabled')
-  const isReadOnly = !isVoid && ((field as FieldInstance).readOnly || fp === 'readOnly' || formP === 'readOnly')
+  const isReadOnly = !isVoid && ((field as FieldInstance).readOnly || fp === 'readOnly' || formP === 'readOnly' || fp === 'preview' || formP === 'preview')
+  const isPreview = isReadOnly
 
   /* void 字段：component 作容器 */
   if (isVoid) {
@@ -128,11 +130,39 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
   }
 
   /**
+   * readOnly 模式：查找 readPretty 替代组件，用纯文本替换输入框
+   */
+  if (isPreview) {
+    const compName = typeof componentName === 'string' ? componentName : ''
+    const ReadPrettyComp = compName ? getReadPrettyComponent(compName) : undefined
+    if (ReadPrettyComp) {
+      const previewElement = (
+        <FieldErrorBoundary fieldPath={dataField.path}>
+          <ReadPrettyComp
+            value={dataField.value}
+            dataSource={dataField.dataSource}
+            {...dataField.componentProps}
+          />
+        </FieldErrorBoundary>
+      )
+      return wrapDecorator(dataField, previewElement, form, registry)
+    }
+  }
+
+  /**
    * 叶子数据字段：组件作为表单控件
    * 参考 Formily ReactiveField：
    * 1. componentProps 在前，value/onChange 在后，确保不被覆盖
    * 2. 使用 field.onInput 代替 setValue（Formily 行为）
    */
+  /** a11y 属性：传递给组件 */
+  const ariaProps: Record<string, unknown> = {}
+  if (dataField.ariaLabel) ariaProps['aria-label'] = dataField.ariaLabel
+  if (dataField.ariaDescribedBy) ariaProps['aria-describedby'] = dataField.ariaDescribedBy
+  if (dataField.ariaLabelledBy) ariaProps['aria-labelledby'] = dataField.ariaLabelledBy
+  if (dataField.ariaInvalid) ariaProps['aria-invalid'] = true
+  if (dataField.ariaRequired) ariaProps['aria-required'] = true
+
   const fieldElement = (
     <FieldErrorBoundary fieldPath={dataField.path}>
       <Comp
@@ -140,6 +170,7 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
         readOnly={isReadOnly}
         loading={dataField.loading}
         dataSource={dataField.dataSource}
+        {...ariaProps}
         {...dataField.componentProps}
         value={dataField.value}
         onChange={(val: unknown) => dataField.onInput(val)}

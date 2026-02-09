@@ -6,7 +6,7 @@
 
 ```
 @moluoxixi/core             ← 表单领域模型（框架无关）
-@moluoxixi/reactive-mobx    ← MobX 响应式适配器（React 使用）
+@moluoxixi/reactive-react    ← MobX 响应式适配器（React 使用）
 @moluoxixi/reactive-vue     ← Vue 原生响应式适配器
 @moluoxixi/react            ← React 框架层（组件 + Hooks）
 @moluoxixi/vue              ← Vue 框架层（组件 + Composables）
@@ -55,7 +55,7 @@
 │  数据源：远程加载 / 缓存 / 去重 / 取消                 │
 ├───────────────────────────────────────────────────────┤
 │  响应式层 — 适配器模式                                 │
-│  reactive-mobx（React）/ reactive-vue（Vue）           │
+│  reactive-react（React）/ reactive-vue（Vue）           │
 │                                                       │
 │  Vue 直接使用 @vue/reactivity，React 使用 MobX。       │
 │  运行时通过 setReactiveAdapter() 切换。                 │

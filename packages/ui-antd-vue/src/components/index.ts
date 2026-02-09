@@ -1,5 +1,9 @@
+export { Cascader } from './Cascader'
 export { CheckboxGroup } from './CheckboxGroup'
 export { DatePicker } from './DatePicker'
+/* 弹窗/抽屉表单 */
+export { FormDialog } from './FormDialog'
+export { FormDrawer } from './FormDrawer'
 /* 装饰器 */
 export { FormItem } from './FormItem'
 /* 输入组件 */
@@ -24,5 +28,9 @@ export { Select } from './Select'
 export { StatusTabs } from './StatusTabs'
 /* 其他表单组件 */
 export { Switch } from './Switch'
+export { TimePicker } from './TimePicker'
+export { Transfer } from './Transfer'
+export { TreeSelect } from './TreeSelect'
+export { Upload } from './Upload'
 
 export { Textarea } from './Textarea'

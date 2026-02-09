@@ -1,7 +1,7 @@
 import { Button, Steps as ASteps } from 'antd'
-import { useField, useSchemaItems, RecursionField } from '@moluoxixi/react'
-import { observer } from '@moluoxixi/reactive-mobx'
-import { useState } from 'react'
+import { useField, useForm, useSchemaItems, RecursionField } from '@moluoxixi/react'
+import { observer } from '@moluoxixi/reactive-react'
+import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
 
 export interface LayoutStepsProps {}
@@ -11,17 +11,46 @@ export interface LayoutStepsProps {}
  *
  * 使用框架层 useSchemaItems() 发现步骤面板，
  * 一次只显示当前步骤，自动渲染上一步/下一步按钮。
+ *
+ * 功能：
+ * - 每个步骤显示验证错误状态（status="error"）
+ * - 提交失败时自动跳转到第一个有错误的步骤
  */
 export const LayoutSteps = observer((_props: LayoutStepsProps): ReactElement => {
   const field = useField()
+  const form = useForm()
   const items = useSchemaItems()
   const [current, setCurrent] = useState(0)
+
+  /** 统计某个步骤下的验证错误数量 */
+  const getErrorCount = (itemName: string): number => {
+    const prefix = `${field.path}.${itemName}`
+    return form.errors.filter(
+      e => e.path === prefix || e.path.startsWith(`${prefix}.`),
+    ).length
+  }
+
+  /** 提交失败时自动跳转到第一个有错误的步骤 */
+  useEffect(() => {
+    if (form.errors.length === 0) return
+
+    const currentItem = items[current]
+    if (currentItem && getErrorCount(currentItem.name) > 0) return
+
+    const firstErrorIndex = items.findIndex(item => getErrorCount(item.name) > 0)
+    if (firstErrorIndex >= 0 && firstErrorIndex !== current) {
+      setCurrent(firstErrorIndex)
+    }
+  }, [form.errors.length])
 
   return (
     <div>
       <ASteps
         current={current}
-        items={items.map(item => ({ title: item.title }))}
+        items={items.map(item => ({
+          title: item.title,
+          status: getErrorCount(item.name) > 0 ? 'error' as const : undefined,
+        }))}
         style={{ marginBottom: 24 }}
       />
       <div>

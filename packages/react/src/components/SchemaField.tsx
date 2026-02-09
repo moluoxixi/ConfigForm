@@ -1,6 +1,6 @@
 import type { CompiledField, CompileOptions, ISchema } from '@moluoxixi/core'
 import { compileSchema, toArrayFieldProps, toFieldProps, toVoidFieldProps } from '@moluoxixi/core'
-import { observer } from 'mobx-react-lite'
+import { observer } from '@moluoxixi/reactive-react'
 import React, { useContext, useMemo } from 'react'
 import { FormContext, SchemaContext } from '../context'
 import { FormArrayField } from './FormArrayField'

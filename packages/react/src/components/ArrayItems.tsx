@@ -1,14 +1,17 @@
 import type { ArrayFieldInstance } from '@moluoxixi/core'
 import type { ISchema } from '@moluoxixi/core'
-import { observer } from 'mobx-react-lite'
+import { observer } from '@moluoxixi/reactive-react'
 import React, { useContext } from 'react'
 import { FieldContext, FormContext } from '../context'
 import { ArrayBase } from './ArrayBase'
+import { ArraySortable } from './ArraySortable'
 import { RecursionField } from './RecursionField'
 
 export interface ArrayItemsProps {
   /** 数组项的 schema 定义（由 SchemaField 通过 componentProps.itemsSchema 传入） */
   itemsSchema?: ISchema
+  /** 是否启用拖拽排序 */
+  sortable?: boolean
 }
 
 /**
@@ -34,7 +37,7 @@ export interface ArrayItemsProps {
  *   └─ ArrayBase.Addition
  * ```
  */
-export const ArrayItems = observer<ArrayItemsProps>(({ itemsSchema }) => {
+export const ArrayItems = observer<ArrayItemsProps>(({ itemsSchema, sortable = false }) => {
   const field = useContext(FieldContext) as ArrayFieldInstance | null
   const form = useContext(FormContext)
 
@@ -68,43 +71,61 @@ export const ArrayItems = observer<ArrayItemsProps>(({ itemsSchema }) => {
         </div>
 
         {/* 数组项列表 */}
-        {arrayValue.map((_, index) => (
-          <ArrayBase.Item key={index} index={index}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: 8,
-              marginBottom: 8,
-              padding: 12,
-              background: index % 2 === 0 ? '#fafafa' : '#fff',
-              borderRadius: 4,
-              border: '1px solid #ebeef5',
-            }}>
-              {/* 序号 */}
-              <ArrayBase.Index />
+        {renderItems(arrayValue, itemsSchema, field, isEditable, sortable)}
 
-              {/* 内容区域：使用 RecursionField 递归渲染 */}
-              <div style={{ flex: 1, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-                {itemsSchema
-                  ? <RecursionField schema={itemsSchema} name={index} basePath={field.path} />
-                  : <span style={{ color: '#999' }}>Item {index}</span>}
-              </div>
-
-              {/* 操作按钮区域 */}
-              {isEditable && (
-                <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                  <ArrayBase.MoveUp />
-                  <ArrayBase.MoveDown />
-                  <ArrayBase.Remove />
-                </div>
-              )}
-            </div>
-          </ArrayBase.Item>
-        ))}
-
-        {/* 添加按钮（虚线全宽，视觉上与上方项目卡片同组） */}
+        {/* 添加按钮 */}
         {isEditable && <ArrayBase.Addition />}
       </div>
     </ArrayBase>
   )
 })
+
+/** 渲染数组项列表（支持拖拽排序） */
+function renderItems(
+  arrayValue: unknown[],
+  itemsSchema: ISchema | undefined,
+  field: ArrayFieldInstance,
+  isEditable: boolean,
+  sortable: boolean,
+): React.ReactElement {
+  const itemElements = arrayValue.map((_, index) => {
+    const content = (
+      <ArrayBase.Item key={index} index={index}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 8,
+          marginBottom: 8,
+          padding: 12,
+          background: index % 2 === 0 ? '#fafafa' : '#fff',
+          borderRadius: 4,
+          border: '1px solid #ebeef5',
+        }}>
+          <ArrayBase.Index />
+          <div style={{ flex: 1, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+            {itemsSchema
+              ? <RecursionField schema={itemsSchema} name={index} basePath={field.path} />
+              : <span style={{ color: '#999' }}>Item {index}</span>}
+          </div>
+          {isEditable && (
+            <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+              <ArrayBase.MoveUp />
+              <ArrayBase.MoveDown />
+              <ArrayBase.Remove />
+            </div>
+          )}
+        </div>
+      </ArrayBase.Item>
+    )
+
+    if (sortable) {
+      return <ArraySortable.Item key={index} index={index}>{content}</ArraySortable.Item>
+    }
+    return content
+  })
+
+  if (sortable) {
+    return <ArraySortable>{itemElements}</ArraySortable>
+  }
+  return <>{itemElements}</>
+}

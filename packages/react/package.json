@@ -28,14 +28,12 @@
     "dev": "tsup src/index.ts --format esm,cjs --dts --watch"
   },
   "peerDependencies": {
-    "mobx": ">=6.0.0",
-    "mobx-react-lite": ">=4.0.0",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
   },
   "dependencies": {
     "@moluoxixi/core": "workspace:*",
-    "@moluoxixi/reactive-mobx": "workspace:*"
+    "@moluoxixi/reactive-react": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "catalog:type",

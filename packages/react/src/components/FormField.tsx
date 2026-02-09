@@ -1,6 +1,6 @@
 import type { FieldInstance, FieldProps } from '@moluoxixi/core'
 import type { ComponentType, ReactNode } from 'react'
-import { observer } from 'mobx-react-lite'
+import { observer } from '@moluoxixi/reactive-react'
 import { useContext, useEffect, useRef } from 'react'
 import { ComponentRegistryContext, FieldContext, FormContext } from '../context'
 import { getDefaultDecorator, getReadPrettyComponent } from '../registry'

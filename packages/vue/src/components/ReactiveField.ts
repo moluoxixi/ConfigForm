@@ -76,6 +76,8 @@ export const ReactiveField = defineComponent({
       const isReadOnly = !props.isVoid && (
         (field as FieldInstance).readOnly || fp === 'readOnly' || formP === 'readOnly'
       )
+      /** readOnly 模式：自动替换为 readPretty 组件（纯文本展示） */
+      const isPreview = !props.isVoid && (fp === 'readOnly' || formP === 'readOnly')
 
       /* ---- 自定义插槽优先 ---- */
       if (slots.default) {
@@ -126,8 +128,8 @@ export const ReactiveField = defineComponent({
         /* 数据字段：注入 value / events / 状态 */
         const dataField = field as FieldInstance
 
-        /* readPretty：阅读态时查找替代组件，由框架自动替换 */
-        if (isReadOnly) {
+        /* readOnly 模式：查找 readPretty 替代组件，用纯文本替换输入框 */
+        if (isPreview) {
           const compName = typeof componentName === 'string' ? componentName : ''
           const ReadPrettyComp = compName ? getReadPrettyComponent(compName) : undefined
           if (ReadPrettyComp) {

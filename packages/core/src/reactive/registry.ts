@@ -22,7 +22,7 @@ export function getReactiveAdapter(): ReactiveAdapter {
   if (!currentAdapter) {
     throw new Error(
       '[ConfigForm] 未设置响应式适配器。请在应用初始化时调用 setReactiveAdapter()。\n'
-      + '  React 项目: import { mobxAdapter } from "@moluoxixi/reactive-mobx"\n'
+      + '  React 项目: import { mobxAdapter } from "@moluoxixi/reactive-react"\n'
       + '  Vue 项目:   import { vueAdapter } from "@moluoxixi/reactive-vue"',
     )
   }

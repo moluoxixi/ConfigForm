@@ -1,5 +1,5 @@
 import { setReactiveAdapter } from '@moluoxixi/core'
-import { mobxAdapter } from '@moluoxixi/reactive-mobx'
+import { mobxAdapter } from '@moluoxixi/reactive-react'
 import { configure } from 'mobx'
 import React from 'react'
 import ReactDOM from 'react-dom/client'

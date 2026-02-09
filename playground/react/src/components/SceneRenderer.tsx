@@ -15,7 +15,11 @@ import React, { useMemo, useState } from 'react'
 
 /** 注入 pattern 到 schema */
 function withMode(s: ISchema, mode: FieldPattern): ISchema {
-  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
+  return {
+    ...s,
+    pattern: mode,
+    decoratorProps: { ...s.decoratorProps, pattern: mode },
+  }
 }
 
 export interface SceneRendererProps {

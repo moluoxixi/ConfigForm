@@ -2,7 +2,8 @@ import type { FormConfig, FormInstance } from '@moluoxixi/core'
 import type { FormSchema } from '@moluoxixi/core'
 import type { FieldPattern, ValidationFeedback } from '@moluoxixi/core'
 import type { ComponentType, CSSProperties, FormEvent, ReactElement, ReactNode } from 'react'
-import { observer } from 'mobx-react-lite'
+import { observer } from '@moluoxixi/reactive-react'
+import { runInAction } from 'mobx'
 import { useCallback, useContext, useEffect } from 'react'
 import { ComponentRegistryContext } from '../context'
 import { useCreateForm } from '../hooks/useForm'
@@ -28,6 +29,8 @@ export interface ConfigFormProps<Values extends Record<string, unknown> = Record
   components?: Record<string, ComponentType<any>>
   /** 局部装饰器注册 */
   decorators?: Record<string, ComponentType<any>>
+  /** 表单模式（优先级高于 schema.decoratorProps.pattern） */
+  pattern?: FieldPattern
   /** 自定义子节点 */
   children?: ReactNode
   /** HTML class */
@@ -59,6 +62,7 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
     onValuesChange,
     components,
     decorators,
+    pattern: patternProp,
     children,
     className,
     style,
@@ -67,28 +71,31 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
   /** 从根 schema 的 decoratorProps 提取表单级配置 */
   const rootDecoratorProps = (schema?.decoratorProps ?? {}) as Record<string, unknown>
 
+  /** pattern 优先级：props.pattern > schema.decoratorProps.pattern > 'editable' */
+  const effectivePattern = (patternProp ?? rootDecoratorProps.pattern ?? 'editable') as FieldPattern
+
   /* 内部创建或使用外部 form */
   const internalForm = useCreateForm<Values>({
     labelPosition: (rootDecoratorProps.labelPosition ?? 'right') as 'top' | 'left' | 'right',
     labelWidth: rootDecoratorProps.labelWidth as string | number,
-    pattern: (rootDecoratorProps.pattern ?? 'editable') as FieldPattern,
+    pattern: effectivePattern,
     ...formConfig,
     initialValues: initialValues ?? formConfig?.initialValues,
   })
   const form = externalForm ?? internalForm
 
-  /** schema 变化时同步更新表单级配置（对齐 Vue 版 watch 逻辑） */
+  /** schema/props 变化时同步更新表单级配置（使用 runInAction 确保 MobX 批量通知） */
   useEffect(() => {
-    if (rootDecoratorProps.labelPosition !== undefined) {
-      form.labelPosition = rootDecoratorProps.labelPosition as 'top' | 'left' | 'right'
-    }
-    if (rootDecoratorProps.labelWidth !== undefined) {
-      form.labelWidth = rootDecoratorProps.labelWidth as string | number
-    }
-    if (rootDecoratorProps.pattern !== undefined) {
-      form.pattern = rootDecoratorProps.pattern as FieldPattern
-    }
-  }, [form, rootDecoratorProps.labelPosition, rootDecoratorProps.labelWidth, rootDecoratorProps.pattern])
+    runInAction(() => {
+      if (rootDecoratorProps.labelPosition !== undefined) {
+        form.labelPosition = rootDecoratorProps.labelPosition as 'top' | 'left' | 'right'
+      }
+      if (rootDecoratorProps.labelWidth !== undefined) {
+        form.labelWidth = rootDecoratorProps.labelWidth as string | number
+      }
+      form.pattern = effectivePattern
+    })
+  }, [form, effectivePattern, rootDecoratorProps.labelPosition, rootDecoratorProps.labelWidth])
 
   /* 注册值变化监听 */
   useEffect(() => {

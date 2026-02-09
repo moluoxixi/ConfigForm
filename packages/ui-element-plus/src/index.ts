@@ -20,10 +20,22 @@ import {
   StatusTabs,
   Switch,
   Textarea,
+  TimePicker,
   Transfer,
   TreeSelect,
   Upload,
 } from './components'
+import {
+  PreviewCheckboxGroup,
+  PreviewDatePicker,
+  PreviewInput,
+  PreviewInputNumber,
+  PreviewPassword,
+  PreviewRadioGroup,
+  PreviewSelect,
+  PreviewSwitch,
+  PreviewTextarea,
+} from './components/PreviewText'
 
 /** 注入 Element Plus FormItem 标签右对齐全局样式（仅注入一次） */
 let styleInjected = false
@@ -53,9 +65,20 @@ function injectLabelAlignStyle(): void {
 export function setupElementPlus(): void {
   injectLabelAlignStyle()
   registerFieldComponents(
-    { Input, Password, Textarea, InputNumber, Select, RadioGroup, CheckboxGroup, Switch, DatePicker, DateRangePicker, Cascader, TreeSelect, Upload, Transfer, ArrayItems },
+    { Input, Password, Textarea, InputNumber, Select, RadioGroup, CheckboxGroup, Switch, DatePicker, DateRangePicker, Cascader, TreeSelect, Upload, Transfer, TimePicker, ArrayItems },
     { name: 'FormItem', component: FormItem },
     { ArrayTable, LayoutTabs, LayoutCard, LayoutCollapse, LayoutSteps, LayoutStepActions, LayoutFormActions },
+    {
+      Input: PreviewInput,
+      Password: PreviewPassword,
+      Textarea: PreviewTextarea,
+      InputNumber: PreviewInputNumber,
+      Select: PreviewSelect,
+      RadioGroup: PreviewRadioGroup,
+      CheckboxGroup: PreviewCheckboxGroup,
+      Switch: PreviewSwitch,
+      DatePicker: PreviewDatePicker,
+    },
   )
 }
 
@@ -65,6 +88,8 @@ export {
   CheckboxGroup,
   DatePicker,
   DateRangePicker,
+  FormDialog,
+  FormDrawer,
   FormItem,
   Input,
   InputNumber,
@@ -80,6 +105,7 @@ export {
   StatusTabs,
   Switch,
   Textarea,
+  TimePicker,
   Transfer,
   TreeSelect,
   Upload,

@@ -1,7 +1,7 @@
-import { Tabs as ATabs } from 'antd'
-import { useField, useSchemaItems, RecursionField } from '@moluoxixi/react'
-import { observer } from '@moluoxixi/reactive-mobx'
-import { useState } from 'react'
+import { Badge, Tabs as ATabs } from 'antd'
+import { useField, useForm, useSchemaItems, RecursionField } from '@moluoxixi/react'
+import { observer } from '@moluoxixi/reactive-react'
+import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
 
 export interface LayoutTabsProps {}
@@ -11,29 +11,78 @@ export interface LayoutTabsProps {}
  *
  * 使用框架层 useSchemaItems() 发现子面板，
  * 用 RecursionField 渲染每个面板内容。
+ *
+ * 功能：
+ * - 每个 Tab 页签显示该面板下的验证错误数量（Badge）
+ * - 提交失败时自动跳转到第一个有错误的 Tab
  */
 export const LayoutTabs = observer((_props: LayoutTabsProps): ReactElement => {
   const field = useField()
+  const form = useForm()
   const items = useSchemaItems()
   const [activeKey, setActiveKey] = useState('0')
+
+  /**
+   * 统计某个面板下的验证错误数量
+   *
+   * 遍历 form.errors，按字段 path 的前缀匹配到对应面板。
+   * 面板的字段路径前缀为 `{field.path}.{item.name}.`
+   */
+  const getErrorCount = (itemName: string): number => {
+    const prefix = `${field.path}.${itemName}`
+    return form.errors.filter(
+      e => e.path === prefix || e.path.startsWith(`${prefix}.`),
+    ).length
+  }
+
+  /**
+   * 提交验证失败时自动跳转到第一个有错误的 Tab
+   *
+   * 监听 form.errors 变化，如果当前 Tab 无错误，
+   * 且其他 Tab 有错误，则跳转到第一个有错误的 Tab。
+   */
+  useEffect(() => {
+    if (form.errors.length === 0) return
+
+    const currentIndex = Number(activeKey)
+    const currentItem = items[currentIndex]
+    if (currentItem && getErrorCount(currentItem.name) > 0) return
+
+    /* 找到第一个有错误的 Tab */
+    const firstErrorIndex = items.findIndex(item => getErrorCount(item.name) > 0)
+    if (firstErrorIndex >= 0 && firstErrorIndex !== currentIndex) {
+      setActiveKey(String(firstErrorIndex))
+    }
+  }, [form.errors.length])
 
   return (
     <ATabs
       activeKey={activeKey}
       onChange={setActiveKey}
-      items={items.map((item, index) => ({
-        key: String(index),
-        label: item.title,
-        children: (
-          <RecursionField
-            schema={item.schema}
-            name={item.name}
-            basePath={field.path}
-            onlyRenderProperties
-          />
-        ),
-        forceRender: true,
-      }))}
+      items={items.map((item, index) => {
+        const errorCount = getErrorCount(item.name)
+
+        return {
+          key: String(index),
+          label: (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              {item.title}
+              {errorCount > 0 && (
+                <Badge count={errorCount} size="small" />
+              )}
+            </span>
+          ),
+          children: (
+            <RecursionField
+              schema={item.schema}
+              name={item.name}
+              basePath={field.path}
+              onlyRenderProperties
+            />
+          ),
+          forceRender: true,
+        }
+      })}
     />
   )
 })

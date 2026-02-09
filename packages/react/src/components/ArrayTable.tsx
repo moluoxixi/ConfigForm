@@ -1,6 +1,6 @@
 import type { ArrayFieldInstance } from '@moluoxixi/core'
 import type { ISchema } from '@moluoxixi/core'
-import { observer } from 'mobx-react-lite'
+import { observer } from '@moluoxixi/reactive-react'
 import React, { useContext } from 'react'
 import { FieldContext, FormContext } from '../context'
 import { ArrayBase } from './ArrayBase'

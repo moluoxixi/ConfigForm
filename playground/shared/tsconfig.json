@@ -10,9 +10,6 @@
     "sourceMap": true,
     "outDir": "dist",
     "rootDir": "src",
-    "paths": {
-      "@moluoxixi/schema": ["../packages/schema/src"]
-    }
   },
   "include": ["src"]
 }

@@ -4,6 +4,7 @@ import type { DirtyCheckerPluginAPI } from './dirty-checker'
 import type { DraftPluginAPI, DraftPluginConfig } from './draft'
 import type { HistoryPluginAPI, HistoryPluginConfig } from './history'
 import type { MaskingPluginAPI, MaskingPluginConfig } from './masking'
+import type { PerfMonitorAPI, PerfMonitorConfig } from './perf-monitor'
 import type { SubmitRetryPluginAPI, SubmitRetryPluginConfig } from './submit-retry'
 import type { SubFormPluginAPI } from './sub-form'
 import { aclPlugin } from './acl'
@@ -11,6 +12,7 @@ import { dirtyCheckerPlugin } from './dirty-checker'
 import { draftPlugin } from './draft'
 import { historyPlugin } from './history'
 import { maskingPlugin } from './masking'
+import { perfMonitorPlugin } from './perf-monitor'
 import { submitRetryPlugin } from './submit-retry'
 import { subFormPlugin } from './sub-form'
 
@@ -72,6 +74,13 @@ export interface LowerCodePluginConfig {
    * - `false`：禁用
    */
   subForm?: boolean
+  /**
+   * 性能监控配置
+   *
+   * - 不传或 `{}`：启用，使用默认配置（slowThreshold: 100）
+   * - `false`：禁用
+   */
+  perfMonitor?: PerfMonitorConfig | false
 }
 
 /**
@@ -95,6 +104,8 @@ export interface LowerCodePluginAPI {
   readonly submitRetry?: SubmitRetryPluginAPI
   /** 子表单 API（禁用时为 undefined） */
   readonly subForm?: SubFormPluginAPI
+  /** 性能监控 API（禁用时为 undefined） */
+  readonly perfMonitor?: PerfMonitorAPI
 }
 
 /** 插件名称 */
@@ -160,6 +171,7 @@ export function lowerCodePlugin(config: LowerCodePluginConfig = {}): FormPlugin<
         masking?: MaskingPluginAPI
         submitRetry?: SubmitRetryPluginAPI
         subForm?: SubFormPluginAPI
+        perfMonitor?: PerfMonitorAPI
       } = {}
 
       /* 安装子插件并收集 API 和 dispose */
@@ -207,6 +219,12 @@ export function lowerCodePlugin(config: LowerCodePluginConfig = {}): FormPlugin<
       /* 子表单（默认启用） */
       if (config.subForm !== false) {
         apis.subForm = installChild(subFormPlugin())
+      }
+
+      /* 性能监控（默认启用） */
+      if (config.perfMonitor !== false) {
+        const childConfig = typeof config.perfMonitor === 'object' ? config.perfMonitor : {}
+        apis.perfMonitor = installChild(perfMonitorPlugin(childConfig))
       }
 
       return {

@@ -1,6 +1,6 @@
 import { Collapse as ACollapse } from 'antd'
 import { useField, useSchemaItems, RecursionField } from '@moluoxixi/react'
-import { observer } from '@moluoxixi/reactive-mobx'
+import { observer } from '@moluoxixi/reactive-react'
 import { useState } from 'react'
 import type { ReactElement } from 'react'
 

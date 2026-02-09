@@ -1,6 +1,6 @@
 import type { ISchema } from '@moluoxixi/core'
 import { DEFAULT_COMPONENT_MAPPING, resolveComponent } from '@moluoxixi/core'
-import { observer } from 'mobx-react-lite'
+import { observer } from '@moluoxixi/reactive-react'
 import React from 'react'
 import { SchemaContext } from '../context'
 import { FormArrayField } from './FormArrayField'

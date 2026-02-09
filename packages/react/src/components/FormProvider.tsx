@@ -1,6 +1,6 @@
 import type { FormInstance } from '@moluoxixi/core'
 import type { ComponentType, ReactNode } from 'react'
-import { observer } from 'mobx-react-lite'
+import { observer } from '@moluoxixi/reactive-react'
 import React, { useEffect } from 'react'
 import { ComponentRegistryContext, FormContext } from '../context'
 import { getGlobalRegistry } from '../registry'

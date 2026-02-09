@@ -35,7 +35,7 @@
   "dependencies": {
     "@moluoxixi/core": "workspace:*",
     "@moluoxixi/react": "workspace:*",
-    "@moluoxixi/reactive-mobx": "workspace:*"
+    "@moluoxixi/reactive-react": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "catalog:type",

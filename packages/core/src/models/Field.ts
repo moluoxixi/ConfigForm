@@ -38,6 +38,38 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
   /** 是否已挂载到 DOM */
   mounted: boolean
 
+  /**
+   * DOM 元素引用
+   *
+   * 由 UI 层（如 FormItem）在挂载时设置，用于 scrollToFirstError 等功能。
+   * 核心层不直接操作此引用，仅做存储。
+   */
+  domRef: HTMLElement | null
+
+  /* ======================== a11y 无障碍属性 ======================== */
+
+  /** ARIA 标签（覆盖 label） */
+  ariaLabel?: string
+  /** ARIA describedby（关联描述元素 ID） */
+  ariaDescribedBy?: string
+  /** ARIA labelledby（关联标签元素 ID） */
+  ariaLabelledBy?: string
+
+  /** ARIA invalid（自动从 errors 计算） */
+  get ariaInvalid(): boolean {
+    return this.errors.length > 0
+  }
+
+  /** ARIA required（从 required 同步） */
+  get ariaRequired(): boolean {
+    return this.required
+  }
+
+  /** ARIA 错误消息（自动从 errors 生成） */
+  get ariaErrorMessage(): string {
+    return this.errors.map(e => e.message).join('; ')
+  }
+
   /** UI 状态 */
   label: string
   description: string
@@ -97,6 +129,12 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     this.name = props.name
     this.path = parentPath ? FormPath.join(parentPath, props.name) : props.name
     this.mounted = false
+    this.domRef = null
+
+    /* a11y */
+    this.ariaLabel = props.ariaLabel
+    this.ariaDescribedBy = props.ariaDescribedBy
+    this.ariaLabelledBy = props.ariaLabelledBy
 
     /* 初始化状态 */
     this.label = props.label ?? ''

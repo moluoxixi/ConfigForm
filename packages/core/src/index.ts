@@ -77,6 +77,10 @@ export type {
   VoidFieldProps,
 } from './types'
 
+/* diff — 对比工具 */
+export { deepEqual, diff, getDiffView } from './shared/diff'
+export type { DiffEntry, DiffFieldView, DiffResult, DiffType } from './shared/diff'
+
 /* shared — 工具函数和公共类型 */
 export {
   debounce,

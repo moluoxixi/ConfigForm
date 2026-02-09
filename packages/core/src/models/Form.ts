@@ -19,6 +19,8 @@ import type {
 } from '../types'
 import { getReactiveAdapter } from '../reactive'
 import { deepClone, deepMerge, FormPath, uid } from '../shared'
+import { diff as coreDiff, getDiffView as coreGetDiffView } from '../shared/diff'
+import type { DiffFieldView, DiffResult } from '../shared/diff'
 import { FormEventEmitter, FormLifeCycle } from '../events'
 import { FormHookManager } from '../hooks'
 import { ReactionEngine } from '../reaction/engine'
@@ -950,6 +952,72 @@ implements FormInstance<Values> {
    */
   getPlugin<API = Record<string, unknown>>(name: string): API | undefined {
     return this._pluginAPIs.get(name) as API | undefined
+  }
+
+  /**
+   * 对比当前表单值与另一组值的差异
+   *
+   * @param otherValues - 要对比的值（默认与 initialValues 对比）
+   * @returns 结构化的 Diff 结果
+   */
+  diff(otherValues?: Record<string, unknown>): DiffResult {
+    const base = otherValues ?? this.initialValues
+    return coreDiff(base, this.values)
+  }
+
+  /**
+   * 获取字段级别的 Diff 视图
+   *
+   * 用于 DiffViewer 组件渲染。
+   *
+   * @param paths - 要对比的字段路径列表（不传则对比所有注册字段）
+   * @param otherValues - 要对比的值（默认与 initialValues 对比）
+   */
+  getDiffView(paths?: string[], otherValues?: Record<string, unknown>): DiffFieldView[] {
+    const base = otherValues ?? this.initialValues
+    const targetPaths = paths ?? Array.from(this.fields.keys())
+    return coreGetDiffView(base, this.values, targetPaths)
+  }
+
+  /**
+   * 滚动到第一个有验证错误的字段
+   *
+   * 遍历 form.errors，找到第一个有 domRef 的错误字段，
+   * 调用 scrollIntoView 将其滚动到可视区域并尝试聚焦输入元素。
+   *
+   * @returns 是否成功定位到错误字段
+   */
+  scrollToFirstError(): boolean {
+    const allErrors = this.errors
+    if (allErrors.length === 0) return false
+
+    for (const error of allErrors) {
+      const field = this.fields.get(error.path)
+      if (field?.domRef) {
+        field.domRef.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        /* 尝试聚焦到输入元素 */
+        const input = field.domRef.querySelector('input, textarea, select') as HTMLElement | null
+        if (input) {
+          input.focus()
+        }
+        return true
+      }
+    }
+
+    /* 兜底：通过 DOM 查询查找错误元素 */
+    if (typeof document !== 'undefined') {
+      const errorElement = document.querySelector(
+        '.ant-form-item-has-error, .el-form-item.is-error, [aria-invalid="true"]',
+      )
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        const input = errorElement.querySelector('input, textarea, select') as HTMLElement | null
+        input?.focus()
+        return true
+      }
+    }
+
+    return false
   }
 
   /** 销毁表单 */

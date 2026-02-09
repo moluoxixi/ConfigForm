@@ -25,7 +25,7 @@ export interface Feedback {
 }
 
 /** 字段模式 */
-export type FieldPattern = 'editable' | 'readOnly' | 'disabled' | 'preview'
+export type FieldPattern = 'editable' | 'readOnly' | 'disabled'
 
 /**
  * 字段展示状态（参考 Formily display 三态）

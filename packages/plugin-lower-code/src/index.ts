@@ -66,3 +66,7 @@ export type { RetryConfig, RetryStrategy, SubmitRetryPluginAPI, SubmitRetryPlugi
 /* 子表单 */
 export { SubFormManager, subFormPlugin } from './sub-form'
 export type { SubFormConfig, SubFormPluginAPI, SyncMode } from './sub-form'
+
+/* 性能监控 */
+export { perfMonitorPlugin } from './perf-monitor'
+export type { PerfMetrics, PerfMonitorAPI, PerfMonitorConfig, SlowReaction } from './perf-monitor'

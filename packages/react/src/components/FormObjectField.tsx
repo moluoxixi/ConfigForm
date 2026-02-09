@@ -1,6 +1,6 @@
 import type { FieldProps } from '@moluoxixi/core'
 import type { ReactNode } from 'react'
-import { observer } from 'mobx-react-lite'
+import { observer } from '@moluoxixi/reactive-react'
 import { useContext, useEffect, useRef } from 'react'
 import { FieldContext, FormContext } from '../context'
 import { ReactiveField } from './ReactiveField'
