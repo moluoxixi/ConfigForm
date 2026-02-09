@@ -58,7 +58,8 @@ export function resolveComponent(schema: ISchema, mapping: Record<string, string
  * void 节点不需要 decorator；其他节点默认 FormItem。
  */
 function resolveDecorator(schema: ISchema, defaultDecorator: string): ComponentType {
-  if (schema.decorator)
+  /* decorator 显式设置时使用（包括空字符串 '' 表示不要装饰器） */
+  if (schema.decorator !== undefined)
     return schema.decorator
   if (schema.type === 'void')
     return ''

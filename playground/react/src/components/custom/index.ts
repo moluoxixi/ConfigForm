@@ -9,11 +9,10 @@
 export { CodeEditor } from './CodeEditor'
 export { ColorPicker } from './ColorPicker'
 export { CronEditor } from './CronEditor'
-export { IconSelector } from './IconSelector'
-export { JsonEditor } from './JsonEditor'
-export { MarkdownEditor } from './MarkdownEditor'
-export { RichTextEditor } from './RichTextEditor'
 export { SignaturePad } from './SignaturePad'
+
+/* 自定义阅读态组件（readPretty） */
+export { PreviewColorPicker } from './PreviewColorPicker'
 
 /* 自定义装饰器 */
 export { CardDecorator } from './CardDecorator'

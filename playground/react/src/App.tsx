@@ -14,28 +14,30 @@ import {
   CodeEditor,
   ColorPicker,
   CronEditor,
-  IconSelector,
   InlineDecorator,
-  JsonEditor,
-  MarkdownEditor,
-  RichTextEditor,
+  PreviewColorPicker,
   SignaturePad,
 } from './components/custom'
 
 /* 注册 Ant Design 基础组件 */
 setupAntd()
 
-/* 注册 playground 自定义组件（演示自定义组件能力） */
-registerComponent('ColorPicker', ColorPicker, { defaultDecorator: 'FormItem' })
-registerComponent('CodeEditor', CodeEditor, { defaultDecorator: 'FormItem' })
-registerComponent('JsonEditor', JsonEditor, { defaultDecorator: 'FormItem' })
+/*
+ * 注册自定义组件 — 覆盖所有注册模式：
+ *
+ * 1. 有 defaultDecorator（被 FormItem 包裹）
+ * 2. 有 readPrettyComponent（阅读态替换为不同组件）
+ * 3. 无 defaultDecorator（裸渲染，不被 FormItem 包裹）
+ */
+registerComponent('ColorPicker', ColorPicker, {
+  defaultDecorator: 'FormItem',
+  readPrettyComponent: PreviewColorPicker,
+})
 registerComponent('CronEditor', CronEditor, { defaultDecorator: 'FormItem' })
-registerComponent('SignaturePad', SignaturePad, { defaultDecorator: 'FormItem' })
-registerComponent('MarkdownEditor', MarkdownEditor, { defaultDecorator: 'FormItem' })
-registerComponent('RichTextEditor', RichTextEditor, { defaultDecorator: 'FormItem' })
-registerComponent('IconSelector', IconSelector, { defaultDecorator: 'FormItem' })
+registerComponent('SignaturePad', SignaturePad)       /* 无装饰器，裸渲染 */
+registerComponent('CodeEditor', CodeEditor)            /* 无装饰器，裸渲染 */
 
-/* 注册自定义装饰器（演示自定义 decorator 替代默认 FormItem） */
+/* 注册自定义装饰器 */
 registerDecorator('CardDecorator', CardDecorator)
 registerDecorator('InlineDecorator', InlineDecorator)
 

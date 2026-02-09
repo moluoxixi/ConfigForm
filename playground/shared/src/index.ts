@@ -68,15 +68,18 @@ export const sceneRegistry: Record<string, { group: string, loader: () => Promis
   DynamicSchemaForm: { group: '07-dynamic', loader: () => import('./07-dynamic/DynamicSchemaForm') },
   TemplateReuseForm: { group: '07-dynamic', loader: () => import('./07-dynamic/TemplateReuseForm') },
 
-  /* 08-components — 自定义组件（8 个，在 playground/react 中实现并注册） */
+  /*
+   * 08-components — 自定义组件（4 个）
+   *
+   * 覆盖所有注册模式：
+   * - 有 defaultDecorator（ColorPicker + FormItem 包裹）
+   * - 有 readPrettyComponent（ColorPicker 编辑态/阅读态自动切换）
+   * - 无 defaultDecorator（CodeEditor / SignaturePad 裸渲染）
+   */
   ColorPickerForm: { group: '08-components', loader: () => import('./08-components/ColorPickerForm') },
-  CodeEditorForm: { group: '08-components', loader: () => import('./08-components/CodeEditorForm') },
-  JsonEditorForm: { group: '08-components', loader: () => import('./08-components/JsonEditorForm') },
   CronEditorForm: { group: '08-components', loader: () => import('./08-components/CronEditorForm') },
-  SignaturePadForm: { group: '08-components', loader: () => import('./08-components/SignaturePadForm') },
-  MarkdownEditorForm: { group: '08-components', loader: () => import('./08-components/MarkdownEditorForm') },
-  RichTextForm: { group: '08-components', loader: () => import('./08-components/RichTextForm') },
-  IconSelectorForm: { group: '08-components', loader: () => import('./08-components/IconSelectorForm') },
+  RawComponentForm: { group: '08-components', loader: () => import('./08-components/RawComponentForm') },
+  ReadPrettyComponentForm: { group: '08-components', loader: () => import('./08-components/ReadPrettyComponentForm') },
 
   /* 09-advanced — 进阶能力（11 个） */
   SchemaExpressionForm: { group: '09-advanced', loader: () => import('./11-advanced/SchemaExpressionForm') },
