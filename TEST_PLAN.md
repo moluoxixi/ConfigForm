@@ -4,7 +4,7 @@
 
 | 维度 | 值 |
 |------|------|
-| 场景数 | 65（3 个 UI 库共享同一份 schema） |
+| 场景数 | 61（3 个 UI 库共享同一份 schema） |
 | 渲染 | ConfigForm + SchemaField 递归渲染（参考 Formily RecursionField） |
 | 三态 | 编辑态 / 阅读态 / 禁用态（StatusTabs 切换） |
 | 框架 | React 18 / Vue 3 |
@@ -217,7 +217,7 @@ playground/
 | 修复后重验通过 | 更新结果表 → **自动进入下一个场景** |
 | 遇到无法自行修复的问题 | 记录问题 → **停下来询问用户**，不跳过 |
 
-整体节奏：**测试 → 通过/修复 → 自动下一个 → 测试 → 通过/修复 → 自动下一个 → …… 直到 56 个场景全部完成**
+整体节奏：**测试 → 通过/修复 → 自动下一个 → 测试 → 通过/修复 → 自动下一个 → …… 直到 61 个场景全部完成**
 
 #### 问题处理
 
@@ -294,18 +294,14 @@ playground/
 | 31 | 动态 Schema 合并 | DynamicSchemaForm | **REWRITE** mergeSchema API + schemaVariants 个人/企业/学生切换 |
 | 32 | Schema 片段复用 | TemplateReuseForm | **REWRITE** $ref + definitions 联系人/地址片段复用 |
 
-### 08-components 自定义组件（8 个，playground 注册）
+### 08-components 自定义组件（4 个，playground 注册）
 
 | # | 场景 | 文件 | 覆盖能力 |
 |---|------|------|----------|
-| 33 | 颜色选择器 | ColorPickerForm | **REAL** ColorPicker 自定义组件 — 原生 color input + 预设色板 + HEX |
-| 34 | 代码编辑器 | CodeEditorForm | **REAL** CodeEditor 自定义组件 — 等宽字体 textarea + 语言标识 |
-| 35 | JSON 编辑器 | JsonEditorForm | **REAL** JsonEditor 自定义组件 — 格式化 + 语法检查 |
-| 36 | Cron 编辑器 | CronEditorForm | **REAL** CronEditor 自定义组件 — 输入 + 预设 + 解读 |
-| 37 | 手写签名 | SignaturePadForm | **REAL** SignaturePad 自定义组件 — Canvas 手写 + Base64 |
-| 38 | Markdown 编辑器 | MarkdownEditorForm | **REAL** MarkdownEditor 自定义组件 — 编辑 + 实时预览 |
-| 39 | 富文本编辑器 | RichTextForm | **REAL** RichTextEditor 自定义组件 — contentEditable + 工具栏 |
-| 40 | 图标选择器 | IconSelectorForm | **REAL** IconSelector 自定义组件 — emoji 网格 + 搜索 |
+| 33 | 颜色选择器 | ColorPickerForm | registerComponent + defaultDecorator + readPrettyComponent |
+| 34 | Cron 编辑器 | CronEditorForm | registerComponent + defaultDecorator（复杂组件：预设+解读） |
+| 35 | 无装饰器组件 | RawComponentForm | decorator:'' 裸渲染（CodeEditor + SignaturePad 无 FormItem 包裹） |
+| 36 | readPretty 映射 | ReadPrettyComponentForm | 编辑态 ColorPicker / 阅读态 PreviewColorPicker 自动切换 |
 
 ### 09-advanced 进阶能力（11 个）
 
@@ -351,6 +347,134 @@ playground/
 | 63 | JSON Schema 适配 | JsonSchemaAdapterForm | fromJsonSchema 标准转换 |
 | 64 | 数据脱敏 | MaskingPluginForm | **NEW** lowerCodePlugin.masking 六种脱敏类型 |
 | 65 | 提交重试 | SubmitRetryPluginForm | **NEW** lowerCodePlugin.submitRetry 三种策略 |
+
+---
+
+## 场景专属测试要点
+
+> 每个场景除了通用的 E1~E8 / R1~R5 / D1~D3 外，还需要验证以下场景特有的功能点。
+> **提交、重置、校验是所有场景的必测项，以下仅列出额外要点。**
+
+### 01-basic
+
+| # | 场景 | 必测要点 |
+|---|------|---------|
+| 1 | BasicForm | 11 种字段类型逐个填写回显；Password 眼睛切换；Switch 切换；DatePicker 选日期；CheckboxGroup 多选；提交后逐字段核对 |
+| 2 | LayoutForm | 切换 4 种布局变体（水平/垂直/行内/栅格），每种布局下填写提交正确 |
+| 3 | BasicValidationForm | 空提交→6 个必填错误；邮箱/手机号/URL 非法→格式错误；密码不满足复杂度→正则错误；修正后错误消失 |
+| 4 | DefaultValueForm | initialValues 预填正确；计算字段（totalPrice/discountRate）初始值正确；修改 quantity→totalPrice 自动更新；重置恢复所有默认值 |
+
+### 02-linkage
+
+| # | 场景 | 必测要点 |
+|---|------|---------|
+| 5 | VisibilityLinkageForm | 切换个人/企业→对应字段组显隐；开关→多字段显隐；嵌套显隐（hasAddress+hasDetailAddress 两级）；隐藏字段提交时排除（excludeWhenHidden） |
+| 6 | ValueLinkageForm | 修改 firstName/lastName→fullName 自动拼接；输入 rawInput→upperCase/trimmed 自动转换；选择 country→areaCode/currency 自动映射 |
+| 7 | PropertyLinkageForm | enableRemark 开关→remark disabled 切换；contactType 切换→contactValue 的 required/placeholder 动态变化；productType 切换→quantity 的 min/step 变化 |
+| 8 | CascadeSelectForm | 选择省→市选项更新+值清空；选择市→区选项更新；两组独立级联互不影响 |
+| 9 | ComputedFieldForm | 修改单价/数量→总价自动计算；修改折扣→折扣价自动计算；三科分数→总分/平均分自动聚合；切换计税方式→税额条件计算 |
+| 10 | ConditionalRequiredForm | 开关 needInvoice→发票字段必填切换；金额超阈值→审批人必填；选"其他"请假→原因必填；多条件组合（isOverseas+travelDays>3） |
+| 11 | ComponentSwitchForm | 切换输入方式→字段值组件从 Input 变为 Select 变为 RadioGroup；切换数据类型→配置值组件从 Input 变为 InputNumber/DatePicker/Switch |
+
+### 03-validation
+
+| # | 场景 | 必测要点 |
+|---|------|---------|
+| 12 | CustomValidationForm | 车牌号正则校验；手机号函数校验；密码 5 条规则（stopOnFirstFailure）；IP 地址段校验；年龄 warning 级别（不阻止提交）；切换证件类型→规则动态切换 |
+| 13 | AsyncValidationForm | 输入已注册用户名（admin/test）→blur 后异步错误；输入合法名→通过；邮箱唯一性异步校验；防抖行为（快速输入不触发多次） |
+| 14 | CrossFieldValidationForm | 密码≠确认密码→提交错误；结束日期<开始日期→错误；三比例总和≠100%→错误；最大年龄<最小年龄→错误；支出>预算→错误 |
+| 15 | SectionValidationForm | 空提交→三个分区全部显示错误（7 个必填）；填写第一区→提交→仅第二三区有错误 |
+
+### 04-complex-data
+
+| # | 场景 | 必测要点 |
+|---|------|---------|
+| 16 | NestedObjectForm | 提交数据为嵌套结构（profile.name / address.city / emergency.contact.phone 三级）；非 void 的 object 节点 dataPath 正确 |
+| 17 | ArrayFieldForm | 添加/删除/上移/下移数组项；minItems/maxItems 边界（无法删到低于 min，无法加超过 max）；数组项内子字段校验；重置恢复初始数组 |
+| 18 | EditableTableForm | 表格行内编辑每个单元格；添加/删除行；必填校验在表格内生效 |
+| 19 | ObjectArrayNestedForm | 外层数组（contacts）增删；内层数组（phones）增删；提交数据保持两层嵌套结构 |
+| 20 | ObjectFieldDynamicForm | effects 日志展示 addProperty/removeProperty/existProperty/getPropertyNames 调用结果 |
+
+### 05-datasource
+
+| # | 场景 | 必测要点 |
+|---|------|---------|
+| 21 | AsyncOptionsForm | 选择类型→品种 Select 选项异步加载（loading 状态）；加载完成后可选择；提交值正确 |
+| 22 | DependentDataSourceForm | 选择品牌→型号 Select 启用+选项加载；选择年级→班级 Select 启用+选项加载；切换父级→子级值清空+选项更新 |
+| 23 | PaginatedSearchForm | showSearch 搜索过滤 50 条选项；选择后提交值正确 |
+| 24 | RemoteDataSourceForm | 远程 URL 加载用户列表；选择用户→文章列表联动加载 |
+
+### 06-layout
+
+| # | 场景 | 必测要点 |
+|---|------|---------|
+| 25 | StepForm | 步骤导航正确显示；下一步/上一步切换；每步字段独立显示；跨步骤提交包含所有字段 |
+| 26 | TabGroupForm | 3 个 Tab 切换正确；切换后数据保留；跨 Tab 提交包含所有字段 |
+| 27 | CollapseGroupForm | 4 个折叠面板展开/折叠；折叠后数据保留；提交包含所有面板字段 |
+| 28 | CardGroupForm | 3 张卡片内字段正确渲染；卡片内必填校验；跨卡片提交 |
+| 29 | MultiFormForm | 两个 LayoutCard 分区；跨区域提交包含所有字段 |
+
+### 07-dynamic
+
+| # | 场景 | 必测要点 |
+|---|------|---------|
+| 30 | DynamicFieldForm | 勾选 CheckboxGroup 中的选项→对应字段出现；取消勾选→字段消失；提交只包含可见字段的值 |
+| 31 | DynamicSchemaForm | 切换个人/企业/学生→字段集变化（身份证/公司/学校）；每个场景的必填校验独立；提交数据包含当前场景字段 |
+| 32 | TemplateReuseForm | 复用的联系人/地址字段结构正确；紧急联系人区域字段完整；提交数据正确 |
+
+### 08-components
+
+| # | 场景 | 必测要点 |
+|---|------|---------|
+| 33 | ColorPickerForm | 点击预设色板→颜色值更新；HEX 输入→色块更新；提交颜色值为 HEX 字符串 |
+| 34 | CronEditorForm | 输入 Cron 表达式→实时解读更新；点击预设→表达式和解读同步更新 |
+| 35 | RawComponentForm | CodeEditor/SignaturePad 无 FormItem 包裹（无 label）；标题字段有 FormItem 包裹（有 label + 必填*）；对比差异明显 |
+| 36 | ReadPrettyComponentForm | 编辑态→ColorPicker 完整渲染（色块+HEX+预设板）；切换阅读态→替换为 PreviewColorPicker（色块+纯文本HEX）；必填标记消失 |
+
+### 09-advanced
+
+| # | 场景 | 必测要点 |
+|---|------|---------|
+| 37 | SchemaExpressionForm | {{expression}} 驱动：订单类型→加急费用显隐+自动计算；发票联动；多条件嵌套 |
+| 38 | ExpressionEngineForm | 同上，强调 JSON 可序列化 |
+| 39 | SchemaRefForm | $ref 引用的地址字段正确渲染（复用两次）；本地属性覆盖 title 生效 |
+| 40 | EffectsForm | 修改单价/数量→总价自动计算→实付金额链式更新 |
+| 41 | CustomDecoratorForm | CardDecorator 字段有卡片背景包裹；InlineDecorator 字段左标签右内容紧凑布局；默认 FormItem 字段正常 |
+| 42 | OneOfSchemaForm | 切换支付方式→对应字段组自动切换（信用卡/银行转账/支付宝）；非活跃分支字段隐藏 |
+| 43 | EffectsAPIForm | effects 日志记录 onFieldMount/onFieldValueChange/onFormReact 事件 |
+| 44 | GridLayoutForm | span 属性控制列宽：12+12=满行、8+16=不等分、24=满宽 |
+| 45 | LargeFormPerf | 50 个字段正常渲染无卡顿 |
+| 46 | SSRCompatForm | 基础字段正常渲染（无 DOM 依赖报错） |
+| 47 | VirtualScrollForm | 大数组虚拟滚动配置正确 |
+
+### 10-state
+
+| # | 场景 | 必测要点 |
+|---|------|---------|
+| 48 | LifecycleForm | showOptional 开关→nickname 字段 mount/unmount 事件记录到日志；输入触发 onFieldInputChange |
+| 49 | DataTransformForm | 价格字段 displayFormat（分→元显示）；inputParse（输入→存储转换）；submitTransform（标签字符串→数组）；submitPath（contactEmail→contact.email 映射） |
+| 50 | FormSnapshotForm | lowerCodePlugin.draft 草稿保存/恢复 |
+| 51 | PatternSwitchForm | 切换 RadioGroup→4 种模式（editable/readOnly/disabled/preview）全部字段跟随变化；alwaysEditable 字段不受影响 |
+| 52 | DisplayTriStateForm | 切换 visible/hidden/none→字段显隐变化；提交数据差异（hidden 保留值，none 排除值） |
+| 53 | FormGraphForm | 挂载后 graphJson 字段展示 getGraph() 序列化结果 |
+
+### 11-misc
+
+| # | 场景 | 必测要点 |
+|---|------|---------|
+| 54 | I18nForm | 标准字段+提交/重置 |
+| 55 | PrintExportForm | effects 生成的 JSON 和 CSV 导出预览字段实时更新；修改字段→导出内容同步变化 |
+
+### 12-plugin
+
+| # | 场景 | 必测要点 |
+|---|------|---------|
+| 56 | UndoRedoForm | lowerCodePlugin.history 插件加载不报错 |
+| 57 | FormDiffForm | 修改字段→_diffLog 实时显示 diff 结果（isDirty/字段路径/oldValue/newValue） |
+| 58 | PermissionForm | 标准字段+提交/重置 |
+| 59 | JsonSchemaAdapterForm | fromJsonSchema 转换后的表单正确渲染所有字段 |
+| 60 | MaskingPluginForm | lowerCodePlugin.masking 插件加载不报错 |
+| 61 | SubmitRetryPluginForm | lowerCodePlugin.submitRetry 插件加载不报错 |
 
 ---
 
