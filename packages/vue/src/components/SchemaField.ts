@@ -1,6 +1,6 @@
-import type { CompiledField, CompileOptions, ISchema } from '@moluoxixi/schema'
+import type { CompiledField, CompileOptions, ISchema } from '@moluoxixi/core'
 import type { PropType, VNode } from 'vue'
-import { compileSchema, toArrayFieldProps, toFieldProps, toVoidFieldProps } from '@moluoxixi/schema'
+import { compileSchema, toArrayFieldProps, toFieldProps, toVoidFieldProps } from '@moluoxixi/core'
 import { computed, defineComponent, h, inject } from 'vue'
 import { FormSymbol } from '../context'
 import { FormArrayField } from './FormArrayField'

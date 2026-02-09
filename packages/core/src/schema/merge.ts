@@ -1,5 +1,5 @@
 import type { ISchema } from './types'
-import { deepMerge, isObject } from '@moluoxixi/core'
+import { deepMerge, isObject } from '../shared'
 
 /**
  * 需要深度合并（而非直接覆盖）的 object 类属性。

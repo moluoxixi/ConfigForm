@@ -10,8 +10,7 @@
   "dependencies": {
     "@moluoxixi/core": "workspace:*",
     "@moluoxixi/plugin-json-schema": "workspace:*",
-    "@moluoxixi/plugin-lower-code": "workspace:*",
-    "@moluoxixi/schema": "workspace:*"
+    "@moluoxixi/plugin-lower-code": "workspace:*"
   },
   "devDependencies": {
     "typescript": "catalog:type"

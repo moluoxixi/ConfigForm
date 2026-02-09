@@ -32,8 +32,7 @@
   },
   "dependencies": {
     "@moluoxixi/core": "workspace:*",
-    "@moluoxixi/reactive-vue": "workspace:*",
-    "@moluoxixi/schema": "workspace:*"
+    "@moluoxixi/reactive-vue": "workspace:*"
   },
   "devDependencies": {
     "tsup": "catalog:type",

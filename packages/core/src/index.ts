@@ -140,3 +140,39 @@ export type {
   ValidationTrigger,
   ValidatorContext,
 } from './validator'
+
+/* schema — Schema 编译引擎 */
+export {
+  compileSchema,
+  createSchemaTranslator,
+  DEFAULT_COMPONENT_MAPPING,
+  instantiateTemplate,
+  isI18nKey,
+  mergeSchema,
+  registerTemplate,
+  resolveComponent,
+  resolveSchemaRefs,
+  templateRegistry,
+  toArrayFieldProps,
+  toFieldProps,
+  toVoidFieldProps,
+  transformSchema,
+  translateSchema,
+  validateSchema,
+} from './schema'
+export type {
+  CompiledField,
+  CompiledSchema,
+  CompileOptions,
+  FormSchema,
+  ISchema,
+  ISchemaConditionBranch,
+  SchemaI18nConfig,
+  SchemaTemplate,
+  SchemaTemplateParam,
+  SchemaType,
+  SchemaValidationError,
+  SchemaValidationResult,
+  TemplateInstantiateOptions,
+  TranslateFunction,
+} from './schema'

@@ -1,13 +1,8 @@
-refactor: 合并 shared/reactive/validator 三个底层包到 core
+refactor: 合并 schema 包到 core
 
-将三个内部包的源码合并到 core/src/ 下的子目录:
-- core/src/shared/ — 工具函数和公共类型
-- core/src/reactive/ — 响应式适配器接口和注册器
-- core/src/validator/ — 验证引擎、格式注册、消息系统
-
-变更:
-- 删除 packages/shared、packages/reactive、packages/validator 三个包
-- core 不再有外部 dependencies（全部内置）
-- reactive-vue、reactive-mobx 改为依赖 core（替代 reactive + shared）
-- playground 的 setReactiveAdapter 改从 core 导入
-- workspace 从 18 个项目减少到 15 个
+- schema 源码移入 core/src/schema/
+- core/index.ts 统一导出 Schema 编译引擎全部 API
+- 所有上层包 from '@moluoxixi/schema' 改为 from '@moluoxixi/core'
+- 移除 vue/react/plugin-json-schema/playground 的 schema 依赖
+- 删除 packages/schema 包
+- workspace 从 15 个项目减少到 14 个

@@ -1,5 +1,5 @@
-import type { ISchema } from '@moluoxixi/schema'
-import { DEFAULT_COMPONENT_MAPPING, resolveComponent } from '@moluoxixi/schema'
+import type { ISchema } from '@moluoxixi/core'
+import { DEFAULT_COMPONENT_MAPPING, resolveComponent } from '@moluoxixi/core'
 import { observer } from 'mobx-react-lite'
 import React from 'react'
 import { FormArrayField } from './FormArrayField'

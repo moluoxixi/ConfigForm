@@ -1,4 +1,4 @@
-import type { ISchema } from '@moluoxixi/schema'
+import type { ISchema } from '@moluoxixi/core'
 import type { JsonSchemaAdapterOptions, StandardJsonSchema } from './types'
 import { isArray, isObject, isString } from '@moluoxixi/core'
 
@@ -605,7 +605,7 @@ function convertProperties(
  * @example
  * ```ts
  * import { fromJsonSchema } from '@moluoxixi/plugin-json-schema'
- * import { compileSchema } from '@moluoxixi/schema'
+ * import { compileSchema } from '@moluoxixi/core'
  *
  * const formSchema = fromJsonSchema({
  *   type: 'object',

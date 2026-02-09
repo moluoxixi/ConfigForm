@@ -1,4 +1,4 @@
-import type { ISchema } from '@moluoxixi/schema'
+import type { ISchema } from '@moluoxixi/core'
 import type { SceneConfig } from '../types'
 
 /**

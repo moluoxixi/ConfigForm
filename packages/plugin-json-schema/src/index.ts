@@ -15,7 +15,7 @@
  * @example
  * ```ts
  * import { fromJsonSchema, toJsonSchema } from '@moluoxixi/plugin-json-schema'
- * import { compileSchema } from '@moluoxixi/schema'
+ * import { compileSchema } from '@moluoxixi/core'
  *
  * // 从标准 JSON Schema 转换
  * const formSchema = fromJsonSchema(backendJsonSchema, {

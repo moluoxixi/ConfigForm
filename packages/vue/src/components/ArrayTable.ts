@@ -1,5 +1,5 @@
 import type { ArrayFieldInstance } from '@moluoxixi/core'
-import type { ISchema } from '@moluoxixi/schema'
+import type { ISchema } from '@moluoxixi/core'
 import type { PropType, VNode } from 'vue'
 import { defineComponent, h, inject } from 'vue'
 import { FieldSymbol, FormSymbol } from '../context'

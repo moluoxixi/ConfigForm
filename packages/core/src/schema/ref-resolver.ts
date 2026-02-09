@@ -1,5 +1,5 @@
 import type { ISchema } from './types';
-import { isObject } from '@moluoxixi/core';
+import { isObject } from '../shared';
 import { mergeSchema } from './merge';
 
 /**

@@ -1,12 +1,6 @@
-import type {
-  ComponentType,
-  DataSourceConfig,
-  DataSourceItem,
-  FieldPattern,
-  ReactionRule,
-  ValidationRule,
-  ValidationTrigger,
-} from '@moluoxixi/core'
+import type { DataSourceConfig, ReactionRule } from '../types'
+import type { ComponentType, DataSourceItem, FieldPattern } from '../shared'
+import type { ValidationRule, ValidationTrigger } from '../validator'
 
 /* ======================== Schema 定义 ======================== */
 

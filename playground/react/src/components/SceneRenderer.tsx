@@ -5,7 +5,7 @@
  * StatusTabs 提供编辑态/阅读态/禁用态三态切换。
  * 当场景配置包含 schemaVariants 时，渲染变体切换 UI（如布局切换）。
  */
-import type { ISchema } from '@moluoxixi/schema'
+import type { ISchema } from '@moluoxixi/core'
 import type { FieldPattern } from '@moluoxixi/core'
 import type { SceneConfig } from '@playground/shared'
 import { ConfigForm } from '@moluoxixi/react'

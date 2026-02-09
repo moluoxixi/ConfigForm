@@ -1,5 +1,5 @@
 import type { FormConfig, FormInstance, FormPlugin } from '@moluoxixi/core'
-import type { ISchema } from '@moluoxixi/schema'
+import type { ISchema } from '@moluoxixi/core'
 import type { ComponentType, FieldPattern } from '@moluoxixi/core'
 import type { Component, PropType } from 'vue'
 import { computed, defineComponent, h, inject, onMounted, onUnmounted, ref, watch } from 'vue'

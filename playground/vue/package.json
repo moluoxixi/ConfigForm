@@ -14,7 +14,6 @@
     "@moluoxixi/core": "workspace:*",
     "@playground/shared": "workspace:*",
     "@moluoxixi/reactive-vue": "workspace:*",
-    "@moluoxixi/schema": "workspace:*",
     "@moluoxixi/ui-antd-vue": "workspace:*",
     "@moluoxixi/ui-element-plus": "workspace:*",
     "@moluoxixi/vue": "workspace:*",

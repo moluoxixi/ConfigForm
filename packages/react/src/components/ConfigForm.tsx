@@ -1,5 +1,5 @@
 import type { FormConfig, FormInstance } from '@moluoxixi/core'
-import type { FormSchema } from '@moluoxixi/schema'
+import type { FormSchema } from '@moluoxixi/core'
 import type { FieldPattern, ValidationFeedback } from '@moluoxixi/core'
 import type { ComponentType, CSSProperties, FormEvent, ReactElement, ReactNode } from 'react'
 import { observer } from 'mobx-react-lite'

@@ -1,4 +1,4 @@
-import type { ReactionRule } from '@moluoxixi/core'
+import type { ReactionRule } from '../types'
 import type {
   CompiledField,
   CompiledSchema,
@@ -6,8 +6,8 @@ import type {
   ISchema,
   ISchemaConditionBranch,
 } from './types'
-import type { ComponentType } from '@moluoxixi/core'
-import { isArray, isObject, isString } from '@moluoxixi/core'
+import type { ComponentType } from '../shared'
+import { isArray, isObject, isString } from '../shared'
 import { resolveSchemaRefs } from './ref-resolver'
 
 /** 默认类型 → 组件映射 */

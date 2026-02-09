@@ -1,5 +1,5 @@
-import type { CompiledField, CompileOptions, ISchema } from '@moluoxixi/schema'
-import { compileSchema, toArrayFieldProps, toFieldProps, toVoidFieldProps } from '@moluoxixi/schema'
+import type { CompiledField, CompileOptions, ISchema } from '@moluoxixi/core'
+import { compileSchema, toArrayFieldProps, toFieldProps, toVoidFieldProps } from '@moluoxixi/core'
 import { observer } from 'mobx-react-lite'
 import React, { useContext, useMemo } from 'react'
 import { FormContext } from '../context'

@@ -1,5 +1,5 @@
 import type { FormInstance, FormPlugin } from '@moluoxixi/core'
-import type { ISchema } from '@moluoxixi/schema'
+import type { ISchema } from '@moluoxixi/core'
 
 /**
  * Schema 变体切换配置
