@@ -41,9 +41,9 @@ export interface FieldProps<Value = unknown> {
   /** 组件 Props */
   componentProps?: Record<string, unknown>
   /** 装饰器组件标识 */
-  wrapper?: string | ComponentType
+  decorator?: string | ComponentType
   /** 装饰器 Props */
-  wrapperProps?: Record<string, unknown>
+  decoratorProps?: Record<string, unknown>
   /** 数据源配置 */
   dataSource?: DataSourceItem[] | DataSourceConfig
   /** 联动规则 */
@@ -51,11 +51,11 @@ export interface FieldProps<Value = unknown> {
   /** 字段模式 */
   pattern?: FieldPattern
   /** 显示格式化 */
-  format?: (value: Value) => unknown
+  displayFormat?: (value: Value) => unknown
   /** 输入解析 */
-  parse?: (inputValue: unknown) => Value
+  inputParse?: (inputValue: unknown) => Value
   /** 提交转换 */
-  transform?: (value: Value) => unknown
+  submitTransform?: (value: Value) => unknown
   /** 提交路径映射 */
   submitPath?: string
   /** 隐藏时是否排除提交数据 */
@@ -763,8 +763,8 @@ export interface FieldInstance<Value = unknown> {
   required: boolean
   component: string | ComponentType
   componentProps: Record<string, unknown>
-  wrapper: string | ComponentType
-  wrapperProps: Record<string, unknown>
+  decorator: string | ComponentType
+  decoratorProps: Record<string, unknown>
   dataSource: DataSourceItem[]
   dataSourceLoading: boolean
   readonly errors: ValidationFeedback[]
@@ -772,14 +772,14 @@ export interface FieldInstance<Value = unknown> {
   readonly valid: boolean
   readonly validating: boolean
   rules: ValidationRule[]
-  format?: (value: Value) => unknown
-  parse?: (inputValue: unknown) => Value
-  transform?: (value: Value) => unknown
+  displayFormat?: (value: Value) => unknown
+  inputParse?: (inputValue: unknown) => Value
+  submitTransform?: (value: Value) => unknown
   submitPath?: string
   excludeWhenHidden: boolean
 
   /**
-   * 用户输入（触发 parse + change 验证 + ON_FIELD_INPUT_VALUE_CHANGE）
+   * 用户输入（触发 inputParse + change 验证 + ON_FIELD_INPUT_VALUE_CHANGE）
    *
    * 由 UI 组件的 onChange 回调调用。
    * 与 setValue 的区别：onInput 会触发 change 验证和 INPUT_VALUE_CHANGE 事件。

@@ -22,8 +22,8 @@ export function toFieldProps(compiled: CompiledField): FieldProps {
     componentProps: {
       ...schema.componentProps,
     },
-    wrapper: compiled.resolvedDecorator,
-    wrapperProps: schema.decoratorProps,
+    decorator: compiled.resolvedDecorator,
+    decoratorProps: schema.decoratorProps,
     reactions: schema.reactions,
     pattern: schema.pattern,
     submitPath: schema.submitPath,
@@ -42,33 +42,33 @@ export function toFieldProps(compiled: CompiledField): FieldProps {
    * - 函数：直接透传
    * - {{表达式}}：编译为函数，表达式中 $deps[0] 为传入值
    */
-  if (schema.format) {
-    if (isFunction(schema.format)) {
-      props.format = schema.format as (value: unknown) => unknown
+  if (schema.displayFormat) {
+    if (isFunction(schema.displayFormat)) {
+      props.displayFormat = schema.displayFormat as (value: unknown) => unknown
     }
-    else if (isExpression(schema.format)) {
-      const expr = schema.format
-      props.format = ((value: unknown) =>
+    else if (isExpression(schema.displayFormat)) {
+      const expr = schema.displayFormat
+      props.displayFormat = ((value: unknown) =>
         evaluateExpression(expr, { $deps: [value] })) as (value: unknown) => unknown
     }
   }
-  if (schema.parse) {
-    if (isFunction(schema.parse)) {
-      props.parse = schema.parse as (value: unknown) => unknown
+  if (schema.inputParse) {
+    if (isFunction(schema.inputParse)) {
+      props.inputParse = schema.inputParse as (value: unknown) => unknown
     }
-    else if (isExpression(schema.parse)) {
-      const expr = schema.parse
-      props.parse = ((value: unknown) =>
+    else if (isExpression(schema.inputParse)) {
+      const expr = schema.inputParse
+      props.inputParse = ((value: unknown) =>
         evaluateExpression(expr, { $deps: [value] })) as (value: unknown) => unknown
     }
   }
-  if (schema.transform) {
-    if (isFunction(schema.transform)) {
-      props.transform = schema.transform as (value: unknown) => unknown
+  if (schema.submitTransform) {
+    if (isFunction(schema.submitTransform)) {
+      props.submitTransform = schema.submitTransform as (value: unknown) => unknown
     }
-    else if (isExpression(schema.transform)) {
-      const expr = schema.transform
-      props.transform = ((value: unknown) =>
+    else if (isExpression(schema.submitTransform)) {
+      const expr = schema.submitTransform
+      props.submitTransform = ((value: unknown) =>
         evaluateExpression(expr, { $deps: [value] })) as (value: unknown) => unknown
     }
   }

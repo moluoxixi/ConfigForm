@@ -1,4 +1,4 @@
-import type { ValidationFeedback } from '@moluoxixi/validator'
+import type { ValidationFeedback } from '@moluoxixi/core'
 import { Form as AForm } from 'antd'
 import React from 'react'
 
@@ -8,7 +8,7 @@ export interface CfFormItemProps {
   errors?: ValidationFeedback[]
   warnings?: ValidationFeedback[]
   description?: string
-  /** 是否显示冒号后缀，默认 true；可通过 decoratorProps.colon 或 wrapperProps.colon 控制 */
+  /** 是否显示冒号后缀，默认 true；可通过 decoratorProps.colon 控制 */
   colon?: boolean
   /** 表单模式（editable/readOnly/disabled），readOnly/disabled 时隐藏必填标记 */
   pattern?: 'editable' | 'readOnly' | 'disabled'

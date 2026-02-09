@@ -59,8 +59,8 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
   /** 组件配置 */
   component: string | ComponentType
   componentProps: Record<string, unknown>
-  wrapper: string | ComponentType
-  wrapperProps: Record<string, unknown>
+  decorator: string | ComponentType
+  decoratorProps: Record<string, unknown>
 
   /** 数据源 */
   dataSource: DataSourceItem[]
@@ -73,9 +73,9 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
   rules: ValidationRule[]
 
   /** 数据处理 */
-  format?: (value: Value) => unknown
-  parse?: (inputValue: unknown) => Value
-  transform?: (value: Value) => unknown
+  displayFormat?: (value: Value) => unknown
+  inputParse?: (inputValue: unknown) => Value
+  submitTransform?: (value: Value) => unknown
   submitPath?: string
   excludeWhenHidden: boolean
 
@@ -113,8 +113,8 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     /* 组件 */
     this.component = props.component ?? ''
     this.componentProps = props.componentProps ?? {}
-    this.wrapper = props.wrapper ?? ''
-    this.wrapperProps = props.wrapperProps ?? {}
+    this.decorator = props.decorator ?? ''
+    this.decoratorProps = props.decoratorProps ?? {}
 
     /* 数据源 */
     this.dataSource = isArray(props.dataSource) ? props.dataSource : []
@@ -130,9 +130,9 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     }
 
     /* 数据处理 */
-    this.format = props.format
-    this.parse = props.parse
-    this.transform = props.transform
+    this.displayFormat = props.displayFormat
+    this.inputParse = props.inputParse
+    this.submitTransform = props.submitTransform
     this.submitPath = props.submitPath
     this.excludeWhenHidden = props.excludeWhenHidden ?? true
 
@@ -216,7 +216,7 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
    */
   onInput(value: Value): void {
     const oldValue = this.value
-    const parsedValue = this.parse ? this.parse(value) : value
+    const parsedValue = this.inputParse ? this.inputParse(value) : value
     FormPath.setIn(this.form.values as Record<string, unknown>, this.path, parsedValue)
 
     /* 通知字段级回调 */

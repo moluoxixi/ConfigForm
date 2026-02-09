@@ -1,4 +1,4 @@
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { ElAlert, ElRadioButton, ElRadioGroup } from 'element-plus'
 import { computed, defineComponent, h, ref } from 'vue'
 

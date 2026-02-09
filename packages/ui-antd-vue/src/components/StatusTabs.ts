@@ -1,4 +1,4 @@
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { Alert as AAlert, Segmented as ASegmented } from 'ant-design-vue'
 import { computed, defineComponent, h, ref } from 'vue'
 

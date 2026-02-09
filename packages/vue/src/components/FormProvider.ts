@@ -1,5 +1,5 @@
 import type { FormInstance } from '@moluoxixi/core'
-import type { ComponentType } from '@moluoxixi/shared'
+import type { ComponentType } from '@moluoxixi/core'
 import type { Component, PropType } from 'vue'
 import { computed, defineComponent, onBeforeUnmount, onMounted, provide } from 'vue'
 import { ComponentRegistrySymbol, FormSymbol } from '../context'
@@ -22,7 +22,7 @@ export const FormProvider = defineComponent({
       type: Object as PropType<Record<string, ComponentType>>,
       default: undefined,
     },
-    wrappers: {
+    decorators: {
       type: Object as PropType<Record<string, ComponentType>>,
       default: undefined,
     },
@@ -33,20 +33,20 @@ export const FormProvider = defineComponent({
     const registry = computed(() => {
       const global = getGlobalRegistry()
       const components = new Map(global.components)
-      const wrappers = new Map(global.wrappers)
+      const decorators = new Map(global.decorators)
 
       if (props.components) {
         for (const [name, comp] of Object.entries(props.components)) {
           components.set(name, comp as Component)
         }
       }
-      if (props.wrappers) {
-        for (const [name, wrapper] of Object.entries(props.wrappers)) {
-          wrappers.set(name, wrapper as Component)
+      if (props.decorators) {
+        for (const [name, dec] of Object.entries(props.decorators)) {
+          decorators.set(name, dec as Component)
         }
       }
 
-      return { components, wrappers }
+      return { components, decorators }
     })
 
     provide(ComponentRegistrySymbol, registry)

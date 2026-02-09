@@ -3,13 +3,13 @@ import type { SceneConfig } from '../types'
 /**
  * 场景：数据转换
  *
- * 演示 format / parse / transform 数据转换能力。
+ * 演示 displayFormat / inputParse / submitTransform 数据转换能力。
  * 字段支持分→元格式化、手机号脱敏、逗号字符串转数组等。
  */
 
 const config: SceneConfig = {
   title: '数据转换',
-  description: 'format / parse / transform — ConfigForm + Schema 实现',
+  description: 'displayFormat / inputParse / submitTransform — ConfigForm + Schema 实现',
 
   initialValues: {
     priceCent: 9990,

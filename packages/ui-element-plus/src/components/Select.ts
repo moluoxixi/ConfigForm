@@ -1,4 +1,4 @@
-import type { DataSourceItem } from '@moluoxixi/shared'
+import type { DataSourceItem } from '@moluoxixi/core'
 import type { PropType } from 'vue'
 import { ElOption, ElSelect } from 'element-plus'
 import { defineComponent, h } from 'vue'

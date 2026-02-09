@@ -136,17 +136,17 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
   )
 
   /* decorator — 支持字符串名和直接组件引用 */
-  const wrapperName = dataField.wrapper
-  const Wrapper = typeof wrapperName === 'string'
-    ? registry.wrappers.get(wrapperName)
-    : (wrapperName as ComponentType<any>)
+  const decoratorName = dataField.decorator
+  const Decorator = typeof decoratorName === 'string'
+    ? registry.decorators.get(decoratorName)
+    : (decoratorName as ComponentType<any>)
 
   /** 参考 Formily：将表单 pattern 传递给 Wrapper，用于 readOnly/disabled 时隐藏必填标记 */
   const effectivePattern = form?.pattern ?? 'editable'
 
-  if (Wrapper) {
+  if (Decorator) {
     return (
-      <Wrapper
+      <Decorator
         label={dataField.label}
         required={dataField.required}
         errors={dataField.errors}
@@ -155,10 +155,10 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
         labelPosition={form?.labelPosition}
         labelWidth={form?.labelWidth}
         pattern={effectivePattern}
-        {...dataField.wrapperProps}
+        {...dataField.decoratorProps}
       >
         {fieldElement}
-      </Wrapper>
+      </Decorator>
     )
   }
 

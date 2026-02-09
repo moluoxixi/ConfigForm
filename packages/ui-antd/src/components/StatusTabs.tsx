@@ -1,4 +1,4 @@
-import type { FieldPattern } from '@moluoxixi/shared'
+import type { FieldPattern } from '@moluoxixi/core'
 import { Alert, Segmented } from 'antd'
 import React, { useCallback, useState } from 'react'
 

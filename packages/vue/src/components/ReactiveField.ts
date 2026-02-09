@@ -50,9 +50,9 @@ export const ReactiveField = defineComponent({
     }
 
     /** 从 registry 查找装饰器 */
-    function resolveWrapper(name: string | unknown): Component | null {
+    function resolveDecorator(name: string | unknown): Component | null {
       if (typeof name === 'string') {
-        return (registryRef?.value.wrappers.get(name) as Component) ?? null
+        return (registryRef?.value.decorators.get(name) as Component) ?? null
       }
       return (name as Component) ?? null
     }
@@ -156,14 +156,14 @@ export const ReactiveField = defineComponent({
       }
 
       /* ---- 自动渲染：decorator（包装器） ---- */
-      const wrapperName = !props.isVoid ? (field as FieldInstance).wrapper : undefined
-      const Wrapper = wrapperName ? resolveWrapper(wrapperName) : undefined
+      const decoratorName = !props.isVoid ? (field as FieldInstance).decorator : undefined
+      const Decorator = decoratorName ? resolveDecorator(decoratorName) : undefined
 
-      if (Wrapper && !props.isVoid) {
+      if (Decorator && !props.isVoid) {
         const dataField = field as FieldInstance
         /** 参考 Formily：将表单 pattern 传递给 Wrapper，用于 readOnly/disabled 时隐藏必填标记 */
         const effectivePattern = form?.pattern ?? 'editable'
-        return h(Wrapper, {
+        return h(Decorator, {
           label: dataField.label,
           required: dataField.required,
           errors: dataField.errors,
@@ -172,7 +172,7 @@ export const ReactiveField = defineComponent({
           labelPosition: form?.labelPosition,
           labelWidth: form?.labelWidth,
           pattern: effectivePattern,
-          ...dataField.wrapperProps,
+          ...dataField.decoratorProps,
         }, () => componentNode)
       }
 

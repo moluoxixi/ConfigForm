@@ -1,7 +1,8 @@
 {
-  "name": "@moluoxixi/ui-element-plus",
+  "name": "@moluoxixi/plugin-json-schema",
   "type": "module",
   "version": "0.0.1",
+  "description": "标准 JSON Schema (Draft-07/2020-12) 到表单 ISchema 的适配转换插件",
   "exports": {
     ".": {
       "types": "./src/index.ts",
@@ -27,18 +28,12 @@
     "build": "tsup src/index.ts --format esm,cjs --dts",
     "dev": "tsup src/index.ts --format esm,cjs --dts --watch"
   },
-  "peerDependencies": {
-    "element-plus": ">=2.7.0",
-    "vue": ">=3.5.0"
-  },
   "dependencies": {
-    "@moluoxixi/core": "workspace:*",
-    "@moluoxixi/vue": "workspace:*"
+    "@moluoxixi/schema": "workspace:*",
+    "@moluoxixi/shared": "workspace:*"
   },
   "devDependencies": {
-    "element-plus": "catalog:build",
     "tsup": "catalog:type",
-    "typescript": "catalog:type",
-    "vue": "catalog:build"
+    "typescript": "catalog:type"
   }
 }

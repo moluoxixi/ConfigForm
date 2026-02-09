@@ -1,4 +1,4 @@
-import type { DataSourceItem } from '@moluoxixi/shared'
+import type { DataSourceItem } from '@moluoxixi/core'
 import { Select as ASelect } from 'antd'
 import React from 'react'
 

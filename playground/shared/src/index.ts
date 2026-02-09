@@ -13,7 +13,7 @@ export const GROUP_LABELS: Record<string, string> = {
   '09-advanced': '进阶能力',
   '10-state': '状态管理',
   '11-misc': '其他能力',
-  '12-plugin': '插件能力（低代码）',
+  '12-plugin': '插件能力',
 }
 
 /**
@@ -98,11 +98,12 @@ export const sceneRegistry: Record<string, { group: string, loader: () => Promis
   I18nForm: { group: '11-misc', loader: () => import('./10-misc/I18nForm') },
   PrintExportForm: { group: '11-misc', loader: () => import('./10-misc/PrintExportForm') },
 
-  /* 12-plugin — 插件能力 / 低代码（4 个） */
+  /* 12-plugin — 插件能力（5 个） */
   UndoRedoForm: { group: '12-plugin', loader: () => import('./09-state/UndoRedoForm') },
   FormDiffForm: { group: '12-plugin', loader: () => import('./10-misc/FormDiffForm') },
   PermissionForm: { group: '12-plugin', loader: () => import('./10-misc/PermissionForm') },
   MultiFormForm: { group: '12-plugin', loader: () => import('./09-state/MultiFormForm') },
+  JsonSchemaAdapterForm: { group: '12-plugin', loader: () => import('./11-advanced/JsonSchemaAdapterForm') },
 }
 
 /** 场景分组列表（从 registry 自动生成） */

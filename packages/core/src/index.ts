@@ -77,5 +77,18 @@ export type {
   VoidFieldProps,
 } from './types'
 
-/* re-export 常用类型（供 playground 直接使用，避免依赖 @moluoxixi/shared） */
-export type { FieldPattern } from '@moluoxixi/shared'
+/* re-export 底层公共类型（门面模式，上层包只依赖 core） */
+export type {
+  ComponentType,
+  DataSourceItem,
+  Disposer,
+  FieldDisplay,
+  FieldPattern,
+  FieldStateUpdate,
+} from '@moluoxixi/shared'
+
+export type {
+  ValidationFeedback,
+  ValidationRule,
+  ValidationTrigger,
+} from '@moluoxixi/validator'

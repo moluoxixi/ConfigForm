@@ -1,4 +1,4 @@
-import type { ValidationFeedback } from '@moluoxixi/validator'
+import type { ValidationFeedback } from '@moluoxixi/core'
 import type { PropType } from 'vue'
 import { ElFormItem } from 'element-plus'
 import { defineComponent, h } from 'vue'

@@ -1,6 +1,6 @@
 import type { FormConfig, FormInstance, FormPlugin } from '@moluoxixi/core'
 import type { ISchema } from '@moluoxixi/schema'
-import type { ComponentType, FieldPattern } from '@moluoxixi/shared'
+import type { ComponentType, FieldPattern } from '@moluoxixi/core'
 import type { Component, PropType } from 'vue'
 import { computed, defineComponent, h, inject, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useCreateForm } from '../composables/useForm'
@@ -92,7 +92,7 @@ export const ConfigForm = defineComponent({
       type: Object as PropType<Record<string, ComponentType>>,
       default: undefined,
     },
-    wrappers: {
+    decorators: {
       type: Object as PropType<Record<string, ComponentType>>,
       default: undefined,
     },
@@ -231,7 +231,7 @@ export const ConfigForm = defineComponent({
       return h(FormProvider, {
         form,
         components: props.components,
-        wrappers: props.wrappers,
+        decorators: props.decorators,
       }, () =>
         h('form', {
           onSubmit: handleSubmit,

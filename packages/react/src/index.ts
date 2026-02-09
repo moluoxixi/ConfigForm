@@ -43,15 +43,15 @@ export {
 /* 注册 */
 export {
   getComponent,
-  getDefaultWrapper,
+  getDecorator,
+  getDefaultDecorator,
   getReadPrettyComponent,
-  getWrapper,
   registerComponent,
   registerComponents,
+  registerDecorator,
   registerFieldComponents,
-  registerWrapper,
 } from './registry'
 export type { RegisterComponentOptions } from './registry'
 
 /* 类型 re-export（供 playground 直接使用，避免依赖 @moluoxixi/shared） */
-export type { FieldPattern } from '@moluoxixi/shared'
+export type { FieldPattern } from '@moluoxixi/core'

@@ -3,7 +3,7 @@ import type { ComponentType, ReactNode } from 'react'
 import { observer } from 'mobx-react-lite'
 import { useContext, useEffect, useRef } from 'react'
 import { ComponentRegistryContext, FieldContext, FormContext } from '../context'
-import { getDefaultWrapper, getReadPrettyComponent } from '../registry'
+import { getDefaultDecorator, getReadPrettyComponent } from '../registry'
 
 export interface FormFieldProps {
   /** 字段名 */
@@ -50,11 +50,11 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
       if (!mergedProps.pattern && form.pattern !== 'editable') {
         mergedProps.pattern = form.pattern
       }
-      /* 未显式指定 wrapper 时，使用组件注册的默认 wrapper */
-      if (!mergedProps.wrapper && typeof mergedProps.component === 'string') {
-        const dw = getDefaultWrapper(mergedProps.component)
-        if (dw)
-          mergedProps.wrapper = dw
+      /* 未显式指定 decorator 时，使用组件注册的默认 decorator */
+      if (!mergedProps.decorator && typeof mergedProps.component === 'string') {
+        const dd = getDefaultDecorator(mergedProps.component)
+        if (dd)
+          mergedProps.decorator = dd
       }
       field = form.createField(mergedProps as FieldProps)
       createdByThisRef.current = true
@@ -106,9 +106,9 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
       : field.component as ComponentType<any>
   )
 
-  const Wrapper = typeof field.wrapper === 'string'
-    ? registry.wrappers.get(field.wrapper)
-    : (field.wrapper as ComponentType<any>)
+  const Decorator = typeof field.decorator === 'string'
+    ? registry.decorators.get(field.decorator)
+    : (field.decorator as ComponentType<any>)
 
   if (!Component) {
     console.warn(`[ConfigForm] 字段 "${name}" 未找到组件 "${String(field.component)}"`)
@@ -157,9 +157,9 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
   /** 参考 Formily：将表单 pattern 传递给 Wrapper，用于 readOnly/disabled 时隐藏必填标记 */
   const effectivePattern = form.pattern ?? 'editable'
 
-  const wrappedElement = Wrapper
+  const wrappedElement = Decorator
     ? (
-        <Wrapper
+        <Decorator
           label={field.label}
           required={field.required}
           errors={field.errors}
@@ -168,10 +168,10 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
           labelPosition={form.labelPosition}
           labelWidth={form.labelWidth}
           pattern={effectivePattern}
-          {...field.wrapperProps}
+          {...field.decoratorProps}
         >
           {fieldElement}
-        </Wrapper>
+        </Decorator>
       )
     : fieldElement
 

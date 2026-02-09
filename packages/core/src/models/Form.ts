@@ -1010,9 +1010,9 @@ implements FormInstance<Values> {
       }
 
       /* 值转换 */
-      if (field.transform) {
+      if (field.submitTransform) {
         const value = FormPath.getIn(result, path)
-        const transformed = field.transform(value)
+        const transformed = field.submitTransform(value)
         const submitPath = field.submitPath ?? path
         FormPath.setIn(result, submitPath, transformed)
         if (submitPath !== path) {

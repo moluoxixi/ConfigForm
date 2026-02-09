@@ -1,4 +1,4 @@
-import type { ValidationFeedback } from '@moluoxixi/validator'
+import type { ValidationFeedback } from '@moluoxixi/core'
 import type { PropType } from 'vue'
 import { FormItem as AFormItem } from 'ant-design-vue'
 import { defineComponent, h } from 'vue'
@@ -14,7 +14,7 @@ export const FormItem = defineComponent({
     description: String,
     labelPosition: String as PropType<'top' | 'left' | 'right'>,
     labelWidth: { type: [String, Number], default: undefined },
-    /** 是否显示冒号后缀，默认 true；可通过 decoratorProps.colon 或 wrapperProps.colon 控制 */
+    /** 是否显示冒号后缀，默认 true；可通过 decoratorProps.colon 控制 */
     colon: { type: Boolean, default: true },
     /** 表单模式（editable/readOnly/disabled），readOnly/disabled 时隐藏必填标记 */
     pattern: { type: String as PropType<'editable' | 'readOnly' | 'disabled'>, default: 'editable' },

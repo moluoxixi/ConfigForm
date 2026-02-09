@@ -1,6 +1,12 @@
-import type { DataSourceConfig, ReactionRule } from '@moluoxixi/core'
-import type { ComponentType, DataSourceItem, FieldPattern } from '@moluoxixi/shared'
-import type { ValidationRule, ValidationTrigger } from '@moluoxixi/validator'
+import type {
+  ComponentType,
+  DataSourceConfig,
+  DataSourceItem,
+  FieldPattern,
+  ReactionRule,
+  ValidationRule,
+  ValidationTrigger,
+} from '@moluoxixi/core'
 
 /* ======================== Schema 定义 ======================== */
 
@@ -166,27 +172,36 @@ export interface ISchema {
   /**
    * 显示格式化。
    *
+   * 将字段内部值转换为 UI 展示值。
+   *
    * 支持两种写法：
    * - 函数：`(value) => formattedValue`
    * - 表达式字符串：`'{{$deps[0] / 100}}'`（$deps[0] 为当前值）
+   *
+   * 注意：此属性用于**显示格式化**，而非验证。
+   * 格式验证请使用 `rules: [{ format: 'email' }]`。
    */
-  format?: string | ((value: unknown) => unknown)
+  displayFormat?: string | ((value: unknown) => unknown)
   /**
    * 输入解析。
+   *
+   * 将用户输入值转换为字段内部存储值。
    *
    * 支持两种写法：
    * - 函数：`(inputValue) => parsedValue`
    * - 表达式字符串：`'{{$deps[0] * 100}}'`（$deps[0] 为输入值）
    */
-  parse?: string | ((value: unknown) => unknown)
+  inputParse?: string | ((value: unknown) => unknown)
   /**
    * 提交转换。
+   *
+   * 将字段内部值转换为提交数据值。
    *
    * 支持两种写法：
    * - 函数：`(value) => transformedValue`
    * - 表达式字符串：`'{{$deps[0].toUpperCase()}}'`（$deps[0] 为当前值）
    */
-  transform?: string | ((value: unknown) => unknown)
+  submitTransform?: string | ((value: unknown) => unknown)
   /** 提交路径映射 */
   submitPath?: string
   /** 隐藏时是否排除提交数据 */

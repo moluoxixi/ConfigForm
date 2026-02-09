@@ -15,11 +15,11 @@ FieldContext.displayName = 'ConfigFieldContext'
  */
 export interface ComponentRegistry {
   components: Map<string, React.ComponentType<any>>
-  wrappers: Map<string, React.ComponentType<any>>
+  decorators: Map<string, React.ComponentType<any>>
 }
 
 export const ComponentRegistryContext = createContext<ComponentRegistry>({
   components: new Map(),
-  wrappers: new Map(),
+  decorators: new Map(),
 })
 ComponentRegistryContext.displayName = 'ConfigComponentRegistryContext'

@@ -1,11 +1,19 @@
-feat(plugin): 插件系统 + 低代码插件包
+refactor: 统一命名 + JSON Schema 适配插件 + 依赖门面重构
 
-- core: 新增 Hook 拦截架构（洋葱模型），支持 submit/validate/setValues/createField/reset 5 条管线拦截
-- core: FormPlugin 接口升级，支持 dependencies 依赖声明、priority 安装排序、PluginContext（hooks + getPlugin）
-- core: createForm 支持插件拓扑排序（Kahn 算法），循环依赖/缺失依赖自动报错
-- plugin-lower-code: 聚合低代码插件包，包含撤销重做/脏检查/草稿保存/ACL权限/数据脱敏/提交重试/子表单 7 个子插件
-- plugin-lower-code: lowerCodePlugin() 一键注册，各子功能可单独开关
-- plugin-lower-code: history 插件内置自动快照 + Ctrl+Z/Ctrl+Y 键盘快捷键
-- vue: ConfigForm 组件新增 plugins prop 透传
-- playground: 示例注册扩展到 58 个场景 12 个分组，新增插件能力分组
-- playground: 插件场景示例使用 lowerCodePlugin 演示撤销重做/脏检查/权限控制/子表单
+1. 命名统一（破坏性）:
+   - FieldProps/FieldInstance: wrapper/wrapperProps -> decorator/decoratorProps
+   - Registry API: registerWrapper -> registerDecorator, getWrapper -> getDecorator
+   - FormProvider/ConfigForm: wrappers prop -> decorators prop
+   - ISchema: format/parse/transform -> displayFormat/inputParse/submitTransform
+
+2. 新增 @moluoxixi/plugin-json-schema:
+   - fromJsonSchema(): 标准 JSON Schema (Draft-07/2020-12) -> 表单 ISchema
+   - toJsonSchema(): 表单 ISchema -> 标准 JSON Schema
+   - 支持 if/then/else, allOf, oneOf, dependentRequired 等标准语法转换
+   - 新增 playground 示例 JsonSchemaAdapterForm
+
+3. 依赖门面重构:
+   - core re-export shared/validator 公共类型（门面模式）
+   - 上层包 import 路径统一改为 from core
+   - 移除上层包对 shared/validator 的直接依赖
+   - 仅需运行时函数的包保留 shared 依赖

@@ -1,7 +1,6 @@
 import type { FormConfig, FormInstance } from '@moluoxixi/core'
 import type { FormSchema } from '@moluoxixi/schema'
-import type { FieldPattern } from '@moluoxixi/shared'
-import type { ValidationFeedback } from '@moluoxixi/validator'
+import type { FieldPattern, ValidationFeedback } from '@moluoxixi/core'
 import type { ComponentType, CSSProperties, FormEvent, ReactElement, ReactNode } from 'react'
 import { observer } from 'mobx-react-lite'
 import { useCallback, useContext, useEffect } from 'react'
@@ -28,7 +27,7 @@ export interface ConfigFormProps<Values extends Record<string, unknown> = Record
   /** 局部组件注册 */
   components?: Record<string, ComponentType<any>>
   /** 局部装饰器注册 */
-  wrappers?: Record<string, ComponentType<any>>
+  decorators?: Record<string, ComponentType<any>>
   /** 自定义子节点 */
   children?: ReactNode
   /** HTML class */
@@ -59,7 +58,7 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
     onSubmitFailed,
     onValuesChange,
     components,
-    wrappers,
+    decorators,
     children,
     className,
     style,
@@ -123,7 +122,7 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
   const showReset = actions?.reset !== false
 
   return (
-    <FormProvider form={form} components={components} wrappers={wrappers}>
+    <FormProvider form={form} components={components} decorators={decorators}>
       <form onSubmit={handleSubmit} className={className} style={style} noValidate>
         {schema && <SchemaField schema={schema} />}
 

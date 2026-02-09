@@ -4,7 +4,7 @@
  * 参考 Formily PreviewText 设计，每个组件对应一个编辑组件的阅读态替代。
  * 由 ReactiveField 在 isReadOnly 时自动替换渲染，UI 组件无需关心阅读态。
  */
-import type { DataSourceItem } from '@moluoxixi/shared'
+import type { DataSourceItem } from '@moluoxixi/core'
 import type { PropType } from 'vue'
 import { Tag as ATag } from 'ant-design-vue'
 import { defineComponent, h } from 'vue'

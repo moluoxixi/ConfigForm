@@ -33,7 +33,6 @@
   },
   "dependencies": {
     "@moluoxixi/core": "workspace:*",
-    "@moluoxixi/shared": "workspace:*",
     "@moluoxixi/vue": "workspace:*"
   },
   "devDependencies": {

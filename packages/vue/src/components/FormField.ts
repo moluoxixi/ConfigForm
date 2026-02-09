@@ -2,7 +2,7 @@ import type { FieldInstance, FieldProps } from '@moluoxixi/core'
 import type { Component, PropType } from 'vue'
 import { defineComponent, h, inject, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 import { FieldSymbol, FormSymbol } from '../context'
-import { getDefaultWrapper } from '../registry'
+import { getDefaultDecorator } from '../registry'
 import { ReactiveField } from './ReactiveField'
 
 /**
@@ -13,7 +13,7 @@ import { ReactiveField } from './ReactiveField'
  *
  * 支持两种渲染模式：
  * 1. 自定义插槽：`v-slot="{ field, isReadOnly, isDisabled }"`
- * 2. 自动渲染：根据 field.component + field.wrapper 从 registry 查找组件
+ * 2. 自动渲染：根据 field.component + field.decorator 从 registry 查找组件
  */
 export const FormField = defineComponent({
   name: 'FormField',
@@ -48,11 +48,11 @@ export const FormField = defineComponent({
       if (!mergedProps.pattern && form!.pattern !== 'editable') {
         mergedProps.pattern = form!.pattern
       }
-      /* 未显式指定 wrapper 时，使用组件注册的默认 wrapper */
-      if (!mergedProps.wrapper && typeof mergedProps.component === 'string') {
-        const defaultWrapper = getDefaultWrapper(mergedProps.component)
-        if (defaultWrapper) {
-          mergedProps.wrapper = defaultWrapper
+      /* 未显式指定 decorator 时，使用组件注册的默认 decorator */
+      if (!mergedProps.decorator && typeof mergedProps.component === 'string') {
+        const defaultDecorator = getDefaultDecorator(mergedProps.component)
+        if (defaultDecorator) {
+          mergedProps.decorator = defaultDecorator
         }
       }
       return { field: form!.createField(mergedProps as any), created: true }

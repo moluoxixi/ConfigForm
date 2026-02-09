@@ -1,4 +1,4 @@
-import type { DataSourceItem } from '@moluoxixi/shared'
+import type { DataSourceItem } from '@moluoxixi/core'
 import type { ReactElement } from 'react'
 import { Checkbox as ACheckbox } from 'antd'
 
