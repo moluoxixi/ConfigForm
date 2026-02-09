@@ -1,4 +1,4 @@
-import type { Disposer, ExpressionScope } from '@moluoxixi/shared';
+import type { Disposer, ExpressionScope } from '../shared';
 import type {
   DataSourceConfig,
   FieldInstance,
@@ -7,7 +7,7 @@ import type {
   ReactionEffect,
   ReactionRule,
 } from '../types';
-import { getReactiveAdapter } from '@moluoxixi/reactive';
+import { getReactiveAdapter } from '../reactive';
 import {
   debounce,
   DependencyGraph,
@@ -16,7 +16,7 @@ import {
   isArray,
   isExpression,
   isFunction,
-} from '@moluoxixi/shared';
+} from '../shared';
 
 /** 快速判断路径是否包含数组索引（数字段） */
 const ARRAY_INDEX_RE = /(?:^|\.)(\d+)(?:\.|$)|\[(\d+)\]/;

@@ -77,17 +77,7 @@ export type {
   VoidFieldProps,
 } from './types'
 
-/* re-export 底层公共类型（门面模式，上层包只依赖 core） */
-export type {
-  ComponentType,
-  DataSourceItem,
-  Disposer,
-  FieldDisplay,
-  FieldPattern,
-  FieldStateUpdate,
-} from '@moluoxixi/shared'
-
-/* re-export 底层公共运行时工具（门面模式） */
+/* shared — 工具函数和公共类型 */
 export {
   debounce,
   deepClone,
@@ -105,10 +95,48 @@ export {
   isPlainObject,
   isString,
   isValid,
-} from '@moluoxixi/shared'
-
+  logger,
+  uid,
+} from './shared'
 export type {
+  ComponentType,
+  DataSourceItem,
+  Disposer,
+  ExpressionScope,
+  Feedback,
+  FieldDisplay,
+  FieldPattern,
+  FieldStateUpdate,
+} from './shared'
+
+/* reactive — 响应式适配器 */
+export {
+  getReactiveAdapter,
+  hasReactiveAdapter,
+  resetReactiveAdapter,
+  setReactiveAdapter,
+} from './reactive'
+export type { ComputedRef, ReactionOptions, ReactiveAdapter } from './reactive'
+
+/* validator — 验证引擎 */
+export {
+  getFormatValidator,
+  hasFormat,
+  registerFormat,
+  getMessage,
+  getValidationLocale,
+  registerMessages,
+  setValidationLocale,
+  validate,
+  validateSync,
+} from './validator'
+export type {
+  BuiltinFormat,
+  FormatValidator,
   ValidationFeedback,
+  ValidationMessages,
+  ValidationResult,
   ValidationRule,
   ValidationTrigger,
-} from '@moluoxixi/validator'
+  ValidatorContext,
+} from './validator'

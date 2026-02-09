@@ -5,7 +5,7 @@ import type {
   ValidationTrigger,
   ValidatorContext,
 } from './types'
-import { isArray, isEmpty, isNullish, isNumber, isString } from '@moluoxixi/shared'
+import { isArray, isEmpty, isNullish, isNumber, isString } from '../shared'
 import { getFormatValidator } from './formats'
 import { getMessage } from './messages'
 

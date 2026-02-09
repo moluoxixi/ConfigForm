@@ -1,7 +1,7 @@
-import type { Disposer } from '@moluoxixi/shared'
+import type { Disposer } from '../shared'
 import type { ArrayFieldInstance, ArrayFieldProps, FormInstance } from '../types'
-import { deepClone, isArray, isFunction } from '@moluoxixi/shared'
-import { getReactiveAdapter } from '@moluoxixi/reactive'
+import { deepClone, isArray, isFunction } from '../shared'
+import { getReactiveAdapter } from '../reactive'
 import { Field } from './Field'
 
 /**

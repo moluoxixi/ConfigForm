@@ -34,8 +34,7 @@
     "@vue/reactivity": ">=3.5.0"
   },
   "dependencies": {
-    "@moluoxixi/reactive": "workspace:*",
-    "@moluoxixi/shared": "workspace:*"
+    "@moluoxixi/core": "workspace:*"
   },
   "devDependencies": {
     "@vue/reactivity": "catalog:build",

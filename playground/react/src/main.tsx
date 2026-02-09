@@ -1,4 +1,4 @@
-import { setReactiveAdapter } from '@moluoxixi/reactive'
+import { setReactiveAdapter } from '@moluoxixi/core'
 import { mobxAdapter } from '@moluoxixi/reactive-mobx'
 import { configure } from 'mobx'
 import React from 'react'

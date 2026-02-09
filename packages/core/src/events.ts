@@ -1,4 +1,4 @@
-import type { Disposer } from '@moluoxixi/shared'
+import type { Disposer } from './shared'
 
 /**
  * 表单生命周期事件类型

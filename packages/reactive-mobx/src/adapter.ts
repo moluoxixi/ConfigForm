@@ -1,6 +1,5 @@
-import type { ReactionOptions, ReactiveAdapter } from '@moluoxixi/reactive'
-import type { Disposer } from '@moluoxixi/shared'
-import { debounce as createDebounce } from '@moluoxixi/shared'
+import type { Disposer, ReactionOptions, ReactiveAdapter } from '@moluoxixi/core'
+import { debounce as createDebounce } from '@moluoxixi/core'
 import {
   action,
   autorun,

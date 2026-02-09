@@ -1,4 +1,4 @@
-import { setReactiveAdapter } from '@moluoxixi/reactive'
+import { setReactiveAdapter } from '@moluoxixi/core'
 import { vueAdapter } from '@moluoxixi/reactive-vue'
 import { createApp } from 'vue'
 import App from './App.vue'

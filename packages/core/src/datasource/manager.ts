@@ -1,6 +1,6 @@
-import type { DataSourceItem } from '@moluoxixi/shared'
+import type { DataSourceItem } from '../shared'
 import type { DataSourceConfig, RequestAdapter, RequestConfig } from '../types'
-import { FormPath, isArray, isFunction, isObject, isString } from '@moluoxixi/shared'
+import { FormPath, isArray, isFunction, isObject, isString } from '../shared'
 
 /** 请求适配器注册表 */
 const adapterRegistry = new Map<string, RequestAdapter>()

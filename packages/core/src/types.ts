@@ -6,8 +6,8 @@ import type {
   FieldDisplay,
   FieldPattern,
   FieldStateUpdate,
-} from '@moluoxixi/shared'
-import type { ValidationFeedback, ValidationRule, ValidationTrigger } from '@moluoxixi/validator'
+} from './shared'
+import type { ValidationFeedback, ValidationRule, ValidationTrigger } from './validator'
 import type { FormEventHandler, FormLifeCycle } from './events'
 
 /* ======================== 字段属性 ======================== */
@@ -458,8 +458,8 @@ export interface ResetHookContext {
 /** 验证结果 */
 export interface ValidateResult {
   valid: boolean
-  errors: import('@moluoxixi/validator').ValidationFeedback[]
-  warnings: import('@moluoxixi/validator').ValidationFeedback[]
+  errors: ValidationFeedback[]
+  warnings: ValidationFeedback[]
 }
 
 /**

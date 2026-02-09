@@ -1,4 +1,4 @@
-import type { Disposer } from '@moluoxixi/shared'
+import type { Disposer } from '../shared'
 
 /** 计算属性引用 */
 export interface ComputedRef<T = unknown> {

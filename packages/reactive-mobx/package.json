@@ -34,8 +34,7 @@
     "mobx": ">=6.0.0"
   },
   "dependencies": {
-    "@moluoxixi/reactive": "workspace:*",
-    "@moluoxixi/shared": "workspace:*"
+    "@moluoxixi/core": "workspace:*"
   },
   "devDependencies": {
     "mobx": "catalog:build",

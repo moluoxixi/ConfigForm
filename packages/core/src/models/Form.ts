@@ -1,5 +1,5 @@
-import type { Disposer, Feedback, FieldPattern } from '@moluoxixi/shared'
-import type { ValidationFeedback, ValidationTrigger } from '@moluoxixi/validator'
+import type { Disposer, Feedback, FieldPattern } from '../shared'
+import type { ValidationFeedback, ValidationTrigger } from '../validator'
 import type {
   ArrayFieldInstance,
   ArrayFieldProps,
@@ -17,8 +17,8 @@ import type {
   VoidFieldInstance,
   VoidFieldProps,
 } from '../types'
-import { getReactiveAdapter } from '@moluoxixi/reactive'
-import { deepClone, deepMerge, FormPath, uid } from '@moluoxixi/shared'
+import { getReactiveAdapter } from '../reactive'
+import { deepClone, deepMerge, FormPath, uid } from '../shared'
 import { FormEventEmitter, FormLifeCycle } from '../events'
 import { FormHookManager } from '../hooks'
 import { ReactionEngine } from '../reaction/engine'

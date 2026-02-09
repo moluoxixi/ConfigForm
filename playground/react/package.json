@@ -15,7 +15,6 @@
     "@moluoxixi/core": "workspace:*",
     "@playground/shared": "workspace:*",
     "@moluoxixi/react": "workspace:*",
-    "@moluoxixi/reactive": "workspace:*",
     "@moluoxixi/reactive-mobx": "workspace:*",
     "@moluoxixi/schema": "workspace:*",
     "@moluoxixi/ui-antd": "workspace:*",

@@ -1,7 +1,13 @@
-refactor: 插件包和schema包也统一从core导入，彻底贯彻门面模式
+refactor: 合并 shared/reactive/validator 三个底层包到 core
 
-- core re-export shared 的运行时工具函数（deepClone, FormPath, isArray 等）
-- plugin-lower-code: 所有 shared import 改为 from core，移除 shared 依赖
-- plugin-json-schema: shared import 改为 from core，移除 shared 依赖
-- schema: 所有 shared import 改为 from core，移除 shared 依赖
-- 现在只有 core/reactive/validator 三个底层包直接依赖 shared
+将三个内部包的源码合并到 core/src/ 下的子目录:
+- core/src/shared/ — 工具函数和公共类型
+- core/src/reactive/ — 响应式适配器接口和注册器
+- core/src/validator/ — 验证引擎、格式注册、消息系统
+
+变更:
+- 删除 packages/shared、packages/reactive、packages/validator 三个包
+- core 不再有外部 dependencies（全部内置）
+- reactive-vue、reactive-mobx 改为依赖 core（替代 reactive + shared）
+- playground 的 setReactiveAdapter 改从 core 导入
+- workspace 从 18 个项目减少到 15 个

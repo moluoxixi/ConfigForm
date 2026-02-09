@@ -4,8 +4,8 @@ import type {
   Disposer,
   FieldDisplay,
   FieldPattern,
-} from '@moluoxixi/shared'
-import type { ValidationFeedback, ValidationRule, ValidationTrigger } from '@moluoxixi/validator'
+} from '../shared'
+import type { ValidationFeedback, ValidationRule, ValidationTrigger } from '../validator'
 import type {
   DataSourceConfig,
   FieldInstance,
@@ -13,8 +13,8 @@ import type {
   FormInstance,
   ReactionRule,
 } from '../types'
-import { deepClone, FormPath, isArray, uid } from '@moluoxixi/shared'
-import { validate } from '@moluoxixi/validator'
+import { deepClone, FormPath, isArray, uid } from '../shared'
+import { validate } from '../validator'
 import { fetchDataSource } from '../datasource/manager'
 
 /**

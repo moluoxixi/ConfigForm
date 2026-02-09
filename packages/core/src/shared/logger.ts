@@ -6,7 +6,7 @@
  *
  * @example
  * ```ts
- * import { logger } from '@moluoxixi/shared'
+ * import { logger } from '@moluoxixi/core'
  *
  * // 调整日志级别
  * logger.setLevel('debug')

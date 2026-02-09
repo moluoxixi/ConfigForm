@@ -1,6 +1,6 @@
-import type { ComponentType, Disposer, FieldPattern } from '@moluoxixi/shared'
+import type { ComponentType, Disposer, FieldPattern } from '../shared'
 import type { FieldInstance, FormInstance, ReactionRule, VoidFieldInstance, VoidFieldProps } from '../types'
-import { FormPath, uid } from '@moluoxixi/shared'
+import { FormPath, uid } from '../shared'
 
 /**
  * 虚拟字段模型

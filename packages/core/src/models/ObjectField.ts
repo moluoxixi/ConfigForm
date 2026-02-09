@@ -1,5 +1,5 @@
 import type { FormInstance, ObjectFieldInstance, ObjectFieldProps } from '../types'
-import { deepClone, FormPath, isObject } from '@moluoxixi/shared'
+import { deepClone, FormPath, isObject } from '../shared'
 import { Field } from './Field'
 
 /**

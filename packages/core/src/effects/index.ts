@@ -1,7 +1,7 @@
-import type { Disposer } from '@moluoxixi/shared'
+import type { Disposer } from '../shared'
 import type { FieldInstance, FormInstance, VoidFieldInstance } from '../types'
-import { getReactiveAdapter } from '@moluoxixi/reactive'
-import { FormPath } from '@moluoxixi/shared'
+import { getReactiveAdapter } from '../reactive'
+import { FormPath } from '../shared'
 import { FormLifeCycle } from '../events'
 
 /**

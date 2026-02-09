@@ -1,5 +1,5 @@
 import type { FormConfig, FormInstance, FormPlugin } from './types'
-import { getReactiveAdapter } from '@moluoxixi/reactive'
+import { getReactiveAdapter } from './reactive'
 import { Form } from './models/Form'
 
 /**

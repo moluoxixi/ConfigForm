@@ -1,4 +1,4 @@
-import type { Disposer } from '@moluoxixi/shared'
+import type { Disposer } from './shared'
 import type {
   CreateFieldHook,
   FieldInstance,
