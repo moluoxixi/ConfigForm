@@ -29,6 +29,7 @@ const config: SceneConfig = {
     decoratorProps: {
       labelPosition: 'right',
       labelWidth: '120px',
+      actions: { submit: '提交', reset: '重置' },
     },
     properties: {
       name: { type: 'string', title: '姓名', required: true },
