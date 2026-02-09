@@ -251,6 +251,26 @@ export interface ISchema {
     columns?: number
     /** 栅格间距（px） */
     gutter?: number
+    /**
+     * 响应式断点（type='grid' 时使用）
+     *
+     * 根据容器宽度自动调整列数。
+     * key 为最小宽度（px），value 为该断点下的列数。
+     * 按宽度从小到大匹配，最后一个满足条件的断点生效。
+     *
+     * @example
+     * ```ts
+     * breakpoints: {
+     *   0: 1,     // <576px: 1 列
+     *   576: 2,   // 576-767px: 2 列
+     *   768: 3,   // 768-991px: 3 列
+     *   992: 4,   // >=992px: 4 列
+     * }
+     * ```
+     */
+    breakpoints?: Record<number, number>
+    /** 行内布局的元素间距（type='inline' 时使用，默认 16px） */
+    gap?: number
   }
 
   /* ---- 扩展 ---- */

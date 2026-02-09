@@ -506,6 +506,110 @@ implements FormInstance<Values> {
     }
   }
 
+  /**
+   * 分区域验证
+   *
+   * 用于 Steps / Tabs 等分区域场景，仅验证指定区域的字段。
+   * 支持多种指定方式：路径前缀、字段路径数组、通配符模式数组。
+   *
+   * @param section - 区域标识，支持以下格式：
+   *   - `string`：路径前缀或通配符模式（如 'basicInfo.*'）
+   *   - `string[]`：精确字段路径数组（如 ['name', 'email', 'phone']）
+   * @returns 验证结果
+   *
+   * @example
+   * ```ts
+   * // Steps 场景：验证当前步骤的字段
+   * const step1Fields = ['name', 'email', 'phone']
+   * const step2Fields = ['address.*']
+   *
+   * // 第一步验证
+   * const { valid } = await form.validateSection(step1Fields)
+   * if (valid) goToNextStep()
+   *
+   * // 或使用通配符
+   * const { valid } = await form.validateSection('address.*')
+   * ```
+   */
+  async validateSection(
+    section: string | string[],
+  ): Promise<{ valid: boolean, errors: ValidationFeedback[], warnings: ValidationFeedback[] }> {
+    const allErrors: ValidationFeedback[] = []
+    const allWarnings: ValidationFeedback[] = []
+
+    /* 收集要验证的字段 */
+    let fieldsToValidate: FieldInstance[] = []
+
+    if (typeof section === 'string') {
+      /* 单个通配符模式 */
+      fieldsToValidate = this.queryFields(section)
+    }
+    else {
+      /* 字段路径数组：逐个查询，支持每个元素为精确路径或通配符 */
+      for (const pattern of section) {
+        if (pattern.includes('*')) {
+          fieldsToValidate.push(...this.queryFields(pattern))
+        }
+        else {
+          const field = this.getField(pattern)
+          if (field) fieldsToValidate.push(field)
+        }
+      }
+    }
+
+    /* 去重 */
+    const uniqueFields = Array.from(new Map(fieldsToValidate.map(f => [f.path, f])).values())
+
+    const promises = uniqueFields.map(async (field) => {
+      if (!field.visible) return
+      const errors = await field.validate('submit')
+      allErrors.push(...errors)
+      allWarnings.push(...field.warnings)
+    })
+
+    await Promise.all(promises)
+
+    return {
+      valid: allErrors.length === 0,
+      errors: allErrors,
+      warnings: allWarnings,
+    }
+  }
+
+  /**
+   * 清除指定区域的验证错误
+   *
+   * 配合分区域验证使用，在切换 Step / Tab 时清除前一个区域的错误状态。
+   *
+   * @param section - 区域标识（同 validateSection）
+   */
+  clearSectionErrors(section: string | string[]): void {
+    const adapter = getReactiveAdapter()
+    adapter.batch(() => {
+      let fieldsToClean: FieldInstance[] = []
+
+      if (typeof section === 'string') {
+        fieldsToClean = this.queryFields(section)
+      }
+      else {
+        for (const pattern of section) {
+          if (pattern.includes('*')) {
+            fieldsToClean.push(...this.queryFields(pattern))
+          }
+          else {
+            const field = this.getField(pattern)
+            if (field) fieldsToClean.push(field)
+          }
+        }
+      }
+
+      for (const field of fieldsToClean) {
+        ;(field as { errors: ValidationFeedback[] }).errors = []
+        ;(field as { warnings: ValidationFeedback[] }).warnings = []
+      }
+    })
+  }
+
   /** 监听值变化 */
   onValuesChange(handler: (values: Values) => void): Disposer {
     this.valuesChangeHandlers.push(handler)

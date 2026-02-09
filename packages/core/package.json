@@ -22,10 +22,15 @@
     "module": "./dist/index.js",
     "types": "./dist/index.d.ts"
   },
-  "files": ["dist", "src"],
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts",
-    "dev": "tsup src/index.ts --format esm,cjs --dts --watch"
+    "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@moluoxixi/reactive": "workspace:*",
@@ -34,6 +39,7 @@
   },
   "devDependencies": {
     "tsup": "catalog:type",
-    "typescript": "catalog:type"
+    "typescript": "catalog:type",
+    "vitest": "^4.0.18"
   }
 }

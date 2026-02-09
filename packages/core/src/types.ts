@@ -349,6 +349,16 @@ export interface FormInstance<Values extends Record<string, unknown> = Record<st
   reset: (options?: ResetOptions) => void
   submit: () => Promise<SubmitResult<Values>>
   validate: (pattern?: string) => Promise<{ valid: boolean, errors: ValidationFeedback[], warnings: ValidationFeedback[] }>
+  /**
+   * 分区域验证（用于 Steps / Tabs 场景）
+   * @param section - 路径前缀、通配符模式或字段路径数组
+   */
+  validateSection: (section: string | string[]) => Promise<{ valid: boolean, errors: ValidationFeedback[], warnings: ValidationFeedback[] }>
+  /**
+   * 清除指定区域的验证错误
+   * @param section - 同 validateSection
+   */
+  clearSectionErrors: (section: string | string[]) => void
   onValuesChange: (handler: (values: Values) => void) => Disposer
   onFieldValueChange: (path: string, handler: (value: unknown) => void) => Disposer
   /** 通知表单值变化（供 Field 内部调用） */

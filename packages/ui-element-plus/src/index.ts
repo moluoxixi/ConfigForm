@@ -1,8 +1,10 @@
 import 'element-plus/dist/index.css'
 import { ArrayItems, ArrayTable, registerFieldComponents } from '@moluoxixi/vue'
 import {
+  Cascader,
   CheckboxGroup,
   DatePicker,
+  DateRangePicker,
   FormItem,
   Input,
   InputNumber,
@@ -18,6 +20,9 @@ import {
   StatusTabs,
   Switch,
   Textarea,
+  Transfer,
+  TreeSelect,
+  Upload,
 } from './components'
 
 /** 注入 Element Plus FormItem 标签右对齐全局样式（仅注入一次） */
@@ -48,7 +53,7 @@ function injectLabelAlignStyle(): void {
 export function setupElementPlus(): void {
   injectLabelAlignStyle()
   registerFieldComponents(
-    { Input, Password, Textarea, InputNumber, Select, RadioGroup, CheckboxGroup, Switch, DatePicker, ArrayItems },
+    { Input, Password, Textarea, InputNumber, Select, RadioGroup, CheckboxGroup, Switch, DatePicker, DateRangePicker, Cascader, TreeSelect, Upload, Transfer, ArrayItems },
     { name: 'FormItem', component: FormItem },
     { ArrayTable, LayoutTabs, LayoutCard, LayoutCollapse, LayoutSteps, LayoutStepActions, LayoutFormActions },
   )
@@ -56,8 +61,10 @@ export function setupElementPlus(): void {
 
 /* 导出所有组件（按需使用） */
 export {
+  Cascader,
   CheckboxGroup,
   DatePicker,
+  DateRangePicker,
   FormItem,
   Input,
   InputNumber,
@@ -73,4 +80,8 @@ export {
   StatusTabs,
   Switch,
   Textarea,
+  Transfer,
+  TreeSelect,
+  Upload,
 } from './components'
+export type { FileInfo } from './components'

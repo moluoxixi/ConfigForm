@@ -2,7 +2,7 @@ import type { FormConfig, FormInstance } from '@moluoxixi/core'
 import type { ISchema } from '@moluoxixi/schema'
 import type { ComponentType, FieldPattern } from '@moluoxixi/shared'
 import type { Component, PropType } from 'vue'
-import { computed, defineComponent, h, inject, watch } from 'vue'
+import { computed, defineComponent, h, inject, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useCreateForm } from '../composables/useForm'
 import { ComponentRegistrySymbol } from '../context'
 import { FormProvider } from './FormProvider'
@@ -135,6 +135,46 @@ export const ConfigForm = defineComponent({
       emit('valuesChange', values)
     })
 
+    /**
+     * Grid 响应式断点支持
+     *
+     * 使用 ResizeObserver 监听容器宽度变化，
+     * 根据断点配置动态调整网格列数。
+     */
+    const gridContainerRef = ref<HTMLElement | null>(null)
+    const responsiveColumns = ref<number | null>(null)
+    let resizeObserver: ResizeObserver | null = null
+
+    const resolveBreakpointColumns = (width: number, breakpoints: Record<number, number>): number => {
+      const sortedBreakpoints = Object.entries(breakpoints)
+        .map(([w, c]) => [Number(w), c] as [number, number])
+        .sort((a, b) => a[0] - b[0])
+
+      let cols = sortedBreakpoints[0]?.[1] ?? 1
+      for (const [minWidth, colCount] of sortedBreakpoints) {
+        if (width >= minWidth) cols = colCount
+      }
+      return cols
+    }
+
+    onMounted(() => {
+      const layout = props.schema?.layout as { breakpoints?: Record<number, number> } | undefined
+      if (layout?.breakpoints && gridContainerRef.value) {
+        resizeObserver = new ResizeObserver((entries) => {
+          for (const entry of entries) {
+            const width = entry.contentRect.width
+            responsiveColumns.value = resolveBreakpointColumns(width, layout.breakpoints!)
+          }
+        })
+        resizeObserver.observe(gridContainerRef.value)
+      }
+    })
+
+    onUnmounted(() => {
+      resizeObserver?.disconnect()
+      resizeObserver = null
+    })
+
     const handleSubmit = async (e: Event): Promise<void> => {
       e.preventDefault()
       e.stopPropagation()
@@ -155,16 +195,25 @@ export const ConfigForm = defineComponent({
 
       /* 布局配置 */
       const direction = (currentDecoratorProps.direction ?? 'vertical') as string
-      const layout = props.schema?.layout as { type?: string, columns?: number, gutter?: number } | undefined
+      const layout = props.schema?.layout as {
+        type?: string
+        columns?: number
+        gutter?: number
+        breakpoints?: Record<number, number>
+        gap?: number
+      } | undefined
 
       /** 根据 direction / layout 计算字段容器样式 */
       let fieldContainerStyle = ''
-      if (layout?.type === 'grid' && layout.columns) {
+      if (layout?.type === 'grid') {
         const gap = layout.gutter ?? 16
-        fieldContainerStyle = `display: grid; grid-template-columns: repeat(${layout.columns}, 1fr); gap: ${gap}px; align-items: start`
+        /* 优先使用响应式断点列数，其次用静态 columns */
+        const cols = (layout.breakpoints && responsiveColumns.value) ? responsiveColumns.value : (layout.columns ?? 1)
+        fieldContainerStyle = `display: grid; grid-template-columns: repeat(${cols}, 1fr); gap: ${gap}px; align-items: start`
       }
-      else if (direction === 'inline') {
-        fieldContainerStyle = 'display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start'
+      else if (layout?.type === 'inline' || direction === 'inline') {
+        const gap = layout?.gap ?? 16
+        fieldContainerStyle = `display: flex; flex-wrap: wrap; gap: ${gap}px; align-items: flex-start`
       }
 
       /* 按钮配置 */
@@ -185,7 +234,10 @@ export const ConfigForm = defineComponent({
         }, [
           /* 字段容器（应用布局样式） */
           fieldContainerStyle
-            ? h('div', { style: fieldContainerStyle }, [
+            ? h('div', {
+                ref: layout?.breakpoints ? gridContainerRef : undefined,
+                style: fieldContainerStyle,
+              }, [
               props.schema ? h(SchemaField, { schema: props.schema }) : null,
             ])
             : (props.schema ? h(SchemaField, { schema: props.schema }) : null),

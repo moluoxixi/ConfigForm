@@ -94,6 +94,109 @@ function contextToScope(context: ReactionContext): ExpressionScope {
 const MAX_REACTION_EXECUTIONS_PER_BATCH = 100;
 
 /**
+ * 联动执行追踪记录
+ *
+ * 记录每次联动的触发源、目标、条件结果等信息，
+ * 用于调试和排查联动链路。
+ */
+export interface ReactionTraceRecord {
+  /** 触发时间戳 */
+  timestamp: number
+  /** 触发源字段路径 */
+  sourcePath: string
+  /** 目标字段路径 */
+  targetPath: string
+  /** watch 的路径列表 */
+  watchPaths: string[]
+  /** 依赖值 */
+  deps: unknown[]
+  /** when 条件结果（无 when 时为 undefined） */
+  conditionResult?: boolean
+  /** 执行的效果分支 */
+  branch: 'fulfill' | 'otherwise' | 'none'
+  /** 执行耗时（ms） */
+  duration: number
+}
+
+/**
+ * 联动追踪器
+ *
+ * 开发模式下可启用，记录所有联动执行的完整链路信息。
+ * 用于调试复杂联动逻辑。
+ */
+export class ReactionTracer {
+  private records: ReactionTraceRecord[] = []
+  private maxRecords: number
+  /** 是否启用追踪（性能开关） */
+  enabled: boolean
+
+  constructor(maxRecords = 200, enabled = false) {
+    this.maxRecords = maxRecords
+    this.enabled = enabled
+  }
+
+  /** 记录一次联动执行 */
+  trace(record: ReactionTraceRecord): void {
+    if (!this.enabled) return
+    this.records.push(record)
+    /* 淘汰最早的记录 */
+    while (this.records.length > this.maxRecords) {
+      this.records.shift()
+    }
+  }
+
+  /** 获取所有追踪记录 */
+  getRecords(): readonly ReactionTraceRecord[] {
+    return this.records
+  }
+
+  /** 获取指定字段的触发记录 */
+  getRecordsBySource(sourcePath: string): ReactionTraceRecord[] {
+    return this.records.filter(r => r.sourcePath === sourcePath)
+  }
+
+  /** 获取指定字段被影响的记录 */
+  getRecordsByTarget(targetPath: string): ReactionTraceRecord[] {
+    return this.records.filter(r => r.targetPath === targetPath)
+  }
+
+  /** 获取完整联动链路（A → B → C → ...） */
+  getChain(startPath: string): string[][] {
+    const chains: string[][] = []
+    const visited = new Set<string>()
+
+    const dfs = (path: string, chain: string[]): void => {
+      if (visited.has(path)) return
+      visited.add(path)
+
+      const affected = this.records
+        .filter(r => r.sourcePath === path || r.watchPaths.some(w => w === path))
+        .map(r => r.targetPath)
+        .filter(t => !visited.has(t))
+
+      if (affected.length === 0) {
+        if (chain.length > 1) chains.push([...chain])
+        return
+      }
+
+      for (const target of affected) {
+        chain.push(target)
+        dfs(target, chain)
+        chain.pop()
+      }
+    }
+
+    dfs(startPath, [startPath])
+    return chains
+  }
+
+  /** 清空记录 */
+  clear(): void {
+    this.records = []
+  }
+}
+
+/**
  * 联动引擎
  *
  * 核心职责：
@@ -113,9 +216,16 @@ export class ReactionEngine {
   private _executionCount = 0;
   /** 是否已调度本轮微任务的计数器重置 */
   private _resetScheduled = false;
+  /** 联动追踪器（调试用） */
+  readonly tracer = new ReactionTracer();
 
   constructor(form: FormInstance) {
     this.form = form;
+  }
+
+  /** 启用/禁用联动链路追踪 */
+  enableTracing(enabled: boolean): void {
+    this.tracer.enabled = enabled;
   }
 
   /**
@@ -232,10 +342,22 @@ export class ReactionEngine {
         else target.loadDataSource(effect.dataSource as DataSourceConfig).catch(() => {});
       }
 
-      /* 自定义执行：支持函数和表达式 */
+      /* 自定义执行：支持同步函数、异步函数和表达式 */
       if (effect.run) {
         if (isFunction(effect.run)) {
-          effect.run(target, context);
+          const result = effect.run(target, context);
+          /* 支持异步联动：async run 函数返回 Promise */
+          if (result && typeof (result as Promise<void>).then === 'function') {
+            target.loading = true;
+            (result as Promise<void>)
+              .catch((err: unknown) => {
+                if (err instanceof DOMException && (err as DOMException).name === 'AbortError') return;
+                console.error(`[ConfigForm] 异步联动执行失败 (${target.path}):`, err);
+              })
+              .finally(() => {
+                target.loading = false;
+              });
+          }
         }
         else if (isExpression(effect.run)) {
           evaluateExpression(effect.run, contextToScope(context));
@@ -257,7 +379,7 @@ export class ReactionEngine {
       return t;
     };
 
-    /** 联动执行函数 */
+    /** 联动执行函数（支持同步和异步效果） */
     const execute = (): void => {
       /**
        * 运行时死循环防护。
@@ -282,11 +404,16 @@ export class ReactionEngine {
         return;
       }
 
+      const traceStart = this.tracer.enabled ? performance.now() : 0;
+
       /* 获取当前 watch 依赖值，注入到上下文中 */
       const deps = getWatchedValues();
       const context = buildContext(deps);
       const target = resolveTarget();
       if (!target) return;
+
+      let conditionResult: boolean | undefined;
+      let executedBranch: 'fulfill' | 'otherwise' | 'none' = 'none';
 
       if (rule.when) {
         /* 条件判断：支持函数和表达式 */
@@ -300,16 +427,34 @@ export class ReactionEngine {
             contextToScope(context),
           );
         }
+        conditionResult = conditionMet;
 
         if (conditionMet && rule.fulfill) {
           executeEffect(target, rule.fulfill, context);
+          executedBranch = 'fulfill';
         }
         else if (!conditionMet && rule.otherwise) {
           executeEffect(target, rule.otherwise, context);
+          executedBranch = 'otherwise';
         }
       }
       else if (rule.fulfill) {
         executeEffect(target, rule.fulfill, context);
+        executedBranch = 'fulfill';
+      }
+
+      /* 记录追踪信息 */
+      if (this.tracer.enabled) {
+        this.tracer.trace({
+          timestamp: Date.now(),
+          sourcePath: field.path,
+          targetPath: target.path,
+          watchPaths,
+          deps,
+          conditionResult,
+          branch: executedBranch,
+          duration: performance.now() - traceStart,
+        });
       }
     };
 
