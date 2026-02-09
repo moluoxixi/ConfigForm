@@ -50,6 +50,49 @@ export interface ISchema {
   /** 是否必填（字段级为 boolean，object 级可为 string[] 指定哪些子字段必填） */
   required?: boolean | string[]
 
+  /* ---- JSON Schema 标准：$ref / definitions ---- */
+  /**
+   * Schema 定义区（JSON Schema 标准）。
+   *
+   * 在根 Schema 中定义可复用的 Schema 片段，通过 $ref 引用。
+   * 编译时自动解析，运行时完全透明。
+   *
+   * @example
+   * ```ts
+   * const schema: ISchema = {
+   *   type: 'object',
+   *   definitions: {
+   *     address: {
+   *       type: 'object',
+   *       properties: {
+   *         province: { type: 'string', title: '省' },
+   *         city: { type: 'string', title: '市' },
+   *         detail: { type: 'string', title: '详细地址' },
+   *       },
+   *     },
+   *   },
+   *   properties: {
+   *     homeAddress: { $ref: '#/definitions/address', title: '家庭地址' },
+   *     workAddress: { $ref: '#/definitions/address', title: '工作地址' },
+   *   },
+   * }
+   * ```
+   */
+  definitions?: Record<string, ISchema>
+  /**
+   * Schema 引用（JSON Schema 标准）。
+   *
+   * 引用 definitions 中定义的 Schema 片段。格式：`#/definitions/<name>`
+   * 可与本地属性共存，本地属性会覆盖被引用 Schema 的同名属性。
+   *
+   * @example
+   * ```ts
+   * { $ref: '#/definitions/address', title: '家庭地址' }
+   * // 等价于：将 definitions.address 的内容合并，再用 title: '家庭地址' 覆盖
+   * ```
+   */
+  $ref?: string
+
   /* ---- 枚举 / 数据源 ---- */
   /** 枚举选项（简写） */
   enum?: Array<string | number | { label: string, value: unknown, disabled?: boolean }>
@@ -101,11 +144,29 @@ export interface ISchema {
   itemTemplate?: unknown
 
   /* ---- 数据处理 ---- */
-  /** 显示格式化 */
+  /**
+   * 显示格式化。
+   *
+   * 支持两种写法：
+   * - 函数：`(value) => formattedValue`
+   * - 表达式字符串：`'{{$deps[0] / 100}}'`（$deps[0] 为当前值）
+   */
   format?: string | ((value: unknown) => unknown)
-  /** 输入解析 */
+  /**
+   * 输入解析。
+   *
+   * 支持两种写法：
+   * - 函数：`(inputValue) => parsedValue`
+   * - 表达式字符串：`'{{$deps[0] * 100}}'`（$deps[0] 为输入值）
+   */
   parse?: string | ((value: unknown) => unknown)
-  /** 提交转换 */
+  /**
+   * 提交转换。
+   *
+   * 支持两种写法：
+   * - 函数：`(value) => transformedValue`
+   * - 表达式字符串：`'{{$deps[0].toUpperCase()}}'`（$deps[0] 为当前值）
+   */
   transform?: string | ((value: unknown) => unknown)
   /** 提交路径映射 */
   submitPath?: string

@@ -1,6 +1,6 @@
 import type { ArrayFieldProps, FieldProps, VoidFieldProps } from '@moluoxixi/core'
 import type { CompiledField, CompiledSchema } from './types'
-import { isFunction } from '@moluoxixi/shared'
+import { evaluateExpression, isExpression, isFunction } from '@moluoxixi/shared'
 
 /**
  * 将编译后的字段转为 FieldProps
@@ -35,15 +35,42 @@ export function toFieldProps(compiled: CompiledField): FieldProps {
     props.dataSource = schema.dataSource
   }
 
-  /* 处理数据转换函数 */
-  if (schema.format && isFunction(schema.format)) {
-    props.format = schema.format as (value: unknown) => unknown
+  /*
+   * 处理数据转换函数。
+   *
+   * 支持两种写法：
+   * - 函数：直接透传
+   * - {{表达式}}：编译为函数，表达式中 $deps[0] 为传入值
+   */
+  if (schema.format) {
+    if (isFunction(schema.format)) {
+      props.format = schema.format as (value: unknown) => unknown
+    }
+    else if (isExpression(schema.format)) {
+      const expr = schema.format
+      props.format = ((value: unknown) =>
+        evaluateExpression(expr, { $deps: [value] })) as (value: unknown) => unknown
+    }
   }
-  if (schema.parse && isFunction(schema.parse)) {
-    props.parse = schema.parse as (value: unknown) => unknown
+  if (schema.parse) {
+    if (isFunction(schema.parse)) {
+      props.parse = schema.parse as (value: unknown) => unknown
+    }
+    else if (isExpression(schema.parse)) {
+      const expr = schema.parse
+      props.parse = ((value: unknown) =>
+        evaluateExpression(expr, { $deps: [value] })) as (value: unknown) => unknown
+    }
   }
-  if (schema.transform && isFunction(schema.transform)) {
-    props.transform = schema.transform as (value: unknown) => unknown
+  if (schema.transform) {
+    if (isFunction(schema.transform)) {
+      props.transform = schema.transform as (value: unknown) => unknown
+    }
+    else if (isExpression(schema.transform)) {
+      const expr = schema.transform
+      props.transform = ((value: unknown) =>
+        evaluateExpression(expr, { $deps: [value] })) as (value: unknown) => unknown
+    }
   }
 
   /*

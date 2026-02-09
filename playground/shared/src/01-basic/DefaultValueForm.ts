@@ -34,18 +34,12 @@ const config: SceneConfig = {
       unitPrice: { type: 'number', title: '单价', default: 99.9, componentProps: { min: 0, step: 0.1 } },
       totalPrice: {
         type: 'number', title: '总价（自动计算）', componentProps: { disabled: true }, description: '数量 × 单价',
-        reactions: [{ watch: ['quantity', 'unitPrice'], fulfill: { run: (field: any, ctx: any) => {
-          const q = (ctx.values.quantity as number) ?? 0
-          const p = (ctx.values.unitPrice as number) ?? 0
-          field.setValue(Math.round(q * p * 100) / 100)
-        } } }],
+        reactions: [{ watch: ['quantity', 'unitPrice'], fulfill: { value: '{{Math.round(($values.quantity || 0) * ($values.unitPrice || 0) * 100) / 100}}' } }],
       },
       level: { type: 'string', title: '会员等级', default: 'silver', enum: LEVEL_OPTIONS },
       discountRate: {
         type: 'number', title: '折扣率（%）', componentProps: { disabled: true }, description: '根据等级动态设置',
-        reactions: [{ watch: 'level', fulfill: { run: (field: any, ctx: any) => {
-          field.setValue(LEVEL_DISCOUNT_MAP[ctx.values.level as string] ?? 0)
-        } } }],
+        reactions: [{ watch: 'level', fulfill: { value: (_field: unknown, ctx: { values: Record<string, unknown> }): number => LEVEL_DISCOUNT_MAP[ctx.values.level as string] ?? 0 } }],
       },
     },
   },

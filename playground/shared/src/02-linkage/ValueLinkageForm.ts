@@ -4,6 +4,7 @@ import type { SceneConfig } from '../types'
  * 场景：值联动
  *
  * 覆盖：单向同步 / 格式转换 / 映射转换 / 多对一聚合
+ * 简单场景使用 {{表达式}}，需要外部映射的场景使用函数。
  */
 
 /** 国家选项 */
@@ -46,7 +47,7 @@ const config: SceneConfig = {
         type: 'string', title: '全名（自动拼接）', componentProps: { disabled: true },
         reactions: [{
           watch: ['firstName', 'lastName'],
-          fulfill: { run: (f: any, ctx: any) => { f.setValue(`${(ctx.values.firstName as string) ?? ''}${(ctx.values.lastName as string) ?? ''}`.trim()) } },
+          fulfill: { value: '{{(($values.firstName || "") + ($values.lastName || "")).trim()}}' },
         }],
       },
       rawInput: { type: 'string', title: '输入文本', componentProps: { placeholder: '输入任意文本' } },
@@ -54,31 +55,32 @@ const config: SceneConfig = {
         type: 'string', title: '大写转换', componentProps: { disabled: true },
         reactions: [{
           watch: 'rawInput',
-          fulfill: { run: (f: any, ctx: any) => { f.setValue(((ctx.values.rawInput as string) ?? '').toUpperCase()) } },
+          fulfill: { value: '{{($values.rawInput || "").toUpperCase()}}' },
         }],
       },
       trimmed: {
         type: 'string', title: '去空格', componentProps: { disabled: true },
         reactions: [{
           watch: 'rawInput',
-          fulfill: { run: (f: any, ctx: any) => { f.setValue(((ctx.values.rawInput as string) ?? '').trim()) } },
+          fulfill: { value: '{{($values.rawInput || "").trim()}}' },
         }],
       },
       country: {
         type: 'string', title: '国家', default: 'china', enum: COUNTRY_OPTIONS,
       },
+      /* 映射转换：需要引用外部 JS 对象，保留函数写法 */
       areaCode: {
         type: 'string', title: '区号（自动）', componentProps: { disabled: true },
         reactions: [{
           watch: 'country',
-          fulfill: { run: (f: any, ctx: any) => { f.setValue(COUNTRY_CODE[ctx.values.country as string] ?? '') } },
+          fulfill: { value: (_field: unknown, ctx: { values: Record<string, unknown> }): string => COUNTRY_CODE[ctx.values.country as string] ?? '' },
         }],
       },
       currency: {
         type: 'string', title: '货币（自动）', componentProps: { disabled: true },
         reactions: [{
           watch: 'country',
-          fulfill: { run: (f: any, ctx: any) => { f.setValue(COUNTRY_CURRENCY[ctx.values.country as string] ?? '') } },
+          fulfill: { value: (_field: unknown, ctx: { values: Record<string, unknown> }): string => COUNTRY_CURRENCY[ctx.values.country as string] ?? '' },
         }],
       },
       province: { type: 'string', title: '省', componentProps: { placeholder: '省' } },
@@ -88,7 +90,7 @@ const config: SceneConfig = {
         type: 'string', title: '完整地址（聚合）', componentProps: { disabled: true },
         reactions: [{
           watch: ['province', 'city', 'district'],
-          fulfill: { run: (f: any, ctx: any) => { f.setValue([ctx.values.province, ctx.values.city, ctx.values.district].filter(Boolean).join(' ')) } },
+          fulfill: { value: '{{[$values.province, $values.city, $values.district].filter(Boolean).join(" ")}}' },
         }],
       },
     },

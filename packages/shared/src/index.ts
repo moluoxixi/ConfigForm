@@ -1,6 +1,7 @@
 export * from './clone'
 export * from './debounce'
 export * from './dependency-graph'
+export * from './expression'
 export * from './is'
 export * from './merge'
 export * from './path'

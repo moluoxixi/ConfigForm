@@ -3,10 +3,8 @@ import type { SceneConfig } from '../types'
 /**
  * 场景：Schema 表达式
  *
- * 演示 reactions 表达式驱动的字段联动能力，类似 Formily 的 x-reactions 模式。
- * - watch + when + fulfill/otherwise 条件联动
- * - value 表达式自动计算字段值
- * - state 表达式控制字段状态
+ * 演示 {{表达式}} 驱动的字段联动能力。
+ * 全部使用字符串表达式，Schema 可纯 JSON 序列化。
  */
 
 /** 订单类型选项 */
@@ -24,7 +22,7 @@ const INVOICE_TYPE_OPTIONS = [
 
 const config: SceneConfig = {
   title: 'Schema 表达式',
-  description: '通过 reactions 表达式驱动的 Schema 联动 — 条件显隐 / 自动计算 / 状态控制',
+  description: '通过 {{表达式}} 驱动的 Schema 联动 — 条件显隐 / 自动计算 / 状态控制',
 
   initialValues: {
     orderType: 'normal',
@@ -58,15 +56,15 @@ const config: SceneConfig = {
         title: '加急费用',
         componentProps: { min: 0 },
         reactions: [{
-          watch: 'orderType',
-          when: (field: unknown, ctx: { values: Record<string, unknown> }): boolean => ctx.values.orderType === 'urgent',
+          watch: ['orderType', 'amount'],
+          when: '{{$values.orderType === "urgent"}}',
           fulfill: {
             state: { visible: true },
-            value: (field: unknown, ctx: { values: Record<string, unknown> }): number => Math.round((ctx.values.amount as number ?? 0) * 0.2),
+            value: '{{Math.round(($values.amount || 0) * 0.2)}}',
           },
           otherwise: {
             state: { visible: false },
-            value: (): number => 0,
+            value: 0,
           },
         }],
       },
@@ -77,10 +75,7 @@ const config: SceneConfig = {
         componentProps: { disabled: true },
         reactions: [{
           watch: ['amount', 'urgentFee'],
-          fulfill: {
-            value: (field: unknown, ctx: { values: Record<string, unknown> }): number =>
-              (ctx.values.amount as number ?? 0) + (ctx.values.urgentFee as number ?? 0),
-          },
+          fulfill: { value: '{{($values.amount || 0) + ($values.urgentFee || 0)}}' },
         }],
       },
       needInvoice: {
@@ -94,7 +89,7 @@ const config: SceneConfig = {
         visible: false,
         reactions: [{
           watch: 'needInvoice',
-          when: (field: unknown, ctx: { values: Record<string, unknown> }): boolean => ctx.values.needInvoice === true,
+          when: '{{$values.needInvoice === true}}',
           fulfill: { state: { visible: true, required: true } },
           otherwise: { state: { visible: false, required: false } },
         }],
@@ -107,7 +102,7 @@ const config: SceneConfig = {
         enum: INVOICE_TYPE_OPTIONS,
         reactions: [{
           watch: 'needInvoice',
-          when: (field: unknown, ctx: { values: Record<string, unknown> }): boolean => ctx.values.needInvoice === true,
+          when: '{{$values.needInvoice === true}}',
           fulfill: { state: { visible: true } },
           otherwise: { state: { visible: false } },
         }],
@@ -119,8 +114,7 @@ const config: SceneConfig = {
         visible: false,
         reactions: [{
           watch: ['needInvoice', 'invoiceType'],
-          when: (field: unknown, ctx: { values: Record<string, unknown> }): boolean =>
-            ctx.values.needInvoice === true && ctx.values.invoiceType === 'company',
+          when: '{{$values.needInvoice === true && $values.invoiceType === "company"}}',
           fulfill: { state: { visible: true, required: true }, componentProps: { placeholder: '请输入税号' } },
           otherwise: { state: { visible: false, required: false } },
         }],

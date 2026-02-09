@@ -58,8 +58,10 @@ export const sceneRegistry: Record<string, { group: string, loader: () => Promis
   /* 07-dynamic — 动态表单（1 个，保留有实际交互的） */
   DynamicFieldForm: { group: '07-dynamic', loader: () => import('./07-dynamic/DynamicFieldForm') },
 
-  /* 08-advanced — 进阶能力（3 个，保留有 reactions/decorator 等实际实现的） */
+  /* 08-advanced — 进阶能力（5 个，保留有 reactions/decorator 等实际实现的） */
   SchemaExpressionForm: { group: '08-advanced', loader: () => import('./11-advanced/SchemaExpressionForm') },
+  ExpressionEngineForm: { group: '08-advanced', loader: () => import('./11-advanced/ExpressionEngineForm') },
+  SchemaRefForm: { group: '08-advanced', loader: () => import('./11-advanced/SchemaRefForm') },
   EffectsForm: { group: '08-advanced', loader: () => import('./11-advanced/EffectsForm') },
   CustomDecoratorForm: { group: '08-advanced', loader: () => import('./11-advanced/CustomDecoratorForm') },
 }

@@ -99,8 +99,14 @@ export interface ReactionRule {
    * 参考 Formily x-reactions.target。
    */
   target?: string
-  /** 条件判断：(field, ctx) => boolean */
-  when?: (field: FieldInstance, context: ReactionContext) => boolean
+  /**
+   * 条件判断。
+   *
+   * 支持两种写法：
+   * - 函数：`(field, ctx) => boolean`
+   * - 表达式字符串：`'{{$values.type === "advanced"}}'`（可 JSON 序列化）
+   */
+  when?: ((field: FieldInstance, context: ReactionContext) => boolean) | string
   /** 满足条件时执行 */
   fulfill?: ReactionEffect
   /** 不满足条件时执行 */
@@ -117,13 +123,32 @@ export interface ReactionContext {
   form: FormInstance
   /** 所有值 */
   values: Record<string, unknown>
+  /**
+   * 当前数组行记录。
+   * 仅当字段位于数组内时有值（如 contacts.0.name 中，record 为 contacts[0] 对象）。
+   */
+  record?: Record<string, unknown>
+  /**
+   * 当前数组索引。
+   * 仅当字段位于数组内时有值（如 contacts.0.name 中，index 为 0）。
+   */
+  index?: number
+  /** watch 路径对应的当前依赖值数组 */
+  deps?: unknown[]
 }
 
 /** 联动效果 */
 export interface ReactionEffect {
   /** 更新字段状态 */
   state?: Partial<FieldStateUpdate>
-  /** 设置值：静态值或 (field, ctx) => 计算值 */
+  /**
+   * 设置值。
+   *
+   * 支持三种写法：
+   * - 静态值：`42`、`'hello'`
+   * - 函数：`(field, ctx) => ctx.values.price * ctx.values.qty`
+   * - 表达式字符串：`'{{$values.price * $values.qty}}'`（可 JSON 序列化）
+   */
   value?: unknown | ((field: FieldInstance, ctx: ReactionContext) => unknown)
   /** 更新组件 Props */
   componentProps?: Record<string, unknown>
@@ -131,8 +156,14 @@ export interface ReactionEffect {
   component?: string
   /** 动态数据源 */
   dataSource?: DataSourceConfig | DataSourceItem[]
-  /** 自定义执行函数 */
-  run?: (field: FieldInstance, context: ReactionContext) => void
+  /**
+   * 自定义执行函数。
+   *
+   * 支持两种写法：
+   * - 函数：`(field, ctx) => { ... }`
+   * - 表达式字符串：`'{{$self.setValue($values.a + $values.b)}}'`（可 JSON 序列化）
+   */
+  run?: ((field: FieldInstance, context: ReactionContext) => void) | string
 }
 
 /* ======================== 数据源 ======================== */

@@ -4,6 +4,7 @@ import type { SceneConfig } from '../types'
  * 场景：属性联动
  *
  * 覆盖：动态 disabled / required / placeholder / componentProps
+ * 使用 {{表达式}} + 多条件 reactions 替代复杂 run 函数。
  */
 
 /** 联系方式类型选项 */
@@ -38,7 +39,7 @@ const config: SceneConfig = {
         componentProps: { placeholder: '请先开启' }, disabled: true,
         reactions: [{
           watch: 'enableRemark',
-          when: (v: any) => v[0] === true,
+          when: '{{$values.enableRemark === true}}',
           fulfill: { state: { disabled: false } },
           otherwise: { state: { disabled: true } },
         }],
@@ -46,25 +47,27 @@ const config: SceneConfig = {
       contactType: {
         type: 'string', title: '联系方式类型', default: 'phone', enum: CONTACT_TYPE_OPTIONS,
       },
+      /* 使用多条件 reactions 替代复杂 run 函数 */
       contactValue: {
         type: 'string', title: '联系方式', required: true,
         componentProps: { placeholder: '请输入手机号' },
-        reactions: [{
-          watch: 'contactType',
-          fulfill: {
-            run: (f: any, ctx: any) => {
-              const t = ctx.values.contactType as string
-              const c: Record<string, { placeholder: string; required: boolean }> = {
-                phone: { placeholder: '11 位手机号', required: true },
-                email: { placeholder: '邮箱地址', required: true },
-                wechat: { placeholder: '微信号（选填）', required: false },
-              }
-              const cfg = c[t] ?? { placeholder: '请输入', required: false }
-              f.setComponentProps({ placeholder: cfg.placeholder })
-              f.required = cfg.required
-            },
+        reactions: [
+          {
+            watch: 'contactType',
+            when: '{{$values.contactType === "phone"}}',
+            fulfill: { state: { required: true }, componentProps: { placeholder: '11 位手机号' } },
           },
-        }],
+          {
+            watch: 'contactType',
+            when: '{{$values.contactType === "email"}}',
+            fulfill: { state: { required: true }, componentProps: { placeholder: '邮箱地址' } },
+          },
+          {
+            watch: 'contactType',
+            when: '{{$values.contactType === "wechat"}}',
+            fulfill: { state: { required: false }, componentProps: { placeholder: '微信号（选填）' } },
+          },
+        ],
       },
       productType: {
         type: 'string', title: '产品类型', component: 'RadioGroup',
@@ -74,13 +77,9 @@ const config: SceneConfig = {
         type: 'number', title: '数量', default: 1, description: '根据产品类型调整 step',
         reactions: [{
           watch: 'productType',
-          fulfill: {
-            run: (f: any, ctx: any) => {
-              f.setComponentProps(ctx.values.productType === 'weight'
-                ? { min: 0.01, step: 0.01, addonAfter: 'kg' }
-                : { min: 1, step: 1, addonAfter: '件' })
-            },
-          },
+          when: '{{$values.productType === "weight"}}',
+          fulfill: { componentProps: { min: 0.01, step: 0.01, addonAfter: 'kg' } },
+          otherwise: { componentProps: { min: 1, step: 1, addonAfter: '件' } },
         }],
       },
       isVip: { type: 'boolean', title: 'VIP 用户', default: false, description: '开启后公司名称和工号必填' },
@@ -88,7 +87,7 @@ const config: SceneConfig = {
         type: 'string', title: '公司名称', componentProps: { placeholder: 'VIP 必填' },
         reactions: [{
           watch: 'isVip',
-          when: (v: any) => v[0] === true,
+          when: '{{$values.isVip === true}}',
           fulfill: { state: { required: true } },
           otherwise: { state: { required: false } },
         }],
@@ -97,7 +96,7 @@ const config: SceneConfig = {
         type: 'string', title: '工号', componentProps: { placeholder: 'VIP 必填' },
         reactions: [{
           watch: 'isVip',
-          when: (v: any) => v[0] === true,
+          when: '{{$values.isVip === true}}',
           fulfill: { state: { required: true } },
           otherwise: { state: { required: false } },
         }],

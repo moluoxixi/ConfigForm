@@ -4,6 +4,7 @@ import type { SceneConfig } from '../types'
  * 场景：条件必填
  *
  * 覆盖：开关控制必填 / 金额阈值 / 选择「其他」必填 / 多条件组合
+ * 全部使用 {{表达式}} 语法。
  */
 
 /** 金额阈值：超过此值需要填写审批人 */
@@ -36,7 +37,7 @@ const config: SceneConfig = {
         type: 'string', title: '发票抬头',
         reactions: [{
           watch: 'needInvoice',
-          when: (v: any) => v[0] === true,
+          when: '{{$values.needInvoice === true}}',
           fulfill: { state: { required: true } },
           otherwise: { state: { required: false } },
         }],
@@ -45,7 +46,7 @@ const config: SceneConfig = {
         type: 'string', title: '纳税人识别号',
         reactions: [{
           watch: 'needInvoice',
-          when: (v: any) => v[0] === true,
+          when: '{{$values.needInvoice === true}}',
           fulfill: { state: { required: true } },
           otherwise: { state: { required: false } },
         }],
@@ -59,13 +60,9 @@ const config: SceneConfig = {
         type: 'string', title: '审批人',
         reactions: [{
           watch: 'amount',
-          fulfill: {
-            run: (f: any, ctx: any) => {
-              const a = (ctx.values.amount as number) ?? 0
-              f.required = a > THRESHOLD
-              f.setComponentProps({ placeholder: a > THRESHOLD ? '必须填写审批人' : '选填' })
-            },
-          },
+          when: `{{($values.amount || 0) > ${THRESHOLD}}}`,
+          fulfill: { state: { required: true }, componentProps: { placeholder: '必须填写审批人' } },
+          otherwise: { state: { required: false }, componentProps: { placeholder: '选填' } },
         }],
       },
       leaveType: {
@@ -73,10 +70,10 @@ const config: SceneConfig = {
         default: 'annual', enum: LEAVE_TYPE_OPTIONS,
       },
       leaveReason: {
-        type: 'string', title: '请假原因', component: 'Textarea', placeholder: '选择其他时必填',
+        type: 'string', title: '请假原因', component: 'Textarea',
         reactions: [{
           watch: 'leaveType',
-          when: (v: any) => v[0] === 'other',
+          when: '{{$values.leaveType === "other"}}',
           fulfill: { state: { required: true } },
           otherwise: { state: { required: false } },
         }],
@@ -87,11 +84,9 @@ const config: SceneConfig = {
         type: 'string', title: '保险单号', description: '海外且>3天必填',
         reactions: [{
           watch: ['isOverseas', 'travelDays'],
-          fulfill: {
-            run: (f: any, ctx: any) => {
-              f.required = (ctx.values.isOverseas as boolean) && ((ctx.values.travelDays as number) ?? 0) > 3
-            },
-          },
+          when: '{{$values.isOverseas === true && ($values.travelDays || 0) > 3}}',
+          fulfill: { state: { required: true } },
+          otherwise: { state: { required: false } },
         }],
       },
     },

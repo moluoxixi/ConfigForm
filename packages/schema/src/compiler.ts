@@ -5,6 +5,7 @@ import type {
   ISchema,
 } from './types'
 import { isArray, isObject } from '@moluoxixi/shared'
+import { resolveSchemaRefs } from './ref-resolver'
 
 /** 默认类型 → 组件映射 */
 export const DEFAULT_COMPONENT_MAPPING: Record<string, string> = {
@@ -150,6 +151,7 @@ function compileNode(
  * 编译 ISchema
  *
  * 将声明式 Schema 树转为扁平化的编译结果：
+ * - $ref 解析（definitions 引用替换为实际 Schema）
  * - address / dataPath 分离（void 节点不参与数据路径）
  * - 组件推断（type/enum → 组件名）
  * - 装饰器推断（非 void 默认 FormItem）
@@ -162,8 +164,15 @@ export function compileSchema(schema: ISchema, options?: CompileOptions): Compil
   const fields = new Map<string, CompiledField>()
   const fieldOrder: string[] = []
 
-  if (schema.properties) {
-    const entries = Object.entries(schema.properties)
+  /*
+   * 编译前先解析所有 $ref 引用。
+   * resolveSchemaRefs 会递归遍历 Schema 树，将 $ref 替换为 definitions 中的实际定义。
+   * 这样后续编译逻辑无需关心 $ref，处理的都是已展开的完整 Schema。
+   */
+  const resolvedSchema = resolveSchemaRefs(schema)
+
+  if (resolvedSchema.properties) {
+    const entries = Object.entries(resolvedSchema.properties)
     entries.sort(([, a], [, b]) => (a.order ?? 0) - (b.order ?? 0))
     for (const [name, childSchema] of entries) {
       compileNode(name, childSchema, '', '', mapping, defaultDecorator, fields, fieldOrder)
@@ -171,7 +180,7 @@ export function compileSchema(schema: ISchema, options?: CompileOptions): Compil
   }
 
   return {
-    root: schema,
+    root: resolvedSchema,
     fields,
     fieldOrder,
   }

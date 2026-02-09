@@ -106,7 +106,7 @@ const config: SceneConfig = {
           theme: { type: 'string', title: '主题', component: 'RadioGroup', default: 'light', enum: THEME_OPTIONS },
           customColor: {
             type: 'string', title: '自定义颜色', visible: false,
-            reactions: [{ watch: 'theme', when: (v: unknown[]) => v[0] === 'custom', fulfill: { state: { visible: true, required: true } }, otherwise: { state: { visible: false, required: false } } }],
+            reactions: [{ watch: 'theme', when: '{{$values.theme === "custom"}}', fulfill: { state: { visible: true, required: true } }, otherwise: { state: { visible: false, required: false } } }],
           },
           emailNotify: { type: 'boolean', title: '邮件通知' },
           smsNotify: { type: 'boolean', title: '短信通知' },

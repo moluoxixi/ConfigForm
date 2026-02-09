@@ -4,6 +4,7 @@ import type { SceneConfig } from '../types'
  * 场景：显隐联动
  *
  * 覆盖：用户类型切换 / 开关控制多字段 / 嵌套显隐
+ * 全部使用 {{表达式}} 语法，Schema 可纯 JSON 序列化。
  */
 
 /** 用户类型选项 */
@@ -40,48 +41,48 @@ const config: SceneConfig = {
       realName: {
         type: 'string', title: '真实姓名', required: true,
         componentProps: { placeholder: '请输入' }, excludeWhenHidden: true,
-        reactions: [{ watch: 'userType', when: (v: any) => v[0] === 'personal', fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }],
+        reactions: [{ watch: 'userType', when: '{{$values.userType === "personal"}}', fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }],
       },
       idCard: {
         type: 'string', title: '身份证号',
         componentProps: { placeholder: '18 位' }, excludeWhenHidden: true,
         rules: [{ pattern: /^\d{17}[\dX]$/i, message: '无效身份证' }],
-        reactions: [{ watch: 'userType', when: (v: any) => v[0] === 'personal', fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }],
+        reactions: [{ watch: 'userType', when: '{{$values.userType === "personal"}}', fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }],
       },
       companyName: {
         type: 'string', title: '公司名称', required: true,
         componentProps: { placeholder: '请输入' }, visible: false, excludeWhenHidden: true,
-        reactions: [{ watch: 'userType', when: (v: any) => v[0] === 'business', fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }],
+        reactions: [{ watch: 'userType', when: '{{$values.userType === "business"}}', fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }],
       },
       taxNumber: {
         type: 'string', title: '税号',
         componentProps: { placeholder: '请输入' }, visible: false, excludeWhenHidden: true,
-        reactions: [{ watch: 'userType', when: (v: any) => v[0] === 'business', fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }],
+        reactions: [{ watch: 'userType', when: '{{$values.userType === "business"}}', fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }],
       },
       enableNotify: { type: 'boolean', title: '开启通知', default: false },
       notifyEmail: {
         type: 'string', title: '通知邮箱',
         componentProps: { placeholder: '邮箱' }, visible: false, excludeWhenHidden: true,
         rules: [{ format: 'email', message: '无效邮箱' }],
-        reactions: [{ watch: 'enableNotify', when: (v: any) => v[0] === true, fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }],
+        reactions: [{ watch: 'enableNotify', when: '{{$values.enableNotify === true}}', fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }],
       },
       notifyFrequency: {
         type: 'string', title: '通知频率', visible: false, excludeWhenHidden: true,
         enum: FREQUENCY_OPTIONS,
-        reactions: [{ watch: 'enableNotify', when: (v: any) => v[0] === true, fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }],
+        reactions: [{ watch: 'enableNotify', when: '{{$values.enableNotify === true}}', fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }],
       },
       hasAddress: { type: 'boolean', title: '填写地址', default: false },
       city: {
         type: 'string', title: '城市', visible: false, excludeWhenHidden: true,
-        reactions: [{ watch: 'hasAddress', when: (v: any) => v[0] === true, fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }],
+        reactions: [{ watch: 'hasAddress', when: '{{$values.hasAddress === true}}', fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }],
       },
       hasDetailAddress: {
         type: 'boolean', title: '填写详细地址', visible: false, default: false,
-        reactions: [{ watch: 'hasAddress', when: (v: any) => v[0] === true, fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }],
+        reactions: [{ watch: 'hasAddress', when: '{{$values.hasAddress === true}}', fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }],
       },
       detailAddress: {
         type: 'string', title: '详细地址', component: 'Textarea', visible: false, excludeWhenHidden: true,
-        reactions: [{ watch: ['hasAddress', 'hasDetailAddress'], when: (v: any) => v[0] === true && v[1] === true, fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }],
+        reactions: [{ watch: ['hasAddress', 'hasDetailAddress'], when: '{{$values.hasAddress === true && $values.hasDetailAddress === true}}', fulfill: { state: { visible: true } }, otherwise: { state: { visible: false } } }],
       },
     },
   },

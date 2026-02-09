@@ -4,6 +4,7 @@ import type { SceneConfig } from '../types'
  * 场景：计算字段
  *
  * 覆盖：乘法（单价×数量） / 百分比 / 聚合 / 条件计算
+ * 全部使用 {{表达式}} 的 value 语法替代 run 函数。
  */
 
 /** 计税方式选项 */
@@ -34,11 +35,7 @@ const config: SceneConfig = {
         componentProps: { disabled: true, style: { width: '100%' } },
         reactions: [{
           watch: ['unitPrice', 'quantity'],
-          fulfill: {
-            run: (f: any, ctx: any) => {
-              f.setValue(Math.round(((ctx.values.unitPrice as number) ?? 0) * ((ctx.values.quantity as number) ?? 0) * 100) / 100)
-            },
-          },
+          fulfill: { value: '{{Math.round(($values.unitPrice || 0) * ($values.quantity || 0) * 100) / 100}}' },
         }],
       },
       originalPrice: { type: 'number', title: '原价', default: 500, componentProps: { min: 0, style: { width: '100%' } } },
@@ -48,11 +45,7 @@ const config: SceneConfig = {
         componentProps: { disabled: true, style: { width: '100%' } },
         reactions: [{
           watch: ['originalPrice', 'discountRate'],
-          fulfill: {
-            run: (f: any, ctx: any) => {
-              f.setValue(Math.round(((ctx.values.originalPrice as number) ?? 0) * (1 - ((ctx.values.discountRate as number) ?? 0) / 100) * 100) / 100)
-            },
-          },
+          fulfill: { value: '{{Math.round(($values.originalPrice || 0) * (1 - ($values.discountRate || 0) / 100) * 100) / 100}}' },
         }],
       },
       scoreA: { type: 'number', title: '科目 A', default: 85, componentProps: { min: 0, max: 100, style: { width: '100%' } } },
@@ -63,11 +56,7 @@ const config: SceneConfig = {
         componentProps: { disabled: true, style: { width: '100%' } },
         reactions: [{
           watch: ['scoreA', 'scoreB', 'scoreC'],
-          fulfill: {
-            run: (f: any, ctx: any) => {
-              f.setValue(((ctx.values.scoreA as number) ?? 0) + ((ctx.values.scoreB as number) ?? 0) + ((ctx.values.scoreC as number) ?? 0))
-            },
-          },
+          fulfill: { value: '{{($values.scoreA || 0) + ($values.scoreB || 0) + ($values.scoreC || 0)}}' },
         }],
       },
       avgScore: {
@@ -75,12 +64,7 @@ const config: SceneConfig = {
         componentProps: { disabled: true, style: { width: '100%' } },
         reactions: [{
           watch: ['scoreA', 'scoreB', 'scoreC'],
-          fulfill: {
-            run: (f: any, ctx: any) => {
-              const sum = ((ctx.values.scoreA as number) ?? 0) + ((ctx.values.scoreB as number) ?? 0) + ((ctx.values.scoreC as number) ?? 0)
-              f.setValue(Math.round(sum / 3 * 100) / 100)
-            },
-          },
+          fulfill: { value: '{{Math.round((($values.scoreA || 0) + ($values.scoreB || 0) + ($values.scoreC || 0)) / 3 * 100) / 100}}' },
         }],
       },
       calcType: {
@@ -94,13 +78,7 @@ const config: SceneConfig = {
         reactions: [{
           watch: ['calcType', 'amount'],
           fulfill: {
-            run: (f: any, ctx: any) => {
-              const t = ctx.values.calcType as string
-              const a = (ctx.values.amount as number) ?? 0
-              f.setValue(t === 'inclusive'
-                ? Math.round(a / 1.13 * 0.13 * 100) / 100
-                : Math.round(a * 0.13 * 100) / 100)
-            },
+            value: '{{$values.calcType === "inclusive" ? Math.round(($values.amount || 0) / 1.13 * 0.13 * 100) / 100 : Math.round(($values.amount || 0) * 0.13 * 100) / 100}}',
           },
         }],
       },

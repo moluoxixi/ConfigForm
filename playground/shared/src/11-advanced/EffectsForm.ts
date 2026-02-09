@@ -3,15 +3,14 @@ import type { SceneConfig } from '../types'
 /**
  * 场景：Effects 副作用联动
  *
- * 演示 createForm({ effects }) 实现字段间自动联动计算。
- * - onFieldValueChange 监听单价/数量变化 → 自动计算总价
+ * 演示 reactions + {{表达式}} 实现字段间自动联动计算。
+ * - 监听单价/数量变化 → 自动计算总价
  * - 折扣变化 → 自动计算实付金额
- * - onValuesChange 监听所有值变化
  */
 
 const config: SceneConfig = {
   title: 'Effects 副作用联动',
-  description: 'createForm({ effects }) 实现字段联动计算 — onFieldValueChange / onValuesChange',
+  description: 'reactions + {{表达式}} 实现字段联动计算',
 
   initialValues: {
     unitPrice: 100,
@@ -33,10 +32,7 @@ const config: SceneConfig = {
         componentProps: { disabled: true },
         reactions: [{
           watch: ['unitPrice', 'quantity'],
-          fulfill: {
-            value: (field: unknown, ctx: { values: Record<string, unknown> }): number =>
-              ((ctx.values.unitPrice as number) ?? 0) * ((ctx.values.quantity as number) ?? 0),
-          },
+          fulfill: { value: '{{($values.unitPrice || 0) * ($values.quantity || 0)}}' },
         }],
       },
       discount: { type: 'number', title: '折扣(%)', componentProps: { min: 0, max: 100 } },
@@ -46,10 +42,7 @@ const config: SceneConfig = {
         componentProps: { disabled: true },
         reactions: [{
           watch: ['totalPrice', 'discount'],
-          fulfill: {
-            value: (field: unknown, ctx: { values: Record<string, unknown> }): number =>
-              ((ctx.values.totalPrice as number) ?? 0) * (1 - ((ctx.values.discount as number) ?? 0) / 100),
-          },
+          fulfill: { value: '{{($values.totalPrice || 0) * (1 - ($values.discount || 0) / 100)}}' },
         }],
       },
     },
