@@ -7,14 +7,42 @@ import type { DirtyCheckerPluginAPI, LowerCodePluginAPI } from '@moluoxixi/plugi
  * 场景：表单比对
  *
  * 演示 lowerCodePlugin.dirtyChecker 的实际对比能力：
- * - 修改任意字段后，diff 日志实时更新
- * - 显示哪些字段被修改、原始值 vs 当前值
- * - 统计脏字段数量
+ * - 修改任意字段后，diff 视图实时更新
+ * - 表格化纯文本展示：字段 | 原始值 → 当前值 | 状态
  */
+
+/** 字段路径 → 中文标签映射 */
+const FIELD_LABELS: Record<string, string> = {
+  name: '姓名',
+  email: '邮箱',
+  phone: '电话',
+  salary: '薪资',
+  department: '部门',
+  bio: '简介',
+}
+
+/** 变更类型标记 */
+const TYPE_ICONS: Record<string, string> = {
+  changed: '✏️',
+  added: '➕',
+  removed: '❌',
+}
+
+function formatVal(val: unknown): string {
+  if (val === undefined || val === null) return '—'
+  if (typeof val === 'string' && val === '') return '(空)'
+  return String(val)
+}
+
+function padRight(str: string, len: number): string {
+  const cjkCount = str.split('').filter(c => c.charCodeAt(0) > 127).length
+  const totalLen = str.length + cjkCount
+  return str + ' '.repeat(Math.max(0, len - totalLen))
+}
 
 const config: SceneConfig = {
   title: '表单比对',
-  description: 'dirtyChecker — 修改字段后查看 diff 日志（实时对比）',
+  description: 'dirtyChecker — 修改字段后实时对比变更',
 
   initialValues: {
     name: '张三',
@@ -27,10 +55,6 @@ const config: SceneConfig = {
   },
 
   effects: (form: FormInstance): void => {
-    /**
-     * 监听所有字段值变化，每次变化后调用 dirtyChecker.check()，
-     * 将 diff 结果写入 _diffLog 字段展示。
-     */
     form.onValuesChange(() => {
       setTimeout(() => {
         const lc = form.getPlugin<LowerCodePluginAPI>('lower-code')
@@ -38,24 +62,26 @@ const config: SceneConfig = {
         if (!checker) return
 
         const result = checker.check()
-        const lines: string[] = []
+        /* 过滤掉 _diffLog 自身 */
+        const diffs = result.diffs.filter(d => !d.path.startsWith('_'))
 
-        lines.push(`=== 表单比对结果 ===`)
-        lines.push(`是否有修改: ${result.isDirty ? '是' : '否'}`)
-        lines.push(`脏字段数量: ${result.diffs.length}`)
+        if (diffs.length === 0) {
+          const logField = form.getField('_diffLog')
+          if (logField) logField.setValue('✅ 无变更')
+          return
+        }
+
+        const lines: string[] = []
+        lines.push(`📋 对比结果（${diffs.length} 处变更）`)
+        lines.push('─'.repeat(50))
         lines.push('')
 
-        if (result.diffs.length > 0) {
-          lines.push('--- 变更详情 ---')
-          for (const diff of result.diffs) {
-            lines.push(`字段: ${diff.path}`)
-            lines.push(`  类型: ${diff.type}`)
-            lines.push(`  原始值: ${JSON.stringify(diff.oldValue)}`)
-            lines.push(`  当前值: ${JSON.stringify(diff.newValue)}`)
-            lines.push('')
-          }
-        } else {
-          lines.push('（无变更）')
+        for (const diff of diffs) {
+          const label = FIELD_LABELS[diff.path] ?? diff.path
+          const icon = TYPE_ICONS[diff.type] ?? '?'
+          lines.push(`${icon} ${label}`)
+          lines.push(`   ${formatVal(diff.initialValue)}  →  ${formatVal(diff.currentValue)}`)
+          lines.push('')
         }
 
         const logField = form.getField('_diffLog')
@@ -81,8 +107,8 @@ const config: SceneConfig = {
         title: '对比结果',
         component: 'Textarea',
         readOnly: true,
-        componentProps: { rows: 12, style: 'font-family: monospace; font-size: 12px' },
-        description: '修改上方任意字段后，这里实时显示 diff 结果',
+        componentProps: { rows: 10, style: 'font-family: monospace; font-size: 13px; background: #1a1a2e; color: #e0e0e0; padding: 12px; border-radius: 8px; border: none; line-height: 1.6' },
+        description: '修改上方任意字段后，实时显示 diff 结果',
       },
     },
   },
