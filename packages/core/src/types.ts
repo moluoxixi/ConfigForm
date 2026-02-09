@@ -7,6 +7,7 @@ import type {
   FieldStateUpdate,
 } from '@moluoxixi/shared'
 import type { ValidationFeedback, ValidationRule, ValidationTrigger } from '@moluoxixi/validator'
+import type { FormEvent, FormEventHandler, FormLifeCycle } from './events'
 
 /* ======================== 字段属性 ======================== */
 
@@ -89,8 +90,8 @@ export interface VoidFieldProps {
 export interface ReactionRule {
   /** 监听的字段路径（支持通配符） */
   watch: string | string[]
-  /** 条件判断 */
-  when?: (watchedValues: unknown[], context: ReactionContext) => boolean
+  /** 条件判断：(field, ctx) => boolean */
+  when?: (field: FieldInstance, context: ReactionContext) => boolean
   /** 满足条件时执行 */
   fulfill?: ReactionEffect
   /** 不满足条件时执行 */
@@ -113,8 +114,8 @@ export interface ReactionContext {
 export interface ReactionEffect {
   /** 更新字段状态 */
   state?: Partial<FieldStateUpdate>
-  /** 设置值 */
-  value?: unknown | ((ctx: ReactionContext) => unknown)
+  /** 设置值：静态值或 (field, ctx) => 计算值 */
+  value?: unknown | ((field: FieldInstance, ctx: ReactionContext) => unknown)
   /** 更新组件 Props */
   componentProps?: Record<string, unknown>
   /** 切换组件 */
@@ -250,6 +251,10 @@ export interface FormInstance<Values extends Record<string, unknown> = Record<st
   notifyValuesChange: () => void
   /** 通知字段值变化（供 Field 内部调用） */
   notifyFieldValueChange: (path: string, value: unknown) => void
+  /** 订阅特定生命周期事件 */
+  on: (type: FormLifeCycle, handler: FormEventHandler) => Disposer
+  /** 订阅所有生命周期事件 */
+  subscribe: (handler: FormEventHandler) => Disposer
   batch: (fn: () => void) => void
   dispose: () => void
 }

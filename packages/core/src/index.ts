@@ -1,6 +1,10 @@
 /* 工厂函数 */
 export { createForm } from './createForm'
 
+/* 事件系统 */
+export { FormEventEmitter, FormLifeCycle } from './events'
+export type { FormEvent, FormEventHandler } from './events'
+
 /* 数据源 */
 export { clearDataSourceCache, fetchDataSource, registerRequestAdapter } from './datasource/manager'
 export { ArrayField } from './models/ArrayField'

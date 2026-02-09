@@ -14,6 +14,7 @@ import type {
 } from '../types'
 import { getReactiveAdapter } from '@moluoxixi/reactive'
 import { deepClone, deepMerge, FormPath, uid } from '@moluoxixi/shared'
+import { FormEventEmitter, FormLifeCycle } from '../events'
 import { ReactionEngine } from '../reaction/engine'
 import { ArrayField } from './ArrayField'
 import { Field } from './Field'
@@ -55,6 +56,8 @@ implements FormInstance<Values> {
   private fieldValueChangeHandlers = new Map<string, Array<(value: unknown) => void>>()
   /** 联动引擎 */
   private reactionEngine: ReactionEngine
+  /** 事件发射器（参考 Formily Heart） */
+  private _emitter = new FormEventEmitter()
   /** 释放器 */
   private disposers: Disposer[] = []
 
@@ -75,6 +78,8 @@ implements FormInstance<Values> {
     if (config.effects) {
       config.effects(this as unknown as FormInstance)
     }
+
+    this._emitter.emit(FormLifeCycle.ON_FORM_INIT, this)
   }
 
   /** 表单是否被修改 */
@@ -144,6 +149,7 @@ implements FormInstance<Values> {
       )
     }
 
+    this._emitter.emit(FormLifeCycle.ON_FIELD_INIT, field)
     return field as unknown as FieldInstance<V>
   }
 
@@ -365,6 +371,8 @@ implements FormInstance<Values> {
       }
     })
 
+    this._emitter.emit(FormLifeCycle.ON_FORM_RESET, this)
+
     if (options?.validate) {
       this.validate().catch(() => { /* 忽略 */ })
     }
@@ -373,6 +381,7 @@ implements FormInstance<Values> {
   /** 提交表单 */
   async submit(): Promise<SubmitResult<Values>> {
     this.submitting = true
+    this._emitter.emit(FormLifeCycle.ON_FORM_SUBMIT_START, this)
     try {
       const { valid, errors, warnings } = await this.validate()
       if (!valid) {
@@ -381,15 +390,20 @@ implements FormInstance<Values> {
           const firstErrorField = this.fields.get(errors[0].path)
           firstErrorField?.focus()
         }
-        return { values: this.values, errors, warnings }
+        const result = { values: this.values, errors, warnings }
+        this._emitter.emit(FormLifeCycle.ON_FORM_SUBMIT_FAILED, result)
+        return result
       }
 
       /* 收集提交数据（处理隐藏字段排除、路径映射、值转换） */
       const submitValues = this.collectSubmitValues()
-      return { values: submitValues as Values, errors: [], warnings }
+      const result = { values: submitValues as Values, errors: [], warnings }
+      this._emitter.emit(FormLifeCycle.ON_FORM_SUBMIT_SUCCESS, result)
+      return result
     }
     finally {
       this.submitting = false
+      this._emitter.emit(FormLifeCycle.ON_FORM_SUBMIT_END, this)
     }
   }
 
@@ -398,6 +412,7 @@ implements FormInstance<Values> {
     pattern?: string,
   ): Promise<{ valid: boolean, errors: ValidationFeedback[], warnings: ValidationFeedback[] }> {
     this.validating = true
+    this._emitter.emit(FormLifeCycle.ON_FORM_VALIDATE_START, this)
     const allErrors: ValidationFeedback[] = []
     const allWarnings: ValidationFeedback[] = []
 
@@ -416,11 +431,20 @@ implements FormInstance<Values> {
 
       await Promise.all(promises)
 
-      return {
+      const result = {
         valid: allErrors.length === 0,
         errors: allErrors,
         warnings: allWarnings,
       }
+
+      if (result.valid) {
+        this._emitter.emit(FormLifeCycle.ON_FORM_VALIDATE_SUCCESS, result)
+      }
+      else {
+        this._emitter.emit(FormLifeCycle.ON_FORM_VALIDATE_FAILED, result)
+      }
+
+      return result
     }
     finally {
       this.validating = false
@@ -453,6 +477,34 @@ implements FormInstance<Values> {
     }
   }
 
+  /**
+   * 订阅特定生命周期事件
+   *
+   * @example
+   * ```ts
+   * form.on(FormLifeCycle.ON_FORM_SUBMIT_SUCCESS, ({ payload }) => {
+   *   console.log('提交成功:', payload)
+   * })
+   * ```
+   */
+  on(type: FormLifeCycle, handler: (event: { type: FormLifeCycle, payload: unknown }) => void): Disposer {
+    return this._emitter.on(type, handler)
+  }
+
+  /**
+   * 订阅所有生命周期事件
+   *
+   * @example
+   * ```ts
+   * form.subscribe(({ type, payload }) => {
+   *   console.log('事件:', type, payload)
+   * })
+   * ```
+   */
+  subscribe(handler: (event: { type: FormLifeCycle, payload: unknown }) => void): Disposer {
+    return this._emitter.subscribe(handler)
+  }
+
   /** 批量操作 */
   batch(fn: () => void): void {
     const adapter = getReactiveAdapter()
@@ -477,6 +529,7 @@ implements FormInstance<Values> {
     this.valuesChangeHandlers = []
     this.fieldValueChangeHandlers.clear()
     this.disposers = []
+    this._emitter.clear()
   }
 
   /** 收集提交数据 */
@@ -528,6 +581,7 @@ implements FormInstance<Values> {
     for (const handler of this.valuesChangeHandlers) {
       handler(this.values)
     }
+    this._emitter.emit(FormLifeCycle.ON_FORM_VALUES_CHANGE, this.values)
   }
 
   /** 通知字段值变化（供 Field.setValue 调用） */
@@ -538,5 +592,6 @@ implements FormInstance<Values> {
         handler(value)
       }
     }
+    this._emitter.emit(FormLifeCycle.ON_FIELD_VALUE_CHANGE, { path, value })
   }
 }
