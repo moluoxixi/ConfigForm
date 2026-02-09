@@ -57,7 +57,7 @@ import { getSceneGroups, sceneRegistry } from '@playground/shared'
 import { DevToolsPanel } from '@moluoxixi/plugin-devtools-vue'
 import { defineComponent, h, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
 
-/** DevTools 浮动面板包装器：从全局 Hook 获取 API */
+/** DevTools 浮动面板包装器：持续从全局 Hook 获取最新 API（场景切换时自动更新） */
 const DevToolsFloating = defineComponent({
   name: 'DevToolsFloating',
   setup() {
@@ -69,12 +69,11 @@ const DevToolsFloating = defineComponent({
         const hook = (window as unknown as Record<string, unknown>).__CONFIGFORM_DEVTOOLS_HOOK__ as
           { forms: Map<string, DevToolsPluginAPI> } | undefined
         if (hook?.forms.size) {
-          api.value = hook.forms.values().next().value!
-          if (timer) { clearInterval(timer); timer = null }
+          const latest = hook.forms.values().next().value!
+          if (latest !== api.value) api.value = latest
         }
       }
-      check()
-      timer = setInterval(check, 500)
+      timer = setInterval(check, 300)
     })
 
     onUnmounted(() => {

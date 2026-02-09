@@ -113,7 +113,7 @@ export function App(): React.ReactElement {
   )
 }
 
-/** DevTools 浮动面板包装器：从 window.__CONFIGFORM_DEVTOOLS_HOOK__ 获取 API */
+/** DevTools 浮动面板包装器：持续从全局 Hook 获取最新 API（场景切换时自动更新） */
 function DevToolsFloating(): React.ReactElement | null {
   const [api, setApi] = useState<DevToolsPluginAPI | null>(null)
 
@@ -122,11 +122,11 @@ function DevToolsFloating(): React.ReactElement | null {
       const hook = (window as unknown as Record<string, unknown>).__CONFIGFORM_DEVTOOLS_HOOK__ as
         { forms: Map<string, DevToolsPluginAPI> } | undefined
       if (hook?.forms.size) {
-        setApi(hook.forms.values().next().value!)
+        const latest = hook.forms.values().next().value!
+        setApi(prev => prev !== latest ? latest : prev)
       }
     }
-    check()
-    const timer = setInterval(check, 500)
+    const timer = setInterval(check, 300)
     return () => clearInterval(timer)
   }, [])
 
