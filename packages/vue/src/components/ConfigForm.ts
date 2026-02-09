@@ -186,6 +186,8 @@ export const ConfigForm = defineComponent({
       const result = await form.submit()
       if (result.errors.length > 0) {
         emit('submitFailed', result.errors)
+        /* 滚动到第一个错误字段 */
+        scrollToFirstError()
       }
       else {
         emit('submit', result.values)
@@ -265,3 +267,17 @@ export const ConfigForm = defineComponent({
     }
   },
 })
+
+/** 滚动到第一个错误字段 */
+function scrollToFirstError(): void {
+  setTimeout(() => {
+    const errorElement = document.querySelector(
+      '.ant-form-item-has-error, .el-form-item.is-error, [class*="error"], [aria-invalid="true"]',
+    )
+    if (errorElement) {
+      errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      const input = errorElement.querySelector('input, textarea, select') as HTMLElement | null
+      input?.focus()
+    }
+  }, 100)
+}

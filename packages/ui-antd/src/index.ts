@@ -1,5 +1,6 @@
 import { ArrayItems, ArrayTable, registerFieldComponents } from '@moluoxixi/react'
 import {
+  Cascader,
   CheckboxGroup,
   DatePicker,
   FormItem,
@@ -16,6 +17,10 @@ import {
   Select,
   Switch,
   Textarea,
+  TimePicker,
+  Transfer,
+  TreeSelect,
+  Upload,
 } from './components'
 import {
   PreviewCheckboxGroup,
@@ -42,7 +47,7 @@ import {
  */
 export function setupAntd(): void {
   registerFieldComponents(
-    { Input, Password, Textarea, InputNumber, Select, RadioGroup, CheckboxGroup, Switch, DatePicker },
+    { Input, Password, Textarea, InputNumber, Select, RadioGroup, CheckboxGroup, Switch, DatePicker, TimePicker, TreeSelect, Cascader, Transfer, Upload },
     { name: 'FormItem', component: FormItem },
     { ArrayItems, ArrayTable, LayoutTabs, LayoutCard, LayoutCollapse, LayoutSteps, LayoutStepActions, LayoutFormActions },
     {
@@ -60,6 +65,7 @@ export function setupAntd(): void {
 }
 
 export {
+  Cascader,
   CheckboxGroup,
   DatePicker,
   FormItem,
@@ -77,5 +83,9 @@ export {
   StatusTabs,
   Switch,
   Textarea,
+  TimePicker,
+  Transfer,
+  TreeSelect,
+  Upload,
 } from './components'
 export type { StatusTabsProps } from './components'

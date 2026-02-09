@@ -105,6 +105,8 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
     const result = await form.submit()
     if (result.errors.length > 0) {
       onSubmitFailed?.(result.errors)
+      /* 滚动到第一个错误字段 */
+      scrollToFirstError(result.errors)
     }
     else {
       await onSubmit?.(result.values)
@@ -223,4 +225,35 @@ function FormActionsRenderer({ showSubmit, showReset, submitLabel, resetLabel, o
       )}
     </div>
   )
+}
+
+/**
+ * 滚动到第一个错误字段
+ *
+ * 验证失败时自动滚动到第一个有错误的字段，让用户看到错误提示。
+ * 使用 setTimeout 等待 DOM 更新（错误提示渲染完成后再滚动）。
+ */
+function scrollToFirstError(errors: Array<{ path: string }>): void {
+  if (errors.length === 0) return
+
+  setTimeout(() => {
+    /* 查找表单中第一个带错误样式的元素 */
+    const errorElement = document.querySelector(
+      '.ant-form-item-has-error, [class*="error"], [aria-invalid="true"]',
+    )
+    if (errorElement) {
+      errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      /* 尝试聚焦到错误字段的输入元素 */
+      const input = errorElement.querySelector('input, textarea, select') as HTMLElement | null
+      input?.focus()
+      return
+    }
+
+    /* 兜底：按字段路径查找 */
+    const firstPath = errors[0].path
+    const fieldElements = document.querySelectorAll(`[data-field-path="${firstPath}"], [name="${firstPath}"]`)
+    if (fieldElements.length > 0) {
+      fieldElements[0].scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, 100)
 }
