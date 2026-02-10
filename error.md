@@ -156,3 +156,79 @@ React 要求 `style` 为 `CSSProperties` 对象，UI 层组件内部也均使用
 - [ ] `DynamicSchemaForm` L33: `'^\\d{17}[\\dX]$'` 在 TS 字符串中二次转义后实际变成字面量 `\\d`，无法匹配数字
 - [ ] `SectionValidationForm` L110: `'^\\d{6}$'` 同上
 - [ ] 应确认引擎对 `pattern` 的处理方式。若 `new RegExp(pattern)` 则应写 `'^\\d{6}$'`（单次转义），若支持 `RegExp` 对象则写 `/^\d{6}$/`
+
+---
+
+## 七、Vue RecursionField 与 React 版本不对等
+
+> Vue 版 `RecursionField` 渲染普通字段时缺少 React 版已传递的 5 个 props，导致 Vue 侧无法支持对应功能。
+
+- [ ] `displayFormat` — 显示格式化（React L148, Vue 缺失）
+- [ ] `inputParse` — 输入解析（React L149, Vue 缺失）
+- [ ] `submitTransform` — 提交转换（React L150, Vue 缺失）
+- [ ] `submitPath` — 提交路径映射（React L151, Vue 缺失）
+- [ ] `excludeWhenHidden` — 隐藏时排除提交数据（React L152, Vue 缺失）
+
+### Vue RecursionField 重复渲染逻辑
+
+- [ ] `renderSchema()` 和 return block 中对 `object`/`array` 类型各有一套渲染逻辑，应合并去重
+
+---
+
+## 八、DevTools 组件职责重叠
+
+> `packages/react/src/components/DevTools.tsx` 与 `plugin-devtools-react/src/DevToolsPanel.tsx` 功能高度重叠，但定位不同。
+
+| 组件 | 所在包 | 大小 | 定位 |
+|------|--------|------|------|
+| `DevTools` | `@moluoxixi/react` | 152 行 | 简易性能面板，硬编码 UI |
+| `DevToolsPanel` | `@moluoxixi/plugin-devtools-react` | 26KB | 完整调试面板，硬编码 UI |
+
+问题：
+- [ ] 两个组件都用硬编码内联样式（违反框架层无 UI 原则）
+- [ ] `DevTools.tsx` 直接 import `@moluoxixi/plugin-lower-code`，但 `packages/react/package.json` 未声明该依赖（**幽灵依赖**）
+- [ ] 建议：合并为一个组件，统一放在 `plugin-devtools-react`
+
+---
+
+## 九、依赖声明问题
+
+### 9.1 `@moluoxixi/react` — 幽灵依赖
+
+- [ ] `DevTools.tsx` import `@moluoxixi/plugin-lower-code` 的 `PerfMetrics`, `PerfMonitorAPI`，但 `package.json` 的 `dependencies` / `peerDependencies` 均未声明 → 在严格 pnpm 环境下会报错
+
+### 9.2 `@moluoxixi/ui-antd` — 多余依赖
+
+- [ ] `package.json` 声明了 `@moluoxixi/reactive-react: workspace:*`，但 UI 包不应直接依赖 reactive 适配层；所有 `observer` 调用应通过 `@moluoxixi/react` 间接获取
+
+### 9.3 `plugin-devtools-react/vue` — 缺少框架层依赖
+
+- [ ] `plugin-devtools-react` 未依赖 `@moluoxixi/react`，无法使用 `useForm` 等 hook
+- [ ] `plugin-devtools-vue` 未依赖 `@moluoxixi/vue`，同上
+
+---
+
+## 十、StatusTabs 导出但未注册
+
+> 三个 UI 包都 export 了 `StatusTabs` 组件，但 `setupAntd()` / `setupElementPlus()` / `setupAntdVue()` 均未将其注册到组件表中。
+
+- [ ] `ui-antd/src/index.ts` — 导出 `StatusTabs` 但 `setupAntd()` 未注册
+- [ ] `ui-element-plus/src/index.ts` — 导出 `StatusTabs` 但 `setupElementPlus()` 未注册
+- [ ] `ui-antd-vue/src/index.ts` — 导出 `StatusTabs` 但 `setupAntdVue()` 未注册
+
+---
+
+## 十一、单元测试缺失
+
+> `packages/` 下所有 13 个包中**零测试文件**（无 `.test.ts`、`.spec.ts`、`.test.tsx`、`.spec.tsx`）。
+
+- [ ] `@moluoxixi/core` — `package.json` 有 `vitest` devDependency 和 `test` script，但无任何测试文件
+- [ ] 其余 12 个包 — 连 `vitest` 依赖和 test script 都没有
+
+---
+
+## 十二、`element-plus` 全量 CSS 导入
+
+> `ui-element-plus/src/index.ts` L1: `import 'element-plus/dist/index.css'` 导入了 Element Plus 的全量样式（~400KB 压缩前），应改为按组件按需导入或使用 unplugin-element-plus 自动按需。
+
+- [ ] 改为按需导入各组件样式（如 `import 'element-plus/es/components/input/style/css'`），或使用构建插件自动按需
