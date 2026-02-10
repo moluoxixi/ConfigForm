@@ -21,27 +21,30 @@
 
 ```
 ┌───────────────────────────────────────────────────────┐
-│  UI 层 — 仅注册 UI 库特定的表单控件和装饰器            │
+│  UI 层 — UI 库专属的控件、装饰器、布局与数组组件       │
 │  ui-antd / ui-antd-vue / ui-element-plus              │
 │                                                       │
-│  注册：Input / Select / DatePicker / FormItem 等       │
+│  控件：Input / Select / DatePicker / FormItem 等       │
 │  布局：LayoutTabs / LayoutCollapse / LayoutSteps 等    │
-│  （布局组件调用框架层 useSchemaItems 获取面板，        │
-│    只负责用各自 UI 库的 Tabs/Collapse/Steps 渲染）     │
+│  数组：ArrayTable / ArrayItems / ArrayCards 等          │
+│        ArrayBase 子组件（Addition / Remove 等）         │
+│  操作：LayoutFormActions（提交 / 重置）                 │
+│                                                       │
+│  布局组件调用框架层 useSchemaItems 获取面板，           │
+│  用各自 UI 库的 Tabs/Collapse/Table/Button 渲染。      │
 ├───────────────────────────────────────────────────────┤
-│  框架层 — 跨 UI 库通用的组件逻辑                       │
+│  框架层 — 跨 UI 库通用的组件逻辑（不含任何 UI 渲染）   │
 │  @moluoxixi/react / @moluoxixi/vue                    │
 │                                                       │
 │  组件：ConfigForm / SchemaField / RecursionField       │
 │        ReactiveField / FormField / FormArrayField      │
 │        FormObjectField / FormVoidField / FormProvider   │
-│        ArrayBase / ArrayItems / ArrayTable              │
 │                                                       │
 │  Hooks：useForm / useField / useFieldSchema            │
 │         useSchemaItems / useFormValues                  │
 │                                                       │
-│  这些组件自带基础 UI（inline styles），                │
-│  无需 UI 库即可工作。UI 库可注册覆盖。                 │
+│  框架层只做 Schema 递归渲染、字段状态注入、context      │
+│  传递等与 UI 库无关的通用逻辑，不渲染任何具体 UI。     │
 ├───────────────────────────────────────────────────────┤
 │  核心层 — 框架无关的领域模型                            │
 │  @moluoxixi/core                                      │
@@ -64,9 +67,9 @@
 
 ### 设计动机
 
-**为什么在框架层放组件？**
+**UI 组件为什么放在 UI 层（参考 Formily）？**
 
-Formily 将 ArrayBase/ArrayItems 等放在 UI 包（@formily/antd），每个 UI 包重复实现。本项目认为这些组件的核心逻辑（Schema 递归渲染、数组增删排序、字段状态注入）与 UI 库无关，因此提升到框架层实现一次，自带 inline styles 作为默认 UI。UI 包只注册特定控件（Input/Select/FormItem）。
+ArrayTable / ArrayItems / ArrayBase 等组件的渲染与 UI 库强耦合（表格用 `ElTable` / `antd Table`，按钮用 `ElButton` / `antd Button`），因此遵循 Formily 的做法，由各 UI 包分别使用各自 UI 库的组件实现。框架层只提供 Schema 递归渲染、字段状态注入、context 传递等与 UI 库无关的通用逻辑。
 
 **布局组件的 Schema 感知：**
 
@@ -80,7 +83,7 @@ LayoutTabs / LayoutCollapse / LayoutSteps 等布局容器需要感知 Schema 结
 | 表单入口 | SchemaForm + FormLayout + FormButtonGroup | ConfigForm 单组件开箱即用 |
 | 表单配置 | 分散在 Form 实例和多个组件 props | 集中在 schema.decoratorProps |
 | 操作按钮 | 手动配置 | 自动渲染，三态自动隐藏 |
-| 组件层级 | UI 包内实现（每个 UI 库重复） | 框架层实现一次，UI 层注册覆盖 |
+| 组件层级 | UI 包内实现（每个 UI 库各自用对应组件实现） | 同 Formily，UI 组件在 UI 层实现 |
 | 布局 | 需 FormLayout 等组件 | 内置 grid / inline / vertical 布局 |
 
 ## 快速开始

@@ -1,7 +1,7 @@
 import type { ArrayFieldInstance } from '@moluoxixi/core'
 import type { ISchema } from '@moluoxixi/core'
 import { observer } from '@moluoxixi/reactive-react'
-import React, { useContext, useState } from 'react'
+import { useContext, useState } from 'react'
 import { FieldContext } from '../context'
 import { ArrayBase } from './ArrayBase'
 import { RecursionField } from './RecursionField'

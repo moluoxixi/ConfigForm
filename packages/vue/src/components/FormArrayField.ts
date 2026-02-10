@@ -98,18 +98,18 @@ export const FormArrayField = defineComponent({
         /* 自定义渲染：将 field 暴露给用户插槽 */
         ...(hasSlot
           ? {
-              default: (renderProps: Record<string, unknown>) => slots.default!({
-                field,
-                arrayField: field,
-                ...renderProps,
-              }),
-            }
+            default: (renderProps: Record<string, unknown>) => slots.default!({
+              field,
+              arrayField: field,
+              ...renderProps,
+            }),
+          }
           : {}),
         /* 无 component 且无 slot（field 模式默认）：使用 ArrayBase 渲染 */
         ...(!hasComponent && !hasSlot
           ? {
-              default: () => renderDefaultArrayItems(field!, props),
-            }
+            default: () => renderDefaultArrayItems(field!, props),
+          }
           : {}),
       })
     }
@@ -149,19 +149,19 @@ function renderDefaultArrayItems(field: ArrayFieldInstance, props: { name: strin
         h('div', { style: { flex: 1, display: 'flex', gap: '8px', flexWrap: 'wrap' } },
           itemKeys.length > 0
             ? itemKeys.map(key => h(FormField, {
-                key: `${props.name}.${index}.${key}`,
-                name: `${props.name}.${index}.${key}`,
-                fieldProps: {
-                  label: key,
-                  component: 'Input',
-                  componentProps: { placeholder: key, size: 'small' },
-                },
-              }))
+              key: `${props.name}.${index}.${key}`,
+              name: `${props.name}.${index}.${key}`,
+              fieldProps: {
+                label: key,
+                component: 'Input',
+                componentProps: { placeholder: key, size: 'small' },
+              },
+            }))
             : [h(FormField, {
-                key: `${props.name}.${index}`,
-                name: `${props.name}.${index}`,
-                fieldProps: { component: 'Input', componentProps: { size: 'small' } },
-              })],
+              key: `${props.name}.${index}`,
+              name: `${props.name}.${index}`,
+              fieldProps: { component: 'Input', componentProps: { size: 'small' } },
+            })],
         ),
         /* 始终渲染按钮容器保持占位，非编辑态隐藏但保留空间 */
         h('div', {
