@@ -1,3 +1,6 @@
+我自己的提问：
+我发现问题很多集中在vue/react实现不统一，我是否可以把事件，props，逻辑抽离到core里的components中以便统一呢？还有field能否采用继承的方式，避免这种缺失问题
+
 # ConfigForm 问题清单（对比 Formily 源码重新评估）
 
 > 每条 issue 均标注了对应的 **Formily 源码依据**（`formily_next` 分支），确保评估准确。
