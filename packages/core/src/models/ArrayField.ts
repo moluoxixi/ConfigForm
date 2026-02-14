@@ -1,7 +1,7 @@
 import type { Disposer } from '../shared'
 import type { ArrayFieldInstance, ArrayFieldProps, FormInstance } from '../types'
-import { deepClone, isArray, isFunction } from '../shared'
 import { getReactiveAdapter } from '../reactive'
+import { deepClone, isArray, isFunction } from '../shared'
 import { Field } from './Field'
 
 /**

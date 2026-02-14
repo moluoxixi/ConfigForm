@@ -25,17 +25,17 @@
   },
   "files": ["dist", "src"],
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts",
-    "dev": "tsup src/index.ts --format esm,cjs --dts --watch"
-  },
-  "dependencies": {
-    "@moluoxixi/plugin-devtools": "workspace:*"
+    "build": "tsup src/index.ts --format esm,cjs --dts --tsconfig tsconfig.build.json",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --tsconfig tsconfig.build.json --watch"
   },
   "peerDependencies": {
     "react": ">=18.0.0"
   },
+  "dependencies": {
+    "@moluoxixi/plugin-devtools": "workspace:*"
+  },
   "devDependencies": {
-    "@types/react": "^18.3.0",
+    "@types/react": "catalog:type",
     "tsup": "catalog:type",
     "typescript": "catalog:type"
   }

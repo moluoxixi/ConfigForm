@@ -1,5 +1,5 @@
-import { Rate as ARate } from 'ant-design-vue';
-import { defineComponent, h } from 'vue';
+import { Rate as ARate } from 'ant-design-vue'
+import { defineComponent, h } from 'vue'
 
 /** 评分组件适配 — 桥接 modelValue + count + allowHalf */
 export const Rate = defineComponent({
@@ -22,7 +22,7 @@ export const Rate = defineComponent({
         'count': props.count,
         'allowHalf': props.allowHalf,
         'onUpdate:value': (v: number) => emit('update:modelValue', v),
-      });
-    };
+      })
+    }
   },
-});
+})

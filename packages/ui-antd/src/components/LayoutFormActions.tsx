@@ -31,7 +31,8 @@ export function LayoutFormActions({
   const form = useContext(FormContext)
 
   const handleSubmit = useCallback(async () => {
-    if (!form) return
+    if (!form)
+      return
     const result = await form.submit()
     if (result.errors.length > 0) {
       onSubmitFailed?.(result.errors)

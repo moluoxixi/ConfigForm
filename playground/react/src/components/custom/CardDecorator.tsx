@@ -18,10 +18,13 @@ export function CardDecorator({ label, description, required, errors, children }
 
   return (
     <div style={{
-      padding: '16px 20px', marginBottom: 12, borderRadius: 8,
+      padding: '16px 20px',
+      marginBottom: 12,
+      borderRadius: 8,
       background: hasError ? '#fff2f0' : '#f6f8fa',
       border: hasError ? '1px solid #ffccc7' : '1px solid #e8e8e8',
-    }}>
+    }}
+    >
       {label && (
         <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 8, color: '#333' }}>
           {required && <span style={{ color: '#ff4d4f', marginRight: 4 }}>*</span>}

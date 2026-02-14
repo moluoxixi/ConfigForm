@@ -5,16 +5,16 @@ import type { DraftPluginAPI, DraftPluginConfig } from './draft'
 import type { HistoryPluginAPI, HistoryPluginConfig } from './history'
 import type { MaskingPluginAPI, MaskingPluginConfig } from './masking'
 import type { PerfMonitorAPI, PerfMonitorConfig } from './perf-monitor'
-import type { SubmitRetryPluginAPI, SubmitRetryPluginConfig } from './submit-retry'
 import type { SubFormPluginAPI } from './sub-form'
+import type { SubmitRetryPluginAPI, SubmitRetryPluginConfig } from './submit-retry'
 import { aclPlugin } from './acl'
 import { dirtyCheckerPlugin } from './dirty-checker'
 import { draftPlugin } from './draft'
 import { historyPlugin } from './history'
 import { maskingPlugin } from './masking'
 import { perfMonitorPlugin } from './perf-monitor'
-import { submitRetryPlugin } from './submit-retry'
 import { subFormPlugin } from './sub-form'
+import { submitRetryPlugin } from './submit-retry'
 
 /**
  * 低代码聚合插件配置
@@ -179,7 +179,8 @@ export function lowerCodePlugin(config: LowerCodePluginConfig = {}): FormPlugin<
         childPlugin: FormPlugin<API>,
       ): API | undefined {
         const result = childPlugin.install(form, context)
-        if (result.dispose) disposers.push(result.dispose)
+        if (result.dispose)
+          disposers.push(result.dispose)
         return result.api
       }
 

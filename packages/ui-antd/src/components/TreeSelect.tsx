@@ -1,5 +1,5 @@
-import type { ReactElement } from 'react'
 import type { DataSourceItem } from '@moluoxixi/core'
+import type { ReactElement } from 'react'
 import { TreeSelect as ATreeSelect } from 'antd'
 
 export interface CfTreeSelectProps {
@@ -31,19 +31,28 @@ function toTreeData(items: DataSourceItem[]): unknown[] {
 }
 
 export function TreeSelect({
-  value, onChange, onFocus, onBlur,
-  dataSource, treeData, placeholder, disabled, loading,
-  multiple, treeCheckable, showSearch,
+  value,
+  onChange,
+  onFocus,
+  onBlur,
+  dataSource,
+  treeData,
+  placeholder,
+  disabled,
+  loading,
+  multiple,
+  treeCheckable,
+  showSearch,
 }: CfTreeSelectProps): ReactElement {
   const data = treeData ?? (dataSource ? toTreeData(dataSource) : [])
 
   return (
     <ATreeSelect
-      value={value}
-      onChange={onChange}
+      value={value as any}
+      onChange={nextValue => onChange?.(nextValue)}
       onFocus={onFocus}
       onBlur={onBlur}
-      treeData={data}
+      treeData={data as any}
       placeholder={placeholder}
       disabled={disabled}
       loading={loading}

@@ -1,5 +1,5 @@
 import type { FormConfig, FormInstance, ISchema } from '@moluoxixi/core'
-import type { App, PropType } from 'vue'
+import type { App, Component, PropType } from 'vue'
 import { createForm } from '@moluoxixi/core'
 import { FormProvider, SchemaField, useCreateForm } from '@moluoxixi/vue'
 import { ElButton, ElDialog, ElSpace } from 'element-plus'
@@ -22,6 +22,8 @@ export const FormDialog = defineComponent({
     formConfig: { type: Object as PropType<FormConfig>, default: undefined },
     initialValues: { type: Object as PropType<Record<string, unknown>>, default: undefined },
     form: { type: Object as PropType<FormInstance>, default: undefined },
+    components: { type: Object as PropType<Record<string, Component>>, default: undefined },
+    decorators: { type: Object as PropType<Record<string, Component>>, default: undefined },
     width: { type: [Number, String], default: 520 },
     okText: { type: String, default: '确认' },
     cancelText: { type: String, default: '取消' },
@@ -66,16 +68,21 @@ export const FormDialog = defineComponent({
       const form = getForm()
 
       return h(ElDialog, {
-        title: props.title,
-        modelValue: props.modelValue,
-        width: props.width,
-        destroyOnClose: props.destroyOnClose,
-        closeOnClickModal: false,
+        'title': props.title,
+        'modelValue': props.modelValue,
+        'width': props.width,
+        'destroyOnClose': props.destroyOnClose,
+        'closeOnClickModal': false,
         'onUpdate:modelValue': (val: boolean) => {
-          if (!val) handleClose()
+          if (!val)
+            handleClose()
         },
       }, {
-        default: () => h(FormProvider, { form }, () => [
+        default: () => h(FormProvider, {
+          form,
+          components: props.components,
+          decorators: props.decorators,
+        }, () => [
           h(SchemaField, { schema: props.schema }),
           slots.default?.(),
         ]),

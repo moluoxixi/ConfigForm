@@ -1,7 +1,5 @@
-import type { Disposer } from '@moluoxixi/core'
-import type { FormConfig, FormInstance, FormPlugin, PluginContext, PluginInstallResult } from '@moluoxixi/core'
-import { createForm, FormLifeCycle } from '@moluoxixi/core'
-import { deepClone, FormPath } from '@moluoxixi/core'
+import type { Disposer, FormConfig, FormInstance, FormPlugin, PluginContext, PluginInstallResult } from '@moluoxixi/core'
+import { createForm, deepClone, FormLifeCycle, FormPath } from '@moluoxixi/core'
 
 /**
  * 子表单同步模式
@@ -68,7 +66,8 @@ export class SubFormManager<Values extends Record<string, unknown> = Record<stri
 
   /** 手动同步子表单值到父表单 */
   syncToParent(): void {
-    if (this._syncing) return
+    if (this._syncing)
+      return
     this._syncing = true
     try {
       const childValues = deepClone(this.form.values)
@@ -86,7 +85,8 @@ export class SubFormManager<Values extends Record<string, unknown> = Record<stri
 
   /** 手动同步父表单值到子表单 */
   syncFromParent(): void {
-    if (this._syncing) return
+    if (this._syncing)
+      return
     this._syncing = true
     try {
       const parentValue = FormPath.getIn(this.parent.values, this.mountPath)
@@ -120,7 +120,8 @@ export class SubFormManager<Values extends Record<string, unknown> = Record<stri
   }
 
   private setupSync(): void {
-    if (this.syncMode === 'manual') return
+    if (this.syncMode === 'manual')
+      return
 
     if (this.syncMode === 'bidirectional' || this.syncMode === 'childToParent') {
       const childDisposer = this.form.on(FormLifeCycle.ON_FORM_VALUES_CHANGE, () => {
@@ -209,7 +210,7 @@ export function subFormPlugin(): FormPlugin<SubFormPluginAPI> {
         },
 
         getAll: () => subForms,
-        get: (mountPath) => subForms.get(mountPath),
+        get: mountPath => subForms.get(mountPath),
 
         remove(mountPath: string): void {
           const manager = subForms.get(mountPath)

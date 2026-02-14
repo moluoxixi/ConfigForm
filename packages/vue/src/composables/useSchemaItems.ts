@@ -22,11 +22,13 @@ export function useSchemaItems(): SchemaItem[] {
   /* Vue 响应式：直接读取，无需 useMemo */
   const items = computed(() => {
     const result: SchemaItem[] = []
-    if (!schema.properties) return result
+    if (!schema.properties)
+      return result
 
     for (const [name, childSchema] of Object.entries(schema.properties)) {
       const childField = field.form.getAllVoidFields().get(`${field.path}.${name}`)
-      if (childField && !childField.visible) continue
+      if (childField && !childField.visible)
+        continue
 
       result.push({
         name,

@@ -1,6 +1,6 @@
 import type { FormConfig, FormInstance, FormPlugin } from './types'
-import { getReactiveAdapter } from './reactive'
 import { Form } from './models/Form'
+import { getReactiveAdapter } from './reactive'
 
 /**
  * 对插件列表进行拓扑排序
@@ -25,8 +25,10 @@ function sortPlugins(plugins: FormPlugin[]): FormPlugin[] {
   const graph = new Map<string, string[]>()
 
   for (const plugin of plugins) {
-    if (!inDegree.has(plugin.name)) inDegree.set(plugin.name, 0)
-    if (!graph.has(plugin.name)) graph.set(plugin.name, [])
+    if (!inDegree.has(plugin.name))
+      inDegree.set(plugin.name, 0)
+    if (!graph.has(plugin.name))
+      graph.set(plugin.name, [])
 
     if (plugin.dependencies) {
       for (const dep of plugin.dependencies) {
@@ -35,7 +37,8 @@ function sortPlugins(plugins: FormPlugin[]): FormPlugin[] {
             `[ConfigForm] 插件 "${plugin.name}" 依赖 "${dep}"，但该插件未在 plugins 列表中。`,
           )
         }
-        if (!graph.has(dep)) graph.set(dep, [])
+        if (!graph.has(dep))
+          graph.set(dep, [])
         graph.get(dep)!.push(plugin.name)
         inDegree.set(plugin.name, (inDegree.get(plugin.name) ?? 0) + 1)
       }
@@ -53,7 +56,8 @@ function sortPlugins(plugins: FormPlugin[]): FormPlugin[] {
 
   while (queue.length > 0) {
     const name = queue.shift()!
-    if (visited.has(name)) continue
+    if (visited.has(name))
+      continue
     visited.add(name)
 
     const plugin = nameMap.get(name)!

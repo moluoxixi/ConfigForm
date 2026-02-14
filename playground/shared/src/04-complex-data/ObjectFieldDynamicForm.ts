@@ -1,5 +1,5 @@
-import type { SceneConfig } from '../types'
 import type { FormInstance } from '@moluoxixi/core'
+import type { SceneConfig } from '../types'
 import { FormLifeCycle } from '@moluoxixi/core'
 
 /**

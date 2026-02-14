@@ -1,17 +1,18 @@
-import type { FieldInstance, FormInstance, ISchema } from '@moluoxixi/core'
-import type { ComponentType } from '@moluoxixi/core'
+import type { ComponentType, FieldInstance, FormInstance, ISchema } from '@moluoxixi/core'
 import type { ComputedRef, InjectionKey } from 'vue'
 
 /** 表单注入 key（使用 Symbol.for 确保跨包可共享） */
 export const FormSymbol: InjectionKey<FormInstance> = Symbol.for('ConfigForm') as unknown as InjectionKey<FormInstance>
 
 /** 字段注入 key */
-export const FieldSymbol: InjectionKey<FieldInstance> = Symbol('ConfigField')
+export const FieldSymbol: InjectionKey<FieldInstance<any>> = Symbol('ConfigField')
 
 /** 组件注册表注入 key */
 export interface ComponentRegistry {
   components: Map<string, ComponentType>
   decorators: Map<string, ComponentType>
+  defaultDecorators: Map<string, string>
+  readPrettyComponents: Map<string, ComponentType>
 }
 
 /**

@@ -34,9 +34,11 @@ export function PreviewInputNumber({ value }: { value?: number }): React.ReactEl
 
 /** 下拉选择阅读态 */
 export function PreviewSelect({ value, dataSource = [] }: { value?: string | number | (string | number)[], dataSource?: DataSourceItem[] }): React.ReactElement {
-  if (value == null || value === '') return <span>{EMPTY}</span>
+  if (value == null || value === '')
+    return <span>{EMPTY}</span>
   if (Array.isArray(value)) {
-    if (value.length === 0) return <span>{EMPTY}</span>
+    if (value.length === 0)
+      return <span>{EMPTY}</span>
     return (
       <span>
         {value.map((v, i) => {

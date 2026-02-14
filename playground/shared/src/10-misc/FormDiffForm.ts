@@ -1,7 +1,7 @@
-import type { SceneConfig } from '../types'
 import type { FormInstance } from '@moluoxixi/core'
-import { lowerCodePlugin } from '@moluoxixi/plugin-lower-code'
 import type { DirtyCheckerPluginAPI, LowerCodePluginAPI } from '@moluoxixi/plugin-lower-code'
+import type { SceneConfig } from '../types'
+import { lowerCodePlugin } from '@moluoxixi/plugin-lower-code'
 
 /**
  * 场景：表单比对
@@ -29,15 +29,11 @@ const TYPE_ICONS: Record<string, string> = {
 }
 
 function formatVal(val: unknown): string {
-  if (val === undefined || val === null) return '—'
-  if (typeof val === 'string' && val === '') return '(空)'
+  if (val === undefined || val === null)
+    return '—'
+  if (typeof val === 'string' && val === '')
+    return '(空)'
   return String(val)
-}
-
-function padRight(str: string, len: number): string {
-  const cjkCount = str.split('').filter(c => c.charCodeAt(0) > 127).length
-  const totalLen = str.length + cjkCount
-  return str + ' '.repeat(Math.max(0, len - totalLen))
 }
 
 const config: SceneConfig = {
@@ -59,7 +55,8 @@ const config: SceneConfig = {
       setTimeout(() => {
         const lc = form.getPlugin<LowerCodePluginAPI>('lower-code')
         const checker = lc?.dirtyChecker as DirtyCheckerPluginAPI | undefined
-        if (!checker) return
+        if (!checker)
+          return
 
         const result = checker.check()
         /* 过滤掉 _diffLog 自身 */
@@ -67,7 +64,8 @@ const config: SceneConfig = {
 
         if (diffs.length === 0) {
           const logField = form.getField('_diffLog')
-          if (logField) logField.setValue('✅ 无变更')
+          if (logField)
+            logField.setValue('✅ 无变更')
           return
         }
 

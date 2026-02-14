@@ -1,3 +1,4 @@
+import type { ValidationRule } from '@moluoxixi/core'
 import type { SceneConfig } from '../types'
 
 /**
@@ -27,7 +28,7 @@ function delay(ms: number, signal: AbortSignal): Promise<void> {
 }
 
 /** 用户名验证规则：长度 + 异步唯一性检查 */
-const usernameRules = [
+const usernameRules: ValidationRule[] = [
   { minLength: 3, maxLength: 20, message: '3-20 字符' },
   {
     asyncValidator: async (v: unknown, _r: unknown, _c: unknown, signal: AbortSignal): Promise<string | undefined> => {
@@ -42,11 +43,12 @@ const usernameRules = [
 ]
 
 /** 邮箱验证规则：格式 + 异步可用性检查 */
-const emailRules = [
+const emailRules: ValidationRule[] = [
   { format: 'email', message: '无效邮箱' },
   {
     asyncValidator: async (v: unknown, _r: unknown, _c: unknown, signal: AbortSignal): Promise<string | undefined> => {
-      if (!v) return undefined
+      if (!v)
+        return undefined
       await delay(800, signal)
       if (REGISTERED_EMAILS.includes(String(v).toLowerCase()))
         return '邮箱已注册'
@@ -58,11 +60,12 @@ const emailRules = [
 ]
 
 /** 邀请码验证规则：长度 + 异步有效性检查 */
-const inviteCodeRules = [
+const inviteCodeRules: ValidationRule[] = [
   { minLength: 3, message: '至少 3 字符' },
   {
     asyncValidator: async (v: unknown, _r: unknown, _c: unknown, signal: AbortSignal): Promise<string | undefined> => {
-      if (!v) return undefined
+      if (!v)
+        return undefined
       await delay(1000, signal)
       if (!VALID_CODES.includes(String(v).toUpperCase()))
         return '邀请码无效'

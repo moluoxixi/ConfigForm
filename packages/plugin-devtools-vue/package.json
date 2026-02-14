@@ -25,14 +25,14 @@
   },
   "files": ["dist", "src"],
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts",
-    "dev": "tsup src/index.ts --format esm,cjs --dts --watch"
-  },
-  "dependencies": {
-    "@moluoxixi/plugin-devtools": "workspace:*"
+    "build": "tsup src/index.ts --format esm,cjs --dts --tsconfig tsconfig.build.json",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --tsconfig tsconfig.build.json --watch"
   },
   "peerDependencies": {
     "vue": ">=3.3.0"
+  },
+  "dependencies": {
+    "@moluoxixi/plugin-devtools": "workspace:*"
   },
   "devDependencies": {
     "tsup": "catalog:type",

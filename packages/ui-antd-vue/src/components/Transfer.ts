@@ -1,7 +1,9 @@
 import type { DataSourceItem } from '@moluoxixi/core'
-import { Transfer as ATransfer } from 'ant-design-vue'
-import { defineComponent, h, computed } from 'vue'
 import type { PropType } from 'vue'
+import { Transfer as ATransfer } from 'ant-design-vue'
+import { computed, defineComponent, h } from 'vue'
+
+const TransferComponent = ATransfer as any
 
 export const Transfer = defineComponent({
   name: 'CfTransfer',
@@ -19,12 +21,12 @@ export const Transfer = defineComponent({
         title: item.label,
       })),
     )
-    return () => h(ATransfer, {
+    return () => h(TransferComponent, {
       'dataSource': transferData.value,
       'targetKeys': props.modelValue,
       'disabled': props.disabled,
-      'render': (item: { title: string }) => item.title,
-      'onUpdate:targetKeys': (keys: string[]) => emit('update:modelValue', keys),
+      'render': (item: { title?: string }) => item.title ?? '',
+      'onUpdate:targetKeys': (keys: unknown) => emit('update:modelValue', Array.isArray(keys) ? keys.map(v => String(v)) : []),
     })
   },
 })

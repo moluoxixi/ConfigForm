@@ -1,9 +1,9 @@
 import type { FieldInstance, FieldProps } from '@moluoxixi/core'
-import type { ComponentType, ReactNode } from 'react'
-import { observer } from '@moluoxixi/reactive-react'
+import type { ReactNode } from 'react'
 import { useContext, useEffect, useRef } from 'react'
 import { ComponentRegistryContext, FieldContext, FormContext } from '../context'
-import { getDefaultDecorator, getReadPrettyComponent } from '../registry'
+import { observer } from '../reactive'
+import { ReactiveField } from './ReactiveField'
 
 export interface FormFieldProps {
   /** 字段名 */
@@ -12,8 +12,6 @@ export interface FormFieldProps {
   fieldProps?: Partial<FieldProps>
   /** 自定义渲染 */
   children?: ReactNode | ((field: FieldInstance) => ReactNode)
-  /** 覆盖组件 */
-  component?: ComponentType<any>
 }
 
 /**
@@ -26,7 +24,7 @@ export interface FormFieldProps {
  * 1. 自动渲染（根据注册表查找组件）
  * 2. 自定义渲染（children render prop）
  */
-export const FormField = observer<FormFieldProps>(({ name, fieldProps, children, component }) => {
+export const FormField = observer<FormFieldProps>(({ name, fieldProps, children }) => {
   const form = useContext(FormContext)
   const registry = useContext(ComponentRegistryContext)
 
@@ -46,15 +44,15 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
   if (!fieldRef.current || !form.getField(name)) {
     let field = form.getField(name)
     if (!field) {
-      const mergedProps: Record<string, unknown> = { ...fieldProps, name }
+      const mergedProps: FieldProps = { ...(fieldProps ?? {}), name }
       /* pattern 无需手动注入 form.pattern，field.pattern getter 已自动回退 */
       /* 未显式指定 decorator 时，使用组件注册的默认 decorator */
       if (!mergedProps.decorator && typeof mergedProps.component === 'string') {
-        const dd = getDefaultDecorator(mergedProps.component)
+        const dd = registry.defaultDecorators.get(mergedProps.component)
         if (dd)
           mergedProps.decorator = dd
       }
-      field = form.createField(mergedProps as FieldProps)
+      field = form.createField(mergedProps)
       createdByThisRef.current = true
     }
     fieldRef.current = field
@@ -97,76 +95,9 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children,
     )
   }
 
-  /* 自动组件渲染 */
-  const Component = component ?? (
-    typeof field.component === 'string'
-      ? registry.components.get(field.component)
-      : field.component as ComponentType<any>
-  )
-
-  const Decorator = typeof field.decorator === 'string'
-    ? registry.decorators.get(field.decorator)
-    : (field.decorator as ComponentType<any>)
-
-  if (!Component) {
-    console.warn(`[ConfigForm] 字段 "${name}" 未找到组件 "${String(field.component)}"`)
-    return null
-  }
-
-  /* pattern 判断已收敛到 field 模型，直接读计算属性 */
-  const isDisabled = field.effectiveDisabled
-  const isPreview = field.isPreview
-
-  /* readPretty：阅读态时查找替代组件 */
-  let fieldElement: React.ReactElement
-  const compName = typeof field.component === 'string' ? field.component : ''
-  const ReadPrettyComp = isPreview && compName ? getReadPrettyComponent(compName) : undefined
-
-  if (ReadPrettyComp) {
-    fieldElement = (
-      <ReadPrettyComp
-        value={field.value}
-        dataSource={field.dataSource}
-        {...field.componentProps}
-      />
-    )
-  }
-  else {
-    fieldElement = (
-      <Component
-        value={field.value}
-        onChange={(val: unknown) => field.onInput(val)}
-        onFocus={() => field.focus()}
-        onBlur={() => field.blur()}
-        disabled={isDisabled || isPreview}
-        loading={field.loading}
-        dataSource={field.dataSource}
-        {...field.componentProps}
-      />
-    )
-  }
-
-  const wrappedElement = Decorator
-    ? (
-        <Decorator
-          label={field.label}
-          required={field.required}
-          errors={field.errors}
-          warnings={field.warnings}
-          description={field.description}
-          labelPosition={form.labelPosition}
-          labelWidth={form.labelWidth}
-          pattern={field.pattern}
-          {...field.decoratorProps}
-        >
-          {fieldElement}
-        </Decorator>
-      )
-    : fieldElement
-
   return (
     <FieldContext.Provider value={field}>
-      {wrappedElement}
+      <ReactiveField field={field} />
     </FieldContext.Provider>
   )
 })

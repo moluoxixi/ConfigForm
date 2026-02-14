@@ -1,7 +1,7 @@
-import type { DataSourceItem } from '@moluoxixi/core';
-import type { PropType } from 'vue';
-import { Mentions as AMentions } from 'ant-design-vue';
-import { computed, defineComponent, h } from 'vue';
+import type { DataSourceItem } from '@moluoxixi/core'
+import type { PropType } from 'vue'
+import { Mentions as AMentions } from 'ant-design-vue'
+import { computed, defineComponent, h } from 'vue'
 
 /** 提及输入适配 — 桥接 modelValue + dataSource + prefix 触发字符 */
 export const Mentions = defineComponent({
@@ -20,7 +20,7 @@ export const Mentions = defineComponent({
     /** 将 DataSourceItem[] 转为 ant-design-vue Mentions 的 options 格式 */
     const options = computed(() =>
       props.dataSource.map(item => ({ value: String(item.value), label: item.label })),
-    );
+    )
 
     return () => {
       return h(AMentions, {
@@ -32,7 +32,7 @@ export const Mentions = defineComponent({
         'onUpdate:value': (v: string) => emit('update:modelValue', v),
         'onFocus': () => emit('focus'),
         'onBlur': () => emit('blur'),
-      });
-    };
+      })
+    }
   },
-});
+})

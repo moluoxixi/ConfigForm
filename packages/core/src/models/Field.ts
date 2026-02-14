@@ -5,7 +5,6 @@ import type {
   FieldDisplay,
   FieldPattern,
 } from '../shared'
-import type { ValidationFeedback, ValidationRule, ValidationTrigger } from '../validator'
 import type {
   DataSourceConfig,
   FieldInstance,
@@ -13,9 +12,13 @@ import type {
   FormInstance,
   ReactionRule,
 } from '../types'
+import type { ValidationFeedback, ValidationRule, ValidationTrigger } from '../validator'
+import { fetchDataSource } from '../datasource/manager'
+import { getReactiveAdapter } from '../reactive'
 import { deepClone, FormPath, isArray, uid } from '../shared'
 import { validate } from '../validator'
-import { fetchDataSource } from '../datasource/manager'
+
+const AUTO_REQUIRED_RULE_ID = '__auto_required__'
 
 /**
  * 字段模型
@@ -78,7 +81,8 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
    * 消费者只需读 field.pattern，无需手动合并 form.pattern。
    */
   get pattern(): FieldPattern {
-    if (this.selfPattern !== 'editable') return this.selfPattern
+    if (this.selfPattern !== 'editable')
+      return this.selfPattern
     return this.form.pattern
   }
 
@@ -209,7 +213,7 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     this.validating = false
     this.rules = [...(props.rules ?? [])]
     if (this.required && !this.rules.some(r => r.required)) {
-      this.rules.unshift({ required: true })
+      this.rules.unshift({ id: AUTO_REQUIRED_RULE_ID, required: true })
     }
 
     /* 数据处理 */
@@ -238,6 +242,26 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
         FormPath.setIn(form.initialValues as Record<string, unknown>, this.path, deepClone(props.initialValue))
       }
     }
+  }
+
+  /**
+   * 当字段变为不可编辑（pattern/disabled/preview）时，清空验证反馈。
+   * 参考 Formily：readPretty/disabled 状态不应保留校验提示。
+   */
+  setupEditableAutoClear(): void {
+    const adapter = getReactiveAdapter()
+    const disposer = adapter.reaction(
+      () => this.editable,
+      (editable) => {
+        if (!editable) {
+          this.validateAbortController?.abort()
+          this.validating = false
+          this.errors = []
+          this.warnings = []
+        }
+      },
+    )
+    this.disposers.push(disposer)
   }
 
   /**
@@ -362,13 +386,15 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
       const items = await fetchDataSource(config, this.form.values as Record<string, unknown>, signal)
 
       /* 请求期间被取消（用户快速切换选项），丢弃过期结果 */
-      if (signal.aborted) return
+      if (signal.aborted)
+        return
 
       this.dataSource = items
     }
     catch (err) {
       /* 请求被取消时静默忽略 */
-      if (err instanceof DOMException && err.name === 'AbortError') return
+      if (err instanceof DOMException && err.name === 'AbortError')
+        return
       console.error(`[ConfigForm] 字段 ${this.path} 数据源加载失败:`, err)
     }
     finally {
@@ -392,6 +418,7 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
 
   /** 执行验证 */
   async validate(trigger?: ValidationTrigger): Promise<ValidationFeedback[]> {
+    this.syncRequiredRule()
     /* 取消上一次异步验证 */
     this.validateAbortController?.abort()
     this.validateAbortController = new AbortController()
@@ -417,6 +444,24 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     }
     finally {
       this.validating = false
+    }
+  }
+
+  /**
+   * 同步 required 与规则（支持 reactions 动态切换 required）
+   *
+   * 仅维护自动注入的 required 规则，不干预用户显式 rules。
+   */
+  private syncRequiredRule(): void {
+    const hasAutoRequired = this.rules.some(r => r.id === AUTO_REQUIRED_RULE_ID)
+    const hasRequiredRule = this.rules.some(r => r.required)
+    if (this.required) {
+      if (!hasRequiredRule) {
+        this.rules.unshift({ id: AUTO_REQUIRED_RULE_ID, required: true })
+      }
+    }
+    else if (hasAutoRequired) {
+      this.rules = this.rules.filter(r => r.id !== AUTO_REQUIRED_RULE_ID)
     }
   }
 
@@ -475,7 +520,8 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
    * 如果配置了远程数据源，自动触发加载。
    */
   mount(): void {
-    if (this.mounted) return
+    if (this.mounted)
+      return
     this.mounted = true
     this.form.notifyFieldMount(this as unknown as FieldInstance)
 
@@ -497,7 +543,8 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
    * 标记字段已卸载，emit ON_FIELD_UNMOUNT 事件。
    */
   unmount(): void {
-    if (!this.mounted) return
+    if (!this.mounted)
+      return
     this.mounted = false
     this.form.notifyFieldUnmount(this as unknown as FieldInstance)
   }

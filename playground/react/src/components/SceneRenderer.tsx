@@ -5,14 +5,13 @@
  * StatusTabs 提供编辑态/阅读态/禁用态三态切换。
  * 当场景配置包含 schemaVariants 时，渲染变体切换 UI（如布局切换）。
  */
-import type { ISchema } from '@moluoxixi/core'
-import type { FieldPattern } from '@moluoxixi/core'
+import type { FieldPattern, ISchema } from '@moluoxixi/core'
 import type { SceneConfig } from '@playground/shared'
-import { ConfigForm } from '@moluoxixi/react'
 import { devToolsPlugin } from '@moluoxixi/plugin-devtools'
+import { ConfigForm } from '@moluoxixi/react'
 import { StatusTabs } from '@moluoxixi/ui-antd'
 import { observer } from 'mobx-react-lite'
-import React, { useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
 /** DevTools 插件单例（所有场景共用，避免重复创建） */
 const devTools = devToolsPlugin({ formId: 'playground' })
@@ -28,6 +27,38 @@ function withMode(s: ISchema, mode: FieldPattern): ISchema {
 
 export interface SceneRendererProps {
   config: SceneConfig
+}
+
+interface SceneFormProps {
+  config: SceneConfig
+  schema: ISchema
+  mode: FieldPattern
+  showResult: (data: Record<string, unknown>) => void
+  showErrors: (errors: Array<{ path: string, message: string }>) => void
+}
+
+function SceneForm({ config, schema, mode, showResult, showErrors }: SceneFormProps): React.ReactElement {
+  useEffect(() => {
+    showErrors([])
+  }, [mode, showErrors])
+
+  const handleReset = useCallback(() => {
+    showErrors([])
+  }, [showErrors])
+
+  return (
+    <ConfigForm
+      schema={withMode(schema, mode)}
+      initialValues={config.initialValues}
+      formConfig={{
+        effects: config.effects,
+        plugins: [...(config.plugins ?? []), devTools],
+      }}
+      onSubmit={showResult}
+      onSubmitFailed={errors => showErrors(errors)}
+      onReset={handleReset}
+    />
+  )
 }
 
 export const SceneRenderer = observer(({ config }: SceneRendererProps): React.ReactElement => {
@@ -52,14 +83,21 @@ export const SceneRenderer = observer(({ config }: SceneRendererProps): React.Re
       {/* Schema 变体切换器（如布局切换） */}
       {variants && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: '#555' }}>{variants.label}：</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#555' }}>
+            {variants.label}
+            ：
+          </span>
           <div style={{ display: 'flex', gap: 4 }}>
             {variants.options.map(opt => (
               <button
                 key={opt.value}
                 onClick={() => setVariantValue(opt.value)}
                 style={{
-                  padding: '4px 12px', borderRadius: 4, cursor: 'pointer', fontSize: 13, fontWeight: 500,
+                  padding: '4px 12px',
+                  borderRadius: 4,
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  fontWeight: 500,
                   border: variantValue === opt.value ? '2px solid #1677ff' : '1px solid #d9d9d9',
                   background: variantValue === opt.value ? '#e6f4ff' : '#fff',
                   color: variantValue === opt.value ? '#1677ff' : '#333',
@@ -74,15 +112,12 @@ export const SceneRenderer = observer(({ config }: SceneRendererProps): React.Re
 
       <StatusTabs>
         {({ mode, showResult, showErrors }) => (
-          <ConfigForm
-            schema={withMode(currentSchema, mode)}
-            initialValues={config.initialValues}
-            formConfig={{
-              effects: config.effects,
-              plugins: [...(config.plugins ?? []), devTools],
-            }}
-            onSubmit={showResult}
-            onSubmitFailed={errors => showErrors(errors)}
+          <SceneForm
+            config={config}
+            schema={currentSchema}
+            mode={mode}
+            showResult={showResult}
+            showErrors={showErrors}
           />
         )}
       </StatusTabs>

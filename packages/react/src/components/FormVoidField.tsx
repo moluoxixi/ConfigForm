@@ -1,8 +1,8 @@
 import type { VoidFieldInstance, VoidFieldProps } from '@moluoxixi/core'
 import type { ReactNode } from 'react'
-import { observer } from '@moluoxixi/reactive-react'
 import { useContext, useEffect, useRef } from 'react'
 import { FieldContext, FormContext } from '../context'
+import { observer } from '../reactive'
 import { ReactiveField } from './ReactiveField'
 
 export interface FormVoidFieldProps {
@@ -35,11 +35,14 @@ export const FormVoidField = observer<FormVoidFieldProps>(({ name, fieldProps, c
   }
   const field = fieldRef.current
 
-  /* 组件卸载时清理由本组件创建的字段注册 */
+  /* 组件挂载时通知字段 mount，卸载时 unmount + 清理注册 */
   useEffect(() => {
+    const currentField = fieldRef.current
     const fieldName = name
     const created = createdByThisRef.current
+    currentField?.mount()
     return () => {
+      currentField?.unmount()
       if (created) {
         form.removeField(fieldName)
       }

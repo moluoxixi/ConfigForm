@@ -47,7 +47,8 @@ class HookPipeline<H> {
 
     return () => {
       const idx = this.handlers.indexOf(item)
-      if (idx !== -1) this.handlers.splice(idx, 1)
+      if (idx !== -1)
+        this.handlers.splice(idx, 1)
     }
   }
 
@@ -102,7 +103,8 @@ export class FormHookManager {
     original: () => Promise<SubmitResult>,
   ): Promise<SubmitResult> {
     const handlers = this.submit.getHandlers()
-    if (handlers.length === 0) return original()
+    if (handlers.length === 0)
+      return original()
 
     const ctx = { form }
 
@@ -131,7 +133,8 @@ export class FormHookManager {
     original: () => Promise<ValidateResult>,
   ): Promise<ValidateResult> {
     const handlers = this.validate.getHandlers()
-    if (handlers.length === 0) return original()
+    if (handlers.length === 0)
+      return original()
 
     const ctx = { form, pattern }
 
@@ -194,14 +197,15 @@ export class FormHookManager {
     original: (props: FieldProps<V>) => FieldInstance<V>,
   ): FieldInstance<V> {
     const handlers = this.createField.getHandlers()
-    if (handlers.length === 0) return original(props)
+    if (handlers.length === 0)
+      return original(props)
 
     /* createField 管线：每层可修改 props，传给 next */
-    let pipeline: (p: FieldProps) => FieldInstance = (p) => original(p as FieldProps<V>) as unknown as FieldInstance
+    let pipeline: (p: FieldProps) => FieldInstance = p => original(p as FieldProps<V>) as unknown as FieldInstance
     for (let i = handlers.length - 1; i >= 0; i--) {
       const handler = handlers[i]
       const next = pipeline
-      pipeline = (p) => handler({ form, props: p }, next)
+      pipeline = p => handler({ form, props: p }, next)
     }
 
     return pipeline(props as FieldProps) as unknown as FieldInstance<V>

@@ -1,5 +1,5 @@
-import type { SceneConfig } from '../types'
 import type { StandardJsonSchema } from '@moluoxixi/plugin-json-schema'
+import type { SceneConfig } from '../types'
 import { fromJsonSchema } from '@moluoxixi/plugin-json-schema'
 
 /**

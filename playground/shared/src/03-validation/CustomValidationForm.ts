@@ -1,3 +1,4 @@
+import type { ValidationRule } from '@moluoxixi/core'
 import type { SceneConfig } from '../types'
 
 /**
@@ -17,12 +18,13 @@ const ID_TYPE_OPTIONS = [
 ]
 
 /** 车牌号规则：汉字 + 字母 + 5 位字母数字 */
-const licensePlateRules = [{ pattern: /^[\u4E00-\u9FA5][A-Z][A-Z0-9]{5}$/, message: '无效车牌号' }]
+const licensePlateRules: ValidationRule[] = [{ pattern: /^[\u4E00-\u9FA5][A-Z][A-Z0-9]{5}$/, message: '无效车牌号' }]
 
 /** 手机号规则：中国大陆 11 位 */
-const phoneRules = [{
+const phoneRules: ValidationRule[] = [{
   validator: (v: unknown): string | undefined => {
-    if (!v) return undefined
+    if (!v)
+      return undefined
     if (!/^1[3-9]\d{9}$/.test(String(v)))
       return '无效大陆手机号'
     return undefined
@@ -30,7 +32,7 @@ const phoneRules = [{
 }]
 
 /** 密码规则：长度 + 多种字符类型 + 弱密码检测 */
-const passwordRules = [
+const passwordRules: ValidationRule[] = [
   { stopOnFirstFailure: true, minLength: 8, maxLength: 32, message: '8-32 字符' },
   { pattern: /[a-z]/, message: '需含小写' },
   { pattern: /[A-Z]/, message: '需含大写' },
@@ -39,25 +41,29 @@ const passwordRules = [
 ]
 
 /** 年龄规则：范围校验 + 警告级提示 */
-const ageRules = [
+const ageRules: ValidationRule[] = [
   { min: 0, max: 150, message: '0-150' },
   {
     level: 'warning',
     validator: (v: unknown): string | undefined => {
       const a = Number(v)
-      if (a > 0 && a < 18) return '未成年部分功能受限'
-      if (a > 60) return '建议开启大字模式'
+      if (a > 0 && a < 18)
+        return '未成年部分功能受限'
+      if (a > 60)
+        return '建议开启大字模式'
       return undefined
     },
   },
 ]
 
 /** IP 地址规则：IPv4 格式验证 */
-const ipAddressRules = [{
+const ipAddressRules: ValidationRule[] = [{
   validator: (v: unknown): string | undefined => {
-    if (!v) return undefined
+    if (!v)
+      return undefined
     const parts = String(v).split('.')
-    if (parts.length !== 4) return 'IP 格式错误'
+    if (parts.length !== 4)
+      return 'IP 格式错误'
     for (const p of parts) {
       const n = Number(p)
       if (Number.isNaN(n) || n < 0 || n > 255 || String(n) !== p)
@@ -72,8 +78,13 @@ const config: SceneConfig = {
   description: '正则 / 自定义函数 / 多规则 / 警告级 / 条件规则',
 
   initialValues: {
-    licensePlate: '', phone: '', password: '', age: undefined,
-    idType: 'idcard', idNumber: '', ipAddress: '',
+    licensePlate: '',
+    phone: '',
+    password: '',
+    age: undefined,
+    idType: 'idcard',
+    idNumber: '',
+    ipAddress: '',
   },
 
   schema: {
@@ -86,7 +97,9 @@ const config: SceneConfig = {
       age: { type: 'number', title: '年龄', required: true, rules: ageRules },
       idType: { type: 'string', title: '证件类型', required: true, default: 'idcard', enum: ID_TYPE_OPTIONS },
       idNumber: {
-        type: 'string', title: '证件号码', required: true,
+        type: 'string',
+        title: '证件号码',
+        required: true,
         reactions: [{ watch: 'idType', fulfill: { run: (f: any, ctx: any) => {
           const t = ctx.values.idType as string
           f.setValue('')

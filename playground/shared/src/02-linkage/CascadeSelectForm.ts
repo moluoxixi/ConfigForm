@@ -14,14 +14,14 @@ const PROVINCES = [
 ]
 
 /** 城市列表（按省份分组） */
-const CITIES: Record<string, Array<{ label: string; value: string }>> = {
+const CITIES: Record<string, Array<{ label: string, value: string }>> = {
   beijing: [{ label: '东城区', value: 'dongcheng' }, { label: '朝阳区', value: 'chaoyang' }],
   shanghai: [{ label: '黄浦区', value: 'huangpu' }, { label: '浦东新区', value: 'pudong' }],
   guangdong: [{ label: '广州', value: 'guangzhou' }, { label: '深圳', value: 'shenzhen' }],
 }
 
 /** 区县列表（按城市分组） */
-const DISTRICTS: Record<string, Array<{ label: string; value: string }>> = {
+const DISTRICTS: Record<string, Array<{ label: string, value: string }>> = {
   chaoyang: [{ label: '三里屯', value: 'sanlitun' }, { label: '望京', value: 'wangjing' }],
   guangzhou: [{ label: '天河区', value: 'tianhe' }, { label: '越秀区', value: 'yuexiu' }],
   shenzhen: [{ label: '南山区', value: 'nanshan' }, { label: '福田区', value: 'futian' }],
@@ -34,13 +34,13 @@ const CAT_L1 = [
 ]
 
 /** 二级分类（按一级分组） */
-const CAT_L2: Record<string, Array<{ label: string; value: string }>> = {
+const CAT_L2: Record<string, Array<{ label: string, value: string }>> = {
   electronics: [{ label: '手机', value: 'phone' }, { label: '电脑', value: 'computer' }],
   clothing: [{ label: '男装', value: 'men' }, { label: '女装', value: 'women' }],
 }
 
 /** 三级分类（按二级分组） */
-const CAT_L3: Record<string, Array<{ label: string; value: string }>> = {
+const CAT_L3: Record<string, Array<{ label: string, value: string }>> = {
   phone: [{ label: 'iPhone', value: 'iphone' }, { label: '华为', value: 'huawei' }],
   computer: [{ label: '笔记本', value: 'laptop' }, { label: '台式机', value: 'desktop' }],
 }
@@ -50,17 +50,31 @@ const config: SceneConfig = {
   description: '省市区三级联动 / 多级分类联动',
 
   initialValues: {
-    province: undefined, city: undefined, district: undefined,
-    categoryL1: undefined, categoryL2: undefined, categoryL3: undefined,
+    province: undefined,
+    city: undefined,
+    district: undefined,
+    categoryL1: undefined,
+    categoryL2: undefined,
+    categoryL3: undefined,
   },
 
   schema: {
     type: 'object',
     decoratorProps: { actions: { submit: true, reset: true }, labelPosition: 'right', labelWidth: '120px' },
     properties: {
-      province: { type: 'string', title: '省份', required: true, placeholder: '请选择', enum: PROVINCES },
+      province: {
+        type: 'string',
+        title: '省份',
+        required: true,
+        enum: PROVINCES,
+        componentProps: { placeholder: '请选择' },
+      },
       city: {
-        type: 'string', title: '城市', required: true, component: 'Select', placeholder: '请先选择省份',
+        type: 'string',
+        title: '城市',
+        required: true,
+        component: 'Select',
+        componentProps: { placeholder: '请先选择省份' },
         reactions: [{
           watch: 'province',
           fulfill: {
@@ -74,7 +88,10 @@ const config: SceneConfig = {
         }],
       },
       district: {
-        type: 'string', title: '区县', component: 'Select', placeholder: '请先选择城市',
+        type: 'string',
+        title: '区县',
+        component: 'Select',
+        componentProps: { placeholder: '请先选择城市' },
         reactions: [{
           watch: 'city',
           fulfill: {
@@ -87,9 +104,19 @@ const config: SceneConfig = {
           },
         }],
       },
-      categoryL1: { type: 'string', title: '一级分类', required: true, placeholder: '请选择', enum: CAT_L1 },
+      categoryL1: {
+        type: 'string',
+        title: '一级分类',
+        required: true,
+        enum: CAT_L1,
+        componentProps: { placeholder: '请选择' },
+      },
       categoryL2: {
-        type: 'string', title: '二级分类', required: true, component: 'Select', placeholder: '请先选择一级',
+        type: 'string',
+        title: '二级分类',
+        required: true,
+        component: 'Select',
+        componentProps: { placeholder: '请先选择一级' },
         reactions: [{
           watch: 'categoryL1',
           fulfill: {
@@ -102,7 +129,10 @@ const config: SceneConfig = {
         }],
       },
       categoryL3: {
-        type: 'string', title: '三级分类', component: 'Select', placeholder: '请先选择二级',
+        type: 'string',
+        title: '三级分类',
+        component: 'Select',
+        componentProps: { placeholder: '请先选择二级' },
         reactions: [{
           watch: 'categoryL2',
           fulfill: {

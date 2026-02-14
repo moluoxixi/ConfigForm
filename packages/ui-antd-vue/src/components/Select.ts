@@ -3,6 +3,8 @@ import type { PropType } from 'vue'
 import { Select as ASelect } from 'ant-design-vue'
 import { defineComponent, h } from 'vue'
 
+const SelectComponent = ASelect as any
+
 /** 下拉选择适配 */
 export const Select = defineComponent({
   name: 'CfSelect',
@@ -18,7 +20,7 @@ export const Select = defineComponent({
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => {
-      return h(ASelect, {
+      return h(SelectComponent, {
         'value': props.modelValue,
         'placeholder': props.placeholder,
         'disabled': props.disabled,

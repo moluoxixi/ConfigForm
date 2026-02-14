@@ -1,5 +1,5 @@
-import { Rate as ARate } from 'antd'
 import type { ReactElement } from 'react'
+import { Rate as ARate } from 'antd'
 
 export interface CfRateProps {
   value?: number

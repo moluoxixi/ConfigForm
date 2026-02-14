@@ -1,8 +1,10 @@
-import { Badge, Tabs as ATabs } from 'antd'
-import { useField, useForm, useSchemaItems, RecursionField } from '@moluoxixi/react'
-import { observer } from '@moluoxixi/reactive-react'
-import { useEffect, useState } from 'react'
+import type { ISchema } from '@moluoxixi/core'
 import type { ReactElement } from 'react'
+import { FormPath } from '@moluoxixi/core'
+import { observer, RecursionField, useField, useForm, useSchemaItems } from '@moluoxixi/react'
+
+import { Tabs as ATabs, Badge } from 'antd'
+import { useEffect, useState } from 'react'
 
 export interface LayoutTabsProps {}
 
@@ -22,6 +24,51 @@ export const LayoutTabs = observer((_props: LayoutTabsProps): ReactElement => {
   const items = useSchemaItems()
   const [activeKey, setActiveKey] = useState('0')
 
+  const getDataPath = (path: string): string => {
+    if (!path)
+      return ''
+    const segments = path.split('.')
+    const dataSegments: string[] = []
+    let currentPath = ''
+    for (const seg of segments) {
+      currentPath = currentPath ? `${currentPath}.${seg}` : seg
+      if (form.getAllVoidFields().has(currentPath))
+        continue
+      dataSegments.push(seg)
+    }
+    return dataSegments.join('.')
+  }
+
+  const collectDataPaths = (schema: ISchema, parentPath: string, output: Set<string>): void => {
+    if (!schema.properties)
+      return
+    for (const [name, childSchema] of Object.entries(schema.properties)) {
+      if (childSchema.type === 'void') {
+        collectDataPaths(childSchema, parentPath, output)
+        continue
+      }
+
+      const nextPath = parentPath ? `${parentPath}.${name}` : name
+      output.add(nextPath)
+
+      if (childSchema.properties)
+        collectDataPaths(childSchema, nextPath, output)
+
+      if (childSchema.items) {
+        const itemPath = `${nextPath}.*`
+        output.add(itemPath)
+        collectDataPaths(childSchema.items, itemPath, output)
+      }
+    }
+  }
+
+  const basePath = getDataPath(field.path)
+  const itemPatterns = new Map(items.map((item) => {
+    const paths = new Set<string>()
+    collectDataPaths(item.schema, basePath, paths)
+    return [item.name, Array.from(paths)] as const
+  }))
+
   /**
    * 统计某个面板下的验证错误数量
    *
@@ -29,9 +76,11 @@ export const LayoutTabs = observer((_props: LayoutTabsProps): ReactElement => {
    * 面板的字段路径前缀为 `{field.path}.{item.name}.`
    */
   const getErrorCount = (itemName: string): number => {
-    const prefix = `${field.path}.${itemName}`
-    return form.errors.filter(
-      e => e.path === prefix || e.path.startsWith(`${prefix}.`),
+    const patterns = itemPatterns.get(itemName) ?? []
+    if (patterns.length === 0)
+      return 0
+    return form.errors.filter(e =>
+      patterns.some(pattern => FormPath.match(pattern, e.path)),
     ).length
   }
 
@@ -42,11 +91,13 @@ export const LayoutTabs = observer((_props: LayoutTabsProps): ReactElement => {
    * 且其他 Tab 有错误，则跳转到第一个有错误的 Tab。
    */
   useEffect(() => {
-    if (form.errors.length === 0) return
+    if (form.errors.length === 0)
+      return
 
     const currentIndex = Number(activeKey)
     const currentItem = items[currentIndex]
-    if (currentItem && getErrorCount(currentItem.name) > 0) return
+    if (currentItem && getErrorCount(currentItem.name) > 0)
+      return
 
     /* 找到第一个有错误的 Tab */
     const firstErrorIndex = items.findIndex(item => getErrorCount(item.name) > 0)
@@ -76,7 +127,7 @@ export const LayoutTabs = observer((_props: LayoutTabsProps): ReactElement => {
             <RecursionField
               schema={item.schema}
               name={item.name}
-              basePath={field.path}
+              basePath={basePath}
               onlyRenderProperties
             />
           ),

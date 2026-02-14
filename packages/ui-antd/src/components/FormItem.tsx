@@ -9,6 +9,10 @@ export interface CfFormItemProps {
   errors?: ValidationFeedback[]
   warnings?: ValidationFeedback[]
   description?: string
+  /** 字段路径（用于错误滚动定位） */
+  fieldPath?: string
+  /** 是否存在错误（来自核心渲染契约） */
+  hasErrors?: boolean
   /** 是否显示冒号后缀，默认 true；可通过 decoratorProps.colon 控制 */
   colon?: boolean
   /** 表单模式（editable/preview/disabled），preview/disabled 时隐藏必填标记 */
@@ -24,7 +28,20 @@ export interface CfFormItemProps {
  * preview/disabled 时隐藏必填星号标记。
  * 挂载时自动设置 field.domRef，支持 scrollToFirstError。
  */
-export function FormItem({ label, required, errors = [], warnings = [], description, colon: colonProp, pattern = 'editable', labelPosition: labelPositionProp, labelWidth: labelWidthProp, children }: CfFormItemProps): React.ReactElement {
+export function FormItem({
+  label,
+  required,
+  errors = [],
+  warnings = [],
+  description,
+  fieldPath: fieldPathProp,
+  hasErrors: hasErrorsProp,
+  colon: colonProp,
+  pattern = 'editable',
+  labelPosition: labelPositionProp,
+  labelWidth: labelWidthProp,
+  children,
+}: CfFormItemProps): React.ReactElement {
   /** 设置 field.domRef，支持 scrollToFirstError */
   let field: ReturnType<typeof useField> | null = null
   try {
@@ -70,13 +87,16 @@ export function FormItem({ label, required, errors = [], warnings = [], descript
     : undefined
 
   /** a11y：从字段模型读取无障碍属性 */
-  const hasErrors = errors.length > 0
-  const errorId = field ? `field-error-${field.path}` : undefined
+  const hasErrors = hasErrorsProp ?? errors.length > 0
+  const fieldPath = fieldPathProp ?? field?.path
+  const errorId = fieldPath ? `field-error-${fieldPath}` : undefined
 
   return (
     <div
       ref={refCallback}
       role="group"
+      data-field-path={fieldPath}
+      data-field-error={hasErrors ? 'true' : undefined}
       aria-invalid={hasErrors || undefined}
       aria-required={showRequired || undefined}
     >

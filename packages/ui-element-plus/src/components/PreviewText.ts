@@ -1,5 +1,5 @@
-import { defineComponent, h } from 'vue'
 import type { PropType } from 'vue'
+import { defineComponent, h } from 'vue'
 
 /** 纯文本预览基础组件 */
 function createPreview(name: string) {
@@ -17,7 +17,7 @@ function createPreview(name: string) {
         }
         if (props.dataSource.length > 0) {
           if (Array.isArray(value)) {
-            const labels = value.map(v => {
+            const labels = value.map((v) => {
               const item = props.dataSource.find(d => d.value === v)
               return item?.label ?? String(v)
             })

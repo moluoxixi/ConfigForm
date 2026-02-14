@@ -16,9 +16,9 @@ export const CheckboxGroup = defineComponent({
   setup(props, { emit }) {
     return () => {
       return h(ACheckbox.Group, {
-        'value': props.modelValue,
+        'value': props.modelValue as any,
         'disabled': props.disabled,
-        'options': props.dataSource.map(item => ({ label: item.label, value: item.value })),
+        'options': props.dataSource.map(item => ({ label: item.label, value: item.value })) as any,
         'onUpdate:value': (v: unknown) => emit('update:modelValue', v),
       })
     }

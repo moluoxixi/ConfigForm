@@ -2,6 +2,8 @@ import type { PropType } from 'vue'
 import { ElSlider } from 'element-plus'
 import { defineComponent, h } from 'vue'
 
+const SliderComponent = ElSlider as any
+
 /**
  * 滑块组件适配
  *
@@ -41,7 +43,7 @@ export const Slider = defineComponent({
         return h('span', null, text)
       }
 
-      return h(ElSlider, {
+      return h(SliderComponent, {
         'modelValue': props.modelValue,
         'disabled': props.disabled,
         'min': props.min,
@@ -50,7 +52,15 @@ export const Slider = defineComponent({
         'range': props.range,
         'showInput': props.showInput,
         'showTooltip': props.showTooltip,
-        'onUpdate:modelValue': (v: number | [number, number]) => emit('update:modelValue', v),
+        'onUpdate:modelValue': (v: unknown) => {
+          if (Array.isArray(v)) {
+            const start = Number(v[0] ?? 0)
+            const end = Number(v[1] ?? start)
+            emit('update:modelValue', [start, end] as [number, number])
+            return
+          }
+          emit('update:modelValue', Number(v ?? 0))
+        },
       })
     }
   },

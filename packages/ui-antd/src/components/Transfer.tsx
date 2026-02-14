@@ -1,5 +1,5 @@
-import type { ReactElement } from 'react'
 import type { DataSourceItem } from '@moluoxixi/core'
+import type { ReactElement } from 'react'
 import { Transfer as ATransfer } from 'antd'
 
 export interface CfTransferProps {
@@ -13,7 +13,12 @@ export interface CfTransferProps {
 }
 
 export function Transfer({
-  value = [], onChange, dataSource = [], disabled, showSearch, titles,
+  value = [],
+  onChange,
+  dataSource = [],
+  disabled,
+  showSearch,
+  titles,
 }: CfTransferProps): ReactElement {
   const transferData = dataSource.map(item => ({
     key: String(item.value),
@@ -25,7 +30,7 @@ export function Transfer({
     <ATransfer
       dataSource={transferData}
       targetKeys={value}
-      onChange={(targetKeys) => onChange?.(targetKeys)}
+      onChange={targetKeys => onChange?.(targetKeys.map(key => String(key)))}
       disabled={disabled}
       showSearch={showSearch}
       titles={titles}

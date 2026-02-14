@@ -108,10 +108,12 @@ function extractIfConditions(
 ): Array<{ field: string, value: unknown, isEnum: boolean }> {
   const conditions: Array<{ field: string, value: unknown, isEnum: boolean }> = []
 
-  if (!ifSchema.properties) return conditions
+  if (!ifSchema.properties)
+    return conditions
 
   for (const [field, propSchema] of Object.entries(ifSchema.properties)) {
-    if (!isObject(propSchema)) continue
+    if (!isObject(propSchema))
+      continue
 
     if (propSchema.const !== undefined) {
       conditions.push({ field, value: propSchema.const, isEnum: false })
@@ -221,10 +223,12 @@ function convertIfThenElse(
   schema: StandardJsonSchema,
   parentPath: string,
 ): ISchema['reactions'] {
-  if (!schema.if) return undefined
+  if (!schema.if)
+    return undefined
 
   const conditions = extractIfConditions(schema.if)
-  if (conditions.length === 0) return undefined
+  if (conditions.length === 0)
+    return undefined
 
   const whenExpr = buildConditionExpression(conditions, parentPath)
   const watchFields = conditions.map(c =>
@@ -251,7 +255,8 @@ function convertIfThenElse(
     for (const fieldName of Object.keys(schema.then.properties)) {
       /* 如果 then 中的 property 值为 false，表示隐藏（else 中显示） */
       const thenProp = schema.then.properties[fieldName]
-      if (thenProp === false as unknown) continue
+      if (thenProp === false as unknown)
+        continue
 
       /* 检查 else 中是否将该字段设为 false（隐藏） */
       const elseProp = schema.else?.properties?.[fieldName]
@@ -312,10 +317,12 @@ function convertIfThenElse(
 function convertIfThenElseToOneOf(
   schema: StandardJsonSchema,
 ): ISchema['oneOf'] {
-  if (!schema.if) return undefined
+  if (!schema.if)
+    return undefined
 
   const conditions = extractIfConditions(schema.if)
-  if (conditions.length === 0) return undefined
+  if (conditions.length === 0)
+    return undefined
 
   const branches: NonNullable<ISchema['oneOf']> = []
 
@@ -379,7 +386,8 @@ function convertDependencies(
   /* dependencies (Draft-07) — 仅处理字符串数组形式 */
   if (schema.dependencies) {
     for (const [trigger, dep] of Object.entries(schema.dependencies)) {
-      if (!isArray(dep)) continue
+      if (!isArray(dep))
+        continue
 
       const watchPath = parentPath ? `${parentPath}.${trigger}` : trigger
       const whenExpr = `{{!!$values.${watchPath}}}`
@@ -399,7 +407,8 @@ function convertDependencies(
   /* dependentSchemas (2020-12) — 转为显隐联动 */
   if (schema.dependentSchemas) {
     for (const [trigger, depSchema] of Object.entries(schema.dependentSchemas)) {
-      if (!depSchema.properties) continue
+      if (!depSchema.properties)
+        continue
 
       const watchPath = parentPath ? `${parentPath}.${trigger}` : trigger
       const whenExpr = `{{!!$values.${watchPath}}}`
@@ -437,7 +446,8 @@ function mergeStandardSchema(base: StandardJsonSchema, override: StandardJsonSch
   const result = { ...base }
 
   for (const [key, val] of Object.entries(override)) {
-    if (val === undefined) continue
+    if (val === undefined)
+      continue
 
     if (key === 'properties' && isObject(val)) {
       const merged: Record<string, StandardJsonSchema> = { ...base.properties }
@@ -744,12 +754,14 @@ function convertStandardOneOf(
   schemas: StandardJsonSchema[],
   options: JsonSchemaAdapterOptions,
 ): { branches: NonNullable<ISchema['oneOf']>, discriminator?: string } | undefined {
-  if (schemas.length === 0) return undefined
+  if (schemas.length === 0)
+    return undefined
 
   /* 尝试检测鉴别器 */
   let discriminator: string | undefined
   const constFields = schemas.map((s) => {
-    if (!s.properties) return null
+    if (!s.properties)
+      return null
     for (const [key, prop] of Object.entries(s.properties)) {
       if (isObject(prop) && prop.const !== undefined) {
         return { field: key, value: prop.const }
@@ -786,7 +798,8 @@ function convertStandardOneOf(
     if (s.properties) {
       for (const [key, propSchema] of Object.entries(s.properties)) {
         /* 跳过鉴别器字段本身（它在主 properties 中定义） */
-        if (key === discriminator) continue
+        if (key === discriminator)
+          continue
         properties[key] = convertNode(key, propSchema, '', options)
       }
 
@@ -828,10 +841,14 @@ export function toJsonSchema(formSchema: ISchema): StandardJsonSchema {
   }
 
   /* 元信息 */
-  if (formSchema.title) result.title = formSchema.title
-  if (formSchema.description) result.description = formSchema.description
-  if (formSchema.default !== undefined) result.default = formSchema.default
-  if (formSchema.preview) result.readOnly = true
+  if (formSchema.title)
+    result.title = formSchema.title
+  if (formSchema.description)
+    result.description = formSchema.description
+  if (formSchema.default !== undefined)
+    result.default = formSchema.default
+  if (formSchema.preview)
+    result.readOnly = true
 
   /* 枚举 */
   if (formSchema.enum) {
@@ -843,16 +860,23 @@ export function toJsonSchema(formSchema: ISchema): StandardJsonSchema {
   /* 验证规则 → 约束 */
   if (formSchema.rules) {
     for (const rule of formSchema.rules) {
-      if (rule.minLength !== undefined) result.minLength = rule.minLength
-      if (rule.maxLength !== undefined) result.maxLength = rule.maxLength
-      if (rule.min !== undefined) result.minimum = rule.min
-      if (rule.max !== undefined) result.maximum = rule.max
-      if (rule.exclusiveMin !== undefined) result.exclusiveMinimum = rule.exclusiveMin
-      if (rule.exclusiveMax !== undefined) result.exclusiveMaximum = rule.exclusiveMax
+      if (rule.minLength !== undefined)
+        result.minLength = rule.minLength
+      if (rule.maxLength !== undefined)
+        result.maxLength = rule.maxLength
+      if (rule.min !== undefined)
+        result.minimum = rule.min
+      if (rule.max !== undefined)
+        result.maximum = rule.max
+      if (rule.exclusiveMin !== undefined)
+        result.exclusiveMinimum = rule.exclusiveMin
+      if (rule.exclusiveMax !== undefined)
+        result.exclusiveMaximum = rule.exclusiveMax
       if (rule.pattern !== undefined) {
         result.pattern = rule.pattern instanceof RegExp ? rule.pattern.source : rule.pattern
       }
-      if (rule.format) result.format = rule.format
+      if (rule.format)
+        result.format = rule.format
     }
   }
 
@@ -877,8 +901,10 @@ export function toJsonSchema(formSchema: ISchema): StandardJsonSchema {
   if (formSchema.items) {
     result.items = toJsonSchema(formSchema.items)
   }
-  if (formSchema.minItems !== undefined) result.minItems = formSchema.minItems
-  if (formSchema.maxItems !== undefined) result.maxItems = formSchema.maxItems
+  if (formSchema.minItems !== undefined)
+    result.minItems = formSchema.minItems
+  if (formSchema.maxItems !== undefined)
+    result.maxItems = formSchema.maxItems
 
   /* definitions */
   if (formSchema.definitions) {
@@ -889,7 +915,8 @@ export function toJsonSchema(formSchema: ISchema): StandardJsonSchema {
   }
 
   /* $ref */
-  if (formSchema.$ref) result.$ref = formSchema.$ref
+  if (formSchema.$ref)
+    result.$ref = formSchema.$ref
 
   return result
 }

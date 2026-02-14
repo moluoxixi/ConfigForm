@@ -1,12 +1,11 @@
-import type { FormConfig, FormInstance } from '@moluoxixi/core'
-import type { FormSchema } from '@moluoxixi/core'
-import type { FieldPattern, ValidationFeedback } from '@moluoxixi/core'
+import type { FieldPattern, FormConfig, FormInstance, FormPlugin, FormSchema, ValidationFeedback } from '@moluoxixi/core'
+
 import type { ComponentType, CSSProperties, FormEvent, ReactElement, ReactNode } from 'react'
-import { observer } from '@moluoxixi/reactive-react'
-import { runInAction } from 'mobx'
+import type { ComponentScope, RegistryState } from '../registry'
 import { useCallback, useContext, useEffect } from 'react'
 import { ComponentRegistryContext } from '../context'
 import { useCreateForm } from '../hooks/useForm'
+import { observer } from '../reactive'
 import { FormProvider } from './FormProvider'
 import { SchemaField } from './SchemaField'
 
@@ -14,21 +13,35 @@ export interface ConfigFormProps<Values extends Record<string, unknown> = Record
   /** 外部传入的 form 实例（可选） */
   form?: FormInstance<Values>
   /** 表单 Schema */
-  schema?: FormSchema<Values>
+  schema?: FormSchema
   /** 表单配置（当不传 form 实例时使用） */
   formConfig?: FormConfig<Values>
   /** 初始值 */
   initialValues?: Partial<Values>
+  /** 表单 effects */
+  effects?: (form: FormInstance<Values>) => void
+  /** 表单插件 */
+  plugins?: FormPlugin[]
   /** 提交回调 */
   onSubmit?: (values: Values) => void | Promise<void>
   /** 提交失败回调 */
   onSubmitFailed?: (errors: ValidationFeedback[]) => void
+  /** 重置回调 */
+  onReset?: () => void
   /** 值变化回调 */
   onValuesChange?: (values: Values) => void
   /** 局部组件注册 */
   components?: Record<string, ComponentType<any>>
   /** 局部装饰器注册 */
   decorators?: Record<string, ComponentType<any>>
+  /** 局部默认装饰器映射（component -> decorator） */
+  defaultDecorators?: Record<string, string>
+  /** 局部阅读态组件映射（component -> readPrettyComponent） */
+  readPrettyComponents?: Record<string, ComponentType<any>>
+  /** 组件作用域（与 components/decorators/defaultDecorators/readPrettyComponents 二选一或组合） */
+  scope?: ComponentScope
+  /** 基础注册表（实例级隔离，默认全局） */
+  registry?: RegistryState
   /** 表单模式（优先级高于 schema.decoratorProps.pattern） */
   pattern?: FieldPattern
   /** 自定义子节点 */
@@ -57,11 +70,18 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
     schema,
     formConfig,
     initialValues,
+    effects,
+    plugins,
     onSubmit,
     onSubmitFailed,
+    onReset,
     onValuesChange,
     components,
     decorators,
+    defaultDecorators,
+    readPrettyComponents,
+    scope,
+    registry,
     pattern: patternProp,
     children,
     className,
@@ -72,7 +92,7 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
   const rootDecoratorProps = (schema?.decoratorProps ?? {}) as Record<string, unknown>
 
   /** pattern 优先级：props.pattern > schema.decoratorProps.pattern > 'editable' */
-  const effectivePattern = (patternProp ?? rootDecoratorProps.pattern ?? 'editable') as FieldPattern
+  const effectivePattern = (patternProp ?? schema?.pattern ?? rootDecoratorProps.pattern ?? 'editable') as FieldPattern
 
   /* 内部创建或使用外部 form */
   const internalForm = useCreateForm<Values>({
@@ -81,12 +101,14 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
     pattern: effectivePattern,
     ...formConfig,
     initialValues: initialValues ?? formConfig?.initialValues,
+    effects,
+    plugins,
   })
   const form = externalForm ?? internalForm
 
-  /** schema/props 变化时同步更新表单级配置（使用 runInAction 确保 MobX 批量通知） */
+  /** schema/props 变化时同步更新表单级配置（通过 form.batch 走适配器批处理） */
   useEffect(() => {
-    runInAction(() => {
+    form.batch(() => {
       if (rootDecoratorProps.labelPosition !== undefined) {
         form.labelPosition = rootDecoratorProps.labelPosition as 'top' | 'left' | 'right'
       }
@@ -120,10 +142,15 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
     }
   }, [form, onSubmit, onSubmitFailed])
 
+  /* 重置处理 */
+  const handleReset = useCallback(() => {
+    form.reset()
+    onReset?.()
+  }, [form, onReset])
+
   /* 操作按钮配置（从 schema.decoratorProps.actions 读取） */
   const actions = rootDecoratorProps.actions as Record<string, unknown>
-  const pattern = (schema?.pattern ?? rootDecoratorProps.pattern ?? 'editable') as string
-  const isEditable = pattern === 'editable'
+  const isEditable = effectivePattern === 'editable'
   const showActions = !!actions && isEditable
   const submitLabel = typeof actions?.submit === 'string' ? actions.submit : '提交'
   const resetLabel = typeof actions?.reset === 'string' ? actions.reset : '重置'
@@ -160,7 +187,15 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
   }
 
   return (
-    <FormProvider form={form} components={components} decorators={decorators}>
+    <FormProvider
+      form={form}
+      components={components}
+      decorators={decorators}
+      defaultDecorators={defaultDecorators}
+      readPrettyComponents={readPrettyComponents}
+      scope={scope}
+      registry={registry}
+    >
       <form onSubmit={handleSubmit} className={className} style={style} noValidate>
         {schema && (
           <div style={fieldContainerStyle}>
@@ -175,9 +210,9 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
             showReset={showReset}
             submitLabel={submitLabel}
             resetLabel={resetLabel}
-            onReset={() => form.reset()}
-            onSubmit={(values) => onSubmit?.(values as Values)}
-            onSubmitFailed={(errors) => onSubmitFailed?.(errors as ValidationFeedback[])}
+            onReset={handleReset}
+            onSubmit={values => onSubmit?.(values as Values)}
+            onSubmitFailed={errors => onSubmitFailed?.(errors as ValidationFeedback[])}
           />
         )}
 
@@ -241,12 +276,13 @@ function FormActionsRenderer({ showSubmit, showReset, submitLabel, resetLabel, o
  * 使用 setTimeout 等待 DOM 更新（错误提示渲染完成后再滚动）。
  */
 function scrollToFirstError(errors: Array<{ path: string }>): void {
-  if (errors.length === 0) return
+  if (errors.length === 0)
+    return
 
   setTimeout(() => {
     /* 查找表单中第一个带错误样式的元素 */
     const errorElement = document.querySelector(
-      '.ant-form-item-has-error, [class*="error"], [aria-invalid="true"]',
+      '[data-field-error="true"], [aria-invalid="true"]',
     )
     if (errorElement) {
       errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })

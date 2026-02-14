@@ -1,13 +1,13 @@
-import type { FieldInstance, FieldProps } from '@moluoxixi/core'
+import type { ObjectFieldInstance, ObjectFieldProps } from '@moluoxixi/core'
 import type { ReactNode } from 'react'
-import { observer } from '@moluoxixi/reactive-react'
 import { useContext, useEffect, useRef } from 'react'
 import { FieldContext, FormContext } from '../context'
+import { observer } from '../reactive'
 import { ReactiveField } from './ReactiveField'
 
 export interface FormObjectFieldProps {
   name: string
-  fieldProps?: Partial<FieldProps>
+  fieldProps?: Partial<ObjectFieldProps>
   children?: ReactNode
 }
 
@@ -27,23 +27,26 @@ export const FormObjectField = observer<FormObjectFieldProps>(({ name, fieldProp
    *
    * 兼容 React 18 StrictMode 双挂载（同 FormField / FormVoidField）。
    */
-  const fieldRef = useRef<FieldInstance | null>(null)
+  const fieldRef = useRef<ObjectFieldInstance | null>(null)
   const createdByThisRef = useRef(false)
-  if (!fieldRef.current || !form.getField(name)) {
-    let field = form.getField(name)
+  if (!fieldRef.current || !form.getObjectField(name)) {
+    let field = form.getObjectField(name)
     if (!field) {
-      field = form.createField({ name, ...fieldProps } as FieldProps)
+      field = form.createObjectField({ name, ...fieldProps })
       createdByThisRef.current = true
     }
     fieldRef.current = field
   }
   const field = fieldRef.current
 
-  /* 组件卸载时清理由本组件创建的字段注册 */
+  /* 组件挂载时通知字段 mount，卸载时 unmount + 清理注册 */
   useEffect(() => {
+    const currentField = fieldRef.current
     const fieldName = name
     const created = createdByThisRef.current
+    currentField?.mount()
     return () => {
+      currentField?.unmount()
       if (created) {
         form.removeField(fieldName)
       }

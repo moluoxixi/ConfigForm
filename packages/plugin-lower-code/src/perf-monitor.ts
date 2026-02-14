@@ -1,4 +1,4 @@
-import type { FormPlugin, PluginInstallResult } from '@moluoxixi/core'
+import type { FormPlugin } from '@moluoxixi/core'
 import { FormLifeCycle } from '@moluoxixi/core'
 
 /* ======================== 类型定义 ======================== */
@@ -157,7 +157,8 @@ export function perfMonitorPlugin(config: PerfMonitorConfig = {}): FormPlugin<Pe
           listeners.push(callback)
           return () => {
             const idx = listeners.indexOf(callback)
-            if (idx !== -1) listeners.splice(idx, 1)
+            if (idx !== -1)
+              listeners.splice(idx, 1)
           }
         },
       }

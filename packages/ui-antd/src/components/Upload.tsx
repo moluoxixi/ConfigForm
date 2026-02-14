@@ -14,7 +14,14 @@ export interface CfUploadProps {
 }
 
 export function Upload({
-  value, onChange, disabled, accept, maxCount, multiple, listType = 'text', action,
+  value,
+  onChange,
+  disabled,
+  accept,
+  maxCount,
+  multiple,
+  listType = 'text',
+  action,
 }: CfUploadProps): ReactElement {
   const fileList = Array.isArray(value)
     ? value.map((f, i) => ({

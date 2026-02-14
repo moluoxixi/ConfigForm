@@ -13,41 +13,78 @@ import type {
   FormOverview,
   ValueDiffEntry,
 } from '@moluoxixi/plugin-devtools'
+import type { PropType, VNode } from 'vue'
 import {
   computed,
   defineComponent,
   h,
   onMounted,
   onUnmounted,
+
   ref,
-  type PropType,
-  type VNode,
+
 } from 'vue'
 
 /* ======================== 主题 ======================== */
 
 /** 主题色彩定义 */
 interface Theme {
-  bg: string; bgPanel: string; bgHover: string; bgActive: string; border: string
-  text: string; textSecondary: string; textDim: string
-  accent: string; green: string; red: string; yellow: string; purple: string
-  shadow: string; badgeBg: string; inputBg: string
+  bg: string
+  bgPanel: string
+  bgHover: string
+  bgActive: string
+  border: string
+  text: string
+  textSecondary: string
+  textDim: string
+  accent: string
+  green: string
+  red: string
+  yellow: string
+  purple: string
+  shadow: string
+  badgeBg: string
+  inputBg: string
 }
 
 /** 亮色主题 */
 const lightTheme: Theme = {
-  bg: '#ffffff', bgPanel: '#f7f8fa', bgHover: '#f0f2f5', bgActive: '#e8f4ff',
-  border: '#e5e7eb', text: '#1f2937', textSecondary: '#6b7280', textDim: '#9ca3af',
-  accent: '#3b82f6', green: '#10b981', red: '#ef4444', yellow: '#f59e0b', purple: '#8b5cf6',
-  shadow: '0 8px 30px rgba(0,0,0,0.12)', badgeBg: '#f3f4f6', inputBg: '#f9fafb',
+  bg: '#ffffff',
+  bgPanel: '#f7f8fa',
+  bgHover: '#f0f2f5',
+  bgActive: '#e8f4ff',
+  border: '#e5e7eb',
+  text: '#1f2937',
+  textSecondary: '#6b7280',
+  textDim: '#9ca3af',
+  accent: '#3b82f6',
+  green: '#10b981',
+  red: '#ef4444',
+  yellow: '#f59e0b',
+  purple: '#8b5cf6',
+  shadow: '0 8px 30px rgba(0,0,0,0.12)',
+  badgeBg: '#f3f4f6',
+  inputBg: '#f9fafb',
 }
 
 /** 暗色主题 */
 const darkTheme: Theme = {
-  bg: '#1a1b2e', bgPanel: '#222338', bgHover: '#2a2b45', bgActive: '#1e3a5f',
-  border: '#333456', text: '#e2e8f0', textSecondary: '#94a3b8', textDim: '#64748b',
-  accent: '#60a5fa', green: '#34d399', red: '#f87171', yellow: '#fbbf24', purple: '#a78bfa',
-  shadow: '0 8px 30px rgba(0,0,0,0.4)', badgeBg: '#2a2b45', inputBg: '#1e1f35',
+  bg: '#1a1b2e',
+  bgPanel: '#222338',
+  bgHover: '#2a2b45',
+  bgActive: '#1e3a5f',
+  border: '#333456',
+  text: '#e2e8f0',
+  textSecondary: '#94a3b8',
+  textDim: '#64748b',
+  accent: '#60a5fa',
+  green: '#34d399',
+  red: '#f87171',
+  yellow: '#fbbf24',
+  purple: '#a78bfa',
+  shadow: '0 8px 30px rgba(0,0,0,0.4)',
+  badgeBg: '#2a2b45',
+  inputBg: '#1e1f35',
 }
 
 /* ======================== 常量 ======================== */
@@ -60,7 +97,7 @@ const PANEL_H = 520
 const TREE_W = 230
 
 /** 字段类型配置（徽章字符、颜色、背景色） */
-const TYPE_CFG: Record<string, { ch: string; c: string; bg: string }> = {
+const TYPE_CFG: Record<string, { ch: string, c: string, bg: string }> = {
   field: { ch: 'F', c: '#3b82f6', bg: '#3b82f620' },
   arrayField: { ch: 'A', c: '#10b981', bg: '#10b98120' },
   objectField: { ch: 'O', c: '#8b5cf6', bg: '#8b5cf620' },
@@ -72,12 +109,18 @@ type Tab = 'tree' | 'events' | 'diff' | 'values'
 
 /** Tab 中文标签映射 */
 const TAB_LABELS: Record<Tab, string> = {
-  tree: '字段', events: '事件', diff: 'Diff', values: '数据',
+  tree: '字段',
+  events: '事件',
+  diff: 'Diff',
+  values: '数据',
 }
 
 /** 过滤器中文标签映射 */
 const FILTER_LABELS: Record<string, string> = {
-  all: '全部', error: '错误', required: '必填', modified: '已修改',
+  all: '全部',
+  error: '错误',
+  required: '必填',
+  modified: '已修改',
 }
 
 /* ======================== Props 接口 ======================== */
@@ -94,9 +137,17 @@ function renderTypeBadge(type: string): VNode {
   const c = TYPE_CFG[type] ?? TYPE_CFG.field
   return h('span', {
     style: {
-      fontSize: '9px', fontWeight: 800, width: '16px', height: '16px',
-      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-      borderRadius: '4px', background: c.bg, color: c.c, flexShrink: 0,
+      fontSize: '9px',
+      fontWeight: 800,
+      width: '16px',
+      height: '16px',
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: '4px',
+      background: c.bg,
+      color: c.c,
+      flexShrink: 0,
     },
   }, c.ch)
 }
@@ -105,8 +156,11 @@ function renderTypeBadge(type: string): VNode {
 function renderDot(color: string): VNode {
   return h('span', {
     style: {
-      width: '6px', height: '6px', borderRadius: '50%',
-      background: color, flexShrink: 0,
+      width: '6px',
+      height: '6px',
+      borderRadius: '50%',
+      background: color,
+      flexShrink: 0,
     },
   })
 }
@@ -115,48 +169,74 @@ function renderDot(color: string): VNode {
 function renderBadge(t: Theme, label: string, color: string): VNode {
   return h('span', {
     style: {
-      fontSize: '11px', fontWeight: 600, padding: '2px 8px',
-      borderRadius: '10px', background: t.badgeBg, color,
+      fontSize: '11px',
+      fontWeight: 600,
+      padding: '2px 8px',
+      borderRadius: '10px',
+      background: t.badgeBg,
+      color,
     },
   }, label)
 }
 
 /** 渲染操作按钮（验证/重置/提交） */
 function renderActionBtn(
-  t: Theme, label: string, onClick: () => void, color?: string,
+  t: Theme,
+  label: string,
+  onClick: () => void,
+  color?: string,
 ): VNode {
   return h('button', {
     onClick,
     style: {
-      background: 'none', border: `1px solid ${t.border}`,
+      background: 'none',
+      border: `1px solid ${t.border}`,
       color: color ?? t.textSecondary,
-      cursor: 'pointer', borderRadius: '4px', padding: '2px 8px',
-      fontSize: '11px', fontFamily: 'inherit', fontWeight: 500,
+      cursor: 'pointer',
+      borderRadius: '4px',
+      padding: '2px 8px',
+      fontSize: '11px',
+      fontFamily: 'inherit',
+      fontWeight: 500,
     },
   }, label)
 }
 
 /** 渲染 Tab 按钮 */
 function renderTabBtn(
-  t: Theme, active: boolean, onClick: () => void, label: string, count?: number,
+  t: Theme,
+  active: boolean,
+  onClick: () => void,
+  label: string,
+  count?: number,
 ): VNode {
   return h('button', {
     onClick,
     style: {
-      padding: '8px 14px', border: 'none', cursor: 'pointer',
+      padding: '8px 14px',
+      border: 'none',
+      cursor: 'pointer',
       background: active ? t.bg : 'transparent',
       color: active ? t.accent : t.textSecondary,
-      fontWeight: active ? 700 : 500, fontSize: '13px', fontFamily: 'inherit',
+      fontWeight: active ? 700 : 500,
+      fontSize: '13px',
+      fontFamily: 'inherit',
       borderBottom: active ? `2px solid ${t.accent}` : '2px solid transparent',
-      display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0,
+      display: 'flex',
+      alignItems: 'center',
+      gap: '4px',
+      flexShrink: 0,
     },
   }, [
     label,
     count !== undefined && count > 0
       ? h('span', {
           style: {
-            fontSize: '10px', background: t.badgeBg, color: t.textDim,
-            padding: '1px 5px', borderRadius: '8px',
+            fontSize: '10px',
+            background: t.badgeBg,
+            color: t.textDim,
+            padding: '1px 5px',
+            borderRadius: '8px',
           },
         }, String(count))
       : null,
@@ -165,7 +245,10 @@ function renderTabBtn(
 
 /** 渲染过滤药丸按钮 */
 function renderFilterPill(
-  t: Theme, active: boolean, onClick: () => void, label: string,
+  t: Theme,
+  active: boolean,
+  onClick: () => void,
+  label: string,
 ): VNode {
   return h('button', {
     onClick,
@@ -175,7 +258,9 @@ function renderFilterPill(
       borderRadius: '12px',
       background: active ? t.bgActive : 'transparent',
       color: active ? t.accent : t.textDim,
-      cursor: 'pointer', fontSize: '11px', fontFamily: 'inherit',
+      cursor: 'pointer',
+      fontSize: '11px',
+      fontFamily: 'inherit',
       fontWeight: active ? 600 : 400,
     },
   }, label)
@@ -185,20 +270,28 @@ function renderFilterPill(
 function renderEmpty(t: Theme, text: string): VNode {
   return h('div', {
     style: {
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      height: '100%', color: t.textDim,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '100%',
+      color: t.textDim,
     },
   }, text)
 }
 
 /** 渲染只读状态药丸（pattern/required） */
 function renderStatePill(
-  t: Theme, label: string, value: string | boolean, color: string,
+  t: Theme,
+  label: string,
+  value: string | boolean,
+  color: string,
 ): VNode {
   const display = typeof value === 'boolean' ? (value ? 'true' : 'false') : value
   return h('span', {
     style: {
-      fontSize: '11px', padding: '2px 8px', borderRadius: '6px',
+      fontSize: '11px',
+      padding: '2px 8px',
+      borderRadius: '6px',
       background: t.badgeBg,
       color: value === false || value === 'false' ? t.textDim : color,
     },
@@ -207,17 +300,24 @@ function renderStatePill(
 
 /** 渲染可点击切换的状态药丸（visible/disabled/preview） */
 function renderTogglePill(
-  t: Theme, label: string, value: boolean, onClick: () => void,
+  t: Theme,
+  label: string,
+  value: boolean,
+  onClick: () => void,
 ): VNode {
   return h('button', {
     onClick,
     title: `点击切换 ${label}`,
     style: {
-      fontSize: '11px', padding: '2px 8px', borderRadius: '6px', cursor: 'pointer',
+      fontSize: '11px',
+      padding: '2px 8px',
+      borderRadius: '6px',
+      cursor: 'pointer',
       border: `1px solid ${value ? t.accent : t.border}`,
       background: value ? t.bgActive : t.badgeBg,
       color: value ? t.accent : t.textDim,
-      fontWeight: value ? 600 : 400, fontFamily: 'inherit',
+      fontWeight: value ? 600 : 400,
+      fontFamily: 'inherit',
     },
   }, `${label}: ${value ? 'true' : 'false'}`)
 }
@@ -227,8 +327,12 @@ function renderSec(t: Theme, title: string, children: (VNode | null)[]): VNode {
   return h('div', { style: { marginBottom: '12px' } }, [
     h('div', {
       style: {
-        fontSize: '11px', fontWeight: 700, color: t.textDim, marginBottom: '4px',
-        textTransform: 'uppercase', letterSpacing: '0.05em',
+        fontSize: '11px',
+        fontWeight: 700,
+        color: t.textDim,
+        marginBottom: '4px',
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
       },
     }, title),
     ...children,
@@ -237,7 +341,10 @@ function renderSec(t: Theme, title: string, children: (VNode | null)[]): VNode {
 
 /** 渲染键值行 */
 function renderRow(
-  t: Theme, label: string, value: string, mono?: boolean,
+  t: Theme,
+  label: string,
+  value: string,
+  mono?: boolean,
 ): VNode {
   return h('div', {
     style: { display: 'flex', gap: '8px', padding: '2px 0', fontSize: '12px' },
@@ -247,7 +354,8 @@ function renderRow(
     }, label),
     h('span', {
       style: {
-        color: t.text, wordBreak: 'break-all',
+        color: t.text,
+        wordBreak: 'break-all',
         fontFamily: mono ? 'ui-monospace, monospace' : 'inherit',
         fontSize: mono ? '11px' : '12px',
       },
@@ -266,9 +374,13 @@ function renderHeader(
 ): VNode {
   return h('div', {
     style: {
-      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      padding: '8px 12px', borderBottom: `1px solid ${t.border}`,
-      background: t.bgPanel, flexShrink: 0,
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '8px 12px',
+      borderBottom: `1px solid ${t.border}`,
+      background: t.bgPanel,
+      flexShrink: 0,
     },
   }, [
     /* 左侧：标题 + 徽章 */
@@ -290,8 +402,12 @@ function renderHeader(
       h('button', {
         onClick: onClose,
         style: {
-          background: 'none', border: 'none', color: t.textDim,
-          cursor: 'pointer', fontSize: '18px', padding: '0 4px',
+          background: 'none',
+          border: 'none',
+          color: t.textDim,
+          cursor: 'pointer',
+          fontSize: '18px',
+          padding: '0 4px',
         },
       }, '×'),
     ]),
@@ -314,8 +430,11 @@ function renderTreeView(
       h('div', {
         onClick: () => onSelect(n.path),
         style: {
-          display: 'flex', alignItems: 'center', gap: '6px',
-          padding: '5px 8px', paddingLeft: `${8 + depth * 14}px`,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '5px 8px',
+          paddingLeft: `${8 + depth * 14}px`,
           cursor: 'pointer',
           background: selected === n.path ? t.bgActive : 'transparent',
           borderLeft: selected === n.path
@@ -336,10 +455,13 @@ function renderTreeView(
         renderTypeBadge(n.type),
         h('span', {
           style: {
-            flex: 1, fontSize: '12px',
+            flex: 1,
+            fontSize: '12px',
             fontWeight: selected === n.path ? 600 : 400,
             color: n.visible ? t.text : t.textDim,
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
           },
         }, n.label || n.name),
         n.errorCount > 0 ? renderDot('#ef4444') : null,
@@ -388,7 +510,8 @@ const DetailViewComponent = defineComponent({
       try {
         const parsed: unknown = JSON.parse(editValue.value)
         props.api.setFieldValue(props.detail.path, parsed)
-      } catch {
+      }
+      catch {
         props.api.setFieldValue(props.detail.path, editValue.value)
       }
       editing.value = false
@@ -404,7 +527,10 @@ const DetailViewComponent = defineComponent({
         h('div', { style: { marginBottom: '12px' } }, [
           h('div', {
             style: {
-              display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '4px',
             },
           }, [
             renderTypeBadge(detail.type),
@@ -415,9 +541,14 @@ const DetailViewComponent = defineComponent({
               onClick: () => api.highlightField(detail.path),
               title: '在页面中定位',
               style: {
-                background: 'none', border: `1px solid ${t.border}`, color: t.accent,
-                cursor: 'pointer', borderRadius: '4px', padding: '1px 6px',
-                fontSize: '10px', fontFamily: 'inherit',
+                background: 'none',
+                border: `1px solid ${t.border}`,
+                color: t.accent,
+                cursor: 'pointer',
+                borderRadius: '4px',
+                padding: '1px 6px',
+                fontSize: '10px',
+                fontFamily: 'inherit',
               },
             }, '定位'),
           ]),
@@ -437,12 +568,9 @@ const DetailViewComponent = defineComponent({
           h('div', {
             style: { display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '4px' },
           }, [
-            renderTogglePill(t, 'visible', detail.visible,
-              () => api.setFieldState(detail.path, { visible: !detail.visible })),
-            renderTogglePill(t, 'disabled', detail.disabled,
-              () => api.setFieldState(detail.path, { disabled: !detail.disabled })),
-            renderTogglePill(t, 'preview', detail.preview,
-              () => api.setFieldState(detail.path, { preview: !detail.preview })),
+            renderTogglePill(t, 'visible', detail.visible, () => api.setFieldState(detail.path, { visible: !detail.visible })),
+            renderTogglePill(t, 'disabled', detail.disabled, () => api.setFieldState(detail.path, { disabled: !detail.disabled })),
+            renderTogglePill(t, 'preview', detail.preview, () => api.setFieldState(detail.path, { preview: !detail.preview })),
             renderStatePill(t, 'pattern', detail.pattern, t.accent),
             renderStatePill(t, 'required', detail.required, t.red),
           ]),
@@ -452,7 +580,10 @@ const DetailViewComponent = defineComponent({
         renderSec(t, '数据', [
           h('div', {
             style: {
-              display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              marginBottom: '4px',
             },
           }, [
             h('span', {
@@ -467,29 +598,45 @@ const DetailViewComponent = defineComponent({
                       editValue.value = (e.target as HTMLInputElement).value
                     },
                     onKeydown: (e: KeyboardEvent): void => {
-                      if (e.key === 'Enter') applyEdit()
+                      if (e.key === 'Enter')
+                        applyEdit()
                     },
                     style: {
-                      flex: 1, padding: '3px 8px',
-                      border: `1px solid ${t.accent}`, borderRadius: '4px',
-                      background: t.inputBg, color: t.text,
-                      fontSize: '12px', fontFamily: 'monospace', outline: 'none',
+                      flex: 1,
+                      padding: '3px 8px',
+                      border: `1px solid ${t.accent}`,
+                      borderRadius: '4px',
+                      background: t.inputBg,
+                      color: t.text,
+                      fontSize: '12px',
+                      fontFamily: 'monospace',
+                      outline: 'none',
                     },
                   }),
                   h('button', {
                     onClick: applyEdit,
                     style: {
-                      background: t.accent, color: '#fff', border: 'none',
-                      borderRadius: '4px', padding: '3px 8px', cursor: 'pointer',
-                      fontSize: '11px', fontFamily: 'inherit',
+                      background: t.accent,
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '3px 8px',
+                      cursor: 'pointer',
+                      fontSize: '11px',
+                      fontFamily: 'inherit',
                     },
                   }, '确定'),
                   h('button', {
                     onClick: (): void => { editing.value = false },
                     style: {
-                      background: 'none', border: `1px solid ${t.border}`,
-                      color: t.textDim, borderRadius: '4px', padding: '3px 8px',
-                      cursor: 'pointer', fontSize: '11px', fontFamily: 'inherit',
+                      background: 'none',
+                      border: `1px solid ${t.border}`,
+                      color: t.textDim,
+                      borderRadius: '4px',
+                      padding: '3px 8px',
+                      cursor: 'pointer',
+                      fontSize: '11px',
+                      fontFamily: 'inherit',
                     },
                   }, '取消'),
                 ])
@@ -504,9 +651,14 @@ const DetailViewComponent = defineComponent({
                     ? h('button', {
                         onClick: startEdit,
                         style: {
-                          background: 'none', border: `1px solid ${t.border}`,
-                          color: t.textDim, cursor: 'pointer', borderRadius: '4px',
-                          padding: '1px 6px', fontSize: '10px', fontFamily: 'inherit',
+                          background: 'none',
+                          border: `1px solid ${t.border}`,
+                          color: t.textDim,
+                          cursor: 'pointer',
+                          borderRadius: '4px',
+                          padding: '1px 6px',
+                          fontSize: '10px',
+                          fontFamily: 'inherit',
                         },
                       }, '编辑')
                     : null,
@@ -517,26 +669,22 @@ const DetailViewComponent = defineComponent({
 
         /* ---- 错误列表 ---- */
         detail.errors.length > 0
-          ? renderSec(t, `错误 (${detail.errors.length})`,
-              detail.errors.map((e, i) =>
-                h('div', {
-                  key: i,
-                  style: { color: t.red, fontSize: '12px', padding: '2px 0' },
-                }, `• ${e.message}`),
-              ),
-            )
+          ? renderSec(t, `错误 (${detail.errors.length})`, detail.errors.map((e, i) =>
+              h('div', {
+                key: i,
+                style: { color: t.red, fontSize: '12px', padding: '2px 0' },
+              }, `• ${e.message}`),
+            ))
           : null,
 
         /* ---- 警告列表 ---- */
         detail.warnings.length > 0
-          ? renderSec(t, `警告 (${detail.warnings.length})`,
-              detail.warnings.map((e, i) =>
-                h('div', {
-                  key: i,
-                  style: { color: t.yellow, fontSize: '12px', padding: '2px 0' },
-                }, `• ${e.message}`),
-              ),
-            )
+          ? renderSec(t, `警告 (${detail.warnings.length})`, detail.warnings.map((e, i) =>
+              h('div', {
+                key: i,
+                style: { color: t.yellow, fontSize: '12px', padding: '2px 0' },
+              }, `• ${e.message}`),
+            ))
           : null,
       ])
     }
@@ -547,7 +695,9 @@ const DetailViewComponent = defineComponent({
 
 /** 渲染事件时间线列表 */
 function renderEventsView(
-  t: Theme, events: EventLogEntry[], onClear: () => void,
+  t: Theme,
+  events: EventLogEntry[],
+  onClear: () => void,
 ): VNode {
   /* 倒序排列，最新事件在顶部 */
   const reversed = [...events].reverse()
@@ -558,19 +708,27 @@ function renderEventsView(
     /* 顶部：事件计数 + 清空按钮 */
     h('div', {
       style: {
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '6px 12px', borderBottom: `1px solid ${t.border}`,
-        background: t.bgPanel, flexShrink: 0,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '6px 12px',
+        borderBottom: `1px solid ${t.border}`,
+        background: t.bgPanel,
+        flexShrink: 0,
       },
     }, [
-      h('span', { style: { color: t.textDim, fontSize: '12px' } },
-        `${events.length} 条事件`),
+      h('span', { style: { color: t.textDim, fontSize: '12px' } }, `${events.length} 条事件`),
       h('button', {
         onClick: onClear,
         style: {
-          background: 'none', border: `1px solid ${t.border}`,
-          color: t.textSecondary, cursor: 'pointer', borderRadius: '4px',
-          padding: '2px 10px', fontSize: '11px', fontFamily: 'inherit',
+          background: 'none',
+          border: `1px solid ${t.border}`,
+          color: t.textSecondary,
+          cursor: 'pointer',
+          borderRadius: '4px',
+          padding: '2px 10px',
+          fontSize: '11px',
+          fontFamily: 'inherit',
         },
       }, '清空'),
     ]),
@@ -580,15 +738,20 @@ function renderEventsView(
         h('div', {
           key: ev.id,
           style: {
-            display: 'flex', alignItems: 'flex-start', gap: '8px',
-            padding: '4px 12px', borderBottom: `1px solid ${t.border}10`,
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '8px',
+            padding: '4px 12px',
+            borderBottom: `1px solid ${t.border}10`,
             fontSize: '12px',
           },
         }, [
           /* 时间戳 */
           h('span', {
             style: {
-              color: t.textDim, flexShrink: 0, fontSize: '11px',
+              color: t.textDim,
+              flexShrink: 0,
+              fontSize: '11px',
               fontFamily: 'monospace',
             },
           }, new Date(ev.timestamp).toLocaleTimeString('zh-CN', { hour12: false })),
@@ -596,9 +759,13 @@ function renderEventsView(
           ev.fieldPath
             ? h('span', {
                 style: {
-                  fontSize: '10px', padding: '1px 5px', borderRadius: '3px',
-                  background: t.badgeBg, color: t.accent,
-                  fontFamily: 'monospace', flexShrink: 0,
+                  fontSize: '10px',
+                  padding: '1px 5px',
+                  borderRadius: '3px',
+                  background: t.badgeBg,
+                  color: t.accent,
+                  fontFamily: 'monospace',
+                  flexShrink: 0,
                 },
               }, ev.fieldPath)
             : null,
@@ -634,12 +801,13 @@ function renderDiffView(t: Theme, diff: ValueDiffEntry[]): VNode {
     /* 顶部：修改计数 */
     h('div', {
       style: {
-        padding: '6px 12px', borderBottom: `1px solid ${t.border}`,
-        background: t.bgPanel, flexShrink: 0,
+        padding: '6px 12px',
+        borderBottom: `1px solid ${t.border}`,
+        background: t.bgPanel,
+        flexShrink: 0,
       },
     }, [
-      h('span', { style: { color: t.textDim, fontSize: '12px' } },
-        `${changed.length} / ${diff.length} 个字段已修改`),
+      h('span', { style: { color: t.textDim, fontSize: '12px' } }, `${changed.length} / ${diff.length} 个字段已修改`),
     ]),
     /* Diff 列表 */
     h('div', { style: { flex: 1, overflow: 'auto' } }, [
@@ -647,7 +815,9 @@ function renderDiffView(t: Theme, diff: ValueDiffEntry[]): VNode {
         h('div', {
           key: d.path,
           style: {
-            display: 'flex', alignItems: 'flex-start', gap: '8px',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '8px',
             padding: '5px 12px',
             borderBottom: `1px solid ${t.border}15`,
             background: d.changed ? `${t.yellow}08` : 'transparent',
@@ -656,7 +826,9 @@ function renderDiffView(t: Theme, diff: ValueDiffEntry[]): VNode {
           /* 字段名 */
           h('span', {
             style: {
-              width: '120px', flexShrink: 0, fontSize: '12px',
+              width: '120px',
+              flexShrink: 0,
+              fontSize: '12px',
               fontWeight: d.changed ? 600 : 400,
               color: d.changed ? t.text : t.textDim,
             },
@@ -664,10 +836,13 @@ function renderDiffView(t: Theme, diff: ValueDiffEntry[]): VNode {
           /* 初始值（修改时加删除线） */
           h('span', {
             style: {
-              fontSize: '11px', fontFamily: 'monospace', color: t.red,
+              fontSize: '11px',
+              fontFamily: 'monospace',
+              color: t.red,
               textDecoration: d.changed ? 'line-through' : 'none',
               opacity: d.changed ? 0.6 : 0.3,
-              flexShrink: 0, minWidth: '60px',
+              flexShrink: 0,
+              minWidth: '60px',
             },
           }, JSON.stringify(d.initialValue)),
           /* 箭头 + 当前值（仅修改时显示） */
@@ -677,8 +852,10 @@ function renderDiffView(t: Theme, diff: ValueDiffEntry[]): VNode {
           d.changed
             ? h('span', {
                 style: {
-                  fontSize: '11px', fontFamily: 'monospace',
-                  color: t.green, fontWeight: 600,
+                  fontSize: '11px',
+                  fontFamily: 'monospace',
+                  color: t.green,
+                  fontWeight: 600,
                 },
               }, JSON.stringify(d.currentValue))
             : null,
@@ -710,7 +887,9 @@ const ValuesViewComponent = defineComponent({
       navigator.clipboard.writeText(json.value)
         .then(() => {
           copied.value = true
-          setTimeout(() => { copied.value = false }, 1500)
+          setTimeout(() => {
+            copied.value = false
+          }, 1500)
         })
         .catch(() => { /* 剪贴板 API 不可用时静默忽略 */ })
     }
@@ -720,14 +899,21 @@ const ValuesViewComponent = defineComponent({
 
       return h('div', {
         style: {
-          display: 'flex', flexDirection: 'column', height: '100%', width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          width: '100%',
         },
       }, [
         /* 顶部：复制按钮 */
         h('div', {
           style: {
-            display: 'flex', justifyContent: 'flex-end', padding: '6px 12px',
-            borderBottom: `1px solid ${t.border}`, background: t.bgPanel, flexShrink: 0,
+            display: 'flex',
+            justifyContent: 'flex-end',
+            padding: '6px 12px',
+            borderBottom: `1px solid ${t.border}`,
+            background: t.bgPanel,
+            flexShrink: 0,
           },
         }, [
           h('button', {
@@ -736,18 +922,27 @@ const ValuesViewComponent = defineComponent({
               background: copied.value ? t.green : 'none',
               border: `1px solid ${copied.value ? t.green : t.border}`,
               color: copied.value ? '#fff' : t.textSecondary,
-              cursor: 'pointer', borderRadius: '4px', padding: '2px 12px',
-              fontSize: '11px', fontFamily: 'inherit', transition: 'all 0.2s',
+              cursor: 'pointer',
+              borderRadius: '4px',
+              padding: '2px 12px',
+              fontSize: '11px',
+              fontFamily: 'inherit',
+              transition: 'all 0.2s',
             },
           }, copied.value ? '已复制 ✓' : '复制 JSON'),
         ]),
         /* JSON 内容 */
         h('pre', {
           style: {
-            flex: 1, margin: 0, padding: '12px', overflow: 'auto',
-            fontSize: '12px', lineHeight: 1.7,
+            flex: 1,
+            margin: 0,
+            padding: '12px',
+            overflow: 'auto',
+            fontSize: '12px',
+            lineHeight: 1.7,
             fontFamily: 'ui-monospace, monospace',
-            color: t.green, background: t.bg,
+            color: t.green,
+            background: t.bg,
           },
         }, json.value),
       ])
@@ -770,13 +965,15 @@ export const DevToolsPanel = defineComponent({
     /* ---- 系统主题跟随 ---- */
     const isDark = ref(
       typeof window !== 'undefined'
-        && window.matchMedia?.('(prefers-color-scheme: dark)').matches,
+      && window.matchMedia?.('(prefers-color-scheme: dark)').matches,
     )
 
     onMounted(() => {
       const mq = window.matchMedia('(prefers-color-scheme: dark)')
       isDark.value = mq.matches
-      const handler = (e: MediaQueryListEvent): void => { isDark.value = e.matches }
+      const handler = (e: MediaQueryListEvent): void => {
+        isDark.value = e.matches
+      }
       mq.addEventListener('change', handler)
       onUnmounted(() => mq.removeEventListener('change', handler))
     })
@@ -799,45 +996,51 @@ export const DevToolsPanel = defineComponent({
 
     /* ---- 订阅数据变化 ---- */
     onMounted(() => {
-      const unsubscribe = props.api.subscribe(() => { tick.value++ })
+      const unsubscribe = props.api.subscribe(() => {
+        tick.value++
+      })
       onUnmounted(unsubscribe)
     })
 
     /* ---- 派生数据（通过 tick + UI 状态触发重算） ---- */
+    function trackDeps(..._deps: unknown[]): void {
+      void _deps
+    }
 
     /** 字段树数据 */
     const tree = computed((): FieldTreeNode[] => {
-      tick.value; visible.value; tab.value
+      trackDeps(tick.value, visible.value, tab.value)
       return props.api.getFieldTree()
     })
 
     /** 表单概览数据 */
     const overview = computed((): FormOverview => {
-      tick.value; visible.value
+      trackDeps(tick.value, visible.value)
       return props.api.getFormOverview()
     })
 
     /** 事件日志 */
     const events = computed((): EventLogEntry[] => {
-      tick.value; visible.value; tab.value
+      trackDeps(tick.value, visible.value, tab.value)
       return props.api.getEventLog()
     })
 
     /** 当前选中字段的详情 */
     const detail = computed((): FieldDetail | null => {
-      tick.value
+      trackDeps(tick.value)
       return selected.value ? props.api.getFieldDetail(selected.value) : null
     })
 
     /** 值 Diff 数据 */
     const diff = computed((): ValueDiffEntry[] => {
-      tick.value; visible.value; tab.value
+      trackDeps(tick.value, visible.value, tab.value)
       return props.api.getValueDiff()
     })
 
     /** 过滤后的字段树 */
     const filteredTree = computed((): FieldTreeNode[] => {
-      if (!search.value && filter.value === 'all') return tree.value
+      if (!search.value && filter.value === 'all')
+        return tree.value
       return filterTree(tree.value, search.value, filter.value, diff.value)
     })
 
@@ -852,11 +1055,21 @@ export const DevToolsPanel = defineComponent({
           onClick: (): void => { visible.value = true },
           title: 'ConfigForm DevTools',
           style: {
-            position: 'fixed', bottom: '20px', right: '20px', zIndex: 99999,
-            display: 'flex', alignItems: 'center', gap: '6px',
-            padding: '8px 14px', borderRadius: '20px',
-            background: t.accent, color: '#fff', border: 'none',
-            cursor: 'pointer', fontSize: '13px', fontWeight: 600,
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '8px 14px',
+            borderRadius: '20px',
+            background: t.accent,
+            color: '#fff',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: 600,
             boxShadow: '0 2px 12px rgba(59,130,246,0.4)',
             fontFamily: 'system-ui, -apple-system, sans-serif',
           },
@@ -866,8 +1079,11 @@ export const DevToolsPanel = defineComponent({
           ov.errorFieldCount > 0
             ? h('span', {
                 style: {
-                  background: '#ef4444', borderRadius: '8px',
-                  padding: '1px 6px', fontSize: '11px', fontWeight: 700,
+                  background: '#ef4444',
+                  borderRadius: '8px',
+                  padding: '1px 6px',
+                  fontSize: '11px',
+                  fontWeight: 700,
                 },
               }, String(ov.errorFieldCount))
             : null,
@@ -877,19 +1093,28 @@ export const DevToolsPanel = defineComponent({
       /* ===== 展开后：面板主体 ===== */
       return h('div', {
         style: {
-          position: 'fixed', bottom: '20px', right: '20px', zIndex: 99999,
-          width: `${PANEL_W}px`, height: `${PANEL_H}px`,
-          background: t.bg, color: t.text,
-          borderRadius: '12px', border: `1px solid ${t.border}`,
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          zIndex: 99999,
+          width: `${PANEL_W}px`,
+          height: `${PANEL_H}px`,
+          background: t.bg,
+          color: t.text,
+          borderRadius: '12px',
+          border: `1px solid ${t.border}`,
           boxShadow: t.shadow,
-          display: 'flex', flexDirection: 'column',
+          display: 'flex',
+          flexDirection: 'column',
           fontFamily: 'system-ui, -apple-system, sans-serif',
-          fontSize: '13px', overflow: 'hidden',
+          fontSize: '13px',
+          overflow: 'hidden',
         },
       }, [
         /* ---- 标题栏 ---- */
         renderHeader(
-          t, ov,
+          t,
+          ov,
           () => { visible.value = false },
           () => { props.api.validateAll() },
           () => { props.api.resetForm() },
@@ -899,15 +1124,20 @@ export const DevToolsPanel = defineComponent({
         /* ---- Tab 栏 + 搜索框 ---- */
         h('div', {
           style: {
-            display: 'flex', borderBottom: `1px solid ${t.border}`,
-            background: t.bgPanel, flexShrink: 0,
+            display: 'flex',
+            borderBottom: `1px solid ${t.border}`,
+            background: t.bgPanel,
+            flexShrink: 0,
           },
         }, [
           ...(['tree', 'events', 'diff', 'values'] as Tab[]).map(tb =>
             renderTabBtn(
               t,
               tab.value === tb,
-              () => { tab.value = tb; selected.value = null },
+              () => {
+                tab.value = tb
+                selected.value = null
+              },
               TAB_LABELS[tb],
               tb === 'events'
                 ? events.value.length
@@ -925,9 +1155,14 @@ export const DevToolsPanel = defineComponent({
                 },
                 placeholder: '搜索字段...',
                 style: {
-                  flex: 1, border: 'none', outline: 'none', padding: '0 10px',
-                  background: 'transparent', color: t.text,
-                  fontSize: '12px', fontFamily: 'inherit',
+                  flex: 1,
+                  border: 'none',
+                  outline: 'none',
+                  padding: '0 10px',
+                  background: 'transparent',
+                  color: t.text,
+                  fontSize: '12px',
+                  fontFamily: 'inherit',
                 },
               })
             : null,
@@ -937,8 +1172,11 @@ export const DevToolsPanel = defineComponent({
         tab.value === 'tree'
           ? h('div', {
               style: {
-                display: 'flex', gap: '4px', padding: '4px 8px',
-                borderBottom: `1px solid ${t.border}`, background: t.bgPanel,
+                display: 'flex',
+                gap: '4px',
+                padding: '4px 8px',
+                borderBottom: `1px solid ${t.border}`,
+                background: t.bgPanel,
               },
             }, (['all', 'error', 'required', 'modified'] as const).map(f =>
               renderFilterPill(
@@ -960,7 +1198,9 @@ export const DevToolsPanel = defineComponent({
                 /* 左侧：字段树 */
                 h('div', {
                   style: {
-                    width: `${TREE_W}px`, flexShrink: 0, overflow: 'auto',
+                    width: `${TREE_W}px`,
+                    flexShrink: 0,
+                    overflow: 'auto',
                     borderRight: `1px solid ${t.border}`,
                   },
                 }, [
@@ -1032,9 +1272,12 @@ function filterTree(
       return false
     }
     /* 状态过滤 */
-    if (filter === 'error' && node.errorCount === 0) return false
-    if (filter === 'required' && !node.required) return false
-    if (filter === 'modified' && !modifiedPaths.has(node.path)) return false
+    if (filter === 'error' && node.errorCount === 0)
+      return false
+    if (filter === 'required' && !node.required)
+      return false
+    if (filter === 'modified' && !modifiedPaths.has(node.path))
+      return false
     return true
   }
 

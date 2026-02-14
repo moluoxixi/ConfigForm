@@ -1,7 +1,6 @@
-import type { FormConfig, FormInstance, FormPlugin } from '@moluoxixi/core'
-import type { ISchema } from '@moluoxixi/core'
-import type { ComponentType, FieldPattern } from '@moluoxixi/core'
+import type { ComponentType, FieldPattern, FormConfig, FormInstance, FormPlugin, ISchema } from '@moluoxixi/core'
 import type { Component, PropType } from 'vue'
+import type { ComponentScope, RegistryState } from '../registry'
 import { computed, defineComponent, h, inject, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useCreateForm } from '../composables/useForm'
 import { ComponentRegistrySymbol } from '../context'
@@ -96,6 +95,22 @@ export const ConfigForm = defineComponent({
       type: Object as PropType<Record<string, ComponentType>>,
       default: undefined,
     },
+    defaultDecorators: {
+      type: Object as PropType<Record<string, string>>,
+      default: undefined,
+    },
+    readPrettyComponents: {
+      type: Object as PropType<Record<string, ComponentType>>,
+      default: undefined,
+    },
+    scope: {
+      type: Object as PropType<ComponentScope>,
+      default: undefined,
+    },
+    registry: {
+      type: Object as PropType<RegistryState>,
+      default: undefined,
+    },
     effects: {
       type: Function as PropType<(form: FormInstance) => void>,
       default: undefined,
@@ -104,18 +119,26 @@ export const ConfigForm = defineComponent({
       type: Array as PropType<FormPlugin[]>,
       default: undefined,
     },
+    pattern: {
+      type: String as PropType<FieldPattern>,
+      default: undefined,
+    },
   },
-  emits: ['submit', 'submitFailed', 'valuesChange'],
+  emits: ['submit', 'submitFailed', 'valuesChange', 'reset'],
   setup(props, { slots, emit }) {
     /** 响应式读取根 schema 的 decoratorProps（schema 变化时自动更新） */
     const rootDecoratorProps = computed(() =>
       (props.schema?.decoratorProps ?? {}) as Record<string, unknown>,
     )
 
+    const effectivePattern = computed<FieldPattern>(() =>
+      (props.pattern ?? props.schema?.pattern ?? rootDecoratorProps.value.pattern ?? 'editable') as FieldPattern,
+    )
+
     const internalForm = useCreateForm({
       labelPosition: (rootDecoratorProps.value.labelPosition ?? 'right') as 'top' | 'left' | 'right',
       labelWidth: rootDecoratorProps.value.labelWidth as string | number,
-      pattern: (rootDecoratorProps.value.pattern ?? 'editable') as FieldPattern,
+      pattern: effectivePattern.value,
       ...props.formConfig,
       initialValues: props.initialValues ?? props.formConfig?.initialValues,
       effects: props.effects,
@@ -124,19 +147,19 @@ export const ConfigForm = defineComponent({
     const form = props.form ?? internalForm
 
     /** schema 变化时同步更新表单级配置 */
-    watch(rootDecoratorProps, (newProps) => {
-      if (newProps.labelPosition !== undefined) {
-        form.labelPosition = newProps.labelPosition as 'top' | 'left' | 'right'
-      }
-      if (newProps.labelWidth !== undefined) {
-        form.labelWidth = newProps.labelWidth as string | number
-      }
-      if (newProps.pattern !== undefined) {
-        form.pattern = newProps.pattern as FieldPattern
-      }
-    })
+    watch([rootDecoratorProps, effectivePattern], ([newProps, pattern]) => {
+      form.batch(() => {
+        if (newProps.labelPosition !== undefined) {
+          form.labelPosition = newProps.labelPosition as 'top' | 'left' | 'right'
+        }
+        if (newProps.labelWidth !== undefined) {
+          form.labelWidth = newProps.labelWidth as string | number
+        }
+        form.pattern = pattern
+      })
+    }, { immediate: true })
 
-    form.onValuesChange((values) => {
+    const disposeValuesChange = form.onValuesChange((values) => {
       emit('valuesChange', values)
     })
 
@@ -157,7 +180,8 @@ export const ConfigForm = defineComponent({
 
       let cols = sortedBreakpoints[0]?.[1] ?? 1
       for (const [minWidth, colCount] of sortedBreakpoints) {
-        if (width >= minWidth) cols = colCount
+        if (width >= minWidth)
+          cols = colCount
       }
       return cols
     }
@@ -176,6 +200,7 @@ export const ConfigForm = defineComponent({
     })
 
     onUnmounted(() => {
+      disposeValuesChange()
       resizeObserver?.disconnect()
       resizeObserver = null
     })
@@ -187,7 +212,7 @@ export const ConfigForm = defineComponent({
       if (result.errors.length > 0) {
         emit('submitFailed', result.errors)
         /* 滚动到第一个错误字段 */
-        scrollToFirstError()
+        scrollToFirstError(result.errors)
       }
       else {
         emit('submit', result.values)
@@ -197,8 +222,7 @@ export const ConfigForm = defineComponent({
     return () => {
       const currentDecoratorProps = rootDecoratorProps.value
       const actions = currentDecoratorProps.actions as Record<string, unknown>
-      const pattern = (props.schema?.pattern ?? currentDecoratorProps.pattern ?? 'editable') as string
-      const isEditable = pattern === 'editable'
+      const isEditable = effectivePattern.value === 'editable'
 
       /* 布局配置 */
       const direction = (currentDecoratorProps.direction ?? 'vertical') as string
@@ -234,6 +258,10 @@ export const ConfigForm = defineComponent({
         form,
         components: props.components,
         decorators: props.decorators,
+        defaultDecorators: props.defaultDecorators,
+        readPrettyComponents: props.readPrettyComponents,
+        scope: props.scope,
+        registry: props.registry,
       }, () =>
         h('form', {
           onSubmit: handleSubmit,
@@ -256,7 +284,10 @@ export const ConfigForm = defineComponent({
                 showReset,
                 submitLabel,
                 resetLabel,
-                onReset: () => form.reset(),
+                onReset: () => {
+                  form.reset()
+                  emit('reset')
+                },
                 onSubmit: (values: Record<string, unknown>) => emit('submit', values),
                 onSubmitFailed: (errors: Array<{ path: string, message: string }>) => emit('submitFailed', errors),
               })
@@ -269,15 +300,25 @@ export const ConfigForm = defineComponent({
 })
 
 /** 滚动到第一个错误字段 */
-function scrollToFirstError(): void {
+function scrollToFirstError(errors: Array<{ path: string }>): void {
+  if (errors.length === 0)
+    return
+
   setTimeout(() => {
     const errorElement = document.querySelector(
-      '.ant-form-item-has-error, .el-form-item.is-error, [class*="error"], [aria-invalid="true"]',
+      '[data-field-error="true"], [aria-invalid="true"]',
     )
     if (errorElement) {
       errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
       const input = errorElement.querySelector('input, textarea, select') as HTMLElement | null
       input?.focus()
+      return
+    }
+
+    const firstPath = errors[0].path
+    const fieldElements = document.querySelectorAll(`[data-field-path="${firstPath}"], [name="${firstPath}"]`)
+    if (fieldElements.length > 0) {
+      fieldElements[0].scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
   }, 100)
 }

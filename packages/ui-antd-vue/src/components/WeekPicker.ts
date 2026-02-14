@@ -1,5 +1,7 @@
-import { DatePicker as ADatePicker } from 'ant-design-vue';
-import { defineComponent, h } from 'vue';
+import { DatePicker as ADatePicker } from 'ant-design-vue'
+import { defineComponent, h } from 'vue'
+
+const DatePickerComponent = ADatePicker as any
 
 /** 周选择器适配 — 基于 DatePicker picker="week" */
 export const WeekPicker = defineComponent({
@@ -13,14 +15,14 @@ export const WeekPicker = defineComponent({
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => {
-      return h(ADatePicker, {
+      return h(DatePickerComponent, {
         'value': props.modelValue,
         'placeholder': props.placeholder,
         'disabled': props.disabled,
         'picker': 'week',
         'style': 'width: 100%',
-        'onUpdate:value': (v: string) => emit('update:modelValue', v),
-      });
-    };
+        'onUpdate:value': (v: unknown) => emit('update:modelValue', String(v ?? '')),
+      })
+    }
   },
-});
+})

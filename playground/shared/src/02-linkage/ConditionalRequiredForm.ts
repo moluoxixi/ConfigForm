@@ -22,10 +22,16 @@ const config: SceneConfig = {
   description: '开关控制必填 / 金额阈值 / 选择「其他」必填 / 多条件组合',
 
   initialValues: {
-    needInvoice: false, invoiceTitle: '', invoiceTaxNo: '',
-    amount: 0, approver: '',
-    leaveType: 'annual', leaveReason: '',
-    isOverseas: false, travelDays: 1, travelInsurance: '',
+    needInvoice: false,
+    invoiceTitle: '',
+    invoiceTaxNo: '',
+    amount: 0,
+    approver: '',
+    leaveType: 'annual',
+    leaveReason: '',
+    isOverseas: false,
+    travelDays: 1,
+    travelInsurance: '',
   },
 
   schema: {
@@ -34,7 +40,8 @@ const config: SceneConfig = {
     properties: {
       needInvoice: { type: 'boolean', title: '需要发票', default: false, description: '开启后抬头和税号必填' },
       invoiceTitle: {
-        type: 'string', title: '发票抬头',
+        type: 'string',
+        title: '发票抬头',
         reactions: [{
           watch: 'needInvoice',
           when: '{{$values.needInvoice === true}}',
@@ -43,7 +50,8 @@ const config: SceneConfig = {
         }],
       },
       invoiceTaxNo: {
-        type: 'string', title: '纳税人识别号',
+        type: 'string',
+        title: '纳税人识别号',
         reactions: [{
           watch: 'needInvoice',
           when: '{{$values.needInvoice === true}}',
@@ -52,12 +60,16 @@ const config: SceneConfig = {
         }],
       },
       amount: {
-        type: 'number', title: '报销金额', required: true, default: 0,
+        type: 'number',
+        title: '报销金额',
+        required: true,
+        default: 0,
         componentProps: { min: 0, step: 100, style: { width: '100%' } },
         description: `超 ${THRESHOLD.toLocaleString()} 需填审批人`,
       },
       approver: {
-        type: 'string', title: '审批人',
+        type: 'string',
+        title: '审批人',
         reactions: [{
           watch: 'amount',
           when: `{{($values.amount || 0) > ${THRESHOLD}}}`,
@@ -66,11 +78,16 @@ const config: SceneConfig = {
         }],
       },
       leaveType: {
-        type: 'string', title: '请假类型', required: true,
-        default: 'annual', enum: LEAVE_TYPE_OPTIONS,
+        type: 'string',
+        title: '请假类型',
+        required: true,
+        default: 'annual',
+        enum: LEAVE_TYPE_OPTIONS,
       },
       leaveReason: {
-        type: 'string', title: '请假原因', component: 'Textarea',
+        type: 'string',
+        title: '请假原因',
+        component: 'Textarea',
         reactions: [{
           watch: 'leaveType',
           when: '{{$values.leaveType === "other"}}',
@@ -81,7 +98,9 @@ const config: SceneConfig = {
       isOverseas: { type: 'boolean', title: '海外出差', default: false },
       travelDays: { type: 'number', title: '出差天数', default: 1, componentProps: { min: 1, style: { width: '100%' } } },
       travelInsurance: {
-        type: 'string', title: '保险单号', description: '海外且>3天必填',
+        type: 'string',
+        title: '保险单号',
+        description: '海外且>3天必填',
         reactions: [{
           watch: ['isOverseas', 'travelDays'],
           when: '{{$values.isOverseas === true && ($values.travelDays || 0) > 3}}',

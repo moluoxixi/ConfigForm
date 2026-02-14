@@ -20,7 +20,8 @@ export function InlineDecorator({ label, required, errors, children }: InlineDec
       {label && (
         <label style={{ width: 80, flexShrink: 0, textAlign: 'right', fontSize: 13, color: '#555' }}>
           {required && <span style={{ color: '#ff4d4f', marginRight: 2 }}>*</span>}
-          {label}：
+          {label}
+          ：
         </label>
       )}
       <div style={{ flex: 1 }}>

@@ -1,6 +1,8 @@
-import 'element-plus/dist/index.css'
-import { ArrayItems, ArrayTable, registerFieldComponents } from '@moluoxixi/vue'
+import { FormLayout, registerFieldComponents } from '@moluoxixi/vue'
 import {
+  ArrayField,
+  ArrayItems,
+  ArrayTable,
   AutoComplete,
   Cascader,
   CheckboxGroup,
@@ -44,11 +46,13 @@ import {
   PreviewSwitch,
   PreviewTextarea,
 } from './components/PreviewText'
+import 'element-plus/dist/index.css'
 
 /** 注入 Element Plus FormItem 标签右对齐全局样式（仅注入一次） */
 let styleInjected = false
 function injectLabelAlignStyle(): void {
-  if (styleInjected || typeof document === 'undefined') return
+  if (styleInjected || typeof document === 'undefined')
+    return
   styleInjected = true
   const style = document.createElement('style')
   style.textContent = `
@@ -73,9 +77,9 @@ function injectLabelAlignStyle(): void {
 export function setupElementPlus(): void {
   injectLabelAlignStyle()
   registerFieldComponents(
-    { Input, Password, Textarea, InputNumber, Select, RadioGroup, CheckboxGroup, Switch, DatePicker, DateRangePicker, Cascader, TreeSelect, Upload, Transfer, TimePicker, AutoComplete, Mentions, Rate, Slider, MonthPicker, WeekPicker, YearPicker, RangePicker, ArrayItems },
+    { Input, Password, Textarea, InputNumber, Select, RadioGroup, CheckboxGroup, Switch, DatePicker, DateRangePicker, Cascader, TreeSelect, Upload, Transfer, TimePicker, AutoComplete, Mentions, Rate, Slider, MonthPicker, WeekPicker, YearPicker, RangePicker, ArrayItems, ArrayField },
     { name: 'FormItem', component: FormItem },
-    { ArrayTable, LayoutTabs, LayoutCard, LayoutCollapse, LayoutSteps, LayoutStepActions, LayoutFormActions },
+    { ArrayTable, FormLayout, LayoutTabs, LayoutCard, LayoutCollapse, LayoutSteps, LayoutStepActions, LayoutFormActions, StatusTabs },
     {
       Input: PreviewInput,
       Password: PreviewPassword,
@@ -92,6 +96,10 @@ export function setupElementPlus(): void {
 
 /* 导出所有组件（按需使用） */
 export {
+  ArrayBase,
+  ArrayField,
+  ArrayItems,
+  ArrayTable,
   AutoComplete,
   Cascader,
   CheckboxGroup,

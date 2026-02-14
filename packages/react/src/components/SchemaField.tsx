@@ -1,8 +1,8 @@
-import type { CompiledField, CompileOptions, ISchema } from '@moluoxixi/core'
-import { compileSchema, toArrayFieldProps, toFieldProps, toVoidFieldProps } from '@moluoxixi/core'
-import { observer } from '@moluoxixi/reactive-react'
+import type { CompiledField, CompileOptions, ISchema, ObjectFieldProps } from '@moluoxixi/core'
+import { compileSchema, isStructuralArrayComponent, toArrayFieldProps, toFieldProps, toVoidFieldProps } from '@moluoxixi/core'
 import React, { useContext, useMemo } from 'react'
 import { FormContext, SchemaContext } from '../context'
+import { observer } from '../reactive'
 import { FormArrayField } from './FormArrayField'
 import { FormField } from './FormField'
 import { FormObjectField } from './FormObjectField'
@@ -34,7 +34,7 @@ export const SchemaField = observer<SchemaFieldProps>(({ schema, compileOptions 
        * 原子组件（如 CheckboxGroup/Transfer）虽然值为数组，但作为普通字段渲染。
        */
       const comp = cf.schema.component
-      const isStructuralArray = !comp || comp === 'ArrayItems' || comp === 'ArrayTable'
+      const isStructuralArray = isStructuralArrayComponent(comp)
       if (!isStructuralArray) {
         return <FormField key={cf.address} name={cf.dataPath} fieldProps={toFieldProps(cf)} />
       }
@@ -42,7 +42,7 @@ export const SchemaField = observer<SchemaFieldProps>(({ schema, compileOptions 
         /**
          * 参考 Formily + Vue 端 SchemaField：
          * 将 items schema 通过 componentProps.itemsSchema 传递给数组组件，
-         * 由 ArrayItems/ArrayTable 使用 RecursionField 递归渲染每个数组项。
+         * 由 ArrayField/ArrayTable 使用 RecursionField 递归渲染每个数组项。
          */
         const arrayProps = toArrayFieldProps(cf)
         arrayProps.componentProps = {
@@ -72,7 +72,7 @@ export const SchemaField = observer<SchemaFieldProps>(({ schema, compileOptions 
   function renderObjectNode(cf: CompiledField): React.ReactElement {
     return (
       <SchemaContext.Provider key={cf.address} value={cf.schema}>
-        <FormObjectField name={cf.dataPath} fieldProps={toFieldProps(cf)}>
+        <FormObjectField name={cf.dataPath} fieldProps={toFieldProps(cf) as Partial<ObjectFieldProps>}>
           {renderChildren(cf.children)}
         </FormObjectField>
       </SchemaContext.Provider>

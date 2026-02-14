@@ -24,8 +24,8 @@
   },
   "files": ["dist", "src"],
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts",
-    "dev": "tsup src/index.ts --format esm,cjs --dts --watch"
+    "build": "tsup src/index.ts --format esm,cjs --dts --tsconfig tsconfig.build.json",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --tsconfig tsconfig.build.json --watch"
   },
   "peerDependencies": {
     "react": ">=18.0.0",
@@ -38,8 +38,6 @@
   "devDependencies": {
     "@types/react": "catalog:type",
     "@types/react-dom": "catalog:type",
-    "mobx": "catalog:build",
-    "mobx-react-lite": "catalog:build",
     "react": "catalog:build",
     "react-dom": "catalog:build",
     "tsup": "catalog:type",

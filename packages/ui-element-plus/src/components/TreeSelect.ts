@@ -48,10 +48,12 @@ export const TreeSelect = defineComponent({
     /** 递归查找 label */
     const findLabel = (items: DataSourceItem[], value: unknown): string | undefined => {
       for (const item of items) {
-        if (item.value === value) return item.label
+        if (item.value === value)
+          return item.label
         if (item.children) {
           const found = findLabel(item.children, value)
-          if (found) return found
+          if (found)
+            return found
         }
       }
       return undefined

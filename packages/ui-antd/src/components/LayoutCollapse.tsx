@@ -1,8 +1,8 @@
-import { Collapse as ACollapse } from 'antd'
-import { useField, useSchemaItems, RecursionField } from '@moluoxixi/react'
-import { observer } from '@moluoxixi/reactive-react'
-import { useState } from 'react'
 import type { ReactElement } from 'react'
+import { observer, RecursionField, useField, useForm, useSchemaItems } from '@moluoxixi/react'
+
+import { Collapse as ACollapse } from 'antd'
+import { useState } from 'react'
 
 export interface LayoutCollapseProps {}
 
@@ -15,9 +15,27 @@ export interface LayoutCollapseProps {}
  */
 export const LayoutCollapse = observer((_props: LayoutCollapseProps): ReactElement => {
   const field = useField()
+  const form = useForm()
   const items = useSchemaItems()
   const allKeys = items.map((_, i) => String(i))
   const [activeKeys, setActiveKeys] = useState(allKeys)
+
+  const getDataPath = (path: string): string => {
+    if (!path)
+      return ''
+    const segments = path.split('.')
+    const dataSegments: string[] = []
+    let currentPath = ''
+    for (const seg of segments) {
+      currentPath = currentPath ? `${currentPath}.${seg}` : seg
+      if (form.getAllVoidFields().has(currentPath))
+        continue
+      dataSegments.push(seg)
+    }
+    return dataSegments.join('.')
+  }
+
+  const basePath = getDataPath(field.path)
 
   return (
     <ACollapse
@@ -30,7 +48,7 @@ export const LayoutCollapse = observer((_props: LayoutCollapseProps): ReactEleme
           <RecursionField
             schema={item.schema}
             name={item.name}
-            basePath={field.path}
+            basePath={basePath}
             onlyRenderProperties
           />
         ),

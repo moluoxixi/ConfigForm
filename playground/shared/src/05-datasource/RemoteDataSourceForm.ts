@@ -1,3 +1,4 @@
+import type { DataSourceItem, ReactionContext } from '@moluoxixi/core'
 import type { SceneConfig } from '../types'
 
 /**
@@ -48,7 +49,7 @@ const config: SceneConfig = {
           url: 'https://jsonplaceholder.typicode.com/posts',
           method: 'GET',
           params: { userId: '$values.userId' },
-          transform: (response: unknown): Array<{ label: string, value: unknown }> => {
+          transform: (response: unknown): DataSourceItem[] => {
             const posts = response as Array<{ id: number, title: string }>
             return posts.slice(0, 10).map(p => ({
               label: `#${p.id} ${p.title.slice(0, 30)}...`,
@@ -62,16 +63,20 @@ const config: SceneConfig = {
           {
             watch: 'userId',
             fulfill: {
-              run: (field: { loading: boolean, setDataSource: (items: unknown[]) => void, loadDataSource: (config: unknown) => Promise<void> }, ctx: { values: Record<string, unknown> }): void => {
+              run: (field, ctx: ReactionContext): void => {
+                const selectField = field as {
+                  setDataSource: (items: DataSourceItem[]) => void
+                  loadDataSource: (config: unknown) => Promise<void>
+                }
                 if (!ctx.values.userId) {
-                  field.setDataSource([])
+                  selectField.setDataSource([])
                   return
                 }
-                field.loadDataSource({
+                selectField.loadDataSource({
                   url: 'https://jsonplaceholder.typicode.com/posts',
                   method: 'GET' as const,
                   params: { userId: String(ctx.values.userId) },
-                  transform: (response: unknown): Array<{ label: string, value: unknown }> => {
+                  transform: (response: unknown): DataSourceItem[] => {
                     const posts = response as Array<{ id: number, title: string }>
                     return posts.slice(0, 10).map(p => ({
                       label: `#${p.id} ${p.title.slice(0, 30)}...`,

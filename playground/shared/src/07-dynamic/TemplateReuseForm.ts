@@ -1,5 +1,4 @@
 import type { SceneConfig } from '../types'
-import type { ISchema } from '@moluoxixi/core'
 
 /**
  * 场景：Schema 片段复用

@@ -2,8 +2,8 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "lib": ["DOM", "ESNext"],
-    "types": ["vite/client"],
     "rootDir": "./src",
+    "types": ["vite/client"],
     "outDir": "./dist"
   },
   "include": ["src"]

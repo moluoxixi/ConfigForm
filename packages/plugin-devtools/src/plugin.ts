@@ -1,5 +1,4 @@
-import type { FieldInstance, FormInstance, FormPlugin, VoidFieldInstance } from '@moluoxixi/core'
-import type { FormEvent } from '@moluoxixi/core'
+import type { FieldInstance, FormEvent, FormInstance, FormPlugin, VoidFieldInstance } from '@moluoxixi/core'
 import type { DevToolsGlobalHook, DevToolsPluginAPI, EventLogEntry, FieldDetail, FieldTreeNode, FormOverview, ValueDiffEntry } from './types'
 import { FormLifeCycle } from '@moluoxixi/core'
 
@@ -48,7 +47,7 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
   return {
     name: 'devtools',
 
-    install(form: FormInstance): DevToolsPluginAPI {
+    install(form: FormInstance) {
       /** 事件日志 */
       const eventLog: EventLogEntry[] = []
       let eventIdCounter = 0
@@ -59,7 +58,10 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
       /** 通知数据变化 */
       function notify(): void {
         for (const listener of listeners) {
-          try { listener() } catch { /* 静默 */ }
+          try {
+            listener()
+          }
+          catch { /* 静默 */ }
         }
       }
 
@@ -112,11 +114,11 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
 
       /** 监听字段事件（payload 为 FieldInstance） */
       const fieldEvents: Array<[FormLifeCycle, (field: FieldInstance) => string]> = [
-        [FormLifeCycle.ON_FIELD_INIT, (f) => `字段创建: ${f.path}`],
-        [FormLifeCycle.ON_FIELD_MOUNT, (f) => `字段挂载: ${f.path}`],
-        [FormLifeCycle.ON_FIELD_UNMOUNT, (f) => `字段卸载: ${f.path}`],
-        [FormLifeCycle.ON_FIELD_VALUE_CHANGE, (f) => `值变化: ${f.path} = ${JSON.stringify(f.value)?.slice(0, 50)}`],
-        [FormLifeCycle.ON_FIELD_INPUT_VALUE_CHANGE, (f) => `用户输入: ${f.path}`],
+        [FormLifeCycle.ON_FIELD_INIT, f => `字段创建: ${f.path}`],
+        [FormLifeCycle.ON_FIELD_MOUNT, f => `字段挂载: ${f.path}`],
+        [FormLifeCycle.ON_FIELD_UNMOUNT, f => `字段卸载: ${f.path}`],
+        [FormLifeCycle.ON_FIELD_VALUE_CHANGE, f => `值变化: ${f.path} = ${JSON.stringify(f.value)?.slice(0, 50)}`],
+        [FormLifeCycle.ON_FIELD_INPUT_VALUE_CHANGE, f => `用户输入: ${f.path}`],
       ]
 
       for (const [event, summarize] of fieldEvents) {
@@ -132,9 +134,12 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
 
       /** 从 field path 判断字段类型 */
       function getFieldType(path: string): FieldTreeNode['type'] {
-        if (form.getArrayField(path)) return 'arrayField'
-        if (form.getObjectField(path)) return 'objectField'
-        if (form.getAllVoidFields().has(path)) return 'voidField'
+        if (form.getArrayField(path))
+          return 'arrayField'
+        if (form.getObjectField(path))
+          return 'objectField'
+        if (form.getAllVoidFields().has(path))
+          return 'voidField'
         return 'field'
       }
 
@@ -190,7 +195,8 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
 
           if (parentPath && nodeMap.has(parentPath)) {
             nodeMap.get(parentPath)!.children.push(node)
-          } else {
+          }
+          else {
             roots.push(node)
           }
         }
@@ -204,7 +210,8 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
         const field = form.getField(path) as FieldInstance | undefined
         const voidField = form.getAllVoidFields().get(path)
 
-        if (!field && !voidField) return null
+        if (!field && !voidField)
+          return null
 
         if (voidField && !field) {
           return {
@@ -268,7 +275,8 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           const allFields = form.getAllFields()
           let errorCount = 0
           for (const [, field] of allFields) {
-            if ((field as FieldInstance).errors?.length > 0) errorCount++
+            if ((field as FieldInstance).errors?.length > 0)
+              errorCount++
           }
           return {
             pattern: form.pattern,
@@ -307,7 +315,8 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
         highlightField(path: string): void {
           const field = form.getField(path) as FieldInstance | undefined
           const el = field?.domRef
-          if (!el) return
+          if (!el)
+            return
           el.scrollIntoView({ behavior: 'smooth', block: 'center' })
           el.style.outline = '2px solid #3b82f6'
           el.style.outlineOffset = '2px'
@@ -332,11 +341,16 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
         },
         setFieldState(path: string, state: Partial<{ visible: boolean, disabled: boolean, preview: boolean, pattern: string }>): void {
           const field = form.getField(path) as FieldInstance | undefined
-          if (!field) return
-          if (state.visible !== undefined) field.display = state.visible ? 'visible' : 'none'
-          if (state.disabled !== undefined) field.disabled = state.disabled
-          if (state.preview !== undefined) field.preview = state.preview
-          if (state.pattern !== undefined) field.selfPattern = state.pattern as FieldInstance['selfPattern']
+          if (!field)
+            return
+          if (state.visible !== undefined)
+            field.display = state.visible ? 'visible' : 'none'
+          if (state.disabled !== undefined)
+            field.disabled = state.disabled
+          if (state.preview !== undefined)
+            field.preview = state.preview
+          if (state.pattern !== undefined)
+            field.selfPattern = state.pattern as FieldInstance['selfPattern']
           addEvent('devtools:setState', `修改状态: ${path} → ${JSON.stringify(state)}`, path)
           notify()
         },
@@ -372,7 +386,17 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
       /* 记录初始化事件 */
       addEvent('devtools:init', `DevTools 已连接 (${formId})`)
 
-      return api
+      return {
+        api,
+        dispose: () => {
+          for (const d of disposers) {
+            d()
+          }
+          disposers.length = 0
+          listeners.clear()
+          eventLog.length = 0
+        },
+      }
     },
   }
 }
@@ -389,12 +413,16 @@ function getParentPath(path: string): string {
 function safeSerialize(value: unknown): unknown {
   try {
     return JSON.parse(JSON.stringify(value, (_key, val) => {
-      if (typeof val === 'function') return '(function)'
-      if (val instanceof RegExp) return val.toString()
-      if (val instanceof Date) return val.toISOString()
+      if (typeof val === 'function')
+        return '(function)'
+      if (val instanceof RegExp)
+        return val.toString()
+      if (val instanceof Date)
+        return val.toISOString()
       return val
     }))
-  } catch {
+  }
+  catch {
     return String(value)
   }
 }

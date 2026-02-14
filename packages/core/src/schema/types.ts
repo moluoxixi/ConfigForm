@@ -1,11 +1,46 @@
-import type { DataSourceConfig, ReactionRule } from '../types'
 import type { ComponentType, DataSourceItem, FieldPattern } from '../shared'
+import type { DataSourceConfig, ReactionRule } from '../types'
 import type { ValidationRule, ValidationTrigger } from '../validator'
 
 /* ======================== Schema 定义 ======================== */
 
 /** Schema 节点数据类型 */
 export type SchemaType = 'string' | 'number' | 'boolean' | 'date' | 'array' | 'object' | 'void'
+
+/** 内置字段组件名（用于类型提示与约束） */
+export const BUILTIN_FIELD_COMPONENTS = [
+  'Input',
+  'InputNumber',
+  'Switch',
+  'DatePicker',
+  'Select',
+] as const
+export type BuiltinFieldComponent = (typeof BUILTIN_FIELD_COMPONENTS)[number]
+
+/** 内置结构化数组组件名 */
+export const BUILTIN_STRUCTURAL_ARRAY_COMPONENTS = [
+  'ArrayField',
+  'ArrayItems',
+  'ArrayTable',
+  'ArrayCards',
+  'ArrayCollapse',
+] as const
+export type BuiltinStructuralArrayComponent = (typeof BUILTIN_STRUCTURAL_ARRAY_COMPONENTS)[number]
+
+/** 内置装饰器名 */
+export const BUILTIN_DECORATORS = ['FormItem'] as const
+export type BuiltinDecoratorName = (typeof BUILTIN_DECORATORS)[number]
+
+/** Schema 字符串组件名（内置 + 自定义字符串） */
+export type SchemaComponentName
+  = | BuiltinFieldComponent
+    | BuiltinStructuralArrayComponent
+    | (string & {})
+
+/** Schema 字符串装饰器名（内置 + 自定义字符串） */
+export type SchemaDecoratorName
+  = | BuiltinDecoratorName
+    | (string & {})
 
 /**
  * oneOf 条件分支
@@ -120,11 +155,11 @@ export interface ISchema {
 
   /* ---- 组件 ---- */
   /** 渲染组件（省略时按 type/enum 自动推断；支持字符串名或直接组件引用） */
-  component?: string | ((...args: unknown[]) => unknown) | Record<string, unknown>
+  component?: SchemaComponentName | ((...args: unknown[]) => unknown) | Record<string, unknown>
   /** 组件属性 */
   componentProps?: Record<string, unknown>
   /** 装饰器组件（省略时非 void 字段默认 'FormItem'；支持字符串名或直接组件引用） */
-  decorator?: string | ((...args: unknown[]) => unknown) | Record<string, unknown>
+  decorator?: SchemaDecoratorName | ((...args: unknown[]) => unknown) | Record<string, unknown>
   /** 装饰器属性 */
   decoratorProps?: Record<string, unknown>
 
@@ -338,7 +373,7 @@ export interface CompiledSchema {
 /** Schema 编译选项 */
 export interface CompileOptions {
   /** 类型 → 组件的映射（覆盖默认推断） */
-  componentMapping?: Record<string, string>
+  componentMapping?: Partial<Record<SchemaType, SchemaComponentName>>
   /** 默认装饰器组件（默认 'FormItem'） */
-  defaultDecorator?: string
+  defaultDecorator?: SchemaDecoratorName
 }

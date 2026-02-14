@@ -1,18 +1,30 @@
 import type { ISchema } from '@moluoxixi/core'
-import { DEFAULT_COMPONENT_MAPPING, resolveComponent } from '@moluoxixi/core'
 import type { PropType, VNode } from 'vue'
+import { DEFAULT_COMPONENT_MAPPING, isStructuralArrayComponent, resolveComponent } from '@moluoxixi/core'
 import { defineComponent, h, provide } from 'vue'
 import { SchemaSymbol } from '../context'
-import { FormField } from './FormField'
 import { FormArrayField } from './FormArrayField'
+import { FormField } from './FormField'
 import { FormObjectField } from './FormObjectField'
 import { FormVoidField } from './FormVoidField'
+
+function normalizeDataSource(schema: ISchema): unknown[] | undefined {
+  if (schema.dataSource)
+    return schema.dataSource as unknown[]
+  if (!schema.enum || schema.enum.length === 0)
+    return undefined
+  return schema.enum.map((item) => {
+    if (item && typeof item === 'object')
+      return item as { label: string, value: unknown, disabled?: boolean }
+    return { label: String(item), value: item }
+  })
+}
 
 /**
  * RecursionField — 递归 Schema 渲染器（参考 Formily RecursionField）
  *
  * 根据 schema 定义递归渲染字段组件。
- * 主要用于 ArrayItems 内部渲染每个数组项的子字段。
+ * 主要用于 ArrayField 内部渲染每个数组项的子字段。
  *
  * 与 SchemaField 的区别：
  * - SchemaField 是顶层渲染器，编译整个 schema 树
@@ -49,18 +61,49 @@ export const RecursionField = defineComponent({
     },
   },
   setup(props) {
+    function renderDataField(schema: ISchema, dataPath: string): VNode {
+      const resolvedComp = resolveComponent(schema, DEFAULT_COMPONENT_MAPPING)
+      const dataSource = normalizeDataSource(schema)
+
+      return h(FormField, {
+        key: dataPath,
+        name: dataPath,
+        fieldProps: {
+          label: schema.title,
+          description: schema.description,
+          required: schema.required === true,
+          component: resolvedComp,
+          componentProps: schema.componentProps,
+          rules: schema.rules,
+          disabled: schema.disabled,
+          preview: schema.preview,
+          pattern: schema.pattern,
+          dataSource,
+          displayFormat: schema.displayFormat as ((value: unknown) => unknown) | undefined,
+          inputParse: schema.inputParse as ((value: unknown) => unknown) | undefined,
+          submitTransform: schema.submitTransform as ((value: unknown) => unknown) | undefined,
+          submitPath: schema.submitPath,
+          excludeWhenHidden: schema.excludeWhenHidden,
+        },
+      })
+    }
+
     /** 拼接完整数据路径 */
     function fullPath(suffix?: string): string {
       const parts: string[] = []
-      if (props.basePath) parts.push(props.basePath)
-      if (props.name !== undefined) parts.push(String(props.name))
-      if (suffix) parts.push(suffix)
+      if (props.basePath)
+        parts.push(props.basePath)
+      if (props.name !== undefined)
+        parts.push(String(props.name))
+      if (suffix)
+        parts.push(suffix)
       return parts.join('.')
     }
 
     /** 渲染 properties 子节点 */
     function renderProperties(schema: ISchema, parentPath: string): VNode[] {
-      if (!schema.properties) return []
+      if (!schema.properties)
+        return []
 
       const entries = Object.entries(schema.properties)
       entries.sort(([, a], [, b]) => (a.order ?? 0) - (b.order ?? 0))
@@ -106,6 +149,10 @@ export const RecursionField = defineComponent({
 
       /* 数组字段 */
       if (schema.type === 'array') {
+        if (!isStructuralArrayComponent(schema.component)) {
+          return renderDataField(schema, dataPath)
+        }
+
         return h(FormArrayField, {
           key: dataPath,
           name: dataPath,
@@ -114,7 +161,7 @@ export const RecursionField = defineComponent({
             minItems: schema.minItems,
             maxItems: schema.maxItems,
             itemTemplate: schema.itemTemplate,
-            component: schema.component || 'ArrayItems',
+            component: schema.component || 'ArrayField',
             componentProps: {
               ...schema.componentProps,
               itemsSchema: schema.items,
@@ -139,29 +186,13 @@ export const RecursionField = defineComponent({
       }
 
       /* 普通数据字段 — 通过 resolveComponent 解析组件名（与 compileSchema 逻辑一致） */
-      const resolvedComp = resolveComponent(schema, DEFAULT_COMPONENT_MAPPING)
-
-      return h(FormField, {
-        key: dataPath,
-        name: dataPath,
-        fieldProps: {
-          label: schema.title,
-          description: schema.description,
-          required: schema.required === true,
-          component: resolvedComp,
-          componentProps: schema.componentProps,
-          rules: schema.rules,
-          disabled: schema.disabled,
-          preview: schema.preview,
-          pattern: schema.pattern,
-          dataSource: schema.dataSource,
-        },
-      })
+      return renderDataField(schema, dataPath)
     }
 
     return () => {
       const schema = props.schema
-      if (!schema) return null
+      if (!schema)
+        return null
 
       /* 仅渲染 properties（用于 object/void 节点的子内容） */
       if (props.onlyRenderProperties) {
@@ -198,6 +229,10 @@ export const RecursionField = defineComponent({
 
       /* 数组类型 */
       if (schema.type === 'array') {
+        if (!isStructuralArrayComponent(schema.component)) {
+          return renderDataField(schema, path)
+        }
+
         return h(FormArrayField, {
           key: path,
           name: path,
@@ -206,7 +241,7 @@ export const RecursionField = defineComponent({
             minItems: schema.minItems,
             maxItems: schema.maxItems,
             itemTemplate: schema.itemTemplate,
-            component: schema.component || 'ArrayItems',
+            component: schema.component || 'ArrayField',
             componentProps: {
               ...schema.componentProps,
               itemsSchema: schema.items,

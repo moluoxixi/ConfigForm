@@ -18,7 +18,7 @@ export function CheckboxGroup({ value, onChange, onFocus, onBlur, dataSource = [
       <ACheckbox.Group
         value={value}
         onChange={v => onChange?.(v)}
-        disabled={disabled}
+        disabled={disabled || preview}
         options={dataSource.map(item => ({ label: item.label, value: item.value as string }))}
       />
     </div>

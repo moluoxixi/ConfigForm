@@ -60,7 +60,7 @@ const LOCALE_OPTIONS = [
   { label: '🇯🇵 日本語', value: 'ja-JP' },
 ]
 
-const config: SceneConfig & { i18n: typeof I18N; localeOptions: typeof LOCALE_OPTIONS } = {
+const config: SceneConfig & { i18n: typeof I18N, localeOptions: typeof LOCALE_OPTIONS } = {
   title: '国际化（i18n）',
   description: '多语言标签 / 验证消息国际化 — ConfigForm + Schema 实现',
 

@@ -47,8 +47,12 @@ export const mobxAdapter: ReactiveAdapter = {
     effect: (value: T, oldValue: T) => void,
     options?: ReactionOptions,
   ): Disposer {
+    const runEffect = (value: T, oldValue: T | undefined) => {
+      effect(value, oldValue === undefined ? value : oldValue)
+    }
+
     if (options?.debounce && options.debounce > 0) {
-      const debouncedEffect = createDebounce(effect, options.debounce)
+      const debouncedEffect = createDebounce(runEffect, options.debounce)
       const disposer = reaction(track, debouncedEffect, {
         fireImmediately: options?.fireImmediately,
         equals: options?.equals as ((a: T, b: T) => boolean) | undefined,
@@ -58,7 +62,7 @@ export const mobxAdapter: ReactiveAdapter = {
         disposer()
       }
     }
-    return reaction(track, effect, {
+    return reaction(track, runEffect, {
       fireImmediately: options?.fireImmediately,
       equals: options?.equals as ((a: T, b: T) => boolean) | undefined,
     })

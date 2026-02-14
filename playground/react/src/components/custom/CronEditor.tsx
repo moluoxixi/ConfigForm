@@ -11,18 +11,26 @@ const CRON_LABELS = ['分', '时', '日', '月', '周']
 /** 简单的 Cron 解读（非完整解析） */
 function describeCron(expr: string): string {
   const parts = expr.trim().split(/\s+/)
-  if (parts.length < 5) return '格式错误（需要 5 段）'
+  if (parts.length < 5)
+    return '格式错误（需要 5 段）'
 
   const [min, hour, day, month, weekday] = parts
   const desc: string[] = []
 
-  if (weekday !== '*') desc.push(`周${weekday}`)
-  if (month !== '*') desc.push(`${month}月`)
-  if (day !== '*') desc.push(`${day}日`)
-  if (hour !== '*') desc.push(`${hour}时`)
-  if (min !== '*') desc.push(`${min}分`)
-  if (min === '*' && hour === '*') desc.push('每分钟')
-  else if (min === '0' && hour === '*') desc.push('每整点')
+  if (weekday !== '*')
+    desc.push(`周${weekday}`)
+  if (month !== '*')
+    desc.push(`${month}月`)
+  if (day !== '*')
+    desc.push(`${day}日`)
+  if (hour !== '*')
+    desc.push(`${hour}时`)
+  if (min !== '*')
+    desc.push(`${min}分`)
+  if (min === '*' && hour === '*')
+    desc.push('每分钟')
+  else if (min === '0' && hour === '*')
+    desc.push('每整点')
 
   return desc.join(' ') || '每分钟'
 }
@@ -60,14 +68,18 @@ export function CronEditor({ value = '', onChange, presets = [], disabled, previ
       <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
         {CRON_LABELS.map((label, i) => (
           <span key={label} style={{ flex: 1, textAlign: 'center', fontSize: 11, color: '#999' }}>
-            {parts[i] ?? '-'} <br /><span style={{ color: '#666' }}>{label}</span>
+            {parts[i] ?? '-'}
+            {' '}
+            <br />
+            <span style={{ color: '#666' }}>{label}</span>
           </span>
         ))}
       </div>
 
       {/* 解读 */}
       <div style={{ fontSize: 12, color: '#1677ff', marginBottom: 8 }}>
-        解读：{describeCron(value)}
+        解读：
+        {describeCron(value)}
       </div>
 
       {/* 预设按钮 */}
@@ -79,8 +91,12 @@ export function CronEditor({ value = '', onChange, presets = [], disabled, previ
               onClick={() => !disabled && !preview && onChange?.(p.value)}
               disabled={disabled || preview}
               style={{
-                padding: '2px 8px', fontSize: 11, border: '1px solid #d9d9d9', borderRadius: 4,
-                background: value === p.value ? '#e6f4ff' : '#fff', color: value === p.value ? '#1677ff' : '#333',
+                padding: '2px 8px',
+                fontSize: 11,
+                border: '1px solid #d9d9d9',
+                borderRadius: 4,
+                background: value === p.value ? '#e6f4ff' : '#fff',
+                color: value === p.value ? '#1677ff' : '#333',
                 cursor: disabled ? 'not-allowed' : 'pointer',
               }}
             >

@@ -1,6 +1,8 @@
 import { DatePicker as ADatePicker } from 'ant-design-vue'
 import { defineComponent, h } from 'vue'
 
+const DatePickerComponent = ADatePicker as any
+
 /** 日期选择适配 */
 export const DatePicker = defineComponent({
   name: 'CfDatePicker',
@@ -8,13 +10,13 @@ export const DatePicker = defineComponent({
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => {
-      return h(ADatePicker, {
+      return h(DatePickerComponent, {
         'value': props.modelValue,
         'placeholder': props.placeholder,
         'disabled': props.disabled,
         'style': 'width: 100%',
         'valueFormat': 'YYYY-MM-DD',
-        'onUpdate:value': (v: string) => emit('update:modelValue', v),
+        'onUpdate:value': (v: unknown) => emit('update:modelValue', String(v ?? '')),
       })
     }
   },

@@ -80,33 +80,27 @@ export const vueAdapter: ReactiveAdapter = {
       }
     }
 
-    /**
-     * 使用 effect + scheduler 模式：
-     * 1. effect 函数执行 track()，收集依赖
-     * 2. 依赖变化时 scheduler 被调用（而非重新执行 effect）
-     * 3. scheduler 中手动调用 runner() 获取新值并比较
-     */
-    const runner = vueEffect(() => track(), {
-      lazy: true,
-      scheduler: () => {
-        const newValue = runner()
-        const shouldRun = options?.equals
-          ? !options.equals(newValue, oldValue)
-          : !shallowEquals(newValue, oldValue)
-        if (shouldRun) {
-          const prev = oldValue
-          oldValue = newValue
-          callEffect(newValue, prev)
+    let initialized = false
+    const runner = vueEffect(() => {
+      const newValue = track()
+      if (!initialized) {
+        oldValue = newValue
+        initialized = true
+        if (options?.fireImmediately) {
+          callEffect(newValue, newValue)
         }
-      },
+        return
+      }
+
+      const shouldRun = options?.equals
+        ? !options.equals(newValue, oldValue)
+        : !shallowEquals(newValue, oldValue)
+      if (shouldRun) {
+        const prev = oldValue
+        oldValue = newValue
+        callEffect(newValue, prev)
+      }
     })
-
-    /* 首次执行收集依赖，获取初始值 */
-    oldValue = runner()
-
-    if (options?.fireImmediately) {
-      callEffect(oldValue, oldValue)
-    }
 
     return () => {
       runner.effect.stop()

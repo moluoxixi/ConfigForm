@@ -11,7 +11,7 @@ import { defineComponent, h } from 'vue'
 export const DateRangePicker = defineComponent({
   name: 'CfDateRangePicker',
   props: {
-    modelValue: { type: Array as PropType<[string, string] | null>, default: null },
+    modelValue: { type: Array as unknown as PropType<[string, string] | null>, default: null },
     /** 日期范围选择类型 */
     type: {
       type: String as PropType<'daterange' | 'datetimerange' | 'monthrange'>,

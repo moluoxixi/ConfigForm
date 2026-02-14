@@ -1,7 +1,5 @@
-import type { FormGraph, FormInstance, FormPlugin, PluginContext, PluginInstallResult } from '@moluoxixi/core'
-import type { Disposer } from '@moluoxixi/core'
-import { FormLifeCycle } from '@moluoxixi/core'
-import { debounce } from '@moluoxixi/core'
+import type { Disposer, FormGraph, FormInstance, FormPlugin, PluginContext, PluginInstallResult } from '@moluoxixi/core'
+import { debounce, FormLifeCycle } from '@moluoxixi/core'
 
 /**
  * 存储适配器接口
@@ -13,13 +11,13 @@ import { debounce } from '@moluoxixi/core'
  */
 export interface DraftStorageAdapter {
   /** 获取草稿 */
-  get(key: string): Promise<FormGraph | null>
+  get: (key: string) => Promise<FormGraph | null>
   /** 保存草稿 */
-  set(key: string, graph: FormGraph): Promise<void>
+  set: (key: string, graph: FormGraph) => Promise<void>
   /** 删除草稿 */
-  remove(key: string): Promise<void>
+  remove: (key: string) => Promise<void>
   /** 检查是否存在草稿 */
-  has(key: string): Promise<boolean>
+  has: (key: string) => Promise<boolean>
 }
 
 /** 插件配置 */
@@ -71,7 +69,8 @@ export class LocalStorageAdapter implements DraftStorageAdapter {
   async get(key: string): Promise<FormGraph | null> {
     try {
       const raw = localStorage.getItem(STORAGE_PREFIX + key)
-      if (!raw) return null
+      if (!raw)
+        return null
       return JSON.parse(raw) as FormGraph
     }
     catch { return null }
@@ -102,7 +101,8 @@ export class SessionStorageAdapter implements DraftStorageAdapter {
   async get(key: string): Promise<FormGraph | null> {
     try {
       const raw = sessionStorage.getItem(STORAGE_PREFIX + key)
-      if (!raw) return null
+      if (!raw)
+        return null
       return JSON.parse(raw) as FormGraph
     }
     catch { return null }
@@ -174,7 +174,8 @@ export function draftPlugin(config: DraftPluginConfig): FormPlugin<DraftPluginAP
 
       /** 检查草稿是否过期 */
       function isExpired(graph: FormGraph): boolean {
-        if (maxAge <= 0 || !graph.timestamp) return false
+        if (maxAge <= 0 || !graph.timestamp)
+          return false
         return Date.now() - graph.timestamp > maxAge
       }
 
@@ -210,7 +211,8 @@ export function draftPlugin(config: DraftPluginConfig): FormPlugin<DraftPluginAP
         async restore(): Promise<boolean> {
           try {
             const graph = await storage.get(key)
-            if (!graph) return false
+            if (!graph)
+              return false
             if (isExpired(graph)) {
               await storage.remove(key)
               return false
@@ -228,7 +230,8 @@ export function draftPlugin(config: DraftPluginConfig): FormPlugin<DraftPluginAP
         async hasDraft(): Promise<boolean> {
           try {
             const graph = await storage.get(key)
-            if (!graph) return false
+            if (!graph)
+              return false
             if (isExpired(graph)) {
               await storage.remove(key)
               return false
@@ -239,8 +242,12 @@ export function draftPlugin(config: DraftPluginConfig): FormPlugin<DraftPluginAP
         },
 
         async discard(): Promise<void> {
-          try { await storage.remove(key) }
-          catch (err) { config.onError?.(err as Error) }
+          try {
+            await storage.remove(key)
+          }
+          catch (err) {
+            config.onError?.(err as Error)
+          }
         },
       }
 

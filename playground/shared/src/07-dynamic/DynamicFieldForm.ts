@@ -1,3 +1,4 @@
+import type { ReactionRule } from '@moluoxixi/core'
 import type { SceneConfig } from '../types'
 
 /**
@@ -18,7 +19,7 @@ const FIELD_OPTIONS = [
 ]
 
 /** 生成通用的显隐联动 reaction：监听 _selectedFields，判断数组是否包含当前字段名 */
-function makeVisibilityReaction(fieldName: string): object[] {
+function makeVisibilityReaction(fieldName: string): ReactionRule[] {
   return [{
     watch: '_selectedFields',
     when: `{{Array.isArray($values._selectedFields) && $values._selectedFields.includes("${fieldName}")}}`,
@@ -58,35 +59,43 @@ const config: SceneConfig = {
         description: '勾选后对应字段出现，取消勾选后隐藏',
       },
       name: {
-        type: 'string', title: '姓名', required: true,
+        type: 'string',
+        title: '姓名',
+        required: true,
         rules: [{ minLength: 2, message: '至少 2 字' }],
         reactions: makeVisibilityReaction('name'),
       },
       email: {
-        type: 'string', title: '邮箱',
+        type: 'string',
+        title: '邮箱',
         rules: [{ format: 'email', message: '无效邮箱' }],
         reactions: makeVisibilityReaction('email'),
       },
       phone: {
-        type: 'string', title: '电话',
+        type: 'string',
+        title: '电话',
         visible: false,
         rules: [{ format: 'phone', message: '无效手机号' }],
         reactions: makeVisibilityReaction('phone'),
       },
       company: {
-        type: 'string', title: '公司',
+        type: 'string',
+        title: '公司',
         visible: false,
         reactions: makeVisibilityReaction('company'),
       },
       position: {
-        type: 'string', title: '职位',
+        type: 'string',
+        title: '职位',
         visible: false,
         reactions: makeVisibilityReaction('position'),
       },
       remark: {
-        type: 'string', title: '备注',
+        type: 'string',
+        title: '备注',
         visible: false,
-        component: 'Textarea', componentProps: { rows: 3 },
+        component: 'Textarea',
+        componentProps: { rows: 3 },
         reactions: makeVisibilityReaction('remark'),
       },
     },

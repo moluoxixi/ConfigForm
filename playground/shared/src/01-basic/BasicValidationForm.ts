@@ -21,8 +21,15 @@ const config: SceneConfig = {
   description: 'required / email / phone / URL / pattern / min-max',
 
   initialValues: {
-    username: '', email: '', phone: '', website: '', nickname: '',
-    age: undefined, zipCode: '', idCard: '', password: '',
+    username: '',
+    email: '',
+    phone: '',
+    website: '',
+    nickname: '',
+    age: undefined,
+    zipCode: '',
+    idCard: '',
+    password: '',
   },
 
   schema: {

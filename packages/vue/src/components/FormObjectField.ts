@@ -1,6 +1,6 @@
-import type { FieldProps } from '@moluoxixi/core'
+import type { FieldInstance, ObjectFieldInstance, ObjectFieldProps } from '@moluoxixi/core'
 import type { PropType } from 'vue'
-import { defineComponent, h, inject, onBeforeUnmount, provide } from 'vue'
+import { defineComponent, h, inject, onBeforeUnmount, onMounted, provide } from 'vue'
 import { FieldSymbol, FormSymbol } from '../context'
 import { ReactiveField } from './ReactiveField'
 
@@ -28,7 +28,7 @@ export const FormObjectField = defineComponent({
       required: true,
     },
     fieldProps: {
-      type: Object as PropType<Partial<FieldProps>>,
+      type: Object as PropType<Partial<ObjectFieldProps>>,
       default: undefined,
     },
   },
@@ -39,22 +39,27 @@ export const FormObjectField = defineComponent({
       throw new Error('[ConfigForm] <FormObjectField> 必须在 <FormProvider> 内部使用')
     }
 
-    let field = form.getField(props.name)
+    let field = form.getObjectField(props.name) as ObjectFieldInstance | undefined
     let createdByThis = false
     if (!field) {
-      const mergedProps: Record<string, unknown> = { ...props.fieldProps, name: props.name }
+      const mergedProps: ObjectFieldProps = { ...(props.fieldProps ?? {}), name: props.name }
       /* pattern 无需手动注入，field.pattern getter 已自动回退到 form.pattern */
       /* ObjectField 的初始值默认为空对象 */
       if (mergedProps.initialValue === undefined) {
         mergedProps.initialValue = {}
       }
-      field = form.createField(mergedProps as any)
+      field = form.createObjectField(mergedProps)
       createdByThis = true
     }
 
-    provide(FieldSymbol, field)
+    provide(FieldSymbol, field as unknown as FieldInstance)
+
+    onMounted(() => {
+      field.mount()
+    })
 
     onBeforeUnmount(() => {
+      field.unmount()
       if (createdByThis) {
         form.removeField(props.name)
       }

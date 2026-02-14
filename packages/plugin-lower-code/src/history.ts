@@ -1,7 +1,5 @@
-import type { Disposer } from '@moluoxixi/core'
-import type { FormGraph, FormInstance, FormPlugin, PluginContext, PluginInstallResult } from '@moluoxixi/core'
-import { FormLifeCycle } from '@moluoxixi/core'
-import { deepClone } from '@moluoxixi/core'
+import type { Disposer, FormGraph, FormInstance, FormPlugin, PluginContext, PluginInstallResult } from '@moluoxixi/core'
+import { deepClone, FormLifeCycle } from '@moluoxixi/core'
 
 /**
  * 操作记录
@@ -140,51 +138,23 @@ export function historyPlugin(config: HistoryPluginConfig = {}): FormPlugin<Hist
       /* 保存初始状态 */
       pushRecord('init', '初始状态')
 
-      /* 配置定时自动快照 */
-      if (config.autoInterval && config.autoInterval > 0) {
-        autoTimer = setInterval(() => {
-          api.save('input')
-        }, config.autoInterval)
-      }
-
       /* 值变化自动保存快照（默认开启） */
       let valuesDisposer: Disposer | null = null
-      if (config.autoSave !== false) {
-        valuesDisposer = form.on(FormLifeCycle.ON_FORM_VALUES_CHANGE, () => {
-          if (restoring || batching) return
-          api.save('input')
-        })
-      }
-
       /* 键盘快捷键 Ctrl+Z 撤销 / Ctrl+Y 重做（默认开启） */
       let keydownHandler: ((e: KeyboardEvent) => void) | null = null
-      if (config.keyboard !== false && typeof window !== 'undefined') {
-        keydownHandler = (e: KeyboardEvent): void => {
-          const mod = e.ctrlKey || e.metaKey
-          if (!mod) return
-
-          if (e.key === 'z') {
-            e.preventDefault()
-            api.undo()
-          }
-          else if (e.key === 'y') {
-            e.preventDefault()
-            api.redo()
-          }
-        }
-        window.addEventListener('keydown', keydownHandler)
-      }
 
       const api: HistoryPluginAPI = {
         save(type: HistoryRecord['type'] = 'custom', description?: string): boolean {
-          if (batching) return false
+          if (batching)
+            return false
 
           const graph = form.getGraph()
           if (filter) {
             const previous = undoStack.length > 0
               ? undoStack[undoStack.length - 1].graph
               : undefined
-            if (!filter(graph, previous)) return false
+            if (!filter(graph, previous))
+              return false
           }
 
           pushRecord(type, description)
@@ -194,7 +164,8 @@ export function historyPlugin(config: HistoryPluginConfig = {}): FormPlugin<Hist
         },
 
         undo(): boolean {
-          if (undoStack.length <= 1) return false
+          if (undoStack.length <= 1)
+            return false
           restoring = true
           try {
             const current = undoStack.pop()!
@@ -210,7 +181,8 @@ export function historyPlugin(config: HistoryPluginConfig = {}): FormPlugin<Hist
         },
 
         redo(): boolean {
-          if (redoStack.length === 0) return false
+          if (redoStack.length === 0)
+            return false
           restoring = true
           try {
             const record = redoStack.pop()!
@@ -226,7 +198,9 @@ export function historyPlugin(config: HistoryPluginConfig = {}): FormPlugin<Hist
 
         batch(fn: () => void, description?: string): void {
           batching = true
-          try { fn() }
+          try {
+            fn()
+          }
           finally {
             batching = false
             api.save('batch', description)
@@ -234,9 +208,11 @@ export function historyPlugin(config: HistoryPluginConfig = {}): FormPlugin<Hist
         },
 
         goto(index: number): boolean {
-          if (index < 0 || index >= undoStack.length) return false
+          if (index < 0 || index >= undoStack.length)
+            return false
           const currentIndex = undoStack.length - 1
-          if (index === currentIndex) return false
+          if (index === currentIndex)
+            return false
 
           restoring = true
           try {
@@ -276,7 +252,8 @@ export function historyPlugin(config: HistoryPluginConfig = {}): FormPlugin<Hist
           changeListeners.push(handler)
           return () => {
             const idx = changeListeners.indexOf(handler)
-            if (idx !== -1) changeListeners.splice(idx, 1)
+            if (idx !== -1)
+              changeListeners.splice(idx, 1)
           }
         },
 
@@ -285,6 +262,39 @@ export function historyPlugin(config: HistoryPluginConfig = {}): FormPlugin<Hist
         get undoCount() { return Math.max(0, undoStack.length - 1) },
         get redoCount() { return redoStack.length },
         get records() { return undoStack },
+      }
+
+      /* 配置定时自动快照 */
+      if (config.autoInterval && config.autoInterval > 0) {
+        autoTimer = setInterval(() => {
+          api.save('input')
+        }, config.autoInterval)
+      }
+
+      if (config.autoSave !== false) {
+        valuesDisposer = form.on(FormLifeCycle.ON_FORM_VALUES_CHANGE, () => {
+          if (restoring || batching)
+            return
+          api.save('input')
+        })
+      }
+
+      if (config.keyboard !== false && typeof window !== 'undefined') {
+        keydownHandler = (e: KeyboardEvent): void => {
+          const mod = e.ctrlKey || e.metaKey
+          if (!mod)
+            return
+
+          if (e.key === 'z') {
+            e.preventDefault()
+            api.undo()
+          }
+          else if (e.key === 'y') {
+            e.preventDefault()
+            api.redo()
+          }
+        }
+        window.addEventListener('keydown', keydownHandler)
       }
 
       return {

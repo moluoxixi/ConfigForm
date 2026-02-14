@@ -42,7 +42,7 @@ export const AutoComplete = defineComponent({
      */
     function fetchSuggestions(
       queryString: string,
-      cb: (suggestions: Array<{ value: string; label: string }>) => void,
+      cb: (suggestions: Array<{ value: string, label: string }>) => void,
     ): void {
       const suggestions = props.dataSource.map(item => ({
         value: String(item.value),
@@ -76,7 +76,7 @@ export const AutoComplete = defineComponent({
         'triggerOnFocus': props.triggerOnFocus,
         'clearable': props.clearable,
         'style': 'width: 100%',
-        'onUpdate:modelValue': (v: string) => emit('update:modelValue', v),
+        'onUpdate:modelValue': (v: string | number) => emit('update:modelValue', String(v)),
         'onFocus': () => emit('focus'),
         'onBlur': () => emit('blur'),
       })

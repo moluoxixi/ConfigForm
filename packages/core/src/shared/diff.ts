@@ -56,9 +56,12 @@ export interface DiffFieldView {
  * 深度比较两个值是否相等
  */
 export function deepEqual(a: unknown, b: unknown): boolean {
-  if (a === b) return true
-  if (a === null || b === null) return false
-  if (a === undefined || b === undefined) return false
+  if (a === b)
+    return true
+  if (a === null || b === null)
+    return false
+  if (a === undefined || b === undefined)
+    return false
 
   if (a instanceof Date && b instanceof Date) {
     return a.getTime() === b.getTime()
@@ -78,11 +81,14 @@ export function deepEqual(a: unknown, b: unknown): boolean {
   const aKeys = Object.keys(aObj)
   const bKeys = Object.keys(bObj)
 
-  if (aKeys.length !== bKeys.length) return false
+  if (aKeys.length !== bKeys.length)
+    return false
 
   for (const key of aKeys) {
-    if (!Object.prototype.hasOwnProperty.call(bObj, key)) return false
-    if (!deepEqual(aObj[key], bObj[key])) return false
+    if (!Object.prototype.hasOwnProperty.call(bObj, key))
+      return false
+    if (!deepEqual(aObj[key], bObj[key]))
+      return false
   }
 
   return true
@@ -129,15 +135,17 @@ export function getDiffView(
   paths?: string[],
 ): DiffFieldView[] {
   if (paths) {
-    return paths.map(path => {
+    return paths.map((path) => {
       const oldVal = getNestedValue(oldValues, path)
       const newVal = getNestedValue(newValues, path)
       const dirty = !deepEqual(oldVal, newVal)
 
       let type: DiffType = 'unchanged'
       if (dirty) {
-        if (oldVal === undefined) type = 'added'
-        else if (newVal === undefined) type = 'removed'
+        if (oldVal === undefined)
+          type = 'added'
+        else if (newVal === undefined)
+          type = 'removed'
         else type = 'changed'
       }
 
@@ -227,8 +235,10 @@ function getNestedValue(obj: unknown, path: string): unknown {
   let current = obj
 
   for (const part of parts) {
-    if (current === null || current === undefined) return undefined
-    if (typeof current !== 'object') return undefined
+    if (current === null || current === undefined)
+      return undefined
+    if (typeof current !== 'object')
+      return undefined
     current = (current as Record<string, unknown>)[part]
   }
 

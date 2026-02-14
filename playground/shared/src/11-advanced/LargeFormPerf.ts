@@ -1,3 +1,4 @@
+import type { ISchema } from '@moluoxixi/core'
 import type { SceneConfig } from '../types'
 
 /**
@@ -17,8 +18,8 @@ const DEFAULT_FIELD_COUNT = 50
  * @param count - 字段数量
  * @returns schema properties 对象
  */
-function generateSchemaProperties(count: number): Record<string, unknown> {
-  const properties: Record<string, unknown> = {}
+function generateSchemaProperties(count: number): Record<string, ISchema> {
+  const properties: Record<string, ISchema> = {}
   for (let i = 0; i < count; i++) {
     const type = i % 4 === 0 ? 'number' : i % 4 === 1 ? 'boolean' : i % 4 === 2 ? 'date' : 'string'
     properties[`field_${i}`] = {
@@ -52,8 +53,8 @@ function generateInitialValues(count: number): Record<string, unknown> {
  * @param count - 字段数量
  * @returns fields 数组
  */
-function generateFields(count: number): Array<{ name: string; label: string; component: string; required?: boolean }> {
-  const fields: Array<{ name: string; label: string; component: string; required?: boolean }> = []
+function generateFields(count: number): Array<{ name: string, label: string, component: string, required?: boolean }> {
+  const fields: Array<{ name: string, label: string, component: string, required?: boolean }> = []
   for (let i = 0; i < count; i++) {
     const component = i % 4 === 0 ? 'InputNumber' : i % 4 === 1 ? 'Switch' : i % 4 === 2 ? 'DatePicker' : 'Input'
     fields.push({

@@ -18,10 +18,20 @@ const config: SceneConfig = {
   description: '乘法（单价×数量） / 百分比 / 聚合 / 条件计算',
 
   initialValues: {
-    unitPrice: 100, quantity: 1, totalPrice: 100,
-    originalPrice: 500, discountRate: 10, discountedPrice: 450,
-    scoreA: 85, scoreB: 90, scoreC: 78, totalScore: 253, avgScore: 84.33,
-    calcType: 'inclusive', amount: 1000, taxAmount: 115.04,
+    unitPrice: 100,
+    quantity: 1,
+    totalPrice: 100,
+    originalPrice: 500,
+    discountRate: 10,
+    discountedPrice: 450,
+    scoreA: 85,
+    scoreB: 90,
+    scoreC: 78,
+    totalScore: 253,
+    avgScore: 84.33,
+    calcType: 'inclusive',
+    amount: 1000,
+    taxAmount: 115.04,
   },
 
   schema: {
@@ -31,7 +41,9 @@ const config: SceneConfig = {
       unitPrice: { type: 'number', title: '单价（元）', default: 100, componentProps: { min: 0, step: 0.01, style: { width: '100%' } } },
       quantity: { type: 'number', title: '数量', default: 1, componentProps: { min: 1, step: 1, style: { width: '100%' } } },
       totalPrice: {
-        type: 'number', title: '总价（自动）', description: '单价 × 数量',
+        type: 'number',
+        title: '总价（自动）',
+        description: '单价 × 数量',
         componentProps: { disabled: true, style: { width: '100%' } },
         reactions: [{
           watch: ['unitPrice', 'quantity'],
@@ -41,7 +53,8 @@ const config: SceneConfig = {
       originalPrice: { type: 'number', title: '原价', default: 500, componentProps: { min: 0, style: { width: '100%' } } },
       discountRate: { type: 'number', title: '折扣率（%）', default: 10, componentProps: { min: 0, max: 100, style: { width: '100%' } } },
       discountedPrice: {
-        type: 'number', title: '折后价（自动）',
+        type: 'number',
+        title: '折后价（自动）',
         componentProps: { disabled: true, style: { width: '100%' } },
         reactions: [{
           watch: ['originalPrice', 'discountRate'],
@@ -52,7 +65,8 @@ const config: SceneConfig = {
       scoreB: { type: 'number', title: '科目 B', default: 90, componentProps: { min: 0, max: 100, style: { width: '100%' } } },
       scoreC: { type: 'number', title: '科目 C', default: 78, componentProps: { min: 0, max: 100, style: { width: '100%' } } },
       totalScore: {
-        type: 'number', title: '总分（自动）',
+        type: 'number',
+        title: '总分（自动）',
         componentProps: { disabled: true, style: { width: '100%' } },
         reactions: [{
           watch: ['scoreA', 'scoreB', 'scoreC'],
@@ -60,7 +74,8 @@ const config: SceneConfig = {
         }],
       },
       avgScore: {
-        type: 'number', title: '平均分（自动）',
+        type: 'number',
+        title: '平均分（自动）',
         componentProps: { disabled: true, style: { width: '100%' } },
         reactions: [{
           watch: ['scoreA', 'scoreB', 'scoreC'],
@@ -68,12 +83,16 @@ const config: SceneConfig = {
         }],
       },
       calcType: {
-        type: 'string', title: '计税方式', component: 'RadioGroup',
-        default: 'inclusive', enum: CALC_TYPE_OPTIONS,
+        type: 'string',
+        title: '计税方式',
+        component: 'RadioGroup',
+        default: 'inclusive',
+        enum: CALC_TYPE_OPTIONS,
       },
       amount: { type: 'number', title: '金额', default: 1000, componentProps: { min: 0, style: { width: '100%' } } },
       taxAmount: {
-        type: 'number', title: '税额（自动）',
+        type: 'number',
+        title: '税额（自动）',
         componentProps: { disabled: true, style: { width: '100%' } },
         reactions: [{
           watch: ['calcType', 'amount'],

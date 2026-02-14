@@ -36,37 +36,37 @@
 
 /* ======================== 聚合插件（推荐） ======================== */
 
-export { lowerCodePlugin } from './lower-code'
-export type { LowerCodePluginAPI, LowerCodePluginConfig } from './lower-code'
-
-/* 撤销/重做 */
-export { historyPlugin } from './history'
-export type { HistoryPluginAPI, HistoryPluginConfig, HistoryRecord } from './history'
+/* ACL 权限 */
+export { aclPlugin } from './acl'
+export type { ACLPluginAPI, ACLPluginConfig, FieldPermission, PermissionRule, RolePermission } from './acl'
 
 /* 脏检查 */
 export { deepEqual, dirtyCheckerPlugin } from './dirty-checker'
-export type { DirtyCheckResult, DirtyCheckerPluginAPI, FieldDiff } from './dirty-checker'
+export type { DirtyCheckerPluginAPI, DirtyCheckResult, FieldDiff } from './dirty-checker'
 
 /* 草稿保存 */
 export { draftPlugin, LocalStorageAdapter, SessionStorageAdapter } from './draft'
 export type { DraftPluginAPI, DraftPluginConfig, DraftStorageAdapter } from './draft'
 
-/* ACL 权限 */
-export { aclPlugin } from './acl'
-export type { ACLPluginAPI, ACLPluginConfig, FieldPermission, PermissionRule, RolePermission } from './acl'
+/* 撤销/重做 */
+export { historyPlugin } from './history'
+export type { HistoryPluginAPI, HistoryPluginConfig, HistoryRecord } from './history'
+
+export { lowerCodePlugin } from './lower-code'
+export type { LowerCodePluginAPI, LowerCodePluginConfig } from './lower-code'
 
 /* 数据脱敏 */
 export { maskingPlugin, maskValue } from './masking'
 export type { MaskingPluginAPI, MaskingPluginConfig, MaskingRule, MaskingType } from './masking'
 
-/* 提交重试 */
-export { submitRetryPlugin } from './submit-retry'
-export type { RetryConfig, RetryStrategy, SubmitRetryPluginAPI, SubmitRetryPluginConfig } from './submit-retry'
+/* 性能监控 */
+export { perfMonitorPlugin } from './perf-monitor'
+export type { PerfMetrics, PerfMonitorAPI, PerfMonitorConfig, SlowReaction } from './perf-monitor'
 
 /* 子表单 */
 export { SubFormManager, subFormPlugin } from './sub-form'
 export type { SubFormConfig, SubFormPluginAPI, SyncMode } from './sub-form'
 
-/* 性能监控 */
-export { perfMonitorPlugin } from './perf-monitor'
-export type { PerfMetrics, PerfMonitorAPI, PerfMonitorConfig, SlowReaction } from './perf-monitor'
+/* 提交重试 */
+export { submitRetryPlugin } from './submit-retry'
+export type { RetryConfig, RetryStrategy, SubmitRetryPluginAPI, SubmitRetryPluginConfig } from './submit-retry'

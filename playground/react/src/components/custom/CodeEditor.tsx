@@ -21,7 +21,12 @@ export function CodeEditor({ value = '', onChange, disabled, preview, language }
     <div style={{ position: 'relative', border: '1px solid #d9d9d9', borderRadius: 6, overflow: 'hidden' }}>
       {language && (
         <div style={{ padding: '4px 12px', background: '#f5f5f5', borderBottom: '1px solid #d9d9d9', fontSize: 11, color: '#999', fontFamily: 'monospace' }}>
-          {language} · {lines} 行
+          {language}
+          {' '}
+          ·
+          {lines}
+          {' '}
+          行
         </div>
       )}
       <textarea
@@ -31,9 +36,18 @@ export function CodeEditor({ value = '', onChange, disabled, preview, language }
         readOnly={preview}
         spellCheck={false}
         style={{
-          width: '100%', minHeight: 200, padding: '12px 16px', border: 'none', outline: 'none', resize: 'vertical',
-          fontFamily: 'Consolas, Monaco, "Courier New", monospace', fontSize: 13, lineHeight: 1.6,
-          background: '#fafafa', color: '#333', tabSize: 2,
+          width: '100%',
+          minHeight: 200,
+          padding: '12px 16px',
+          border: 'none',
+          outline: 'none',
+          resize: 'vertical',
+          fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+          fontSize: 13,
+          lineHeight: 1.6,
+          background: '#fafafa',
+          color: '#333',
+          tabSize: 2,
         }}
       />
     </div>

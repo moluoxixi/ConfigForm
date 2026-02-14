@@ -1,14 +1,7 @@
 /* 组件 */
 export {
-  ArrayCards,
-  ArrayCollapse,
-  ArrayItems,
-  ArrayTable,
   ConfigForm,
-  DevTools,
   DiffViewer,
-  Editable,
-  EditablePopover,
   FormArrayField,
   FormField,
   FormLayout,
@@ -19,19 +12,11 @@ export {
   ReactiveField,
   RecursionField,
   SchemaField,
-  Space,
   useFormLayout,
 } from './components'
 export type {
-  ArrayCardsProps,
-  ArrayCollapseProps,
-  ArrayItemsProps,
-  ArrayTableProps,
   ConfigFormProps,
-  DevToolsProps,
   DiffViewerProps,
-  EditablePopoverProps,
-  EditableProps,
   FormArrayFieldComponentProps,
   FormFieldProps,
   FormLayoutConfig,
@@ -42,7 +27,6 @@ export type {
   ReactiveFieldProps,
   RecursionFieldProps,
   SchemaFieldProps,
-  SpaceProps,
 } from './components'
 
 /* 上下文（高级用法） */
@@ -54,16 +38,22 @@ export {
   useField,
   useFieldByPath,
   useFieldSchema,
-  useSchemaItems,
   useForm,
   useFormSubmitting,
   useFormValid,
   useFormValues,
+  useSchemaItems,
 } from './hooks'
 export type { SchemaItem } from './hooks'
 
+/* 响应式桥接（供 UI 层复用，避免直接依赖 reactive-react） */
+export { observer } from './reactive'
+
 /* 注册 */
 export {
+  createComponentScope,
+  createRegistry,
+  createRegistryState,
   getComponent,
   getDecorator,
   getDefaultDecorator,
@@ -72,8 +62,9 @@ export {
   registerComponents,
   registerDecorator,
   registerFieldComponents,
+  resetRegistry,
 } from './registry'
-export type { RegisterComponentOptions } from './registry'
+export type { ComponentScope, RegisterComponentOptions, RegistryState } from './registry'
 
 /* 类型 re-export（供 playground 直接使用 */
 export type { FieldPattern } from '@moluoxixi/core'

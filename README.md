@@ -26,7 +26,7 @@
 │                                                       │
 │  控件：Input / Select / DatePicker / FormItem 等       │
 │  布局：LayoutTabs / LayoutCollapse / LayoutSteps 等    │
-│  数组：ArrayTable / ArrayItems / ArrayCards 等          │
+│  数组：ArrayField / ArrayTable / ArrayCards 等          │
 │        ArrayBase 子组件（Addition / Remove 等）         │
 │  操作：LayoutFormActions（提交 / 重置）                 │
 │                                                       │
@@ -69,7 +69,7 @@
 
 **UI 组件为什么放在 UI 层（参考 Formily）？**
 
-ArrayTable / ArrayItems / ArrayBase 等组件的渲染与 UI 库强耦合（表格用 `ElTable` / `antd Table`，按钮用 `ElButton` / `antd Button`），因此遵循 Formily 的做法，由各 UI 包分别使用各自 UI 库的组件实现。框架层只提供 Schema 递归渲染、字段状态注入、context 传递等与 UI 库无关的通用逻辑。
+ArrayField / ArrayTable / ArrayBase 等组件的渲染与 UI 库强耦合（表格用 `ElTable` / `antd Table`，按钮用 `ElButton` / `antd Button`），因此遵循 Formily 的做法，由各 UI 包分别使用各自 UI 库的组件实现。框架层只提供 Schema 递归渲染、字段状态注入、context 传递等与 UI 库无关的通用逻辑。
 
 **布局组件的 Schema 感知：**
 
@@ -90,9 +90,12 @@ LayoutTabs / LayoutCollapse / LayoutSteps 等布局容器需要感知 Schema 结
 
 ```tsx
 // React
+import { setReactiveAdapter } from '@moluoxixi/core'
 import { ConfigForm } from '@moluoxixi/react'
+import { mobxAdapter } from '@moluoxixi/reactive-react'
 import { setupAntd } from '@moluoxixi/ui-antd'
 
+setReactiveAdapter(mobxAdapter)
 setupAntd()
 
 const schema = {

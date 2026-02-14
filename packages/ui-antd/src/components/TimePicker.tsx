@@ -15,7 +15,7 @@ export interface CfTimePickerProps {
 export function TimePicker({ value, onChange, onFocus, onBlur, placeholder, disabled, format = 'HH:mm:ss' }: CfTimePickerProps): ReactElement {
   return (
     <ATimePicker
-      value={value || undefined}
+      value={(value || undefined) as any}
       onChange={(_time, timeString) => onChange?.(timeString as string)}
       onFocus={onFocus}
       onBlur={onBlur}

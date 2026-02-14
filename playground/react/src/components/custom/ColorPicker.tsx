@@ -40,8 +40,13 @@ export function ColorPicker({ value = '#000000', onChange, presets = [], disable
               onClick={() => !disabled && !preview && onChange?.(color)}
               disabled={disabled || preview}
               style={{
-                width: 20, height: 20, borderRadius: 4, border: value === color ? '2px solid #1677ff' : '1px solid #d9d9d9',
-                background: color, cursor: disabled ? 'not-allowed' : 'pointer', padding: 0,
+                width: 20,
+                height: 20,
+                borderRadius: 4,
+                border: value === color ? '2px solid #1677ff' : '1px solid #d9d9d9',
+                background: color,
+                cursor: disabled ? 'not-allowed' : 'pointer',
+                padding: 0,
               }}
               title={color}
             />

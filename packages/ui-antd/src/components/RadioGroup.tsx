@@ -18,7 +18,7 @@ export function RadioGroup({ value, onChange, onFocus, onBlur, dataSource = [], 
       <ARadio.Group
         value={value}
         onChange={e => onChange?.(e.target.value)}
-        disabled={disabled}
+        disabled={disabled || preview}
         options={dataSource.map(item => ({ label: item.label, value: item.value }))}
       />
     </div>

@@ -1,5 +1,8 @@
-import { ArrayItems, ArrayTable, registerFieldComponents } from '@moluoxixi/vue'
+import { FormLayout, registerFieldComponents } from '@moluoxixi/vue'
 import {
+  ArrayField,
+  ArrayItems,
+  ArrayTable,
   AutoComplete,
   Cascader,
   CheckboxGroup,
@@ -21,6 +24,7 @@ import {
   Rate,
   Select,
   Slider,
+  StatusTabs,
   Switch,
   Textarea,
   TimePicker,
@@ -55,9 +59,9 @@ import {
  */
 export function setupAntdVue(): void {
   registerFieldComponents(
-    { Input, Password, Textarea, InputNumber, Select, RadioGroup, CheckboxGroup, Switch, DatePicker, Cascader, TimePicker, Transfer, TreeSelect, Upload, ArrayItems, AutoComplete, Mentions, Rate, Slider, MonthPicker, WeekPicker, YearPicker, RangePicker },
+    { Input, Password, Textarea, InputNumber, Select, RadioGroup, CheckboxGroup, Switch, DatePicker, Cascader, TimePicker, Transfer, TreeSelect, Upload, ArrayItems, ArrayField, AutoComplete, Mentions, Rate, Slider, MonthPicker, WeekPicker, YearPicker, RangePicker },
     { name: 'FormItem', component: FormItem },
-    { ArrayTable, LayoutTabs, LayoutCard, LayoutCollapse, LayoutSteps, LayoutStepActions, LayoutFormActions },
+    { ArrayTable, FormLayout, LayoutTabs, LayoutCard, LayoutCollapse, LayoutSteps, LayoutStepActions, LayoutFormActions, StatusTabs },
     {
       Input: PreviewInput,
       Password: PreviewPassword,
@@ -74,6 +78,10 @@ export function setupAntdVue(): void {
 
 /* 导出所有组件（按需使用） */
 export {
+  ArrayBase,
+  ArrayField,
+  ArrayItems,
+  ArrayTable,
   AutoComplete,
   Cascader,
   CheckboxGroup,

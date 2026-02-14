@@ -1,3 +1,4 @@
+import type { FormEventHandler, FormLifeCycle } from './events'
 import type {
   ComponentType,
   DataSourceItem,
@@ -8,7 +9,6 @@ import type {
   FieldStateUpdate,
 } from './shared'
 import type { ValidationFeedback, ValidationRule, ValidationTrigger } from './validator'
-import type { FormEventHandler, FormLifeCycle } from './events'
 
 /* ======================== 字段属性 ======================== */
 
@@ -171,7 +171,7 @@ export interface ReactionEffect {
    * - 函数：`(field, ctx) => { ... }`
    * - 表达式字符串：`'{{$self.setValue($values.a + $values.b)}}'`（可 JSON 序列化）
    */
-  run?: ((field: FieldInstance, context: ReactionContext) => void) | string
+  run?: ((field: FieldInstance, context: ReactionContext) => void | Promise<void>) | string
 }
 
 /* ======================== 数据源 ======================== */
@@ -217,7 +217,7 @@ export interface FormConfig<Values extends Record<string, unknown> = Record<stri
   /** 标签宽度 */
   labelWidth?: number | string
   /** 表单生命周期 */
-  effects?: (form: FormInstance) => void
+  effects?: (form: FormInstance<Values>) => void
   /**
    * 插件列表
    *

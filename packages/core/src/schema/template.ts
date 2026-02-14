@@ -155,7 +155,8 @@ class SchemaTemplateRegistry {
   getCategories(): string[] {
     const categories = new Set<string>()
     for (const template of this.templates.values()) {
-      if (template.category) categories.add(template.category)
+      if (template.category)
+        categories.add(template.category)
     }
     return Array.from(categories)
   }

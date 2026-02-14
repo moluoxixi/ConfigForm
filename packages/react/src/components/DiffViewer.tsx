@@ -1,6 +1,6 @@
 import type { DiffFieldView, DiffType } from '@moluoxixi/core'
 import type { CSSProperties, ReactElement } from 'react'
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 
 /* ======================== 类型定义 ======================== */
 
@@ -27,6 +27,46 @@ const TYPE_LABELS: Record<DiffType, string> = {
   removed: '删除',
   changed: '变更',
   unchanged: '未变',
+}
+
+const containerStyle: CSSProperties = {
+  border: '1px solid #e8e8e8',
+  borderRadius: 8,
+  overflow: 'hidden',
+  fontSize: 14,
+}
+
+const headerStyle: CSSProperties = {
+  display: 'flex',
+  background: '#fafafa',
+  borderBottom: '1px solid #e8e8e8',
+  fontWeight: 600,
+  color: '#333',
+}
+
+const headerCellStyle: CSSProperties = {
+  flex: 1,
+  padding: '10px 12px',
+}
+
+const rowStyle: CSSProperties = {
+  display: 'flex',
+  borderBottom: '1px solid #f0f0f0',
+}
+
+const cellStyle: CSSProperties = {
+  flex: 1,
+  padding: '8px 12px',
+  wordBreak: 'break-all',
+}
+
+const emptyStyle: CSSProperties = {
+  padding: 24,
+  textAlign: 'center',
+  color: '#999',
+  background: '#fafafa',
+  borderRadius: 8,
+  border: '1px dashed #d9d9d9',
 }
 
 /* ======================== 组件 ======================== */
@@ -68,7 +108,7 @@ export function DiffViewer({ diffs, labelMap = {}, onlyDirty = true }: DiffViewe
       </div>
 
       {/* 差异行 */}
-      {filteredDiffs.map(entry => {
+      {filteredDiffs.map((entry) => {
         const color = COLORS[entry.type]
         const label = labelMap[entry.path] ?? entry.path
 
@@ -103,49 +143,9 @@ export function DiffViewer({ diffs, labelMap = {}, onlyDirty = true }: DiffViewe
 /* ======================== 辅助 ======================== */
 
 function formatValue(value: unknown): string {
-  if (value === undefined || value === null) return '-'
-  if (typeof value === 'object') return JSON.stringify(value)
+  if (value === undefined || value === null)
+    return '-'
+  if (typeof value === 'object')
+    return JSON.stringify(value)
   return String(value)
-}
-
-/* ======================== 样式 ======================== */
-
-const containerStyle: CSSProperties = {
-  border: '1px solid #e8e8e8',
-  borderRadius: 8,
-  overflow: 'hidden',
-  fontSize: 14,
-}
-
-const headerStyle: CSSProperties = {
-  display: 'flex',
-  background: '#fafafa',
-  borderBottom: '1px solid #e8e8e8',
-  fontWeight: 600,
-  color: '#333',
-}
-
-const headerCellStyle: CSSProperties = {
-  flex: 1,
-  padding: '10px 12px',
-}
-
-const rowStyle: CSSProperties = {
-  display: 'flex',
-  borderBottom: '1px solid #f0f0f0',
-}
-
-const cellStyle: CSSProperties = {
-  flex: 1,
-  padding: '8px 12px',
-  wordBreak: 'break-all',
-}
-
-const emptyStyle: CSSProperties = {
-  padding: 24,
-  textAlign: 'center',
-  color: '#999',
-  background: '#fafafa',
-  borderRadius: 8,
-  border: '1px dashed #d9d9d9',
 }

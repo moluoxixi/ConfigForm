@@ -1,6 +1,8 @@
 import { Switch as ASwitch } from 'ant-design-vue'
 import { defineComponent, h } from 'vue'
 
+const SwitchComponent = ASwitch as any
+
 /** 开关适配 */
 export const Switch = defineComponent({
   name: 'CfSwitch',
@@ -8,10 +10,10 @@ export const Switch = defineComponent({
   emits: ['update:modelValue'],
   setup(props, { emit }) {
     return () => {
-      return h(ASwitch, {
+      return h(SwitchComponent, {
         'checked': props.modelValue,
         'disabled': props.disabled,
-        'onUpdate:checked': (v: boolean) => emit('update:modelValue', v),
+        'onUpdate:checked': (v: unknown) => emit('update:modelValue', Boolean(v)),
       })
     }
   },

@@ -12,16 +12,33 @@ export interface RegisterComponentOptions {
 export interface ComponentScope {
   components: Record<string, Component>
   decorators: Record<string, Component>
+  defaultDecorators?: Record<string, string>
+  readPrettyComponents?: Record<string, Component>
 }
 
-/** 全局组件注册表 */
-const globalComponents = new Map<string, Component>()
-/** 全局装饰器注册表 */
-const globalDecorators = new Map<string, Component>()
-/** 组件默认装饰器映射：component name → decorator name */
-const globalDefaultDecorators = new Map<string, string>()
-/** 组件 readPretty 映射：component name → readPretty component */
-const globalReadPretty = new Map<string, Component>()
+/** 组件注册表（Map 结构，适合注入 FormProvider） */
+export interface RegistryState {
+  components: Map<string, Component>
+  decorators: Map<string, Component>
+  defaultDecorators: Map<string, string>
+  readPrettyComponents: Map<string, Component>
+}
+
+/** 创建一个空注册表（实例级隔离） */
+export function createRegistryState(): RegistryState {
+  return {
+    components: new Map<string, Component>(),
+    decorators: new Map<string, Component>(),
+    defaultDecorators: new Map<string, string>(),
+    readPrettyComponents: new Map<string, Component>(),
+  }
+}
+
+const globalRegistry = createRegistryState()
+
+function getTargetRegistry(registry?: RegistryState): RegistryState {
+  return registry ?? globalRegistry
+}
 
 /**
  * 注册全局组件
@@ -31,12 +48,22 @@ const globalReadPretty = new Map<string, Component>()
  * @param options - 注册选项，可指定 defaultWrapper
  */
 export function registerComponent(name: string, component: Component, options?: RegisterComponentOptions): void {
-  globalComponents.set(name, component)
+  registerComponentToRegistry(getTargetRegistry(), name, component, options)
+}
+
+/** 向指定注册表注册组件（实例级） */
+export function registerComponentToRegistry(
+  registry: RegistryState,
+  name: string,
+  component: Component,
+  options?: RegisterComponentOptions,
+): void {
+  registry.components.set(name, component)
   if (options?.defaultDecorator) {
-    globalDefaultDecorators.set(name, options.defaultDecorator)
+    registry.defaultDecorators.set(name, options.defaultDecorator)
   }
   if (options?.readPrettyComponent) {
-    globalReadPretty.set(name, options.readPrettyComponent)
+    registry.readPrettyComponents.set(name, options.readPrettyComponent)
   }
 }
 
@@ -44,17 +71,38 @@ export function registerComponent(name: string, component: Component, options?: 
  * 注册全局装饰器
  */
 export function registerDecorator(name: string, decorator: Component): void {
-  globalDecorators.set(name, decorator)
+  registerDecoratorToRegistry(getTargetRegistry(), name, decorator)
+}
+
+/** 向指定注册表注册装饰器（实例级） */
+export function registerDecoratorToRegistry(
+  registry: RegistryState,
+  name: string,
+  decorator: Component,
+): void {
+  registry.decorators.set(name, decorator)
 }
 
 /**
  * 批量注册组件
  */
 export function registerComponents(mapping: Record<string, Component>, options?: RegisterComponentOptions): void {
+  registerComponentsToRegistry(getTargetRegistry(), mapping, options)
+}
+
+/** 向指定注册表批量注册组件（实例级） */
+export function registerComponentsToRegistry(
+  registry: RegistryState,
+  mapping: Record<string, Component>,
+  options?: RegisterComponentOptions,
+): void {
   for (const [name, component] of Object.entries(mapping)) {
-    globalComponents.set(name, component)
+    registry.components.set(name, component)
     if (options?.defaultDecorator) {
-      globalDefaultDecorators.set(name, options.defaultDecorator)
+      registry.defaultDecorators.set(name, options.defaultDecorator)
+    }
+    if (options?.readPrettyComponent) {
+      registry.readPrettyComponents.set(name, options.readPrettyComponent)
     }
   }
 }
@@ -85,56 +133,101 @@ export function registerFieldComponents(
   layouts?: Record<string, Component>,
   readPretty?: Record<string, Component>,
 ): void {
+  registerFieldComponentsToRegistry(getTargetRegistry(), fields, decorator, layouts, readPretty)
+}
+
+/** 向指定注册表批量注册字段/布局/readPretty（实例级） */
+export function registerFieldComponentsToRegistry(
+  registry: RegistryState,
+  fields: Record<string, Component>,
+  decorator: { name: string, component: Component },
+  layouts?: Record<string, Component>,
+  readPretty?: Record<string, Component>,
+): void {
   /* 注册装饰器 */
-  globalDecorators.set(decorator.name, decorator.component)
+  registry.decorators.set(decorator.name, decorator.component)
 
   /* 注册字段组件，绑定默认装饰器 */
   for (const [name, component] of Object.entries(fields)) {
-    globalComponents.set(name, component)
-    globalDefaultDecorators.set(name, decorator.name)
+    registry.components.set(name, component)
+    registry.defaultDecorators.set(name, decorator.name)
   }
 
   /* 注册布局组件（无默认 decorator） */
   if (layouts) {
     for (const [name, component] of Object.entries(layouts)) {
-      globalComponents.set(name, component)
+      registry.components.set(name, component)
     }
   }
 
   /* 注册 readPretty 映射 */
   if (readPretty) {
     for (const [name, component] of Object.entries(readPretty)) {
-      globalReadPretty.set(name, component)
+      registry.readPrettyComponents.set(name, component)
     }
   }
 }
 
 /** 获取组件 */
 export function getComponent(name: string): Component | undefined {
-  return globalComponents.get(name)
+  return globalRegistry.components.get(name)
 }
 
 /** 获取装饰器 */
 export function getDecorator(name: string): Component | undefined {
-  return globalDecorators.get(name)
+  return globalRegistry.decorators.get(name)
 }
 
 /** 获取组件的默认装饰器名称 */
 export function getDefaultDecorator(componentName: string): string | undefined {
-  return globalDefaultDecorators.get(componentName)
+  return globalRegistry.defaultDecorators.get(componentName)
 }
 
 /** 获取组件的 readPretty 替代组件 */
 export function getReadPrettyComponent(componentName: string): Component | undefined {
-  return globalReadPretty.get(componentName)
+  return globalRegistry.readPrettyComponents.get(componentName)
 }
 
 /** 获取全局注册表 */
-export function getGlobalRegistry() {
-  return {
-    components: globalComponents,
-    decorators: globalDecorators,
-  }
+export function getGlobalRegistry(): RegistryState {
+  return globalRegistry
+}
+
+/** 清空全局注册表（测试/隔离场景使用） */
+export function resetRegistry(): void {
+  globalRegistry.components.clear()
+  globalRegistry.decorators.clear()
+  globalRegistry.defaultDecorators.clear()
+  globalRegistry.readPrettyComponents.clear()
+}
+
+/**
+ * 创建隔离注册表并通过 setup 填充（不写入全局）
+ *
+ * 适用于 SSR / 多租户 / 测试用例隔离场景。
+ */
+export function createRegistry(
+  setup?: (register: {
+    component: (name: string, comp: Component, options?: RegisterComponentOptions) => void
+    decorator: (name: string, decorator: Component) => void
+    components: (mapping: Record<string, Component>, options?: RegisterComponentOptions) => void
+    fieldComponents: (
+      fields: Record<string, Component>,
+      decorator: { name: string, component: Component },
+      layouts?: Record<string, Component>,
+      readPretty?: Record<string, Component>,
+    ) => void
+  }) => void,
+): RegistryState {
+  const registry = createRegistryState()
+  setup?.({
+    component: (name, comp, options) => registerComponentToRegistry(registry, name, comp, options),
+    decorator: (name, dec) => registerDecoratorToRegistry(registry, name, dec),
+    components: (mapping, options) => registerComponentsToRegistry(registry, mapping, options),
+    fieldComponents: (fields, decorator, layouts, readPretty) =>
+      registerFieldComponentsToRegistry(registry, fields, decorator, layouts, readPretty),
+  })
+  return registry
 }
 
 /**
@@ -156,17 +249,35 @@ export function getGlobalRegistry() {
  */
 export function createComponentScope(
   setup: (register: {
-    component: (name: string, comp: Component) => void
+    component: (name: string, comp: Component, options?: RegisterComponentOptions) => void
     decorator: (name: string, decorator: Component) => void
+    defaultDecorator: (componentName: string, decoratorName: string) => void
+    readPretty: (componentName: string, component: Component) => void
   }) => void,
 ): ComponentScope {
   const components: Record<string, Component> = {}
   const decorators: Record<string, Component> = {}
+  const defaultDecorators: Record<string, string> = {}
+  const readPrettyComponents: Record<string, Component> = {}
 
   setup({
-    component: (name, comp) => { components[name] = comp },
+    component: (name, comp, options) => {
+      components[name] = comp
+      if (options?.defaultDecorator) {
+        defaultDecorators[name] = options.defaultDecorator
+      }
+      if (options?.readPrettyComponent) {
+        readPrettyComponents[name] = options.readPrettyComponent
+      }
+    },
     decorator: (name, dec) => { decorators[name] = dec },
+    defaultDecorator: (componentName, decoratorName) => {
+      defaultDecorators[componentName] = decoratorName
+    },
+    readPretty: (componentName, component) => {
+      readPrettyComponents[componentName] = component
+    },
   })
 
-  return { components, decorators }
+  return { components, decorators, defaultDecorators, readPrettyComponents }
 }

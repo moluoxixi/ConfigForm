@@ -1,3 +1,4 @@
+import type { ValidationRule } from '@moluoxixi/core'
 import type { SceneConfig } from '../types'
 
 /**
@@ -7,7 +8,7 @@ import type { SceneConfig } from '../types'
  */
 
 /** 确认密码规则：与密码一致 */
-const confirmPasswordRules = [{
+const confirmPasswordRules: ValidationRule[] = [{
   validator: (v: unknown, _r: unknown, ctx: any): string | undefined => {
     if (v && ctx.getFieldValue('password') && v !== ctx.getFieldValue('password'))
       return '密码不一致'
@@ -17,7 +18,7 @@ const confirmPasswordRules = [{
 }]
 
 /** 结束日期规则：不能早于开始日期 */
-const endDateRules = [{
+const endDateRules: ValidationRule[] = [{
   validator: (v: unknown, _r: unknown, ctx: any): string | undefined => {
     const s = ctx.getFieldValue('startDate') as string
     if (s && v && String(v) < s)
@@ -28,7 +29,7 @@ const endDateRules = [{
 }]
 
 /** 项目 C 比例规则：A+B+C 须等于 100 */
-const ratioCRules = [{
+const ratioCRules: ValidationRule[] = [{
   validator: (_v: unknown, _r: unknown, ctx: any): string | undefined => {
     const t = ((ctx.getFieldValue('ratioA') as number) ?? 0)
       + ((ctx.getFieldValue('ratioB') as number) ?? 0)
@@ -41,7 +42,7 @@ const ratioCRules = [{
 }]
 
 /** 最大年龄规则：须大于最小年龄 */
-const maxAgeRules = [{
+const maxAgeRules: ValidationRule[] = [{
   validator: (v: unknown, _r: unknown, ctx: any): string | undefined => {
     if (Number(v) <= (ctx.getFieldValue('minAge') as number))
       return '须大于最小年龄'
@@ -51,7 +52,7 @@ const maxAgeRules = [{
 }]
 
 /** 实际支出规则：不能超过预算 */
-const expenseRules = [{
+const expenseRules: ValidationRule[] = [{
   validator: (v: unknown, _r: unknown, ctx: any): string | undefined => {
     if (Number(v) > (ctx.getFieldValue('budget') as number))
       return '支出不能超过预算'
@@ -65,9 +66,17 @@ const config: SceneConfig = {
   description: '密码一致性 / 日期范围 / 比例总和=100% / 数值区间 / 预算限制',
 
   initialValues: {
-    password: '', confirmPassword: '', startDate: '', endDate: '',
-    ratioA: 40, ratioB: 30, ratioC: 30,
-    minAge: 18, maxAge: 60, budget: 10000, expense: 0,
+    password: '',
+    confirmPassword: '',
+    startDate: '',
+    endDate: '',
+    ratioA: 40,
+    ratioB: 30,
+    ratioC: 30,
+    minAge: 18,
+    maxAge: 60,
+    budget: 10000,
+    expense: 0,
   },
 
   schema: {

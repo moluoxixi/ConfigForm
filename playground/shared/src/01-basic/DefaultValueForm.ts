@@ -18,9 +18,14 @@ const config: SceneConfig = {
   description: '静态 defaultValue / 动态计算默认值 / initialValues 注入',
 
   initialValues: {
-    country: 'china', status: 'draft', enableNotify: true,
-    quantity: 1, unitPrice: 99.9, totalPrice: 99.9,
-    level: 'silver', discountRate: 5,
+    country: 'china',
+    status: 'draft',
+    enableNotify: true,
+    quantity: 1,
+    unitPrice: 99.9,
+    totalPrice: 99.9,
+    level: 'silver',
+    discountRate: 5,
   },
 
   schema: {
@@ -33,12 +38,18 @@ const config: SceneConfig = {
       quantity: { type: 'number', title: '数量', default: 1, componentProps: { min: 1 } },
       unitPrice: { type: 'number', title: '单价', default: 99.9, componentProps: { min: 0, step: 0.1 } },
       totalPrice: {
-        type: 'number', title: '总价（自动计算）', componentProps: { disabled: true }, description: '数量 × 单价',
+        type: 'number',
+        title: '总价（自动计算）',
+        componentProps: { disabled: true },
+        description: '数量 × 单价',
         reactions: [{ watch: ['quantity', 'unitPrice'], fulfill: { value: '{{Math.round(($values.quantity || 0) * ($values.unitPrice || 0) * 100) / 100}}' } }],
       },
       level: { type: 'string', title: '会员等级', default: 'silver', enum: LEVEL_OPTIONS },
       discountRate: {
-        type: 'number', title: '折扣率（%）', componentProps: { disabled: true }, description: '根据等级动态设置',
+        type: 'number',
+        title: '折扣率（%）',
+        componentProps: { disabled: true },
+        description: '根据等级动态设置',
         reactions: [{ watch: 'level', fulfill: { value: (_field: unknown, ctx: { values: Record<string, unknown> }): number => LEVEL_DISCOUNT_MAP[ctx.values.level as string] ?? 0 } }],
       },
     },

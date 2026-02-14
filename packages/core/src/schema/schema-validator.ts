@@ -26,7 +26,13 @@ export interface SchemaValidationResult {
 
 /** 合法的 type 值 */
 const VALID_TYPES: Set<SchemaType> = new Set([
-  'string', 'number', 'boolean', 'date', 'array', 'object', 'void',
+  'string',
+  'number',
+  'boolean',
+  'date',
+  'array',
+  'object',
+  'void',
 ])
 
 /** 合法的 pattern 值 */
@@ -116,7 +122,7 @@ function validateNode(
   if (schema.items && schema.type !== 'array') {
     warnings.push({
       path: joinPath(path, 'items'),
-      message: 'items 仅在 type="array" 时有效，当前 type=' + (schema.type ?? '未指定'),
+      message: `items 仅在 type="array" 时有效，当前 type=${schema.type ?? '未指定'}`,
       level: 'warning',
     })
   }

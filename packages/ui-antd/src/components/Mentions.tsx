@@ -1,7 +1,7 @@
 import type { DataSourceItem } from '@moluoxixi/core'
+import type { ReactElement } from 'react'
 import { Mentions as AMentions } from 'antd'
 import { useMemo } from 'react'
-import type { ReactElement } from 'react'
 
 export interface CfMentionsProps {
   value?: string
@@ -17,7 +17,7 @@ export interface CfMentionsProps {
 
 export function Mentions({ value, onChange, onFocus, onBlur, disabled, preview, placeholder, dataSource = [], prefix = '@' }: CfMentionsProps): ReactElement {
   const options = useMemo(() => dataSource.map(item => ({ value: String(item.value), label: item.label })), [dataSource])
-  
+
   return (
     <AMentions
       value={value}

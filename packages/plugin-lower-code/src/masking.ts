@@ -52,14 +52,16 @@ const DEFAULT_PLACEHOLDER = '*'
 const BUILTIN_MASKING: Record<string, (value: string, placeholder: string) => string> = {
   /** 手机号脱敏：保留前 3 后 4 */
   phone(value: string, placeholder: string): string {
-    if (value.length < 7) return value
+    if (value.length < 7)
+      return value
     return value.slice(0, 3) + placeholder.repeat(4) + value.slice(-4)
   },
 
   /** 邮箱脱敏：用户名保留首尾字符 */
   email(value: string, placeholder: string): string {
     const atIndex = value.indexOf('@')
-    if (atIndex <= 1) return value
+    if (atIndex <= 1)
+      return value
     const username = value.slice(0, atIndex)
     const domain = value.slice(atIndex)
     if (username.length <= 2) {
@@ -70,14 +72,16 @@ const BUILTIN_MASKING: Record<string, (value: string, placeholder: string) => st
 
   /** 身份证号脱敏：保留前 3 后 4 */
   idcard(value: string, placeholder: string): string {
-    if (value.length < 7) return value
+    if (value.length < 7)
+      return value
     const maskLen = value.length - 7
     return value.slice(0, 3) + placeholder.repeat(maskLen) + value.slice(-4)
   },
 
   /** 银行卡号脱敏：仅显示后 4 位 */
   bankcard(value: string, placeholder: string): string {
-    if (value.length < 4) return value
+    if (value.length < 4)
+      return value
     const last4 = value.slice(-4)
     const masked = placeholder.repeat(4)
     return `${masked} ${masked} ${masked} ${last4}`
@@ -85,15 +89,18 @@ const BUILTIN_MASKING: Record<string, (value: string, placeholder: string) => st
 
   /** 姓名脱敏：保留首字 */
   name(value: string, placeholder: string): string {
-    if (value.length <= 1) return value
-    if (value.length === 2) return value[0] + placeholder
+    if (value.length <= 1)
+      return value
+    if (value.length === 2)
+      return value[0] + placeholder
     return value.slice(0, -1) + placeholder.repeat(value.length - 1)
   },
 
   /** 地址脱敏：保留前 6 个字符 */
   address(value: string, placeholder: string): string {
     const keepLength = Math.min(6, Math.floor(value.length / 2))
-    if (value.length <= keepLength) return value
+    if (value.length <= keepLength)
+      return value
     return value.slice(0, keepLength) + placeholder.repeat(value.length - keepLength)
   },
 }
@@ -104,8 +111,10 @@ const BUILTIN_MASKING: Record<string, (value: string, placeholder: string) => st
  * 支持 '*' 匹配单层，'**' 匹配任意层。
  */
 function matchPattern(pattern: string, path: string): boolean {
-  if (pattern === path) return true
-  if (pattern === '*') return true
+  if (pattern === path)
+    return true
+  if (pattern === '*')
+    return true
 
   const patternParts = pattern.split('.')
   const pathParts = path.split('.')
@@ -114,10 +123,12 @@ function matchPattern(pattern: string, path: string): boolean {
 
   while (pi < patternParts.length && pp < pathParts.length) {
     if (patternParts[pi] === '**') {
-      if (pi === patternParts.length - 1) return true
+      if (pi === patternParts.length - 1)
+        return true
       pi++
       while (pp < pathParts.length) {
-        if (patternParts[pi] === pathParts[pp] || patternParts[pi] === '*') break
+        if (patternParts[pi] === pathParts[pp] || patternParts[pi] === '*')
+          break
         pp++
       }
     }
@@ -144,7 +155,8 @@ export function maskValue(
   rule: MaskingRule,
   globalPlaceholder: string = DEFAULT_PLACEHOLDER,
 ): string {
-  if (value === null || value === undefined || value === '') return ''
+  if (value === null || value === undefined || value === '')
+    return ''
   const strValue = String(value)
   const placeholder = rule.placeholder ?? globalPlaceholder
 

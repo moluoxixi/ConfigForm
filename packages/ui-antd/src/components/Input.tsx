@@ -19,7 +19,7 @@ export function Input({ value, onChange, onFocus, onBlur, placeholder, disabled,
       onFocus={onFocus}
       onBlur={onBlur}
       placeholder={placeholder}
-      disabled={disabled}
+      disabled={disabled || preview}
     />
   )
 }

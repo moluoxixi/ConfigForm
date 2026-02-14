@@ -1,9 +1,9 @@
 import type { DataSourceItem } from '@moluoxixi/core'
-import { Cascader as ACascader } from 'ant-design-vue'
-import { defineComponent, h, computed } from 'vue'
 import type { PropType } from 'vue'
+import { Cascader as ACascader } from 'ant-design-vue'
+import { computed, defineComponent, h } from 'vue'
 
-function toOptions(items: DataSourceItem[]): unknown[] {
+function toOptions(items: DataSourceItem[]): any[] {
   return items.map(item => ({
     label: item.label,
     value: item.value,
@@ -24,11 +24,11 @@ export const Cascader = defineComponent({
   setup(props, { emit }) {
     const options = computed(() => toOptions(props.dataSource))
     return () => h(ACascader, {
-      'value': props.modelValue,
-      'options': options.value,
+      'value': props.modelValue as any,
+      'options': options.value as any,
       'placeholder': props.placeholder,
       'disabled': props.disabled,
-      'onUpdate:value': (v: (string | number)[]) => emit('update:modelValue', v),
+      'onUpdate:value': (v: unknown) => emit('update:modelValue', (v ?? []) as (string | number)[]),
       'onFocus': () => emit('focus'),
       'onBlur': () => emit('blur'),
     })

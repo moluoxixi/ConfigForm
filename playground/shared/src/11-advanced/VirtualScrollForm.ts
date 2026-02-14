@@ -21,7 +21,7 @@ const DEFAULT_ITEM_COUNT = 100
  * @param count - 数据条数
  * @returns items 数组
  */
-function generateItems(count: number): Array<{ name: string; email: string }> {
+function generateItems(count: number): Array<{ name: string, email: string }> {
   return Array.from({ length: count }, (_, i) => ({
     name: `用户 ${i + 1}`,
     email: `user${i + 1}@example.com`,

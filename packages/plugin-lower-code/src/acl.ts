@@ -1,5 +1,4 @@
-import type { FieldDisplay, FieldPattern } from '@moluoxixi/core'
-import type { FieldInstance, FormInstance, FormPlugin, PluginContext, PluginInstallResult } from '@moluoxixi/core'
+import type { FieldDisplay, FieldInstance, FieldPattern, FormInstance, FormPlugin, PluginContext, PluginInstallResult } from '@moluoxixi/core'
 import { FormPath } from '@moluoxixi/core'
 
 /**
@@ -120,10 +119,10 @@ export const PLUGIN_NAME = 'acl'
 export function aclPlugin(config: ACLPluginConfig = {}): FormPlugin<ACLPluginAPI> {
   return {
     name: PLUGIN_NAME,
-    install(form: FormInstance, { hooks }: PluginContext): PluginInstallResult<ACLPluginAPI> {
+    install(form: FormInstance, _context: PluginContext): PluginInstallResult<ACLPluginAPI> {
       const defaultPermission = config.defaultPermission ?? 'full'
       let roles = config.roles ? [...config.roles] : []
-      let directRules = config.rules ? [...config.rules] : []
+      const directRules = config.rules ? [...config.rules] : []
 
       /** 从规则列表中解析字段的权限等级 */
       function resolvePermissionLevel(fieldPath: string, rules: PermissionRule[]): number {
@@ -160,17 +159,21 @@ export function aclPlugin(config: ACLPluginConfig = {}): FormPlugin<ACLPluginAPI
           let maxLevel = -1
 
           for (const rolePerm of roles) {
-            if (!activeRoles.includes(rolePerm.role)) continue
+            if (!activeRoles.includes(rolePerm.role))
+              continue
             const roleLevel = resolvePermissionLevel(fieldPath, rolePerm.rules)
-            if (roleLevel > maxLevel) maxLevel = roleLevel
+            if (roleLevel > maxLevel)
+              maxLevel = roleLevel
           }
 
           if (directRules.length > 0) {
             const directLevel = resolvePermissionLevel(fieldPath, directRules)
-            if (directLevel > maxLevel) maxLevel = directLevel
+            if (directLevel > maxLevel)
+              maxLevel = directLevel
           }
 
-          if (maxLevel === -1) return defaultPermission
+          if (maxLevel === -1)
+            return defaultPermission
           return LEVEL_TO_PERMISSION[maxLevel] ?? defaultPermission
         },
 

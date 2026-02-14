@@ -22,9 +22,11 @@ export function SignaturePad({ value, onChange, disabled, preview }: SignaturePa
 
   useEffect(() => {
     const canvas = canvasRef.current
-    if (!canvas) return
+    if (!canvas)
+      return
     const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    if (!ctx)
+      return
 
     ctx.fillStyle = '#fff'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
@@ -37,19 +39,23 @@ export function SignaturePad({ value, onChange, disabled, preview }: SignaturePa
   }, [])
 
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (disabled || preview) return
+    if (disabled || preview)
+      return
     isDrawing.current = true
     const ctx = getCtx()
-    if (!ctx) return
+    if (!ctx)
+      return
     const rect = canvasRef.current!.getBoundingClientRect()
     ctx.beginPath()
     ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top)
   }, [disabled, preview, getCtx])
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing.current || disabled || preview) return
+    if (!isDrawing.current || disabled || preview)
+      return
     const ctx = getCtx()
-    if (!ctx) return
+    if (!ctx)
+      return
     const rect = canvasRef.current!.getBoundingClientRect()
     ctx.lineWidth = 2
     ctx.lineCap = 'round'
@@ -59,7 +65,8 @@ export function SignaturePad({ value, onChange, disabled, preview }: SignaturePa
   }, [disabled, preview, getCtx])
 
   const handleMouseUp = useCallback(() => {
-    if (!isDrawing.current) return
+    if (!isDrawing.current)
+      return
     isDrawing.current = false
     const canvas = canvasRef.current
     if (canvas) {
@@ -69,9 +76,11 @@ export function SignaturePad({ value, onChange, disabled, preview }: SignaturePa
 
   const handleClear = useCallback(() => {
     const canvas = canvasRef.current
-    if (!canvas) return
+    if (!canvas)
+      return
     const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    if (!ctx)
+      return
     ctx.fillStyle = '#fff'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
     onChange?.('')
@@ -88,9 +97,11 @@ export function SignaturePad({ value, onChange, disabled, preview }: SignaturePa
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         style={{
-          border: '1px solid #d9d9d9', borderRadius: 6,
+          border: '1px solid #d9d9d9',
+          borderRadius: 6,
           cursor: disabled || preview ? 'not-allowed' : 'crosshair',
-          display: 'block', background: '#fff',
+          display: 'block',
+          background: '#fff',
         }}
       />
       <button

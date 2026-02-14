@@ -1,8 +1,7 @@
 import type { FieldInstance, FieldProps } from '@moluoxixi/core'
 import type { Component, PropType } from 'vue'
 import { defineComponent, h, inject, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
-import { FieldSymbol, FormSymbol } from '../context'
-import { getDefaultDecorator } from '../registry'
+import { ComponentRegistrySymbol, FieldSymbol, FormSymbol } from '../context'
 import { ReactiveField } from './ReactiveField'
 
 /**
@@ -33,6 +32,7 @@ export const FormField = defineComponent({
   },
   setup(props, { slots }) {
     const form = inject(FormSymbol)
+    const registryRef = inject(ComponentRegistrySymbol)
 
     if (!form) {
       throw new Error('[ConfigForm] <FormField> 必须在 <FormProvider> 内部使用')
@@ -48,7 +48,7 @@ export const FormField = defineComponent({
       /* pattern 无需手动注入 form.pattern，field.pattern getter 已自动回退 */
       /* 未显式指定 decorator 时，使用组件注册的默认 decorator */
       if (!mergedProps.decorator && typeof mergedProps.component === 'string') {
-        const defaultDecorator = getDefaultDecorator(mergedProps.component)
+        const defaultDecorator = registryRef?.value.defaultDecorators.get(mergedProps.component)
         if (defaultDecorator) {
           mergedProps.decorator = defaultDecorator
         }

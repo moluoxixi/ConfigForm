@@ -1,6 +1,6 @@
 import type { VoidFieldProps } from '@moluoxixi/core'
 import type { PropType } from 'vue'
-import { defineComponent, h, inject, onBeforeUnmount, provide } from 'vue'
+import { defineComponent, h, inject, onBeforeUnmount, onMounted, provide } from 'vue'
 import { FieldSymbol, FormSymbol } from '../context'
 import { ReactiveField } from './ReactiveField'
 
@@ -53,7 +53,12 @@ export const FormVoidField = defineComponent({
 
     provide(FieldSymbol, field as any)
 
+    onMounted(() => {
+      field!.mount()
+    })
+
     onBeforeUnmount(() => {
+      field!.unmount()
       if (createdByThis) {
         form.removeField(props.name)
       }

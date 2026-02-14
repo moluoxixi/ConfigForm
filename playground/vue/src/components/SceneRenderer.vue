@@ -12,7 +12,11 @@
         <button
           v-for="opt in props.config.schemaVariants.options" :key="opt.value"
           :style="{
-            padding: '4px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '13px', fontWeight: 500,
+            padding: '4px 12px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: 500,
             border: variantValue === opt.value ? '2px solid #1677ff' : '1px solid #d9d9d9',
             background: variantValue === opt.value ? '#e6f4ff' : '#fff',
             color: variantValue === opt.value ? '#1677ff' : '#333',
@@ -32,6 +36,7 @@
         :plugins="[...(props.config.plugins ?? []), devTools]"
         @submit="showResult"
         @submit-failed="(e: any) => st?.showErrors(e)"
+        @reset="() => clearStatus()"
       />
     </component>
   </div>
@@ -45,22 +50,30 @@
  * ConfigForm 内部通过全局注册表解析字段组件，自动匹配当前 UI 库。
  * 当场景配置包含 schemaVariants 时，渲染变体切换 UI（如布局切换）。
  */
-import type { FieldPattern,ISchema } from '@moluoxixi/core'
+import type { FieldPattern, ISchema } from '@moluoxixi/core'
 import type { SceneConfig } from '@playground/shared'
 import type { Component } from 'vue'
-import { ConfigForm } from '@moluoxixi/vue'
 import { devToolsPlugin } from '@moluoxixi/plugin-devtools'
-import { computed, ref } from 'vue'
-
-/** DevTools 插件单例 */
-const devTools = devToolsPlugin({ formId: 'vue-playground' })
+import { ConfigForm } from '@moluoxixi/vue'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps<{
   config: SceneConfig
   statusTabs: Component
 }>()
 
-const st = ref<{ showErrors: (errors: unknown[]) => void } | null>(null)
+/** DevTools 插件单例 */
+const devTools = devToolsPlugin({ formId: 'vue-playground' })
+
+interface StatusTabsExpose {
+  mode: FieldPattern | { value: FieldPattern }
+  showErrors: (errors: unknown[]) => void
+}
+const st = ref<StatusTabsExpose | null>(null)
+
+function clearStatus(): void {
+  st.value?.showErrors([])
+}
 
 /** 变体选中值 */
 const variantValue = ref(props.config.schemaVariants?.defaultValue ?? '')
@@ -78,4 +91,15 @@ const currentSchema = computed<ISchema>(() => {
 function withMode(s: ISchema, mode: FieldPattern): ISchema {
   return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
 }
+
+function readModeValue(): FieldPattern | undefined {
+  const mode = st.value?.mode as { value?: FieldPattern } | FieldPattern | undefined
+  if (mode && typeof mode === 'object' && 'value' in mode)
+    return mode.value
+  return mode
+}
+
+watch(readModeValue, () => {
+  clearStatus()
+})
 </script>

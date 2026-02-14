@@ -30,9 +30,17 @@ const config: SceneConfig = {
   description: 'Input / Password / Textarea / InputNumber / Select / RadioGroup / CheckboxGroup / Switch / DatePicker',
 
   initialValues: {
-    username: '', password: '', email: '', phone: '',
-    age: 18, gender: undefined, marital: 'single',
-    hobbies: [], notification: true, birthday: '', bio: '',
+    username: '',
+    password: '',
+    email: '',
+    phone: '',
+    age: 18,
+    gender: undefined,
+    marital: 'single',
+    hobbies: [],
+    notification: true,
+    birthday: '',
+    bio: '',
   },
 
   schema: {

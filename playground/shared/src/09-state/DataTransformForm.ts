@@ -50,7 +50,7 @@ const config: SceneConfig = {
         displayFormat: (value: unknown): string => {
           const str = String(value || '')
           if (str.length >= 11) {
-            return str.slice(0, 3) + '****' + str.slice(-4)
+            return `${str.slice(0, 3)}****${str.slice(-4)}`
           }
           return str
         },

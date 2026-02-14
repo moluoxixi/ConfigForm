@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react'
 import { DatePicker as ADatePicker } from 'antd'
+import dayjs from 'dayjs'
 
 export interface CfDatePickerProps {
   value?: string
@@ -12,14 +13,16 @@ export interface CfDatePickerProps {
 }
 
 export function DatePicker({ value, onChange, onFocus, onBlur, placeholder, disabled, preview }: CfDatePickerProps): ReactElement {
+  const parsed = value ? dayjs(value) : undefined
+  const pickerValue = parsed && parsed.isValid() ? parsed : undefined
   return (
     <ADatePicker
-      value={value || undefined}
-      onChange={(_date, dateString) => onChange?.(dateString as string)}
+      value={pickerValue}
+      onChange={(_date, dateString) => onChange?.(typeof dateString === 'string' ? dateString : '')}
       onFocus={onFocus}
       onBlur={onBlur}
       placeholder={placeholder}
-      disabled={disabled}
+      disabled={disabled || preview}
       style={{ width: '100%' }}
     />
   )

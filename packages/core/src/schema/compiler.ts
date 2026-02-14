@@ -1,3 +1,4 @@
+import type { ComponentType } from '../shared'
 import type { ReactionRule } from '../types'
 import type {
   CompiledField,
@@ -5,18 +6,38 @@ import type {
   CompileOptions,
   ISchema,
   ISchemaConditionBranch,
+  SchemaComponentName,
+  SchemaDecoratorName,
+  SchemaType,
 } from './types'
-import type { ComponentType } from '../shared'
 import { isArray, isObject, isString } from '../shared'
 import { resolveSchemaRefs } from './ref-resolver'
+import { BUILTIN_STRUCTURAL_ARRAY_COMPONENTS } from './types'
+
+/** 结构化数组组件（管理动态数组项） */
+const STRUCTURAL_ARRAY_COMPONENTS: ReadonlySet<string> = new Set([
+  ...BUILTIN_STRUCTURAL_ARRAY_COMPONENTS,
+])
 
 /** 默认类型 → 组件映射 */
-export const DEFAULT_COMPONENT_MAPPING: Record<string, string> = {
+export const DEFAULT_COMPONENT_MAPPING: Record<Exclude<SchemaType, 'object' | 'void'>, SchemaComponentName> = {
   string: 'Input',
   number: 'InputNumber',
   boolean: 'Switch',
   date: 'DatePicker',
-  array: 'ArrayItems',
+  array: 'ArrayField',
+}
+
+/**
+ * 是否为结构化数组组件
+ *
+ * 结构化数组组件由 ArrayFieldInstance 驱动，支持增删改排序。
+ * 当 schema.component 不存在时，也视为结构化数组（走默认 ArrayField 渲染链路）。
+ */
+export function isStructuralArrayComponent(component: ComponentType | undefined): boolean {
+  if (!component)
+    return true
+  return typeof component === 'string' && STRUCTURAL_ARRAY_COMPONENTS.has(component)
 }
 
 /** 默认装饰器 */
@@ -35,7 +56,7 @@ const DEFAULT_DECORATOR = 'FormItem'
  *
  * 优先级：schema.component > enum/dataSource → Select > type 映射
  */
-export function resolveComponent(schema: ISchema, mapping: Record<string, string>): ComponentType {
+export function resolveComponent(schema: ISchema, mapping: Record<string, SchemaComponentName>): ComponentType {
   if (schema.component)
     return schema.component
 
@@ -57,7 +78,7 @@ export function resolveComponent(schema: ISchema, mapping: Record<string, string
  *
  * void 节点不需要 decorator；其他节点默认 FormItem。
  */
-function resolveDecorator(schema: ISchema, defaultDecorator: string): ComponentType {
+function resolveDecorator(schema: ISchema, defaultDecorator: SchemaDecoratorName): ComponentType {
   /* decorator 显式设置时使用（包括空字符串 '' 表示不要装饰器） */
   if (schema.decorator !== undefined)
     return schema.decorator
@@ -111,7 +132,8 @@ function compileOneOfBranches(
   const mergedProperties: Record<string, ISchema> = {}
 
   for (const branch of branches) {
-    if (!branch.properties) continue
+    if (!branch.properties)
+      continue
 
     /* 推断 discriminator：取 when 对象的第一个 key */
     const resolvedDiscriminator = discriminator ?? (
@@ -160,7 +182,6 @@ function compileOneOfBranches(
   return mergedProperties
 }
 
-
 /**
  * 递归编译 schema 节点
  *
@@ -178,7 +199,7 @@ function compileNode(
   parentAddress: string,
   parentDataPath: string,
   mapping: Record<string, string>,
-  defaultDecorator: string,
+  defaultDecorator: SchemaDecoratorName,
   result: Map<string, CompiledField>,
   order: string[],
 ): void {
@@ -244,7 +265,7 @@ function compileNode(
  * - 字段渲染顺序 + 子字段关系
  */
 export function compileSchema(schema: ISchema, options?: CompileOptions): CompiledSchema {
-  const mapping = { ...DEFAULT_COMPONENT_MAPPING, ...options?.componentMapping }
+  const mapping: Record<string, SchemaComponentName> = { ...DEFAULT_COMPONENT_MAPPING, ...(options?.componentMapping ?? {}) }
   const defaultDecorator = options?.defaultDecorator ?? DEFAULT_DECORATOR
   const fields = new Map<string, CompiledField>()
   const fieldOrder: string[] = []

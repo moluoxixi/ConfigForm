@@ -13,10 +13,14 @@ export function PreviewColorPicker({ value }: PreviewColorPickerProps): JSX.Elem
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
       <span style={{
-        width: 16, height: 16, borderRadius: 3,
-        background: value || '#000', border: '1px solid #d9d9d9',
+        width: 16,
+        height: 16,
+        borderRadius: 3,
+        background: value || '#000',
+        border: '1px solid #d9d9d9',
         display: 'inline-block',
-      }} />
+      }}
+      />
       <span style={{ fontFamily: 'monospace', fontSize: 13 }}>{value || '—'}</span>
     </span>
   )

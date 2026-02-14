@@ -5,15 +5,15 @@
  * 不属于 ui-antd，是业务级自定义组件的示例。
  */
 
+/* 自定义装饰器 */
+export { CardDecorator } from './CardDecorator'
 /* 自定义字段组件 */
 export { CodeEditor } from './CodeEditor'
 export { ColorPicker } from './ColorPicker'
 export { CronEditor } from './CronEditor'
-export { SignaturePad } from './SignaturePad'
+
+export { InlineDecorator } from './InlineDecorator'
 
 /* 自定义阅读态组件（readPretty） */
 export { PreviewColorPicker } from './PreviewColorPicker'
-
-/* 自定义装饰器 */
-export { CardDecorator } from './CardDecorator'
-export { InlineDecorator } from './InlineDecorator'
+export { SignaturePad } from './SignaturePad'

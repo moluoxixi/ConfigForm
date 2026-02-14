@@ -1,9 +1,16 @@
-import { ArrayCards, ArrayCollapse, ArrayItems, ArrayTable, Editable, EditablePopover, FormLayout, registerFieldComponents, Space } from '@moluoxixi/react'
+import { FormLayout, registerFieldComponents } from '@moluoxixi/react'
 import {
+  ArrayCards,
+  ArrayCollapse,
+  ArrayField,
+  ArrayItems,
+  ArrayTable,
   AutoComplete,
   Cascader,
   CheckboxGroup,
   DatePicker,
+  Editable,
+  EditablePopover,
   FormItem,
   Input,
   InputNumber,
@@ -21,6 +28,8 @@ import {
   Rate,
   Select,
   Slider,
+  Space,
+  StatusTabs,
   Switch,
   Textarea,
   TimePicker,
@@ -57,7 +66,7 @@ export function setupAntd(): void {
   registerFieldComponents(
     { Input, Password, Textarea, InputNumber, Select, RadioGroup, CheckboxGroup, Switch, DatePicker, TimePicker, TreeSelect, Cascader, Transfer, Upload, AutoComplete, Mentions, Rate, Slider, RangePicker, MonthPicker, WeekPicker, YearPicker },
     { name: 'FormItem', component: FormItem },
-    { ArrayCards, ArrayCollapse, ArrayItems, ArrayTable, Editable, EditablePopover, FormLayout, LayoutTabs, LayoutCard, LayoutCollapse, LayoutSteps, LayoutStepActions, LayoutFormActions, Space },
+    { ArrayCards, ArrayCollapse, ArrayField, ArrayItems, ArrayTable, Editable, EditablePopover, FormLayout, LayoutTabs, LayoutCard, LayoutCollapse, LayoutSteps, LayoutStepActions, LayoutFormActions, StatusTabs, Space },
     {
       Input: PreviewInput,
       Password: PreviewPassword,
@@ -73,10 +82,18 @@ export function setupAntd(): void {
 }
 
 export {
+  ArrayBase,
+  ArrayCards,
+  ArrayCollapse,
+  ArrayField,
+  ArrayItems,
+  ArrayTable,
   AutoComplete,
   Cascader,
   CheckboxGroup,
   DatePicker,
+  Editable,
+  EditablePopover,
   FormDialog,
   FormDrawer,
   FormItem,
@@ -96,6 +113,7 @@ export {
   Rate,
   Select,
   Slider,
+  Space,
   StatusTabs,
   Switch,
   Textarea,

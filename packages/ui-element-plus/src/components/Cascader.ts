@@ -52,7 +52,8 @@ export const Cascader = defineComponent({
       let current = items
       for (const val of values) {
         const found = current.find(item => item.value === val)
-        if (!found) break
+        if (!found)
+          break
         labels.push(found.label)
         current = found.children ?? []
       }

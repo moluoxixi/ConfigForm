@@ -1,6 +1,6 @@
-import type { PropType } from 'vue';
-import { Slider as ASlider } from 'ant-design-vue';
-import { defineComponent, h } from 'vue';
+import type { PropType } from 'vue'
+import { Slider as ASlider } from 'ant-design-vue'
+import { defineComponent, h } from 'vue'
 
 /** 滑动输入条适配 — 桥接 modelValue + min/max/step/range */
 export const Slider = defineComponent({
@@ -29,7 +29,7 @@ export const Slider = defineComponent({
         'step': props.step,
         'range': props.range,
         'onUpdate:value': (v: number | [number, number]) => emit('update:modelValue', v),
-      });
-    };
+      })
+    }
   },
-});
+})

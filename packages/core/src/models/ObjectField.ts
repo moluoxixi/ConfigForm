@@ -63,7 +63,8 @@ export class ObjectField<Value extends Record<string, unknown> = Record<string, 
    */
   removeProperty(name: string): void {
     const obj = { ...this.objectValue }
-    if (!(name in obj)) return
+    if (!(name in obj))
+      return
 
     delete obj[name]
 

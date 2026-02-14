@@ -1,6 +1,9 @@
-import { Upload as AUpload, Button as AButton } from 'ant-design-vue'
-import { defineComponent, h, computed } from 'vue'
 import type { PropType } from 'vue'
+import { Button as AButton, Upload as AUpload } from 'ant-design-vue'
+import { computed, defineComponent, h } from 'vue'
+
+const UploadComponent = AUpload as any
+const ButtonComponent = AButton as any
 
 interface FileItem {
   uid: string
@@ -22,13 +25,13 @@ export const Upload = defineComponent({
   emits: ['update:modelValue'],
   setup(props, { emit }) {
     const fileList = computed(() => props.modelValue || [])
-    return () => h(AUpload, {
+    return () => h(UploadComponent, {
       'fileList': fileList.value,
       'action': props.action,
       'accept': props.accept,
       'maxCount': props.maxCount,
       'disabled': props.disabled,
-      'onUpdate:fileList': (list: FileItem[]) => emit('update:modelValue', list),
-    }, () => h(AButton, null, () => '点击上传'))
+      'onUpdate:fileList': (list: unknown) => emit('update:modelValue', (list as FileItem[]) ?? []),
+    }, () => h(ButtonComponent, {}, () => '点击上传'))
   },
 })

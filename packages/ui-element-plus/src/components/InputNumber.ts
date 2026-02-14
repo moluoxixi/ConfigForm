@@ -1,6 +1,8 @@
 import { ElInputNumber } from 'element-plus'
 import { defineComponent, h } from 'vue'
 
+const InputNumberComponent = ElInputNumber as any
+
 /** 数字输入框适配 — readonly 显示纯文本，清空时传 undefined */
 export const InputNumber = defineComponent({
   name: 'CfInputNumber',
@@ -11,7 +13,7 @@ export const InputNumber = defineComponent({
       if (props.readonly) {
         return h('span', null, props.modelValue ?? '—')
       }
-      return h(ElInputNumber, {
+      return h(InputNumberComponent, {
         'modelValue': props.modelValue,
         'placeholder': props.placeholder,
         'disabled': props.disabled,
@@ -20,7 +22,7 @@ export const InputNumber = defineComponent({
         'step': props.step,
         'style': 'width: 100%',
         'controlsPosition': 'right',
-        'onUpdate:modelValue': (v: number | null) => emit('update:modelValue', v ?? undefined),
+        'onUpdate:modelValue': (v: unknown) => emit('update:modelValue', v == null ? undefined : Number(v)),
         'onFocus': () => emit('focus'),
         'onBlur': () => emit('blur'),
       })

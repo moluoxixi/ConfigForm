@@ -1,8 +1,8 @@
 import type { Disposer } from '../shared'
 import type { FieldInstance, FormInstance, VoidFieldInstance } from '../types'
+import { FormLifeCycle } from '../events'
 import { getReactiveAdapter } from '../reactive'
 import { FormPath } from '../shared'
-import { FormLifeCycle } from '../events'
 
 /**
  * Effects 工厂函数
@@ -53,7 +53,8 @@ export function onFieldValueChange(
 ): Disposer {
   return form.on(FormLifeCycle.ON_FIELD_VALUE_CHANGE, (event) => {
     const { path } = event.payload as { path: string, value: unknown }
-    if (!FormPath.match(pattern, path)) return
+    if (!FormPath.match(pattern, path))
+      return
 
     const field = form.getField(path)
     if (field) {
@@ -81,7 +82,8 @@ export function onFieldInputChange(
 ): Disposer {
   return form.on(FormLifeCycle.ON_FIELD_INPUT_VALUE_CHANGE, (event) => {
     const { path } = event.payload as { path: string, value: unknown }
-    if (!FormPath.match(pattern, path)) return
+    if (!FormPath.match(pattern, path))
+      return
 
     const field = form.getField(path)
     if (field) {
@@ -115,7 +117,8 @@ export function onFieldInit(
 ): Disposer {
   return form.on(FormLifeCycle.ON_FIELD_INIT, (event) => {
     const field = event.payload as FieldInstance
-    if (!field.path || !FormPath.match(pattern, field.path)) return
+    if (!field.path || !FormPath.match(pattern, field.path))
+      return
     handler(field, form)
   })
 }
@@ -139,7 +142,8 @@ export function onFieldMount(
 ): Disposer {
   return form.on(FormLifeCycle.ON_FIELD_MOUNT, (event) => {
     const field = event.payload as FieldInstance | VoidFieldInstance
-    if (!field.path || !FormPath.match(pattern, field.path)) return
+    if (!field.path || !FormPath.match(pattern, field.path))
+      return
     handler(field as FieldInstance, form)
   })
 }
@@ -159,7 +163,8 @@ export function onFieldUnmount(
 ): Disposer {
   return form.on(FormLifeCycle.ON_FIELD_UNMOUNT, (event) => {
     const field = event.payload as FieldInstance | VoidFieldInstance
-    if (!field.path || !FormPath.match(pattern, field.path)) return
+    if (!field.path || !FormPath.match(pattern, field.path))
+      return
     handler(field as FieldInstance, form)
   })
 }
@@ -246,14 +251,16 @@ export function onFieldReact(
   /* 监听后续挂载的字段 */
   const mountDisposer = form.on(FormLifeCycle.ON_FIELD_MOUNT, (event) => {
     const field = event.payload as FieldInstance
-    if (!field.path || !FormPath.match(pattern, field.path)) return
+    if (!field.path || !FormPath.match(pattern, field.path))
+      return
     setupAutorun(field)
   })
 
   /* 监听字段卸载时清理 autorun */
   const unmountDisposer = form.on(FormLifeCycle.ON_FIELD_UNMOUNT, (event) => {
     const field = event.payload as FieldInstance
-    if (!field.path) return
+    if (!field.path)
+      return
     const autorunDisposer = fieldAutorunDisposers.get(field.path)
     if (autorunDisposer) {
       autorunDisposer()

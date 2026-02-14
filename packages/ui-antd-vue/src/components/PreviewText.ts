@@ -58,9 +58,11 @@ export const PreviewSelect = defineComponent({
   setup(props) {
     return () => {
       const val = props.modelValue
-      if (val == null || val === '') return h('span', null, EMPTY)
+      if (val == null || val === '')
+        return h('span', null, EMPTY)
       if (Array.isArray(val)) {
-        if (val.length === 0) return h('span', null, EMPTY)
+        if (val.length === 0)
+          return h('span', null, EMPTY)
         return h('span', null, val.map((v, i) => {
           const label = props.dataSource.find(item => item.value === v)?.label ?? String(v)
           return [i > 0 ? ' ' : null, h(ATag, { key: i }, () => label)]

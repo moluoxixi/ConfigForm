@@ -1,5 +1,5 @@
-import type { SceneConfig } from '../types'
 import type { ISchema } from '@moluoxixi/core'
+import type { SceneConfig } from '../types'
 import { mergeSchema } from '@moluoxixi/core'
 
 /**
@@ -86,7 +86,8 @@ const config: SceneConfig = {
     defaultValue: 'personal',
     factory: (value: string): ISchema => {
       const overlay = OVERLAYS[value]
-      if (!overlay) return BASE_SCHEMA
+      if (!overlay)
+        return BASE_SCHEMA
       return mergeSchema(BASE_SCHEMA, overlay)
     },
   },

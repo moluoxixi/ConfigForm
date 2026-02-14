@@ -82,7 +82,7 @@ function calculateDelay(
       break
     case 'exponential':
     default:
-      delay = Math.pow(2, attempt - 1) * baseDelay
+      delay = 2 ** (attempt - 1) * baseDelay
       delay += Math.random() * baseDelay * 0.1
       break
   }
@@ -134,7 +134,7 @@ export const PLUGIN_NAME = 'submit-retry'
 export function submitRetryPlugin(pluginConfig: SubmitRetryPluginConfig = {}): FormPlugin<SubmitRetryPluginAPI> {
   return {
     name: PLUGIN_NAME,
-    install(form: FormInstance, { hooks }: PluginContext): PluginInstallResult<SubmitRetryPluginAPI> {
+    install(form: FormInstance, _context: PluginContext): PluginInstallResult<SubmitRetryPluginAPI> {
       const api: SubmitRetryPluginAPI = {
         async submit(
           onSubmit: (values: Record<string, unknown>) => Promise<void>,
@@ -184,7 +184,8 @@ export function submitRetryPlugin(pluginConfig: SubmitRetryPluginConfig = {}): F
               return result
             }
             catch (err) {
-              if (err instanceof DOMException && err.name === 'AbortError') throw err
+              if (err instanceof DOMException && err.name === 'AbortError')
+                throw err
               lastError = err instanceof Error ? err : new Error(String(err))
 
               if (attempt === maxRetries) {

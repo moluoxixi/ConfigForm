@@ -1,7 +1,7 @@
 import type { DataSourceItem } from '@moluoxixi/core'
+import type { ReactElement } from 'react'
 import { AutoComplete as AAutoComplete } from 'antd'
 import { useMemo } from 'react'
-import type { ReactElement } from 'react'
 
 export interface CfAutoCompleteProps {
   value?: string
@@ -16,7 +16,7 @@ export interface CfAutoCompleteProps {
 
 export function AutoComplete({ value, onChange, onFocus, onBlur, disabled, preview, placeholder, dataSource = [] }: CfAutoCompleteProps): ReactElement {
   const options = useMemo(() => dataSource.map(item => ({ value: String(item.value), label: item.label })), [dataSource])
-  
+
   return (
     <AAutoComplete
       value={value}

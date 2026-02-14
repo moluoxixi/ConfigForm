@@ -1,5 +1,5 @@
 import type { FormConfig, FormInstance, ISchema } from '@moluoxixi/core'
-import type { App, PropType } from 'vue'
+import type { App, Component, PropType } from 'vue'
 import { createForm } from '@moluoxixi/core'
 import { FormProvider, SchemaField, useCreateForm } from '@moluoxixi/vue'
 import { Button as AButton, Drawer as ADrawer, Space as ASpace } from 'ant-design-vue'
@@ -22,6 +22,8 @@ export const FormDrawer = defineComponent({
     formConfig: { type: Object as PropType<FormConfig>, default: undefined },
     initialValues: { type: Object as PropType<Record<string, unknown>>, default: undefined },
     form: { type: Object as PropType<FormInstance>, default: undefined },
+    components: { type: Object as PropType<Record<string, Component>>, default: undefined },
+    decorators: { type: Object as PropType<Record<string, Component>>, default: undefined },
     width: { type: [Number, String], default: 520 },
     placement: { type: String as PropType<'left' | 'right' | 'top' | 'bottom'>, default: 'right' },
     okText: { type: String, default: '确认' },
@@ -83,7 +85,11 @@ export const FormDrawer = defineComponent({
         maskClosable: false,
         onClose: handleCancel,
       }, {
-        default: () => h(FormProvider, { form }, () => [
+        default: () => h(FormProvider, {
+          form,
+          components: props.components,
+          decorators: props.decorators,
+        }, () => [
           h(SchemaField, { schema: props.schema }),
           slots.default?.(),
         ]),

@@ -217,7 +217,7 @@ playground/
 | 修复后重验通过 | 更新结果表 → **自动进入下一个场景** |
 | 遇到无法自行修复的问题 | 记录问题 → **停下来询问用户**，不跳过 |
 
-整体节奏：**测试 → 通过/修复 → 自动下一个 → 测试 → 通过/修复 → 自动下一个 → …… 直到 61 个场景全部完成**
+整体节奏：**测试 → 通过/修复 → 自动下一个 → 测试 → 通过/修复 → 自动下一个 → …… 直到 60 个场景全部完成**
 
 #### 问题处理
 
@@ -276,7 +276,7 @@ playground/
 | 23 | 大数据量下拉搜索 | PaginatedSearchForm | **RENAME** Select + showSearch 50 条本地数据过滤 |
 | 24 | 远程数据源 | RemoteDataSourceForm | **NEW** DataSourceConfig url/params/transform/cache |
 
-### 06-layout 布局分组（5 个）
+### 06-layout 布局分组（4 个）
 
 | # | 场景 | 文件 | 覆盖能力 |
 |---|------|------|----------|
@@ -284,7 +284,6 @@ playground/
 | 26 | 标签页分组 | TabGroupForm | **FIX** LayoutTabs 标签页切换保留数据 |
 | 27 | 折叠面板 | CollapseGroupForm | **FIX** LayoutCollapse 折叠展开 |
 | 28 | 卡片分组 | CardGroupForm | LayoutCard 多卡片填写 + 卡片内验证 |
-| 29 | 分区表单 | MultiFormForm | **MOVE** LayoutCard 视觉分组 + 分区验证 |
 
 ### 07-dynamic 动态表单（3 个）
 
@@ -412,7 +411,6 @@ playground/
 | 26 | TabGroupForm | 3 个 Tab 切换正确；切换后数据保留；跨 Tab 提交包含所有字段 |
 | 27 | CollapseGroupForm | 4 个折叠面板展开/折叠；折叠后数据保留；提交包含所有面板字段 |
 | 28 | CardGroupForm | 3 张卡片内字段正确渲染；卡片内必填校验；跨卡片提交 |
-| 29 | MultiFormForm | 两个 LayoutCard 分区；跨区域提交包含所有字段 |
 
 ### 07-dynamic
 
@@ -510,6 +508,13 @@ playground/
 | S3 | ArrayFieldForm | Vue RecursionField 数组子字段缺少 resolveComponent，未映射 type→组件 | ✅ |
 | S4 | ArrayFieldForm | React 端 ArrayItems 组件未在 setupAntd 注册，数组区域不渲染 | ✅ |
 | S5 | ArrayFieldForm | Form.reset() 数组字段长度未恢复：FormObjectField 硬编码 initialValue:{} 污染 initialValues | ✅ |
+| S6 | ConditionalRequiredForm | 提交结果区/验证失败提示在 reset 或切换为阅读/禁用后仍保留，应清理 | ✅ |
+| S7 | StepForm | 提交结果表顶层字段为 `—`，实际值只在 `steps` 下（Vue AntdVue / Vue ElementPlus / React Antd） | ⏳ |
+| S8 | StepForm | React 端进入场景控制台报错：Cannot update a component while rendering a different component（ReactiveField.tsx） | ⏳ |
+| S9 | TabGroupForm | 部门 Select 无选项（No data / 无数据，Vue AntdVue / Vue ElementPlus / React Antd） | ⏳ |
+| S10 | TabGroupForm | 提交结果表顶层字段为 `—`，实际值只在 `tabs` 下（Vue AntdVue / Vue ElementPlus / React Antd） | ⏳ |
+| S11 | CollapseGroupForm | 学历 Select 无选项（No data / 无数据，Vue AntdVue / Vue ElementPlus / React Antd） | ⏳ |
+| S12 | CollapseGroupForm | 提交结果表顶层字段为 `—`，实际值只在 `collapse` 下（Vue AntdVue / Vue ElementPlus / React Antd） | ⏳ |
 
 ---
 
@@ -599,7 +604,7 @@ playground/
 | Vue ElementPlus | ✅ | ✅ | ✅ |
 | React Antd | ✅ | ✅ | ✅ |
 
-> G13 已修复 — Field.validate() 前同步 required 到 rules，4 种条件必填模式全部验证通过
+> ✅ 重新验证通过：动态必填校验触发正常；reset/切换阅读或禁用后，提交结果与验证失败提示均已清理
 
 ### 场景 11：自定义验证（CustomValidationForm）
 
@@ -704,31 +709,34 @@ playground/
 
 | 平台 | 编辑态 | 阅读态 | 禁用态 |
 |------|:------:|:------:|:------:|
-| Vue AntdVue | ✅ | ✅ | ✅ |
-| Vue ElementPlus | ✅ | ✅ | ✅ |
-| React Antd | ✅ | ✅ | ✅ |
+| Vue AntdVue | ❌ | ✅ | ✅ |
+| Vue ElementPlus | ❌ | ✅ | ✅ |
+| React Antd | ❌ | ✅ | ✅ |
 
 > LayoutSteps 两步分组正确渲染
+> 提交结果顶层字段为 `—`（值仅在 `steps` 下）
 
 ### 场景 22：标签页切换分组（TabGroupForm）
 
 | 平台 | 编辑态 | 阅读态 | 禁用态 |
 |------|:------:|:------:|:------:|
-| Vue AntdVue | ✅ | ✅ | ✅ |
-| Vue ElementPlus | ✅ | ✅ | ✅ |
-| React Antd | ✅ | ✅ | ✅ |
+| Vue AntdVue | ❌ | ✅ | ✅ |
+| Vue ElementPlus | ❌ | ✅ | ✅ |
+| React Antd | ❌ | ✅ | ✅ |
 
 > LayoutTabs 三 Tab 分组正确渲染
+> 部门 Select 无数据；提交结果顶层字段为 `—`（值仅在 `tabs` 下）
 
 ### 场景 23：折叠面板分组（CollapseGroupForm）
 
 | 平台 | 编辑态 | 阅读态 | 禁用态 |
 |------|:------:|:------:|:------:|
-| Vue AntdVue | ✅ | ✅ | ✅ |
-| Vue ElementPlus | ✅ | ✅ | ✅ |
-| React Antd | ✅ | ✅ | ✅ |
+| Vue AntdVue | ❌ | ✅ | ✅ |
+| Vue ElementPlus | ❌ | ✅ | ✅ |
+| React Antd | ❌ | ✅ | ✅ |
 
 > LayoutCollapse 四面板分组正确渲染
+> 学历 Select 无数据；提交结果顶层字段为 `—`（值仅在 `collapse` 下）
 
 ### 场景 24：卡片分组（CardGroupForm）
 
@@ -957,16 +965,6 @@ playground/
 - E7 重置：恢复 initialValues ✅
 - **场景特有测试**：description 提示文本（"存储单位为分""提交时可转为数组"）正确显示 ✅
 
-### 场景 41：多表单协作（MultiFormForm）
-
-| 平台 | 编辑态 | 阅读态 | 禁用态 |
-|------|:------:|:------:|:------:|
-| Vue AntdVue | ✅ | ✅ | ✅ |
-| Vue ElementPlus | ✅ | ✅ | ✅ |
-| React Antd | ✅ | ✅ | ✅ |
-
-> 两个 LayoutCard（主表单+子表单）+ 联合提交/重置，6 字段正确渲染。验证/提交/重置/三态通过。
-
 ### 场景 42：表单快照（FormSnapshotForm）
 
 | 平台 | 编辑态 | 阅读态 | 禁用态 |
@@ -1081,33 +1079,33 @@ playground/
 
 | 平台 | 编辑态 | 阅读态 | 禁用态 |
 |------|:------:|:------:|:------:|
-| Vue AntdVue | ⏳ | ⏳ | ⏳ |
-| Vue ElementPlus | ⏳ | ⏳ | ⏳ |
-| React Antd | ⏳ | ⏳ | ⏳ |
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
 
 ### 场景 15：分区域验证（SectionValidationForm）— NEW
 
 | 平台 | 编辑态 | 阅读态 | 禁用态 |
 |------|:------:|:------:|:------:|
-| Vue AntdVue | ⏳ | ⏳ | ⏳ |
-| Vue ElementPlus | ⏳ | ⏳ | ⏳ |
-| React Antd | ⏳ | ⏳ | ⏳ |
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
 
 ### 场景 16：嵌套对象（NestedObjectForm）— REWRITE 需重测
 
 | 平台 | 编辑态 | 阅读态 | 禁用态 |
 |------|:------:|:------:|:------:|
-| Vue AntdVue | ⏳ | ⏳ | ⏳ |
-| Vue ElementPlus | ⏳ | ⏳ | ⏳ |
-| React Antd | ⏳ | ⏳ | ⏳ |
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
 
 ### 场景 20：ObjectField 动态属性（ObjectFieldDynamicForm）— REWRITE 需重测
 
 | 平台 | 编辑态 | 阅读态 | 禁用态 |
 |------|:------:|:------:|:------:|
-| Vue AntdVue | ⏳ | ⏳ | ⏳ |
-| Vue ElementPlus | ⏳ | ⏳ | ⏳ |
-| React Antd | ⏳ | ⏳ | ⏳ |
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
 
 ### 场景 24：远程数据源（RemoteDataSourceForm）— NEW
 
@@ -1121,17 +1119,9 @@ playground/
 
 | 场景 | Vue AntdVue | Vue ElementPlus | React Antd |
 |------|:-----------:|:-----------:|:----------:|
-| 25 StepForm | ⏳ | ⏳ | ⏳ |
-| 26 TabGroupForm | ⏳ | ⏳ | ⏳ |
-| 27 CollapseGroupForm | ⏳ | ⏳ | ⏳ |
-
-### 场景 29：分区表单（MultiFormForm）— MOVE 需重测
-
-| 平台 | 编辑态 | 阅读态 | 禁用态 |
-|------|:------:|:------:|:------:|
-| Vue AntdVue | ⏳ | ⏳ | ⏳ |
-| Vue ElementPlus | ⏳ | ⏳ | ⏳ |
-| React Antd | ⏳ | ⏳ | ⏳ |
+| 25 StepForm | ❌ | ❌ | ❌ |
+| 26 TabGroupForm | ❌ | ❌ | ❌ |
+| 27 CollapseGroupForm | ❌ | ❌ | ❌ |
 
 ### 场景 30：动态增删字段（DynamicFieldForm）— FIX 需重测
 

@@ -22,7 +22,7 @@ export const CheckboxGroup = defineComponent({
         return h('span', null, selectedLabels || '—')
       }
       return h(ElCheckboxGroup, {
-        'modelValue': props.modelValue,
+        'modelValue': props.modelValue as any,
         'disabled': props.disabled,
         'onUpdate:modelValue': (v: unknown) => emit('update:modelValue', v),
       }, () => props.dataSource.map(item =>

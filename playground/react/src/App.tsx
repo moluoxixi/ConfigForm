@@ -1,16 +1,15 @@
+import type { DevToolsPluginAPI } from '@moluoxixi/plugin-devtools'
 /**
  * React Playground 入口
  *
  * 从 @playground/shared 动态加载场景配置，通过 SceneRenderer 渲染。
  */
 import type { SceneConfig } from '@playground/shared'
-import type { DevToolsPluginAPI } from '@moluoxixi/plugin-devtools'
-import { getSceneGroups, sceneRegistry } from '@playground/shared'
 import { DevToolsPanel } from '@moluoxixi/plugin-devtools-react'
-import { setupAntd } from '@moluoxixi/ui-antd'
 import { registerComponent, registerDecorator } from '@moluoxixi/react'
+import { setupAntd } from '@moluoxixi/ui-antd'
+import { getSceneGroups, sceneRegistry } from '@playground/shared'
 import React, { useCallback, useEffect, useState } from 'react'
-import { SceneRenderer } from './components/SceneRenderer'
 import {
   CardDecorator,
   CodeEditor,
@@ -20,6 +19,7 @@ import {
   PreviewColorPicker,
   SignaturePad,
 } from './components/custom'
+import { SceneRenderer } from './components/SceneRenderer'
 
 /* 注册 Ant Design 基础组件 */
 setupAntd()
@@ -36,8 +36,8 @@ registerComponent('ColorPicker', ColorPicker, {
   readPrettyComponent: PreviewColorPicker,
 })
 registerComponent('CronEditor', CronEditor, { defaultDecorator: 'FormItem' })
-registerComponent('SignaturePad', SignaturePad)       /* 无装饰器，裸渲染 */
-registerComponent('CodeEditor', CodeEditor)            /* 无装饰器，裸渲染 */
+registerComponent('SignaturePad', SignaturePad) /* 无装饰器，裸渲染 */
+registerComponent('CodeEditor', CodeEditor) /* 无装饰器，裸渲染 */
 
 /* 注册自定义装饰器 */
 registerDecorator('CardDecorator', CardDecorator)
@@ -53,21 +53,37 @@ export function App(): React.ReactElement {
 
   const loadScene = useCallback(async (name: string) => {
     const entry = sceneRegistry[name]
-    if (!entry) { setSceneConfig(null); return }
+    if (!entry) {
+      setSceneConfig(null)
+      return
+    }
     setSceneConfig(null)
     setLoading(true)
-    try { setSceneConfig((await entry.loader()).default) }
-    catch (e) { console.error(`加载场景 ${name} 失败:`, e); setSceneConfig(null) }
-    finally { setLoading(false) }
+    try {
+      setSceneConfig((await entry.loader()).default)
+    }
+    catch (e) {
+      console.error(`加载场景 ${name} 失败:`, e)
+      setSceneConfig(null)
+    }
+    finally {
+      setLoading(false)
+    }
   }, [])
 
-  useEffect(() => { loadScene(currentDemo) }, [currentDemo, loadScene])
+  useEffect(() => {
+    loadScene(currentDemo)
+  }, [currentDemo, loadScene])
 
   return (
     <div style={{ maxWidth: 1400, margin: '0 auto', padding: 16, fontFamily: 'system-ui, sans-serif' }}>
       <h1 style={{ marginBottom: 4 }}>ConfigForm - React Playground</h1>
       <p style={{ color: '#666', marginBottom: 16, fontSize: 13 }}>
-        基于 MobX 的响应式配置化表单 · {totalScenes} 个场景 · Ant Design · ConfigForm + SchemaField 递归渲染
+        基于 MobX 的响应式配置化表单 ·
+        {' '}
+        {totalScenes}
+        {' '}
+        个场景 · Ant Design · ConfigForm + SchemaField 递归渲染
       </p>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, padding: '8px 16px', background: '#f5f5f5', borderRadius: 8 }}>
@@ -85,12 +101,11 @@ export function App(): React.ReactElement {
               <div key={group.key} style={{ marginBottom: 8 }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: '#999', padding: '2px 4px' }}>{group.label}</div>
                 {group.items.map(name => (
-                  <button key={name} onClick={() => setCurrentDemo(name)}
-                    style={{ display: 'block', width: '100%', textAlign: 'left', padding: '3px 8px',
-                      border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12,
-                      background: currentDemo === name ? '#1677ff' : 'transparent',
-                      color: currentDemo === name ? '#fff' : '#333',
-                      fontWeight: currentDemo === name ? 600 : 400, marginBottom: 1 }}>
+                  <button
+                    key={name}
+                    onClick={() => setCurrentDemo(name)}
+                    style={{ display: 'block', width: '100%', textAlign: 'left', padding: '3px 8px', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12, background: currentDemo === name ? '#1677ff' : 'transparent', color: currentDemo === name ? '#fff' : '#333', fontWeight: currentDemo === name ? 600 : 400, marginBottom: 1 }}
+                  >
                     {name}
                   </button>
                 ))}
@@ -120,9 +135,20 @@ function getOrCreateHook(): { forms: Map<string, DevToolsPluginAPI>, onChange: (
     const listeners = new Set<(forms: Map<string, DevToolsPluginAPI>) => void>()
     g.__CONFIGFORM_DEVTOOLS_HOOK__ = {
       forms: new Map(),
-      register(id: string, api: DevToolsPluginAPI) { (g.__CONFIGFORM_DEVTOOLS_HOOK__ as { forms: Map<string, DevToolsPluginAPI> }).forms.set(id, api); listeners.forEach(fn => fn((g.__CONFIGFORM_DEVTOOLS_HOOK__ as { forms: Map<string, DevToolsPluginAPI> }).forms)) },
-      unregister(id: string) { (g.__CONFIGFORM_DEVTOOLS_HOOK__ as { forms: Map<string, DevToolsPluginAPI> }).forms.delete(id); listeners.forEach(fn => fn((g.__CONFIGFORM_DEVTOOLS_HOOK__ as { forms: Map<string, DevToolsPluginAPI> }).forms)) },
-      onChange(fn: (forms: Map<string, DevToolsPluginAPI>) => void) { listeners.add(fn); return () => listeners.delete(fn) },
+      register(id: string, api: DevToolsPluginAPI) {
+        const hook = g.__CONFIGFORM_DEVTOOLS_HOOK__ as { forms: Map<string, DevToolsPluginAPI> }
+        hook.forms.set(id, api)
+        listeners.forEach(fn => fn(hook.forms))
+      },
+      unregister(id: string) {
+        const hook = g.__CONFIGFORM_DEVTOOLS_HOOK__ as { forms: Map<string, DevToolsPluginAPI> }
+        hook.forms.delete(id)
+        listeners.forEach(fn => fn(hook.forms))
+      },
+      onChange(fn: (forms: Map<string, DevToolsPluginAPI>) => void) {
+        listeners.add(fn)
+        return () => listeners.delete(fn)
+      },
     }
   }
   return g.__CONFIGFORM_DEVTOOLS_HOOK__ as ReturnType<typeof getOrCreateHook>
@@ -141,6 +167,7 @@ function DevToolsFloating(): React.ReactElement | null {
     return hook.onChange(update)
   }, [])
 
-  if (!api) return null
+  if (!api)
+    return null
   return <DevToolsPanel api={api} />
 }

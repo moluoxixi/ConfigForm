@@ -1,4 +1,4 @@
-import { isString } from './is';
+import { isString } from './is'
 
 /**
  * 表达式引擎
@@ -33,7 +33,7 @@ import { isString } from './is';
 /* ======================== 常量 ======================== */
 
 /** 表达式正则：匹配 {{...}} 包裹的内容 */
-const EXPRESSION_RE = /^\{\{([\s\S]+)\}\}$/;
+const EXPRESSION_RE = /^\{\{([\s\S]+)\}\}$/
 
 /**
  * 作用域参数名列表（固定顺序，与 ExpressionScope 属性一一对应）。
@@ -46,15 +46,15 @@ const SCOPE_PARAMS = [
   '$record',
   '$index',
   '$deps',
-] as const;
+] as const
 
 /** $ref 解析深度上限，防止循环引用导致无限递归 */
-const MAX_CACHE_SIZE = 1000;
+const MAX_CACHE_SIZE = 1000
 
 /* ======================== 缓存 ======================== */
 
 /** 编译缓存（表达式字符串 → 编译后函数） */
-const compilationCache = new Map<string, (scope: ExpressionScope) => unknown>();
+const compilationCache = new Map<string, (scope: ExpressionScope) => unknown>()
 
 /* ======================== 类型 ======================== */
 
@@ -66,17 +66,17 @@ const compilationCache = new Map<string, (scope: ExpressionScope) => unknown>();
  */
 export interface ExpressionScope {
   /** 当前字段实例 */
-  $self?: unknown;
+  $self?: unknown
   /** 表单所有值 */
-  $values?: Record<string, unknown>;
+  $values?: Record<string, unknown>
   /** 表单实例 */
-  $form?: unknown;
+  $form?: unknown
   /** 当前数组行记录（仅数组内字段可用） */
-  $record?: Record<string, unknown>;
+  $record?: Record<string, unknown>
   /** 当前数组索引（仅数组内字段可用） */
-  $index?: number;
+  $index?: number
   /** watch 路径对应的依赖值数组 */
-  $deps?: unknown[];
+  $deps?: unknown[]
 }
 
 /* ======================== 核心函数 ======================== */
@@ -96,11 +96,13 @@ export interface ExpressionScope {
  * ```
  */
 export function isExpression(value: unknown): value is string {
-  if (!isString(value)) return false;
-  const match = value.match(EXPRESSION_RE);
-  if (!match) return false;
+  if (!isString(value))
+    return false
+  const match = value.match(EXPRESSION_RE)
+  if (!match)
+    return false
   /* 排除空表达式 {{}} */
-  return match[1].trim().length > 0;
+  return match[1].trim().length > 0
 }
 
 /**
@@ -129,18 +131,19 @@ export function compileExpression<T = unknown>(
   expression: string,
 ): (scope: ExpressionScope) => T {
   /* 尝试从缓存获取 */
-  const cached = compilationCache.get(expression);
-  if (cached) return cached as (scope: ExpressionScope) => T;
+  const cached = compilationCache.get(expression)
+  if (cached)
+    return cached as (scope: ExpressionScope) => T
 
   /* 提取 {{...}} 中的表达式体 */
-  const match = expression.match(EXPRESSION_RE);
+  const match = expression.match(EXPRESSION_RE)
   if (!match) {
     throw new Error(
       `[ConfigForm] 无效的表达式格式，期望 {{expression}}，收到: ${expression}`,
-    );
+    )
   }
 
-  const body = match[1].trim();
+  const body = match[1].trim()
 
   /*
    * 构建变量声明语句，从 __scope__ 对象中解构出各作用域变量。
@@ -149,7 +152,7 @@ export function compileExpression<T = unknown>(
    */
   const varDeclarations = SCOPE_PARAMS
     .map(p => `${p}=__scope__&&__scope__.${p}`)
-    .join(',');
+    .join(',')
 
   try {
     /*
@@ -161,34 +164,34 @@ export function compileExpression<T = unknown>(
     const rawFn = new Function(
       '__scope__',
       `"use strict";var ${varDeclarations};return(${body})`,
-    ) as (scope: ExpressionScope) => T;
+    ) as (scope: ExpressionScope) => T
 
     /* 包装错误处理，防止运行时表达式异常导致联动引擎崩溃 */
     const wrapped = (scope: ExpressionScope): T => {
       try {
-        return rawFn(scope || {});
+        return rawFn(scope || {})
       }
       catch (err) {
-        console.warn(`[ConfigForm] 表达式执行失败: ${expression}`, err);
-        return undefined as T;
+        console.warn(`[ConfigForm] 表达式执行失败: ${expression}`, err)
+        return undefined as T
       }
-    };
+    }
 
     /* 缓存（防止内存泄漏，设置上限） */
     if (compilationCache.size >= MAX_CACHE_SIZE) {
-      const firstKey = compilationCache.keys().next().value;
+      const firstKey = compilationCache.keys().next().value
       if (firstKey !== undefined) {
-        compilationCache.delete(firstKey);
+        compilationCache.delete(firstKey)
       }
     }
-    compilationCache.set(expression, wrapped as (scope: ExpressionScope) => unknown);
+    compilationCache.set(expression, wrapped as (scope: ExpressionScope) => unknown)
 
-    return wrapped;
+    return wrapped
   }
   catch (err) {
     throw new Error(
       `[ConfigForm] 表达式编译失败: ${expression}，原因: ${(err as Error).message}`,
-    );
+    )
   }
 }
 
@@ -219,10 +222,10 @@ export function evaluateExpression<T = unknown>(
   scope: ExpressionScope,
 ): T {
   if (isExpression(valueOrExpression)) {
-    const fn = compileExpression<T>(valueOrExpression);
-    return fn(scope);
+    const fn = compileExpression<T>(valueOrExpression)
+    return fn(scope)
   }
-  return valueOrExpression as T;
+  return valueOrExpression as T
 }
 
 /**
@@ -234,5 +237,5 @@ export function evaluateExpression<T = unknown>(
  * - 内存敏感场景的主动回收
  */
 export function clearExpressionCache(): void {
-  compilationCache.clear();
+  compilationCache.clear()
 }

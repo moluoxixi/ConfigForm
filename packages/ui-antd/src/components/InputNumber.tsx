@@ -28,7 +28,7 @@ export function InputNumber({ value, onChange, onFocus, onBlur, placeholder, dis
       onFocus={onFocus}
       onBlur={onBlur}
       placeholder={placeholder}
-      disabled={disabled}
+      disabled={disabled || preview}
       min={min}
       max={max}
       step={step}

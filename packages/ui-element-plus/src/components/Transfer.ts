@@ -3,6 +3,8 @@ import type { PropType } from 'vue'
 import { ElTransfer } from 'element-plus'
 import { defineComponent, h } from 'vue'
 
+const TransferComponent = ElTransfer as any
+
 /**
  * 穿梭框数据项（Element Plus Transfer 要求的格式）
  */
@@ -32,9 +34,9 @@ export const Transfer = defineComponent({
     /** 搜索占位符 */
     filterPlaceholder: { type: String, default: '请输入搜索内容' },
     /** 标题（[左标题, 右标题]） */
-    titles: { type: Array as PropType<string[]>, default: () => ['待选', '已选'] },
+    titles: { type: Array as unknown as PropType<[string, string]>, default: () => ['待选', '已选'] as [string, string] },
     /** 按钮文案 */
-    buttonTexts: { type: Array as PropType<string[]>, default: () => [] },
+    buttonTexts: { type: Array as unknown as PropType<[string, string]>, default: () => ['', ''] as [string, string] },
   },
   emits: ['update:modelValue'],
   setup(props, { emit }) {
@@ -61,15 +63,15 @@ export const Transfer = defineComponent({
         return h('span', null, labels)
       }
 
-      return h(ElTransfer, {
+      return h(TransferComponent, {
         'modelValue': props.modelValue,
         'data': transformData(props.dataSource),
         'filterable': props.filterable,
         'filterPlaceholder': props.filterPlaceholder,
-        'titles': props.titles,
-        'buttonTexts': props.buttonTexts,
+        'titles': props.titles as [string, string],
+        'buttonTexts': props.buttonTexts as [string, string],
         'disabled': props.disabled,
-        'onUpdate:modelValue': (v: unknown) => emit('update:modelValue', v),
+        'onUpdate:modelValue': (v: unknown) => emit('update:modelValue', Array.isArray(v) ? v : []),
       })
     }
   },

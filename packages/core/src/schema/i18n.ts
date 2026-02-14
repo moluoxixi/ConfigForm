@@ -1,3 +1,4 @@
+import type { DataSourceItem } from '../shared'
 import type { ISchema } from './types'
 
 /**
@@ -27,9 +28,6 @@ export interface SchemaI18nConfig {
    */
   translateEnumLabels?: boolean
 }
-
-/** 默认翻译 key 前缀 */
-const DEFAULT_PREFIX = 'schema.'
 
 /** 默认可翻译属性 */
 const DEFAULT_TRANSLATABLE_PROPS = ['title', 'description']
@@ -154,7 +152,7 @@ function translateNode(
 
   /* 翻译 dataSource 的 label */
   if (translateEnumLabels && Array.isArray(result.dataSource)) {
-    result.dataSource = translateDataSource(result.dataSource as { label: string, value: unknown }[], t)
+    result.dataSource = translateDataSource(result.dataSource as DataSourceItem[], t)
   }
 
   /* 递归翻译子节点 */
@@ -191,19 +189,16 @@ function translateNode(
  * 翻译 dataSource 中的 label（递归处理 children）
  */
 function translateDataSource(
-  items: Array<{ label: string, value: unknown, children?: unknown[] }>,
+  items: DataSourceItem[],
   t: TranslateFunction,
-): typeof items {
+): DataSourceItem[] {
   return items.map((item) => {
     const translated = { ...item }
     if (isI18nKey(translated.label)) {
       translated.label = t(extractKey(translated.label))
     }
     if (Array.isArray(translated.children)) {
-      translated.children = translateDataSource(
-        translated.children as typeof items,
-        t,
-      )
+      translated.children = translateDataSource(translated.children, t)
     }
     return translated
   })

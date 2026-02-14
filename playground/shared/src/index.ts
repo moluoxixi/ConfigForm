@@ -56,12 +56,11 @@ export const sceneRegistry: Record<string, { group: string, loader: () => Promis
   PaginatedSearchForm: { group: '05-datasource', loader: () => import('./05-datasource/PaginatedSearchForm') },
   RemoteDataSourceForm: { group: '05-datasource', loader: () => import('./05-datasource/RemoteDataSourceForm') },
 
-  /* 06-layout — 布局分组（5 个） */
+  /* 06-layout — 布局分组（4 个） */
   CardGroupForm: { group: '06-layout', loader: () => import('./06-layout/CardGroupForm') },
   CollapseGroupForm: { group: '06-layout', loader: () => import('./06-layout/CollapseGroupForm') },
   StepForm: { group: '06-layout', loader: () => import('./06-layout/StepForm') },
   TabGroupForm: { group: '06-layout', loader: () => import('./06-layout/TabGroupForm') },
-  MultiFormForm: { group: '06-layout', loader: () => import('./09-state/MultiFormForm') },
 
   /* 07-dynamic — 动态表单（3 个） */
   DynamicFieldForm: { group: '07-dynamic', loader: () => import('./07-dynamic/DynamicFieldForm') },
@@ -120,7 +119,8 @@ export function getSceneGroups(): Array<{ key: string, label: string, items: str
   const groupMap = new Map<string, string[]>()
 
   for (const [name, { group }] of Object.entries(sceneRegistry)) {
-    if (!groupMap.has(group)) groupMap.set(group, [])
+    if (!groupMap.has(group))
+      groupMap.set(group, [])
     groupMap.get(group)!.push(name)
   }
 

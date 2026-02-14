@@ -1,12 +1,24 @@
 import type { ISchema } from '@moluoxixi/core'
-import { DEFAULT_COMPONENT_MAPPING, resolveComponent } from '@moluoxixi/core'
-import { observer } from '@moluoxixi/reactive-react'
+import { DEFAULT_COMPONENT_MAPPING, isStructuralArrayComponent, resolveComponent } from '@moluoxixi/core'
 import React from 'react'
 import { SchemaContext } from '../context'
+import { observer } from '../reactive'
 import { FormArrayField } from './FormArrayField'
 import { FormField } from './FormField'
 import { FormObjectField } from './FormObjectField'
 import { FormVoidField } from './FormVoidField'
+
+function normalizeDataSource(schema: ISchema): unknown[] | undefined {
+  if (schema.dataSource)
+    return schema.dataSource as unknown[]
+  if (!schema.enum || schema.enum.length === 0)
+    return undefined
+  return schema.enum.map((item) => {
+    if (item && typeof item === 'object')
+      return item as { label: string, value: unknown, disabled?: boolean }
+    return { label: String(item), value: item }
+  })
+}
 
 export interface RecursionFieldProps {
   /** 要渲染的 schema 节点 */
@@ -25,27 +37,61 @@ export interface RecursionFieldProps {
  * 参考 Formily RecursionField，根据 schema 定义递归渲染字段组件。
  *
  * 用途：
- * 1. ArrayItems 内部渲染每个数组项的子字段
+ * 1. ArrayField（默认数组组件）内部渲染每个数组项的子字段
  * 2. 布局组件（LayoutTabs/LayoutCollapse/LayoutSteps）渲染各面板内容
  *
  * 支持所有类型：string / number / boolean / date / array / object / void
  */
 export const RecursionField = observer<RecursionFieldProps>(
   ({ schema, name, basePath = '', onlyRenderProperties = false }) => {
-    if (!schema) return null
+    if (!schema)
+      return null
+
+    function renderDataField(fieldSchema: ISchema, dataPath: string): React.ReactElement {
+      const resolvedComp = resolveComponent(fieldSchema, DEFAULT_COMPONENT_MAPPING)
+      const dataSource = normalizeDataSource(fieldSchema)
+
+      return (
+        <FormField
+          key={dataPath}
+          name={dataPath}
+          fieldProps={{
+            label: fieldSchema.title,
+            description: fieldSchema.description,
+            required: fieldSchema.required === true,
+            component: resolvedComp,
+            componentProps: fieldSchema.componentProps,
+            rules: fieldSchema.rules,
+            disabled: fieldSchema.disabled,
+            preview: fieldSchema.preview,
+            pattern: fieldSchema.pattern,
+            dataSource,
+            displayFormat: fieldSchema.displayFormat as ((value: unknown) => unknown) | undefined,
+            inputParse: fieldSchema.inputParse as ((value: unknown) => unknown) | undefined,
+            submitTransform: fieldSchema.submitTransform as ((value: unknown) => unknown) | undefined,
+            submitPath: fieldSchema.submitPath,
+            excludeWhenHidden: fieldSchema.excludeWhenHidden,
+          }}
+        />
+      )
+    }
 
     /** 拼接完整路径 */
     function fullPath(suffix?: string): string {
       const parts: string[] = []
-      if (basePath) parts.push(basePath)
-      if (name !== undefined) parts.push(String(name))
-      if (suffix) parts.push(suffix)
+      if (basePath)
+        parts.push(basePath)
+      if (name !== undefined)
+        parts.push(String(name))
+      if (suffix)
+        parts.push(suffix)
       return parts.join('.')
     }
 
     /** 渲染 properties 子节点 */
     function renderProperties(propSchema: ISchema, parentPath: string, parentAddress?: string): React.ReactElement[] {
-      if (!propSchema.properties) return []
+      if (!propSchema.properties)
+        return []
 
       const entries = Object.entries(propSchema.properties)
       entries.sort(([, a], [, b]) => (a.order ?? 0) - (b.order ?? 0))
@@ -94,6 +140,10 @@ export const RecursionField = observer<RecursionFieldProps>(
 
       /* 数组字段 */
       if (fieldSchema.type === 'array') {
+        if (!isStructuralArrayComponent(fieldSchema.component)) {
+          return renderDataField(fieldSchema, dataPath)
+        }
+
         return (
           <FormArrayField
             key={dataPath}
@@ -103,7 +153,7 @@ export const RecursionField = observer<RecursionFieldProps>(
               minItems: fieldSchema.minItems,
               maxItems: fieldSchema.maxItems,
               itemTemplate: fieldSchema.itemTemplate,
-              component: fieldSchema.component || 'ArrayItems',
+              component: fieldSchema.component || 'ArrayField',
               componentProps: {
                 ...fieldSchema.componentProps,
                 itemsSchema: fieldSchema.items,
@@ -132,31 +182,7 @@ export const RecursionField = observer<RecursionFieldProps>(
       }
 
       /* 普通数据字段 */
-      const resolvedComp = resolveComponent(fieldSchema, DEFAULT_COMPONENT_MAPPING)
-
-      return (
-        <FormField
-          key={dataPath}
-          name={dataPath}
-          fieldProps={{
-            label: fieldSchema.title,
-            description: fieldSchema.description,
-            required: fieldSchema.required === true,
-            component: resolvedComp,
-            componentProps: fieldSchema.componentProps,
-            rules: fieldSchema.rules,
-            disabled: fieldSchema.disabled,
-            preview: fieldSchema.preview,
-            pattern: fieldSchema.pattern,
-            dataSource: fieldSchema.dataSource,
-            displayFormat: fieldSchema.displayFormat as ((value: unknown) => unknown) | undefined,
-            inputParse: fieldSchema.inputParse as ((value: unknown) => unknown) | undefined,
-            submitTransform: fieldSchema.submitTransform as ((value: unknown) => unknown) | undefined,
-            submitPath: fieldSchema.submitPath,
-            excludeWhenHidden: fieldSchema.excludeWhenHidden,
-          }}
-        />
-      )
+      return renderDataField(fieldSchema, dataPath)
     }
 
     /* 仅渲染 properties（用于布局组件渲染各面板内容） */

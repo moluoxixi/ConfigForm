@@ -37,7 +37,8 @@ export class VoidField implements VoidFieldInstance {
    * 优先级：字段自身 > 表单级。
    */
   get pattern(): FieldPattern {
-    if (this.selfPattern !== 'editable') return this.selfPattern
+    if (this.selfPattern !== 'editable')
+      return this.selfPattern
     return this.form.pattern
   }
 
@@ -73,7 +74,8 @@ export class VoidField implements VoidFieldInstance {
    * 由框架桥接层在组件挂载到 DOM 后调用。
    */
   mount(): void {
-    if (this.mounted) return
+    if (this.mounted)
+      return
     this.mounted = true
     this.form.notifyFieldMount(this as unknown as FieldInstance)
   }
@@ -84,7 +86,8 @@ export class VoidField implements VoidFieldInstance {
    * 由框架桥接层在组件从 DOM 卸载前调用。
    */
   unmount(): void {
-    if (!this.mounted) return
+    if (!this.mounted)
+      return
     this.mounted = false
     this.form.notifyFieldUnmount(this as unknown as FieldInstance)
   }

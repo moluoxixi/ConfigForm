@@ -50,10 +50,14 @@ export const PLUGIN_NAME = 'dirty-checker'
  * 支持：基本类型、对象（递归）、数组（递归）、Date、RegExp、null、undefined。
  */
 export function deepEqual(a: unknown, b: unknown): boolean {
-  if (a === b) return true
-  if (a === null || b === null) return false
-  if (a === undefined || b === undefined) return false
-  if (typeof a !== typeof b) return false
+  if (a === b)
+    return true
+  if (a === null || b === null)
+    return false
+  if (a === undefined || b === undefined)
+    return false
+  if (typeof a !== typeof b)
+    return false
 
   if (a instanceof Date && b instanceof Date) {
     return a.getTime() === b.getTime()
@@ -61,18 +65,22 @@ export function deepEqual(a: unknown, b: unknown): boolean {
   if (a instanceof RegExp && b instanceof RegExp) {
     return a.source === b.source && a.flags === b.flags
   }
-  if (typeof a !== 'object') return false
+  if (typeof a !== 'object')
+    return false
 
   const objA = a as Record<string, unknown>
   const objB = b as Record<string, unknown>
   const keysA = Object.keys(objA)
   const keysB = Object.keys(objB)
 
-  if (keysA.length !== keysB.length) return false
+  if (keysA.length !== keysB.length)
+    return false
 
   for (const key of keysA) {
-    if (!Object.prototype.hasOwnProperty.call(objB, key)) return false
-    if (!deepEqual(objA[key], objB[key])) return false
+    if (!Object.prototype.hasOwnProperty.call(objB, key))
+      return false
+    if (!deepEqual(objA[key], objB[key]))
+      return false
   }
   return true
 }

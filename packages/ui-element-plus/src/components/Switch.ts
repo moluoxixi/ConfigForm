@@ -1,6 +1,8 @@
 import { ElSwitch } from 'element-plus'
 import { defineComponent, h } from 'vue'
 
+const SwitchComponent = ElSwitch as any
+
 /** 开关适配 — readonly 显示"是/否"文本 */
 export const Switch = defineComponent({
   name: 'CfSwitch',
@@ -11,10 +13,10 @@ export const Switch = defineComponent({
       if (props.readonly) {
         return h('span', null, props.modelValue ? '是' : '否')
       }
-      return h(ElSwitch, {
+      return h(SwitchComponent, {
         'modelValue': props.modelValue,
         'disabled': props.disabled,
-        'onUpdate:modelValue': (v: boolean) => emit('update:modelValue', v),
+        'onUpdate:modelValue': (v: unknown) => emit('update:modelValue', Boolean(v)),
       })
     }
   },

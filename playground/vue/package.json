@@ -14,11 +14,11 @@
     "@moluoxixi/core": "workspace:*",
     "@moluoxixi/plugin-devtools": "workspace:*",
     "@moluoxixi/plugin-devtools-vue": "workspace:*",
-    "@playground/shared": "workspace:*",
     "@moluoxixi/reactive-vue": "workspace:*",
     "@moluoxixi/ui-antd-vue": "workspace:*",
     "@moluoxixi/ui-element-plus": "workspace:*",
     "@moluoxixi/vue": "workspace:*",
+    "@playground/shared": "workspace:*",
     "ant-design-vue": "catalog:build",
     "element-plus": "catalog:build",
     "vue": "catalog:build"

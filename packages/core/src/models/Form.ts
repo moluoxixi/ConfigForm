@@ -1,5 +1,5 @@
 import type { Disposer, Feedback, FieldPattern } from '../shared'
-import type { ValidationFeedback, ValidationTrigger } from '../validator'
+import type { DiffFieldView, DiffResult } from '../shared/diff'
 import type {
   ArrayFieldInstance,
   ArrayFieldProps,
@@ -17,13 +17,13 @@ import type {
   VoidFieldInstance,
   VoidFieldProps,
 } from '../types'
-import { getReactiveAdapter } from '../reactive'
-import { deepClone, deepMerge, FormPath, uid } from '../shared'
-import { diff as coreDiff, getDiffView as coreGetDiffView } from '../shared/diff'
-import type { DiffFieldView, DiffResult } from '../shared/diff'
+import type { ValidationFeedback, ValidationTrigger } from '../validator'
 import { FormEventEmitter, FormLifeCycle } from '../events'
 import { FormHookManager } from '../hooks'
 import { ReactionEngine } from '../reaction/engine'
+import { getReactiveAdapter } from '../reactive'
+import { deepClone, deepMerge, FormPath, uid } from '../shared'
+import { diff as coreDiff, getDiffView as coreGetDiffView } from '../shared/diff'
 import { ArrayField } from './ArrayField'
 import { Field } from './Field'
 import { ObjectField } from './ObjectField'
@@ -98,7 +98,7 @@ implements FormInstance<Values> {
 
     /* 执行用户定义的 effects */
     if (config.effects) {
-      config.effects(this as unknown as FormInstance)
+      config.effects(this as unknown as FormInstance<Values>)
     }
 
     this._emitter.emit(FormLifeCycle.ON_FORM_INIT, this)
@@ -159,7 +159,7 @@ implements FormInstance<Values> {
     return this._hookManager.runCreateField<V>(
       this as unknown as FormInstance,
       props,
-      (p) => this._doCreateField(p),
+      p => this._doCreateField(p),
     )
   }
 
@@ -170,6 +170,7 @@ implements FormInstance<Values> {
 
     /* 使字段变为响应式，存储并返回代理 */
     const field = adapter.makeObservable(rawField)
+    field.setupEditableAutoClear()
     this.fields.set(field.path, field as unknown as Field)
 
     /* 注册联动 */
@@ -192,6 +193,7 @@ implements FormInstance<Values> {
     const rawField = new ArrayField<V>(this as unknown as FormInstance, props)
 
     const field = adapter.makeObservable(rawField)
+    field.setupEditableAutoClear()
     this.arrayFields.set(field.path, field as unknown as ArrayField)
     this.fields.set(field.path, field as unknown as Field)
 
@@ -202,6 +204,7 @@ implements FormInstance<Values> {
       )
     }
 
+    this._emitter.emit(FormLifeCycle.ON_FIELD_INIT, field)
     return field as unknown as ArrayFieldInstance<V>
   }
 
@@ -213,6 +216,7 @@ implements FormInstance<Values> {
     const rawField = new ObjectField<V>(this as unknown as FormInstance, props)
 
     const field = adapter.makeObservable(rawField)
+    field.setupEditableAutoClear()
     this.objectFields.set(field.path, field as unknown as ObjectField)
     this.fields.set(field.path, field as unknown as Field)
 
@@ -242,6 +246,7 @@ implements FormInstance<Values> {
       )
     }
 
+    this._emitter.emit(FormLifeCycle.ON_FIELD_INIT, field)
     return field
   }
 
@@ -300,7 +305,7 @@ implements FormInstance<Values> {
    * @param start - 起始索引，>= start 的子字段将被清理
    */
   cleanupArrayChildren(arrayPath: string, start: number): void {
-    const prefix = arrayPath + '.'
+    const prefix = `${arrayPath}.`
     const indexRe = /^(\d+)/
 
     /**
@@ -308,17 +313,20 @@ implements FormInstance<Values> {
      * 如 arrayPath='contacts', path='contacts.2.name' → 提取 index=2
      */
     const shouldCleanup = (path: string): boolean => {
-      if (!path.startsWith(prefix)) return false
+      if (!path.startsWith(prefix))
+        return false
       const afterPrefix = path.slice(prefix.length)
       const match = afterPrefix.match(indexRe)
-      if (!match) return false
+      if (!match)
+        return false
       return Number(match[1]) >= start
     }
 
     /* 清理数据字段 */
     const toRemove: string[] = []
     for (const path of this.fields.keys()) {
-      if (shouldCleanup(path)) toRemove.push(path)
+      if (shouldCleanup(path))
+        toRemove.push(path)
     }
     for (const path of toRemove) {
       const field = this.fields.get(path)
@@ -333,7 +341,8 @@ implements FormInstance<Values> {
     /* 清理虚拟字段 */
     const toRemoveVoid: string[] = []
     for (const path of this.voidFields.keys()) {
-      if (shouldCleanup(path)) toRemoveVoid.push(path)
+      if (shouldCleanup(path))
+        toRemoveVoid.push(path)
     }
     for (const path of toRemoveVoid) {
       const voidField = this.voidFields.get(path)
@@ -608,7 +617,8 @@ implements FormInstance<Values> {
         }
         else {
           const field = this.getField(pattern)
-          if (field) fieldsToValidate.push(field)
+          if (field)
+            fieldsToValidate.push(field)
         }
       }
     }
@@ -617,7 +627,8 @@ implements FormInstance<Values> {
     const uniqueFields = Array.from(new Map(fieldsToValidate.map(f => [f.path, f])).values())
 
     const promises = uniqueFields.map(async (field) => {
-      if (!field.visible) return
+      if (!field.visible)
+        return
       const errors = await field.validate('submit')
       allErrors.push(...errors)
       allWarnings.push(...field.warnings)
@@ -654,7 +665,8 @@ implements FormInstance<Values> {
           }
           else {
             const field = this.getField(pattern)
-            if (field) fieldsToClean.push(field)
+            if (field)
+              fieldsToClean.push(field)
           }
         }
       }
@@ -749,21 +761,34 @@ implements FormInstance<Values> {
   }>): void {
     const fields = pattern.includes('*')
       ? this.queryFields(pattern)
-      : (() => { const f = this.getField(pattern); return f ? [f] : [] })()
+      : (() => {
+          const field = this.getField(pattern)
+          return field ? [field] : []
+        })()
 
     const adapter = getReactiveAdapter()
     adapter.batch(() => {
       for (const field of fields) {
-        if (state.display !== undefined) (field as any).display = state.display
-        if (state.visible !== undefined) field.visible = state.visible
-        if (state.disabled !== undefined) field.disabled = state.disabled
-        if (state.preview !== undefined) field.preview = state.preview
-        if (state.loading !== undefined) field.loading = state.loading
-        if (state.required !== undefined) field.required = state.required
-        if (state.pattern !== undefined) field.pattern = state.pattern
-        if (state.value !== undefined) field.setValue(state.value)
-        if (state.componentProps !== undefined) field.setComponentProps(state.componentProps)
-        if (state.component !== undefined) field.component = state.component
+        if (state.display !== undefined)
+          (field as any).display = state.display
+        if (state.visible !== undefined)
+          field.visible = state.visible
+        if (state.disabled !== undefined)
+          field.disabled = state.disabled
+        if (state.preview !== undefined)
+          field.preview = state.preview
+        if (state.loading !== undefined)
+          field.loading = state.loading
+        if (state.required !== undefined)
+          field.required = state.required
+        if (state.pattern !== undefined)
+          field.pattern = state.pattern
+        if (state.value !== undefined)
+          field.setValue(state.value)
+        if (state.componentProps !== undefined)
+          field.setComponentProps(state.componentProps)
+        if (state.component !== undefined)
+          field.component = state.component
       }
     })
   }
@@ -775,7 +800,8 @@ implements FormInstance<Values> {
    * 标记表单已渲染完成，emit ON_FORM_MOUNT 事件。
    */
   mount(): void {
-    if (this.mounted) return
+    if (this.mounted)
+      return
     this.mounted = true
     this._emitter.emit(FormLifeCycle.ON_FORM_MOUNT, this)
   }
@@ -787,7 +813,8 @@ implements FormInstance<Values> {
    * 标记表单已卸载，emit ON_FORM_UNMOUNT 事件。
    */
   unmount(): void {
-    if (!this.mounted) return
+    if (!this.mounted)
+      return
     this.mounted = false
     this._emitter.emit(FormLifeCycle.ON_FORM_UNMOUNT, this)
   }
@@ -850,7 +877,8 @@ implements FormInstance<Values> {
       /* 逐字段恢复状态 */
       for (const [path, state] of Object.entries(graph.fields)) {
         const field = this.fields.get(path)
-        if (!field) continue
+        if (!field)
+          continue
 
         field.display = state.display
         field.disabled = state.disabled
@@ -1002,7 +1030,8 @@ implements FormInstance<Values> {
    */
   scrollToFirstError(): boolean {
     const allErrors = this.errors
-    if (allErrors.length === 0) return false
+    if (allErrors.length === 0)
+      return false
 
     for (const error of allErrors) {
       const field = this.fields.get(error.path)

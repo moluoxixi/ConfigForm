@@ -1,4 +1,4 @@
-import type { SceneConfig } from '../types';
+import type { SceneConfig } from '../types'
 
 /**
  * 场景：表达式引擎
@@ -20,7 +20,7 @@ const ORDER_TYPE_OPTIONS = [
   { label: '普通订单', value: 'normal' },
   { label: '加急订单', value: 'urgent' },
   { label: 'VIP 订单', value: 'vip' },
-];
+]
 
 const config: SceneConfig = {
   title: '表达式引擎',
@@ -142,6 +142,6 @@ const config: SceneConfig = {
       },
     },
   },
-};
+}
 
-export default config;
+export default config

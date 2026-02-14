@@ -1,10 +1,6 @@
-import type { FormInstance } from '@moluoxixi/core'
-import type { InjectionKey } from 'vue'
+import { FormSymbol } from '@moluoxixi/vue'
 import { Button as AButton } from 'ant-design-vue'
 import { defineComponent, h, inject } from 'vue'
-
-/** 表单注入 key */
-const FormSymbol: InjectionKey<FormInstance> = Symbol.for('ConfigForm') as unknown as InjectionKey<FormInstance>
 
 /**
  * 表单操作按钮（提交 + 重置）
@@ -26,7 +22,8 @@ export const LayoutFormActions = defineComponent({
     const form = inject(FormSymbol, null)
 
     const handleSubmit = async (): Promise<void> => {
-      if (!form) return
+      if (!form)
+        return
       const result = await form.submit()
       if (result.errors.length > 0) {
         emit('submitFailed', result.errors)

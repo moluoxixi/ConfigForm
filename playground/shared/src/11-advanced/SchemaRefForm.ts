@@ -1,4 +1,4 @@
-import type { SceneConfig } from '../types';
+import type { SceneConfig } from '../types'
 
 /**
  * 场景：Schema $ref 复用
@@ -142,6 +142,6 @@ const config: SceneConfig = {
       },
     },
   },
-};
+}
 
-export default config;
+export default config

@@ -14,11 +14,11 @@ export const RangePicker = defineComponent({
   name: 'CfRangePicker',
   props: {
     modelValue: {
-      type: Array as PropType<[string, string] | null>,
+      type: Array as unknown as PropType<[string, string] | null>,
       default: null,
     },
     placeholder: {
-      type: Array as PropType<[string, string]>,
+      type: Array as unknown as PropType<[string, string]>,
       default: undefined,
     },
     /** 起始日期占位符 */

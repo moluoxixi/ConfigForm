@@ -1,6 +1,6 @@
-import type { PropType } from 'vue'
 import type { UploadFile, UploadUserFile } from 'element-plus'
-import { ElButton, ElIcon, ElUpload } from 'element-plus'
+import type { PropType } from 'vue'
+import { ElButton, ElUpload } from 'element-plus'
 import { defineComponent, h } from 'vue'
 
 /**
@@ -137,10 +137,12 @@ export const Upload = defineComponent({
 
       return h(ElUpload, uploadProps, () => [
         ...children,
-        props.tip ? h('div', {
-          class: 'el-upload__tip',
-          style: 'color: #909399; font-size: 12px',
-        }, props.tip) : null,
+        props.tip
+          ? h('div', {
+              class: 'el-upload__tip',
+              style: 'color: #909399; font-size: 12px',
+            }, props.tip)
+          : null,
       ])
     }
   },

@@ -13,10 +13,14 @@ const MODE_OPTIONS = [
  * 格式化值为可读字符串
  */
 function formatValue(val: unknown): string {
-  if (val === null || val === undefined || val === '') return '—'
-  if (typeof val === 'boolean') return val ? '是' : '否'
-  if (Array.isArray(val)) return val.length === 0 ? '—' : val.map(v => formatValue(v)).join(', ')
-  if (typeof val === 'object') return JSON.stringify(val, null, 2)
+  if (val === null || val === undefined || val === '')
+    return '—'
+  if (typeof val === 'boolean')
+    return val ? '是' : '否'
+  if (Array.isArray(val))
+    return val.length === 0 ? '—' : val.map(v => formatValue(v)).join(', ')
+  if (typeof val === 'object')
+    return JSON.stringify(val, null, 2)
   return String(val)
 }
 

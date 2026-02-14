@@ -13,9 +13,11 @@ packages:
   - 'playground/*'
 catalogs:
   build:
+    '@ant-design/icons': ^6.1.0
     '@vue/reactivity': ^3.5.0
     ant-design-vue: ^4.2.0
     antd: ^5.22.0
+    dayjs: ^1.11.11
     element-plus: ^2.9.0
     mobx: ^6.13.0
     mobx-react-lite: ^4.1.0
@@ -26,6 +28,7 @@ catalogs:
     '@commitlint/cli': ^19.8.0
     '@commitlint/config-conventional': ^19.8.0
     '@moluoxixi/eslint-config': latest
+    '@vitejs/plugin-react': ^4.3.0
     '@vitejs/plugin-vue': ^5.2.0
     commitizen: ^4.3.1
     cz-customizable: ^7.4.0
@@ -34,6 +37,7 @@ catalogs:
     husky: ^9.1.7
     lint-staged: ^15.5.1
     vite: ^6.2.4
+    vitest: ^4.0.18
     vue-tsc: ^2.2.0
   type:
     '@types/fs-extra': ^11.0.4

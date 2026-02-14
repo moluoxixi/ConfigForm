@@ -285,7 +285,7 @@ Vue 版 `RecursionField.ts` 的 `renderSchema()` 未传递以上 5 个属性。
 
 ### 18.1 `componentProps.style` 用了字符串
 
-> React 要求 `style` 为对象。涉及文件：`ComponentSwitchForm`、`PaginatedSearchForm`、`RemoteDataSourceForm`、`CronEditorForm`、`DataTransformForm`、`PatternSwitchForm`、`FormGraphForm`、`FormDiffForm`、`MultiFormForm`、`UndoRedoForm`、`PermissionForm`、`PrintExportForm`、`MaskingPluginForm`、`SubmitRetryPluginForm`。
+> React 要求 `style` 为对象。涉及文件：`ComponentSwitchForm`、`PaginatedSearchForm`、`RemoteDataSourceForm`、`CronEditorForm`、`DataTransformForm`、`PatternSwitchForm`、`FormGraphForm`、`FormDiffForm`、`UndoRedoForm`、`PermissionForm`、`PrintExportForm`、`MaskingPluginForm`、`SubmitRetryPluginForm`。
 
 ### 18.2 `DynamicFieldForm` — `_selectedFields` 类型错误
 

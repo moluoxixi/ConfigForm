@@ -10,7 +10,7 @@ export function Password({ value, onChange, onFocus, onBlur, placeholder, disabl
       onFocus={onFocus}
       onBlur={onBlur}
       placeholder={placeholder}
-      disabled={disabled}
+      disabled={disabled || preview}
     />
   )
 }

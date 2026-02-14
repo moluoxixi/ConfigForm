@@ -1,6 +1,6 @@
-import type { CompiledField, CompileOptions, ISchema } from '@moluoxixi/core'
+import type { CompiledField, CompileOptions, ISchema, ObjectFieldProps } from '@moluoxixi/core'
 import type { PropType, VNode } from 'vue'
-import { compileSchema, toArrayFieldProps, toFieldProps, toVoidFieldProps } from '@moluoxixi/core'
+import { compileSchema, isStructuralArrayComponent, toArrayFieldProps, toFieldProps, toVoidFieldProps } from '@moluoxixi/core'
 import { computed, defineComponent, h, inject, provide } from 'vue'
 import { FormSymbol, SchemaSymbol } from '../context'
 import { FormArrayField } from './FormArrayField'
@@ -62,7 +62,7 @@ export const SchemaField = defineComponent({
          * 原子组件（如 CheckboxGroup/Transfer）虽然值为数组，但作为普通字段渲染。
          */
         const comp = cf.schema.component
-        const isStructuralArray = !comp || comp === 'ArrayItems' || comp === 'ArrayTable'
+        const isStructuralArray = isStructuralArrayComponent(comp)
         if (!isStructuralArray) {
           return h(FormField, {
             key: cf.address,
@@ -87,12 +87,12 @@ export const SchemaField = defineComponent({
      * array 节点 → FormArrayField
      *
      * 参考 Formily：将 items schema 通过 componentProps.itemsSchema 传递给
-     * ArrayItems 组件，由 ArrayItems 使用 RecursionField 递归渲染每个数组项。
+     * ArrayField 组件，由 ArrayField 使用 RecursionField 递归渲染每个数组项。
      */
     function renderArrayNode(cf: CompiledField): VNode {
       const arrayProps = toArrayFieldProps(cf)
 
-      /* 将 items schema 注入 componentProps，供 ArrayItems 使用 */
+      /* 将 items schema 注入 componentProps，供 ArrayField 使用 */
       arrayProps.componentProps = {
         ...arrayProps.componentProps,
         itemsSchema: cf.schema.items,
@@ -135,7 +135,7 @@ export const SchemaField = defineComponent({
       }, {
         default: () => h(FormObjectField, {
           name: cf.dataPath,
-          fieldProps: toFieldProps(cf),
+          fieldProps: toFieldProps(cf) as Partial<ObjectFieldProps>,
         }, {
           default: () => renderChildren(cf.children),
         }),

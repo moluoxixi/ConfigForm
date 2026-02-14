@@ -24,8 +24,8 @@
   },
   "files": ["dist", "src"],
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts",
-    "dev": "tsup src/index.ts --format esm,cjs --dts --watch"
+    "build": "tsup src/index.ts --format esm,cjs --dts --tsconfig tsconfig.build.json",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --tsconfig tsconfig.build.json --watch"
   },
   "peerDependencies": {
     "element-plus": ">=2.7.0",
@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@moluoxixi/core": "workspace:*",
+    "@moluoxixi/ui-vue-shared": "workspace:*",
     "@moluoxixi/vue": "workspace:*"
   },
   "devDependencies": {

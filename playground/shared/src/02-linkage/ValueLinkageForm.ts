@@ -18,12 +18,20 @@ const COUNTRY_OPTIONS = [
 
 /** 国家 → 区号映射 */
 const COUNTRY_CODE: Record<string, string> = {
-  china: '+86', usa: '+1', japan: '+81', korea: '+82', uk: '+44',
+  china: '+86',
+  usa: '+1',
+  japan: '+81',
+  korea: '+82',
+  uk: '+44',
 }
 
 /** 国家 → 货币映射 */
 const COUNTRY_CURRENCY: Record<string, string> = {
-  china: 'CNY', usa: 'USD', japan: 'JPY', korea: 'KRW', uk: 'GBP',
+  china: 'CNY',
+  usa: 'USD',
+  japan: 'JPY',
+  korea: 'KRW',
+  uk: 'GBP',
 }
 
 const config: SceneConfig = {
@@ -31,10 +39,19 @@ const config: SceneConfig = {
   description: '单向同步 / 格式转换 / 映射转换 / 多对一聚合',
 
   initialValues: {
-    firstName: '', lastName: '', fullName: '',
-    rawInput: '', upperCase: '', trimmed: '',
-    country: 'china', areaCode: '+86', currency: 'CNY',
-    province: '', city: '', district: '', fullAddress: '',
+    firstName: '',
+    lastName: '',
+    fullName: '',
+    rawInput: '',
+    upperCase: '',
+    trimmed: '',
+    country: 'china',
+    areaCode: '+86',
+    currency: 'CNY',
+    province: '',
+    city: '',
+    district: '',
+    fullAddress: '',
   },
 
   schema: {
@@ -44,7 +61,9 @@ const config: SceneConfig = {
       firstName: { type: 'string', title: '姓', componentProps: { placeholder: '请输入姓' } },
       lastName: { type: 'string', title: '名', componentProps: { placeholder: '请输入名' } },
       fullName: {
-        type: 'string', title: '全名（自动拼接）', componentProps: { disabled: true },
+        type: 'string',
+        title: '全名（自动拼接）',
+        componentProps: { disabled: true },
         reactions: [{
           watch: ['firstName', 'lastName'],
           fulfill: { value: '{{(($values.firstName || "") + ($values.lastName || "")).trim()}}' },
@@ -52,32 +71,43 @@ const config: SceneConfig = {
       },
       rawInput: { type: 'string', title: '输入文本', componentProps: { placeholder: '输入任意文本' } },
       upperCase: {
-        type: 'string', title: '大写转换', componentProps: { disabled: true },
+        type: 'string',
+        title: '大写转换',
+        componentProps: { disabled: true },
         reactions: [{
           watch: 'rawInput',
           fulfill: { value: '{{($values.rawInput || "").toUpperCase()}}' },
         }],
       },
       trimmed: {
-        type: 'string', title: '去空格', componentProps: { disabled: true },
+        type: 'string',
+        title: '去空格',
+        componentProps: { disabled: true },
         reactions: [{
           watch: 'rawInput',
           fulfill: { value: '{{($values.rawInput || "").trim()}}' },
         }],
       },
       country: {
-        type: 'string', title: '国家', default: 'china', enum: COUNTRY_OPTIONS,
+        type: 'string',
+        title: '国家',
+        default: 'china',
+        enum: COUNTRY_OPTIONS,
       },
       /* 映射转换：需要引用外部 JS 对象，保留函数写法 */
       areaCode: {
-        type: 'string', title: '区号（自动）', componentProps: { disabled: true },
+        type: 'string',
+        title: '区号（自动）',
+        componentProps: { disabled: true },
         reactions: [{
           watch: 'country',
           fulfill: { value: (_field: unknown, ctx: { values: Record<string, unknown> }): string => COUNTRY_CODE[ctx.values.country as string] ?? '' },
         }],
       },
       currency: {
-        type: 'string', title: '货币（自动）', componentProps: { disabled: true },
+        type: 'string',
+        title: '货币（自动）',
+        componentProps: { disabled: true },
         reactions: [{
           watch: 'country',
           fulfill: { value: (_field: unknown, ctx: { values: Record<string, unknown> }): string => COUNTRY_CURRENCY[ctx.values.country as string] ?? '' },
@@ -87,7 +117,9 @@ const config: SceneConfig = {
       city: { type: 'string', title: '市', componentProps: { placeholder: '市' } },
       district: { type: 'string', title: '区', componentProps: { placeholder: '区' } },
       fullAddress: {
-        type: 'string', title: '完整地址（聚合）', componentProps: { disabled: true },
+        type: 'string',
+        title: '完整地址（聚合）',
+        componentProps: { disabled: true },
         reactions: [{
           watch: ['province', 'city', 'district'],
           fulfill: { value: '{{[$values.province, $values.city, $values.district].filter(Boolean).join(" ")}}' },

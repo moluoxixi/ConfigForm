@@ -46,12 +46,14 @@ export function useSchemaItems(): SchemaItem[] {
 
   return useMemo(() => {
     const result: SchemaItem[] = []
-    if (!schema.properties) return result
+    if (!schema.properties)
+      return result
 
     for (const [name, childSchema] of Object.entries(schema.properties)) {
       /* 检查子字段的 display 状态（支持联动隐藏面板） */
       const childField = field.form.getAllVoidFields().get(`${field.path}.${name}`)
-      if (childField && !childField.visible) continue
+      if (childField && !childField.visible)
+        continue
 
       result.push({
         name,

@@ -1,3 +1,6 @@
+export { ArrayBase, useArray, useIndex } from './ArrayBase'
+export { ArrayField, ArrayItems } from './ArrayField'
+export { ArrayTable } from './ArrayTable'
 export { AutoComplete } from './AutoComplete'
 export { Cascader } from './Cascader'
 export { CheckboxGroup } from './CheckboxGroup'
@@ -11,18 +14,18 @@ export { FormItem } from './FormItem'
 export { Input } from './Input'
 
 export { InputNumber } from './InputNumber'
-/* 布局组件 */
-export { Mentions } from './Mentions'
-export { MonthPicker } from './MonthPicker'
 export { LayoutCard } from './LayoutCard'
 export { LayoutCollapse } from './LayoutCollapse'
-
 export { LayoutFormActions } from './LayoutFormActions'
 export { LayoutStepActions } from './LayoutStepActions'
 
 export { LayoutSteps } from './LayoutSteps'
-
 export { LayoutTabs } from './LayoutTabs'
+
+/* 布局组件 */
+export { Mentions } from './Mentions'
+
+export { MonthPicker } from './MonthPicker'
 export { Password } from './Password'
 export { RadioGroup } from './RadioGroup'
 export { RangePicker } from './RangePicker'
@@ -34,11 +37,11 @@ export { Slider } from './Slider'
 export { StatusTabs } from './StatusTabs'
 /* 其他表单组件 */
 export { Switch } from './Switch'
+export { Textarea } from './Textarea'
 export { TimePicker } from './TimePicker'
 export { Transfer } from './Transfer'
 export { TreeSelect } from './TreeSelect'
 export { Upload } from './Upload'
 export { WeekPicker } from './WeekPicker'
-export { YearPicker } from './YearPicker'
 
-export { Textarea } from './Textarea'
+export { YearPicker } from './YearPicker'

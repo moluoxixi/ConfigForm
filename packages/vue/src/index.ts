@@ -1,19 +1,18 @@
 /* 组件 */
 export {
-  ArrayBase,
-  ArrayItems,
-  ArrayTable,
   ConfigForm,
+  DiffViewer,
   FormArrayField,
   FormField,
+  FormLayout,
+  FormLayoutSymbol,
   FormObjectField,
   FormProvider,
   FormVoidField,
   ReactiveField,
   RecursionField,
   SchemaField,
-  useArray,
-  useIndex,
+  useFormLayout,
 } from './components'
 
 /* Composables */
@@ -22,11 +21,11 @@ export {
   useField,
   useFieldByPath,
   useFieldSchema,
-  useSchemaItems,
   useForm,
   useFormSubmitting,
   useFormValid,
   useFormValues,
+  useSchemaItems,
 } from './composables'
 export type { SchemaItem } from './composables'
 
@@ -36,6 +35,8 @@ export { ComponentRegistrySymbol, FieldSymbol, FormSymbol, SchemaSymbol } from '
 /* 注册 */
 export {
   createComponentScope,
+  createRegistry,
+  createRegistryState,
   getComponent,
   getDecorator,
   getDefaultDecorator,
@@ -44,8 +45,9 @@ export {
   registerComponents,
   registerDecorator,
   registerFieldComponents,
+  resetRegistry,
 } from './registry'
-export type { ComponentScope, RegisterComponentOptions } from './registry'
+export type { ComponentScope, RegisterComponentOptions, RegistryState } from './registry'
 
 /* 类型 re-export（供 playground 直接使用 */
 export type { FieldPattern } from '@moluoxixi/core'

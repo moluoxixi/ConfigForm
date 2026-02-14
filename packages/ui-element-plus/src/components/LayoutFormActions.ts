@@ -1,10 +1,6 @@
-import type { FormInstance } from '@moluoxixi/core'
-import type { InjectionKey } from 'vue'
+import { FormSymbol } from '@moluoxixi/vue'
 import { ElButton } from 'element-plus'
 import { defineComponent, h, inject } from 'vue'
-
-/** 表单注入 key（从 @moluoxixi/vue 的 context 中复制，避免循环依赖） */
-const FormSymbol: InjectionKey<FormInstance> = Symbol.for('ConfigForm') as unknown as InjectionKey<FormInstance>
 
 /**
  * 表单操作按钮（提交 + 重置）
@@ -26,7 +22,8 @@ export const LayoutFormActions = defineComponent({
     const form = inject(FormSymbol, null)
 
     const handleSubmit = async (): Promise<void> => {
-      if (!form) return
+      if (!form)
+        return
       const result = await form.submit()
       if (result.errors.length > 0) {
         emit('submitFailed', result.errors)

@@ -1,5 +1,5 @@
-import type { SceneConfig } from '../types'
 import type { FormInstance } from '@moluoxixi/core'
+import type { SceneConfig } from '../types'
 import { FormLifeCycle } from '@moluoxixi/core'
 
 /**
@@ -53,12 +53,12 @@ const config: SceneConfig = {
 
         /* CSV 导出 */
         const headers = Object.keys(exportData)
-        const csvValues = headers.map(h => {
+        const csvValues = headers.map((h) => {
           const v = exportData[h]
           const str = String(v ?? '')
           return str.includes(',') ? `"${str}"` : str
         })
-        const csvStr = headers.join(',') + '\n' + csvValues.join(',')
+        const csvStr = `${headers.join(',')}\n${csvValues.join(',')}`
         const csvField = form.getField('_exportCsv')
         if (csvField) {
           csvField.setValue(csvStr)

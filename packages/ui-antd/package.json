@@ -24,8 +24,8 @@
   },
   "files": ["dist", "src"],
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts",
-    "dev": "tsup src/index.ts --format esm,cjs --dts --watch"
+    "build": "tsup src/index.ts --format esm,cjs --dts --tsconfig tsconfig.build.json",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --tsconfig tsconfig.build.json --watch"
   },
   "peerDependencies": {
     "antd": ">=5.0.0",
@@ -35,7 +35,7 @@
   "dependencies": {
     "@moluoxixi/core": "workspace:*",
     "@moluoxixi/react": "workspace:*",
-    "@moluoxixi/reactive-react": "workspace:*"
+    "dayjs": "catalog:build"
   },
   "devDependencies": {
     "@types/react": "catalog:type",

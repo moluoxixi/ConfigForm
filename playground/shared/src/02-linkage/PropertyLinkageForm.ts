@@ -25,8 +25,15 @@ const config: SceneConfig = {
   description: '动态 disabled / required / placeholder / componentProps',
 
   initialValues: {
-    enableRemark: false, remark: '', contactType: 'phone', contactValue: '',
-    productType: 'standard', quantity: 1, isVip: false, vipCompany: '', vipId: '',
+    enableRemark: false,
+    remark: '',
+    contactType: 'phone',
+    contactValue: '',
+    productType: 'standard',
+    quantity: 1,
+    isVip: false,
+    vipCompany: '',
+    vipId: '',
   },
 
   schema: {
@@ -35,8 +42,11 @@ const config: SceneConfig = {
     properties: {
       enableRemark: { type: 'boolean', title: '启用备注', default: false },
       remark: {
-        type: 'string', title: '备注内容', component: 'Textarea',
-        componentProps: { placeholder: '请先开启' }, disabled: true,
+        type: 'string',
+        title: '备注内容',
+        component: 'Textarea',
+        componentProps: { placeholder: '请先开启' },
+        disabled: true,
         reactions: [{
           watch: 'enableRemark',
           when: '{{$values.enableRemark === true}}',
@@ -45,11 +55,16 @@ const config: SceneConfig = {
         }],
       },
       contactType: {
-        type: 'string', title: '联系方式类型', default: 'phone', enum: CONTACT_TYPE_OPTIONS,
+        type: 'string',
+        title: '联系方式类型',
+        default: 'phone',
+        enum: CONTACT_TYPE_OPTIONS,
       },
       /* 使用多条件 reactions 替代复杂 run 函数 */
       contactValue: {
-        type: 'string', title: '联系方式', required: true,
+        type: 'string',
+        title: '联系方式',
+        required: true,
         componentProps: { placeholder: '请输入手机号' },
         reactions: [
           {
@@ -70,11 +85,17 @@ const config: SceneConfig = {
         ],
       },
       productType: {
-        type: 'string', title: '产品类型', component: 'RadioGroup',
-        default: 'standard', enum: PRODUCT_TYPE_OPTIONS,
+        type: 'string',
+        title: '产品类型',
+        component: 'RadioGroup',
+        default: 'standard',
+        enum: PRODUCT_TYPE_OPTIONS,
       },
       quantity: {
-        type: 'number', title: '数量', default: 1, description: '根据产品类型调整 step',
+        type: 'number',
+        title: '数量',
+        default: 1,
+        description: '根据产品类型调整 step',
         reactions: [{
           watch: 'productType',
           when: '{{$values.productType === "weight"}}',
@@ -84,7 +105,9 @@ const config: SceneConfig = {
       },
       isVip: { type: 'boolean', title: 'VIP 用户', default: false, description: '开启后公司名称和工号必填' },
       vipCompany: {
-        type: 'string', title: '公司名称', componentProps: { placeholder: 'VIP 必填' },
+        type: 'string',
+        title: '公司名称',
+        componentProps: { placeholder: 'VIP 必填' },
         reactions: [{
           watch: 'isVip',
           when: '{{$values.isVip === true}}',
@@ -93,7 +116,9 @@ const config: SceneConfig = {
         }],
       },
       vipId: {
-        type: 'string', title: '工号', componentProps: { placeholder: 'VIP 必填' },
+        type: 'string',
+        title: '工号',
+        componentProps: { placeholder: 'VIP 必填' },
         reactions: [{
           watch: 'isVip',
           when: '{{$values.isVip === true}}',

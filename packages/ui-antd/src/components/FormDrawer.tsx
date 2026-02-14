@@ -1,10 +1,9 @@
 import type { FormConfig, FormInstance, ISchema, ValidationFeedback } from '@moluoxixi/core'
 import type { ComponentType, ReactElement, ReactNode } from 'react'
 import { createForm } from '@moluoxixi/core'
-import { FormProvider, SchemaField, useCreateForm } from '@moluoxixi/react'
-import { observer } from '@moluoxixi/reactive-react'
+import { FormProvider, observer, SchemaField, useCreateForm } from '@moluoxixi/react'
 import { Button, Drawer, Space } from 'antd'
-import React, { useCallback, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 
 /* ======================== 类型定义 ======================== */

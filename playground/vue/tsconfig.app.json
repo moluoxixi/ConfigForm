@@ -4,13 +4,5 @@
     "lib": ["DOM", "ESNext"],
     "types": ["vite/client"]
   },
-  "vueCompilerOptions": {
-    "plugins": [
-      "@vue-macros/volar/define-models",
-      "@vue-macros/volar/define-slots",
-      "@vue-macros/volar/define-props",
-      "@vue-macros/volar/define-emits"
-    ]
-  },
   "include": ["src/**/*"]
 }
