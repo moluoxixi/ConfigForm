@@ -27,13 +27,19 @@ const config: SceneConfig = {
     decoratorProps: {
       labelPosition: 'right',
       labelWidth: '120px',
-      actions: { submit: '提交', reset: '重置' },
     },
     properties: {
       steps: {
         type: 'void',
         component: 'LayoutSteps',
-        componentProps: { labels: ['基本信息', '工作信息'] },
+        componentProps: {
+          labels: ['基本信息', '工作信息'],
+          actions: {
+            submit: '提交',
+            reset: '重置',
+            align: 'center',
+          },
+        },
         properties: {
           step1: {
             type: 'void',

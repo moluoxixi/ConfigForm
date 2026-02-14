@@ -109,7 +109,6 @@ export const LayoutTabs = defineComponent({
       return h(TabPaneComponent, { key: item.name, tab: tabLabel, forceRender: true }, () =>
         h(RecursionField, {
           schema: item.schema,
-          name: item.name,
           basePath,
           onlyRenderProperties: true,
         }))

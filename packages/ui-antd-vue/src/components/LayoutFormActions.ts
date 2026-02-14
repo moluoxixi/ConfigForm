@@ -16,6 +16,7 @@ export const LayoutFormActions = defineComponent({
     showReset: { type: Boolean, default: true },
     submitLabel: { type: String, default: '提交' },
     resetLabel: { type: String, default: '重置' },
+    align: { type: String, default: 'center' },
   },
   emits: ['submit', 'submitFailed', 'reset'],
   setup(props, { emit }) {
@@ -46,7 +47,9 @@ export const LayoutFormActions = defineComponent({
         return null
       }
 
-      return h('div', { style: 'margin-top: 24px; display: flex; justify-content: center; gap: 8px' }, [
+      const justifyContent = props.align === 'left' ? 'flex-start' : props.align === 'right' ? 'flex-end' : 'center'
+
+      return h('div', { style: `margin-top: 24px; display: flex; justify-content: ${justifyContent}; gap: 8px` }, [
         props.showSubmit ? h(AButton, { type: 'primary', onClick: handleSubmit }, () => props.submitLabel) : null,
         props.showReset ? h(AButton, { onClick: handleReset }, () => props.resetLabel) : null,
       ])

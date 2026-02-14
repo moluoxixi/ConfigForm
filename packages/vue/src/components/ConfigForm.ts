@@ -15,6 +15,7 @@ const FormActionsRenderer = defineComponent({
     showReset: Boolean,
     submitLabel: { type: String, default: '提交' },
     resetLabel: { type: String, default: '重置' },
+    align: { type: String as PropType<'left' | 'center' | 'right'>, default: 'center' },
   },
   emits: ['reset', 'submit', 'submitFailed'],
   setup(props, { emit }) {
@@ -29,12 +30,14 @@ const FormActionsRenderer = defineComponent({
           showReset: props.showReset,
           submitLabel: props.submitLabel,
           resetLabel: props.resetLabel,
+          align: props.align,
           onReset: () => emit('reset'),
           onSubmit: (values: Record<string, unknown>) => emit('submit', values),
           onSubmitFailed: (errors: Array<{ path: string, message: string }>) => emit('submitFailed', errors),
         })
       }
 
+      const justifyContent = props.align === 'left' ? 'flex-start' : props.align === 'right' ? 'flex-end' : 'center'
       const buttons: ReturnType<typeof h>[] = []
       if (props.showSubmit) {
         buttons.push(h('button', { type: 'submit', style: 'margin-right: 8px; padding: 4px 16px; cursor: pointer' }, props.submitLabel))
@@ -42,7 +45,7 @@ const FormActionsRenderer = defineComponent({
       if (props.showReset) {
         buttons.push(h('button', { type: 'button', style: 'padding: 4px 16px; cursor: pointer', onClick: () => emit('reset') }, props.resetLabel))
       }
-      return h('div', { style: 'margin-top: 16px' }, buttons)
+      return h('div', { style: `margin-top: 16px; display: flex; justify-content: ${justifyContent}` }, buttons)
     }
   },
 })
@@ -253,6 +256,9 @@ export const ConfigForm = defineComponent({
       const resetLabel = typeof actions?.reset === 'string' ? actions.reset : '重置'
       const showSubmit = actions?.submit !== false
       const showReset = actions?.reset !== false
+      const align = (actions?.align === 'left' || actions?.align === 'right' || actions?.align === 'center')
+        ? actions.align
+        : 'center'
 
       return h(FormProvider, {
         form,
@@ -284,6 +290,7 @@ export const ConfigForm = defineComponent({
                 showReset,
                 submitLabel,
                 resetLabel,
+                align,
                 onReset: () => {
                   form.reset()
                   emit('reset')

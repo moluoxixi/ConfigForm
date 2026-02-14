@@ -46,7 +46,6 @@ export const LayoutCollapse = defineComponent({
       h(CollapseItemComponent, { key: item.name, name: item.name, title: item.title }, () =>
         h(RecursionField, {
           schema: item.schema,
-          name: item.name,
           basePath,
           onlyRenderProperties: true,
         })),

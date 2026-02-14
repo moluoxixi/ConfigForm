@@ -156,6 +156,9 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
   const resetLabel = typeof actions?.reset === 'string' ? actions.reset : '重置'
   const showSubmit = actions?.submit !== false
   const showReset = actions?.reset !== false
+  const align = (actions?.align === 'left' || actions?.align === 'right' || actions?.align === 'center')
+    ? actions.align
+    : 'center'
 
   /* 布局配置 */
   const layout = schema?.layout as {
@@ -210,6 +213,7 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
             showReset={showReset}
             submitLabel={submitLabel}
             resetLabel={resetLabel}
+            align={align}
             onReset={handleReset}
             onSubmit={values => onSubmit?.(values as Values)}
             onSubmitFailed={errors => onSubmitFailed?.(errors as ValidationFeedback[])}
@@ -230,12 +234,13 @@ interface FormActionsRendererProps {
   showReset: boolean
   submitLabel: string
   resetLabel: string
+  align: 'left' | 'center' | 'right'
   onReset: () => void
   onSubmit?: (values: Record<string, unknown>) => void
   onSubmitFailed?: (errors: unknown[]) => void
 }
 
-function FormActionsRenderer({ showSubmit, showReset, submitLabel, resetLabel, onReset, onSubmit, onSubmitFailed }: FormActionsRendererProps): ReactElement {
+function FormActionsRenderer({ showSubmit, showReset, submitLabel, resetLabel, align, onReset, onSubmit, onSubmitFailed }: FormActionsRendererProps): ReactElement {
   const registry = useContext(ComponentRegistryContext)
   const LayoutActions = registry.components.get('LayoutFormActions')
 
@@ -246,6 +251,7 @@ function FormActionsRenderer({ showSubmit, showReset, submitLabel, resetLabel, o
         showReset={showReset}
         submitLabel={submitLabel}
         resetLabel={resetLabel}
+        align={align}
         onReset={onReset}
         onSubmit={onSubmit}
         onSubmitFailed={onSubmitFailed}
@@ -253,8 +259,10 @@ function FormActionsRenderer({ showSubmit, showReset, submitLabel, resetLabel, o
     )
   }
 
+  const justifyContent = align === 'left' ? 'flex-start' : align === 'right' ? 'flex-end' : 'center'
+
   return (
-    <div style={{ marginTop: 16 }}>
+    <div style={{ marginTop: 16, display: 'flex', justifyContent }}>
       {showSubmit && (
         <button type="submit" style={{ marginRight: 8, padding: '4px 16px', cursor: 'pointer' }}>
           {submitLabel}

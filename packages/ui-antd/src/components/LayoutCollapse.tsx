@@ -47,7 +47,6 @@ export const LayoutCollapse = observer((_props: LayoutCollapseProps): ReactEleme
         children: (
           <RecursionField
             schema={item.schema}
-            name={item.name}
             basePath={basePath}
             onlyRenderProperties
           />

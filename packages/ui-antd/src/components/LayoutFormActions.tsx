@@ -7,6 +7,7 @@ export interface LayoutFormActionsProps {
   showReset?: boolean
   submitLabel?: string
   resetLabel?: string
+  align?: 'left' | 'center' | 'right'
   onSubmit?: (values: Record<string, unknown>) => void
   onSubmitFailed?: (errors: unknown[]) => void
   onReset?: () => void
@@ -24,6 +25,7 @@ export function LayoutFormActions({
   showReset = true,
   submitLabel = '提交',
   resetLabel = '重置',
+  align = 'center',
   onSubmit,
   onSubmitFailed,
   onReset,
@@ -52,8 +54,10 @@ export function LayoutFormActions({
     return <></>
   }
 
+  const justifyContent = align === 'left' ? 'flex-start' : align === 'right' ? 'flex-end' : 'center'
+
   return (
-    <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center', gap: 8 }}>
+    <div style={{ marginTop: 24, display: 'flex', justifyContent, gap: 8 }}>
       {showSubmit && <AButton type="primary" onClick={handleSubmit}>{submitLabel}</AButton>}
       {showReset && <AButton onClick={handleReset}>{resetLabel}</AButton>}
     </div>

@@ -4,7 +4,7 @@ import { FormPath } from '@moluoxixi/core'
 import { observer, RecursionField, useField, useForm, useSchemaItems } from '@moluoxixi/react'
 
 import { Steps as ASteps, Button } from 'antd'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 export interface LayoutStepsProps {}
 
@@ -23,6 +23,7 @@ export const LayoutSteps = observer((_props: LayoutStepsProps): ReactElement => 
   const form = useForm()
   const items = useSchemaItems()
   const [current, setCurrent] = useState(0)
+  const [actionLoading, setActionLoading] = useState(false)
 
   const getDataPath = (path: string): string => {
     if (!path)
@@ -63,11 +64,11 @@ export const LayoutSteps = observer((_props: LayoutStepsProps): ReactElement => 
   }
 
   const basePath = getDataPath(field.path)
-  const itemPatterns = new Map(items.map((item) => {
+  const itemPatterns = useMemo(() => new Map(items.map((item) => {
     const paths = new Set<string>()
     collectDataPaths(item.schema, basePath, paths)
     return [item.name, Array.from(paths)] as const
-  }))
+  })), [items, basePath])
 
   /** 统计某个步骤下的验证错误数量 */
   const getErrorCount = (itemName: string): number => {
@@ -94,6 +95,89 @@ export const LayoutSteps = observer((_props: LayoutStepsProps): ReactElement => 
     }
   }, [form.errors.length])
 
+  const componentProps = (field.componentProps ?? {}) as Record<string, unknown>
+  const rawActions = (componentProps.actions ?? {}) as Record<string, unknown>
+  const stepOverrides = Array.isArray(rawActions.stepActions)
+    ? (rawActions.stepActions[current] as Record<string, unknown> | undefined)
+    : undefined
+  const actions = { ...rawActions, ...(stepOverrides ?? {}) } as Record<string, unknown>
+
+  const resolveAlign = (value?: unknown): 'flex-start' | 'center' | 'flex-end' => {
+    if (value === 'left')
+      return 'flex-start'
+    if (value === 'right')
+      return 'flex-end'
+    return 'center'
+  }
+
+  const resolveLabel = (value: unknown, fallback: string): string =>
+    typeof value === 'string' ? value : fallback
+
+  const allowAction = (value: unknown): boolean => value !== false
+
+  const handleNext = async (): Promise<void> => {
+    if (current >= items.length - 1)
+      return
+    const currentItem = items[current]
+    if (!currentItem) {
+      setCurrent(current + 1)
+      return
+    }
+    const patterns = itemPatterns.get(currentItem.name) ?? []
+    if (patterns.length === 0) {
+      setCurrent(current + 1)
+      return
+    }
+    setActionLoading(true)
+    try {
+      const result = await form.validateSection(patterns)
+      if (result.valid) {
+        setCurrent(current + 1)
+      }
+      else {
+        form.scrollToFirstError()
+      }
+    }
+    finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleSubmit = async (): Promise<void> => {
+    const result = await form.submit()
+    if (result.errors.length > 0) {
+      form.scrollToFirstError()
+    }
+  }
+
+  const handleReset = (): void => {
+    form.reset()
+  }
+
+  const renderActions = typeof (actions as { render?: unknown }).render === 'function'
+    ? (actions as { render: (ctx: {
+        current: number
+        total: number
+        prev: () => void
+        next: () => void
+        submit: () => void
+        reset: () => void
+        form: typeof form
+      }) => React.ReactNode }).render
+    : null
+
+  const actionContent = renderActions
+    ? renderActions({
+        current,
+        total: items.length,
+        prev: () => setCurrent(current - 1),
+        next: handleNext,
+        submit: handleSubmit,
+        reset: handleReset,
+        form,
+      })
+    : null
+
   return (
     <div>
       <ASteps
@@ -109,21 +193,42 @@ export const LayoutSteps = observer((_props: LayoutStepsProps): ReactElement => 
           <div key={item.name} style={{ display: index === current ? 'block' : 'none' }}>
             <RecursionField
               schema={item.schema}
-              name={item.name}
               basePath={basePath}
               onlyRenderProperties
             />
           </div>
         ))}
       </div>
-      <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
-        {current > 0 && (
-          <Button onClick={() => setCurrent(current - 1)}>上一步</Button>
-        )}
-        {current < items.length - 1 && (
-          <Button type="primary" onClick={() => setCurrent(current + 1)}>下一步</Button>
-        )}
-      </div>
+      {form.pattern === 'editable' && (
+        <div style={{ marginTop: 16, display: 'flex', justifyContent: resolveAlign(actions.align), gap: 8 }}>
+          {renderActions
+            ? actionContent
+            : (
+                <>
+                  {current > 0 && allowAction(actions.prev) && (
+                    <Button onClick={() => setCurrent(current - 1)}>
+                      {resolveLabel(actions.prev, '上一步')}
+                    </Button>
+                  )}
+                  {current < items.length - 1 && allowAction(actions.next) && (
+                    <Button type="primary" loading={actionLoading} onClick={handleNext}>
+                      {resolveLabel(actions.next, '下一步')}
+                    </Button>
+                  )}
+                  {current === items.length - 1 && allowAction(actions.submit) && (
+                    <Button type="primary" loading={actionLoading} onClick={handleSubmit}>
+                      {resolveLabel(actions.submit, '提交')}
+                    </Button>
+                  )}
+                  {allowAction(actions.reset) && (
+                    <Button onClick={handleReset}>
+                      {resolveLabel(actions.reset, '重置')}
+                    </Button>
+                  )}
+                </>
+              )}
+        </div>
+      )}
     </div>
   )
 })

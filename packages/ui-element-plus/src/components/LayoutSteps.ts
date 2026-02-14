@@ -18,6 +18,7 @@ export const LayoutSteps = defineComponent({
     const form = useForm()
     const items = useSchemaItems()
     const current = ref(0)
+    const actionLoading = ref(false)
 
     const getDataPath = (path: string): string => {
       if (!path)
@@ -86,28 +87,125 @@ export const LayoutSteps = defineComponent({
       }
     })
 
-    return () => h('div', null, [
-      h(ElSteps, { active: current.value, style: 'margin-bottom: 24px' }, () =>
-        items.map(item => h(ElStep, {
-          title: item.title,
-          status: getErrorCount(item.name) > 0 ? 'error' : undefined,
-        }))),
-      ...items.map((item, index) =>
-        h('div', { key: item.name, style: { display: index === current.value ? 'block' : 'none' } }, h(RecursionField, {
-          schema: item.schema,
-          name: item.name,
-          basePath,
-          onlyRenderProperties: true,
-        })),
-      ),
-      h('div', { style: 'margin-top: 16px; display: flex; gap: 8px' }, [
-        current.value > 0
-          ? h(ElButton, { onClick: () => { current.value-- } }, () => '上一步')
+    const resolveAlign = (value?: unknown): string => {
+      if (value === 'left')
+        return 'flex-start'
+      if (value === 'right')
+        return 'flex-end'
+      return 'center'
+    }
+
+    const resolveLabel = (value: unknown, fallback: string): string =>
+      typeof value === 'string' ? value : fallback
+
+    const allowAction = (value: unknown): boolean => value !== false
+
+    const handleNext = async (): Promise<void> => {
+      if (current.value >= items.length - 1)
+        return
+      const currentItem = items[current.value]
+      if (!currentItem) {
+        current.value += 1
+        return
+      }
+      const patterns = itemPatterns.get(currentItem.name) ?? []
+      if (patterns.length === 0) {
+        current.value += 1
+        return
+      }
+      actionLoading.value = true
+      try {
+        const result = await form.validateSection(patterns)
+        if (result.valid) {
+          current.value += 1
+        }
+        else {
+          form.scrollToFirstError()
+        }
+      }
+      finally {
+        actionLoading.value = false
+      }
+    }
+
+    const handleSubmit = async (): Promise<void> => {
+      const result = await form.submit()
+      if (result.errors.length > 0) {
+        form.scrollToFirstError()
+      }
+    }
+
+    const handleReset = (): void => {
+      form.reset()
+    }
+
+    return () => {
+      const componentProps = (field.componentProps ?? {}) as Record<string, unknown>
+      const rawActions = (componentProps.actions ?? {}) as Record<string, unknown>
+      const stepOverrides = Array.isArray(rawActions.stepActions)
+        ? (rawActions.stepActions[current.value] as Record<string, unknown> | undefined)
+        : undefined
+      const actions = { ...rawActions, ...(stepOverrides ?? {}) } as Record<string, unknown>
+
+      const renderActions = typeof (actions as { render?: unknown }).render === 'function'
+        ? (actions as { render: (ctx: {
+            current: number
+            total: number
+            prev: () => void
+            next: () => void
+            submit: () => void
+            reset: () => void
+            form: typeof form
+          }) => unknown }).render
+        : null
+
+      const customActions = renderActions
+        ? renderActions({
+            current: current.value,
+            total: items.length,
+            prev: () => {
+              if (current.value > 0)
+                current.value -= 1
+            },
+            next: handleNext,
+            submit: handleSubmit,
+            reset: handleReset,
+            form,
+          })
+        : null
+
+      return h('div', null, [
+        h(ElSteps, { active: current.value, style: 'margin-bottom: 24px' }, () =>
+          items.map(item => h(ElStep, {
+            title: item.title,
+            status: getErrorCount(item.name) > 0 ? 'error' : undefined,
+          }))),
+        ...items.map((item, index) =>
+          h('div', { key: item.name, style: { display: index === current.value ? 'block' : 'none' } }, h(RecursionField, {
+            schema: item.schema,
+            basePath,
+            onlyRenderProperties: true,
+          })),
+        ),
+        form.pattern === 'editable'
+          ? h('div', { style: `margin-top: 16px; display: flex; justify-content: ${resolveAlign(actions.align)}; gap: 8px` }, renderActions
+              ? (Array.isArray(customActions) ? customActions : [customActions])
+              : [
+                  current.value > 0 && allowAction(actions.prev)
+                    ? h(ElButton, { onClick: () => { current.value-- } }, () => resolveLabel(actions.prev, '上一步'))
+                    : null,
+                  current.value < items.length - 1 && allowAction(actions.next)
+                    ? h(ElButton, { type: 'primary', loading: actionLoading.value, onClick: handleNext }, () => resolveLabel(actions.next, '下一步'))
+                    : null,
+                  current.value === items.length - 1 && allowAction(actions.submit)
+                    ? h(ElButton, { type: 'primary', loading: actionLoading.value, onClick: handleSubmit }, () => resolveLabel(actions.submit, '提交'))
+                    : null,
+                  allowAction(actions.reset)
+                    ? h(ElButton, { onClick: handleReset }, () => resolveLabel(actions.reset, '重置'))
+                    : null,
+                ])
           : null,
-        current.value < items.length - 1
-          ? h(ElButton, { type: 'primary', onClick: () => { current.value++ } }, () => '下一步')
-          : null,
-      ]),
-    ])
+      ])
+    }
   },
 })

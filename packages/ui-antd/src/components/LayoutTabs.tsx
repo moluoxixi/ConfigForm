@@ -126,7 +126,6 @@ export const LayoutTabs = observer((_props: LayoutTabsProps): ReactElement => {
           children: (
             <RecursionField
               schema={item.schema}
-              name={item.name}
               basePath={basePath}
               onlyRenderProperties
             />
