@@ -32,7 +32,8 @@
 
     <component :is="props.statusTabs" ref="st" v-slot="{ mode, showResult }">
       <ConfigForm
-        :schema="withMode(currentSchema, mode)"
+        :schema="currentSchema"
+        :pattern="mode"
         :initial-values="props.config.initialValues"
         :effects="props.config.effects"
         :plugins="resolvedPlugins"
@@ -52,7 +53,7 @@
  * 场景特定能力（如 i18n 运行时与语言切换）在外层注入，避免通用渲染器耦合业务逻辑。
  */
 import type { FieldPattern, FormPlugin, ISchema } from '@moluoxixi/core'
-import type { SceneConfig } from '@playground/shared'
+import { resolveSceneSchema, type SceneConfig } from '@playground/shared'
 import type { Component } from 'vue'
 import { devToolsPlugin } from '@moluoxixi/plugin-devtools'
 import { ConfigForm } from '@moluoxixi/vue'
@@ -90,17 +91,8 @@ const resolvedPlugins = computed(() => [
 
 /** 当前使用的 schema（有变体时动态生成，否则使用静态 schema） */
 const currentSchema = computed<ISchema>(() => {
-  const variants = props.config.schemaVariants
-  if (variants && variantValue.value) {
-    return variants.factory(variantValue.value)
-  }
-  return props.config.schema
+  return resolveSceneSchema(props.config, variantValue.value)
 })
-
-/** 注入 pattern 到 schema */
-function withMode(s: ISchema, mode: FieldPattern): ISchema {
-  return { ...s, pattern: mode, decoratorProps: { ...s.decoratorProps, pattern: mode } }
-}
 
 function readModeValue(): FieldPattern | undefined {
   const mode = st.value?.mode

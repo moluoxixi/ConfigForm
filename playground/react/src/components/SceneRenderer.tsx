@@ -5,7 +5,7 @@
  * 场景特定能力（如 i18n 运行时与语言切换）在外层注入，避免通用渲染器耦合业务逻辑。
  */
 import type { FieldPattern, FormPlugin, ISchema } from '@moluoxixi/core'
-import type { SceneConfig } from '@playground/shared'
+import { resolveSceneSchema, type SceneConfig } from '@playground/shared'
 import { devToolsPlugin } from '@moluoxixi/plugin-devtools'
 import { ConfigForm } from '@moluoxixi/react'
 import { StatusTabs } from '@moluoxixi/ui-antd'
@@ -14,15 +14,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
 /** DevTools 插件单例（所有场景共用，避免重复创建） */
 const devTools = devToolsPlugin({ formId: 'playground' })
-
-/** 注入 pattern 到 schema */
-function withMode(s: ISchema, mode: FieldPattern): ISchema {
-  return {
-    ...s,
-    pattern: mode,
-    decoratorProps: { ...s.decoratorProps, pattern: mode },
-  }
-}
 
 export interface SceneRendererProps {
   config: SceneConfig
@@ -52,7 +43,8 @@ function SceneForm({ config, schema, mode, extraPlugins, showResult, showErrors 
 
   return (
     <ConfigForm
-      schema={withMode(schema, mode)}
+      schema={schema}
+      pattern={mode}
       initialValues={config.initialValues}
       formConfig={{
         effects: config.effects,
@@ -71,11 +63,8 @@ export const SceneRenderer = observer(({ config, title, description, extraPlugin
 
   /** 当前使用的 schema（有变体时动态生成，否则使用静态 schema） */
   const currentSchema = useMemo<ISchema>(() => {
-    if (variants && variantValue) {
-      return variants.factory(variantValue)
-    }
-    return config.schema
-  }, [config.schema, variants, variantValue])
+    return resolveSceneSchema(config, variantValue)
+  }, [config, variantValue])
 
   const content = (
     <div>

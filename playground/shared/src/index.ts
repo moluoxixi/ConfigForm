@@ -1,4 +1,5 @@
 export type { SceneConfig } from './types'
+export { resolveSceneSchema } from './scene-schema'
 
 /** 场景分组标签 */
 export const GROUP_LABELS: Record<string, string> = {
