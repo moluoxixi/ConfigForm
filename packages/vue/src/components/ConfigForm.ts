@@ -1,6 +1,7 @@
 import type { ComponentType, FieldPattern, FormConfig, FormInstance, FormPlugin, ISchema } from '@moluoxixi/core'
 import type { Component, PropType } from 'vue'
 import type { ComponentScope, RegistryState } from '../registry'
+import { FormLifeCycle } from '@moluoxixi/core'
 import { computed, defineComponent, h, inject, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useCreateForm } from '../composables/useForm'
 import { ComponentRegistrySymbol } from '../context'
@@ -31,9 +32,6 @@ const FormActionsRenderer = defineComponent({
           submitLabel: props.submitLabel,
           resetLabel: props.resetLabel,
           align: props.align,
-          onReset: () => emit('reset'),
-          onSubmit: (values: Record<string, unknown>) => emit('submit', values),
-          onSubmitFailed: (errors: Array<{ path: string, message: string }>) => emit('submitFailed', errors),
         })
       }
 
@@ -166,6 +164,24 @@ export const ConfigForm = defineComponent({
       emit('valuesChange', values)
     })
 
+    const disposeSubmitSuccess = form.on(FormLifeCycle.ON_FORM_SUBMIT_SUCCESS, (event) => {
+      const payload = event.payload as { values?: Record<string, unknown> } | undefined
+      if (payload && payload.values) {
+        emit('submit', payload.values)
+      }
+    })
+
+    const disposeSubmitFailed = form.on(FormLifeCycle.ON_FORM_SUBMIT_FAILED, (event) => {
+      const payload = event.payload as { errors?: Array<{ path: string, message: string }> } | undefined
+      const errors = payload?.errors ?? []
+      emit('submitFailed', errors)
+      scrollToFirstError(errors)
+    })
+
+    const disposeReset = form.on(FormLifeCycle.ON_FORM_RESET, () => {
+      emit('reset')
+    })
+
     /**
      * Grid 响应式断点支持
      *
@@ -204,6 +220,9 @@ export const ConfigForm = defineComponent({
 
     onUnmounted(() => {
       disposeValuesChange()
+      disposeSubmitSuccess()
+      disposeSubmitFailed()
+      disposeReset()
       resizeObserver?.disconnect()
       resizeObserver = null
     })
@@ -211,15 +230,7 @@ export const ConfigForm = defineComponent({
     const handleSubmit = async (e: Event): Promise<void> => {
       e.preventDefault()
       e.stopPropagation()
-      const result = await form.submit()
-      if (result.errors.length > 0) {
-        emit('submitFailed', result.errors)
-        /* 滚动到第一个错误字段 */
-        scrollToFirstError(result.errors)
-      }
-      else {
-        emit('submit', result.values)
-      }
+      await form.submit()
     }
 
     return () => {
@@ -293,10 +304,7 @@ export const ConfigForm = defineComponent({
                 align,
                 onReset: () => {
                   form.reset()
-                  emit('reset')
                 },
-                onSubmit: (values: Record<string, unknown>) => emit('submit', values),
-                onSubmitFailed: (errors: Array<{ path: string, message: string }>) => emit('submitFailed', errors),
               })
             : null,
 

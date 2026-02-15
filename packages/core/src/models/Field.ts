@@ -133,6 +133,7 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
   /** 数据源 */
   dataSource: DataSourceItem[]
   dataSourceLoading: boolean
+  dataSourceLoaded: boolean
   /** 远程数据源配置（构造时保存，mount 时自动触发加载） */
   private _dataSourceConfig: DataSourceConfig | null = null
 
@@ -196,14 +197,17 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     if (isArray(props.dataSource)) {
       this.dataSource = props.dataSource
       this._dataSourceConfig = null
+      this.dataSourceLoaded = true
     }
     else if (props.dataSource && typeof props.dataSource === 'object' && 'url' in props.dataSource) {
       this.dataSource = []
       this._dataSourceConfig = props.dataSource as DataSourceConfig
+      this.dataSourceLoaded = false
     }
     else {
       this.dataSource = []
       this._dataSourceConfig = null
+      this.dataSourceLoaded = true
     }
     this.dataSourceLoading = false
 
@@ -390,6 +394,7 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
         return
 
       this.dataSource = items
+      this.dataSourceLoaded = true
     }
     catch (err) {
       /* 请求被取消时静默忽略 */
@@ -528,11 +533,13 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     /* 远程数据源：mount 后微任务加载，兼容 React 18 StrictMode 双挂载 */
     if (this._dataSourceConfig) {
       const config = this._dataSourceConfig
-      queueMicrotask(() => {
-        if (this.mounted) {
-          this.loadDataSource(config).catch(() => { /* 静默处理 */ })
-        }
-      })
+      const tryLoad = (): void => {
+        if (!this.mounted || this.dataSourceLoading || this.dataSourceLoaded)
+          return
+        this.loadDataSource(config).catch(() => { /* 静默处理 */ })
+      }
+      queueMicrotask(tryLoad)
+      setTimeout(tryLoad, 0)
     }
   }
 

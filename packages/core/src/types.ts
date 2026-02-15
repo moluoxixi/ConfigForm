@@ -805,6 +805,7 @@ export interface FieldInstance<Value = unknown> {
   decoratorProps: Record<string, unknown>
   dataSource: DataSourceItem[]
   dataSourceLoading: boolean
+  dataSourceLoaded: boolean
   readonly errors: ValidationFeedback[]
   readonly warnings: ValidationFeedback[]
   readonly valid: boolean

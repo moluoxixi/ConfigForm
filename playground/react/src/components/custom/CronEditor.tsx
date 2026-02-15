@@ -8,13 +8,18 @@ import React from 'react'
 /** Cron 各段含义 */
 const CRON_LABELS = ['分', '时', '日', '月', '周']
 
+function normalizeParts(expr: string): string[] {
+  const pieces = expr.trim().split(/\s+/).filter(Boolean)
+  return CRON_LABELS.map((_, index) => pieces[index] ?? '*')
+}
+
 /** 简单的 Cron 解读（非完整解析） */
 function describeCron(expr: string): string {
-  const parts = expr.trim().split(/\s+/)
-  if (parts.length < 5)
+  const rawParts = expr.trim().split(/\s+/).filter(Boolean)
+  if (rawParts.length < 5)
     return '格式错误（需要 5 段）'
 
-  const [min, hour, day, month, weekday] = parts
+  const [min, hour, day, month, weekday] = normalizeParts(expr)
   const desc: string[] = []
 
   if (weekday !== '*')
@@ -49,7 +54,14 @@ interface CronEditorProps {
 }
 
 export function CronEditor({ value = '', onChange, presets = [], disabled, preview }: CronEditorProps): React.ReactElement {
-  const parts = (value || '').trim().split(/\s+/)
+  const parts = normalizeParts(value || '')
+
+  const updatePart = (index: number, nextValue: string): void => {
+    const nextParts = normalizeParts(value || '')
+    const next = nextValue.trim()
+    nextParts[index] = next.length > 0 ? next : '*'
+    onChange?.(nextParts.join(' '))
+  }
 
   return (
     <div style={{ border: '1px solid #d9d9d9', borderRadius: 6, padding: 12 }}>
@@ -61,18 +73,42 @@ export function CronEditor({ value = '', onChange, presets = [], disabled, previ
         disabled={disabled}
         readOnly={preview}
         placeholder="* * * * *"
-        style={{ width: '100%', padding: '6px 12px', border: '1px solid #d9d9d9', borderRadius: 4, fontFamily: 'monospace', fontSize: 14, marginBottom: 8 }}
+        style={{
+          width: '100%',
+          padding: '6px 12px',
+          border: '1px solid #d9d9d9',
+          borderRadius: 4,
+          fontFamily: 'monospace',
+          fontSize: 14,
+          marginBottom: 8,
+          background: disabled || preview ? '#f5f5f5' : '#fff',
+        }}
       />
 
-      {/* 各段标签 */}
+      {/* 分段编辑 */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
         {CRON_LABELS.map((label, i) => (
-          <span key={label} style={{ flex: 1, textAlign: 'center', fontSize: 11, color: '#999' }}>
-            {parts[i] ?? '-'}
-            {' '}
-            <br />
-            <span style={{ color: '#666' }}>{label}</span>
-          </span>
+          <div key={label} style={{ flex: 1, textAlign: 'center' }}>
+            <input
+              type="text"
+              value={parts[i]}
+              onChange={e => updatePart(i, e.target.value)}
+              disabled={disabled}
+              readOnly={preview}
+              placeholder="*"
+              style={{
+                width: '100%',
+                padding: '4px 6px',
+                border: '1px solid #d9d9d9',
+                borderRadius: 4,
+                fontFamily: 'monospace',
+                fontSize: 12,
+                textAlign: 'center',
+                background: disabled || preview ? '#f5f5f5' : '#fff',
+              }}
+            />
+            <div style={{ fontSize: 11, color: '#666', marginTop: 2 }}>{label}</div>
+          </div>
         ))}
       </div>
 

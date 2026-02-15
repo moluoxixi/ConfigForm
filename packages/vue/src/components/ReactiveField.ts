@@ -83,13 +83,22 @@ export const ReactiveField = defineComponent({
 
         /* ---- 自动渲染：component ---- */
         const componentName = field.component
-        const Comp = resolveComp(componentName)
+        let Comp = resolveComp(componentName)
+        let fallbackComponentName: string | null = null
 
         if (!Comp && !props.isVoid && !props.isArray) {
-          console.warn(`[ConfigForm] 字段 "${field.path}" 未找到组件 "${String(componentName)}"`)
-          return h('div', {
-            style: 'color: #ff4d4f; padding: 8px 12px; border: 1px dashed #ff4d4f; border-radius: 4px; font-size: 12px; background: #fff2f0;',
-          }, `⚠ 组件 "${String(componentName)}" 未注册`)
+          const fallback = resolveComp('Input')
+          if (fallback) {
+            console.warn(`[ConfigForm] 字段 "${field.path}" 未找到组件 "${String(componentName)}"，已降级为 Input`)
+            Comp = fallback
+            fallbackComponentName = 'Input'
+          }
+          else {
+            console.warn(`[ConfigForm] 字段 "${field.path}" 未找到组件 "${String(componentName)}"`)
+            return h('div', {
+              style: 'color: #ff4d4f; padding: 8px 12px; border: 1px dashed #ff4d4f; border-radius: 4px; font-size: 12px; background: #fff2f0;',
+            }, `⚠ 组件 "${String(componentName)}" 未注册`)
+          }
         }
 
         let componentNode: VNode | VNode[] | null = null
@@ -128,7 +137,8 @@ export const ReactiveField = defineComponent({
 
           /* preview 模式：查找 readPretty 替代组件，用纯文本替换输入框 */
           if (dataContract.preview) {
-            const compName = typeof componentName === 'string' ? componentName : ''
+            const rawName = typeof componentName === 'string' ? componentName : ''
+            const compName = fallbackComponentName ?? rawName
             const ReadPrettyComp = compName ? registryRef?.value.readPrettyComponents.get(compName) : undefined
             if (ReadPrettyComp) {
               componentNode = h(ReadPrettyComp as Component, {

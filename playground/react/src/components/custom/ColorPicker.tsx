@@ -14,21 +14,45 @@ interface ColorPickerProps {
   preview?: boolean
 }
 
-export function ColorPicker({ value = '#000000', onChange, presets = [], disabled, preview }: ColorPickerProps): React.ReactElement {
+const hexPattern = /^#([0-9a-fA-F]{6})$/
+const isHexColor = (next: string): boolean => hexPattern.test(next)
+
+export function ColorPicker({ value = '', onChange, presets = [], disabled, preview }: ColorPickerProps): React.ReactElement {
+  const isDisabled = disabled || preview
+  const [textDraft, setTextDraft] = React.useState(value ?? '')
+
+  React.useEffect(() => {
+    const next = value ?? ''
+    setTextDraft(prev => (next !== prev ? next : prev))
+  }, [value])
+
+  const safeColor = isHexColor(value ?? '') ? value : '#000000'
+
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
       <input
         type="color"
-        value={value}
+        value={safeColor}
         onChange={e => onChange?.(e.target.value)}
-        disabled={disabled || preview}
-        style={{ width: 40, height: 32, border: '1px solid #d9d9d9', borderRadius: 4, cursor: disabled ? 'not-allowed' : 'pointer', padding: 2 }}
+        disabled={isDisabled}
+        style={{ width: 40, height: 32, border: '1px solid #d9d9d9', borderRadius: 4, cursor: isDisabled ? 'not-allowed' : 'pointer', padding: 2 }}
       />
       <input
         type="text"
-        value={value}
-        onChange={e => onChange?.(e.target.value)}
-        disabled={disabled || preview}
+        value={textDraft}
+        onChange={e => {
+          const nextValue = e.target.value
+          setTextDraft(nextValue)
+          if (isHexColor(nextValue)) {
+            onChange?.(nextValue)
+          }
+        }}
+        onBlur={() => {
+          if (!isHexColor(textDraft)) {
+            setTextDraft(value ?? '')
+          }
+        }}
+        disabled={isDisabled}
         style={{ width: 90, height: 32, border: '1px solid #d9d9d9', borderRadius: 4, padding: '0 8px', fontFamily: 'monospace', fontSize: 13 }}
         maxLength={7}
       />
@@ -37,15 +61,15 @@ export function ColorPicker({ value = '#000000', onChange, presets = [], disable
           {presets.map(color => (
             <button
               key={color}
-              onClick={() => !disabled && !preview && onChange?.(color)}
-              disabled={disabled || preview}
+              onClick={() => !isDisabled && onChange?.(color)}
+              disabled={isDisabled}
               style={{
                 width: 20,
                 height: 20,
                 borderRadius: 4,
                 border: value === color ? '2px solid #1677ff' : '1px solid #d9d9d9',
                 background: color,
-                cursor: disabled ? 'not-allowed' : 'pointer',
+                cursor: isDisabled ? 'not-allowed' : 'pointer',
                 padding: 0,
               }}
               title={color}
@@ -53,7 +77,7 @@ export function ColorPicker({ value = '#000000', onChange, presets = [], disable
           ))}
         </div>
       )}
-      <span style={{ width: 24, height: 24, borderRadius: 4, background: value, border: '1px solid #d9d9d9', display: 'inline-block' }} />
+      <span style={{ width: 24, height: 24, borderRadius: 4, background: safeColor, border: '1px solid #d9d9d9', display: 'inline-block' }} />
     </div>
   )
 }

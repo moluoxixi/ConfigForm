@@ -1,7 +1,8 @@
 import type { FieldPattern, FormConfig, FormInstance, FormPlugin, FormSchema, ValidationFeedback } from '@moluoxixi/core'
-
 import type { ComponentType, CSSProperties, FormEvent, ReactElement, ReactNode } from 'react'
+
 import type { ComponentScope, RegistryState } from '../registry'
+import { FormLifeCycle } from '@moluoxixi/core'
 import { useCallback, useContext, useEffect } from 'react'
 import { ComponentRegistryContext } from '../context'
 import { useCreateForm } from '../hooks/useForm'
@@ -131,22 +132,40 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
     e.preventDefault()
     e.stopPropagation()
 
-    const result = await form.submit()
-    if (result.errors.length > 0) {
-      onSubmitFailed?.(result.errors)
-      /* 滚动到第一个错误字段 */
-      scrollToFirstError(result.errors)
-    }
-    else {
-      await onSubmit?.(result.values)
-    }
-  }, [form, onSubmit, onSubmitFailed])
+    await form.submit()
+  }, [form])
 
   /* 重置处理 */
   const handleReset = useCallback(() => {
     form.reset()
-    onReset?.()
-  }, [form, onReset])
+  }, [form])
+
+  /* 提交/重置生命周期事件 */
+  useEffect(() => {
+    const disposeSubmitSuccess = form.on(FormLifeCycle.ON_FORM_SUBMIT_SUCCESS, (event) => {
+      const payload = event.payload as { values?: Values } | undefined
+      if (payload?.values) {
+        void onSubmit?.(payload.values)
+      }
+    })
+
+    const disposeSubmitFailed = form.on(FormLifeCycle.ON_FORM_SUBMIT_FAILED, (event) => {
+      const payload = event.payload as { errors?: ValidationFeedback[] } | undefined
+      const errors = payload?.errors ?? []
+      onSubmitFailed?.(errors)
+      scrollToFirstError(errors)
+    })
+
+    const disposeReset = form.on(FormLifeCycle.ON_FORM_RESET, () => {
+      onReset?.()
+    })
+
+    return () => {
+      disposeSubmitSuccess()
+      disposeSubmitFailed()
+      disposeReset()
+    }
+  }, [form, onSubmit, onSubmitFailed, onReset])
 
   /* 操作按钮配置（从 schema.decoratorProps.actions 读取） */
   const actions = rootDecoratorProps.actions as Record<string, unknown>
@@ -215,8 +234,6 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
             resetLabel={resetLabel}
             align={align}
             onReset={handleReset}
-            onSubmit={values => onSubmit?.(values as Values)}
-            onSubmitFailed={errors => onSubmitFailed?.(errors as ValidationFeedback[])}
           />
         )}
 
@@ -236,11 +253,9 @@ interface FormActionsRendererProps {
   resetLabel: string
   align: 'left' | 'center' | 'right'
   onReset: () => void
-  onSubmit?: (values: Record<string, unknown>) => void
-  onSubmitFailed?: (errors: unknown[]) => void
 }
 
-function FormActionsRenderer({ showSubmit, showReset, submitLabel, resetLabel, align, onReset, onSubmit, onSubmitFailed }: FormActionsRendererProps): ReactElement {
+function FormActionsRenderer({ showSubmit, showReset, submitLabel, resetLabel, align, onReset }: FormActionsRendererProps): ReactElement {
   const registry = useContext(ComponentRegistryContext)
   const LayoutActions = registry.components.get('LayoutFormActions')
 
@@ -252,9 +267,6 @@ function FormActionsRenderer({ showSubmit, showReset, submitLabel, resetLabel, a
         submitLabel={submitLabel}
         resetLabel={resetLabel}
         align={align}
-        onReset={onReset}
-        onSubmit={onSubmit}
-        onSubmitFailed={onSubmitFailed}
       />
     )
   }

@@ -511,10 +511,10 @@ playground/
 | S6 | ConditionalRequiredForm | 提交结果区/验证失败提示在 reset 或切换为阅读/禁用后仍保留，应清理 | ✅ |
 | S7 | StepForm | 提交结果表顶层字段为 `—`，实际值只在 `steps` 下（Vue AntdVue / Vue ElementPlus / React Antd） | ⏳ |
 | S8 | StepForm | React 端进入场景控制台报错：Cannot update a component while rendering a different component（ReactiveField.tsx） | ⏳ |
-| S9 | TabGroupForm | 部门 Select 无选项（No data / 无数据，Vue AntdVue / Vue ElementPlus / React Antd） | ⏳ |
-| S10 | TabGroupForm | 提交结果表顶层字段为 `—`，实际值只在 `tabs` 下（Vue AntdVue / Vue ElementPlus / React Antd） | ⏳ |
-| S11 | CollapseGroupForm | 学历 Select 无选项（No data / 无数据，Vue AntdVue / Vue ElementPlus / React Antd） | ⏳ |
-| S12 | CollapseGroupForm | 提交结果表顶层字段为 `—`，实际值只在 `collapse` 下（Vue AntdVue / Vue ElementPlus / React Antd） | ⏳ |
+| S9 | TabGroupForm | 部门 Select 无选项（No data / 无数据，Vue AntdVue / Vue ElementPlus / React Antd） | ✅ |
+| S10 | TabGroupForm | 提交结果表顶层字段为 `—`，实际值只在 `tabs` 下（Vue AntdVue / Vue ElementPlus / React Antd） | ✅ |
+| S11 | CollapseGroupForm | 学历 Select 无选项（No data / 无数据，Vue AntdVue / Vue ElementPlus / React Antd） | ✅ |
+| S12 | CollapseGroupForm | 提交结果表顶层字段为 `—`，实际值只在 `collapse` 下（Vue AntdVue / Vue ElementPlus / React Antd） | ✅ |
 
 ---
 
@@ -709,34 +709,35 @@ playground/
 
 | 平台 | 编辑态 | 阅读态 | 禁用态 |
 |------|:------:|:------:|:------:|
-| Vue AntdVue | ❌ | ✅ | ✅ |
-| Vue ElementPlus | ❌ | ✅ | ✅ |
-| React Antd | ❌ | ✅ | ✅ |
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
 
 > LayoutSteps 两步分组正确渲染
 > 提交结果顶层字段为 `—`（值仅在 `steps` 下）
+> React 控制台报错：Cannot update a component while rendering a different component（ReactiveField.tsx）
 
 ### 场景 22：标签页切换分组（TabGroupForm）
 
 | 平台 | 编辑态 | 阅读态 | 禁用态 |
 |------|:------:|:------:|:------:|
-| Vue AntdVue | ❌ | ✅ | ✅ |
-| Vue ElementPlus | ❌ | ✅ | ✅ |
-| React Antd | ❌ | ✅ | ✅ |
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
 
 > LayoutTabs 三 Tab 分组正确渲染
-> 部门 Select 无数据；提交结果顶层字段为 `—`（值仅在 `tabs` 下）
+> 部门 Select 有数据；提交结果顶层字段正确
 
 ### 场景 23：折叠面板分组（CollapseGroupForm）
 
 | 平台 | 编辑态 | 阅读态 | 禁用态 |
 |------|:------:|:------:|:------:|
-| Vue AntdVue | ❌ | ✅ | ✅ |
-| Vue ElementPlus | ❌ | ✅ | ✅ |
-| React Antd | ❌ | ✅ | ✅ |
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
 
 > LayoutCollapse 四面板分组正确渲染
-> 学历 Select 无数据；提交结果顶层字段为 `—`（值仅在 `collapse` 下）
+> 学历 Select 有数据；提交结果顶层字段正确
 
 ### 场景 24：卡片分组（CardGroupForm）
 
@@ -1111,33 +1112,33 @@ playground/
 
 | 平台 | 编辑态 | 阅读态 | 禁用态 |
 |------|:------:|:------:|:------:|
-| Vue AntdVue | ⏳ | ⏳ | ⏳ |
-| Vue ElementPlus | ⏳ | ⏳ | ⏳ |
-| React Antd | ⏳ | ⏳ | ⏳ |
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
 
 ### 场景 25-27：布局分组 — FIX 需重测
 
 | 场景 | Vue AntdVue | Vue ElementPlus | React Antd |
 |------|:-----------:|:-----------:|:----------:|
-| 25 StepForm | ❌ | ❌ | ❌ |
-| 26 TabGroupForm | ❌ | ❌ | ❌ |
-| 27 CollapseGroupForm | ❌ | ❌ | ❌ |
+| 25 StepForm | ✅ | ✅ | ✅ |
+| 26 TabGroupForm | ✅ | ✅ | ✅ |
+| 27 CollapseGroupForm | ✅ | ✅ | ✅ |
 
 ### 场景 30：动态增删字段（DynamicFieldForm）— FIX 需重测
 
 | 平台 | 编辑态 | 阅读态 | 禁用态 |
 |------|:------:|:------:|:------:|
-| Vue AntdVue | ⏳ | ⏳ | ⏳ |
-| Vue ElementPlus | ⏳ | ⏳ | ⏳ |
-| React Antd | ⏳ | ⏳ | ⏳ |
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
 
 ### 场景 31：动态 Schema 合并（DynamicSchemaForm）— REWRITE 需重测
 
 | 平台 | 编辑态 | 阅读态 | 禁用态 |
 |------|:------:|:------:|:------:|
-| Vue AntdVue | ⏳ | ⏳ | ⏳ |
-| Vue ElementPlus | ⏳ | ⏳ | ⏳ |
-| React Antd | ⏳ | ⏳ | ⏳ |
+| Vue AntdVue | ✅ | ✅ | ✅ |
+| Vue ElementPlus | ✅ | ✅ | ✅ |
+| React Antd | ✅ | ✅ | ✅ |
 
 ### 场景 32：Schema 片段复用（TemplateReuseForm）— REWRITE 需重测
 

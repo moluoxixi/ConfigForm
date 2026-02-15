@@ -3,8 +3,8 @@ import type { SceneConfig } from '../types'
 /**
  * 场景：Cron 表达式编辑器
  *
- * 自定义组件 CronEditor — 手动输入 + 快捷预设 + 实时解读。
- * 组件在 playground/react 中实现并注册。
+ * 自定义组件 CronEditor — 分段编辑 + 输入 + 快捷预设 + 实时解读。
+ * 组件在 playground/react 与 playground/vue 中实现并注册。
  */
 
 const CRON_PRESETS = [
@@ -18,7 +18,7 @@ const CRON_PRESETS = [
 
 const config: SceneConfig = {
   title: 'Cron 表达式编辑器',
-  description: '自定义组件 CronEditor — 输入 + 预设 + 实时解读',
+  description: '自定义组件 CronEditor — 分段编辑 + 输入 + 预设 + 实时解读',
 
   initialValues: {
     taskName: '数据同步',
