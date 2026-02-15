@@ -30,13 +30,31 @@ const config: SceneConfig = {
         type: 'number',
         title: '价格（分→元）',
         description: '内部存分，UI 显示元（¥99.90），输入元自动转分',
-        componentProps: { style: 'width: 300px', min: 0, step: 100 },
-        displayFormat: (value: unknown): string => {
-          const num = Number(value) || 0
-          return `¥${(num / 100).toFixed(2)}`
+        componentProps: {
+          style: { width: '300px' },
+          min: 0,
+          step: 0.01,
+          precision: 2,
+          prefix: '¥',
+          formatter: (value: unknown): string => {
+            const str = value == null ? '' : String(value)
+            return str ? `¥${str}` : ''
+          },
+          parser: (display: unknown): string => {
+            return String(display ?? '').replace(/[^\d.-]/g, '')
+          },
+        },
+        displayFormat: (value: unknown): number | undefined => {
+          const num = Number(value)
+          if (Number.isNaN(num))
+            return undefined
+          return Number((num / 100).toFixed(2))
         },
         inputParse: (inputValue: unknown): number => {
-          return Math.round(Number(inputValue) || 0)
+          const num = Number(inputValue)
+          if (Number.isNaN(num))
+            return 0
+          return Math.round(num * 100)
         },
         submitTransform: (value: unknown): number => {
           return Math.round(Number(value) || 0)
@@ -46,7 +64,7 @@ const config: SceneConfig = {
         type: 'string',
         title: '手机号（脱敏显示）',
         description: '显示 138****0000，提交原始号码',
-        componentProps: { style: 'width: 300px', placeholder: '请输入手机号' },
+        componentProps: { style: { width: '300px' }, placeholder: '请输入手机号' },
         displayFormat: (value: unknown): string => {
           const str = String(value || '')
           if (str.length >= 11) {
@@ -59,7 +77,7 @@ const config: SceneConfig = {
         type: 'string',
         title: '姓名',
         description: '输入时自动去除首尾空格',
-        componentProps: { style: 'width: 300px' },
+        componentProps: { style: { width: '300px' } },
         inputParse: (inputValue: unknown): string => {
           return String(inputValue || '').trim()
         },
@@ -68,7 +86,7 @@ const config: SceneConfig = {
         type: 'string',
         title: '标签（逗号分隔→数组）',
         description: '输入逗号分隔字符串，提交时自动转为 string[]',
-        componentProps: { style: 'width: 300px', placeholder: '如: react,vue,typescript' },
+        componentProps: { style: { width: '300px' }, placeholder: '如: react,vue,typescript' },
         submitTransform: (value: unknown): string[] => {
           const str = String(value || '')
           return str.split(',').map(s => s.trim()).filter(Boolean)
@@ -78,7 +96,7 @@ const config: SceneConfig = {
         type: 'string',
         title: '联系邮箱（submitPath 映射）',
         description: '字段路径 contactEmail → 提交路径 contact.email',
-        componentProps: { style: 'width: 300px', placeholder: '提交时映射到 contact.email' },
+        componentProps: { style: { width: '300px' }, placeholder: '提交时映射到 contact.email' },
         rules: [{ format: 'email', message: '请输入有效邮箱' }],
         submitPath: 'contact.email',
       },
