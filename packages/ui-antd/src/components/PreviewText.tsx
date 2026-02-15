@@ -28,7 +28,7 @@ export function PreviewTextarea({ value }: { value?: string }): React.ReactEleme
 }
 
 /** 数字输入阅读态 */
-export function PreviewInputNumber({ value }: { value?: number }): React.ReactElement {
+export function PreviewInputNumber({ value }: { value?: string | number }): React.ReactElement {
   return <span>{value != null ? String(value) : EMPTY}</span>
 }
 

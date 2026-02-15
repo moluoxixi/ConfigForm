@@ -141,10 +141,21 @@ export const ReactiveField = defineComponent({
             const compName = fallbackComponentName ?? rawName
             const ReadPrettyComp = compName ? registryRef?.value.readPrettyComponents.get(compName) : undefined
             if (ReadPrettyComp) {
+              const displayValue = dataField.displayFormat
+                ? dataField.displayFormat(dataContract.value)
+                : dataContract.value
+              const formatter = (dataField.componentProps as Record<string, unknown> | undefined)?.formatter
+              let previewValue: unknown = displayValue
+              if (typeof previewValue === 'number' && Number.isFinite(previewValue)) {
+                previewValue = previewValue.toFixed(2)
+              }
+              if (typeof formatter === 'function') {
+                previewValue = (formatter as (value: unknown) => unknown)(previewValue)
+              }
               componentNode = h(ReadPrettyComp as Component, {
                 ...dataContract.componentProps,
                 ...dataContract.ariaProps,
-                modelValue: dataContract.value,
+                modelValue: previewValue,
                 dataSource: dataContract.dataSource,
               })
             }
@@ -153,10 +164,13 @@ export const ReactiveField = defineComponent({
           /* 无 readPretty 替代或非预览态：渲染原组件 */
           if (!componentNode) {
             const interactions = createFieldInteractionContract(dataField)
+            const displayValue = dataField.displayFormat && dataField.inputParse
+              ? dataField.displayFormat(dataContract.value)
+              : dataContract.value
             componentNode = h(Comp!, {
               ...dataContract.componentProps,
               ...dataContract.ariaProps,
-              'modelValue': dataContract.value,
+              'modelValue': displayValue,
               'onUpdate:modelValue': interactions.onInput,
               'onFocus': interactions.onFocus,
               'onBlur': interactions.onBlur,

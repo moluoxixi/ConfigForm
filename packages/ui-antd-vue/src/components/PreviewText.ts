@@ -42,7 +42,7 @@ export const PreviewTextarea = defineComponent({
 /** 数字输入阅读态 */
 export const PreviewInputNumber = defineComponent({
   name: 'CfPreviewInputNumber',
-  props: { modelValue: { type: Number, default: undefined } },
+  props: { modelValue: { type: [String, Number], default: undefined } },
   setup(props) {
     return () => h('span', null, props.modelValue != null ? String(props.modelValue) : EMPTY)
   },

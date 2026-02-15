@@ -160,10 +160,21 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
       const compName = typeof componentName === 'string' ? componentName : ''
       const ReadPrettyComp = compName ? registry.readPrettyComponents.get(compName) : undefined
       if (ReadPrettyComp) {
+        const displayValue = dataField.displayFormat
+          ? dataField.displayFormat(contract.value)
+          : contract.value
+        const formatter = (dataField.componentProps as Record<string, unknown> | undefined)?.formatter
+        let previewValue: unknown = displayValue
+        if (typeof previewValue === 'number' && Number.isFinite(previewValue)) {
+          previewValue = previewValue.toFixed(2)
+        }
+        if (typeof formatter === 'function') {
+          previewValue = (formatter as (value: unknown) => unknown)(previewValue)
+        }
         const previewElement = (
           <FieldErrorBoundary fieldPath={dataField.path}>
             <ReadPrettyComp
-              value={contract.value}
+              value={previewValue}
               dataSource={contract.dataSource}
               {...contract.componentProps}
             />
@@ -181,6 +192,9 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
      */
     const interactions = createFieldInteractionContract(dataField)
 
+    const displayValue = dataField.displayFormat && dataField.inputParse
+      ? dataField.displayFormat(contract.value)
+      : contract.value
     const fieldElement = (
       <FieldErrorBoundary fieldPath={dataField.path}>
         <Comp
@@ -189,7 +203,7 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
           dataSource={contract.dataSource}
           {...contract.ariaProps}
           {...contract.componentProps}
-          value={contract.value}
+          value={displayValue}
           onChange={interactions.onInput}
           onFocus={interactions.onFocus}
           onBlur={interactions.onBlur}

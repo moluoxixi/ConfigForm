@@ -21,7 +21,7 @@ function formatValue(val: unknown): string {
   if (typeof val === 'boolean')
     return val ? '是' : '否'
   if (Array.isArray(val))
-    return val.length === 0 ? '—' : val.map(v => formatValue(v)).join(', ')
+    return val.length === 0 ? '—' : JSON.stringify(val)
   if (typeof val === 'object')
     return JSON.stringify(val, null, 2)
   return String(val)
