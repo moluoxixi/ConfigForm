@@ -21,7 +21,8 @@
     "@playground/shared": "workspace:*",
     "ant-design-vue": "catalog:build",
     "element-plus": "catalog:build",
-    "vue": "catalog:build"
+    "vue": "catalog:build",
+    "vue-i18n": "catalog:build"
   },
   "devDependencies": {
     "@moluoxixi/eslint-config": "catalog:dev",

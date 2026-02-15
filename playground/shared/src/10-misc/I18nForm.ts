@@ -8,8 +8,10 @@ import type { SceneConfig } from '../types'
  */
 
 /** 多语言翻译表 */
-const I18N: Record<string, Record<string, string>> = {
+const I18N_MESSAGES: Record<string, Record<string, string>> = {
   'zh-CN': {
+    'scene.title': '国际化（i18n）',
+    'scene.desc': '多语言标签 / 验证消息国际化 / placeholder 国际化能力（真实 i18n 适配）',
     'field.name': '姓名',
     'field.name.placeholder': '请输入姓名',
     'field.name.required': '姓名为必填项',
@@ -24,6 +26,8 @@ const I18N: Record<string, Record<string, string>> = {
     'btn.reset': '重置',
   },
   'en-US': {
+    'scene.title': 'Internationalization (i18n)',
+    'scene.desc': 'Localized labels, validation messages, and placeholders (real i18n adapter)',
     'field.name': 'Name',
     'field.name.placeholder': 'Enter name',
     'field.name.required': 'Name is required',
@@ -38,6 +42,8 @@ const I18N: Record<string, Record<string, string>> = {
     'btn.reset': 'Reset',
   },
   'ja-JP': {
+    'scene.title': '国際化（i18n）',
+    'scene.desc': '多言語ラベル・検証メッセージ・プレースホルダ対応（実 i18n）',
     'field.name': '名前',
     'field.name.placeholder': '名前を入力',
     'field.name.required': '名前は必須',
@@ -60,9 +66,9 @@ const LOCALE_OPTIONS = [
   { label: '🇯🇵 日本語', value: 'ja-JP' },
 ]
 
-const config: SceneConfig & { i18n: typeof I18N, localeOptions: typeof LOCALE_OPTIONS } = {
-  title: '国际化（i18n）',
-  description: '多语言标签 / 验证消息国际化 — ConfigForm + Schema 实现',
+const config: SceneConfig & { i18n: { messages: typeof I18N_MESSAGES, defaultLocale: string }, localeOptions: typeof LOCALE_OPTIONS } = {
+  title: '$t:scene.title',
+  description: '$t:scene.desc',
 
   initialValues: {
     name: '',
@@ -73,24 +79,54 @@ const config: SceneConfig & { i18n: typeof I18N, localeOptions: typeof LOCALE_OP
 
   schema: {
     type: 'object',
-    decoratorProps: { labelPosition: 'right', labelWidth: '100px', actions: { submit: '提交', reset: '重置' } },
+    decoratorProps: {
+      labelPosition: 'right',
+      labelWidth: '100px',
+      actions: {
+        submit: '$t:btn.submit',
+        reset: '$t:btn.reset',
+      },
+    },
     properties: {
-      name: { type: 'string', title: '姓名', required: true, rules: [{ required: true, message: '姓名为必填项' }] },
-      email: { type: 'string', title: '邮箱', rules: [{ format: 'email', message: '无效邮箱' }] },
-      phone: { type: 'string', title: '手机号' },
-      bio: { type: 'string', title: '简介', component: 'Textarea', componentProps: { rows: 3 } },
+      name: {
+        type: 'string',
+        title: '$t:field.name',
+        required: true,
+        rules: [{ required: true, message: '$t:field.name.required' }],
+        componentProps: { placeholder: '$t:field.name.placeholder' },
+      },
+      email: {
+        type: 'string',
+        title: '$t:field.email',
+        rules: [{ format: 'email', message: '$t:field.email.invalid' }],
+        componentProps: { placeholder: '$t:field.email.placeholder' },
+      },
+      phone: {
+        type: 'string',
+        title: '$t:field.phone',
+        componentProps: { placeholder: '$t:field.phone.placeholder' },
+      },
+      bio: {
+        type: 'string',
+        title: '$t:field.bio',
+        component: 'Textarea',
+        componentProps: { rows: 3, placeholder: '$t:field.bio.placeholder' },
+      },
     },
   },
 
   fields: [
-    { name: 'name', label: '姓名', required: true, component: 'Input', rules: [{ required: true, message: '姓名为必填项' }], componentProps: { placeholder: '请输入姓名' } },
-    { name: 'email', label: '邮箱', component: 'Input', rules: [{ format: 'email', message: '无效邮箱' }], componentProps: { placeholder: '请输入邮箱' } },
-    { name: 'phone', label: '手机号', component: 'Input', componentProps: { placeholder: '请输入手机号' } },
-    { name: 'bio', label: '简介', component: 'Textarea', componentProps: { placeholder: '请输入简介', rows: 3 } },
+    { name: 'name', label: '$t:field.name', required: true, component: 'Input', rules: [{ required: true, message: '$t:field.name.required' }], componentProps: { placeholder: '$t:field.name.placeholder' } },
+    { name: 'email', label: '$t:field.email', component: 'Input', rules: [{ format: 'email', message: '$t:field.email.invalid' }], componentProps: { placeholder: '$t:field.email.placeholder' } },
+    { name: 'phone', label: '$t:field.phone', component: 'Input', componentProps: { placeholder: '$t:field.phone.placeholder' } },
+    { name: 'bio', label: '$t:field.bio', component: 'Textarea', componentProps: { placeholder: '$t:field.bio.placeholder', rows: 3 } },
   ],
 
   /** 多语言翻译表（供实现侧使用） */
-  i18n: I18N,
+  i18n: {
+    messages: I18N_MESSAGES,
+    defaultLocale: 'zh-CN',
+  },
 
   /** 语言切换选项 */
   localeOptions: LOCALE_OPTIONS,

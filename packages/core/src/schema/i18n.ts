@@ -134,7 +134,29 @@ function translateNode(
         translatedProps[prop] = t(extractKey(translatedProps[prop] as string))
       }
     }
+    if (translatedProps.actions && typeof translatedProps.actions === 'object' && !Array.isArray(translatedProps.actions)) {
+      const translatedActions: Record<string, unknown> = { ...(translatedProps.actions as Record<string, unknown>) }
+      for (const [key, value] of Object.entries(translatedActions)) {
+        if (isI18nKey(value)) {
+          translatedActions[key] = t(extractKey(value))
+        }
+      }
+      translatedProps.actions = translatedActions
+    }
     result.decoratorProps = translatedProps
+  }
+
+  /* 翻译校验规则消息 */
+  if (Array.isArray(result.rules)) {
+    result.rules = result.rules.map((rule) => {
+      if (!rule || typeof rule !== 'object')
+        return rule
+      const message = (rule as Record<string, unknown>).message
+      if (isI18nKey(message)) {
+        return { ...(rule as Record<string, unknown>), message: t(extractKey(message)) }
+      }
+      return rule
+    })
   }
 
   /* 翻译 enum 的 label */

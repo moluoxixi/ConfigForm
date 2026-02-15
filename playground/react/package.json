@@ -20,10 +20,12 @@
     "@moluoxixi/ui-antd": "workspace:*",
     "@playground/shared": "workspace:*",
     "antd": "catalog:build",
+    "i18next": "catalog:build",
     "mobx": "catalog:build",
     "mobx-react-lite": "catalog:build",
     "react": "catalog:build",
-    "react-dom": "catalog:build"
+    "react-dom": "catalog:build",
+    "react-i18next": "catalog:build"
   },
   "devDependencies": {
     "@moluoxixi/eslint-config": "catalog:dev",
