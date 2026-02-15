@@ -15,6 +15,7 @@
     "@moluoxixi/plugin-devtools": "workspace:*",
     "@moluoxixi/plugin-devtools-vue": "workspace:*",
     "@moluoxixi/plugin-i18n-vue": "workspace:*",
+    "@moluoxixi/plugin-io-vue": "workspace:*",
     "@moluoxixi/reactive-vue": "workspace:*",
     "@moluoxixi/ui-antd-vue": "workspace:*",
     "@moluoxixi/ui-element-plus": "workspace:*",

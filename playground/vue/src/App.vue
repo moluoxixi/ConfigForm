@@ -79,6 +79,80 @@
                 </button>
               </div>
             </div>
+            <div
+              v-if="ioRuntime"
+              style="margin-bottom: 12px; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px;"
+            >
+              <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
+                <span style="font-size: 13px; font-weight: 600; color: #555;">操作：</span>
+                <button @click="exportJson">导出 JSON</button>
+                <button @click="exportCsv">导出 CSV</button>
+                <button @click="openJsonImport">导入 JSON</button>
+                <button @click="openCsvImport">导入 CSV</button>
+                <label style="font-size: 12px; color: #555;">
+                  导入策略：
+                  <select v-model="importStrategy">
+                    <option value="merge">merge</option>
+                    <option value="shallow">shallow</option>
+                    <option value="replace">replace</option>
+                  </select>
+                </label>
+                <button @click="printForm">打印预览</button>
+                <input
+                  ref="jsonFileInput"
+                  type="file"
+                  accept=".json,application/json"
+                  style="display: none;"
+                  @change="onJsonFileChange"
+                >
+                <input
+                  ref="csvFileInput"
+                  type="file"
+                  accept=".csv,text/csv"
+                  style="display: none;"
+                  @change="onCsvFileChange"
+                >
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                <div>
+                  <div style="font-size: 12px; color: #666; margin-bottom: 4px;">JSON 导出预览</div>
+                  <textarea
+                    :value="exportJsonPreview"
+                    readonly
+                    rows="8"
+                    style="width: 100%; font-family: monospace; font-size: 12px;"
+                  />
+                </div>
+                <div>
+                  <div style="font-size: 12px; color: #666; margin-bottom: 4px;">CSV 导出预览</div>
+                  <textarea
+                    :value="exportCsvPreview"
+                    readonly
+                    rows="8"
+                    style="width: 100%; font-family: monospace; font-size: 12px;"
+                  />
+                </div>
+              </div>
+              <div v-if="importPreview" style="border-top: 1px dashed #d0d7de; padding-top: 8px;">
+                <div style="font-size: 12px; color: #666; margin-bottom: 4px;">
+                  {{ importPreview.type }} 导入预览：可导入 {{ importPreview.appliedKeys.length }} 字段
+                  <template v-if="importPreview.skippedKeys.length">
+                    ，跳过 {{ importPreview.skippedKeys.join(', ') }}
+                  </template>
+                </div>
+                <textarea
+                  :value="importPreview.raw"
+                  readonly
+                  rows="5"
+                  style="width: 100%; font-family: monospace; font-size: 12px; margin-bottom: 8px;"
+                />
+                <div style="display: flex; gap: 8px;">
+                  <button @click="applyImportPreview">应用导入</button>
+                  <button @click="clearImportPreview">清空导入预览</button>
+                </div>
+              </div>
+              <div v-if="ioMessage" style="font-size: 12px; color: #666; margin-top: 8px;">{{ ioMessage }}</div>
+            </div>
           </template>
         </SceneRenderer>
         <div v-else style="text-align: center; color: #999; padding: 40px;">
@@ -99,6 +173,7 @@ import type { SceneConfig } from '@playground/shared'
 import type { UIAdapter, UILib } from './ui'
 import { DevToolsPanel } from '@moluoxixi/plugin-devtools-vue'
 import { createVueMessageI18nRuntime } from '@moluoxixi/plugin-i18n-vue'
+import { createVueFormIORuntime } from '@moluoxixi/plugin-io-vue'
 import { registerComponent } from '@moluoxixi/vue'
 import { getSceneGroups, sceneRegistry } from '@playground/shared'
 import { computed, defineComponent, h, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
@@ -212,6 +287,20 @@ async function loadScene(name: string): Promise<void> {
 watch(currentDemo, name => loadScene(name), { immediate: true })
 
 const i18nRuntime = shallowRef<ReturnType<typeof createVueMessageI18nRuntime> | undefined>(undefined)
+const ioRuntime = shallowRef<ReturnType<typeof createVueFormIORuntime> | undefined>(undefined)
+const ioMessage = ref('')
+const exportJsonPreview = ref('')
+const exportCsvPreview = ref('')
+const importStrategy = ref<'merge' | 'shallow' | 'replace'>('merge')
+const importPreview = ref<{
+  type: 'JSON' | 'CSV'
+  raw: string
+  data: Record<string, unknown>
+  appliedKeys: string[]
+  skippedKeys: string[]
+} | null>(null)
+const jsonFileInput = ref<HTMLInputElement | null>(null)
+const csvFileInput = ref<HTMLInputElement | null>(null)
 watch(() => sceneConfig.value?.i18n, (config) => {
   if (!config) {
     i18nRuntime.value = undefined
@@ -223,6 +312,35 @@ watch(() => sceneConfig.value?.i18n, (config) => {
   i18nRuntime.value = createVueMessageI18nRuntime({
     messages,
     locale: config.defaultLocale,
+  })
+}, { immediate: true })
+watch(() => currentDemo.value === 'PrintExportForm', (enabled) => {
+  ioMessage.value = ''
+  importPreview.value = null
+  importStrategy.value = 'merge'
+  if (!enabled) {
+    ioRuntime.value = undefined
+    return
+  }
+  ioRuntime.value = createVueFormIORuntime({
+    filenameBase: 'print-export',
+    print: {
+      title: '打印预览 - PrintExportForm',
+    },
+  })
+}, { immediate: true })
+watch(ioRuntime, (runtime, _prev, onCleanup) => {
+  if (!runtime) {
+    exportJsonPreview.value = ''
+    exportCsvPreview.value = ''
+    return
+  }
+  const dispose = runtime.subscribeExportPreview((preview) => {
+    exportJsonPreview.value = preview.json
+    exportCsvPreview.value = preview.csv
+  })
+  onCleanup(() => {
+    dispose()
   })
 }, { immediate: true })
 const locale = ref('')
@@ -275,11 +393,112 @@ const sceneDescription = computed(() => {
 })
 
 const scenePlugins = computed<FormPlugin[]>(() => {
-  return i18nRuntime.value ? [i18nRuntime.value.plugin] : []
+  const plugins: FormPlugin[] = []
+  if (i18nRuntime.value)
+    plugins.push(i18nRuntime.value.plugin)
+  if (ioRuntime.value)
+    plugins.push(ioRuntime.value.plugin)
+  return plugins
 })
 
 function switchLocale(value: string): void {
   i18nRuntime.value?.setLocale(value)
+}
+
+function showImportDone(type: 'JSON' | 'CSV', count: number): void {
+  ioMessage.value = `${type} 导入成功：已更新 ${count} 个字段`
+}
+
+function showImportError(error: unknown): void {
+  const message = error instanceof Error ? error.message : String(error)
+  ioMessage.value = `导入失败：${message}`
+}
+
+function exportJson(): void {
+  ioRuntime.value?.downloadJSON({ filename: 'order-export.json' }).catch(showImportError)
+}
+
+function exportCsv(): void {
+  ioRuntime.value?.downloadCSV({ filename: 'order-export.csv' }).catch(showImportError)
+}
+
+function printForm(): void {
+  ioRuntime.value?.print().catch(showImportError)
+}
+
+function openJsonImport(): void {
+  jsonFileInput.value?.click()
+}
+
+function openCsvImport(): void {
+  csvFileInput.value?.click()
+}
+
+async function onJsonFileChange(event: Event): Promise<void> {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  target.value = ''
+  if (!file || !ioRuntime.value)
+    return
+  try {
+    const [raw, result] = await Promise.all([
+      file.text(),
+      ioRuntime.value.parseImportJSONFile(file, { strategy: importStrategy.value }),
+    ])
+    importPreview.value = {
+      type: 'JSON',
+      raw,
+      data: result.data,
+      appliedKeys: result.appliedKeys,
+      skippedKeys: result.skippedKeys,
+    }
+    ioMessage.value = `JSON 解析完成：可导入 ${result.appliedKeys.length} 个字段`
+  }
+  catch (error) {
+    showImportError(error)
+  }
+}
+
+async function onCsvFileChange(event: Event): Promise<void> {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  target.value = ''
+  if (!file || !ioRuntime.value)
+    return
+  try {
+    const [raw, result] = await Promise.all([
+      file.text(),
+      ioRuntime.value.parseImportCSVFile(file, { strategy: importStrategy.value }),
+    ])
+    importPreview.value = {
+      type: 'CSV',
+      raw,
+      data: result.data,
+      appliedKeys: result.appliedKeys,
+      skippedKeys: result.skippedKeys,
+    }
+    ioMessage.value = `CSV 解析完成：可导入 ${result.appliedKeys.length} 个字段`
+  }
+  catch (error) {
+    showImportError(error)
+  }
+}
+
+function applyImportPreview(): void {
+  if (!ioRuntime.value || !importPreview.value)
+    return
+  try {
+    const result = ioRuntime.value.applyImport(importPreview.value.data, { strategy: importStrategy.value })
+    showImportDone(importPreview.value.type, result.appliedKeys.length)
+    importPreview.value = null
+  }
+  catch (error) {
+    showImportError(error)
+  }
+}
+
+function clearImportPreview(): void {
+  importPreview.value = null
 }
 
 function navBtnStyle(name: string): Record<string, string> {

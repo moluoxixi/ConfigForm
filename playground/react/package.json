@@ -16,6 +16,7 @@
     "@moluoxixi/plugin-devtools": "workspace:*",
     "@moluoxixi/plugin-devtools-react": "workspace:*",
     "@moluoxixi/plugin-i18n-react": "workspace:*",
+    "@moluoxixi/plugin-io-react": "workspace:*",
     "@moluoxixi/react": "workspace:*",
     "@moluoxixi/reactive-react": "workspace:*",
     "@moluoxixi/ui-antd": "workspace:*",

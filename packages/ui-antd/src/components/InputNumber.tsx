@@ -38,15 +38,24 @@ export function InputNumber(props: CfInputNumberProps): ReactElement {
     style,
     ...rest
   } = props
-  const mergedStyle = typeof style === 'object'
+  const inputNumberProps = { ...rest } as CfInputNumberProps & { loading?: unknown, dataSource?: unknown }
+  delete inputNumberProps.loading
+  delete inputNumberProps.dataSource
+  const mergedStyle: CSSProperties = typeof style === 'object'
     ? { width: '100%', ...style }
-    : (style ?? { width: '100%' })
+    : { width: '100%' }
 
   return (
     <AInputNumber
-      {...rest}
+      {...inputNumberProps}
       value={value}
-      onChange={v => onChange?.(v ?? undefined)}
+      onChange={(v) => {
+        if (v === null || v === undefined) {
+          onChange?.(undefined)
+          return
+        }
+        onChange?.(typeof v === 'number' ? v : Number(v))
+      }}
       onFocus={onFocus}
       onBlur={onBlur}
       disabled={disabled || preview}

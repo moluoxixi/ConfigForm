@@ -48,6 +48,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import type { CSSProperties } from 'vue'
 
 interface CronPreset {
   label: string
@@ -112,7 +113,7 @@ const wrapperStyle = {
   padding: '12px',
 } as const
 
-const inputStyle = computed(() => ({
+const inputStyle = computed<CSSProperties>(() => ({
   width: '100%',
   padding: '6px 12px',
   border: '1px solid #d9d9d9',
@@ -135,7 +136,7 @@ const partStyle = {
   textAlign: 'center',
 } as const
 
-const partInputStyle = computed(() => ({
+const partInputStyle = computed<CSSProperties>(() => ({
   width: '100%',
   padding: '4px 6px',
   border: '1px solid #d9d9d9',

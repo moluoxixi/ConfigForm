@@ -1,0 +1,39 @@
+{
+  "name": "@moluoxixi/plugin-io-vue",
+  "type": "module",
+  "version": "0.0.1",
+  "description": "ConfigForm Vue import/export/print adapter plugin",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    }
+  },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js",
+        "require": "./dist/index.cjs"
+      }
+    },
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts"
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --tsconfig tsconfig.build.json",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --tsconfig tsconfig.build.json --watch"
+  },
+  "dependencies": {
+    "@moluoxixi/core": "workspace:*",
+    "@moluoxixi/plugin-io-core": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "catalog:type",
+    "typescript": "catalog:type"
+  }
+}

@@ -8,10 +8,11 @@ import type { FormPlugin } from '@moluoxixi/core'
 import type { SceneConfig } from '@playground/shared'
 import { DevToolsPanel } from '@moluoxixi/plugin-devtools-react'
 import { createReactMessageI18nRuntime } from '@moluoxixi/plugin-i18n-react'
+import { createReactFormIORuntime } from '@moluoxixi/plugin-io-react'
 import { registerComponent, registerDecorator } from '@moluoxixi/react'
 import { setupAntd } from '@moluoxixi/ui-antd'
 import { getSceneGroups, sceneRegistry } from '@playground/shared'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   CardDecorator,
   CodeEditor,
@@ -78,6 +79,7 @@ export function App(): React.ReactElement {
   }, [currentDemo, loadScene])
 
   const i18nConfig = sceneConfig?.i18n
+  const isPrintExportScene = currentDemo === 'PrintExportForm'
   const i18nRuntime = useMemo(() => {
     if (!i18nConfig)
       return undefined
@@ -87,6 +89,29 @@ export function App(): React.ReactElement {
     })
   }, [i18nConfig])
   const [locale, setLocale] = useState('')
+  const [ioMessage, setIoMessage] = useState('')
+  const [exportJsonPreview, setExportJsonPreview] = useState('')
+  const [exportCsvPreview, setExportCsvPreview] = useState('')
+  const [importStrategy, setImportStrategy] = useState<'merge' | 'shallow' | 'replace'>('merge')
+  const [importPreview, setImportPreview] = useState<{
+    type: 'JSON' | 'CSV'
+    raw: string
+    data: Record<string, unknown>
+    appliedKeys: string[]
+    skippedKeys: string[]
+  } | null>(null)
+  const jsonFileInputRef = useRef<HTMLInputElement | null>(null)
+  const csvFileInputRef = useRef<HTMLInputElement | null>(null)
+  const ioRuntime = useMemo(() => {
+    if (!isPrintExportScene)
+      return undefined
+    return createReactFormIORuntime({
+      filenameBase: 'print-export',
+      print: {
+        title: '打印预览 - PrintExportForm',
+      },
+    })
+  }, [isPrintExportScene])
 
   useEffect(() => {
     if (!i18nRuntime) {
@@ -96,6 +121,22 @@ export function App(): React.ReactElement {
     setLocale(i18nRuntime.getLocale())
     return i18nRuntime.subscribeLocale(setLocale)
   }, [i18nRuntime])
+  useEffect(() => {
+    setIoMessage('')
+    setImportPreview(null)
+    setImportStrategy('merge')
+  }, [currentDemo])
+  useEffect(() => {
+    if (!ioRuntime) {
+      setExportJsonPreview('')
+      setExportCsvPreview('')
+      return
+    }
+    return ioRuntime.subscribeExportPreview((preview) => {
+      setExportJsonPreview(preview.json)
+      setExportCsvPreview(preview.csv)
+    })
+  }, [ioRuntime])
 
   const localeOptions = useMemo(() => {
     if (!i18nConfig)
@@ -125,8 +166,83 @@ export function App(): React.ReactElement {
   }, [sceneConfig, translateText])
 
   const scenePlugins = useMemo<FormPlugin[]>(() => {
-    return i18nRuntime ? [i18nRuntime.plugin] : []
-  }, [i18nRuntime])
+    const plugins: FormPlugin[] = []
+    if (i18nRuntime)
+      plugins.push(i18nRuntime.plugin)
+    if (ioRuntime)
+      plugins.push(ioRuntime.plugin)
+    return plugins
+  }, [i18nRuntime, ioRuntime])
+
+  const handleImportDone = useCallback((type: 'JSON' | 'CSV', count: number) => {
+    setIoMessage(`${type} 导入成功：已更新 ${count} 个字段`)
+  }, [])
+
+  const handleImportError = useCallback((error: unknown) => {
+    const message = error instanceof Error ? error.message : String(error)
+    setIoMessage(`导入失败：${message}`)
+  }, [])
+
+  const onJsonFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file || !ioRuntime)
+      return
+    try {
+      const [raw, result] = await Promise.all([
+        file.text(),
+        ioRuntime.parseImportJSONFile(file, { strategy: importStrategy }),
+      ])
+      setImportPreview({
+        type: 'JSON',
+        raw,
+        data: result.data,
+        appliedKeys: result.appliedKeys,
+        skippedKeys: result.skippedKeys,
+      })
+      setIoMessage(`JSON 解析完成：可导入 ${result.appliedKeys.length} 个字段`)
+    }
+    catch (error) {
+      handleImportError(error)
+    }
+  }, [handleImportError, importStrategy, ioRuntime])
+
+  const onCsvFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file || !ioRuntime)
+      return
+    try {
+      const [raw, result] = await Promise.all([
+        file.text(),
+        ioRuntime.parseImportCSVFile(file, { strategy: importStrategy }),
+      ])
+      setImportPreview({
+        type: 'CSV',
+        raw,
+        data: result.data,
+        appliedKeys: result.appliedKeys,
+        skippedKeys: result.skippedKeys,
+      })
+      setIoMessage(`CSV 解析完成：可导入 ${result.appliedKeys.length} 个字段`)
+    }
+    catch (error) {
+      handleImportError(error)
+    }
+  }, [handleImportError, importStrategy, ioRuntime])
+
+  const applyImportPreview = useCallback(() => {
+    if (!ioRuntime || !importPreview)
+      return
+    try {
+      const result = ioRuntime.applyImport(importPreview.data, { strategy: importStrategy })
+      handleImportDone(importPreview.type, result.appliedKeys.length)
+      setImportPreview(null)
+    }
+    catch (error) {
+      handleImportError(error)
+    }
+  }, [handleImportDone, handleImportError, importPreview, importStrategy, ioRuntime])
   const localeSwitcher = i18nRuntime && localeOptions.length > 0
     ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
@@ -153,6 +269,86 @@ export function App(): React.ReactElement {
               </button>
             ))}
           </div>
+        </div>
+      )
+    : undefined
+  const ioToolbar = ioRuntime
+    ? (
+        <div style={{ marginBottom: 12, border: '1px solid #e5e7eb', borderRadius: 8, padding: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#555' }}>
+              操作：
+            </span>
+            <button type="button" onClick={() => { void ioRuntime.downloadJSON({ filename: 'order-export.json' }) }}>导出 JSON</button>
+            <button type="button" onClick={() => { void ioRuntime.downloadCSV({ filename: 'order-export.csv' }) }}>导出 CSV</button>
+            <button type="button" onClick={() => jsonFileInputRef.current?.click()}>导入 JSON</button>
+            <button type="button" onClick={() => csvFileInputRef.current?.click()}>导入 CSV</button>
+            <label style={{ fontSize: 12, color: '#555' }}>
+              导入策略：
+              {' '}
+              <select
+                value={importStrategy}
+                onChange={event => setImportStrategy(event.target.value as 'merge' | 'shallow' | 'replace')}
+              >
+                <option value="merge">merge</option>
+                <option value="shallow">shallow</option>
+                <option value="replace">replace</option>
+              </select>
+            </label>
+            <button type="button" onClick={() => { void ioRuntime.print() }}>打印预览</button>
+            <input
+              ref={jsonFileInputRef}
+              type="file"
+              accept=".json,application/json"
+              style={{ display: 'none' }}
+              onChange={onJsonFileChange}
+            />
+            <input
+              ref={csvFileInputRef}
+              type="file"
+              accept=".csv,text/csv"
+              style={{ display: 'none' }}
+              onChange={onCsvFileChange}
+            />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+            <div>
+              <div style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>JSON 导出预览</div>
+              <textarea readOnly rows={8} value={exportJsonPreview} style={{ width: '100%', fontFamily: 'monospace', fontSize: 12 }} />
+            </div>
+            <div>
+              <div style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>CSV 导出预览</div>
+              <textarea readOnly rows={8} value={exportCsvPreview} style={{ width: '100%', fontFamily: 'monospace', fontSize: 12 }} />
+            </div>
+          </div>
+          {importPreview
+            ? (
+                <div style={{ borderTop: '1px dashed #d0d7de', paddingTop: 8 }}>
+                  <div style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>
+                    {importPreview.type}
+                    {' '}
+                    导入预览：可导入
+                    {' '}
+                    {importPreview.appliedKeys.length}
+                    {' '}
+                    字段
+                    {importPreview.skippedKeys.length > 0 ? `，跳过 ${importPreview.skippedKeys.join(', ')}` : ''}
+                  </div>
+                  <textarea readOnly rows={5} value={importPreview.raw} style={{ width: '100%', fontFamily: 'monospace', fontSize: 12, marginBottom: 8 }} />
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button type="button" onClick={applyImportPreview}>应用导入</button>
+                    <button type="button" onClick={() => setImportPreview(null)}>清空导入预览</button>
+                  </div>
+                </div>
+              )
+            : null}
+          {ioMessage
+            ? (
+                <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>
+                  {ioMessage}
+                </div>
+              )
+            : null}
         </div>
       )
     : undefined
@@ -206,7 +402,12 @@ export function App(): React.ReactElement {
                   title={sceneTitle}
                   description={sceneDescription}
                   extraPlugins={scenePlugins}
-                  headerExtra={localeSwitcher}
+                  headerExtra={(
+                    <>
+                      {localeSwitcher}
+                      {ioToolbar}
+                    </>
+                  )}
                 />
               )
             : <div style={{ textAlign: 'center', color: '#999', padding: 40 }}>{loading ? '加载中...' : '请选择场景'}</div>}
@@ -251,11 +452,20 @@ function DevToolsFloating(): React.ReactElement | null {
 
   useEffect(() => {
     const hook = getOrCreateHook()
+    let disposed = false
     const update = (forms: Map<string, DevToolsPluginAPI>): void => {
-      setApi(forms.size > 0 ? forms.values().next().value! : null)
+      const nextApi = forms.size > 0 ? forms.values().next().value! : null
+      Promise.resolve().then(() => {
+        if (!disposed)
+          setApi(nextApi)
+      })
     }
     update(hook.forms)
-    return hook.onChange(update)
+    const unsubscribe = hook.onChange(update)
+    return () => {
+      disposed = true
+      unsubscribe()
+    }
   }, [])
 
   if (!api)
