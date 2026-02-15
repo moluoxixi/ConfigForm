@@ -3,28 +3,28 @@
     <input
       type="color"
       :value="colorValue"
-      @input="onColorInput"
       :disabled="disabled"
       :style="colorInputStyle"
-    />
+      @input="onColorInput"
+    >
     <input
       type="text"
       :value="textValue"
-      @input="onTextInput"
-      @blur="onTextBlur"
       :disabled="disabled"
       :style="textInputStyle"
       maxlength="7"
-    />
+      @input="onTextInput"
+      @blur="onTextBlur"
+    >
     <div v-if="presets.length" :style="presetsStyle">
       <button
         v-for="color in presets"
         :key="color"
         type="button"
         :disabled="disabled"
-        @click="onPresetClick(color)"
         :style="presetButtonStyle(color)"
         :title="color"
+        @click="onPresetClick(color)"
       />
     </div>
     <span :style="previewStyle" />
@@ -47,7 +47,7 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
 }>()
 
-const hexPattern = /^#([0-9a-fA-F]{6})$/
+const hexPattern = /^#[0-9a-f]{6}$/i
 const isHexColor = (value: string): boolean => hexPattern.test(value)
 
 const textDraft = ref(props.modelValue ?? '')

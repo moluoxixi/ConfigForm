@@ -15,7 +15,7 @@ const props = defineProps<{
 const displayValue = computed(() => (props.modelValue && props.modelValue.length > 0 ? props.modelValue : '—'))
 const swatchColor = computed(() => {
   const value = props.modelValue ?? ''
-  return /^#([0-9a-fA-F]{6})$/.test(value) ? value : '#000000'
+  return /^#[0-9a-f]{6}$/i.test(value) ? value : '#000000'
 })
 
 const wrapperStyle = {

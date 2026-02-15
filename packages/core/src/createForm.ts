@@ -121,6 +121,11 @@ export function createForm<
   const reactiveForm = adapter.makeObservable(form)
   const formInstance = reactiveForm as unknown as FormInstance<Values>
 
+  /* 执行用户定义的 effects（使用响应式代理，确保 Vue 能追踪） */
+  if (config.effects) {
+    config.effects(formInstance)
+  }
+
   /* 自动安装插件（排序后安装，确保依赖顺序正确） */
   if (config.plugins && config.plugins.length > 0) {
     const sorted = sortPlugins(config.plugins)

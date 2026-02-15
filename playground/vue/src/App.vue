@@ -69,8 +69,8 @@ import { DevToolsPanel } from '@moluoxixi/plugin-devtools-vue'
 import { registerComponent } from '@moluoxixi/vue'
 import { getSceneGroups, sceneRegistry } from '@playground/shared'
 import { defineComponent, h, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
-import SceneRenderer from './components/SceneRenderer.vue'
 import { CodeEditor, ColorPicker, CronEditor, PreviewColorPicker, SignaturePad } from './components/custom'
+import SceneRenderer from './components/SceneRenderer.vue'
 import { adapters } from './ui'
 
 /** 确保全局 Hook 存在（与 plugin 中逻辑一致，保证面板先于插件挂载时也能订阅） */

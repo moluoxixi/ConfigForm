@@ -136,14 +136,17 @@ export const ConfigForm = defineComponent({
       (props.pattern ?? props.schema?.pattern ?? rootDecoratorProps.value.pattern ?? 'editable') as FieldPattern,
     )
 
+    const resolvedEffects = props.effects ?? props.formConfig?.effects
+    const resolvedPlugins = props.plugins ?? props.formConfig?.plugins
+
     const internalForm = useCreateForm({
       labelPosition: (rootDecoratorProps.value.labelPosition ?? 'right') as 'top' | 'left' | 'right',
       labelWidth: rootDecoratorProps.value.labelWidth as string | number,
       pattern: effectivePattern.value,
       ...props.formConfig,
       initialValues: props.initialValues ?? props.formConfig?.initialValues,
-      effects: props.effects,
-      plugins: props.plugins,
+      effects: resolvedEffects,
+      plugins: resolvedPlugins,
     })
     const form = props.form ?? internalForm
 

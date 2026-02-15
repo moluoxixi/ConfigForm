@@ -57,6 +57,7 @@ const config: SceneConfig = {
         component: 'RadioGroup',
         enum: PATTERN_OPTIONS,
         default: 'editable',
+        pattern: 'editable',
         description: '切换后所有字段（除「始终可编辑」外）跟随变化',
       },
       name: {

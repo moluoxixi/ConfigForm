@@ -44,6 +44,7 @@ const config: SceneConfig = {
         title: '敏感字段',
         description: 'display=hidden 时隐藏但保留数据，display=none 时隐藏且排除数据',
         componentProps: { placeholder: '敏感信息' },
+        excludeWhenHidden: false,
         reactions: [
           {
             watch: 'displayMode',
@@ -61,6 +62,7 @@ const config: SceneConfig = {
         title: '普通字段',
         description: '跟随 display 模式变化',
         componentProps: { placeholder: '普通数据' },
+        excludeWhenHidden: false,
         reactions: [
           {
             watch: 'displayMode',
@@ -79,6 +81,7 @@ const config: SceneConfig = {
         description: 'hidden 模式适用于需要隐藏 UI 但保留计算结果的场景',
         preview: true,
         componentProps: { placeholder: '自动计算的值' },
+        excludeWhenHidden: false,
         reactions: [
           {
             watch: 'displayMode',

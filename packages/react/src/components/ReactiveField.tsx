@@ -19,6 +19,69 @@ const errorBoundaryStyle: React.CSSProperties = {
   background: '#fff2f0',
 }
 
+type ComponentProps = Record<string, unknown> | undefined
+
+function toCamelCaseStyleKey(key: string): string {
+  return key.replace(/-([a-z])/g, (_, chr: string) => chr.toUpperCase())
+}
+
+function parseStyleString(styleText: string): React.CSSProperties | undefined {
+  const entries = styleText
+    .split(';')
+    .map(item => item.trim())
+    .filter(Boolean)
+
+  if (!entries.length)
+    return undefined
+
+  const style: Record<string, string> = {}
+  for (const entry of entries) {
+    const [rawKey, ...rawValueParts] = entry.split(':')
+    if (!rawKey || rawValueParts.length === 0)
+      continue
+    const key = toCamelCaseStyleKey(rawKey.trim())
+    const value = rawValueParts.join(':').trim()
+    if (!key || !value)
+      continue
+    style[key] = value
+  }
+
+  return Object.keys(style).length ? style : undefined
+}
+
+function normalizeComponentProps(props: ComponentProps): ComponentProps {
+  if (!props || typeof props !== 'object')
+    return props
+
+  const styleValue = (props as { style?: unknown }).style
+  if (!styleValue)
+    return props
+
+  if (typeof styleValue === 'string') {
+    const parsed = parseStyleString(styleValue)
+    if (!parsed)
+      return { ...props, style: undefined }
+    return { ...props, style: parsed }
+  }
+
+  if (Array.isArray(styleValue)) {
+    const merged: Record<string, string> = {}
+    for (const item of styleValue) {
+      if (typeof item === 'string') {
+        const parsed = parseStyleString(item)
+        if (parsed)
+          Object.assign(merged, parsed)
+        continue
+      }
+      if (item && typeof item === 'object')
+        Object.assign(merged, item as Record<string, string>)
+    }
+    return { ...props, style: Object.keys(merged).length ? merged : undefined }
+  }
+
+  return props
+}
+
 interface FieldErrorBoundaryProps {
   fieldPath: string
   children: ReactNode
@@ -95,9 +158,10 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
       const componentName = field.component
       const Comp = typeof componentName === 'string' ? registry.components.get(componentName) : componentName as ComponentType<any>
       if (Comp) {
+        const safeProps = normalizeComponentProps(field.componentProps as ComponentProps)
         return (
           <FieldErrorBoundary fieldPath={field.path}>
-            <Comp {...field.componentProps}>{children}</Comp>
+            <Comp {...safeProps}>{children}</Comp>
           </FieldErrorBoundary>
         )
       }
@@ -136,9 +200,10 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
      * 由数组组件通过 FieldContext 读取 ArrayField 实例并驱动增删改排序。
      */
     if (isArray) {
+      const safeProps = normalizeComponentProps(contract.componentProps as ComponentProps)
       const arrayElement = (
         <FieldErrorBoundary fieldPath={dataField.path}>
-          <Comp {...contract.componentProps}>{children}</Comp>
+          <Comp {...safeProps}>{children}</Comp>
         </FieldErrorBoundary>
       )
       return wrapDecorator(dataField, arrayElement, form, registry)
@@ -171,12 +236,13 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
         if (typeof formatter === 'function') {
           previewValue = (formatter as (value: unknown) => unknown)(previewValue)
         }
+        const safeProps = normalizeComponentProps(contract.componentProps as ComponentProps)
         const previewElement = (
           <FieldErrorBoundary fieldPath={dataField.path}>
             <ReadPrettyComp
               value={previewValue}
               dataSource={contract.dataSource}
-              {...contract.componentProps}
+              {...safeProps}
             />
           </FieldErrorBoundary>
         )
@@ -195,6 +261,7 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
     const displayValue = dataField.displayFormat && dataField.inputParse
       ? dataField.displayFormat(contract.value)
       : contract.value
+    const safeProps = normalizeComponentProps(contract.componentProps as ComponentProps)
     const fieldElement = (
       <FieldErrorBoundary fieldPath={dataField.path}>
         <Comp
@@ -202,7 +269,7 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
           loading={contract.loading}
           dataSource={contract.dataSource}
           {...contract.ariaProps}
-          {...contract.componentProps}
+          {...safeProps}
           value={displayValue}
           onChange={interactions.onInput}
           onFocus={interactions.onFocus}
@@ -234,9 +301,10 @@ function renderContainerField(
   form: FormInstance,
   registry: { decorators: Map<string, ComponentType<any>> },
 ): React.ReactElement {
+  const safeProps = normalizeComponentProps(dataField.componentProps as ComponentProps)
   const fieldElement = (
     <FieldErrorBoundary fieldPath={dataField.path}>
-      <Comp {...dataField.componentProps}>{children}</Comp>
+      <Comp {...safeProps}>{children}</Comp>
     </FieldErrorBoundary>
   )
   return wrapDecorator(dataField, fieldElement, form, registry)

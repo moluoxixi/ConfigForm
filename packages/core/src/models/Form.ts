@@ -96,11 +96,6 @@ implements FormInstance<Values> {
 
     this.reactionEngine = new ReactionEngine(this as unknown as FormInstance)
 
-    /* 执行用户定义的 effects */
-    if (config.effects) {
-      config.effects(this as unknown as FormInstance<Values>)
-    }
-
     this._emitter.emit(FormLifeCycle.ON_FORM_INIT, this)
   }
 

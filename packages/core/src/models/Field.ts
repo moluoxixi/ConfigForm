@@ -76,14 +76,14 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
   /**
    * 有效 pattern（计算属性，对齐 Formily）
    *
-   * 优先级：字段自身 > 表单级。
-   * 当字段自身 pattern 为 'editable'（默认）时，回退到 form.pattern。
+   * 优先级：字段自身（显式设置） > 表单级。
+   * 当字段未显式设置 pattern 时，回退到 form.pattern。
    * 消费者只需读 field.pattern，无需手动合并 form.pattern。
    */
   get pattern(): FieldPattern {
-    if (this.selfPattern !== 'editable')
-      return this.selfPattern
-    return this.form.pattern
+    if (this.selfPattern == null)
+      return this.form.pattern
+    return this.selfPattern
   }
 
   set pattern(val: FieldPattern) {
@@ -121,7 +121,7 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
   active: boolean
   visited: boolean
   /** 字段自身的 pattern（不含 form 级覆盖，外部一般不直接使用） */
-  selfPattern: FieldPattern
+  selfPattern: FieldPattern | undefined
   required: boolean
 
   /** 组件配置 */
@@ -184,7 +184,7 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     this.loading = false
     this.active = false
     this.visited = false
-    this.selfPattern = props.pattern ?? 'editable'
+    this.selfPattern = props.pattern
     this.required = props.required ?? false
 
     /* 组件 */

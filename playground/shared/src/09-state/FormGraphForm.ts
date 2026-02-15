@@ -24,19 +24,12 @@ const config: SceneConfig = {
   },
 
   effects: (form: FormInstance): void => {
-    form.on(FormLifeCycle.ON_FORM_MOUNT, () => {
-      /**
-       * 挂载后延迟获取初始快照，写入 graphJson 字段展示。
-       * 使用 setTimeout 确保所有字段都已初始化。
-       */
-      setTimeout(() => {
-        const graph = form.getGraph()
-        const graphField = form.getField('graphJson')
-        if (graphField) {
-          graphField.setValue(JSON.stringify(graph, null, 2))
-        }
-      }, 100)
-    })
+    const updateGraph = (): void => {
+      const graph = form.getGraph()
+      form.setFieldValue('graphJson', JSON.stringify(graph, null, 2))
+    }
+    updateGraph()
+    form.on(FormLifeCycle.ON_FORM_MOUNT, updateGraph)
   },
 
   schema: {

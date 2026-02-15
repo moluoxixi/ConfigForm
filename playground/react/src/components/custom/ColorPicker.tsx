@@ -14,7 +14,7 @@ interface ColorPickerProps {
   preview?: boolean
 }
 
-const hexPattern = /^#([0-9a-fA-F]{6})$/
+const hexPattern = /^#[0-9a-f]{6}$/i
 const isHexColor = (next: string): boolean => hexPattern.test(next)
 
 export function ColorPicker({ value = '', onChange, presets = [], disabled, preview }: ColorPickerProps): React.ReactElement {
@@ -40,7 +40,7 @@ export function ColorPicker({ value = '', onChange, presets = [], disabled, prev
       <input
         type="text"
         value={textDraft}
-        onChange={e => {
+        onChange={(e) => {
           const nextValue = e.target.value
           setTextDraft(nextValue)
           if (isHexColor(nextValue)) {

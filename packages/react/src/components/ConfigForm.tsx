@@ -95,6 +95,9 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
   /** pattern 优先级：props.pattern > schema.decoratorProps.pattern > 'editable' */
   const effectivePattern = (patternProp ?? schema?.pattern ?? rootDecoratorProps.pattern ?? 'editable') as FieldPattern
 
+  const resolvedEffects = effects ?? formConfig?.effects
+  const resolvedPlugins = plugins ?? formConfig?.plugins
+
   /* 内部创建或使用外部 form */
   const internalForm = useCreateForm<Values>({
     labelPosition: (rootDecoratorProps.labelPosition ?? 'right') as 'top' | 'left' | 'right',
@@ -102,8 +105,8 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
     pattern: effectivePattern,
     ...formConfig,
     initialValues: initialValues ?? formConfig?.initialValues,
-    effects,
-    plugins,
+    effects: resolvedEffects,
+    plugins: resolvedPlugins,
   })
   const form = externalForm ?? internalForm
 

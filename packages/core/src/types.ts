@@ -789,7 +789,7 @@ export interface FieldInstance<Value = unknown> {
   active: boolean
   visited: boolean
   /** 字段自身 pattern（不含 form 级覆盖） */
-  selfPattern: FieldPattern
+  selfPattern: FieldPattern | undefined
   /** 有效 pattern（已汇总 self + form.pattern，消费者直接读此属性） */
   pattern: FieldPattern
   /** 是否可编辑（综合 pattern + disabled + preview） */
@@ -894,7 +894,7 @@ export interface VoidFieldInstance {
   visible: boolean
   disabled: boolean
   preview: boolean
-  selfPattern: FieldPattern
+  selfPattern: FieldPattern | undefined
   /** 有效 pattern（已汇总 self + form.pattern） */
   pattern: FieldPattern
   /** 是否可编辑 */

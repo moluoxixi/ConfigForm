@@ -51,7 +51,7 @@ export interface FieldDetail {
   decorator: string
   /** 状态 */
   pattern: string
-  selfPattern: string
+  selfPattern?: string
   visible: boolean
   disabled: boolean
   preview: boolean

@@ -24,7 +24,7 @@ export class VoidField implements VoidFieldInstance {
   disabled: boolean
   preview: boolean
   /** 字段自身的 pattern（不含 form 级覆盖） */
-  selfPattern: FieldPattern
+  selfPattern: FieldPattern | undefined
   component: string | ComponentType
   componentProps: Record<string, unknown>
   readonly reactions: ReactionRule[]
@@ -37,7 +37,7 @@ export class VoidField implements VoidFieldInstance {
    * 优先级：字段自身 > 表单级。
    */
   get pattern(): FieldPattern {
-    if (this.selfPattern !== 'editable')
+    if (this.selfPattern != null)
       return this.selfPattern
     return this.form.pattern
   }
@@ -62,7 +62,7 @@ export class VoidField implements VoidFieldInstance {
     this.visible = props.visible ?? true
     this.disabled = props.disabled ?? false
     this.preview = props.preview ?? false
-    this.selfPattern = props.pattern ?? 'editable'
+    this.selfPattern = props.pattern
     this.component = props.component ?? ''
     this.componentProps = props.componentProps ?? {}
     this.reactions = props.reactions ?? []

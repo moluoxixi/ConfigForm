@@ -3,25 +3,27 @@
     <input
       type="text"
       :value="inputValue"
-      @input="onInput"
       :disabled="disabled"
       :readonly="disabled"
       placeholder="* * * * *"
       :style="inputStyle"
-    />
+      @input="onInput"
+    >
 
     <div :style="partsStyle">
       <div v-for="(label, index) in cronLabels" :key="label" :style="partStyle">
         <input
           type="text"
           :value="parts[index]"
-          @input="onPartInput(index, $event)"
           :disabled="disabled"
           :readonly="disabled"
           placeholder="*"
           :style="partInputStyle"
-        />
-        <div :style="partLabelStyle">{{ label }}</div>
+          @input="onPartInput(index, $event)"
+        >
+        <div :style="partLabelStyle">
+          {{ label }}
+        </div>
       </div>
     </div>
 
@@ -35,8 +37,8 @@
         :key="preset.value"
         type="button"
         :disabled="disabled"
-        @click="onPresetClick(preset.value)"
         :style="presetButtonStyle(preset.value)"
+        @click="onPresetClick(preset.value)"
       >
         {{ preset.label }}
       </button>
