@@ -8,6 +8,12 @@ import { ComponentRegistrySymbol } from '../context'
 import { FormProvider } from './FormProvider'
 import { SchemaField } from './SchemaField'
 
+interface I18nPluginBridge {
+  readonly version: number
+  translateSchema: (schema: ISchema) => ISchema
+  subscribe?: (listener: (version: number) => void) => () => void
+}
+
 /** 操作按钮渲染器（优先从 registry 获取 LayoutFormActions） */
 const FormActionsRenderer = defineComponent({
   name: 'FormActionsRenderer',
@@ -127,28 +133,63 @@ export const ConfigForm = defineComponent({
   },
   emits: ['submit', 'submitFailed', 'valuesChange', 'reset'],
   setup(props, { slots, emit }) {
-    /** 响应式读取根 schema 的 decoratorProps（schema 变化时自动更新） */
-    const rootDecoratorProps = computed(() =>
+    /** 从根 schema 的 decoratorProps 提取表单级配置（用于创建表单） */
+    const rawDecoratorProps = computed(() =>
       (props.schema?.decoratorProps ?? {}) as Record<string, unknown>,
     )
 
-    const effectivePattern = computed<FieldPattern>(() =>
-      (props.pattern ?? props.schema?.pattern ?? rootDecoratorProps.value.pattern ?? 'editable') as FieldPattern,
+    const initialPattern = computed<FieldPattern>(() =>
+      (props.pattern ?? props.schema?.pattern ?? rawDecoratorProps.value.pattern ?? 'editable') as FieldPattern,
     )
 
     const resolvedEffects = props.effects ?? props.formConfig?.effects
     const resolvedPlugins = props.plugins ?? props.formConfig?.plugins
 
     const internalForm = useCreateForm({
-      labelPosition: (rootDecoratorProps.value.labelPosition ?? 'right') as 'top' | 'left' | 'right',
-      labelWidth: rootDecoratorProps.value.labelWidth as string | number,
-      pattern: effectivePattern.value,
+      labelPosition: (rawDecoratorProps.value.labelPosition ?? 'right') as 'top' | 'left' | 'right',
+      labelWidth: rawDecoratorProps.value.labelWidth as string | number,
+      pattern: initialPattern.value,
       ...props.formConfig,
       initialValues: props.initialValues ?? props.formConfig?.initialValues,
       effects: resolvedEffects,
       plugins: resolvedPlugins,
     })
     const form = props.form ?? internalForm
+
+    const i18nVersion = ref(0)
+    let disposeI18n: (() => void) | undefined
+
+    const bindI18n = (): void => {
+      disposeI18n?.()
+      disposeI18n = undefined
+      const i18n = form.getPlugin<I18nPluginBridge>('i18n')
+      if (!i18n?.subscribe)
+        return
+      i18nVersion.value = i18n.version
+      disposeI18n = i18n.subscribe((nextVersion) => {
+        i18nVersion.value = nextVersion
+      })
+    }
+
+    const effectiveSchema = computed(() => {
+      const schema = props.schema
+      if (!schema)
+        return schema
+      const i18n = form.getPlugin<I18nPluginBridge>('i18n')
+      if (!i18n)
+        return schema
+      void i18nVersion.value
+      return i18n.translateSchema(schema)
+    })
+
+    /** 响应式读取根 schema 的 decoratorProps（schema 变化时自动更新） */
+    const rootDecoratorProps = computed(() =>
+      (effectiveSchema.value?.decoratorProps ?? {}) as Record<string, unknown>,
+    )
+
+    const effectivePattern = computed<FieldPattern>(() =>
+      (props.pattern ?? effectiveSchema.value?.pattern ?? rootDecoratorProps.value.pattern ?? 'editable') as FieldPattern,
+    )
 
     /** schema 变化时同步更新表单级配置 */
     watch([rootDecoratorProps, effectivePattern], ([newProps, pattern]) => {
@@ -209,6 +250,7 @@ export const ConfigForm = defineComponent({
     }
 
     onMounted(() => {
+      bindI18n()
       const layout = props.schema?.layout as { breakpoints?: Record<number, number> } | undefined
       if (layout?.breakpoints && gridContainerRef.value) {
         resizeObserver = new ResizeObserver((entries) => {
@@ -226,6 +268,7 @@ export const ConfigForm = defineComponent({
       disposeSubmitSuccess()
       disposeSubmitFailed()
       disposeReset()
+      disposeI18n?.()
       resizeObserver?.disconnect()
       resizeObserver = null
     })
@@ -243,7 +286,7 @@ export const ConfigForm = defineComponent({
 
       /* 布局配置 */
       const direction = (currentDecoratorProps.direction ?? 'vertical') as string
-      const layout = props.schema?.layout as {
+      const layout = effectiveSchema.value?.layout as {
         type?: string
         columns?: number
         gutter?: number
@@ -288,12 +331,12 @@ export const ConfigForm = defineComponent({
           novalidate: true,
         }, [
           /* 字段容器（始终使用 div 包裹，避免布局切换时因 DOM 结构变化导致字段树重建） */
-          props.schema
+          effectiveSchema.value
             ? h('div', {
                 ref: layout?.breakpoints ? gridContainerRef : undefined,
                 style: fieldContainerStyle || undefined,
               }, [
-                h(SchemaField, { schema: props.schema }),
+                h(SchemaField, { schema: effectiveSchema.value }),
               ])
             : null,
 

@@ -1,4 +1,4 @@
-import type { ISchema } from '@moluoxixi/core'
+import type { DataSourceConfig, DataSourceItem, ISchema } from '@moluoxixi/core'
 import type { PropType, VNode } from 'vue'
 import { DEFAULT_COMPONENT_MAPPING, isStructuralArrayComponent, resolveComponent } from '@moluoxixi/core'
 import { defineComponent, h, provide } from 'vue'
@@ -8,15 +8,18 @@ import { FormField } from './FormField'
 import { FormObjectField } from './FormObjectField'
 import { FormVoidField } from './FormVoidField'
 
-function normalizeDataSource(schema: ISchema): unknown[] | undefined {
+function normalizeDataSource(schema: ISchema): DataSourceItem[] | DataSourceConfig | undefined {
   if (schema.dataSource)
-    return schema.dataSource as unknown[]
+    return schema.dataSource as DataSourceItem[] | DataSourceConfig
   if (!schema.enum || schema.enum.length === 0)
     return undefined
   return schema.enum.map((item) => {
     if (item && typeof item === 'object')
-      return item as { label: string, value: unknown, disabled?: boolean }
-    return { label: String(item), value: item }
+      return item as DataSourceItem
+    return {
+      label: String(item),
+      value: item as string | number | boolean,
+    }
   })
 }
 

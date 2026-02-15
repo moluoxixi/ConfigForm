@@ -48,8 +48,39 @@
           v-if="sceneConfig && currentAdapter"
           :key="`${currentDemo}-${currentUI}`"
           :config="sceneConfig"
+          :title="sceneTitle"
+          :description="sceneDescription"
+          :extra-plugins="scenePlugins"
           :status-tabs="currentAdapter.StatusTabs"
-        />
+        >
+          <template #header-extra>
+            <div
+              v-if="i18nRuntime && localeOptions.length"
+              style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;"
+            >
+              <span style="font-size: 13px; font-weight: 600; color: #555;">语言：</span>
+              <div style="display: flex; gap: 4px;">
+                <button
+                  v-for="opt in localeOptions"
+                  :key="opt.value"
+                  :style="{
+                    padding: '4px 12px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    border: locale === opt.value ? '2px solid #1677ff' : '1px solid #d9d9d9',
+                    background: locale === opt.value ? '#e6f4ff' : '#fff',
+                    color: locale === opt.value ? '#1677ff' : '#333',
+                  }"
+                  @click="switchLocale(opt.value)"
+                >
+                  {{ opt.label }}
+                </button>
+              </div>
+            </div>
+          </template>
+        </SceneRenderer>
         <div v-else style="text-align: center; color: #999; padding: 40px;">
           {{ loading ? '加载中...' : '请选择场景' }}
         </div>
@@ -63,12 +94,14 @@
 
 <script setup lang="ts">
 import type { DevToolsPluginAPI } from '@moluoxixi/plugin-devtools'
+import type { FormPlugin } from '@moluoxixi/core'
 import type { SceneConfig } from '@playground/shared'
 import type { UIAdapter, UILib } from './ui'
 import { DevToolsPanel } from '@moluoxixi/plugin-devtools-vue'
+import { createVueMessageI18nRuntime } from '@moluoxixi/plugin-i18n-vue'
 import { registerComponent } from '@moluoxixi/vue'
 import { getSceneGroups, sceneRegistry } from '@playground/shared'
-import { defineComponent, h, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
+import { computed, defineComponent, h, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
 import { CodeEditor, ColorPicker, CronEditor, PreviewColorPicker, SignaturePad } from './components/custom'
 import SceneRenderer from './components/SceneRenderer.vue'
 import { adapters } from './ui'
@@ -177,6 +210,77 @@ async function loadScene(name: string): Promise<void> {
   }
 }
 watch(currentDemo, name => loadScene(name), { immediate: true })
+
+const i18nRuntime = shallowRef<ReturnType<typeof createVueMessageI18nRuntime> | undefined>(undefined)
+watch(() => sceneConfig.value?.i18n, (config) => {
+  if (!config) {
+    i18nRuntime.value = undefined
+    return
+  }
+  const messages = Object.fromEntries(
+    Object.entries(config.messages).map(([localeKey, values]) => [localeKey, { ...values }]),
+  )
+  i18nRuntime.value = createVueMessageI18nRuntime({
+    messages,
+    locale: config.defaultLocale,
+  })
+}, { immediate: true })
+const locale = ref('')
+watch(i18nRuntime, (runtime, _prev, onCleanup) => {
+  if (!runtime) {
+    locale.value = ''
+    return
+  }
+  locale.value = runtime.getLocale()
+  const dispose = runtime.subscribeLocale((nextLocale) => {
+    locale.value = nextLocale
+  })
+  onCleanup(() => {
+    dispose()
+  })
+}, { immediate: true })
+
+const localeOptions = computed(() => {
+  const config = sceneConfig.value
+  if (!config?.i18n)
+    return []
+  if (config.localeOptions && config.localeOptions.length > 0)
+    return config.localeOptions
+  return Object.keys(config.i18n.messages).map(key => ({ label: key, value: key }))
+})
+
+function translateText(value: string): string {
+  const runtime = i18nRuntime.value
+  if (!runtime)
+    return value
+  if (!value.startsWith('$t:'))
+    return value
+  return runtime.t(value.slice(3))
+}
+
+const sceneTitle = computed(() => {
+  const config = sceneConfig.value
+  if (!config)
+    return ''
+  void locale.value
+  return translateText(config.title)
+})
+
+const sceneDescription = computed(() => {
+  const config = sceneConfig.value
+  if (!config)
+    return ''
+  void locale.value
+  return translateText(config.description)
+})
+
+const scenePlugins = computed<FormPlugin[]>(() => {
+  return i18nRuntime.value ? [i18nRuntime.value.plugin] : []
+})
+
+function switchLocale(value: string): void {
+  i18nRuntime.value?.setLocale(value)
+}
 
 function navBtnStyle(name: string): Record<string, string> {
   const active = currentDemo.value === name

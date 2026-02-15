@@ -7,7 +7,7 @@ function interpolate(template: string, vars: Record<string, unknown>): string {
   })
 }
 
-/** 默认中文验证消息 */
+/** 默认验证消息 */
 const defaultMessages: Required<ValidationMessages> = {
   required: '{label}不能为空',
   format: '{label}格式不正确',
@@ -21,43 +21,17 @@ const defaultMessages: Required<ValidationMessages> = {
   enum: '{label}的值不在允许范围内',
 }
 
-/** 多语言消息注册表 */
-const localeMessages = new Map<string, ValidationMessages>()
-localeMessages.set('zh-CN', defaultMessages)
-localeMessages.set('en-US', {
-  required: '{label} is required',
-  format: '{label} format is invalid',
-  min: '{label} must be at least {min}',
-  max: '{label} must be at most {max}',
-  exclusiveMin: '{label} must be greater than {exclusiveMin}',
-  exclusiveMax: '{label} must be less than {exclusiveMax}',
-  minLength: '{label} must be at least {minLength} characters',
-  maxLength: '{label} must be at most {maxLength} characters',
-  pattern: '{label} does not match the required pattern',
-  enum: '{label} must be one of the allowed values',
-})
+/** 全局覆盖消息（框架外可注入自定义模板） */
+let registeredMessages: ValidationMessages = {}
 
-let currentLocale = 'zh-CN'
-
-/** 注册验证消息国际化 */
-export function registerMessages(locale: string, messages: ValidationMessages): void {
-  const existing = localeMessages.get(locale) ?? {}
-  localeMessages.set(locale, { ...existing, ...messages })
-}
-
-/** 设置当前语言 */
-export function setValidationLocale(locale: string): void {
-  currentLocale = locale
-}
-
-/** 获取当前语言 */
-export function getValidationLocale(): string {
-  return currentLocale
+/** 注册验证消息模板（全局合并） */
+export function registerMessages(messages: ValidationMessages): void {
+  registeredMessages = { ...registeredMessages, ...messages }
 }
 
 /**
  * 获取验证消息
- * 优先级：rule.message > 当前 locale > 默认中文
+ * 优先级：rule.message > 注册模板 > 默认模板
  */
 export function getMessage(
   ruleName: string,
@@ -72,8 +46,8 @@ export function getMessage(
     return interpolate(rule.message, { label, ...rule })
   }
 
-  /* 2. 当前 locale 消息 */
-  const messages = localeMessages.get(currentLocale) ?? defaultMessages
+  /* 2. 注册模板 */
+  const messages = { ...defaultMessages, ...registeredMessages }
   const template = messages[ruleName] ?? defaultMessages[ruleName as keyof typeof defaultMessages]
 
   if (template) {

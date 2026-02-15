@@ -1,5 +1,5 @@
-import type { DataSourceItem } from '../shared'
-import type { ISchema } from './types'
+import type { DataSourceItem } from '@moluoxixi/core'
+import type { ISchema } from '@moluoxixi/core'
 
 /**
  * i18n 翻译函数类型
@@ -19,7 +19,7 @@ export interface SchemaI18nConfig {
   prefix?: string
   /**
    * 需要翻译的属性列表。
-   * 默认翻译 title、description、placeholder。
+   * 默认翻译 title、description。
    */
   translatableProps?: string[]
   /**
@@ -72,19 +72,6 @@ function extractKey(value: string): string {
  * @param schema - 原始 Schema
  * @param config - i18n 配置
  * @returns 翻译后的新 Schema
- *
- * @example
- * ```ts
- * import { useI18n } from 'vue-i18n'
- *
- * const { t } = useI18n()
- * const localizedSchema = translateSchema(schema, { t })
- *
- * // Schema 定义：
- * // { title: '$t:user.name', description: '$t:user.name.desc' }
- * // 翻译后：
- * // { title: '用户名', description: '请输入您的用户名' }
- * ```
  */
 export function translateSchema(schema: ISchema, config: SchemaI18nConfig): ISchema {
   const {
@@ -233,12 +220,6 @@ function translateDataSource(
  *
  * @param config - i18n 配置
  * @returns 翻译函数
- *
- * @example
- * ```ts
- * const translate = createSchemaTranslator({ t: i18n.global.t })
- * const localizedSchema = translate(schema)
- * ```
  */
 export function createSchemaTranslator(config: SchemaI18nConfig): (schema: ISchema) => ISchema {
   return (schema: ISchema): ISchema => translateSchema(schema, config)

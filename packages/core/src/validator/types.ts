@@ -93,7 +93,7 @@ export interface ValidationFeedback {
 /** 格式验证器 */
 export type FormatValidator = (value: string) => boolean
 
-/** 国际化验证消息 */
+/** 验证消息模板 */
 export interface ValidationMessages {
   required?: string
   format?: string

@@ -3,12 +3,18 @@ import type { ComponentType, CSSProperties, FormEvent, ReactElement, ReactNode }
 
 import type { ComponentScope, RegistryState } from '../registry'
 import { FormLifeCycle } from '@moluoxixi/core'
-import { useCallback, useContext, useEffect } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { ComponentRegistryContext } from '../context'
 import { useCreateForm } from '../hooks/useForm'
 import { observer } from '../reactive'
 import { FormProvider } from './FormProvider'
 import { SchemaField } from './SchemaField'
+
+interface I18nPluginBridge {
+  readonly version: number
+  translateSchema: (schema: FormSchema) => FormSchema
+  subscribe?: (listener: (version: number) => void) => () => void
+}
 
 export interface ConfigFormProps<Values extends Record<string, unknown> = Record<string, unknown>> {
   /** 外部传入的 form 实例（可选） */
@@ -89,26 +95,53 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
     style,
   } = props
 
-  /** 从根 schema 的 decoratorProps 提取表单级配置 */
-  const rootDecoratorProps = (schema?.decoratorProps ?? {}) as Record<string, unknown>
+  /** 从根 schema 的 decoratorProps 提取表单级配置（用于创建表单） */
+  const rawDecoratorProps = (schema?.decoratorProps ?? {}) as Record<string, unknown>
 
   /** pattern 优先级：props.pattern > schema.decoratorProps.pattern > 'editable' */
-  const effectivePattern = (patternProp ?? schema?.pattern ?? rootDecoratorProps.pattern ?? 'editable') as FieldPattern
+  const initialPattern = (patternProp ?? schema?.pattern ?? rawDecoratorProps.pattern ?? 'editable') as FieldPattern
 
   const resolvedEffects = effects ?? formConfig?.effects
   const resolvedPlugins = plugins ?? formConfig?.plugins
 
   /* 内部创建或使用外部 form */
   const internalForm = useCreateForm<Values>({
-    labelPosition: (rootDecoratorProps.labelPosition ?? 'right') as 'top' | 'left' | 'right',
-    labelWidth: rootDecoratorProps.labelWidth as string | number,
-    pattern: effectivePattern,
+    labelPosition: (rawDecoratorProps.labelPosition ?? 'right') as 'top' | 'left' | 'right',
+    labelWidth: rawDecoratorProps.labelWidth as string | number,
+    pattern: initialPattern,
     ...formConfig,
     initialValues: initialValues ?? formConfig?.initialValues,
     effects: resolvedEffects,
     plugins: resolvedPlugins,
   })
   const form = externalForm ?? internalForm
+
+  const [i18nVersion, setI18nVersion] = useState(0)
+
+  useEffect(() => {
+    const i18n = form.getPlugin<I18nPluginBridge>('i18n')
+    if (!i18n?.subscribe)
+      return
+    setI18nVersion(i18n.version)
+    return i18n.subscribe((nextVersion) => {
+      setI18nVersion(nextVersion)
+    })
+  }, [form])
+
+  const effectiveSchema = useMemo(() => {
+    if (!schema)
+      return schema
+    const i18n = form.getPlugin<I18nPluginBridge>('i18n')
+    if (!i18n)
+      return schema
+    return i18n.translateSchema(schema)
+  }, [form, schema, i18nVersion])
+
+  /** 从根 schema 的 decoratorProps 提取表单级配置 */
+  const rootDecoratorProps = (effectiveSchema?.decoratorProps ?? {}) as Record<string, unknown>
+
+  /** pattern 优先级：props.pattern > schema.decoratorProps.pattern > 'editable' */
+  const effectivePattern = (patternProp ?? effectiveSchema?.pattern ?? rootDecoratorProps.pattern ?? 'editable') as FieldPattern
 
   /** schema/props 变化时同步更新表单级配置（通过 form.batch 走适配器批处理） */
   useEffect(() => {
@@ -183,7 +216,7 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
     : 'center'
 
   /* 布局配置 */
-  const layout = schema?.layout as {
+  const layout = effectiveSchema?.layout as {
     type?: string
     columns?: number
     gutter?: number
@@ -222,9 +255,9 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
       registry={registry}
     >
       <form onSubmit={handleSubmit} className={className} style={style} noValidate>
-        {schema && (
+        {effectiveSchema && (
           <div style={fieldContainerStyle}>
-            <SchemaField schema={schema} />
+            <SchemaField schema={effectiveSchema} />
           </div>
         )}
 

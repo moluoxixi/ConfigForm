@@ -13,6 +13,9 @@
 @moluoxixi/ui-antd          ← Ant Design (React) UI 适配
 @moluoxixi/ui-antd-vue      ← Ant Design Vue UI 适配
 @moluoxixi/ui-element-plus  ← Element Plus UI 适配
+@moluoxixi/plugin-i18n-core ← i18n 核心插件（框架无关）
+@moluoxixi/plugin-i18n-react← React + i18next 适配
+@moluoxixi/plugin-i18n-vue  ← Vue + vue-i18n 适配
 @moluoxixi/plugin-json-schema   ← JSON Schema 适配插件
 @moluoxixi/plugin-lower-code    ← 低代码增强插件
 ```
@@ -50,8 +53,8 @@
 │  @moluoxixi/core                                      │
 │                                                       │
 │  模型：Form / Field / ArrayField / ObjectField / VoidField │
-│  Schema：编译 / 合并 / $ref 解析 / 模板 / i18n          │
-│  验证：同步 / 异步 / 格式 / 跨字段 / 国际化消息        │
+│  Schema：编译 / 合并 / $ref 解析 / 模板                 │
+│  验证：同步 / 异步 / 格式 / 跨字段                     │
 │  联动：ReactionEngine / 表达式引擎 / 循环检测          │
 │  插件：Hook 管线（洋葱模型）/ 依赖拓扑排序             │
 │  事件：完整生命周期事件系统                             │
@@ -109,6 +112,44 @@ const schema = {
 
 <ConfigForm schema={schema} onSubmit={console.log} />
 ```
+
+## i18n（插件）
+
+`ConfigForm` 本身不内置 i18n 运行时。推荐使用适配层包（React/Vue）接入成熟 i18n 库，核心包保持轻量。
+
+```tsx
+// React + i18next
+import { createReactMessageI18nRuntime } from '@moluoxixi/plugin-i18n-react'
+
+const i18n = createReactMessageI18nRuntime({
+  messages: {
+    'zh-CN': { 'field.name': '姓名' },
+    'en-US': { 'field.name': 'Name' },
+  },
+  locale: 'zh-CN',
+})
+
+const formConfig = { plugins: [i18n.plugin] }
+i18n.setLocale('en-US')
+```
+
+```ts
+// Vue + vue-i18n
+import { createVueMessageI18nRuntime } from '@moluoxixi/plugin-i18n-vue'
+
+const i18n = createVueMessageI18nRuntime({
+  messages: {
+    'zh-CN': { 'field.name': '姓名' },
+    'en-US': { 'field.name': 'Name' },
+  },
+  locale: 'zh-CN',
+})
+
+const plugins = [i18n.plugin]
+i18n.setLocale('en-US')
+```
+
+底层框架无关能力在 `@moluoxixi/plugin-i18n-core`，可直接对接你自己的 i18n 实例。
 
 ## 开发
 

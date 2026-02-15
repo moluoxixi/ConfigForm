@@ -1,4 +1,5 @@
 import type { DevToolsPluginAPI } from '@moluoxixi/plugin-devtools'
+import type { FormPlugin } from '@moluoxixi/core'
 /**
  * React Playground 入口
  *
@@ -6,10 +7,11 @@ import type { DevToolsPluginAPI } from '@moluoxixi/plugin-devtools'
  */
 import type { SceneConfig } from '@playground/shared'
 import { DevToolsPanel } from '@moluoxixi/plugin-devtools-react'
+import { createReactMessageI18nRuntime } from '@moluoxixi/plugin-i18n-react'
 import { registerComponent, registerDecorator } from '@moluoxixi/react'
 import { setupAntd } from '@moluoxixi/ui-antd'
 import { getSceneGroups, sceneRegistry } from '@playground/shared'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   CardDecorator,
   CodeEditor,
@@ -75,6 +77,86 @@ export function App(): React.ReactElement {
     loadScene(currentDemo)
   }, [currentDemo, loadScene])
 
+  const i18nConfig = sceneConfig?.i18n
+  const i18nRuntime = useMemo(() => {
+    if (!i18nConfig)
+      return undefined
+    return createReactMessageI18nRuntime({
+      messages: i18nConfig.messages,
+      locale: i18nConfig.defaultLocale,
+    })
+  }, [i18nConfig])
+  const [locale, setLocale] = useState('')
+
+  useEffect(() => {
+    if (!i18nRuntime) {
+      setLocale('')
+      return
+    }
+    setLocale(i18nRuntime.getLocale())
+    return i18nRuntime.subscribeLocale(setLocale)
+  }, [i18nRuntime])
+
+  const localeOptions = useMemo(() => {
+    if (!i18nConfig)
+      return []
+    if (sceneConfig?.localeOptions && sceneConfig.localeOptions.length > 0)
+      return sceneConfig.localeOptions
+    return Object.keys(i18nConfig.messages).map(key => ({ label: key, value: key }))
+  }, [i18nConfig, sceneConfig?.localeOptions])
+
+  const translateText = useCallback((value: string): string => {
+    if (!i18nRuntime)
+      return value
+    if (!value.startsWith('$t:'))
+      return value
+    return i18nRuntime.t(value.slice(3))
+  }, [i18nRuntime, locale])
+
+  const sceneTitle = useMemo(() => {
+    if (!sceneConfig)
+      return ''
+    return translateText(sceneConfig.title)
+  }, [sceneConfig, translateText])
+  const sceneDescription = useMemo(() => {
+    if (!sceneConfig)
+      return ''
+    return translateText(sceneConfig.description)
+  }, [sceneConfig, translateText])
+
+  const scenePlugins = useMemo<FormPlugin[]>(() => {
+    return i18nRuntime ? [i18nRuntime.plugin] : []
+  }, [i18nRuntime])
+  const localeSwitcher = i18nRuntime && localeOptions.length > 0
+    ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#555' }}>
+            语言：
+          </span>
+          <div style={{ display: 'flex', gap: 4 }}>
+            {localeOptions.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => void i18nRuntime.setLocale(opt.value)}
+                style={{
+                  padding: '4px 12px',
+                  borderRadius: 4,
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  border: locale === opt.value ? '2px solid #1677ff' : '1px solid #d9d9d9',
+                  background: locale === opt.value ? '#e6f4ff' : '#fff',
+                  color: locale === opt.value ? '#1677ff' : '#333',
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )
+    : undefined
+
   return (
     <div style={{ maxWidth: 1400, margin: '0 auto', padding: 16, fontFamily: 'system-ui, sans-serif' }}>
       <h1 style={{ marginBottom: 4 }}>ConfigForm - React Playground</h1>
@@ -117,7 +199,16 @@ export function App(): React.ReactElement {
         {/* 右侧内容区 */}
         <div style={{ flex: 1, border: '1px solid #eee', borderRadius: 8, padding: 24, background: '#fff', minHeight: 400 }}>
           {sceneConfig
-            ? <SceneRenderer key={currentDemo} config={sceneConfig} />
+            ? (
+                <SceneRenderer
+                  key={currentDemo}
+                  config={sceneConfig}
+                  title={sceneTitle}
+                  description={sceneDescription}
+                  extraPlugins={scenePlugins}
+                  headerExtra={localeSwitcher}
+                />
+              )
             : <div style={{ textAlign: 'center', color: '#999', padding: 40 }}>{loading ? '加载中...' : '请选择场景'}</div>}
         </div>
       </div>

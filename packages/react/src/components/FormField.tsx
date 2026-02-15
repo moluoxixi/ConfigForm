@@ -59,6 +59,23 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children 
   }
   const field = fieldRef.current
 
+  useEffect(() => {
+    if (!fieldProps || !fieldRef.current)
+      return
+    const current = fieldRef.current
+    if (fieldProps.label !== undefined)
+      current.label = fieldProps.label ?? ''
+    if (fieldProps.description !== undefined)
+      current.description = fieldProps.description ?? ''
+    if (fieldProps.componentProps)
+      current.setComponentProps(fieldProps.componentProps)
+    if (fieldProps.decoratorProps)
+      current.decoratorProps = fieldProps.decoratorProps
+    if (fieldProps.rules && fieldProps.rules.some(rule => (rule as any)?.message)) {
+      current.rules = [...fieldProps.rules]
+    }
+  }, [fieldProps])
+
   /* 组件挂载时通知字段 mount，卸载时 unmount + 清理注册 */
   useEffect(() => {
     const currentField = fieldRef.current

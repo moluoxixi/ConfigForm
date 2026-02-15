@@ -90,6 +90,27 @@ export const FormField = defineComponent({
       currentName = newName
     })
 
+    watch(
+      () => props.fieldProps,
+      (next) => {
+        if (!next)
+          return
+        const field = fieldRef.value
+        if (next.label !== undefined)
+          field.label = next.label ?? ''
+        if (next.description !== undefined)
+          field.description = next.description ?? ''
+        if (next.componentProps)
+          field.setComponentProps(next.componentProps)
+        if (next.decoratorProps)
+          field.decoratorProps = next.decoratorProps
+        if (next.rules && next.rules.some(rule => (rule as any)?.message)) {
+          field.rules = [...next.rules]
+        }
+      },
+      { deep: true },
+    )
+
     onMounted(() => {
       fieldRef.value.mount()
     })

@@ -1,5 +1,5 @@
 export { getFormatValidator, hasFormat, registerFormat } from './formats'
-export { getMessage, getValidationLocale, registerMessages, setValidationLocale } from './messages'
+export { getMessage, registerMessages } from './messages'
 export type {
   BuiltinFormat,
   FormatValidator,

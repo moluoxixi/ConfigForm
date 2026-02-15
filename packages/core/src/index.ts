@@ -60,10 +60,8 @@ export {
   BUILTIN_FIELD_COMPONENTS,
   BUILTIN_STRUCTURAL_ARRAY_COMPONENTS,
   compileSchema,
-  createSchemaTranslator,
   DEFAULT_COMPONENT_MAPPING,
   instantiateTemplate,
-  isI18nKey,
   isStructuralArrayComponent,
   mergeSchema,
   registerTemplate,
@@ -74,7 +72,6 @@ export {
   toFieldProps,
   toVoidFieldProps,
   transformSchema,
-  translateSchema,
   validateSchema,
 } from './schema'
 
@@ -90,14 +87,12 @@ export type {
   ISchemaConditionBranch,
   SchemaComponentName,
   SchemaDecoratorName,
-  SchemaI18nConfig,
   SchemaTemplate,
   SchemaTemplateParam,
   SchemaType,
   SchemaValidationError,
   SchemaValidationResult,
   TemplateInstantiateOptions,
-  TranslateFunction,
 } from './schema'
 /* shared — 工具函数和公共类型 */
 export {
@@ -183,11 +178,9 @@ export type {
 export {
   getFormatValidator,
   getMessage,
-  getValidationLocale,
   hasFormat,
   registerFormat,
   registerMessages,
-  setValidationLocale,
   validate,
   validateSync,
 } from './validator'

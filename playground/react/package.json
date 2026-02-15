@@ -15,6 +15,7 @@
     "@moluoxixi/core": "workspace:*",
     "@moluoxixi/plugin-devtools": "workspace:*",
     "@moluoxixi/plugin-devtools-react": "workspace:*",
+    "@moluoxixi/plugin-i18n-react": "workspace:*",
     "@moluoxixi/react": "workspace:*",
     "@moluoxixi/reactive-react": "workspace:*",
     "@moluoxixi/ui-antd": "workspace:*",
@@ -24,8 +25,7 @@
     "mobx": "catalog:build",
     "mobx-react-lite": "catalog:build",
     "react": "catalog:build",
-    "react-dom": "catalog:build",
-    "react-i18next": "catalog:build"
+    "react-dom": "catalog:build"
   },
   "devDependencies": {
     "@moluoxixi/eslint-config": "catalog:dev",

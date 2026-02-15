@@ -71,10 +71,10 @@ const config: SceneConfig & { i18n: { messages: typeof I18N_MESSAGES, defaultLoc
   description: '$t:scene.desc',
 
   initialValues: {
-    name: '',
-    email: '',
-    phone: '',
-    bio: '',
+    name: '张三',
+    email: 'zhangsan@example.com',
+    phone: '+86-13800001234',
+    bio: '初始简介：用于验证重置回填',
   },
 
   schema: {

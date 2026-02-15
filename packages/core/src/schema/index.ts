@@ -1,11 +1,6 @@
 /* 编译 */
 export { compileSchema, DEFAULT_COMPONENT_MAPPING, isStructuralArrayComponent, resolveComponent } from './compiler'
 
-/* Schema i18n */
-export { createSchemaTranslator, isI18nKey, translateSchema } from './i18n'
-
-export type { SchemaI18nConfig, TranslateFunction } from './i18n'
-
 /* 合并 */
 export { mergeSchema } from './merge'
 
