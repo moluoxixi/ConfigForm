@@ -34,8 +34,12 @@
   },
   "dependencies": {
     "@moluoxixi/core": "workspace:*",
+    "@moluoxixi/plugin-export-core": "workspace:*",
+    "@moluoxixi/plugin-import-core": "workspace:*",
+    "@moluoxixi/plugin-print-core": "workspace:*",
     "@moluoxixi/react": "workspace:*",
-    "dayjs": "catalog:build"
+    "dayjs": "catalog:build",
+    "jsoneditor": "catalog:build"
   },
   "devDependencies": {
     "@types/react": "catalog:type",

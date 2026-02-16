@@ -4,13 +4,13 @@ import type { SceneConfig } from '../types'
  * 场景：打印 / 导入 / 导出（插件化）
  *
  * 交互入口由 playground 的 header toolbar 提供：
- * - 导出 JSON / CSV（下载）
- * - 导入 JSON / CSV（回填到表单）
- * - 打印（临时切到阅读态后调用浏览器打印）
+ * - 导出 JSON（弹窗预览 + 下载）
+ * - 导入 JSON（弹窗预览 + 可编辑后回填）
+ * - 打印（临时切到阅读态后打印预览态表单 DOM）
  */
 const config: SceneConfig = {
   title: '打印 / 导入 / 导出（插件化）',
-  description: '通过 plugin-export / plugin-import / plugin-print 提供打印与导入导出能力，核心表单保持轻量',
+  description: '通过 plugin-export-core / plugin-import-core / plugin-print-* 插件提供打印与 JSON 导入导出能力，核心表单保持轻量',
 
   initialValues: {
     orderNo: 'ORD-20260207-001',

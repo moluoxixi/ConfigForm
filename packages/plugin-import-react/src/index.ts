@@ -1,11 +1,17 @@
 /**
  * @moluoxixi/plugin-import-react
  *
- * React 场景导入适配：
- * - 文件读取辅助（JSON / CSV）
- * - Runtime 包装，便于按钮直接调用导入 API
+ * React 导入插件（仅导出插件工厂）：
+ * - 注册后直接使用 form.parseImportJSON / form.importJSON / form.importJSONFile
  */
-export { readFileAsText } from './browser'
-export { reactFormImportPlugin } from './plugin'
-export { createReactFormImportRuntime } from './runtime'
-export type { ReactFormImportPluginOptions, ReactFormImportRuntime } from './types'
+export { importPlugin } from '@moluoxixi/plugin-import-core'
+export type {
+  FormImportJSONOptions,
+  FormImportOptions,
+  FormImportPlugin,
+  FormImportPluginAPI,
+  FormImportPluginConfig,
+  FormImportPluginOptions,
+  FormImportResult,
+  ImportSetValueStrategy,
+} from '@moluoxixi/plugin-import-core'

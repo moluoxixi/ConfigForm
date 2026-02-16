@@ -1,13 +1,14 @@
 import type { FormPlugin } from '@moluoxixi/core'
-import type { FormImportPluginAPI, FormImportPluginConfig } from './types'
-import { ensurePlainObject, parseCSV, parseJSON } from './serialize'
+import type { FormImportPluginAPI, FormImportPluginOptions } from './types'
+import { readFileAsText } from './browser'
+import { ensurePlainObject, parseJSON } from './serialize'
 
 export const PLUGIN_NAME = 'form-import'
 
 const DEFAULT_EXCLUDE_PREFIXES = ['_']
 
 function normalizeImportOptions(
-  config: FormImportPluginConfig,
+  config: FormImportPluginOptions,
   options: Parameters<FormImportPluginAPI['applyImport']>[1] = {},
 ): {
   strategy: 'merge' | 'shallow' | 'replace'
@@ -57,20 +58,23 @@ function createImportResult(
   }
 }
 
-export function formImportPlugin(config: FormImportPluginConfig = {}): FormPlugin<FormImportPluginAPI> {
+export function importPlugin(config: FormImportPluginOptions = {}): FormPlugin<FormImportPluginAPI> {
   return {
     name: PLUGIN_NAME,
     install(form) {
+      const formWithImport = form as typeof form & {
+        parseImportJSON?: FormImportPluginAPI['parseImportJSON']
+        applyImport?: FormImportPluginAPI['applyImport']
+        importJSON?: FormImportPluginAPI['importJSON']
+        parseImportJSONFile?: FormImportPluginAPI['parseImportJSONFile']
+        importJSONFile?: FormImportPluginAPI['importJSONFile']
+      }
+
       const api: FormImportPluginAPI = {
         parseImportJSON(input, options = {}) {
           const data = typeof input === 'string'
             ? parseJSON(input, options.reviver)
             : ensurePlainObject(input)
-          return createImportResult(data, normalizeImportOptions(config, options))
-        },
-
-        parseImportCSV(input, options = {}) {
-          const data = parseCSV(input, options)
           return createImportResult(data, normalizeImportOptions(config, options))
         },
 
@@ -86,14 +90,37 @@ export function formImportPlugin(config: FormImportPluginConfig = {}): FormPlugi
           return api.applyImport(parsed.data, options)
         },
 
-        importCSV(input, options = {}) {
-          const parsed = api.parseImportCSV(input, options)
-          return api.applyImport(parsed.data, options)
+        async parseImportJSONFile(file, options = {}) {
+          const content = await readFileAsText(file)
+          return api.parseImportJSON(content, options)
+        },
+
+        async importJSONFile(file, options = {}) {
+          const content = await readFileAsText(file)
+          return api.importJSON(content, options)
         },
       }
 
+      formWithImport.parseImportJSON = api.parseImportJSON
+      formWithImport.applyImport = api.applyImport
+      formWithImport.importJSON = api.importJSON
+      formWithImport.parseImportJSONFile = api.parseImportJSONFile
+      formWithImport.importJSONFile = api.importJSONFile
+
       return {
         api,
+        dispose() {
+          if (formWithImport.parseImportJSON === api.parseImportJSON)
+            delete formWithImport.parseImportJSON
+          if (formWithImport.applyImport === api.applyImport)
+            delete formWithImport.applyImport
+          if (formWithImport.importJSON === api.importJSON)
+            delete formWithImport.importJSON
+          if (formWithImport.parseImportJSONFile === api.parseImportJSONFile)
+            delete formWithImport.parseImportJSONFile
+          if (formWithImport.importJSONFile === api.importJSONFile)
+            delete formWithImport.importJSONFile
+        },
       }
     },
   }

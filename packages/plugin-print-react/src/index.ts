@@ -1,11 +1,20 @@
 /**
  * @moluoxixi/plugin-print-react
  *
- * React 场景打印适配：
+ * React 打印插件（仅导出插件工厂）：
  * - 默认浏览器打印适配器
- * - Runtime 包装，便于按钮直接调用打印 API
+ * - 注册后直接使用 form.print()
  */
 export { browserPrint } from './browser'
-export { reactFormPrintPlugin } from './plugin'
-export { createReactFormPrintRuntime } from './runtime'
-export type { ReactFormPrintPluginOptions, ReactFormPrintRuntime } from './types'
+export { printPlugin } from './plugin'
+export type { PrintPluginOptions } from './types'
+export type {
+  FormPrintAdapters,
+  FormPrintOptions,
+  FormPrintPayload,
+  FormPrintPlugin,
+  FormPrintPluginAPI,
+  FormPrintPluginConfig,
+  FormPrintTarget,
+  FormPrintTargetResolver,
+} from '@moluoxixi/plugin-print-core'

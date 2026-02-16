@@ -1,11 +1,20 @@
 /**
  * @moluoxixi/plugin-export-vue
  *
- * Vue 场景导出适配：
- * - 默认浏览器下载适配器
- * - Runtime 包装，便于按钮直接调用导出 API
+ * Vue 导出插件（仅导出插件工厂）：
+ * - 注册后直接使用 form.getExportData / form.exportJSON / form.downloadJSON
  */
-export { browserDownload } from './browser'
-export { vueFormExportPlugin } from './plugin'
-export { createVueFormExportRuntime } from './runtime'
-export type { VueFormExportPluginOptions, VueFormExportRuntime } from './types'
+export { exportPlugin } from '@moluoxixi/plugin-export-core'
+export type {
+  FormExportAdapters,
+  FormExportDataOptions,
+  FormExportDownloadJSONOptions,
+  FormExportDownloadPayload,
+  FormExportJSONOptions,
+  FormExportPlugin,
+  FormExportPluginAPI,
+  FormExportPluginConfig,
+  FormExportPluginOptions,
+  FormExportPreview,
+  FormExportPreviewOptions,
+} from '@moluoxixi/plugin-export-core'

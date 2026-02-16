@@ -5,7 +5,7 @@
  * - 可选切换 preview 态
  * - 调用浏览器/宿主打印适配器
  */
-export { formPrintPlugin, PLUGIN_NAME } from './plugin'
+export { PLUGIN_NAME, printPlugin } from './plugin'
 export type {
   FormPrintAdapters,
   FormPrintOptions,
@@ -13,4 +13,6 @@ export type {
   FormPrintPlugin,
   FormPrintPluginAPI,
   FormPrintPluginConfig,
+  FormPrintTarget,
+  FormPrintTargetResolver,
 } from './types'

@@ -1,234 +1,72 @@
 import type { FormPlugin } from '@moluoxixi/core'
-import { createReactFormExportRuntime } from '@moluoxixi/plugin-export-react'
-import { createReactFormImportRuntime } from '@moluoxixi/plugin-import-react'
-import { createReactFormPrintRuntime } from '@moluoxixi/plugin-print-react'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
-type ImportStrategy = 'merge' | 'shallow' | 'replace'
-
-interface ImportPreviewState {
-  type: 'JSON' | 'CSV'
-  raw: string
-  data: Record<string, unknown>
-  appliedKeys: string[]
-  skippedKeys: string[]
-}
+import { exportPlugin } from '@moluoxixi/plugin-export-react'
+import { importPlugin } from '@moluoxixi/plugin-import-react'
+import { printPlugin } from '@moluoxixi/plugin-print-react'
+import { ExportJsonAction, ImportJsonAction, PrintAction } from '@moluoxixi/ui-antd'
+import React, { useMemo } from 'react'
 
 export interface PrintExportFeatureState {
   plugins?: FormPlugin[]
-  headerExtra?: React.ReactNode
+  formExtra?: React.ReactNode
 }
 
 export function usePrintExportFeature(sceneName: string): PrintExportFeatureState {
   const isPrintExportScene = sceneName === 'PrintExportForm'
-  const runtimes = useMemo(() => {
+  const plugins = useMemo<FormPlugin[] | undefined>(() => {
     if (!isPrintExportScene) {
       return undefined
     }
-    const exportRuntime = createReactFormExportRuntime({
+
+    const exportFeaturePlugin = exportPlugin({
       filenameBase: 'print-export',
     })
-    const importRuntime = createReactFormImportRuntime()
-    const printRuntime = createReactFormPrintRuntime({
+    const importFeaturePlugin = importPlugin()
+    const printFeaturePlugin = printPlugin({
       print: {
         title: '打印预览 - PrintExportForm',
+        target: '[data-configform-print-root="true"]',
       },
     })
-    return {
-      exportRuntime,
-      importRuntime,
-      printRuntime,
-      plugins: [exportRuntime.plugin, importRuntime.plugin, printRuntime.plugin],
-    }
+
+    return [exportFeaturePlugin, importFeaturePlugin, printFeaturePlugin]
   }, [isPrintExportScene])
 
-  const [ioMessage, setIoMessage] = useState('')
-  const [exportJsonPreview, setExportJsonPreview] = useState('')
-  const [exportCsvPreview, setExportCsvPreview] = useState('')
-  const [importStrategy, setImportStrategy] = useState<ImportStrategy>('merge')
-  const [importPreview, setImportPreview] = useState<ImportPreviewState | null>(null)
-  const jsonFileInputRef = useRef<HTMLInputElement | null>(null)
-  const csvFileInputRef = useRef<HTMLInputElement | null>(null)
+  const panelStyle: React.CSSProperties = {
+    marginBottom: 14,
+    border: '1px solid #d9e3ff',
+    borderRadius: 14,
+    background: 'linear-gradient(180deg, #f8fbff 0%, #ffffff 52%)',
+    boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)',
+    padding: 14,
+  }
 
-  useEffect(() => {
-    setIoMessage('')
-    setImportPreview(null)
-    setImportStrategy('merge')
-  }, [sceneName])
-
-  useEffect(() => {
-    if (!runtimes) {
-      setExportJsonPreview('')
-      setExportCsvPreview('')
-      return
-    }
-    return runtimes.exportRuntime.subscribeExportPreview((preview) => {
-      setExportJsonPreview(preview.json)
-      setExportCsvPreview(preview.csv)
-    })
-  }, [runtimes])
-
-  const handleImportDone = useCallback((type: 'JSON' | 'CSV', count: number) => {
-    setIoMessage(`${type} 导入成功：已更新 ${count} 个字段`)
-  }, [])
-
-  const handleImportError = useCallback((error: unknown) => {
-    const message = error instanceof Error ? error.message : String(error)
-    setIoMessage(`导入失败：${message}`)
-  }, [])
-
-  const handleActionError = useCallback((error: unknown) => {
-    const message = error instanceof Error ? error.message : String(error)
-    setIoMessage(`操作失败：${message}`)
-  }, [])
-
-  const onJsonFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    event.target.value = ''
-    if (!file || !runtimes) {
-      return
-    }
-    try {
-      const [raw, result] = await Promise.all([
-        file.text(),
-        runtimes.importRuntime.parseImportJSONFile(file, { strategy: importStrategy }),
-      ])
-      setImportPreview({
-        type: 'JSON',
-        raw,
-        data: result.data,
-        appliedKeys: result.appliedKeys,
-        skippedKeys: result.skippedKeys,
-      })
-      setIoMessage(`JSON 解析完成：可导入 ${result.appliedKeys.length} 个字段`)
-    }
-    catch (error) {
-      handleImportError(error)
-    }
-  }, [handleImportError, importStrategy, runtimes])
-
-  const onCsvFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    event.target.value = ''
-    if (!file || !runtimes) {
-      return
-    }
-    try {
-      const [raw, result] = await Promise.all([
-        file.text(),
-        runtimes.importRuntime.parseImportCSVFile(file, { strategy: importStrategy }),
-      ])
-      setImportPreview({
-        type: 'CSV',
-        raw,
-        data: result.data,
-        appliedKeys: result.appliedKeys,
-        skippedKeys: result.skippedKeys,
-      })
-      setIoMessage(`CSV 解析完成：可导入 ${result.appliedKeys.length} 个字段`)
-    }
-    catch (error) {
-      handleImportError(error)
-    }
-  }, [handleImportError, importStrategy, runtimes])
-
-  const applyImportPreview = useCallback(() => {
-    if (!runtimes || !importPreview) {
-      return
-    }
-    try {
-      const result = runtimes.importRuntime.applyImport(importPreview.data, { strategy: importStrategy })
-      handleImportDone(importPreview.type, result.appliedKeys.length)
-      setImportPreview(null)
-    }
-    catch (error) {
-      handleImportError(error)
-    }
-  }, [handleImportDone, handleImportError, importPreview, importStrategy, runtimes])
-
-  const headerExtra = runtimes
+  const formExtra = plugins
     ? (
-        <div style={{ marginBottom: 12, border: '1px solid #e5e7eb', borderRadius: 8, padding: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#555' }}>
-              操作：
-            </span>
-            <button type="button" onClick={() => { void runtimes.exportRuntime.downloadJSON({ filename: 'order-export.json' }).catch(handleActionError) }}>导出 JSON</button>
-            <button type="button" onClick={() => { void runtimes.exportRuntime.downloadCSV({ filename: 'order-export.csv' }).catch(handleActionError) }}>导出 CSV</button>
-            <button type="button" onClick={() => jsonFileInputRef.current?.click()}>导入 JSON</button>
-            <button type="button" onClick={() => csvFileInputRef.current?.click()}>导入 CSV</button>
-            <label style={{ fontSize: 12, color: '#555' }}>
-              导入策略：
-              {' '}
-              <select
-                value={importStrategy}
-                onChange={event => setImportStrategy(event.target.value as ImportStrategy)}
-              >
-                <option value="merge">merge</option>
-                <option value="shallow">shallow</option>
-                <option value="replace">replace</option>
-              </select>
-            </label>
-            <button type="button" onClick={() => { void runtimes.printRuntime.print().catch(handleActionError) }}>打印预览</button>
-            <input
-              ref={jsonFileInputRef}
-              type="file"
-              accept=".json,application/json"
-              style={{ display: 'none' }}
-              onChange={onJsonFileChange}
-            />
-            <input
-              ref={csvFileInputRef}
-              type="file"
-              accept=".csv,text/csv"
-              style={{ display: 'none' }}
-              onChange={onCsvFileChange}
-            />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+        <div style={panelStyle}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 10, flexWrap: 'wrap' }}>
             <div>
-              <div style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>JSON 导出预览</div>
-              <textarea readOnly rows={8} value={exportJsonPreview} style={{ width: '100%', fontFamily: 'monospace', fontSize: 12 }} />
-            </div>
-            <div>
-              <div style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>CSV 导出预览</div>
-              <textarea readOnly rows={8} value={exportCsvPreview} style={{ width: '100%', fontFamily: 'monospace', fontSize: 12 }} />
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#1f2937', marginBottom: 2 }}>JSON 导入 / 导出</div>
+              <div style={{ fontSize: 12, color: '#64748b' }}>插件适配层负责弹窗、上传、预览与应用逻辑</div>
             </div>
           </div>
-          {importPreview
-            ? (
-                <div style={{ borderTop: '1px dashed #d0d7de', paddingTop: 8 }}>
-                  <div style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>
-                    {importPreview.type}
-                    {' '}
-                    导入预览：可导入
-                    {' '}
-                    {importPreview.appliedKeys.length}
-                    {' '}
-                    字段
-                    {importPreview.skippedKeys.length > 0 ? `，跳过 ${importPreview.skippedKeys.join(', ')}` : ''}
-                  </div>
-                  <textarea readOnly rows={5} value={importPreview.raw} style={{ width: '100%', fontFamily: 'monospace', fontSize: 12, marginBottom: 8 }} />
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button type="button" onClick={applyImportPreview}>应用导入</button>
-                    <button type="button" onClick={() => setImportPreview(null)}>清空导入预览</button>
-                  </div>
-                </div>
-              )
-            : null}
-          {ioMessage
-            ? (
-                <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>
-                  {ioMessage}
-                </div>
-              )
-            : null}
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <ExportJsonAction />
+            <ImportJsonAction />
+            <PrintAction />
+          </div>
+          <div style={{ marginTop: 10, fontSize: 12, color: '#64748b' }}>
+            打印默认切到阅读态，并基于阅读态容器输出。
+          </div>
+          <div style={{ marginTop: 6, fontSize: 12, color: '#94a3b8' }}>
+            导入/导出的完整交互由插件层托管，示例层仅做组合。
+          </div>
         </div>
       )
     : undefined
 
   return {
-    plugins: runtimes?.plugins,
-    headerExtra,
+    plugins,
+    formExtra,
   }
 }

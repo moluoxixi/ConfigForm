@@ -205,7 +205,7 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
 
   /* 操作按钮配置（从 schema.decoratorProps.actions 读取） */
   const actions = rootDecoratorProps.actions as Record<string, unknown>
-  const isEditable = effectivePattern === 'editable'
+  const isEditable = form.pattern === 'editable'
   const showActions = !!actions && isEditable
   const submitLabel = typeof actions?.submit === 'string' ? actions.submit : '提交'
   const resetLabel = typeof actions?.reset === 'string' ? actions.reset : '重置'

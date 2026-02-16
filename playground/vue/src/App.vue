@@ -79,98 +79,34 @@
                 </button>
               </div>
             </div>
+          </template>
+          <template #form-extra>
             <div
-              v-if="ioRuntime"
-              style="margin-bottom: 12px; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px;"
+              v-if="ioEnabled && currentUI === 'antd-vue'"
+              class="io-panel"
             >
-              <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
-                <span style="font-size: 13px; font-weight: 600; color: #555;">操作：</span>
-                <button @click="exportJson">
-                  导出 JSON
-                </button>
-                <button @click="exportCsv">
-                  导出 CSV
-                </button>
-                <button @click="openJsonImport">
-                  导入 JSON
-                </button>
-                <button @click="openCsvImport">
-                  导入 CSV
-                </button>
-                <label style="font-size: 12px; color: #555;">
-                  导入策略：
-                  <select v-model="importStrategy">
-                    <option value="merge">merge</option>
-                    <option value="shallow">shallow</option>
-                    <option value="replace">replace</option>
-                  </select>
-                </label>
-                <button @click="printForm">
-                  打印预览
-                </button>
-                <input
-                  ref="jsonFileInput"
-                  type="file"
-                  accept=".json,application/json"
-                  style="display: none;"
-                  @change="onJsonFileChange"
-                >
-                <input
-                  ref="csvFileInput"
-                  type="file"
-                  accept=".csv,text/csv"
-                  style="display: none;"
-                  @change="onCsvFileChange"
-                >
-              </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+              <div class="io-panel-header">
                 <div>
-                  <div style="font-size: 12px; color: #666; margin-bottom: 4px;">
-                    JSON 导出预览
+                  <div class="io-title">
+                    JSON 导入 / 导出
                   </div>
-                  <textarea
-                    :value="exportJsonPreview"
-                    readonly
-                    rows="8"
-                    style="width: 100%; font-family: monospace; font-size: 12px;"
-                  />
-                </div>
-                <div>
-                  <div style="font-size: 12px; color: #666; margin-bottom: 4px;">
-                    CSV 导出预览
+                  <div class="io-subtitle">
+                    插件适配层负责弹窗、上传、预览与应用逻辑
                   </div>
-                  <textarea
-                    :value="exportCsvPreview"
-                    readonly
-                    rows="8"
-                    style="width: 100%; font-family: monospace; font-size: 12px;"
-                  />
                 </div>
               </div>
-              <div v-if="importPreview" style="border-top: 1px dashed #d0d7de; padding-top: 8px;">
-                <div style="font-size: 12px; color: #666; margin-bottom: 4px;">
-                  {{ importPreview.type }} 导入预览：可导入 {{ importPreview.appliedKeys.length }} 字段
-                  <template v-if="importPreview.skippedKeys.length">
-                    ，跳过 {{ importPreview.skippedKeys.join(', ') }}
-                  </template>
-                </div>
-                <textarea
-                  :value="importPreview.raw"
-                  readonly
-                  rows="5"
-                  style="width: 100%; font-family: monospace; font-size: 12px; margin-bottom: 8px;"
-                />
-                <div style="display: flex; gap: 8px;">
-                  <button @click="applyImportPreview">
-                    应用导入
-                  </button>
-                  <button @click="clearImportPreview">
-                    清空导入预览
-                  </button>
-                </div>
+
+              <div class="io-actions">
+                <ExportJsonAction />
+                <ImportJsonAction />
+                <PrintAction />
               </div>
-              <div v-if="ioMessage" style="font-size: 12px; color: #666; margin-top: 8px;">
-                {{ ioMessage }}
+
+              <div class="io-note">
+                打印默认切到阅读态，并基于阅读态容器输出。
+              </div>
+              <div class="io-note io-note--muted">
+                导入/导出的完整交互由插件层托管，示例层仅做组合。
               </div>
             </div>
           </template>
@@ -192,6 +128,7 @@ import type { DevToolsPluginAPI } from '@moluoxixi/plugin-devtools'
 import type { SceneConfig } from '@playground/shared'
 import type { UIAdapter, UILib } from './ui'
 import { DevToolsPanel } from '@moluoxixi/plugin-devtools-vue'
+import { ExportJsonAction, ImportJsonAction, PrintAction } from '@moluoxixi/ui-antd-vue'
 import { registerComponent } from '@moluoxixi/vue'
 import { getSceneGroups, sceneRegistry } from '@playground/shared'
 import { computed, defineComponent, h, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
@@ -317,23 +254,7 @@ const {
 } = useI18nFeature(sceneConfig)
 
 const {
-  ioRuntime,
-  ioMessage,
-  exportJsonPreview,
-  exportCsvPreview,
-  importStrategy,
-  importPreview,
-  jsonFileInput,
-  csvFileInput,
-  exportJson,
-  exportCsv,
-  printForm,
-  openJsonImport,
-  openCsvImport,
-  onJsonFileChange,
-  onCsvFileChange,
-  applyImportPreview,
-  clearImportPreview,
+  enabled: ioEnabled,
   plugins: ioPlugins,
 } = usePrintExportFeature(currentDemo)
 
@@ -365,3 +286,52 @@ function navBtnStyle(name: string): Record<string, string> {
   }
 }
 </script>
+
+<style scoped>
+.io-panel {
+  margin-bottom: 12px;
+  border: 1px solid #d9e3ff;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 52%);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  padding: 14px;
+}
+
+.io-panel-header {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.io-title {
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.io-subtitle {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.io-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.io-note {
+  color: #64748b;
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+.io-note--muted {
+  color: #94a3b8;
+  margin-top: 6px;
+}
+</style>

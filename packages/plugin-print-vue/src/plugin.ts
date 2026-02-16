@@ -1,15 +1,14 @@
-import type { FormPlugin } from '@moluoxixi/core'
-import type { FormPrintPluginAPI } from '@moluoxixi/plugin-print-core'
-import type { VueFormPrintPluginOptions } from './types'
-import { formPrintPlugin } from '@moluoxixi/plugin-print-core'
+import type { FormPrintPlugin, FormPrintPluginConfig } from '@moluoxixi/plugin-print-core'
+import type { PrintPluginOptions } from './types'
+import { printPlugin as corePrintPlugin } from '@moluoxixi/plugin-print-core'
 import { browserPrint } from './browser'
 
-export function vueFormPrintPlugin(options: VueFormPrintPluginOptions = {}): FormPlugin<FormPrintPluginAPI> {
+export function printPlugin(options: PrintPluginOptions = {}): FormPrintPlugin {
   const { adapters, ...rest } = options
-  return formPrintPlugin({
+  return corePrintPlugin({
     ...rest,
     adapters: {
       print: adapters?.print ?? browserPrint,
     },
-  })
+  } satisfies FormPrintPluginConfig)
 }

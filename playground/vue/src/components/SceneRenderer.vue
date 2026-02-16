@@ -31,16 +31,20 @@
     </div>
 
     <component :is="props.statusTabs" ref="st" v-slot="{ mode, showResult }">
-      <ConfigForm
-        :schema="currentSchema"
-        :pattern="mode"
-        :initial-values="props.config.initialValues"
-        :effects="props.config.effects"
-        :plugins="resolvedPlugins"
-        @submit="showResult"
-        @submit-failed="(e: any) => st?.showErrors(e)"
-        @reset="() => clearStatus()"
-      />
+      <div data-configform-print-root="true">
+        <ConfigForm
+          :schema="currentSchema"
+          :pattern="mode"
+          :initial-values="props.config.initialValues"
+          :effects="props.config.effects"
+          :plugins="resolvedPlugins"
+          @submit="showResult"
+          @submit-failed="(e: any) => st?.showErrors(e)"
+          @reset="() => clearStatus()"
+        >
+          <slot name="form-extra" />
+        </ConfigForm>
+      </div>
     </component>
   </div>
 </template>

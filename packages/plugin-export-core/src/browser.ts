@@ -1,8 +1,8 @@
-import type { FormExportDownloadPayload } from '@moluoxixi/plugin-export-core'
+import type { FormExportDownloadPayload } from './types'
 
 function assertBrowserAPI(name: string, target: unknown): void {
   if (!target) {
-    throw new Error(`[plugin-export-react] ${name} is not available in current environment.`)
+    throw new Error(`[plugin-export] ${name} is not available in current environment.`)
   }
 }
 

@@ -282,7 +282,7 @@ export const ConfigForm = defineComponent({
     return () => {
       const currentDecoratorProps = rootDecoratorProps.value
       const actions = currentDecoratorProps.actions as Record<string, unknown>
-      const isEditable = effectivePattern.value === 'editable'
+      const isEditable = form.pattern === 'editable'
 
       /* 布局配置 */
       const direction = (currentDecoratorProps.direction ?? 'vertical') as string

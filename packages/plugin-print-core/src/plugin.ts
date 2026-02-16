@@ -1,11 +1,38 @@
 import type { FieldPattern, FormPlugin } from '@moluoxixi/core'
-import type { FormPrintPluginAPI, FormPrintPluginConfig } from './types'
+import type { FormPrintPluginAPI, FormPrintPluginConfig, FormPrintTarget } from './types'
 
 export const PLUGIN_NAME = 'form-print'
 
 const DEFAULT_EXCLUDE_PREFIXES = ['_']
 const DEFAULT_JSON_SPACE = 2
 const DEFAULT_PRINT_PATTERN: FieldPattern = 'preview'
+
+function isElement(value: unknown): value is Element {
+  return typeof Element !== 'undefined' && value instanceof Element
+}
+
+function resolvePrintTarget(target: FormPrintTarget | undefined): string | Element | undefined {
+  if (!target) {
+    return undefined
+  }
+  const value = typeof target === 'function' ? target() : target
+  if (typeof value === 'string' || isElement(value)) {
+    return value
+  }
+  return undefined
+}
+
+async function waitForPreviewRender(): Promise<void> {
+  if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
+    await Promise.resolve()
+    return
+  }
+  await new Promise<void>((resolve) => {
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => resolve())
+    })
+  })
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -40,10 +67,14 @@ function toPrintText(values: Record<string, unknown>): string {
     .join('\n')
 }
 
-export function formPrintPlugin(config: FormPrintPluginConfig = {}): FormPlugin<FormPrintPluginAPI> {
+export function printPlugin(config: FormPrintPluginConfig = {}): FormPlugin<FormPrintPluginAPI> {
   return {
     name: PLUGIN_NAME,
     install(form) {
+      const formWithPrint = form as typeof form & {
+        print?: FormPrintPluginAPI['print']
+      }
+
       const api: FormPrintPluginAPI = {
         async print(options = {}) {
           const print = config.adapters?.print
@@ -56,11 +87,12 @@ export function formPrintPlugin(config: FormPrintPluginConfig = {}): FormPlugin<
           const restorePattern = options.restorePattern ?? config.print?.restorePattern ?? true
           const previewPattern = options.previewPattern ?? config.print?.previewPattern ?? DEFAULT_PRINT_PATTERN
           const title = options.title ?? config.print?.title
+          const target = resolvePrintTarget(options.target ?? config.print?.target)
           const excludePrefixes = options.excludePrefixes ?? config.excludePrefixes ?? DEFAULT_EXCLUDE_PREFIXES
 
           if (switchPattern && previousPattern !== previewPattern) {
             form.pattern = previewPattern
-            await Promise.resolve()
+            await waitForPreviewRender()
           }
 
           try {
@@ -75,6 +107,7 @@ export function formPrintPlugin(config: FormPrintPluginConfig = {}): FormPlugin<
               json,
               text,
               form,
+              target,
             }))
           }
           finally {
@@ -85,8 +118,14 @@ export function formPrintPlugin(config: FormPrintPluginConfig = {}): FormPlugin<
         },
       }
 
+      formWithPrint.print = api.print
+
       return {
         api,
+        dispose() {
+          if (formWithPrint.print === api.print)
+            delete formWithPrint.print
+        },
       }
     },
   }

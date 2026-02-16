@@ -33,8 +33,12 @@
   },
   "dependencies": {
     "@moluoxixi/core": "workspace:*",
+    "@moluoxixi/plugin-export-core": "workspace:*",
+    "@moluoxixi/plugin-import-core": "workspace:*",
+    "@moluoxixi/plugin-print-core": "workspace:*",
     "@moluoxixi/ui-vue-shared": "workspace:*",
-    "@moluoxixi/vue": "workspace:*"
+    "@moluoxixi/vue": "workspace:*",
+    "jsoneditor": "catalog:build"
   },
   "devDependencies": {
     "ant-design-vue": "catalog:build",

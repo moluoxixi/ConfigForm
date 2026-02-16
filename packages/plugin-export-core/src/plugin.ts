@@ -1,19 +1,17 @@
 import type { FormInstance, FormPlugin } from '@moluoxixi/core'
 import type {
   FormExportPluginAPI,
-  FormExportPluginConfig,
+  FormExportPluginOptions,
   FormExportPreview,
   FormExportPreviewOptions,
 } from './types'
 import { FormLifeCycle } from '@moluoxixi/core'
-import { toCSV } from './serialize'
+import { browserDownload } from './browser'
 
 export const PLUGIN_NAME = 'form-export'
 
 const DEFAULT_EXCLUDE_PREFIXES = ['_']
 const DEFAULT_JSON_SPACE = 2
-const DEFAULT_CSV_DELIMITER = ','
-const DEFAULT_CSV_LINE_BREAK = '\n'
 const DEFAULT_FILE_NAME_BASE = 'config-form'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -43,35 +41,39 @@ function toExportData(values: Record<string, unknown>, excludePrefixes: string[]
   return isRecord(cloned) ? cloned : {}
 }
 
-function resolveExcludePrefixes(config: FormExportPluginConfig, options?: { excludePrefixes?: string[] }): string[] {
+function resolveExcludePrefixes(config: FormExportPluginOptions, options?: { excludePrefixes?: string[] }): string[] {
   return options?.excludePrefixes ?? config.excludePrefixes ?? DEFAULT_EXCLUDE_PREFIXES
 }
 
-function resolveFileNameBase(config: FormExportPluginConfig): string {
+function resolveFileNameBase(config: FormExportPluginOptions): string {
   const base = typeof config.filenameBase === 'function' ? config.filenameBase() : config.filenameBase
   return base || DEFAULT_FILE_NAME_BASE
 }
 
 function createExportPreview(
   api: Pick<FormExportPluginAPI, 'getExportData'>,
-  config: FormExportPluginConfig,
+  config: FormExportPluginOptions,
   options: FormExportPreviewOptions = {},
 ): FormExportPreview {
   const data = api.getExportData(options)
   return {
     data,
     json: JSON.stringify(data, null, options.jsonSpace ?? config.jsonSpace ?? DEFAULT_JSON_SPACE),
-    csv: toCSV(data, {
-      delimiter: options.csvDelimiter ?? config.csvDelimiter ?? DEFAULT_CSV_DELIMITER,
-      lineBreak: options.csvLineBreak ?? config.csvLineBreak ?? DEFAULT_CSV_LINE_BREAK,
-    }),
   }
 }
 
-export function formExportPlugin(config: FormExportPluginConfig = {}): FormPlugin<FormExportPluginAPI> {
+export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<FormExportPluginAPI> {
   return {
     name: PLUGIN_NAME,
     install(form: FormInstance) {
+      const formWithExport = form as FormInstance & {
+        getExportData?: FormExportPluginAPI['getExportData']
+        getExportPreview?: FormExportPluginAPI['getExportPreview']
+        subscribeExportPreview?: FormExportPluginAPI['subscribeExportPreview']
+        exportJSON?: FormExportPluginAPI['exportJSON']
+        downloadJSON?: FormExportPluginAPI['downloadJSON']
+      }
+
       const previewSubscribers = new Map<(preview: FormExportPreview) => void, FormExportPreviewOptions | undefined>()
       const api: FormExportPluginAPI = {
         getExportData(options) {
@@ -97,39 +99,13 @@ export function formExportPlugin(config: FormExportPluginConfig = {}): FormPlugi
           return JSON.stringify(data, null, space)
         },
 
-        exportCSV(options) {
-          const data = api.getExportData(options)
-          return toCSV(data, {
-            ...options,
-            delimiter: options?.delimiter ?? config.csvDelimiter ?? DEFAULT_CSV_DELIMITER,
-            lineBreak: options?.lineBreak ?? config.csvLineBreak ?? DEFAULT_CSV_LINE_BREAK,
-          })
-        },
-
         async downloadJSON(options) {
-          const download = config.adapters?.download
-          if (!download) {
-            throw new Error('[plugin-export-core] Missing download adapter. Provide adapters.download in plugin config.')
-          }
+          const download = config.adapters?.download ?? browserDownload
           const content = api.exportJSON(options)
           const filename = options?.filename ?? `${resolveFileNameBase(config)}.json`
           await Promise.resolve(download({
             filename,
             mimeType: 'application/json;charset=utf-8',
-            content,
-          }))
-        },
-
-        async downloadCSV(options) {
-          const download = config.adapters?.download
-          if (!download) {
-            throw new Error('[plugin-export-core] Missing download adapter. Provide adapters.download in plugin config.')
-          }
-          const content = api.exportCSV(options)
-          const filename = options?.filename ?? `${resolveFileNameBase(config)}.csv`
-          await Promise.resolve(download({
-            filename,
-            mimeType: 'text/csv;charset=utf-8',
             content,
           }))
         },
@@ -151,9 +127,25 @@ export function formExportPlugin(config: FormExportPluginConfig = {}): FormPlugi
         notifyExportPreviewSubscribers()
       })
 
+      formWithExport.getExportData = api.getExportData
+      formWithExport.getExportPreview = api.getExportPreview
+      formWithExport.subscribeExportPreview = api.subscribeExportPreview
+      formWithExport.exportJSON = api.exportJSON
+      formWithExport.downloadJSON = api.downloadJSON
+
       return {
         api,
         dispose() {
+          if (formWithExport.getExportData === api.getExportData)
+            delete formWithExport.getExportData
+          if (formWithExport.getExportPreview === api.getExportPreview)
+            delete formWithExport.getExportPreview
+          if (formWithExport.subscribeExportPreview === api.subscribeExportPreview)
+            delete formWithExport.subscribeExportPreview
+          if (formWithExport.exportJSON === api.exportJSON)
+            delete formWithExport.exportJSON
+          if (formWithExport.downloadJSON === api.downloadJSON)
+            delete formWithExport.downloadJSON
           previewSubscribers.clear()
           disposeValues()
           disposeReset()

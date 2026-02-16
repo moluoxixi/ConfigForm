@@ -91,15 +91,14 @@ export function App(): React.ReactElement {
   }, [i18nFeature.plugin, printExportFeature.plugins])
 
   const sceneHeaderExtra = useMemo(() => {
-    if (!i18nFeature.headerExtra && !printExportFeature.headerExtra)
+    if (!i18nFeature.headerExtra)
       return undefined
     return (
       <>
         {i18nFeature.headerExtra}
-        {printExportFeature.headerExtra}
       </>
     )
-  }, [i18nFeature.headerExtra, printExportFeature.headerExtra])
+  }, [i18nFeature.headerExtra])
 
   return (
     <div style={{ maxWidth: 1400, margin: '0 auto', padding: 16, fontFamily: 'system-ui, sans-serif' }}>
@@ -151,6 +150,7 @@ export function App(): React.ReactElement {
                   description={i18nFeature.description}
                   extraPlugins={scenePlugins}
                   headerExtra={sceneHeaderExtra}
+                  formExtra={printExportFeature.formExtra}
                 />
               )
             : <div style={{ textAlign: 'center', color: '#999', padding: 40 }}>{loading ? '加载中...' : '请选择场景'}</div>}

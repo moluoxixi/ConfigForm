@@ -2,7 +2,7 @@
   "name": "@moluoxixi/plugin-import-core",
   "type": "module",
   "version": "0.0.1",
-  "description": "ConfigForm import core plugin (framework-agnostic)",
+  "description": "ConfigForm unified import plugin with browser runtime",
   "exports": {
     ".": {
       "types": "./src/index.ts",

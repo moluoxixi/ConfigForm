@@ -23,14 +23,17 @@
     "module": "./dist/index.js",
     "types": "./dist/index.d.ts"
   },
-  "files": ["dist", "src"],
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts --tsconfig tsconfig.build.json",
     "dev": "tsup src/index.ts --format esm,cjs --dts --tsconfig tsconfig.build.json --watch"
   },
   "dependencies": {
-    "@moluoxixi/core": "workspace:*",
-    "@moluoxixi/plugin-print-core": "workspace:*"
+    "@moluoxixi/plugin-print-core": "workspace:*",
+    "print-js": "catalog:build"
   },
   "devDependencies": {
     "tsup": "catalog:type",

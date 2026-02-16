@@ -1,20 +1,20 @@
 /**
  * @moluoxixi/plugin-import-core
  *
- * 框架无关导入插件：
- * - 解析 JSON / CSV
- * - 应用导入（merge / shallow / replace）
- * - 一步导入 JSON / CSV
+ * 统一导入插件：
+ * - 注册后提供 form.parseImportJSON / form.applyImport / form.importJSON 能力
+ * - 可选文件读取辅助（JSON）
  */
-export { formImportPlugin, PLUGIN_NAME } from './plugin'
-export { ensurePlainObject, parseCSV, parseCSVRows, parseJSON } from './serialize'
+export { readFileAsText } from './browser'
+export { importPlugin } from './plugin'
+export { ensurePlainObject, parseJSON } from './serialize'
 export type {
-  FormImportCSVOptions,
   FormImportJSONOptions,
   FormImportOptions,
   FormImportPlugin,
   FormImportPluginAPI,
   FormImportPluginConfig,
+  FormImportPluginOptions,
   FormImportResult,
   ImportSetValueStrategy,
 } from './types'

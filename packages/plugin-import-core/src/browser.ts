@@ -9,7 +9,7 @@ export async function readFileAsText(file: File): Promise<string> {
       resolve(String(reader.result ?? ''))
     }
     reader.onerror = () => {
-      reject(reader.error ?? new Error('[plugin-import-vue] Failed to read file.'))
+      reject(reader.error ?? new Error('[plugin-import] Failed to read file.'))
     }
     reader.readAsText(file)
   })

@@ -1,24 +1,22 @@
 /**
  * @moluoxixi/plugin-export-core
  *
- * 框架无关导出插件：
- * - 导出 JSON / CSV
- * - 下载 JSON / CSV
- * - 导出预览订阅
+ * 统一导出插件：
+ * - 注册后提供 form.getExportData / form.exportJSON / form.downloadJSON 能力
+ * - 默认浏览器下载适配器
  */
-export { formExportPlugin, PLUGIN_NAME } from './plugin'
-export { toCSV } from './serialize'
+export { browserDownload } from './browser'
+export { exportPlugin } from './plugin'
 export type {
   FormExportAdapters,
-  FormExportCSVOptions,
   FormExportDataOptions,
-  FormExportDownloadCSVOptions,
   FormExportDownloadJSONOptions,
   FormExportDownloadPayload,
   FormExportJSONOptions,
   FormExportPlugin,
   FormExportPluginAPI,
   FormExportPluginConfig,
+  FormExportPluginOptions,
   FormExportPreview,
   FormExportPreviewOptions,
 } from './types'

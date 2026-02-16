@@ -12,12 +12,6 @@ export interface FormImportJSONOptions extends FormImportOptions {
   reviver?: (this: unknown, key: string, value: unknown) => unknown
 }
 
-export interface FormImportCSVOptions extends FormImportOptions {
-  delimiter?: string
-  rowIndex?: number
-  parseValue?: (raw: string, key: string) => unknown
-}
-
 export interface FormImportResult {
   data: Record<string, unknown>
   appliedKeys: string[]
@@ -33,10 +27,21 @@ export interface FormImportPluginConfig {
 
 export interface FormImportPluginAPI {
   parseImportJSON: (input: string | Record<string, unknown>, options?: FormImportJSONOptions) => FormImportResult
-  parseImportCSV: (input: string, options?: FormImportCSVOptions) => FormImportResult
   applyImport: (data: Record<string, unknown>, options?: FormImportOptions) => FormImportResult
   importJSON: (input: string | Record<string, unknown>, options?: FormImportJSONOptions) => FormImportResult
-  importCSV: (input: string, options?: FormImportCSVOptions) => FormImportResult
+  parseImportJSONFile: (file: File, options?: FormImportJSONOptions) => Promise<FormImportResult>
+  importJSONFile: (file: File, options?: FormImportJSONOptions) => Promise<FormImportResult>
 }
 
 export type FormImportPlugin = FormPlugin<FormImportPluginAPI>
+export type FormImportPluginOptions = FormImportPluginConfig
+
+declare module '@moluoxixi/core' {
+  interface FormInstance {
+    parseImportJSON?: FormImportPluginAPI['parseImportJSON']
+    applyImport?: FormImportPluginAPI['applyImport']
+    importJSON?: FormImportPluginAPI['importJSON']
+    parseImportJSONFile?: FormImportPluginAPI['parseImportJSONFile']
+    importJSONFile?: FormImportPluginAPI['importJSONFile']
+  }
+}

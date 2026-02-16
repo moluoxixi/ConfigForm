@@ -2,7 +2,7 @@
   "name": "@moluoxixi/plugin-export-core",
   "type": "module",
   "version": "0.0.1",
-  "description": "ConfigForm export core plugin (framework-agnostic)",
+  "description": "ConfigForm unified export plugin with browser runtime",
   "exports": {
     ".": {
       "types": "./src/index.ts",
