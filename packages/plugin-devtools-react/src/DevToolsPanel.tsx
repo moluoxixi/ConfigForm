@@ -107,7 +107,30 @@ export function DevToolsPanel({ api }: DevToolsPanelProps): React.ReactElement {
   const [filter, setFilter] = useState<'all' | 'error' | 'required' | 'modified'>('all')
   const [tick, setTick] = useState(0)
 
-  useEffect(() => api.subscribe(() => setTick(n => n + 1)), [api])
+  useEffect(() => {
+    let active = true
+    const unsubscribe = api.subscribe(() => {
+      if (!active)
+        return
+
+      const flush = (): void => {
+        if (active)
+          setTick(n => n + 1)
+      }
+
+      if (typeof queueMicrotask === 'function') {
+        queueMicrotask(flush)
+      }
+      else {
+        Promise.resolve().then(flush)
+      }
+    })
+
+    return () => {
+      active = false
+      unsubscribe()
+    }
+  }, [api])
 
   const tree = useMemo(() => api.getFieldTree(), [api, tick, visible, tab])
   const overview = useMemo(() => api.getFormOverview(), [api, tick, visible])

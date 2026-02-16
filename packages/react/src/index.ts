@@ -1,5 +1,9 @@
 /* 组件 */
 export {
+  ArrayBase,
+  ArrayField,
+  ArrayItems,
+  ArrayTable,
   ConfigForm,
   DiffViewer,
   FormArrayField,
@@ -12,9 +16,13 @@ export {
   ReactiveField,
   RecursionField,
   SchemaField,
+  useArray,
   useFormLayout,
+  useIndex,
 } from './components'
 export type {
+  ArrayFieldProps,
+  ArrayTableProps,
   ConfigFormProps,
   DiffViewerProps,
   FormArrayFieldComponentProps,

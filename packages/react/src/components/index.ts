@@ -1,3 +1,8 @@
+export { ArrayBase, useArray, useIndex } from './ArrayBase'
+export { ArrayField, ArrayItems } from './ArrayField'
+export type { ArrayFieldProps } from './ArrayField'
+export { ArrayTable } from './ArrayTable'
+export type { ArrayTableProps } from './ArrayTable'
 export { ConfigForm } from './ConfigForm'
 export type { ConfigFormProps } from './ConfigForm'
 export { DiffViewer } from './DiffViewer'

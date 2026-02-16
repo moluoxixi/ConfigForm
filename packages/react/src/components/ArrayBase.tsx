@@ -1,7 +1,7 @@
 import type { ArrayFieldInstance } from '@moluoxixi/core'
 import type { ReactNode } from 'react'
-import { useField } from '@moluoxixi/react'
 import React, { createContext, useContext } from 'react'
+import { useField } from '../hooks'
 
 interface ArrayBaseContextValue {
   field: ArrayFieldInstance

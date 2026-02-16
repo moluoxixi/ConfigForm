@@ -38,7 +38,6 @@
     "@moluoxixi/plugin-import": "workspace:*",
     "@moluoxixi/plugin-print": "workspace:*",
     "@moluoxixi/react": "workspace:*",
-    "@moluoxixi/ui-react-shared": "workspace:*",
     "dayjs": "catalog:build",
     "jsoneditor": "catalog:build"
   },
