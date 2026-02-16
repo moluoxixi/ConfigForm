@@ -1,6 +1,20 @@
 import type { FieldInstance, FormEvent, FormInstance, FormPlugin, VoidFieldInstance } from '@moluoxixi/core'
-import type { DevToolsGlobalHook, DevToolsPluginAPI, EventLogEntry, FieldDetail, FieldTreeNode, FormOverview, ValueDiffEntry } from './types'
+import type {
+  DevToolsEventType,
+  DevToolsGlobalHook,
+  DevToolsPluginAPI,
+  EventLogEntry,
+  FieldDetail,
+  FieldTreeNode,
+  FormOverview,
+  ValueDiffEntry,
+} from './types'
 import { FormLifeCycle, FormPath } from '@moluoxixi/core'
+import {
+  buildDevToolsFieldEventSummary,
+  DEVTOOLS_FIELD_EVENT_DEFINITIONS,
+  DEVTOOLS_FORM_EVENT_DEFINITIONS,
+} from './events'
 
 /** 插件配置 */
 export interface DevToolsPluginConfig {
@@ -69,7 +83,7 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
       }
 
       /** 添加事件日志 */
-      function addEvent(type: string, summary: string, fieldPath?: string): void {
+      function addEvent(type: DevToolsEventType, summary: string, fieldPath?: string): void {
         eventLog.push({
           id: ++eventIdCounter,
           type,
@@ -94,37 +108,14 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
        * 事件回调签名为 (event: FormEvent) => void，
        * event.payload 为载荷（Form 事件传 form，Field 事件传 field）。
        */
-      const formEvents: Array<[FormLifeCycle, string]> = [
-        [FormLifeCycle.ON_FORM_INIT, '表单初始化'],
-        [FormLifeCycle.ON_FORM_MOUNT, '表单挂载'],
-        [FormLifeCycle.ON_FORM_UNMOUNT, '表单卸载'],
-        [FormLifeCycle.ON_FORM_VALUES_CHANGE, '值变化'],
-        [FormLifeCycle.ON_FORM_SUBMIT_START, '提交开始'],
-        [FormLifeCycle.ON_FORM_SUBMIT_SUCCESS, '提交成功'],
-        [FormLifeCycle.ON_FORM_SUBMIT_FAILED, '提交失败'],
-        [FormLifeCycle.ON_FORM_SUBMIT_END, '提交结束'],
-        [FormLifeCycle.ON_FORM_RESET, '表单重置'],
-        [FormLifeCycle.ON_FORM_VALIDATE_START, '验证开始'],
-        [FormLifeCycle.ON_FORM_VALIDATE_SUCCESS, '验证通过'],
-        [FormLifeCycle.ON_FORM_VALIDATE_FAILED, '验证失败'],
-      ]
-
-      for (const [event, label] of formEvents) {
+      for (const { type: event, label } of DEVTOOLS_FORM_EVENT_DEFINITIONS) {
         disposers.push(form.on(event, () => {
           addEvent(event, label)
         }))
       }
 
       /** 监听字段事件（payload 为 FieldInstance） */
-      const fieldEvents: Array<[FormLifeCycle, (field: FieldInstance) => string]> = [
-        [FormLifeCycle.ON_FIELD_INIT, f => `字段创建: ${f.path}`],
-        [FormLifeCycle.ON_FIELD_MOUNT, f => `字段挂载: ${f.path}`],
-        [FormLifeCycle.ON_FIELD_UNMOUNT, f => `字段卸载: ${f.path}`],
-        [FormLifeCycle.ON_FIELD_VALUE_CHANGE, f => `值变化: ${f.path} = ${JSON.stringify(f.value)?.slice(0, 50)}`],
-        [FormLifeCycle.ON_FIELD_INPUT_VALUE_CHANGE, f => `用户输入: ${f.path}`],
-      ]
-
-      for (const [event, summarize] of fieldEvents) {
+      for (const { type: event } of DEVTOOLS_FIELD_EVENT_DEFINITIONS) {
         disposers.push(form.on(event, (e: FormEvent) => {
           const field = e.payload as FieldInstance
           if (field?.path) {
@@ -134,7 +125,7 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
                 fieldOrder.set(key, ++fieldOrderCounter)
               }
             }
-            addEvent(event, summarize(field), field.path)
+            addEvent(event, buildDevToolsFieldEventSummary(event, field), field.path)
           }
         }))
       }

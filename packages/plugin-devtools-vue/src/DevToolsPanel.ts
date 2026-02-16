@@ -123,13 +123,6 @@ const FILTER_LABELS: Record<string, string> = {
   modified: '已修改',
 }
 
-/* ======================== Props 接口 ======================== */
-
-/** DevToolsPanel 组件 Props */
-export interface DevToolsPanelProps {
-  api: DevToolsPluginAPI
-}
-
 /* ======================== 纯渲染辅助函数 ======================== */
 
 /** 渲染字段类型徽章（F/A/O/V） */

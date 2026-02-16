@@ -4,7 +4,7 @@
  * 纯数据 props 驱动，不依赖 form 实例。
  * 可直接复用于 Chrome Extension（数据来源改为 postMessage 即可）。
  */
-import type { DevToolsPluginAPI, EventLogEntry, FieldDetail, FieldTreeNode, FormOverview, ValueDiffEntry } from '@moluoxixi/plugin-devtools'
+import type { DevToolsPanelProps, DevToolsPluginAPI, EventLogEntry, FieldDetail, FieldTreeNode, FormOverview, ValueDiffEntry } from '@moluoxixi/plugin-devtools'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
 /* ======================== 主题 ======================== */
@@ -95,8 +95,6 @@ const TYPE_CFG: Record<string, { ch: string, c: string, bg: string }> = {
 type Tab = 'tree' | 'events' | 'diff' | 'values'
 
 /* ======================== 主面板 ======================== */
-
-export interface DevToolsPanelProps { api: DevToolsPluginAPI }
 
 export function DevToolsPanel({ api }: DevToolsPanelProps): React.ReactElement {
   const t = useSystemTheme()

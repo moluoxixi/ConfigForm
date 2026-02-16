@@ -1,3 +1,5 @@
+import type { FormLifeCycle } from '@moluoxixi/core'
+
 /**
  * DevTools 数据类型
  *
@@ -76,7 +78,7 @@ export interface EventLogEntry {
   /** 自增 ID */
   id: number
   /** 事件类型 */
-  type: string
+  type: DevToolsEventType
   /** 事件时间戳 */
   timestamp: number
   /** 相关字段路径（字段事件时） */
@@ -84,6 +86,20 @@ export interface EventLogEntry {
   /** 事件数据摘要 */
   summary: string
 }
+
+/** DevTools 自定义事件类型（非 FormLifeCycle） */
+export type DevToolsActionEventType
+  = | 'devtools:init'
+    | 'devtools:locate'
+    | 'devtools:locate-miss'
+    | 'devtools:setValue'
+    | 'devtools:setState'
+    | 'devtools:validate'
+    | 'devtools:reset'
+    | 'devtools:submit'
+
+/** DevTools 事件类型（生命周期事件 + 自定义调试事件） */
+export type DevToolsEventType = FormLifeCycle | DevToolsActionEventType
 
 /** 表单概览 */
 export interface FormOverview {
@@ -145,6 +161,11 @@ export interface DevToolsPluginAPI {
   resetForm: () => void
   /** 提交表单 */
   submitForm: () => Promise<{ success: boolean, errors: Array<{ path: string, message: string }> }>
+}
+
+/** DevTools 面板组件共享 Props（React/Vue 共用） */
+export interface DevToolsPanelProps {
+  api: DevToolsPluginAPI
 }
 
 /** DevTools 全局 Hook（为 Chrome Extension 预留） */
