@@ -1,7 +1,8 @@
 {
-  "name": "@moluoxixi/ui-antd",
+  "name": "@moluoxixi/plugin-print",
   "type": "module",
   "version": "0.0.1",
+  "description": "ConfigForm print plugin with browser runtime",
   "exports": {
     ".": {
       "types": "./src/index.ts",
@@ -27,27 +28,11 @@
     "build": "tsup src/index.ts --format esm,cjs --dts --tsconfig tsconfig.build.json",
     "dev": "tsup src/index.ts --format esm,cjs --dts --tsconfig tsconfig.build.json --watch"
   },
-  "peerDependencies": {
-    "antd": ">=5.0.0",
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
-  },
   "dependencies": {
     "@moluoxixi/core": "workspace:*",
-    "@moluoxixi/plugin-export": "workspace:*",
-    "@moluoxixi/plugin-import": "workspace:*",
-    "@moluoxixi/plugin-print": "workspace:*",
-    "@moluoxixi/react": "workspace:*",
-    "@moluoxixi/ui-react-shared": "workspace:*",
-    "dayjs": "catalog:build",
-    "jsoneditor": "catalog:build"
+    "print-js": "catalog:build"
   },
   "devDependencies": {
-    "@types/react": "catalog:type",
-    "@types/react-dom": "catalog:type",
-    "antd": "catalog:build",
-    "react": "catalog:build",
-    "react-dom": "catalog:build",
     "tsup": "catalog:type",
     "typescript": "catalog:type"
   }

@@ -10,7 +10,7 @@ import type { SceneConfig } from '../types'
  */
 const config: SceneConfig = {
   title: '打印 / 导入 / 导出（插件化）',
-  description: '通过 plugin-export-core / plugin-import-core / plugin-print-* 插件提供打印与 JSON 导入导出能力，核心表单保持轻量',
+  description: '通过 plugin-export / plugin-import / plugin-print 插件提供打印与 JSON 导入导出能力，核心表单保持轻量',
 
   initialValues: {
     orderNo: 'ORD-20260207-001',

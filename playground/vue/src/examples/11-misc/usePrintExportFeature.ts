@@ -1,8 +1,8 @@
 import type { FormPlugin } from '@moluoxixi/core'
 import type { Ref } from 'vue'
-import { exportPlugin } from '@moluoxixi/plugin-export-vue'
-import { importPlugin } from '@moluoxixi/plugin-import-vue'
-import { printPlugin } from '@moluoxixi/plugin-print-vue'
+import { exportPlugin } from '@moluoxixi/plugin-export'
+import { importPlugin } from '@moluoxixi/plugin-import'
+import { printPlugin } from '@moluoxixi/plugin-print'
 import { computed, ref, watch } from 'vue'
 
 export interface PrintExportFeatureState {

@@ -1,5 +1,5 @@
 /// <reference path="../jsoneditor.d.ts" />
-import type { FormImportJSONOptions, ImportSetValueStrategy } from '@moluoxixi/plugin-import-core'
+import type { FormImportJSONOptions, ImportSetValueStrategy } from '@moluoxixi/plugin-import'
 import type { PropType, VNode, VNodeRef } from 'vue'
 import { useForm } from '@moluoxixi/vue'
 import { Alert as AAlert, Button as AButton, Modal as AModal, message, Upload as AUpload } from 'ant-design-vue'

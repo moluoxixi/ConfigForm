@@ -1,4 +1,4 @@
-import type { FormImportJSONOptions, ImportSetValueStrategy } from '@moluoxixi/plugin-import-core'
+import type { FormImportJSONOptions, ImportSetValueStrategy } from '@moluoxixi/plugin-import'
 import type { ReactElement, CSSProperties } from 'react'
 import { useForm } from '@moluoxixi/react'
 import { Button, message, Modal, Upload } from 'antd'

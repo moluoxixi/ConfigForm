@@ -1,7 +1,7 @@
 import type { FormPlugin } from '@moluoxixi/core'
-import { exportPlugin } from '@moluoxixi/plugin-export-react'
-import { importPlugin } from '@moluoxixi/plugin-import-react'
-import { printPlugin } from '@moluoxixi/plugin-print-react'
+import { exportPlugin } from '@moluoxixi/plugin-export'
+import { importPlugin } from '@moluoxixi/plugin-import'
+import { printPlugin } from '@moluoxixi/plugin-print'
 import { useMemo } from 'react'
 
 export interface PrintExportFeatureState {

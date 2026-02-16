@@ -33,9 +33,9 @@
   },
   "dependencies": {
     "@moluoxixi/core": "workspace:*",
-    "@moluoxixi/plugin-export-core": "workspace:*",
-    "@moluoxixi/plugin-import-core": "workspace:*",
-    "@moluoxixi/plugin-print-core": "workspace:*",
+    "@moluoxixi/plugin-export": "workspace:*",
+    "@moluoxixi/plugin-import": "workspace:*",
+    "@moluoxixi/plugin-print": "workspace:*",
     "@moluoxixi/ui-vue-shared": "workspace:*",
     "@moluoxixi/vue": "workspace:*",
     "jsoneditor": "catalog:build"

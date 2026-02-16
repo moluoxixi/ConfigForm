@@ -1,4 +1,4 @@
-import type { FormExportDownloadJSONOptions, FormExportPreviewOptions } from '@moluoxixi/plugin-export-core'
+import type { FormExportDownloadJSONOptions, FormExportPreviewOptions } from '@moluoxixi/plugin-export'
 import type { ReactElement, CSSProperties } from 'react'
 import { useForm } from '@moluoxixi/react'
 import { Button, message } from 'antd'

@@ -1,4 +1,4 @@
-import type { FormPrintOptions } from '@moluoxixi/plugin-print-core'
+import type { FormPrintOptions } from '@moluoxixi/plugin-print'
 import type { PropType } from 'vue'
 import { useForm } from '@moluoxixi/vue'
 import { Button as AButton, message } from 'ant-design-vue'

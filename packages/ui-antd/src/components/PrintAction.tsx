@@ -1,4 +1,4 @@
-import type { FormPrintOptions } from '@moluoxixi/plugin-print-core'
+import type { FormPrintOptions } from '@moluoxixi/plugin-print'
 import type { CSSProperties, ReactElement } from 'react'
 import { useForm } from '@moluoxixi/react'
 import { Button, message } from 'antd'

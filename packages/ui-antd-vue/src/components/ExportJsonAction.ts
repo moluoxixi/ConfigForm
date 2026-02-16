@@ -1,5 +1,5 @@
 /// <reference path="../jsoneditor.d.ts" />
-import type { FormExportDownloadJSONOptions, FormExportPreviewOptions } from '@moluoxixi/plugin-export-core'
+import type { FormExportDownloadJSONOptions, FormExportPreviewOptions } from '@moluoxixi/plugin-export'
 import type { PropType, VNode, VNodeRef } from 'vue'
 import { useForm } from '@moluoxixi/vue'
 import { Alert as AAlert, Button as AButton, Modal as AModal, message } from 'ant-design-vue'
