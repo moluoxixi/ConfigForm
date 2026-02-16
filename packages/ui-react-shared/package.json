@@ -1,5 +1,5 @@
 {
-  "name": "@moluoxixi/ui-antd",
+  "name": "@moluoxixi/ui-react-shared",
   "type": "module",
   "version": "0.0.1",
   "exports": {
@@ -28,24 +28,16 @@
     "dev": "tsup src/index.ts --format esm,cjs --dts --tsconfig tsconfig.build.json --watch"
   },
   "peerDependencies": {
-    "antd": ">=5.0.0",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
   },
   "dependencies": {
     "@moluoxixi/core": "workspace:*",
-    "@moluoxixi/plugin-export-core": "workspace:*",
-    "@moluoxixi/plugin-import-core": "workspace:*",
-    "@moluoxixi/plugin-print-core": "workspace:*",
-    "@moluoxixi/react": "workspace:*",
-    "@moluoxixi/ui-react-shared": "workspace:*",
-    "dayjs": "catalog:build",
-    "jsoneditor": "catalog:build"
+    "@moluoxixi/react": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "catalog:type",
     "@types/react-dom": "catalog:type",
-    "antd": "catalog:build",
     "react": "catalog:build",
     "react-dom": "catalog:build",
     "tsup": "catalog:type",
