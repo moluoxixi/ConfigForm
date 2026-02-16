@@ -42,9 +42,19 @@ export const PreviewTextarea = defineComponent({
 /** 数字输入阅读态 */
 export const PreviewInputNumber = defineComponent({
   name: 'CfPreviewInputNumber',
-  props: { modelValue: { type: [String, Number], default: undefined } },
+  inheritAttrs: false,
+  props: {
+    modelValue: { type: [String, Number], default: undefined },
+    prefix: { type: String, default: '' },
+    suffix: { type: String, default: '' },
+  },
   setup(props) {
-    return () => h('span', null, props.modelValue != null ? String(props.modelValue) : EMPTY)
+    return () => {
+      if (props.modelValue == null)
+        return h('span', null, EMPTY)
+      const value = String(props.modelValue)
+      return h('span', null, `${props.prefix || ''}${value}${props.suffix || ''}`)
+    }
   },
 })
 

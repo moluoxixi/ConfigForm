@@ -1,5 +1,6 @@
 import type { FieldPattern, FormPlugin } from '@moluoxixi/core'
 import type { FormPrintPluginAPI, FormPrintPluginConfig, FormPrintTarget } from './types'
+import { cloneWithoutKeyPrefixes, isPlainObject } from '@moluoxixi/core'
 import { browserPrint } from './browser'
 
 export const PLUGIN_NAME = 'form-print'
@@ -35,31 +36,9 @@ async function waitForPreviewRender(): Promise<void> {
   })
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
-function cloneWithoutInternal(value: unknown, excludePrefixes: string[]): unknown {
-  if (Array.isArray(value)) {
-    return value.map(item => cloneWithoutInternal(item, excludePrefixes))
-  }
-  if (!isRecord(value)) {
-    return value
-  }
-
-  const result: Record<string, unknown> = {}
-  for (const [key, child] of Object.entries(value)) {
-    if (excludePrefixes.some(prefix => prefix && key.startsWith(prefix))) {
-      continue
-    }
-    result[key] = cloneWithoutInternal(child, excludePrefixes)
-  }
-  return result
-}
-
 function toExportData(values: Record<string, unknown>, excludePrefixes: string[]): Record<string, unknown> {
-  const cloned = cloneWithoutInternal(values, excludePrefixes)
-  return isRecord(cloned) ? cloned : {}
+  const cloned = cloneWithoutKeyPrefixes(values, excludePrefixes)
+  return isPlainObject(cloned) ? cloned : {}
 }
 
 function toPrintText(values: Record<string, unknown>): string {

@@ -38,9 +38,32 @@ export function createRegistryState(): RegistryState {
 }
 
 const globalRegistry = createRegistryState()
+const registryListeners = new WeakMap<RegistryState, Set<() => void>>()
 
 function getTargetRegistry(registry?: RegistryState): RegistryState {
   return registry ?? globalRegistry
+}
+
+function notifyRegistryChange(registry: RegistryState): void {
+  const listeners = registryListeners.get(registry)
+  if (!listeners) {
+    return
+  }
+  for (const listener of listeners) {
+    listener()
+  }
+}
+
+export function subscribeRegistryChange(registry: RegistryState, listener: () => void): () => void {
+  let listeners = registryListeners.get(registry)
+  if (!listeners) {
+    listeners = new Set<() => void>()
+    registryListeners.set(registry, listeners)
+  }
+  listeners.add(listener)
+  return () => {
+    listeners?.delete(listener)
+  }
 }
 
 /**
@@ -68,6 +91,7 @@ export function registerComponentToRegistry(
   if (options?.readPrettyComponent) {
     registry.readPrettyComponents.set(name, options.readPrettyComponent)
   }
+  notifyRegistryChange(registry)
 }
 
 /**
@@ -84,6 +108,7 @@ export function registerDecoratorToRegistry(
   decorator: Component,
 ): void {
   registry.decorators.set(name, decorator)
+  notifyRegistryChange(registry)
 }
 
 /**
@@ -100,6 +125,7 @@ export function registerActionToRegistry(
   action: Component,
 ): void {
   registry.actions.set(name, action)
+  notifyRegistryChange(registry)
 }
 
 /**
@@ -124,6 +150,7 @@ export function registerComponentsToRegistry(
       registry.readPrettyComponents.set(name, options.readPrettyComponent)
     }
   }
+  notifyRegistryChange(registry)
 }
 
 /**
@@ -141,6 +168,7 @@ export function registerActionsToRegistry(
   for (const [name, action] of Object.entries(mapping)) {
     registry.actions.set(name, action)
   }
+  notifyRegistryChange(registry)
 }
 
 /**
@@ -202,6 +230,7 @@ export function registerFieldComponentsToRegistry(
       registry.readPrettyComponents.set(name, component)
     }
   }
+  notifyRegistryChange(registry)
 }
 
 /** 获取组件 */
@@ -241,6 +270,7 @@ export function resetRegistry(): void {
   globalRegistry.actions.clear()
   globalRegistry.defaultDecorators.clear()
   globalRegistry.readPrettyComponents.clear()
+  notifyRegistryChange(globalRegistry)
 }
 
 /**

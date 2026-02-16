@@ -1,6 +1,6 @@
 import type { FormConfig, FormInstance, FormPlugin } from './types'
 import { Form } from './models/Form'
-import { getReactiveAdapter } from './reactive'
+import { getReactiveAdapter, setReactiveAdapterForForm } from './reactive'
 
 /**
  * 对插件列表进行拓扑排序
@@ -111,8 +111,9 @@ function sortPlugins(plugins: FormPlugin[]): FormPlugin[] {
 export function createForm<
   Values extends Record<string, unknown> = Record<string, unknown>,
 >(config: FormConfig<Values> = {}): FormInstance<Values> {
-  const adapter = getReactiveAdapter()
   const form = new Form<Values>(config)
+  const adapter = config.reactiveAdapter ?? getReactiveAdapter()
+  setReactiveAdapterForForm(form.id, adapter)
 
   /* 先让数据对象变为深度响应式 */
   form.values = adapter.observable(form.values)

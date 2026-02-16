@@ -56,6 +56,7 @@ export {
   registerDecorator,
   registerFieldComponents,
   resetRegistry,
+  subscribeRegistryChange,
 } from './registry'
 export type { ComponentScope, RegisterComponentOptions, RegistryState } from './registry'
 

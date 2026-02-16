@@ -1,10 +1,10 @@
 import type { FormInstance } from '@moluoxixi/core'
 import type { ComponentType, ReactNode } from 'react'
 import type { ComponentScope, RegistryState } from '../registry'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { ComponentRegistryContext, FormContext } from '../context'
 import { observer } from '../reactive'
-import { getGlobalRegistry } from '../registry'
+import { getGlobalRegistry, subscribeRegistryChange } from '../registry'
 
 export interface FormProviderProps {
   form: FormInstance<any>
@@ -42,6 +42,7 @@ export const FormProvider = observer<FormProviderProps>(({
   children,
 }) => {
   const globalRegistry = baseRegistry ?? getGlobalRegistry()
+  const [registryVersion, setRegistryVersion] = useState(0)
 
   /* 表单挂载/卸载生命周期 */
   useEffect(() => {
@@ -50,6 +51,12 @@ export const FormProvider = observer<FormProviderProps>(({
       form.unmount()
     }
   }, [form])
+
+  useEffect(() => {
+    return subscribeRegistryChange(globalRegistry, () => {
+      setRegistryVersion(v => v + 1)
+    })
+  }, [globalRegistry])
 
   const registry = React.useMemo(() => {
     const mergedComponents = new Map(globalRegistry.components)
@@ -109,7 +116,7 @@ export const FormProvider = observer<FormProviderProps>(({
       defaultDecorators: mergedDefaultDecorators,
       readPrettyComponents: mergedReadPrettyComponents,
     }
-  }, [actions, components, decorators, defaultDecorators, readPrettyComponents, scope, globalRegistry])
+  }, [actions, components, decorators, defaultDecorators, readPrettyComponents, scope, globalRegistry, registryVersion])
 
   return (
     <FormContext.Provider value={form}>

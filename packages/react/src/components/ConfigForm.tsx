@@ -10,10 +10,11 @@ import { observer } from '../reactive'
 import { FormProvider } from './FormProvider'
 import { SchemaField } from './SchemaField'
 
-interface I18nPluginBridge {
-  readonly version: number
-  translateSchema: (schema: FormSchema) => FormSchema
-  subscribe?: (listener: (version: number) => void) => () => void
+interface SchemaTransformPluginBridge {
+  translateSchema?: (schema: FormSchema) => FormSchema
+  transformSchema?: (schema: FormSchema) => FormSchema
+  subscribe?: (listener: () => void) => (() => void) | void
+  subscribeSchemaChange?: (listener: () => void) => (() => void) | void
 }
 
 export interface ConfigFormProps<Values extends Record<string, unknown> = Record<string, unknown>> {
@@ -106,6 +107,10 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
 
   const resolvedEffects = effects ?? formConfig?.effects
   const resolvedPlugins = plugins ?? formConfig?.plugins
+  const internalFormResetKey = useMemo(
+    () => (externalForm ? '__external__' : { formConfig, initialValues, resolvedEffects, resolvedPlugins }),
+    [externalForm, formConfig, initialValues, resolvedEffects, resolvedPlugins],
+  )
 
   /* 内部创建或使用外部 form */
   const internalForm = useCreateForm<Values>({
@@ -116,29 +121,44 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
     initialValues: initialValues ?? formConfig?.initialValues,
     effects: resolvedEffects,
     plugins: resolvedPlugins,
-  })
+  }, { resetKey: internalFormResetKey })
   const form = externalForm ?? internalForm
 
-  const [i18nVersion, setI18nVersion] = useState(0)
+  const [schemaTransformVersion, setSchemaTransformVersion] = useState(0)
+  const schemaTransformers = useMemo(
+    () => collectSchemaTransformers(form),
+    [form],
+  )
 
   useEffect(() => {
-    const i18n = form.getPlugin<I18nPluginBridge>('i18n')
-    if (!i18n?.subscribe)
-      return
-    setI18nVersion(i18n.version)
-    return i18n.subscribe((nextVersion) => {
-      setI18nVersion(nextVersion)
-    })
-  }, [form])
+    const disposers: Array<() => void> = []
+    for (const transformer of schemaTransformers) {
+      const subscribe = transformer.subscribeSchemaChange ?? transformer.subscribe
+      if (typeof subscribe !== 'function') {
+        continue
+      }
+      const dispose = subscribe(() => {
+        setSchemaTransformVersion(v => v + 1)
+      })
+      if (typeof dispose === 'function') {
+        disposers.push(dispose)
+      }
+    }
+    return () => {
+      for (const dispose of disposers) {
+        dispose()
+      }
+    }
+  }, [schemaTransformers])
 
   const effectiveSchema = useMemo(() => {
     if (!schema)
       return schema
-    const i18n = form.getPlugin<I18nPluginBridge>('i18n')
-    if (!i18n)
+    if (schemaTransformers.length === 0)
       return schema
-    return i18n.translateSchema(schema)
-  }, [form, schema, i18nVersion])
+    void schemaTransformVersion
+    return applySchemaTransforms(schema, schemaTransformers)
+  }, [schema, schemaTransformers, schemaTransformVersion])
 
   /** 从根 schema 的 decoratorProps 提取表单级配置 */
   const rootDecoratorProps = (effectiveSchema?.decoratorProps ?? {}) as Record<string, unknown>
@@ -357,6 +377,39 @@ const RESERVED_FORM_ACTION_KEYS = new Set(['submit', 'reset', 'align'])
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+interface PluginContainerBridge {
+  getPlugins?: () => ReadonlyMap<string, unknown> | undefined
+}
+
+function collectSchemaTransformers(form: PluginContainerBridge): SchemaTransformPluginBridge[] {
+  const plugins = form.getPlugins?.()
+  if (!plugins) {
+    return []
+  }
+  const transformers: SchemaTransformPluginBridge[] = []
+  for (const pluginApi of plugins.values()) {
+    if (!isRecord(pluginApi)) {
+      continue
+    }
+    const bridge = pluginApi as SchemaTransformPluginBridge
+    if (typeof bridge.translateSchema === 'function' || typeof bridge.transformSchema === 'function') {
+      transformers.push(bridge)
+    }
+  }
+  return transformers
+}
+
+function applySchemaTransforms(schema: FormSchema, transformers: SchemaTransformPluginBridge[]): FormSchema {
+  let transformed = schema
+  for (const transformer of transformers) {
+    const transform = transformer.transformSchema ?? transformer.translateSchema
+    if (typeof transform === 'function') {
+      transformed = transform(transformed)
+    }
+  }
+  return transformed
 }
 
 function extractExtraActions(actions: Record<string, unknown> | undefined): Record<string, unknown> {

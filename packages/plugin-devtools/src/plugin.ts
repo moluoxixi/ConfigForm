@@ -71,6 +71,18 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
       /** 字段创建顺序（跨 field / voidField 统一） */
       const fieldOrder = new Map<string, number>()
       let fieldOrderCounter = 0
+      let fieldTreeDirty = true
+      let formOverviewDirty = true
+      let valueDiffDirty = true
+      let fieldTreeCache: FieldTreeNode[] = []
+      let formOverviewCache: FormOverview | null = null
+      let valueDiffCache: ValueDiffEntry[] = []
+
+      function invalidateDataCaches(): void {
+        fieldTreeDirty = true
+        formOverviewDirty = true
+        valueDiffDirty = true
+      }
 
       /** 通知数据变化 */
       function notify(): void {
@@ -84,6 +96,7 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
 
       /** 添加事件日志 */
       function addEvent(type: DevToolsEventType, summary: string, fieldPath?: string): void {
+        invalidateDataCaches()
         eventLog.push({
           id: ++eventIdCounter,
           type,
@@ -293,37 +306,51 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
 
       const api: DevToolsPluginAPI = {
         /* ---- 只读查询 ---- */
-        getFieldTree: buildFieldTree,
+        getFieldTree(): FieldTreeNode[] {
+          if (fieldTreeDirty) {
+            fieldTreeCache = buildFieldTree()
+            fieldTreeDirty = false
+          }
+          return fieldTreeCache
+        },
         getFieldDetail: getFieldDetailImpl,
         getFormOverview(): FormOverview {
-          const allFields = form.getAllFields()
-          let errorCount = 0
-          for (const [, field] of allFields) {
-            if ((field as FieldInstance).errors?.length > 0)
-              errorCount++
+          if (formOverviewDirty || !formOverviewCache) {
+            const allFields = form.getAllFields()
+            let errorCount = 0
+            for (const [, field] of allFields) {
+              if ((field as FieldInstance).errors?.length > 0)
+                errorCount++
+            }
+            formOverviewCache = {
+              pattern: form.pattern,
+              fieldCount: allFields.size,
+              errorFieldCount: errorCount,
+              values: safeSerialize(form.values) as Record<string, unknown>,
+              initialValues: safeSerialize(form.initialValues) as Record<string, unknown>,
+              submitting: form.submitting,
+              validating: form.validating,
+            }
+            formOverviewDirty = false
           }
-          return {
-            pattern: form.pattern,
-            fieldCount: allFields.size,
-            errorFieldCount: errorCount,
-            values: safeSerialize(form.values) as Record<string, unknown>,
-            initialValues: safeSerialize(form.initialValues) as Record<string, unknown>,
-            submitting: form.submitting,
-            validating: form.validating,
-          }
+          return formOverviewCache
         },
         getEventLog: () => [...eventLog],
         getValueDiff(): ValueDiffEntry[] {
-          const diff: ValueDiffEntry[] = []
-          const allFields = form.getAllFields()
-          for (const [path, field] of allFields) {
-            const f = field as FieldInstance
-            const current = safeSerialize(f.value)
-            const initial = safeSerialize(f.initialValue)
-            const changed = JSON.stringify(current) !== JSON.stringify(initial)
-            diff.push({ path, label: f.label || f.name, currentValue: current, initialValue: initial, changed })
+          if (valueDiffDirty) {
+            const diff: ValueDiffEntry[] = []
+            const allFields = form.getAllFields()
+            for (const [path, field] of allFields) {
+              const f = field as FieldInstance
+              const current = safeSerialize(f.value)
+              const initial = safeSerialize(f.initialValue)
+              const changed = JSON.stringify(current) !== JSON.stringify(initial)
+              diff.push({ path, label: f.label || f.name, currentValue: current, initialValue: initial, changed })
+            }
+            valueDiffCache = diff
+            valueDiffDirty = false
           }
-          return diff
+          return valueDiffCache
         },
         subscribe(listener: () => void): () => void {
           listeners.add(listener)
@@ -365,25 +392,21 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           if (state.pattern !== undefined)
             field.selfPattern = state.pattern as FieldInstance['selfPattern']
           addEvent('devtools:setState', `修改状态: ${path} → ${JSON.stringify(state)}`, path)
-          notify()
         },
         async validateAll(): Promise<Array<{ path: string, message: string }>> {
           const result = await form.validate()
           const errors = result.errors.map(e => ({ path: e.path, message: e.message }))
           addEvent('devtools:validate', `手动验证: ${errors.length} 个错误`)
-          notify()
           return errors
         },
         resetForm(): void {
           form.reset()
           addEvent('devtools:reset', '手动重置表单')
-          notify()
         },
         async submitForm(): Promise<{ success: boolean, errors: Array<{ path: string, message: string }> }> {
           const result = await form.submit()
           const errors = result.errors.map(e => ({ path: e.path, message: e.message }))
           addEvent('devtools:submit', `手动提交: ${errors.length > 0 ? `${errors.length} 个错误` : '成功'}`)
-          notify()
           return { success: errors.length === 0, errors }
         },
       }

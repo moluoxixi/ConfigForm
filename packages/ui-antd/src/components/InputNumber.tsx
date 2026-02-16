@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactElement } from 'react'
+import type { CSSProperties, ReactElement, ReactNode } from 'react'
 import { InputNumber as AInputNumber } from 'antd'
 
 export interface CfInputNumberProps {
@@ -17,6 +17,7 @@ export interface CfInputNumberProps {
   formatter?: (value: string | number | undefined) => string
   parser?: (value: string | undefined) => string | number
   prefix?: string
+  suffix?: ReactNode
   style?: CSSProperties | string
 }
 
@@ -35,12 +36,18 @@ export function InputNumber(props: CfInputNumberProps): ReactElement {
     disabled,
     preview,
     prefix,
+    suffix,
     style,
     ...rest
-  } = props
+  } = props as CfInputNumberProps & {
+    addonAfter?: unknown
+    loading?: unknown
+    dataSource?: unknown
+  }
   const inputNumberProps = { ...rest } as CfInputNumberProps & { loading?: unknown, dataSource?: unknown }
   delete inputNumberProps.loading
   delete inputNumberProps.dataSource
+  delete (inputNumberProps as Record<string, unknown>).addonAfter
   const mergedStyle: CSSProperties = typeof style === 'object'
     ? { width: '100%', ...style }
     : { width: '100%' }
@@ -59,6 +66,8 @@ export function InputNumber(props: CfInputNumberProps): ReactElement {
       onFocus={onFocus}
       onBlur={onBlur}
       disabled={disabled || preview}
+      prefix={prefix}
+      suffix={suffix}
       style={mergedStyle}
     />
   )

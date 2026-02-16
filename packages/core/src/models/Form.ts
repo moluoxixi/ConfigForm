@@ -21,13 +21,18 @@ import type { ValidationFeedback, ValidationTrigger } from '../validator'
 import { FormEventEmitter, FormLifeCycle } from '../events'
 import { FormHookManager } from '../hooks'
 import { ReactionEngine } from '../reaction/engine'
-import { getReactiveAdapter } from '../reactive'
-import { deepClone, deepMerge, FormPath, uid } from '../shared'
+import { clearReactiveAdapterForForm, getReactiveAdapter } from '../reactive'
+import { deepClone, deepMerge, FormPath, logger, uid } from '../shared'
 import { diff as coreDiff, getDiffView as coreGetDiffView } from '../shared/diff'
 import { ArrayField } from './ArrayField'
 import { Field } from './Field'
 import { ObjectField } from './ObjectField'
 import { VoidField } from './VoidField'
+
+interface FieldQueryCacheEntry {
+  matchedPaths: string[]
+  version: number
+}
 
 /**
  * 表单模型
@@ -81,6 +86,18 @@ implements FormInstance<Values> {
   private _pluginDisposers: Array<() => void> = []
   /** Hook 管理器（管线拦截） */
   private _hookManager = new FormHookManager()
+  /**
+   * 字段路径前缀索引（prefix -> paths），用于优化 queryFields 通配符查询。
+   */
+  private fieldPrefixIndex = new Map<string, Set<string>>()
+  /** queryFields 查询缓存（pattern -> matched paths + prefix version） */
+  private fieldQueryCache = new Map<string, FieldQueryCacheEntry>()
+  /** 字段索引版本（按前缀粒度） */
+  private fieldPrefixVersions = new Map<string, number>()
+  /** 无静态前缀模式（如 `*`）对应的全局版本键 */
+  private static readonly ROOT_PREFIX_VERSION_KEY = '__root__'
+  /** 查询缓存最大数量，防止高频动态 pattern 导致内存增长 */
+  private static readonly FIELD_QUERY_CACHE_LIMIT = 300
 
   constructor(config: FormConfig<Values> = {}) {
     this.id = uid('form')
@@ -160,13 +177,14 @@ implements FormInstance<Values> {
 
   /** 原始字段创建逻辑 */
   private _doCreateField<V = unknown>(props: FieldProps<V>): FieldInstance<V> {
-    const adapter = getReactiveAdapter()
+    const adapter = getReactiveAdapter(this)
     const rawField = new Field<V>(this as unknown as FormInstance, props)
 
     /* 使字段变为响应式，存储并返回代理 */
     const field = adapter.makeObservable(rawField)
     field.setupEditableAutoClear()
     this.fields.set(field.path, field as unknown as Field)
+    this.indexFieldPath(field.path)
 
     /* 注册联动 */
     if (field.reactions.length > 0) {
@@ -184,13 +202,14 @@ implements FormInstance<Values> {
   createArrayField<V extends unknown[] = unknown[]>(
     props: ArrayFieldProps<V>,
   ): ArrayFieldInstance<V> {
-    const adapter = getReactiveAdapter()
+    const adapter = getReactiveAdapter(this)
     const rawField = new ArrayField<V>(this as unknown as FormInstance, props)
 
     const field = adapter.makeObservable(rawField)
     field.setupEditableAutoClear()
     this.arrayFields.set(field.path, field as unknown as ArrayField)
     this.fields.set(field.path, field as unknown as Field)
+    this.indexFieldPath(field.path)
 
     if (field.reactions.length > 0) {
       this.reactionEngine.registerFieldReactions(
@@ -207,13 +226,14 @@ implements FormInstance<Values> {
   createObjectField<V extends Record<string, unknown> = Record<string, unknown>>(
     props: ObjectFieldProps<V>,
   ): ObjectFieldInstance<V> {
-    const adapter = getReactiveAdapter()
+    const adapter = getReactiveAdapter(this)
     const rawField = new ObjectField<V>(this as unknown as FormInstance, props)
 
     const field = adapter.makeObservable(rawField)
     field.setupEditableAutoClear()
     this.objectFields.set(field.path, field as unknown as ObjectField)
     this.fields.set(field.path, field as unknown as Field)
+    this.indexFieldPath(field.path)
 
     if (field.reactions.length > 0) {
       this.reactionEngine.registerFieldReactions(
@@ -228,7 +248,7 @@ implements FormInstance<Values> {
 
   /** 创建虚拟字段 */
   createVoidField(props: VoidFieldProps): VoidFieldInstance {
-    const adapter = getReactiveAdapter()
+    const adapter = getReactiveAdapter(this)
     const rawField = new VoidField(this as unknown as FormInstance, props)
 
     const field = adapter.makeObservable(rawField)
@@ -277,6 +297,7 @@ implements FormInstance<Values> {
       this.fields.delete(path)
       this.arrayFields.delete(path)
       this.objectFields.delete(path)
+      this.unindexFieldPath(path)
       this.reactionEngine.removeFieldReactions(path)
 
       /* 清理 values 和 initialValues 中该路径的值，防止状态残留 */
@@ -329,6 +350,8 @@ implements FormInstance<Values> {
         field.dispose()
         this.fields.delete(path)
         this.arrayFields.delete(path)
+        this.objectFields.delete(path)
+        this.unindexFieldPath(path)
         this.reactionEngine.removeFieldReactions(path)
       }
     }
@@ -350,9 +373,20 @@ implements FormInstance<Values> {
 
   /** 通过模式匹配查询字段 */
   queryFields(pattern: string): FieldInstance[] {
+    if (!pattern) {
+      return []
+    }
+
+    const cachePrefix = this.resolveCachePrefix(pattern)
+    const prefixVersion = this.getFieldPrefixVersion(cachePrefix)
+    const cached = this.fieldQueryCache.get(pattern)
+    const matchedPaths = cached && cached.version === prefixVersion
+      ? cached.matchedPaths
+      : this.computeMatchedPaths(pattern, cachePrefix, prefixVersion)
     const result: FieldInstance[] = []
-    for (const [path, field] of this.fields) {
-      if (FormPath.match(pattern, path)) {
+    for (const path of matchedPaths) {
+      const field = this.fields.get(path)
+      if (field) {
         result.push(field as unknown as FieldInstance)
       }
     }
@@ -381,7 +415,7 @@ implements FormInstance<Values> {
 
   /** 原始赋值逻辑 */
   private _doSetValues(values: Partial<Values>, strategy: 'merge' | 'shallow' | 'replace'): void {
-    const adapter = getReactiveAdapter()
+    const adapter = getReactiveAdapter(this)
     adapter.batch(() => {
       switch (strategy) {
         case 'replace': {
@@ -430,7 +464,7 @@ implements FormInstance<Values> {
 
   /** 原始重置逻辑 */
   private _doReset(options?: ResetOptions): void {
-    const adapter = getReactiveAdapter()
+    const adapter = getReactiveAdapter(this)
     adapter.batch(() => {
       if (options?.fields) {
         for (const path of options.fields) {
@@ -538,13 +572,22 @@ implements FormInstance<Values> {
 
       const promises = fieldsToValidate.map(async (field) => {
         if (!field.visible)
-          return
+          return null
         const errors = await field.validate('submit')
-        allErrors.push(...errors)
-        allWarnings.push(...field.warnings)
+        return {
+          errors,
+          warnings: [...field.warnings],
+        }
       })
 
-      await Promise.all(promises)
+      const outcomes = await Promise.all(promises)
+      for (const outcome of outcomes) {
+        if (!outcome) {
+          continue
+        }
+        allErrors.push(...outcome.errors)
+        allWarnings.push(...outcome.warnings)
+      }
 
       const result = {
         valid: allErrors.length === 0,
@@ -623,13 +666,22 @@ implements FormInstance<Values> {
 
     const promises = uniqueFields.map(async (field) => {
       if (!field.visible)
-        return
+        return null
       const errors = await field.validate('submit')
-      allErrors.push(...errors)
-      allWarnings.push(...field.warnings)
+      return {
+        errors,
+        warnings: [...field.warnings],
+      }
     })
 
-    await Promise.all(promises)
+    const outcomes = await Promise.all(promises)
+    for (const outcome of outcomes) {
+      if (!outcome) {
+        continue
+      }
+      allErrors.push(...outcome.errors)
+      allWarnings.push(...outcome.warnings)
+    }
 
     return {
       valid: allErrors.length === 0,
@@ -646,7 +698,7 @@ implements FormInstance<Values> {
    * @param section - 区域标识（同 validateSection）
    */
   clearSectionErrors(section: string | string[]): void {
-    const adapter = getReactiveAdapter()
+    const adapter = getReactiveAdapter(this)
     adapter.batch(() => {
       let fieldsToClean: FieldInstance[] = []
 
@@ -761,7 +813,7 @@ implements FormInstance<Values> {
           return field ? [field] : []
         })()
 
-    const adapter = getReactiveAdapter()
+    const adapter = getReactiveAdapter(this)
     adapter.batch(() => {
       for (const field of fields) {
         if (state.display !== undefined)
@@ -816,7 +868,7 @@ implements FormInstance<Values> {
 
   /** 批量操作 */
   batch(fn: () => void): void {
-    const adapter = getReactiveAdapter()
+    const adapter = getReactiveAdapter(this)
     adapter.batch(fn)
   }
 
@@ -863,7 +915,7 @@ implements FormInstance<Values> {
    * 不在快照中的字段保持不变，快照中不存在对应注册字段的状态被忽略。
    */
   setGraph(graph: FormGraph): void {
-    const adapter = getReactiveAdapter()
+    const adapter = getReactiveAdapter(this)
     adapter.batch(() => {
       /* 恢复表单值 */
       this.setValues(deepClone(graph.values) as Partial<Values>, 'replace')
@@ -902,7 +954,7 @@ implements FormInstance<Values> {
   use<API = Record<string, unknown>>(plugin: FormPlugin<API>): API | undefined {
     /* 同名插件去重 */
     if (this._pluginAPIs.has(plugin.name)) {
-      console.warn(
+      logger.warn(
         `[ConfigForm] 插件 "${plugin.name}" 已安装，跳过重复安装。`,
       )
       return this._pluginAPIs.get(plugin.name) as API | undefined
@@ -988,6 +1040,21 @@ implements FormInstance<Values> {
    */
   getPlugin<API = Record<string, unknown>>(name: string): API | undefined {
     return this._pluginAPIs.get(name) as API | undefined
+  }
+
+  /** 获取全部插件 API（只读视图） */
+  getPlugins(): ReadonlyMap<string, unknown> {
+    return this._pluginAPIs
+  }
+
+  /** 启用/禁用联动追踪（用于 devtools/perf） */
+  enableReactionTracing(enabled: boolean): void {
+    this.reactionEngine.enableTracing(enabled)
+  }
+
+  /** 获取联动追踪记录 */
+  getReactionTraceRecords(): readonly import('../reaction/engine').ReactionTraceRecord[] {
+    return this.reactionEngine.tracer.getRecords()
   }
 
   /**
@@ -1081,10 +1148,14 @@ implements FormInstance<Values> {
     this.arrayFields.clear()
     this.objectFields.clear()
     this.voidFields.clear()
+    this.fieldPrefixIndex.clear()
+    this.fieldPrefixVersions.clear()
+    this.fieldQueryCache.clear()
     this.valuesChangeHandlers = []
     this.fieldValueChangeHandlers.clear()
     this.disposers = []
     this._emitter.clear()
+    clearReactiveAdapterForForm(this)
   }
 
   /** 收集提交数据 */
@@ -1172,5 +1243,126 @@ implements FormInstance<Values> {
   /** 通知字段卸载（供 Field.unmount 调用） */
   notifyFieldUnmount(field: FieldInstance | VoidFieldInstance): void {
     this._emitter.emit(FormLifeCycle.ON_FIELD_UNMOUNT, field)
+  }
+
+  /** 字段路径入索引 */
+  private indexFieldPath(path: string): void {
+    const prefixes = this.getPathPrefixes(path)
+    for (const prefix of prefixes) {
+      let bucket = this.fieldPrefixIndex.get(prefix)
+      if (!bucket) {
+        bucket = new Set<string>()
+        this.fieldPrefixIndex.set(prefix, bucket)
+      }
+      bucket.add(path)
+      this.bumpFieldPrefixVersion(prefix)
+    }
+    this.bumpFieldPrefixVersion(Form.ROOT_PREFIX_VERSION_KEY)
+  }
+
+  /** 字段路径出索引 */
+  private unindexFieldPath(path: string): void {
+    const prefixes = this.getPathPrefixes(path)
+    for (const prefix of prefixes) {
+      const bucket = this.fieldPrefixIndex.get(prefix)
+      if (!bucket) {
+        this.bumpFieldPrefixVersion(prefix)
+        continue
+      }
+      bucket.delete(path)
+      if (bucket.size === 0) {
+        this.fieldPrefixIndex.delete(prefix)
+      }
+      this.bumpFieldPrefixVersion(prefix)
+    }
+    this.bumpFieldPrefixVersion(Form.ROOT_PREFIX_VERSION_KEY)
+  }
+
+  /** 获取路径的层级前缀：a.b.c -> [a, a.b, a.b.c] */
+  private getPathPrefixes(path: string): string[] {
+    const segments = FormPath.getSegments(path)
+    const prefixes: string[] = []
+    for (let i = 0; i < segments.length; i++) {
+      prefixes.push(FormPath.stringify(segments.slice(0, i + 1)))
+    }
+    return prefixes
+  }
+
+  /** 解析 pattern 的静态前缀（遇到 * / ** 停止） */
+  private resolveStaticPrefix(pattern: string): string {
+    const segments = FormPath.getSegments(pattern)
+    const staticSegments: Array<string | number> = []
+    for (const segment of segments) {
+      const token = String(segment)
+      if (token === '*' || token === '**' || token.includes('*')) {
+        break
+      }
+      staticSegments.push(segment)
+    }
+    if (staticSegments.length === 0) {
+      return ''
+    }
+    return FormPath.stringify(staticSegments)
+  }
+
+  /** 获取缓存依赖的前缀键 */
+  private resolveCachePrefix(pattern: string): string {
+    if (!pattern.includes('*')) {
+      return pattern
+    }
+    const prefix = this.resolveStaticPrefix(pattern)
+    return prefix || Form.ROOT_PREFIX_VERSION_KEY
+  }
+
+  /** 获取指定前缀的索引版本 */
+  private getFieldPrefixVersion(prefix: string): number {
+    return this.fieldPrefixVersions.get(prefix) ?? 0
+  }
+
+  /** bump 指定前缀版本 */
+  private bumpFieldPrefixVersion(prefix: string): void {
+    this.fieldPrefixVersions.set(prefix, this.getFieldPrefixVersion(prefix) + 1)
+  }
+
+  /** 安全写入 query 缓存（控制缓存上限） */
+  private setFieldQueryCache(pattern: string, entry: FieldQueryCacheEntry): void {
+    if (this.fieldQueryCache.size >= Form.FIELD_QUERY_CACHE_LIMIT) {
+      const oldestKey = this.fieldQueryCache.keys().next().value
+      if (oldestKey !== undefined) {
+        this.fieldQueryCache.delete(oldestKey)
+      }
+    }
+    this.fieldQueryCache.set(pattern, entry)
+  }
+
+  /** 计算 queryFields 的匹配路径并缓存 */
+  private computeMatchedPaths(
+    pattern: string,
+    cachePrefix: string,
+    prefixVersion: number,
+  ): string[] {
+    let candidates: string[]
+    if (!pattern.includes('*')) {
+      candidates = this.fields.has(pattern) ? [pattern] : []
+    }
+    else {
+      if (cachePrefix === Form.ROOT_PREFIX_VERSION_KEY) {
+        candidates = Array.from(this.fields.keys())
+      }
+      else {
+        const bucket = this.fieldPrefixIndex.get(cachePrefix)
+        candidates = bucket ? Array.from(bucket) : []
+      }
+    }
+
+    const matched = pattern.includes('*')
+      ? candidates.filter(path => FormPath.match(pattern, path))
+      : candidates
+
+    this.setFieldQueryCache(pattern, {
+      matchedPaths: matched,
+      version: prefixVersion,
+    })
+    return matched
   }
 }

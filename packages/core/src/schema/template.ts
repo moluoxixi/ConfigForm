@@ -1,5 +1,6 @@
 import type { ISchema } from './types'
 import { mergeSchema } from './merge'
+import { logger } from '../shared'
 
 /**
  * Schema 模板定义
@@ -98,7 +99,7 @@ class SchemaTemplateRegistry {
    */
   register(template: SchemaTemplate): void {
     if (this.templates.has(template.id)) {
-      console.warn(
+      logger.warn(
         `[ConfigForm] 模板 "${template.id}" 已存在，将被覆盖`,
       )
     }

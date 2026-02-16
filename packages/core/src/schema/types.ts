@@ -134,6 +134,12 @@ export interface ISchema {
    */
   definitions?: Record<string, ISchema>
   /**
+   * Schema 定义区（JSON Schema 2020-12 标准）。
+   *
+   * 与 definitions 语义一致，编译阶段会统一参与 $ref 解析。
+   */
+  $defs?: Record<string, ISchema>
+  /**
    * Schema 引用（JSON Schema 标准）。
    *
    * 引用 definitions 中定义的 Schema 片段。格式：`#/definitions/<name>`

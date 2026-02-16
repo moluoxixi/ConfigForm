@@ -25,7 +25,7 @@ export interface HistoryPluginConfig {
   /** 自动快照间隔（ms）。设为 0 禁用自动快照。默认 0（手动模式） */
   autoInterval?: number
   /**
-   * 是否在值变化时自动保存快照（默认 true）
+   * 是否在值变化时自动保存快照（默认 false）
    *
    * 开启后无需手动调用 save()，每次 form.values 变化自动记录。
    */
@@ -124,8 +124,7 @@ export function historyPlugin(config: HistoryPluginConfig = {}): FormPlugin<Hist
       }
 
       /** 压入历史记录（自动淘汰超出上限的最早记录） */
-      function pushRecord(type: HistoryRecord['type'], description?: string): void {
-        const graph = form.getGraph()
+      function pushRecord(graph: FormGraph, type: HistoryRecord['type'], description?: string): void {
         undoStack.push({ graph, type, description, timestamp: Date.now() })
         while (undoStack.length > maxLength) {
           undoStack.shift()
@@ -136,7 +135,7 @@ export function historyPlugin(config: HistoryPluginConfig = {}): FormPlugin<Hist
       let restoring = false
 
       /* 保存初始状态 */
-      pushRecord('init', '初始状态')
+      pushRecord(form.getGraph(), 'init', '初始状态')
 
       /* 值变化自动保存快照（默认开启） */
       let valuesDisposer: Disposer | null = null
@@ -157,7 +156,7 @@ export function historyPlugin(config: HistoryPluginConfig = {}): FormPlugin<Hist
               return false
           }
 
-          pushRecord(type, description)
+          pushRecord(graph, type, description)
           redoStack = []
           notifyChange()
           return true
@@ -271,7 +270,7 @@ export function historyPlugin(config: HistoryPluginConfig = {}): FormPlugin<Hist
         }, config.autoInterval)
       }
 
-      if (config.autoSave !== false) {
+      if (config.autoSave === true) {
         valuesDisposer = form.on(FormLifeCycle.ON_FORM_VALUES_CHANGE, () => {
           if (restoring || batching)
             return

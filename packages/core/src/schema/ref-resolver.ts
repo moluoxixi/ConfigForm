@@ -1,5 +1,5 @@
 import type { ISchema } from './types'
-import { isObject } from '../shared'
+import { isObject, logger } from '../shared'
 import { mergeSchema } from './merge'
 
 /**
@@ -11,10 +11,12 @@ const MAX_REF_DEPTH = 10
 /**
  * $ref 路径格式正则。
  *
- * 支持 JSON Pointer 格式：`#/definitions/<name>`
+ * 支持 JSON Pointer 格式：
+ * - `#/definitions/<name>`（Draft-07）
+ * - `#/$defs/<name>`（2020-12）
  * name 支持字母、数字、下划线、连字符、点号。
  */
-const REF_PATH_RE = /^#\/definitions\/([\w\-.]+)$/
+const REF_PATH_RE = /^#\/(?:definitions|\$defs)\/([\w\-.]+)$/
 
 /**
  * 解析单个 $ref 引用
@@ -36,9 +38,9 @@ function resolveRef(
 
   const match = schema.$ref.match(REF_PATH_RE)
   if (!match) {
-    console.warn(
+    logger.warn(
       `[ConfigForm] 无法解析 $ref: "${schema.$ref}"，`
-      + `期望格式 #/definitions/<name>`,
+      + `期望格式 #/definitions/<name> 或 #/$defs/<name>`,
     )
     return schema
   }
@@ -46,7 +48,7 @@ function resolveRef(
   const defName = match[1]
   const definition = definitions[defName]
   if (!definition) {
-    console.warn(`[ConfigForm] $ref 未找到定义: "${defName}"`)
+    logger.warn(`$ref 未找到定义: "${defName}"`)
     return schema
   }
 
@@ -104,7 +106,7 @@ export function resolveSchemaRefs(
 ): ISchema {
   /* 深度保护 */
   if (depth > MAX_REF_DEPTH) {
-    console.warn(
+    logger.warn(
       `[ConfigForm] $ref 解析深度超过 ${MAX_REF_DEPTH} 层，可能存在循环引用，停止解析`,
     )
     return schema
@@ -113,7 +115,8 @@ export function resolveSchemaRefs(
   /* 合并 definitions 来源：当前节点的 definitions 优先于继承的 */
   const defs: Record<string, ISchema> = {
     ...definitions,
-    ...schema.definitions,
+    ...(schema.definitions ?? {}),
+    ...(schema.$defs ?? {}),
   }
 
   /* 如果当前节点没有 definitions 且没有继承的 definitions，无需处理 $ref */
@@ -124,7 +127,7 @@ export function resolveSchemaRefs(
   if (schema.$ref && hasDefs) {
     resolved = resolveRef(schema, defs)
     /* 被引用的 Schema 可能也包含 $ref，递归解析 */
-    if (resolved.$ref) {
+    if (resolved !== schema && resolved.$ref) {
       resolved = resolveSchemaRefs(resolved, defs, depth + 1)
     }
   }
@@ -160,11 +163,14 @@ export function resolveSchemaRefs(
   }
 
   /* 递归解析 definitions 自身内部的交叉引用 */
-  if (resolved.definitions) {
+  if (resolved.definitions || resolved.$defs) {
     let defHasChanges = false
     const resolvedDefs: Record<string, ISchema> = {}
 
-    for (const [key, def] of Object.entries(resolved.definitions)) {
+    for (const [key, def] of Object.entries({
+      ...(resolved.definitions ?? {}),
+      ...(resolved.$defs ?? {}),
+    })) {
       const resolvedDef = resolveSchemaRefs(def, defs, depth + 1)
       if (resolvedDef !== def)
         defHasChanges = true

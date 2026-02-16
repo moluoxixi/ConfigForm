@@ -1,4 +1,4 @@
-import { FormLayout, registerFieldComponents } from '@moluoxixi/vue'
+import { FormLayout, registerActions, registerFieldComponents } from '@moluoxixi/vue'
 import {
   ArrayField,
   ArrayItems,
@@ -8,7 +8,9 @@ import {
   CheckboxGroup,
   DatePicker,
   DateRangePicker,
+  ExportJsonAction,
   FormItem,
+  ImportJsonAction,
   Input,
   InputNumber,
   LayoutCard,
@@ -23,6 +25,7 @@ import {
   RadioGroup,
   RangePicker,
   Rate,
+  PrintAction,
   Select,
   Slider,
   StatusTabs,
@@ -92,6 +95,11 @@ export function setupElementPlus(): void {
       DatePicker: PreviewDatePicker,
     },
   )
+  registerActions({
+    export: ExportJsonAction,
+    import: ImportJsonAction,
+    print: PrintAction,
+  })
 }
 
 /* 导出所有组件（按需使用） */
@@ -105,9 +113,11 @@ export {
   CheckboxGroup,
   DatePicker,
   DateRangePicker,
+  ExportJsonAction,
   FormDialog,
   FormDrawer,
   FormItem,
+  ImportJsonAction,
   Input,
   InputNumber,
   LayoutCard,
@@ -119,6 +129,7 @@ export {
   Mentions,
   MonthPicker,
   Password,
+  PrintAction,
   RadioGroup,
   RangePicker,
   Rate,
@@ -134,4 +145,9 @@ export {
   WeekPicker,
   YearPicker,
 } from './components'
-export type { FileInfo } from './components'
+export type {
+  ExportJsonActionProps,
+  FileInfo,
+  ImportJsonActionProps,
+  PrintActionProps,
+} from './components'

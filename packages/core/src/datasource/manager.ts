@@ -1,6 +1,6 @@
 import type { DataSourceItem } from '../shared'
 import type { DataSourceConfig, RequestAdapter, RequestConfig } from '../types'
-import { FormPath, isArray, isFunction, isObject, isString } from '../shared'
+import { FormPath, isArray, isFunction, isObject, isString, logger } from '../shared'
 
 /** 请求适配器注册表 */
 const adapterRegistry = new Map<string, RequestAdapter>()
@@ -13,6 +13,8 @@ const pendingRequests = new Map<string, Promise<DataSourceItem[]>>()
 
 /** 默认缓存有效期（ms） */
 const DEFAULT_CACHE_TTL = 60000
+/** 缓存 key 分隔符 */
+const CACHE_KEY_SEPARATOR = '::'
 
 /** 默认请求适配器（fetch） */
 const defaultAdapter: RequestAdapter = {
@@ -77,14 +79,75 @@ function getAdapter(name?: string): RequestAdapter {
 /**
  * 生成缓存 key
  *
- * 对 params 的 key 排序后序列化，确保相同参数不同 key 顺序产生一致的 key。
+ * 对 method / url / adapter / headers / params 做稳定序列化，
+ * 避免参数顺序、header 大小写等导致缓存不命中或冲突。
  */
 function buildCacheKey(config: DataSourceConfig, resolvedParams: Record<string, unknown>): string {
-  const sortedParams: Record<string, unknown> = {}
-  for (const key of Object.keys(resolvedParams).sort()) {
-    sortedParams[key] = resolvedParams[key]
+  const method = (config.method ?? 'GET').toUpperCase()
+  const adapter = config.requestAdapter ?? 'default'
+  const headers = normalizeHeaders(config.headers)
+  return [
+    method,
+    config.url ?? '',
+    adapter,
+    stableStringify(headers),
+    stableStringify(resolvedParams),
+  ].join(CACHE_KEY_SEPARATOR)
+}
+
+function normalizeHeaders(headers?: Record<string, string>): Record<string, string> {
+  if (!headers) {
+    return {}
   }
-  return `${config.url}:${JSON.stringify(sortedParams)}`
+  const normalized: Record<string, string> = {}
+  for (const key of Object.keys(headers).sort()) {
+    normalized[key.toLowerCase()] = headers[key]
+  }
+  return normalized
+}
+
+function stableNormalize(
+  value: unknown,
+  seen: WeakSet<object> = new WeakSet<object>(),
+): unknown {
+  if (isArray(value)) {
+    return value.map(item => stableNormalize(item, seen))
+  }
+  if (!isObject(value)) {
+    return value
+  }
+
+  const obj = value as Record<string, unknown>
+  if (seen.has(obj)) {
+    return '[Circular]'
+  }
+  seen.add(obj)
+
+  const normalized: Record<string, unknown> = {}
+  for (const key of Object.keys(obj).sort()) {
+    normalized[key] = stableNormalize(obj[key], seen)
+  }
+  seen.delete(obj)
+  return normalized
+}
+
+function stableStringify(value: unknown): string {
+  const serialized = JSON.stringify(stableNormalize(value))
+  return serialized ?? 'null'
+}
+
+function getCacheKeyUrl(cacheKey: string): string {
+  const parts = cacheKey.split(CACHE_KEY_SEPARATOR)
+  return parts[1] ?? ''
+}
+
+function createAbortError(): Error {
+  if (typeof DOMException !== 'undefined') {
+    return new DOMException('The operation was aborted.', 'AbortError')
+  }
+  const error = new Error('The operation was aborted.')
+  error.name = 'AbortError'
+  return error
 }
 
 /**
@@ -151,7 +214,7 @@ function transformResponse(
 
   /* 非数组响应且无自定义转换，输出警告帮助排查配置错误 */
   if (data !== null && data !== undefined) {
-    console.warn('[ConfigForm] 数据源响应不是数组且未配置 transform，返回空列表。请检查 API 响应格式或配置 transform 函数。')
+    logger.warn('数据源响应不是数组且未配置 transform，返回空列表。请检查 API 响应格式或配置 transform 函数。')
   }
 
   return []
@@ -176,9 +239,18 @@ export async function fetchDataSource(
 ): Promise<DataSourceItem[]> {
   if (!config.url)
     return []
+  if (signal?.aborted) {
+    throw createAbortError()
+  }
 
   const resolvedParams = resolveParams(config.params, values)
   const cacheKey = buildCacheKey(config, resolvedParams)
+  const requestMethod = (config.method ?? 'GET').toUpperCase() as 'GET' | 'POST'
+  /**
+   * 仅在无 signal 场景启用并发去重。
+   * 有 signal 时保留“调用方可独立取消请求”的语义，避免不同调用方互相影响。
+   */
+  const dedupeEnabled = !signal
 
   /* 检查缓存 */
   if (config.cache) {
@@ -192,10 +264,12 @@ export async function fetchDataSource(
     }
   }
 
-  /* 并发去重：如果已有相同请求在进行中，复用其 Promise */
-  const pending = pendingRequests.get(cacheKey)
-  if (pending) {
-    return pending
+  if (dedupeEnabled) {
+    /* 并发去重：如果已有相同请求在进行中，复用其 Promise */
+    const pending = pendingRequests.get(cacheKey)
+    if (pending) {
+      return pending
+    }
   }
 
   /* 发起请求 */
@@ -204,10 +278,10 @@ export async function fetchDataSource(
       const adapter = getAdapter(config.requestAdapter)
       const data = await adapter.request({
         url: config.url!,
-        method: config.method ?? 'GET',
+        method: requestMethod,
         params: resolvedParams,
         headers: config.headers,
-        signal,
+        signal: dedupeEnabled ? undefined : signal,
       })
 
       const items = transformResponse(data, config)
@@ -221,11 +295,15 @@ export async function fetchDataSource(
     }
     finally {
       /* 无论成功或失败，移除 pending 标记 */
-      pendingRequests.delete(cacheKey)
+      if (dedupeEnabled) {
+        pendingRequests.delete(cacheKey)
+      }
     }
   })()
 
-  pendingRequests.set(cacheKey, requestPromise)
+  if (dedupeEnabled) {
+    pendingRequests.set(cacheKey, requestPromise)
+  }
   return requestPromise
 }
 
@@ -240,7 +318,7 @@ export function clearDataSourceCache(urlPrefix?: string): void {
     return
   }
   for (const key of cache.keys()) {
-    if (key.startsWith(urlPrefix)) {
+    if (getCacheKeyUrl(key).startsWith(urlPrefix)) {
       cache.delete(key)
     }
   }

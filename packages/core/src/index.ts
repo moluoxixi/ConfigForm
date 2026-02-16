@@ -47,10 +47,12 @@ export type { ReactionTraceRecord } from './reaction/engine'
 
 /* reactive — 响应式适配器 */
 export {
+  clearReactiveAdapterForForm,
   getReactiveAdapter,
   hasReactiveAdapter,
   resetReactiveAdapter,
   setReactiveAdapter,
+  setReactiveAdapterForForm,
 } from './reactive'
 
 export type { ComputedRef, ReactionOptions, ReactiveAdapter } from './reactive'
@@ -96,6 +98,7 @@ export type {
 } from './schema'
 /* shared — 工具函数和公共类型 */
 export {
+  cloneWithoutKeyPrefixes,
   debounce,
   deepClone,
   deepMerge,
@@ -111,8 +114,10 @@ export {
   isObject,
   isPlainObject,
   isString,
+  isUnsafeExpressionEvalEnabled,
   isValid,
   logger,
+  setUnsafeExpressionEvalEnabled,
   uid,
 } from './shared'
 

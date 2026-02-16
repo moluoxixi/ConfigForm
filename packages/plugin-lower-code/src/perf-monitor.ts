@@ -77,11 +77,44 @@ export function perfMonitorPlugin(config: PerfMonitorConfig = {}): FormPlugin<Pe
 
       const listeners: Array<(metrics: PerfMetrics) => void> = []
       const disposers: Array<() => void> = []
+      const supportsReactionTracing = typeof form.enableReactionTracing === 'function'
+        && typeof form.getReactionTraceRecords === 'function'
+      let traceCursor = 0
 
       const notifyListeners = (): void => {
         for (const listener of listeners) {
           listener({ ...metrics })
         }
+      }
+
+      const syncSlowReactionsFromTrace = (): void => {
+        if (!supportsReactionTracing) {
+          return
+        }
+        const traces = form.getReactionTraceRecords()
+        if (traceCursor > traces.length) {
+          traceCursor = 0
+        }
+        for (let i = traceCursor; i < traces.length; i++) {
+          const record = traces[i]
+          if (record.duration < slowThreshold) {
+            continue
+          }
+          metrics.slowReactions.push({
+            source: record.sourcePath,
+            target: record.targetPath,
+            duration: Math.round(record.duration),
+            timestamp: record.timestamp,
+          })
+          if (metrics.slowReactions.length > 50) {
+            metrics.slowReactions.shift()
+          }
+        }
+        traceCursor = traces.length
+      }
+
+      if (supportsReactionTracing) {
+        form.enableReactionTracing(true)
       }
 
       /* 拦截验证管线 — 记录耗时 */
@@ -104,31 +137,12 @@ export function perfMonitorPlugin(config: PerfMonitorConfig = {}): FormPlugin<Pe
         return result
       })
 
-      /* 监听字段值变化 — 统计联动触发次数并追踪慢联动 */
-      let lastChangeTime = performance.now()
-      let lastChangePath = ''
+      /* 监听字段值变化 — 统计联动触发次数并提取真实慢联动耗时 */
       const d1 = form.on(FormLifeCycle.ON_FIELD_VALUE_CHANGE, (event) => {
-        const { path } = event.payload as { path: string, value: unknown }
-        const now = performance.now()
-        const duration = Math.round(now - lastChangeTime)
-
-        /* 如果两次变化间隔超过阈值，记录为慢联动 */
-        if (lastChangePath && duration >= slowThreshold) {
-          metrics.slowReactions.push({
-            source: lastChangePath,
-            target: path,
-            duration,
-            timestamp: Date.now(),
-          })
-          /* 只保留最近 50 条慢联动记录 */
-          if (metrics.slowReactions.length > 50) {
-            metrics.slowReactions.shift()
-          }
-        }
+        void event
 
         metrics.reactionCount++
-        lastChangeTime = now
-        lastChangePath = path
+        syncSlowReactionsFromTrace()
         notifyListeners()
       })
       disposers.push(d1)
@@ -151,6 +165,7 @@ export function perfMonitorPlugin(config: PerfMonitorConfig = {}): FormPlugin<Pe
           metrics.lastValidateTime = 0
           metrics.lastSubmitTime = 0
           metrics.slowReactions = []
+          traceCursor = 0
           notifyListeners()
         },
         onMetric: (callback) => {
@@ -166,6 +181,9 @@ export function perfMonitorPlugin(config: PerfMonitorConfig = {}): FormPlugin<Pe
       return {
         api,
         dispose: () => {
+          if (supportsReactionTracing) {
+            form.enableReactionTracing(false)
+          }
           for (const d of disposers) d()
           disposers.length = 0
           listeners.length = 0

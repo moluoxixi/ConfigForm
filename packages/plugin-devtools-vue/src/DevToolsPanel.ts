@@ -798,13 +798,7 @@ function renderEventsView(
           /* 事件摘要（按类型着色） */
           h('span', {
             style: {
-              color: ev.type.includes('FAILED')
-                ? t.red
-                : ev.type.includes('SUCCESS')
-                  ? t.green
-                  : ev.type.includes('devtools:')
-                    ? t.purple
-                    : t.text,
+              color: resolveEventColor(ev.type, t),
               flex: 1,
             },
           }, ev.summary),
@@ -813,6 +807,20 @@ function renderEventsView(
       events.length === 0 ? renderEmpty(t, '暂无事件') : null,
     ]),
   ])
+}
+
+function resolveEventColor(type: string, theme: Theme): string {
+  const normalizedType = type.toLowerCase()
+  if (normalizedType.includes('failed')) {
+    return theme.red
+  }
+  if (normalizedType.includes('success')) {
+    return theme.green
+  }
+  if (normalizedType.includes('devtools:')) {
+    return theme.purple
+  }
+  return theme.text
 }
 
 /* ======================== Diff 视图 ======================== */
@@ -1029,37 +1037,43 @@ export const DevToolsPanel = defineComponent({
     })
 
     /* ---- 派生数据（通过 tick + UI 状态触发重算） ---- */
-    function trackDeps(..._deps: unknown[]): void {
-      void _deps
-    }
-
     /** 字段树数据 */
     const tree = computed((): FieldTreeNode[] => {
-      trackDeps(tick.value, visible.value, tab.value)
+      if (!visible.value || tab.value !== 'tree') {
+        return []
+      }
       return props.api.getFieldTree()
     })
 
     /** 表单概览数据 */
     const overview = computed((): FormOverview => {
-      trackDeps(tick.value, visible.value)
+      void tick.value
+      void visible.value
       return props.api.getFormOverview()
     })
 
     /** 事件日志 */
     const events = computed((): EventLogEntry[] => {
-      trackDeps(tick.value, visible.value, tab.value)
+      if (!visible.value || tab.value !== 'events') {
+        return []
+      }
       return props.api.getEventLog()
     })
 
     /** 当前选中字段的详情 */
     const detail = computed((): FieldDetail | null => {
-      trackDeps(tick.value)
-      return selected.value ? props.api.getFieldDetail(selected.value) : null
+      if (!visible.value || tab.value !== 'tree' || !selected.value) {
+        return null
+      }
+      void tick.value
+      return props.api.getFieldDetail(selected.value)
     })
 
     /** 值 Diff 数据 */
     const diff = computed((): ValueDiffEntry[] => {
-      trackDeps(tick.value, visible.value, tab.value)
+      if (!visible.value || (tab.value !== 'diff' && tab.value !== 'tree')) {
+        return []
+      }
       return props.api.getValueDiff()
     })
 

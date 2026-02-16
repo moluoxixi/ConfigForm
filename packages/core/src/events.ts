@@ -1,4 +1,5 @@
 import type { Disposer } from './shared'
+import { logger } from './shared'
 
 /**
  * 表单生命周期事件类型
@@ -131,14 +132,24 @@ export class FormEventEmitter {
     /* 特定事件处理器 */
     const handlers = this.handlers.get(type)
     if (handlers) {
-      for (const handler of handlers) {
-        handler(event)
+      for (const handler of [...handlers]) {
+        try {
+          handler(event)
+        }
+        catch (error) {
+          logger.error(`事件处理器执行失败: ${type}`, error)
+        }
       }
     }
 
     /* 全局处理器 */
-    for (const handler of this.globalHandlers) {
-      handler(event)
+    for (const handler of [...this.globalHandlers]) {
+      try {
+        handler(event)
+      }
+      catch (error) {
+        logger.error(`全局事件处理器执行失败: ${type}`, error)
+      }
     }
   }
 

@@ -46,7 +46,7 @@ export class ArrayField<Value extends unknown[] = unknown[]>
    * 当数组缩短时（如 remove/pop/reset），索引 >= newLength 的子字段自动销毁。
    */
   private setupAutoCleanup(): void {
-    const adapter = getReactiveAdapter()
+    const adapter = getReactiveAdapter(this.form)
     let prevLength = this.arrayValue.length
 
     this._autoCleanDisposer = adapter.reaction(

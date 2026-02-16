@@ -3,6 +3,28 @@ import { isArray, isNullish, isNumber, isObject, isString } from './is'
 
 /** 路径分隔符正则 */
 const PATH_RE = /\[(\d+)\]|\.?([^.[\]]+)/g
+/** 路径解析缓存上限 */
+const PATH_PARSE_CACHE_MAX = 2000
+/** 空路径片段常量 */
+const EMPTY_SEGMENTS: readonly PathSegment[] = Object.freeze([])
+/** 路径解析缓存（path -> readonly segments） */
+const parsedPathCache = new Map<string, readonly PathSegment[]>()
+
+function buildPathSegments(path: string): PathSegment[] {
+  const segments: PathSegment[] = []
+  PATH_RE.lastIndex = 0
+  let match: RegExpExecArray | null = PATH_RE.exec(path)
+  while (match !== null) {
+    if (match[1] !== undefined) {
+      segments.push(Number(match[1]))
+    }
+    else if (match[2] !== undefined) {
+      segments.push(match[2])
+    }
+    match = PATH_RE.exec(path)
+  }
+  return segments
+}
 
 /**
  * 表单路径工具类
@@ -15,23 +37,31 @@ export class FormPath {
     this.segments = isArray(path) ? [...path] : FormPath.parse(path)
   }
 
+  /**
+   * 获取路径片段（只读缓存视图）
+   *
+   * 适用于高频读取场景，避免重复 parse 的分配开销。
+   */
+  static getSegments(path: string): readonly PathSegment[] {
+    if (!path)
+      return EMPTY_SEGMENTS
+    const cached = parsedPathCache.get(path)
+    if (cached)
+      return cached
+    const frozen = Object.freeze(buildPathSegments(path)) as readonly PathSegment[]
+    if (parsedPathCache.size >= PATH_PARSE_CACHE_MAX) {
+      const firstKey = parsedPathCache.keys().next().value
+      if (firstKey !== undefined) {
+        parsedPathCache.delete(firstKey)
+      }
+    }
+    parsedPathCache.set(path, frozen)
+    return frozen
+  }
+
   /** 解析路径字符串为片段数组 */
   static parse(path: string): PathSegment[] {
-    if (!path)
-      return []
-    const segments: PathSegment[] = []
-    PATH_RE.lastIndex = 0
-    let match: RegExpExecArray | null = PATH_RE.exec(path)
-    while (match !== null) {
-      if (match[1] !== undefined) {
-        segments.push(Number(match[1]))
-      }
-      else if (match[2] !== undefined) {
-        segments.push(match[2])
-      }
-      match = PATH_RE.exec(path)
-    }
-    return segments
+    return [...FormPath.getSegments(path)]
   }
 
   /** 将片段数组序列化为路径字符串 */
@@ -48,7 +78,17 @@ export class FormPath {
   static getIn<T = unknown>(obj: unknown, path: string): T | undefined {
     if (!path)
       return obj as T
-    const segments = FormPath.parse(path)
+    const segments = FormPath.getSegments(path)
+    return FormPath.getInBySegments<T>(obj, segments)
+  }
+
+  /** 从嵌套对象中获取值（基于已解析的路径片段） */
+  static getInBySegments<T = unknown>(
+    obj: unknown,
+    segments: readonly PathSegment[],
+  ): T | undefined {
+    if (segments.length === 0)
+      return obj as T
     let current: unknown = obj
     for (const segment of segments) {
       if (isNullish(current))
@@ -67,7 +107,7 @@ export class FormPath {
   static setIn(obj: Record<string, unknown>, path: string, value: unknown): void {
     if (!path)
       return
-    const segments = FormPath.parse(path)
+    const segments = FormPath.getSegments(path)
     let current: Record<string, unknown> = obj
     for (let i = 0; i < segments.length - 1; i++) {
       const segment = segments[i]
@@ -87,7 +127,7 @@ export class FormPath {
   static deleteIn(obj: Record<string, unknown>, path: string): void {
     if (!path)
       return
-    const segments = FormPath.parse(path)
+    const segments = FormPath.getSegments(path)
     let current: unknown = obj
     for (let i = 0; i < segments.length - 1; i++) {
       const segment = segments[i]
@@ -110,7 +150,7 @@ export class FormPath {
   static existsIn(obj: unknown, path: string): boolean {
     if (!path)
       return true
-    const segments = FormPath.parse(path)
+    const segments = FormPath.getSegments(path)
     let current: unknown = obj
     for (const segment of segments) {
       if (isNullish(current))
@@ -136,14 +176,14 @@ export class FormPath {
    * 支持通配符：* 匹配单层，** 匹配多层
    */
   static match(pattern: string, path: string): boolean {
-    const patternSegments = FormPath.parse(pattern)
-    const pathSegments = FormPath.parse(path)
+    const patternSegments = FormPath.getSegments(pattern)
+    const pathSegments = FormPath.getSegments(path)
     return matchSegments(patternSegments, 0, pathSegments, 0)
   }
 
   /** 获取父路径 */
   static parent(path: string): string {
-    const segments = FormPath.parse(path)
+    const segments = FormPath.getSegments(path)
     if (segments.length <= 1)
       return ''
     return FormPath.stringify(segments.slice(0, -1))
@@ -154,7 +194,7 @@ export class FormPath {
     const allSegments: PathSegment[] = []
     for (const path of paths) {
       if (path) {
-        allSegments.push(...FormPath.parse(path))
+        allSegments.push(...FormPath.getSegments(path))
       }
     }
     return FormPath.stringify(allSegments)
@@ -162,7 +202,7 @@ export class FormPath {
 
   /** 获取路径的最后一个片段（字段名） */
   static basename(path: string): string {
-    const segments = FormPath.parse(path)
+    const segments = FormPath.getSegments(path)
     return segments.length > 0 ? String(segments[segments.length - 1]) : ''
   }
 
@@ -170,8 +210,8 @@ export class FormPath {
   static isChildOf(childPath: string, parentPath: string): boolean {
     if (!parentPath)
       return true
-    const childSegments = FormPath.parse(childPath)
-    const parentSegments = FormPath.parse(parentPath)
+    const childSegments = FormPath.getSegments(childPath)
+    const parentSegments = FormPath.getSegments(parentPath)
     if (childSegments.length <= parentSegments.length)
       return false
     return parentSegments.every((seg, i) => String(seg) === String(childSegments[i]))
@@ -179,7 +219,7 @@ export class FormPath {
 
   /** 获取路径深度 */
   static depth(path: string): number {
-    return FormPath.parse(path).length
+    return FormPath.getSegments(path).length
   }
 
   /** 实例方法 */
@@ -196,7 +236,7 @@ export class FormPath {
   }
 
   concat(other: string | PathSegment[]): FormPath {
-    const otherSegments = isString(other) ? FormPath.parse(other) : other
+    const otherSegments = isString(other) ? FormPath.getSegments(other) : other
     return new FormPath([...this.segments, ...otherSegments])
   }
 
@@ -207,9 +247,9 @@ export class FormPath {
 
 /** 递归匹配路径片段 */
 function matchSegments(
-  pattern: PathSegment[],
+  pattern: readonly PathSegment[],
   pi: number,
-  path: PathSegment[],
+  path: readonly PathSegment[],
   ti: number,
 ): boolean {
   while (pi < pattern.length && ti < path.length) {

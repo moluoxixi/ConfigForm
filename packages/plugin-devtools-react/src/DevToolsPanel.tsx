@@ -130,11 +130,18 @@ export function DevToolsPanel({ api }: DevToolsPanelProps): React.ReactElement {
     }
   }, [api])
 
-  const tree = useMemo(() => api.getFieldTree(), [api, tick, visible, tab])
+  const shouldLoadTree = visible && tab === 'tree'
+  const shouldLoadEvents = visible && tab === 'events'
+  const shouldLoadDiff = visible && (tab === 'diff' || tab === 'tree')
+
+  const tree = useMemo(() => (shouldLoadTree ? api.getFieldTree() : []), [api, tick, shouldLoadTree])
   const overview = useMemo(() => api.getFormOverview(), [api, tick, visible])
-  const events = useMemo(() => api.getEventLog(), [api, tick, visible, tab])
-  const detail = useMemo(() => selected ? api.getFieldDetail(selected) : null, [api, tick, selected])
-  const diff = useMemo(() => api.getValueDiff(), [api, tick, visible, tab])
+  const events = useMemo(() => (shouldLoadEvents ? api.getEventLog() : []), [api, tick, shouldLoadEvents])
+  const detail = useMemo(
+    () => (shouldLoadTree && selected ? api.getFieldDetail(selected) : null),
+    [api, tick, shouldLoadTree, selected],
+  )
+  const diff = useMemo(() => (shouldLoadDiff ? api.getValueDiff() : []), [api, tick, shouldLoadDiff])
 
   /** 过滤字段树 */
   const filteredTree = useMemo(() => {
@@ -691,7 +698,7 @@ function EventsView({ t, events, onClear }: { t: Theme, events: EventLogEntry[],
               {new Date(ev.timestamp).toLocaleTimeString('zh-CN', { hour12: false })}
             </span>
             {ev.fieldPath && <span style={{ fontSize: 10, padding: '1px 5px', borderRadius: 3, background: t.badgeBg, color: t.accent, fontFamily: 'monospace', flexShrink: 0 }}>{ev.fieldPath}</span>}
-            <span style={{ color: ev.type.includes('FAILED') ? t.red : ev.type.includes('SUCCESS') ? t.green : ev.type.includes('devtools:') ? t.purple : t.text, flex: 1 }}>
+            <span style={{ color: resolveEventColor(ev.type, t), flex: 1 }}>
               {ev.summary}
             </span>
           </div>
@@ -700,6 +707,20 @@ function EventsView({ t, events, onClear }: { t: Theme, events: EventLogEntry[],
       </div>
     </div>
   )
+}
+
+function resolveEventColor(type: string, theme: Theme): string {
+  const normalizedType = type.toLowerCase()
+  if (normalizedType.includes('failed')) {
+    return theme.red
+  }
+  if (normalizedType.includes('success')) {
+    return theme.green
+  }
+  if (normalizedType.includes('devtools:')) {
+    return theme.purple
+  }
+  return theme.text
 }
 
 /* ======================== Diff 视图 ======================== */

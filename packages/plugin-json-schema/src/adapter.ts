@@ -562,7 +562,9 @@ function convertNode(
 
   /* ---- $ref 透传 ---- */
   if (schema.$ref) {
-    result.$ref = schema.$ref
+    result.$ref = schema.$ref.startsWith('#/$defs/')
+      ? schema.$ref.replace('#/$defs/', '#/definitions/')
+      : schema.$ref
   }
 
   return result

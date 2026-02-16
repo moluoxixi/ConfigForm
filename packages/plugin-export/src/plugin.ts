@@ -5,7 +5,7 @@ import type {
   FormExportPreview,
   FormExportPreviewOptions,
 } from './types'
-import { FormLifeCycle } from '@moluoxixi/core'
+import { cloneWithoutKeyPrefixes, FormLifeCycle, isPlainObject } from '@moluoxixi/core'
 import { browserDownload } from './browser'
 
 export const PLUGIN_NAME = 'form-export'
@@ -14,31 +14,9 @@ const DEFAULT_EXCLUDE_PREFIXES = ['_']
 const DEFAULT_JSON_SPACE = 2
 const DEFAULT_FILE_NAME_BASE = 'config-form'
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
-function cloneWithoutInternal(value: unknown, excludePrefixes: string[]): unknown {
-  if (Array.isArray(value)) {
-    return value.map(item => cloneWithoutInternal(item, excludePrefixes))
-  }
-  if (!isRecord(value)) {
-    return value
-  }
-
-  const result: Record<string, unknown> = {}
-  for (const [key, child] of Object.entries(value)) {
-    if (excludePrefixes.some(prefix => prefix && key.startsWith(prefix))) {
-      continue
-    }
-    result[key] = cloneWithoutInternal(child, excludePrefixes)
-  }
-  return result
-}
-
 function toExportData(values: Record<string, unknown>, excludePrefixes: string[]): Record<string, unknown> {
-  const cloned = cloneWithoutInternal(values, excludePrefixes)
-  return isRecord(cloned) ? cloned : {}
+  const cloned = cloneWithoutKeyPrefixes(values, excludePrefixes)
+  return isPlainObject(cloned) ? cloned : {}
 }
 
 function resolveExcludePrefixes(config: FormExportPluginOptions, options?: { excludePrefixes?: string[] }): string[] {
@@ -75,6 +53,7 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
       }
 
       const previewSubscribers = new Map<(preview: FormExportPreview) => void, FormExportPreviewOptions | undefined>()
+      let previewNotifyScheduled = false
       const api: FormExportPluginAPI = {
         getExportData(options) {
           const excludePrefixes = resolveExcludePrefixes(config, options)
@@ -117,14 +96,33 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
         }
       }
 
+      const scheduleNotifyExportPreviewSubscribers = (): void => {
+        if (previewNotifyScheduled) {
+          return
+        }
+        previewNotifyScheduled = true
+
+        const flush = (): void => {
+          previewNotifyScheduled = false
+          notifyExportPreviewSubscribers()
+        }
+
+        if (typeof queueMicrotask === 'function') {
+          queueMicrotask(flush)
+        }
+        else {
+          Promise.resolve().then(flush)
+        }
+      }
+
       const disposeValues = form.onValuesChange(() => {
-        notifyExportPreviewSubscribers()
+        scheduleNotifyExportPreviewSubscribers()
       })
       const disposeReset = form.on(FormLifeCycle.ON_FORM_RESET, () => {
-        notifyExportPreviewSubscribers()
+        scheduleNotifyExportPreviewSubscribers()
       })
       const disposeMount = form.on(FormLifeCycle.ON_FORM_MOUNT, () => {
-        notifyExportPreviewSubscribers()
+        scheduleNotifyExportPreviewSubscribers()
       })
 
       formWithExport.getExportData = api.getExportData
@@ -147,6 +145,7 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
           if (formWithExport.downloadJSON === api.downloadJSON)
             delete formWithExport.downloadJSON
           previewSubscribers.clear()
+          previewNotifyScheduled = false
           disposeValues()
           disposeReset()
           disposeMount()

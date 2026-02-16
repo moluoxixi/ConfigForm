@@ -194,7 +194,7 @@ export function onFormReact(
   form: FormInstance,
   callback: (form: FormInstance) => void,
 ): Disposer {
-  const adapter = getReactiveAdapter()
+  const adapter = getReactiveAdapter(form)
   return adapter.autorun(() => {
     callback(form)
   })
@@ -226,7 +226,7 @@ export function onFieldReact(
   pattern: string,
   callback: (field: FieldInstance, form: FormInstance) => void,
 ): Disposer {
-  const adapter = getReactiveAdapter()
+  const adapter = getReactiveAdapter(form)
   /** 跟踪每个字段的 autorun disposer */
   const fieldAutorunDisposers = new Map<string, Disposer>()
 

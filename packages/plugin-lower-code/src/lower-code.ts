@@ -161,8 +161,7 @@ export const PLUGIN_NAME = 'lower-code'
 export function lowerCodePlugin(config: LowerCodePluginConfig = {}): FormPlugin<LowerCodePluginAPI> {
   return {
     name: PLUGIN_NAME,
-    install(form, context): PluginInstallResult<LowerCodePluginAPI> {
-      const disposers: Array<() => void> = []
+    install(form, _context): PluginInstallResult<LowerCodePluginAPI> {
       const apis: {
         history?: HistoryPluginAPI
         dirtyChecker?: DirtyCheckerPluginAPI
@@ -178,10 +177,7 @@ export function lowerCodePlugin(config: LowerCodePluginConfig = {}): FormPlugin<
       function installChild<API>(
         childPlugin: FormPlugin<API>,
       ): API | undefined {
-        const result = childPlugin.install(form, context)
-        if (result.dispose)
-          disposers.push(result.dispose)
-        return result.api
+        return form.use(childPlugin)
       }
 
       /* 撤销/重做（默认启用） */
@@ -230,11 +226,6 @@ export function lowerCodePlugin(config: LowerCodePluginConfig = {}): FormPlugin<
 
       return {
         api: apis as LowerCodePluginAPI,
-        dispose(): void {
-          for (const dispose of disposers) {
-            dispose()
-          }
-        },
       }
     },
   }

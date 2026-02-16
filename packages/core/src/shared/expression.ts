@@ -1,4 +1,5 @@
 import { isString } from './is'
+import { logger } from './logger'
 
 /**
  * 表达式引擎
@@ -55,6 +56,8 @@ const MAX_CACHE_SIZE = 1000
 
 /** 编译缓存（表达式字符串 → 编译后函数） */
 const compilationCache = new Map<string, (scope: ExpressionScope) => unknown>()
+/** 是否允许使用 new Function 执行表达式（默认允许） */
+let unsafeExpressionEvalEnabled = true
 
 /* ======================== 类型 ======================== */
 
@@ -106,6 +109,24 @@ export function isExpression(value: unknown): value is string {
 }
 
 /**
+ * 启用/禁用 new Function 表达式执行
+ *
+ * 非可信 schema 输入场景建议关闭：
+ * `setUnsafeExpressionEvalEnabled(false)`
+ */
+export function setUnsafeExpressionEvalEnabled(enabled: boolean): void {
+  unsafeExpressionEvalEnabled = enabled
+  if (!enabled) {
+    clearExpressionCache()
+  }
+}
+
+/** 当前是否启用 new Function 表达式执行 */
+export function isUnsafeExpressionEvalEnabled(): boolean {
+  return unsafeExpressionEvalEnabled
+}
+
+/**
  * 编译表达式字符串为可执行函数
  *
  * 使用 new Function() 编译（与 Formily、Vue 模板相同的标准做法），
@@ -145,6 +166,13 @@ export function compileExpression<T = unknown>(
 
   const body = match[1].trim()
 
+  if (!unsafeExpressionEvalEnabled) {
+    throw new Error(
+      '[ConfigForm] 当前已禁用表达式运行时编译（new Function）。'
+      + ' 如需启用，请调用 setUnsafeExpressionEvalEnabled(true)。',
+    )
+  }
+
   /*
    * 构建变量声明语句，从 __scope__ 对象中解构出各作用域变量。
    * 生成形如：var $self=__scope__&&__scope__.$self,$values=__scope__&&__scope__.$values,...
@@ -172,7 +200,7 @@ export function compileExpression<T = unknown>(
         return rawFn(scope || {})
       }
       catch (err) {
-        console.warn(`[ConfigForm] 表达式执行失败: ${expression}`, err)
+        logger.warn(`表达式执行失败: ${expression}`, err)
         return undefined as T
       }
     }

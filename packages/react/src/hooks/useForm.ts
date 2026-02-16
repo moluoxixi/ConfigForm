@@ -1,6 +1,6 @@
 import type { FormConfig, FormInstance } from '@moluoxixi/core'
 import { createForm } from '@moluoxixi/core'
-import { useContext, useEffect, useRef } from 'react'
+import { useContext, useEffect, useMemo } from 'react'
 import { FormContext } from '../context'
 
 /**
@@ -22,19 +22,17 @@ export function useForm<Values extends Record<string, unknown> = Record<string, 
  */
 export function useCreateForm<
   Values extends Record<string, unknown> = Record<string, unknown>,
->(config: FormConfig<Values> = {}): FormInstance<Values> {
-  const formRef = useRef<FormInstance<Values> | null>(null)
-
-  if (!formRef.current) {
-    formRef.current = createForm<Values>(config)
-  }
+>(config: FormConfig<Values> = {}, options?: { resetKey?: unknown }): FormInstance<Values> {
+  const form = useMemo(
+    () => createForm<Values>(config),
+    [options?.resetKey],
+  )
 
   useEffect(() => {
     return () => {
-      formRef.current?.dispose()
-      formRef.current = null
+      form.dispose()
     }
-  }, [])
+  }, [form])
 
-  return formRef.current
+  return form
 }

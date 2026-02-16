@@ -1,44 +1,89 @@
 import type { ReactiveAdapter } from './types'
 
-/** 当前激活的适配器 */
-let currentAdapter: ReactiveAdapter | null = null
+type AdapterOwner = { id?: string } | string
+
+/** 全局默认适配器（向后兼容） */
+let defaultAdapter: ReactiveAdapter | null = null
+/** 按表单实例 ID 隔离的适配器映射 */
+const formAdapters = new Map<string, ReactiveAdapter>()
+
+function resolveOwnerId(owner?: AdapterOwner | null): string | undefined {
+  if (!owner) {
+    return undefined
+  }
+  if (typeof owner === 'string') {
+    return owner
+  }
+  return owner.id
+}
 
 /**
- * 设置全局响应式适配器
+ * 设置全局默认响应式适配器
  *
  * 在应用初始化时调用一次：
  * - React 项目：setReactiveAdapter(mobxAdapter)
  * - Vue 项目：setReactiveAdapter(vueAdapter)
  */
 export function setReactiveAdapter(adapter: ReactiveAdapter): void {
-  currentAdapter = adapter
+  defaultAdapter = adapter
 }
 
-/**
- * 获取当前响应式适配器
- * @throws 如果未设置适配器则抛出错误
- */
-export function getReactiveAdapter(): ReactiveAdapter {
-  if (!currentAdapter) {
-    throw new Error(
-      '[ConfigForm] 未设置响应式适配器。请在应用初始化时调用 setReactiveAdapter()。\n'
-      + '  React 项目: import { mobxAdapter } from "@moluoxixi/reactive-react"\n'
-      + '  Vue 项目:   import { vueAdapter } from "@moluoxixi/reactive-vue"',
-    )
+/** 为指定表单实例绑定响应式适配器（多实例/SSR 隔离） */
+export function setReactiveAdapterForForm(owner: AdapterOwner, adapter: ReactiveAdapter): void {
+  const id = resolveOwnerId(owner)
+  if (!id) {
+    throw new Error('[ConfigForm] setReactiveAdapterForForm 缺少有效的 form id。')
   }
-  return currentAdapter
+  formAdapters.set(id, adapter)
+}
+
+/** 清除指定表单实例的适配器绑定 */
+export function clearReactiveAdapterForForm(owner: AdapterOwner): void {
+  const id = resolveOwnerId(owner)
+  if (!id) {
+    return
+  }
+  formAdapters.delete(id)
 }
 
 /**
- * 检查是否已设置适配器
+ * 获取响应式适配器
+ *
+ * 查找顺序：
+ * 1. owner 对应的实例级适配器
+ * 2. 全局默认适配器
  */
-export function hasReactiveAdapter(): boolean {
-  return currentAdapter !== null
+export function getReactiveAdapter(owner?: AdapterOwner): ReactiveAdapter {
+  const ownerId = resolveOwnerId(owner)
+  if (ownerId) {
+    const scoped = formAdapters.get(ownerId)
+    if (scoped) {
+      return scoped
+    }
+  }
+
+  if (defaultAdapter) {
+    return defaultAdapter
+  }
+
+  throw new Error(
+    '[ConfigForm] 未设置响应式适配器。请在应用初始化时调用 setReactiveAdapter()。\n'
+    + '  React 项目: import { mobxAdapter } from "@moluoxixi/reactive-react"\n'
+    + '  Vue 项目:   import { vueAdapter } from "@moluoxixi/reactive-vue"',
+  )
 }
 
-/**
- * 重置适配器（仅用于测试）
- */
+/** 检查是否已存在可用适配器 */
+export function hasReactiveAdapter(owner?: AdapterOwner): boolean {
+  const ownerId = resolveOwnerId(owner)
+  if (ownerId && formAdapters.has(ownerId)) {
+    return true
+  }
+  return defaultAdapter !== null
+}
+
+/** 重置适配器注册（仅用于测试） */
 export function resetReactiveAdapter(): void {
-  currentAdapter = null
+  defaultAdapter = null
+  formAdapters.clear()
 }

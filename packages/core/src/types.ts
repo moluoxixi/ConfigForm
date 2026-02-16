@@ -8,6 +8,7 @@ import type {
   FieldPattern,
   FieldStateUpdate,
 } from './shared'
+import type { ReactiveAdapter } from './reactive'
 import type { ValidationFeedback, ValidationRule, ValidationTrigger } from './validator'
 
 /* ======================== 字段属性 ======================== */
@@ -235,6 +236,13 @@ export interface FormConfig<Values extends Record<string, unknown> = Record<stri
    * ```
    */
   plugins?: FormPlugin[]
+  /**
+   * 实例级响应式适配器（可选）
+   *
+   * 用于 SSR/多实例隔离场景覆盖全局 setReactiveAdapter。
+   * 未提供时回退到全局默认适配器。
+   */
+  reactiveAdapter?: ReactiveAdapter
 }
 
 /** 重置选项 */
@@ -739,6 +747,12 @@ export interface FormInstance<Values extends Record<string, unknown> = Record<st
    * ```
    */
   getPlugin: <API = unknown>(name: string) => API | undefined
+  /** 获取全部已安装插件 API（只读） */
+  getPlugins: () => ReadonlyMap<string, unknown>
+  /** 启用/禁用联动追踪（调试/性能分析） */
+  enableReactionTracing: (enabled: boolean) => void
+  /** 获取联动追踪记录 */
+  getReactionTraceRecords: () => readonly import('./reaction/engine').ReactionTraceRecord[]
   /** 对比当前表单值与另一组值的差异 */
   diff: (otherValues?: Record<string, unknown>) => import('./shared/diff').DiffResult
   /** 获取字段级别的 Diff 视图（用于 DiffViewer 渲染） */

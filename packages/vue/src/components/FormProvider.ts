@@ -1,9 +1,9 @@
 import type { ComponentType, FormInstance } from '@moluoxixi/core'
 import type { Component, PropType } from 'vue'
 import type { ComponentScope, RegistryState } from '../registry'
-import { computed, defineComponent, onBeforeUnmount, onMounted, provide } from 'vue'
+import { computed, defineComponent, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 import { ComponentRegistrySymbol, FormSymbol } from '../context'
-import { getGlobalRegistry } from '../registry'
+import { getGlobalRegistry, subscribeRegistryChange } from '../registry'
 
 /**
  * 表单提供者组件
@@ -49,8 +49,23 @@ export const FormProvider = defineComponent({
   },
   setup(props, { slots }) {
     provide(FormSymbol, props.form)
+    const registryVersion = ref(0)
+    let disposeRegistrySubscribe: (() => void) | undefined
+
+    watch(
+      () => props.registry,
+      (nextRegistry) => {
+        disposeRegistrySubscribe?.()
+        const targetRegistry = nextRegistry ?? getGlobalRegistry()
+        disposeRegistrySubscribe = subscribeRegistryChange(targetRegistry, () => {
+          registryVersion.value += 1
+        })
+      },
+      { immediate: true },
+    )
 
     const registry = computed(() => {
+      void registryVersion.value
       const global = props.registry ?? getGlobalRegistry()
       const components = new Map(global.components)
       const decorators = new Map(global.decorators)
@@ -113,6 +128,7 @@ export const FormProvider = defineComponent({
     })
 
     onBeforeUnmount(() => {
+      disposeRegistrySubscribe?.()
       props.form.unmount()
     })
 

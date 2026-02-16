@@ -99,8 +99,8 @@ const config: SceneConfig = {
         reactions: [{
           watch: 'productType',
           when: '{{$values.productType === "weight"}}',
-          fulfill: { componentProps: { min: 0.01, step: 0.01, addonAfter: 'kg' } },
-          otherwise: { componentProps: { min: 1, step: 1, addonAfter: '件' } },
+          fulfill: { componentProps: { min: 0.01, step: 0.01, suffix: 'kg' } },
+          otherwise: { componentProps: { min: 1, step: 1, suffix: '件' } },
         }],
       },
       isVip: { type: 'boolean', title: 'VIP 用户', default: false, description: '开启后公司名称和工号必填' },

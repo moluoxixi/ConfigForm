@@ -1,4 +1,4 @@
-import type { Disposer, ExpressionScope } from '../shared'
+import type { Disposer, ExpressionScope, PathSegment } from '../shared'
 import type {
   DataSourceConfig,
   FieldInstance,
@@ -16,10 +16,8 @@ import {
   isArray,
   isExpression,
   isFunction,
+  logger,
 } from '../shared'
-
-/** 快速判断路径是否包含数组索引（数字段） */
-const ARRAY_INDEX_RE = /(?:^|\.)\d+(?:\.|$)|\[\d+\]/
 
 /**
  * 从字段路径中提取最近的数组上下文
@@ -32,28 +30,23 @@ const ARRAY_INDEX_RE = /(?:^|\.)\d+(?:\.|$)|\[\d+\]/
  * - record：`form.values.contacts[0].phones[1]`
  * - index：`1`
  *
- * @param fieldPath - 字段完整路径
+ * @param fieldSegments - 字段路径片段
  * @param values - 表单 values 对象
  * @returns 数组上下文（非数组内字段返回空对象）
  */
 function extractArrayContext(
-  fieldPath: string,
+  fieldSegments: readonly PathSegment[],
   values: Record<string, unknown>,
 ): { record?: Record<string, unknown>, index?: number } {
-  /* 快速排除：路径中不包含数字段则跳过解析 */
-  if (!ARRAY_INDEX_RE.test(fieldPath))
-    return {}
-
-  const segments = FormPath.parse(fieldPath)
-
   /* 从后向前找最近的数字段（数组索引），以获取最内层数组上下文 */
-  for (let i = segments.length - 1; i >= 0; i--) {
-    const seg = segments[i]
+  for (let i = fieldSegments.length - 1; i >= 0; i--) {
+    const seg = fieldSegments[i]
     if (typeof seg === 'number' || /^\d+$/.test(String(seg))) {
       const index = Number(seg)
-      /* 记录路径 = 数组路径 + 索引，如 contacts.0 → contacts[0] */
-      const recordPath = FormPath.stringify(segments.slice(0, i + 1))
-      const record = FormPath.getIn<Record<string, unknown>>(values, recordPath)
+      const record = FormPath.getInBySegments<Record<string, unknown>>(
+        values,
+        fieldSegments.slice(0, i + 1),
+      )
       return {
         record: record !== undefined && record !== null
           ? record as Record<string, unknown>
@@ -64,6 +57,44 @@ function extractArrayContext(
   }
 
   return {}
+}
+
+interface WatchDescriptor {
+  path: string
+  hasWildcard: boolean
+  segments?: readonly PathSegment[]
+}
+
+function compileWatchDescriptors(watchPaths: string[]): WatchDescriptor[] {
+  return watchPaths.map((path) => {
+    if (path.includes('*')) {
+      return { path, hasWildcard: true }
+    }
+    return {
+      path,
+      hasWildcard: false,
+      segments: FormPath.getSegments(path),
+    }
+  })
+}
+
+function createArrayContextResolver(fieldPath: string): (values: Record<string, unknown>) => {
+  record?: Record<string, unknown>
+  index?: number
+} {
+  const segments = FormPath.getSegments(fieldPath)
+  let hasArrayIndex = false
+  for (let i = segments.length - 1; i >= 0; i--) {
+    const seg = segments[i]
+    if (typeof seg === 'number' || /^\d+$/.test(String(seg))) {
+      hasArrayIndex = true
+      break
+    }
+  }
+  if (!hasArrayIndex) {
+    return () => ({})
+  }
+  return (values: Record<string, unknown>) => extractArrayContext(segments, values)
 }
 
 /**
@@ -93,6 +124,14 @@ function contextToScope(context: ReactionContext): ExpressionScope {
  * 超过此阈值视为死循环，终止后续联动执行并输出错误日志。
  */
 const MAX_REACTION_EXECUTIONS_PER_BATCH = 100
+
+function deferMicrotask(fn: () => void): void {
+  if (typeof queueMicrotask === 'function') {
+    queueMicrotask(fn)
+    return
+  }
+  Promise.resolve().then(fn)
+}
 
 /**
  * 联动执行追踪记录
@@ -245,8 +284,10 @@ export class ReactionEngine {
    * 注册单条联动规则
    */
   private registerReaction(field: FieldInstance, rule: ReactionRule): void {
-    const adapter = getReactiveAdapter()
+    const adapter = getReactiveAdapter(this.form)
     const watchPaths = isArray(rule.watch) ? rule.watch : [rule.watch]
+    const watchDescriptors = compileWatchDescriptors(watchPaths)
+    const resolveArrayContext = createArrayContextResolver(field.path)
 
     /* 建立依赖图 */
     for (const watchPath of watchPaths) {
@@ -256,7 +297,7 @@ export class ReactionEngine {
     /* 检测循环依赖 */
     const cycle = this.depGraph.detectCycle()
     if (cycle) {
-      console.warn(
+      logger.warn(
         `[ConfigForm] 检测到循环联动依赖: ${cycle.join(' → ')}，`
         + `跳过字段 "${field.path}" 对 "${watchPaths.join(', ')}" 的联动`,
       )
@@ -268,19 +309,26 @@ export class ReactionEngine {
 
     /** 收集监听的字段值 */
     const getWatchedValues = (): unknown[] => {
-      return watchPaths.map((p) => {
-        /* 支持通配符匹配 */
-        if (p.includes('*')) {
-          const matchedFields = this.form.queryFields(p)
-          return matchedFields.map(f => f.value)
+      const formValues = this.form.values as Record<string, unknown>
+      const deps = new Array<unknown>(watchDescriptors.length)
+      for (let i = 0; i < watchDescriptors.length; i++) {
+        const descriptor = watchDescriptors[i]
+        if (descriptor.hasWildcard) {
+          const matchedFields = this.form.queryFields(descriptor.path)
+          deps[i] = matchedFields.map(f => f.value)
+          continue
         }
         /**
-         * 直接通过 FormPath.getIn 访问 form.values，绕过 form.getFieldValue()。
+         * 直接通过 FormPath.getInBySegments 访问 form.values，绕过 form.getFieldValue()。
          * 原因：MobX 的 makeObservable 会将 getFieldValue 标记为 action.bound，
          * action 内部的 observable 访问不会被 MobX reaction 追踪，导致联动不触发。
          */
-        return FormPath.getIn(this.form.values, p)
-      })
+        deps[i] = FormPath.getInBySegments(
+          formValues,
+          descriptor.segments as readonly PathSegment[],
+        )
+      }
+      return deps
     }
 
     /**
@@ -290,7 +338,7 @@ export class ReactionEngine {
      */
     const buildContext = (deps: unknown[]): ReactionContext => {
       const formValues = this.form.values as Record<string, unknown>
-      const { record, index } = extractArrayContext(field.path, formValues)
+      const { record, index } = resolveArrayContext(formValues)
       return {
         self: field,
         form: this.form,
@@ -367,7 +415,7 @@ export class ReactionEngine {
               .catch((err: unknown) => {
                 if (err instanceof DOMException && (err as DOMException).name === 'AbortError')
                   return
-                console.error(`[ConfigForm] 异步联动执行失败 (${target.path}):`, err)
+                logger.error(`异步联动执行失败 (${target.path})`, err)
               })
               .finally(() => {
                 target.loading = false
@@ -389,7 +437,7 @@ export class ReactionEngine {
         return field
       const t = this.form.getField(rule.target)
       if (!t) {
-        console.warn(`[ConfigForm] reactions target "${rule.target}" 未找到`)
+        logger.warn(`reactions target "${rule.target}" 未找到`)
         return null
       }
       return t
@@ -413,7 +461,7 @@ export class ReactionEngine {
         })
       }
       if (this._executionCount > MAX_REACTION_EXECUTIONS_PER_BATCH) {
-        console.error(
+        logger.error(
           `[ConfigForm] 联动执行次数超过 ${MAX_REACTION_EXECUTIONS_PER_BATCH} 次/批次，`
           + `疑似死循环，已终止。涉及字段: "${field.path}"`,
         )
@@ -480,19 +528,37 @@ export class ReactionEngine {
       ? debounce(execute, rule.debounce)
       : execute
 
-    /* 使用响应式 reaction 监听变化 */
+    /**
+     * 运行状态标记。
+     * 防止字段已卸载后，微任务中的首轮联动继续执行。
+     */
+    let disposed = false
+
+    const runFinalExecute = (): void => {
+      if (disposed)
+        return
+      finalExecute()
+    }
+
+    /* 使用响应式 reaction 监听变化（首轮执行延后到微任务，避免渲染期状态写入） */
     const disposer = adapter.reaction(
       () => getWatchedValues(),
-      () => finalExecute(),
-      { fireImmediately: true },
+      () => runFinalExecute(),
+      { fireImmediately: false },
     )
+    deferMicrotask(() => {
+      runFinalExecute()
+    })
 
     /* 按字段路径存储 disposer，移除字段时可精确清理 */
     if (!this.fieldDisposers.has(field.path)) {
       this.fieldDisposers.set(field.path, [])
     }
     const fieldDisposerList = this.fieldDisposers.get(field.path)!
-    fieldDisposerList.push(disposer)
+    fieldDisposerList.push(() => {
+      disposed = true
+      disposer()
+    })
     if ('cancel' in finalExecute) {
       fieldDisposerList.push(() => (finalExecute as { cancel: () => void }).cancel())
     }

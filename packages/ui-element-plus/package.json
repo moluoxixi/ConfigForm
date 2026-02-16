@@ -33,7 +33,11 @@
   },
   "dependencies": {
     "@moluoxixi/core": "workspace:*",
-    "@moluoxixi/vue": "workspace:*"
+    "@moluoxixi/plugin-export": "workspace:*",
+    "@moluoxixi/plugin-import": "workspace:*",
+    "@moluoxixi/plugin-print": "workspace:*",
+    "@moluoxixi/vue": "workspace:*",
+    "jsoneditor": "catalog:build"
   },
   "devDependencies": {
     "element-plus": "catalog:build",

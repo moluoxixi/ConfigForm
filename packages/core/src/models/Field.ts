@@ -15,7 +15,7 @@ import type {
 import type { ValidationFeedback, ValidationRule, ValidationTrigger } from '../validator'
 import { fetchDataSource } from '../datasource/manager'
 import { getReactiveAdapter } from '../reactive'
-import { deepClone, FormPath, isArray, uid } from '../shared'
+import { deepClone, FormPath, isArray, logger, uid } from '../shared'
 import { validate } from '../validator'
 
 const AUTO_REQUIRED_RULE_ID = '__auto_required__'
@@ -253,7 +253,7 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
    * 参考 Formily：readPretty/disabled 状态不应保留校验提示。
    */
   setupEditableAutoClear(): void {
-    const adapter = getReactiveAdapter()
+    const adapter = getReactiveAdapter(this.form)
     const disposer = adapter.reaction(
       () => this.editable,
       (editable) => {
@@ -400,7 +400,7 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
       /* 请求被取消时静默忽略 */
       if (err instanceof DOMException && err.name === 'AbortError')
         return
-      console.error(`[ConfigForm] 字段 ${this.path} 数据源加载失败:`, err)
+      logger.error(`字段 ${this.path} 数据源加载失败`, err)
     }
     finally {
       /* 仅在未取消时重置 loading 状态，避免取消后闪烁 */

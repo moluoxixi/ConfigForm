@@ -1,6 +1,6 @@
 import type { DataSourceItem } from '@moluoxixi/core'
 import type { PropType } from 'vue'
-import { ElOption, ElSelect } from 'element-plus'
+import { ElSelectV2 } from 'element-plus'
 import { defineComponent, h } from 'vue'
 
 /** 选择器适配 — readonly 显示已选标签文本 */
@@ -28,24 +28,22 @@ export const Select = defineComponent({
         const selectedLabel = props.dataSource.find(item => item.value === props.modelValue)?.label
         return h('span', null, selectedLabel ?? String(props.modelValue ?? '—'))
       }
-      return h(ElSelect, {
+      return h(ElSelectV2, {
         'modelValue': props.modelValue,
         'placeholder': props.placeholder,
         'disabled': props.disabled,
         'loading': props.loading,
         'multiple': props.multiple,
+        'options': props.dataSource.map(item => ({
+          label: item.label,
+          value: item.value,
+          disabled: item.disabled,
+        })),
         'style': 'width: 100%',
         'onUpdate:modelValue': (v: unknown) => emit('update:modelValue', v),
         'onFocus': () => emit('focus'),
         'onBlur': () => emit('blur'),
-      }, () => props.dataSource.map(item =>
-        h(ElOption, {
-          key: String(item.value),
-          label: item.label,
-          value: item.value,
-          disabled: item.disabled,
-        }),
-      ))
+      })
     }
   },
 })
