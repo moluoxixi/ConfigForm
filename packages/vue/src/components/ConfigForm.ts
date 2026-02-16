@@ -23,6 +23,7 @@ const FormActionsRenderer = defineComponent({
     submitLabel: { type: String, default: '提交' },
     resetLabel: { type: String, default: '重置' },
     align: { type: String as PropType<'left' | 'center' | 'right'>, default: 'center' },
+    extraActions: { type: Object as PropType<Record<string, unknown>>, default: () => ({}) },
   },
   emits: ['reset', 'submit', 'submitFailed'],
   setup(props, { emit }) {
@@ -38,6 +39,7 @@ const FormActionsRenderer = defineComponent({
           submitLabel: props.submitLabel,
           resetLabel: props.resetLabel,
           align: props.align,
+          extraActions: props.extraActions,
         })
       }
 
@@ -49,7 +51,17 @@ const FormActionsRenderer = defineComponent({
       if (props.showReset) {
         buttons.push(h('button', { type: 'button', style: 'padding: 4px 16px; cursor: pointer', onClick: () => emit('reset') }, props.resetLabel))
       }
-      return h('div', { style: `margin-top: 16px; display: flex; justify-content: ${justifyContent}` }, buttons)
+      for (const [actionName, config] of Object.entries(props.extraActions)) {
+        if (!isActionEnabled(config)) {
+          continue
+        }
+        const actionComponent = registryRef?.value.actions.get(actionName)
+        if (!actionComponent) {
+          continue
+        }
+        buttons.push(h(actionComponent as Component, { key: actionName, ...resolveActionProps(config) }))
+      }
+      return h('div', { style: `margin-top: 16px; display: flex; justify-content: ${justifyContent}; gap: 8px; flex-wrap: wrap;` }, buttons)
     }
   },
 })
@@ -99,6 +111,10 @@ export const ConfigForm = defineComponent({
       default: undefined,
     },
     decorators: {
+      type: Object as PropType<Record<string, ComponentType>>,
+      default: undefined,
+    },
+    actions: {
       type: Object as PropType<Record<string, ComponentType>>,
       default: undefined,
     },
@@ -281,7 +297,8 @@ export const ConfigForm = defineComponent({
 
     return () => {
       const currentDecoratorProps = rootDecoratorProps.value
-      const actions = currentDecoratorProps.actions as Record<string, unknown>
+      const actions = isRecord(currentDecoratorProps.actions) ? currentDecoratorProps.actions : undefined
+      const extraActions = extractExtraActions(actions)
       const isEditable = form.pattern === 'editable'
 
       /* 布局配置 */
@@ -308,7 +325,10 @@ export const ConfigForm = defineComponent({
       }
 
       /* 按钮配置 */
-      const showActions = actions && isEditable
+      const showActions = isEditable && (
+        (actions ? actions.submit !== false || actions.reset !== false : false)
+        || hasEnabledExtraActions(extraActions)
+      )
       const submitLabel = typeof actions?.submit === 'string' ? actions.submit : '提交'
       const resetLabel = typeof actions?.reset === 'string' ? actions.reset : '重置'
       const showSubmit = actions?.submit !== false
@@ -321,6 +341,7 @@ export const ConfigForm = defineComponent({
         form,
         components: props.components,
         decorators: props.decorators,
+        actions: props.actions,
         defaultDecorators: props.defaultDecorators,
         readPrettyComponents: props.readPrettyComponents,
         scope: props.scope,
@@ -348,6 +369,7 @@ export const ConfigForm = defineComponent({
                 submitLabel,
                 resetLabel,
                 align,
+                extraActions,
                 onReset: () => {
                   form.reset()
                 },
@@ -382,4 +404,41 @@ function scrollToFirstError(errors: Array<{ path: string }>): void {
       fieldElements[0].scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
   }, 100)
+}
+
+const RESERVED_FORM_ACTION_KEYS = new Set(['submit', 'reset', 'align'])
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function extractExtraActions(actions: Record<string, unknown> | undefined): Record<string, unknown> {
+  if (!actions) {
+    return {}
+  }
+  const extras: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(actions)) {
+    if (!RESERVED_FORM_ACTION_KEYS.has(key)) {
+      extras[key] = value
+    }
+  }
+  return extras
+}
+
+function hasEnabledExtraActions(actions: Record<string, unknown>): boolean {
+  return Object.values(actions).some(isActionEnabled)
+}
+
+function isActionEnabled(config: unknown): boolean {
+  return config !== false
+}
+
+function resolveActionProps(config: unknown): Record<string, unknown> {
+  if (typeof config === 'string') {
+    return { buttonText: config }
+  }
+  if (isRecord(config)) {
+    return config
+  }
+  return {}
 }

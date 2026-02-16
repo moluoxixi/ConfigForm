@@ -12,6 +12,8 @@ export interface FormProviderProps {
   components?: Record<string, ComponentType<any>>
   /** 局部装饰器注册 */
   decorators?: Record<string, ComponentType<any>>
+  /** 局部 action 注册（actionName -> ActionComponent） */
+  actions?: Record<string, ComponentType<any>>
   /** 局部默认装饰器映射（component -> decorator） */
   defaultDecorators?: Record<string, string>
   /** 局部阅读态组件映射（component -> readPrettyComponent） */
@@ -32,6 +34,7 @@ export const FormProvider = observer<FormProviderProps>(({
   form,
   components,
   decorators,
+  actions,
   defaultDecorators,
   readPrettyComponents,
   scope,
@@ -51,6 +54,7 @@ export const FormProvider = observer<FormProviderProps>(({
   const registry = React.useMemo(() => {
     const mergedComponents = new Map(globalRegistry.components)
     const mergedDecorators = new Map(globalRegistry.decorators)
+    const mergedActions = new Map(globalRegistry.actions)
     const mergedDefaultDecorators = new Map(globalRegistry.defaultDecorators)
     const mergedReadPrettyComponents = new Map(globalRegistry.readPrettyComponents)
 
@@ -60,6 +64,9 @@ export const FormProvider = observer<FormProviderProps>(({
       }
       for (const [name, dec] of Object.entries(scope.decorators)) {
         mergedDecorators.set(name, dec)
+      }
+      for (const [name, action] of Object.entries(scope.actions ?? {})) {
+        mergedActions.set(name, action)
       }
       for (const [name, decoratorName] of Object.entries(scope.defaultDecorators ?? {})) {
         mergedDefaultDecorators.set(name, decoratorName)
@@ -79,6 +86,11 @@ export const FormProvider = observer<FormProviderProps>(({
         mergedDecorators.set(name, dec)
       }
     }
+    if (actions) {
+      for (const [name, action] of Object.entries(actions)) {
+        mergedActions.set(name, action)
+      }
+    }
     if (defaultDecorators) {
       for (const [name, decoratorName] of Object.entries(defaultDecorators)) {
         mergedDefaultDecorators.set(name, decoratorName)
@@ -93,10 +105,11 @@ export const FormProvider = observer<FormProviderProps>(({
     return {
       components: mergedComponents,
       decorators: mergedDecorators,
+      actions: mergedActions,
       defaultDecorators: mergedDefaultDecorators,
       readPrettyComponents: mergedReadPrettyComponents,
     }
-  }, [components, decorators, defaultDecorators, readPrettyComponents, scope, globalRegistry])
+  }, [actions, components, decorators, defaultDecorators, readPrettyComponents, scope, globalRegistry])
 
   return (
     <FormContext.Provider value={form}>

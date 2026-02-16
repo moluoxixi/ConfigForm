@@ -3,7 +3,7 @@ import type { SceneConfig } from '../types'
 /**
  * 场景：打印 / 导入 / 导出（插件化）
  *
- * 交互入口由 playground 的 header toolbar 提供：
+ * 交互入口由 schema.decoratorProps.actions 声明：
  * - 导出 JSON（弹窗预览 + 下载）
  * - 导入 JSON（弹窗预览 + 可编辑后回填）
  * - 打印（临时切到阅读态后打印预览态表单 DOM）
@@ -26,7 +26,16 @@ const config: SceneConfig = {
     decoratorProps: {
       labelPosition: 'right',
       labelWidth: '100px',
-      actions: { submit: '提交', reset: '重置' },
+      actions: {
+        submit: '提交',
+        reset: '重置',
+        print: '打印预览',
+        export: '导出预览',
+        import: {
+          buttonText: '导入 JSON',
+          showStrategy: true,
+        },
+      },
     },
     properties: {
       orderNo: { type: 'string', title: '订单号', required: true },

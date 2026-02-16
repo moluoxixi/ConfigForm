@@ -22,7 +22,6 @@ export interface SceneRendererProps {
   description?: string
   extraPlugins?: FormPlugin[]
   headerExtra?: React.ReactNode
-  formExtra?: React.ReactNode
 }
 
 interface SceneFormProps {
@@ -30,12 +29,11 @@ interface SceneFormProps {
   schema: ISchema
   mode: FieldPattern
   extraPlugins?: FormPlugin[]
-  formExtra?: React.ReactNode
   showResult: (data: Record<string, unknown>) => void
   showErrors: (errors: Array<{ path: string, message: string }>) => void
 }
 
-function SceneForm({ config, schema, mode, extraPlugins, formExtra, showResult, showErrors }: SceneFormProps): React.ReactElement {
+function SceneForm({ config, schema, mode, extraPlugins, showResult, showErrors }: SceneFormProps): React.ReactElement {
   useEffect(() => {
     showErrors([])
   }, [mode, showErrors])
@@ -57,12 +55,11 @@ function SceneForm({ config, schema, mode, extraPlugins, formExtra, showResult, 
       onSubmitFailed={errors => showErrors(errors)}
       onReset={handleReset}
     >
-      {formExtra}
     </ConfigForm>
   )
 }
 
-export const SceneRenderer = observer(({ config, title, description, extraPlugins, headerExtra, formExtra }: SceneRendererProps): React.ReactElement => {
+export const SceneRenderer = observer(({ config, title, description, extraPlugins, headerExtra }: SceneRendererProps): React.ReactElement => {
   const variants = config.schemaVariants
   const [variantValue, setVariantValue] = useState(variants?.defaultValue ?? '')
 
@@ -118,7 +115,6 @@ export const SceneRenderer = observer(({ config, title, description, extraPlugin
               schema={currentSchema}
               mode={mode}
               extraPlugins={extraPlugins}
-              formExtra={formExtra}
               showResult={showResult}
               showErrors={showErrors}
             />

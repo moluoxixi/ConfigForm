@@ -1,4 +1,4 @@
-import { FormLayout, registerFieldComponents } from '@moluoxixi/react'
+import { FormLayout, registerActions, registerFieldComponents } from '@moluoxixi/react'
 import {
   ArrayCards,
   ArrayCollapse,
@@ -102,6 +102,11 @@ export function setupAntd(): void {
       DatePicker: PreviewDatePicker,
     },
   )
+  registerActions({
+    export: ExportJsonAction,
+    import: ImportJsonAction,
+    print: PrintAction,
+  })
 }
 
 export {

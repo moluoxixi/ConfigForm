@@ -28,6 +28,7 @@ SchemaContext.displayName = 'ConfigSchemaContext'
 export interface ComponentRegistry {
   components: Map<string, React.ComponentType<any>>
   decorators: Map<string, React.ComponentType<any>>
+  actions: Map<string, React.ComponentType<any>>
   defaultDecorators: Map<string, string>
   readPrettyComponents: Map<string, React.ComponentType<any>>
 }
@@ -35,6 +36,7 @@ export interface ComponentRegistry {
 export const ComponentRegistryContext = createContext<ComponentRegistry>({
   components: new Map(),
   decorators: new Map(),
+  actions: new Map(),
   defaultDecorators: new Map(),
   readPrettyComponents: new Map(),
 })

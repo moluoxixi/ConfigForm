@@ -150,7 +150,6 @@ export function App(): React.ReactElement {
                   description={i18nFeature.description}
                   extraPlugins={scenePlugins}
                   headerExtra={sceneHeaderExtra}
-                  formExtra={printExportFeature.formExtra}
                 />
               )
             : <div style={{ textAlign: 'center', color: '#999', padding: 40 }}>{loading ? '加载中...' : '请选择场景'}</div>}

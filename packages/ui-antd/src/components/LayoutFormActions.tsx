@@ -1,4 +1,4 @@
-import { FormContext } from '@moluoxixi/react'
+import { ComponentRegistryContext, FormContext } from '@moluoxixi/react'
 import { Button as AButton } from 'antd'
 import React, { useCallback, useContext } from 'react'
 
@@ -8,6 +8,7 @@ export interface LayoutFormActionsProps {
   submitLabel?: string
   resetLabel?: string
   align?: 'left' | 'center' | 'right'
+  extraActions?: Record<string, unknown>
   onSubmit?: (values: Record<string, unknown>) => void
   onSubmitFailed?: (errors: unknown[]) => void
   onReset?: () => void
@@ -26,11 +27,13 @@ export function LayoutFormActions({
   submitLabel = '提交',
   resetLabel = '重置',
   align = 'center',
+  extraActions = {},
   onSubmit,
   onSubmitFailed,
   onReset,
 }: LayoutFormActionsProps): React.ReactElement {
   const form = useContext(FormContext)
+  const registry = useContext(ComponentRegistryContext)
 
   const handleSubmit = useCallback(async () => {
     if (!form)
@@ -55,11 +58,24 @@ export function LayoutFormActions({
   }
 
   const justifyContent = align === 'left' ? 'flex-start' : align === 'right' ? 'flex-end' : 'center'
+  const extraActionNodes = Object.entries(extraActions)
+    .filter(([, config]) => config !== false)
+    .map(([actionName, config]) => {
+      const ActionComp = registry.actions.get(actionName)
+      if (!ActionComp) {
+        return null
+      }
+      const resolvedProps = typeof config === 'string'
+        ? { buttonText: config }
+        : (typeof config === 'object' && config !== null && !Array.isArray(config) ? config : {})
+      return <ActionComp key={actionName} {...resolvedProps} />
+    })
 
   return (
     <div style={{ marginTop: 24, display: 'flex', justifyContent, gap: 8 }}>
       {showSubmit && <AButton type="primary" onClick={handleSubmit}>{submitLabel}</AButton>}
       {showReset && <AButton onClick={handleReset}>{resetLabel}</AButton>}
+      {extraActionNodes}
     </div>
   )
 }

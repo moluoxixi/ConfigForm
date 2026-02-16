@@ -1,4 +1,4 @@
-import { FormLayout, registerFieldComponents } from '@moluoxixi/vue'
+import { FormLayout, registerActions, registerFieldComponents } from '@moluoxixi/vue'
 import {
   ArrayField,
   ArrayItems,
@@ -90,6 +90,11 @@ export function setupAntdVue(): void {
       DatePicker: PreviewDatePicker,
     },
   )
+  registerActions({
+    export: ExportJsonAction,
+    import: ImportJsonAction,
+    print: PrintAction,
+  })
 }
 
 /* 导出所有组件（按需使用） */

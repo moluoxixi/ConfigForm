@@ -12,6 +12,7 @@ export interface RegisterComponentOptions {
 export interface ComponentScope {
   components: Record<string, ComponentType<any>>
   decorators: Record<string, ComponentType<any>>
+  actions?: Record<string, ComponentType<any>>
   defaultDecorators?: Record<string, string>
   readPrettyComponents?: Record<string, ComponentType<any>>
 }
@@ -20,6 +21,7 @@ export interface ComponentScope {
 export interface RegistryState {
   components: Map<string, ComponentType<any>>
   decorators: Map<string, ComponentType<any>>
+  actions: Map<string, ComponentType<any>>
   defaultDecorators: Map<string, string>
   readPrettyComponents: Map<string, ComponentType<any>>
 }
@@ -29,6 +31,7 @@ export function createRegistryState(): RegistryState {
   return {
     components: new Map<string, ComponentType<any>>(),
     decorators: new Map<string, ComponentType<any>>(),
+    actions: new Map<string, ComponentType<any>>(),
     defaultDecorators: new Map<string, string>(),
     readPrettyComponents: new Map<string, ComponentType<any>>(),
   }
@@ -84,6 +87,22 @@ export function registerDecoratorToRegistry(
 }
 
 /**
+ * 注册全局 action 组件
+ */
+export function registerAction(name: string, action: ComponentType<any>): void {
+  registerActionToRegistry(getTargetRegistry(), name, action)
+}
+
+/** 向指定注册表注册 action 组件（实例级） */
+export function registerActionToRegistry(
+  registry: RegistryState,
+  name: string,
+  action: ComponentType<any>,
+): void {
+  registry.actions.set(name, action)
+}
+
+/**
  * 批量注册组件
  */
 export function registerComponents(mapping: Record<string, ComponentType<any>>, options?: RegisterComponentOptions): void {
@@ -104,6 +123,23 @@ export function registerComponentsToRegistry(
     if (options?.readPrettyComponent) {
       registry.readPrettyComponents.set(name, options.readPrettyComponent)
     }
+  }
+}
+
+/**
+ * 批量注册 action 组件
+ */
+export function registerActions(mapping: Record<string, ComponentType<any>>): void {
+  registerActionsToRegistry(getTargetRegistry(), mapping)
+}
+
+/** 向指定注册表批量注册 action 组件（实例级） */
+export function registerActionsToRegistry(
+  registry: RegistryState,
+  mapping: Record<string, ComponentType<any>>,
+): void {
+  for (const [name, action] of Object.entries(mapping)) {
+    registry.actions.set(name, action)
   }
 }
 
@@ -160,6 +196,11 @@ export function getDecorator(name: string): ComponentType<any> | undefined {
   return globalRegistry.decorators.get(name)
 }
 
+/** 获取 action 组件 */
+export function getAction(name: string): ComponentType<any> | undefined {
+  return globalRegistry.actions.get(name)
+}
+
 /** 获取组件的默认装饰器名称 */
 export function getDefaultDecorator(componentName: string): string | undefined {
   return globalRegistry.defaultDecorators.get(componentName)
@@ -179,6 +220,7 @@ export function getGlobalRegistry(): RegistryState {
 export function resetRegistry(): void {
   globalRegistry.components.clear()
   globalRegistry.decorators.clear()
+  globalRegistry.actions.clear()
   globalRegistry.defaultDecorators.clear()
   globalRegistry.readPrettyComponents.clear()
 }
@@ -192,7 +234,9 @@ export function createRegistry(
   setup?: (register: {
     component: (name: string, comp: ComponentType<any>, options?: RegisterComponentOptions) => void
     decorator: (name: string, decorator: ComponentType<any>) => void
+    action: (name: string, action: ComponentType<any>) => void
     components: (mapping: Record<string, ComponentType<any>>, options?: RegisterComponentOptions) => void
+    actions: (mapping: Record<string, ComponentType<any>>) => void
     fieldComponents: (
       fields: Record<string, ComponentType<any>>,
       decorator: { name: string, component: ComponentType<any> },
@@ -205,7 +249,9 @@ export function createRegistry(
   setup?.({
     component: (name, comp, options) => registerComponentToRegistry(registry, name, comp, options),
     decorator: (name, dec) => registerDecoratorToRegistry(registry, name, dec),
+    action: (name, action) => registerActionToRegistry(registry, name, action),
     components: (mapping, options) => registerComponentsToRegistry(registry, mapping, options),
+    actions: mapping => registerActionsToRegistry(registry, mapping),
     fieldComponents: (fields, decorator, layouts, readPretty) =>
       registerFieldComponentsToRegistry(registry, fields, decorator, layouts, readPretty),
   })
@@ -224,12 +270,14 @@ export function createComponentScope(
   setup: (register: {
     component: (name: string, comp: ComponentType<any>, options?: RegisterComponentOptions) => void
     decorator: (name: string, decorator: ComponentType<any>) => void
+    action: (name: string, action: ComponentType<any>) => void
     defaultDecorator: (componentName: string, decoratorName: string) => void
     readPretty: (componentName: string, component: ComponentType<any>) => void
   }) => void,
 ): ComponentScope {
   const components: Record<string, ComponentType<any>> = {}
   const decorators: Record<string, ComponentType<any>> = {}
+  const actions: Record<string, ComponentType<any>> = {}
   const defaultDecorators: Record<string, string> = {}
   const readPrettyComponents: Record<string, ComponentType<any>> = {}
 
@@ -244,6 +292,7 @@ export function createComponentScope(
       }
     },
     decorator: (name, dec) => { decorators[name] = dec },
+    action: (name, action) => { actions[name] = action },
     defaultDecorator: (componentName, decoratorName) => {
       defaultDecorators[componentName] = decoratorName
     },
@@ -252,5 +301,5 @@ export function createComponentScope(
     },
   })
 
-  return { components, decorators, defaultDecorators, readPrettyComponents }
+  return { components, decorators, actions, defaultDecorators, readPrettyComponents }
 }

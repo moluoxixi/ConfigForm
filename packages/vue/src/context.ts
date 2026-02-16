@@ -11,6 +11,7 @@ export const FieldSymbol: InjectionKey<FieldInstance<any>> = Symbol('ConfigField
 export interface ComponentRegistry {
   components: Map<string, ComponentType>
   decorators: Map<string, ComponentType>
+  actions: Map<string, ComponentType>
   defaultDecorators: Map<string, string>
   readPrettyComponents: Map<string, ComponentType>
 }

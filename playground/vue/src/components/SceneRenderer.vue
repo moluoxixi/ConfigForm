@@ -41,9 +41,7 @@
           @submit="showResult"
           @submit-failed="(e: any) => st?.showErrors(e)"
           @reset="() => clearStatus()"
-        >
-          <slot name="form-extra" />
-        </ConfigForm>
+        />
       </div>
     </component>
   </div>

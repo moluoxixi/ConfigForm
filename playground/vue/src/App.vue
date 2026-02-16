@@ -80,36 +80,6 @@
               </div>
             </div>
           </template>
-          <template #form-extra>
-            <div
-              v-if="ioEnabled && currentUI === 'antd-vue'"
-              class="io-panel"
-            >
-              <div class="io-panel-header">
-                <div>
-                  <div class="io-title">
-                    JSON 导入 / 导出
-                  </div>
-                  <div class="io-subtitle">
-                    插件适配层负责弹窗、上传、预览与应用逻辑
-                  </div>
-                </div>
-              </div>
-
-              <div class="io-actions">
-                <ExportJsonAction />
-                <ImportJsonAction />
-                <PrintAction />
-              </div>
-
-              <div class="io-note">
-                打印默认切到阅读态，并基于阅读态容器输出。
-              </div>
-              <div class="io-note io-note--muted">
-                导入/导出的完整交互由插件层托管，示例层仅做组合。
-              </div>
-            </div>
-          </template>
         </SceneRenderer>
         <div v-else style="text-align: center; color: #999; padding: 40px;">
           {{ loading ? '加载中...' : '请选择场景' }}
@@ -128,7 +98,6 @@ import type { DevToolsPluginAPI } from '@moluoxixi/plugin-devtools'
 import type { SceneConfig } from '@playground/shared'
 import type { UIAdapter, UILib } from './ui'
 import { DevToolsPanel } from '@moluoxixi/plugin-devtools-vue'
-import { ExportJsonAction, ImportJsonAction, PrintAction } from '@moluoxixi/ui-antd-vue'
 import { registerComponent } from '@moluoxixi/vue'
 import { getSceneGroups, sceneRegistry } from '@playground/shared'
 import { computed, defineComponent, h, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
@@ -254,7 +223,6 @@ const {
 } = useI18nFeature(sceneConfig)
 
 const {
-  enabled: ioEnabled,
   plugins: ioPlugins,
 } = usePrintExportFeature(currentDemo)
 
@@ -286,52 +254,3 @@ function navBtnStyle(name: string): Record<string, string> {
   }
 }
 </script>
-
-<style scoped>
-.io-panel {
-  margin-bottom: 12px;
-  border: 1px solid #d9e3ff;
-  border-radius: 14px;
-  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 52%);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-  padding: 14px;
-}
-
-.io-panel-header {
-  align-items: center;
-  display: flex;
-  gap: 12px;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.io-title {
-  color: #1f2937;
-  font-size: 14px;
-  font-weight: 700;
-  margin-bottom: 2px;
-}
-
-.io-subtitle {
-  color: #64748b;
-  font-size: 12px;
-}
-
-.io-actions {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.io-note {
-  color: #64748b;
-  font-size: 12px;
-  margin-top: 10px;
-}
-
-.io-note--muted {
-  color: #94a3b8;
-  margin-top: 6px;
-}
-</style>

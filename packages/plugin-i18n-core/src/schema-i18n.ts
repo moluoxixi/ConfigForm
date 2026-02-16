@@ -121,13 +121,7 @@ function translateNode(
       }
     }
     if (translatedProps.actions && typeof translatedProps.actions === 'object' && !Array.isArray(translatedProps.actions)) {
-      const translatedActions: Record<string, unknown> = { ...(translatedProps.actions as Record<string, unknown>) }
-      for (const [key, value] of Object.entries(translatedActions)) {
-        if (isI18nKey(value)) {
-          translatedActions[key] = t(extractKey(value))
-        }
-      }
-      translatedProps.actions = translatedActions
+      translatedProps.actions = translateActionValues(translatedProps.actions as Record<string, unknown>, t)
     }
     result.decoratorProps = translatedProps
   }
@@ -210,6 +204,33 @@ function translateDataSource(
     }
     return translated
   })
+}
+
+function translateActionValues(
+  value: Record<string, unknown> | unknown[],
+  t: TranslateFunction,
+): Record<string, unknown> | unknown[] {
+  if (Array.isArray(value)) {
+    return value.map(item => translateActionValue(item, t))
+  }
+  const next: Record<string, unknown> = {}
+  for (const [key, item] of Object.entries(value)) {
+    next[key] = translateActionValue(item, t)
+  }
+  return next
+}
+
+function translateActionValue(value: unknown, t: TranslateFunction): unknown {
+  if (isI18nKey(value)) {
+    return t(extractKey(value))
+  }
+  if (Array.isArray(value)) {
+    return translateActionValues(value, t)
+  }
+  if (value && typeof value === 'object') {
+    return translateActionValues(value as Record<string, unknown>, t)
+  }
+  return value
 }
 
 /**

@@ -26,6 +26,10 @@ export const FormProvider = defineComponent({
       type: Object as PropType<Record<string, ComponentType>>,
       default: undefined,
     },
+    actions: {
+      type: Object as PropType<Record<string, ComponentType>>,
+      default: undefined,
+    },
     defaultDecorators: {
       type: Object as PropType<Record<string, string>>,
       default: undefined,
@@ -50,6 +54,7 @@ export const FormProvider = defineComponent({
       const global = props.registry ?? getGlobalRegistry()
       const components = new Map(global.components)
       const decorators = new Map(global.decorators)
+      const actions = new Map(global.actions)
       const defaultDecorators = new Map(global.defaultDecorators)
       const readPrettyComponents = new Map(global.readPrettyComponents)
 
@@ -59,6 +64,9 @@ export const FormProvider = defineComponent({
         }
         for (const [name, dec] of Object.entries(props.scope.decorators)) {
           decorators.set(name, dec as Component)
+        }
+        for (const [name, action] of Object.entries(props.scope.actions ?? {})) {
+          actions.set(name, action as Component)
         }
         for (const [name, decoratorName] of Object.entries(props.scope.defaultDecorators ?? {})) {
           defaultDecorators.set(name, decoratorName)
@@ -78,6 +86,11 @@ export const FormProvider = defineComponent({
           decorators.set(name, dec as Component)
         }
       }
+      if (props.actions) {
+        for (const [name, action] of Object.entries(props.actions)) {
+          actions.set(name, action as Component)
+        }
+      }
       if (props.defaultDecorators) {
         for (const [name, decoratorName] of Object.entries(props.defaultDecorators)) {
           defaultDecorators.set(name, decoratorName)
@@ -89,7 +102,7 @@ export const FormProvider = defineComponent({
         }
       }
 
-      return { components, decorators, defaultDecorators, readPrettyComponents }
+      return { components, decorators, actions, defaultDecorators, readPrettyComponents }
     })
 
     provide(ComponentRegistrySymbol, registry)

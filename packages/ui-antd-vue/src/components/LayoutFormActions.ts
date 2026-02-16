@@ -1,6 +1,6 @@
-import { FormSymbol } from '@moluoxixi/vue'
+import { ComponentRegistrySymbol, FormSymbol } from '@moluoxixi/vue'
 import { Button as AButton } from 'ant-design-vue'
-import { defineComponent, h, inject } from 'vue'
+import { defineComponent, h, inject, type PropType } from 'vue'
 
 /**
  * 表单操作按钮（提交 + 重置）
@@ -17,10 +17,12 @@ export const LayoutFormActions = defineComponent({
     submitLabel: { type: String, default: '提交' },
     resetLabel: { type: String, default: '重置' },
     align: { type: String, default: 'center' },
+    extraActions: { type: Object as PropType<Record<string, unknown>>, default: () => ({}) },
   },
   emits: ['submit', 'submitFailed', 'reset'],
   setup(props, { emit }) {
     const form = inject(FormSymbol, null)
+    const registryRef = inject(ComponentRegistrySymbol)
 
     const handleSubmit = async (): Promise<void> => {
       if (!form)
@@ -48,10 +50,23 @@ export const LayoutFormActions = defineComponent({
       }
 
       const justifyContent = props.align === 'left' ? 'flex-start' : props.align === 'right' ? 'flex-end' : 'center'
+      const extraActionNodes = Object.entries(props.extraActions)
+        .filter(([, config]) => config !== false)
+        .map(([actionName, config]) => {
+          const ActionComp = registryRef?.value.actions.get(actionName)
+          if (!ActionComp) {
+            return null
+          }
+          const resolvedProps = typeof config === 'string'
+            ? { buttonText: config }
+            : (typeof config === 'object' && config !== null && !Array.isArray(config) ? config : {})
+          return h(ActionComp, { key: actionName, ...resolvedProps })
+        })
 
       return h('div', { style: `margin-top: 24px; display: flex; justify-content: ${justifyContent}; gap: 8px` }, [
         props.showSubmit ? h(AButton, { type: 'primary', onClick: handleSubmit }, () => props.submitLabel) : null,
         props.showReset ? h(AButton, { onClick: handleReset }, () => props.resetLabel) : null,
+        ...extraActionNodes,
       ])
     }
   },
