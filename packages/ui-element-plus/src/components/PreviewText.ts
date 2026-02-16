@@ -44,7 +44,23 @@ export const PreviewPassword = defineComponent({
   },
 })
 export const PreviewTextarea = createPreview('CfPreviewTextarea')
-export const PreviewInputNumber = createPreview('CfPreviewInputNumber')
+export const PreviewInputNumber = defineComponent({
+  name: 'CfPreviewInputNumber',
+  inheritAttrs: false,
+  props: {
+    modelValue: { type: [String, Number], default: undefined },
+    prefix: { type: String, default: '' },
+    suffix: { type: String, default: '' },
+  },
+  setup(props) {
+    return () => {
+      if (props.modelValue == null || props.modelValue === '')
+        return h('span', { style: 'color: #c0c4cc' }, '-')
+      const value = String(props.modelValue)
+      return h('span', null, `${props.prefix || ''}${value}${props.suffix || ''}`)
+    }
+  },
+})
 export const PreviewSelect = createPreview('CfPreviewSelect')
 export const PreviewRadioGroup = createPreview('CfPreviewRadioGroup')
 export const PreviewCheckboxGroup = createPreview('CfPreviewCheckboxGroup')
