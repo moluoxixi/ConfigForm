@@ -31,11 +31,14 @@ export const FormItem = defineComponent({
   },
   setup(props, { slots }) {
     const layout = useFormLayout()
+    let fieldFromContext: ReturnType<typeof useField> | null = null
     let fieldPathFromContext: string | undefined
     try {
-      fieldPathFromContext = useField().path
+      fieldFromContext = useField()
+      fieldPathFromContext = fieldFromContext.path
     }
     catch {
+      fieldFromContext = null
       fieldPathFromContext = undefined
     }
 
@@ -71,6 +74,11 @@ export const FormItem = defineComponent({
       const showRequired = props.required && props.pattern === 'editable'
 
       return h('div', {
+        ref: (el: Element | null) => {
+          if (fieldFromContext && 'domRef' in fieldFromContext) {
+            ;(fieldFromContext as unknown as { domRef?: HTMLElement | null }).domRef = el as HTMLElement | null
+          }
+        },
         'role': 'group',
         'data-field-path': fieldPath,
         'data-field-error': hasErrors ? 'true' : undefined,

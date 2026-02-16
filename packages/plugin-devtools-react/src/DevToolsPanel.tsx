@@ -105,15 +105,15 @@ export function DevToolsPanel({ api }: DevToolsPanelProps): React.ReactElement {
   const [selected, setSelected] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<'all' | 'error' | 'required' | 'modified'>('all')
-  const [, setTick] = useState(0)
+  const [tick, setTick] = useState(0)
 
   useEffect(() => api.subscribe(() => setTick(n => n + 1)), [api])
 
-  const tree = useMemo(() => api.getFieldTree(), [api, visible, tab])
-  const overview = useMemo(() => api.getFormOverview(), [api, visible])
-  const events = useMemo(() => api.getEventLog(), [api, visible, tab])
-  const detail = useMemo(() => selected ? api.getFieldDetail(selected) : null, [api, selected])
-  const diff = useMemo(() => api.getValueDiff(), [api, visible, tab])
+  const tree = useMemo(() => api.getFieldTree(), [api, tick, visible, tab])
+  const overview = useMemo(() => api.getFormOverview(), [api, tick, visible])
+  const events = useMemo(() => api.getEventLog(), [api, tick, visible, tab])
+  const detail = useMemo(() => selected ? api.getFieldDetail(selected) : null, [api, tick, selected])
+  const diff = useMemo(() => api.getValueDiff(), [api, tick, visible, tab])
 
   /** 过滤字段树 */
   const filteredTree = useMemo(() => {

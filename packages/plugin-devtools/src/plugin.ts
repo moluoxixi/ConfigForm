@@ -54,6 +54,9 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
 
       /** 数据变化监听器 */
       const listeners = new Set<() => void>()
+      /** 字段创建顺序（跨 field / voidField 统一） */
+      const fieldOrder = new Map<string, number>()
+      let fieldOrderCounter = 0
 
       /** 通知数据变化 */
       function notify(): void {
@@ -125,6 +128,12 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
         disposers.push(form.on(event, (e: FormEvent) => {
           const field = e.payload as FieldInstance
           if (field?.path) {
+            if (event === FormLifeCycle.ON_FIELD_INIT) {
+              const key = normalizePathKey(field.path)
+              if (!fieldOrder.has(key)) {
+                fieldOrder.set(key, ++fieldOrderCounter)
+              }
+            }
             addEvent(event, summarize(field), field.path)
           }
         }))
@@ -179,6 +188,9 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           const type = getFieldType(path)
           if (!nodeMap.has(key)) {
             nodeMap.set(key, serializeField(field as FieldInstance, type))
+            if (!fieldOrder.has(key)) {
+              fieldOrder.set(key, ++fieldOrderCounter)
+            }
           }
         }
 
@@ -188,11 +200,28 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           const key = normalizePathKey(path)
           if (!nodeMap.has(key)) {
             nodeMap.set(key, serializeField(field as unknown as VoidFieldInstance, 'voidField'))
+            if (!fieldOrder.has(key)) {
+              fieldOrder.set(key, ++fieldOrderCounter)
+            }
           }
         }
 
-        /* 按归一化路径排序后构建树，兼容 a[0].b / a.0.b 等等价写法 */
-        const sortedKeys = Array.from(nodeMap.keys()).sort(comparePathKey)
+        /**
+         * 按字段创建顺序构建树（最贴近 Schema 声明顺序），
+         * 兜底再按路径自然序。
+         */
+        const sortedKeys = Array.from(nodeMap.keys()).sort((a, b) => {
+          const orderA = fieldOrder.get(a)
+          const orderB = fieldOrder.get(b)
+          if (orderA !== undefined && orderB !== undefined && orderA !== orderB) {
+            return orderA - orderB
+          }
+          if (orderA !== undefined && orderB === undefined)
+            return -1
+          if (orderA === undefined && orderB !== undefined)
+            return 1
+          return comparePathKey(a, b)
+        })
         for (const key of sortedKeys) {
           const node = nodeMap.get(key)!
           const parentKey = getParentPath(key)
@@ -317,24 +346,13 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           notify()
         },
         highlightField(path: string): void {
-          const field = form.getField(path) as FieldInstance | undefined
-          const el = field?.domRef
-          if (!el)
+          const el = resolveFieldElement(form, path)
+          if (!el) {
+            addEvent('devtools:locate-miss', `定位失败: ${path}`, path)
             return
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          el.style.outline = '2px solid #3b82f6'
-          el.style.outlineOffset = '2px'
-          el.style.transition = 'outline-color 0.3s'
-          setTimeout(() => {
-            el.style.outline = '2px solid #ef4444'
-            setTimeout(() => {
-              el.style.outline = '2px solid #3b82f6'
-              setTimeout(() => {
-                el.style.outline = ''
-                el.style.outlineOffset = ''
-              }, 300)
-            }, 300)
-          }, 300)
+          }
+          flashFieldElement(el)
+          addEvent('devtools:locate', `定位字段: ${path}`, path)
         },
         setFieldValue(path: string, value: unknown): void {
           const field = form.getField(path) as FieldInstance | undefined
@@ -420,12 +438,32 @@ function normalizePathKey(path: string): string {
   return FormPath.parse(path).map(seg => String(seg)).join('.')
 }
 
-/** 路径排序：先深度，后字典（数字按数值比较） */
+/**
+ * 路径排序（分段自然序）
+ *
+ * 规则：
+ * - 按 segment 逐段比较（数字按数值）
+ * - 前缀相同则父路径在前（a.b < a.b.c）
+ */
 function comparePathKey(a: string, b: string): number {
-  const depthDiff = a.split('.').length - b.split('.').length
-  if (depthDiff !== 0)
-    return depthDiff
-  return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+  const aSegments = a.split('.')
+  const bSegments = b.split('.')
+  const length = Math.min(aSegments.length, bSegments.length)
+  for (let i = 0; i < length; i++) {
+    const segA = aSegments[i]
+    const segB = bSegments[i]
+    if (segA === segB)
+      continue
+    const numA = Number(segA)
+    const numB = Number(segB)
+    const aNumeric = Number.isInteger(numA) && String(numA) === segA
+    const bNumeric = Number.isInteger(numB) && String(numB) === segB
+    if (aNumeric && bNumeric) {
+      return numA - numB
+    }
+    return segA.localeCompare(segB, undefined, { numeric: true, sensitivity: 'base' })
+  }
+  return aSegments.length - bSegments.length
 }
 
 /** 安全序列化（避免循环引用和函数） */
@@ -444,6 +482,78 @@ function safeSerialize(value: unknown): unknown {
   catch {
     return String(value)
   }
+}
+
+/** 定位字段对应的 DOM 元素（优先 domRef，兜底 data-field-path 查询） */
+function resolveFieldElement(form: FormInstance, path: string): HTMLElement | null {
+  const field = form.getField(path) as FieldInstance | undefined
+  if (field?.domRef) {
+    return field.domRef
+  }
+
+  if (typeof document === 'undefined') {
+    return null
+  }
+
+  const normalizedPath = normalizePathKey(path)
+  const bracketPath = FormPath.stringify(FormPath.parse(path))
+  const candidates = Array.from(new Set([path, normalizedPath, bracketPath])).filter(Boolean)
+
+  for (const candidate of candidates) {
+    const escaped = escapeSelectorAttrValue(candidate)
+    const exact = document.querySelector(
+      `[data-field-path="${escaped}"], [name="${escaped}"]`,
+    ) as HTMLElement | null
+    if (exact) {
+      return exact
+    }
+  }
+
+  /**
+   * void/container 节点通常没有自己的 data-field-path，
+   * 兜底定位到第一个后代数据字段。
+   */
+  for (const candidate of candidates) {
+    const escaped = escapeSelectorAttrValue(candidate)
+    const descendant = document.querySelector(
+      `[data-field-path^="${escaped}."], [data-field-path^="${escaped}["]`,
+    ) as HTMLElement | null
+    if (descendant) {
+      return descendant
+    }
+  }
+
+  return null
+}
+
+/** 对 attribute selector 值做最小转义（引号与反斜杠） */
+function escapeSelectorAttrValue(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+}
+
+/** 滚动并闪烁高亮元素 */
+function flashFieldElement(el: HTMLElement): void {
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+
+  const prevOutline = el.style.outline
+  const prevOutlineOffset = el.style.outlineOffset
+  const prevTransition = el.style.transition
+
+  el.style.outline = '2px solid #3b82f6'
+  el.style.outlineOffset = '2px'
+  el.style.transition = 'outline-color 0.3s'
+
+  setTimeout(() => {
+    el.style.outline = '2px solid #ef4444'
+    setTimeout(() => {
+      el.style.outline = '2px solid #3b82f6'
+      setTimeout(() => {
+        el.style.outline = prevOutline
+        el.style.outlineOffset = prevOutlineOffset
+        el.style.transition = prevTransition
+      }, 300)
+    }, 300)
+  }, 300)
 }
 
 /** 确保全局 Hook 存在 */
