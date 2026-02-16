@@ -12,5 +12,5 @@ export {
   isI18nKey,
   translateSchema,
 } from './schema-i18n'
-export type { I18nPluginAPI, I18nPluginConfig } from './types'
 export type { SchemaI18nConfig, TranslateFunction } from './schema-i18n'
+export type { I18nPluginAPI, I18nPluginConfig } from './types'

@@ -1,5 +1,4 @@
-import type { DataSourceItem } from '@moluoxixi/core'
-import type { ISchema } from '@moluoxixi/core'
+import type { DataSourceItem, ISchema } from '@moluoxixi/core'
 
 /**
  * i18n 翻译函数类型

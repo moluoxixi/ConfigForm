@@ -429,6 +429,7 @@ function renderTreeView(
       /* 节点行 */
       h('div', {
         onClick: () => onSelect(n.path),
+        title: n.path,
         style: {
           display: 'flex',
           alignItems: 'center',
@@ -498,6 +499,8 @@ const DetailViewComponent = defineComponent({
     const editValue = ref('')
     /** 是否处于编辑模式 */
     const editing = ref(false)
+    /** 最近复制成功的字段路径 */
+    const copiedPath = ref('')
 
     /** 开始编辑字段值 */
     function startEdit(): void {
@@ -517,10 +520,26 @@ const DetailViewComponent = defineComponent({
       editing.value = false
     }
 
+    /** 复制字段路径 */
+    function copyPath(): void {
+      navigator.clipboard
+        .writeText(props.detail.path)
+        .then(() => {
+          copiedPath.value = props.detail.path
+          setTimeout(() => {
+            if (copiedPath.value === props.detail.path) {
+              copiedPath.value = ''
+            }
+          }, 1500)
+        })
+        .catch(() => { /* 剪贴板不可用时静默 */ })
+    }
+
     return (): VNode => {
       const t = props.theme
       const detail = props.detail
       const api = props.api
+      const isCopied = copiedPath.value === detail.path
 
       return h('div', { style: { padding: '14px' } }, [
         /* ---- 标题区 ---- */
@@ -551,6 +570,20 @@ const DetailViewComponent = defineComponent({
                 fontFamily: 'inherit',
               },
             }, '定位'),
+            h('button', {
+              onClick: copyPath,
+              title: '复制字段路径',
+              style: {
+                background: isCopied ? t.green : 'none',
+                border: `1px solid ${isCopied ? t.green : t.border}`,
+                color: isCopied ? '#fff' : t.textSecondary,
+                cursor: 'pointer',
+                borderRadius: '4px',
+                padding: '1px 6px',
+                fontSize: '10px',
+                fontFamily: 'inherit',
+              },
+            }, isCopied ? '已复制' : '复制路径'),
           ]),
           h('span', {
             style: { fontSize: '12px', color: t.textDim, fontFamily: 'monospace' },
@@ -1153,7 +1186,7 @@ export const DevToolsPanel = defineComponent({
                 onInput: (e: Event): void => {
                   search.value = (e.target as HTMLInputElement).value
                 },
-                placeholder: '搜索字段...',
+                placeholder: '搜索字段或路径...',
                 style: {
                   flex: 1,
                   border: 'none',

@@ -1,9 +1,9 @@
-import i18next from 'i18next'
-import type { Resource, i18n as I18nextInstance } from 'i18next'
-import { reactI18nPlugin } from './plugin'
 import type { FormPlugin } from '@moluoxixi/core'
 import type { I18nPluginAPI } from '@moluoxixi/plugin-i18n-core'
+import type { i18n as I18nextInstance, Resource } from 'i18next'
 import type { I18nMessages, ReactMessageI18nRuntime, ReactMessageI18nRuntimeOptions } from './types'
+import i18next from 'i18next'
+import { reactI18nPlugin } from './plugin'
 
 function toResources(messages: I18nMessages, namespace: string): Resource {
   return Object.fromEntries(

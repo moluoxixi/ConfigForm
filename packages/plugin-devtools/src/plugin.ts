@@ -1,6 +1,6 @@
 import type { FieldInstance, FormEvent, FormInstance, FormPlugin, VoidFieldInstance } from '@moluoxixi/core'
 import type { DevToolsGlobalHook, DevToolsPluginAPI, EventLogEntry, FieldDetail, FieldTreeNode, FormOverview, ValueDiffEntry } from './types'
-import { FormLifeCycle } from '@moluoxixi/core'
+import { FormLifeCycle, FormPath } from '@moluoxixi/core'
 
 /** 插件配置 */
 export interface DevToolsPluginConfig {
@@ -175,26 +175,30 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
         /* 收集所有数据字段 */
         const allFields = form.getAllFields()
         for (const [path, field] of allFields) {
+          const key = normalizePathKey(path)
           const type = getFieldType(path)
-          nodeMap.set(path, serializeField(field as FieldInstance, type))
+          if (!nodeMap.has(key)) {
+            nodeMap.set(key, serializeField(field as FieldInstance, type))
+          }
         }
 
         /* 收集所有虚拟字段 */
         const allVoidFields = form.getAllVoidFields()
         for (const [path, field] of allVoidFields) {
-          if (!nodeMap.has(path)) {
-            nodeMap.set(path, serializeField(field as unknown as VoidFieldInstance, 'voidField'))
+          const key = normalizePathKey(path)
+          if (!nodeMap.has(key)) {
+            nodeMap.set(key, serializeField(field as unknown as VoidFieldInstance, 'voidField'))
           }
         }
 
-        /* 按路径深度排序，构建树 */
-        const sortedPaths = Array.from(nodeMap.keys()).sort()
-        for (const path of sortedPaths) {
-          const node = nodeMap.get(path)!
-          const parentPath = getParentPath(path)
+        /* 按归一化路径排序后构建树，兼容 a[0].b / a.0.b 等等价写法 */
+        const sortedKeys = Array.from(nodeMap.keys()).sort(comparePathKey)
+        for (const key of sortedKeys) {
+          const node = nodeMap.get(key)!
+          const parentKey = getParentPath(key)
 
-          if (parentPath && nodeMap.has(parentPath)) {
-            nodeMap.get(parentPath)!.children.push(node)
+          if (parentKey && nodeMap.has(parentKey)) {
+            nodeMap.get(parentKey)!.children.push(node)
           }
           else {
             roots.push(node)
@@ -405,8 +409,23 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
 
 /** 获取父路径（a.b.c → a.b） */
 function getParentPath(path: string): string {
-  const lastDot = path.lastIndexOf('.')
-  return lastDot > 0 ? path.slice(0, lastDot) : ''
+  const segments = path.split('.')
+  if (segments.length <= 1)
+    return ''
+  return segments.slice(0, -1).join('.')
+}
+
+/** 归一化路径键（统一 a[0].b 与 a.0.b） */
+function normalizePathKey(path: string): string {
+  return FormPath.parse(path).map(seg => String(seg)).join('.')
+}
+
+/** 路径排序：先深度，后字典（数字按数值比较） */
+function comparePathKey(a: string, b: string): number {
+  const depthDiff = a.split('.').length - b.split('.').length
+  if (depthDiff !== 0)
+    return depthDiff
+  return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
 }
 
 /** 安全序列化（避免循环引用和函数） */

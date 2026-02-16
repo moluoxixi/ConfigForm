@@ -5,10 +5,11 @@
  * 场景特定能力（如 i18n 运行时与语言切换）在外层注入，避免通用渲染器耦合业务逻辑。
  */
 import type { FieldPattern, FormPlugin, ISchema } from '@moluoxixi/core'
-import { resolveSceneSchema, type SceneConfig } from '@playground/shared'
+import type { SceneConfig } from '@playground/shared'
 import { devToolsPlugin } from '@moluoxixi/plugin-devtools'
 import { ConfigForm } from '@moluoxixi/react'
 import { StatusTabs } from '@moluoxixi/ui-antd'
+import { resolveSceneSchema } from '@playground/shared'
 import { observer } from 'mobx-react-lite'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 

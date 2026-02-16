@@ -31,7 +31,7 @@ export function i18nPlugin(config: I18nPluginConfig): FormPlugin<I18nPluginAPI> 
   return {
     name: 'i18n',
 
-    install(form: FormInstance) {
+    install(_form: FormInstance) {
       let currentLocale = initialLocale
       let version = 0
       const listeners = new Set<(nextVersion: number) => void>()
@@ -55,9 +55,9 @@ export function i18nPlugin(config: I18nPluginConfig): FormPlugin<I18nPluginAPI> 
 
       const disposeLocale = onLocaleChange
         ? onLocaleChange((next) => {
-          currentLocale = next
-          refresh()
-        })
+            currentLocale = next
+            refresh()
+          })
         : undefined
 
       const subscribe = (listener: (nextVersion: number) => void): (() => void) => {

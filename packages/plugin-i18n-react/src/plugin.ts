@@ -1,8 +1,8 @@
-import { i18nPlugin } from '@moluoxixi/plugin-i18n-core'
 import type { FormPlugin } from '@moluoxixi/core'
 import type { I18nPluginAPI } from '@moluoxixi/plugin-i18n-core'
 import type { i18n as I18nextInstance } from 'i18next'
 import type { ReactI18nPluginOptions } from './types'
+import { i18nPlugin } from '@moluoxixi/plugin-i18n-core'
 
 function resolveLocale(i18n: I18nextInstance, fallback?: string): string {
   return i18n.resolvedLanguage || i18n.language || fallback || ''

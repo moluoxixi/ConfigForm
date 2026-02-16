@@ -208,7 +208,7 @@ export function DevToolsPanel({ api }: DevToolsPanelProps): React.ReactElement {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="搜索字段..."
+            placeholder="搜索字段或路径..."
             style={{
               flex: 1,
               border: 'none',
@@ -400,6 +400,7 @@ function TreeView({ t, nodes, selected, onSelect, depth = 0 }: {
         <div key={n.path}>
           <div
             onClick={() => onSelect(n.path)}
+            title={n.path}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -448,6 +449,11 @@ function Dot({ color }: { color: string }): React.ReactElement {
 function DetailView({ t, detail, api }: { t: Theme, detail: FieldDetail, api: DevToolsPluginAPI }): React.ReactElement {
   const [editValue, setEditValue] = useState('')
   const [editing, setEditing] = useState(false)
+  const [copiedPath, setCopiedPath] = useState(false)
+
+  useEffect(() => {
+    setCopiedPath(false)
+  }, [detail.path])
 
   const startEdit = useCallback(() => {
     setEditValue(JSON.stringify(detail.value) ?? '')
@@ -465,6 +471,18 @@ function DetailView({ t, detail, api }: { t: Theme, detail: FieldDetail, api: De
     setEditing(false)
   }, [api, detail.path, editValue])
 
+  const copyPath = useCallback(() => {
+    navigator.clipboard
+      .writeText(detail.path)
+      .then(() => {
+        setCopiedPath(true)
+        setTimeout(() => {
+          setCopiedPath(false)
+        }, 1500)
+      })
+      .catch(() => {})
+  }, [detail.path])
+
   return (
     <div style={{ padding: 14 }}>
       {/* 标题 */}
@@ -478,6 +496,13 @@ function DetailView({ t, detail, api }: { t: Theme, detail: FieldDetail, api: De
             style={{ background: 'none', border: `1px solid ${t.border}`, color: t.accent, cursor: 'pointer', borderRadius: 4, padding: '1px 6px', fontSize: 10, fontFamily: 'inherit' }}
           >
             定位
+          </button>
+          <button
+            onClick={copyPath}
+            title="复制字段路径"
+            style={{ background: copiedPath ? t.green : 'none', border: `1px solid ${copiedPath ? t.green : t.border}`, color: copiedPath ? '#fff' : t.textSecondary, cursor: 'pointer', borderRadius: 4, padding: '1px 6px', fontSize: 10, fontFamily: 'inherit' }}
+          >
+            {copiedPath ? '已复制' : '复制路径'}
           </button>
         </div>
         <span style={{ fontSize: 12, color: t.textDim, fontFamily: 'monospace' }}>{detail.path}</span>

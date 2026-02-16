@@ -60,6 +60,13 @@ export function resolveComponent(schema: ISchema, mapping: Record<string, Schema
   if (schema.component)
     return schema.component
 
+  /*
+   * object / void 默认不强制推断为输入组件。
+   * 这两类节点通常作为容器使用（承载 children），若误推断为 Input 会吞掉子节点。
+   */
+  if (schema.type === 'object' || schema.type === 'void')
+    return ''
+
   if (schema.enum && schema.enum.length > 0)
     return 'Select'
 

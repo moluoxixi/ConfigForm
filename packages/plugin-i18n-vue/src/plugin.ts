@@ -1,9 +1,9 @@
-import { i18nPlugin } from '@moluoxixi/plugin-i18n-core'
-import { isRef, watch } from 'vue'
 import type { FormPlugin } from '@moluoxixi/core'
 import type { I18nPluginAPI } from '@moluoxixi/plugin-i18n-core'
 import type { I18n } from 'vue-i18n'
 import type { VueComposerLike, VueI18nLike, VueI18nPluginOptions } from './types'
+import { i18nPlugin } from '@moluoxixi/plugin-i18n-core'
+import { isRef, watch } from 'vue'
 
 function resolveComposer(i18n: VueI18nLike): VueComposerLike {
   if ('global' in i18n) {
