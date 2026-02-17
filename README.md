@@ -17,7 +17,9 @@
 @moluoxixi/plugin-i18n-react← React + i18next 适配
 @moluoxixi/plugin-i18n-vue  ← Vue + vue-i18n 适配
 @moluoxixi/plugin-json-schema   ← JSON Schema 适配插件
-@moluoxixi/plugin-lower-code    ← 低代码增强插件
+@moluoxixi/plugin-lower-code-core  ← 低代码设计器核心模型
+@moluoxixi/plugin-lower-code-react ← React 低代码设计器适配
+@moluoxixi/plugin-lower-code-vue   ← Vue 低代码设计器适配
 ```
 
 ## 架构分层

@@ -9,8 +9,7 @@
   },
   "dependencies": {
     "@moluoxixi/core": "workspace:*",
-    "@moluoxixi/plugin-json-schema": "workspace:*",
-    "@moluoxixi/plugin-lower-code": "workspace:*"
+    "@moluoxixi/plugin-json-schema": "workspace:*"
   },
   "devDependencies": {
     "typescript": "catalog:type"

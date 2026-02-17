@@ -64,10 +64,14 @@ export const RecursionField = observer<RecursionFieldProps>(
             required: fieldSchema.required === true,
             component: resolvedComp,
             componentProps: fieldSchema.componentProps,
+            decorator: fieldSchema.decorator,
+            decoratorProps: fieldSchema.decoratorProps,
             rules: fieldSchema.rules,
+            visible: fieldSchema.visible,
             disabled: fieldSchema.disabled,
             preview: fieldSchema.preview,
             pattern: fieldSchema.pattern,
+            reactions: fieldSchema.reactions,
             dataSource,
             displayFormat: fieldSchema.displayFormat as ((value: unknown) => unknown) | undefined,
             inputParse: fieldSchema.inputParse as ((value: unknown) => unknown) | undefined,
@@ -153,6 +157,8 @@ export const RecursionField = observer<RecursionFieldProps>(
             name={dataPath}
             fieldProps={{
               label: fieldSchema.title,
+              decorator: fieldSchema.decorator,
+              decoratorProps: fieldSchema.decoratorProps,
               minItems: fieldSchema.minItems,
               maxItems: fieldSchema.maxItems,
               itemTemplate: fieldSchema.itemTemplate,
@@ -176,6 +182,8 @@ export const RecursionField = observer<RecursionFieldProps>(
                 label: fieldSchema.title,
                 component: fieldSchema.component,
                 componentProps: fieldSchema.componentProps,
+                decorator: fieldSchema.decorator,
+                decoratorProps: fieldSchema.decoratorProps,
               }}
             >
               {renderProperties(fieldSchema, dataPath, dataPath)}

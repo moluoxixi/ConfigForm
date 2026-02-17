@@ -94,10 +94,9 @@ export const sceneRegistry: Record<string, { group: string, loader: () => Promis
   SSRCompatForm: { group: '09-advanced', loader: () => import('./11-advanced/SSRCompatForm') },
   VirtualScrollForm: { group: '09-advanced', loader: () => import('./11-advanced/VirtualScrollForm') },
 
-  /* 10-state — 状态管理（6 个） */
+  /* 10-state — 状态管理（5 个） */
   LifecycleForm: { group: '10-state', loader: () => import('./09-state/LifecycleForm') },
   DataTransformForm: { group: '10-state', loader: () => import('./09-state/DataTransformForm') },
-  FormSnapshotForm: { group: '10-state', loader: () => import('./09-state/FormSnapshotForm') },
   PatternSwitchForm: { group: '10-state', loader: () => import('./09-state/PatternSwitchForm') },
   DisplayTriStateForm: { group: '10-state', loader: () => import('./09-state/DisplayTriStateForm') },
   FormGraphForm: { group: '10-state', loader: () => import('./09-state/FormGraphForm') },
@@ -106,13 +105,9 @@ export const sceneRegistry: Record<string, { group: string, loader: () => Promis
   I18nForm: { group: '11-misc', loader: () => import('./10-misc/I18nForm') },
   PrintExportForm: { group: '11-misc', loader: () => import('./10-misc/PrintExportForm') },
 
-  /* 12-plugin — 插件能力（6 个） */
-  UndoRedoForm: { group: '12-plugin', loader: () => import('./09-state/UndoRedoForm') },
-  FormDiffForm: { group: '12-plugin', loader: () => import('./10-misc/FormDiffForm') },
-  PermissionForm: { group: '12-plugin', loader: () => import('./10-misc/PermissionForm') },
+  /* 12-plugin — 插件能力（2 个） */
   JsonSchemaAdapterForm: { group: '12-plugin', loader: () => import('./11-advanced/JsonSchemaAdapterForm') },
-  MaskingPluginForm: { group: '12-plugin', loader: () => import('./10-misc/MaskingPluginForm') },
-  SubmitRetryPluginForm: { group: '12-plugin', loader: () => import('./10-misc/SubmitRetryPluginForm') },
+  LowCodeDesignerForm: { group: '12-plugin', loader: () => import('./10-misc/LowCodeDesignerForm') },
 }
 
 /** 场景分组列表（从 registry 自动生成） */

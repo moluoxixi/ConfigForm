@@ -7,6 +7,7 @@ import type { DevToolsPluginAPI } from '@moluoxixi/plugin-devtools'
  */
 import type { SceneConfig } from '@playground/shared'
 import { DevToolsPanel } from '@moluoxixi/plugin-devtools-react'
+import { setupLowerCodeDesigner } from '@moluoxixi/plugin-lower-code-react'
 import { registerComponent, registerDecorator } from '@moluoxixi/react'
 import { setupAntd } from '@moluoxixi/ui-antd'
 import { getSceneGroups, sceneRegistry } from '@playground/shared'
@@ -41,6 +42,7 @@ registerComponent('ColorPicker', ColorPicker, {
 registerComponent('CronEditor', CronEditor, { defaultDecorator: 'FormItem' })
 registerComponent('SignaturePad', SignaturePad) /* 无装饰器，裸渲染 */
 registerComponent('CodeEditor', CodeEditor) /* 无装饰器，裸渲染 */
+setupLowerCodeDesigner()
 
 /* 注册自定义装饰器 */
 registerDecorator('CardDecorator', CardDecorator)

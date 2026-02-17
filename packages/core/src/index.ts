@@ -98,6 +98,7 @@ export type {
 } from './schema'
 /* shared — 工具函数和公共类型 */
 export {
+  cloneDeep,
   cloneWithoutKeyPrefixes,
   debounce,
   deepClone,

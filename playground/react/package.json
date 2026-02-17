@@ -18,6 +18,7 @@
     "@moluoxixi/plugin-export": "workspace:*",
     "@moluoxixi/plugin-i18n-react": "workspace:*",
     "@moluoxixi/plugin-import": "workspace:*",
+    "@moluoxixi/plugin-lower-code-react": "workspace:*",
     "@moluoxixi/plugin-print": "workspace:*",
     "@moluoxixi/react": "workspace:*",
     "@moluoxixi/reactive-react": "workspace:*",

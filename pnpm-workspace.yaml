@@ -26,6 +26,7 @@ catalogs:
     print-js: ^1.6.0
     react: ^18.3.0
     react-dom: ^18.3.0
+    sortablejs: ^1.15.6
     vue: ^3.5.0
     vue-i18n: ^9.10.0
   dev:
@@ -49,6 +50,7 @@ catalogs:
     '@types/node': ^22.14.0
     '@types/react': ^18.3.0
     '@types/react-dom': ^18.3.0
+    '@types/sortablejs': ^1.15.8
     '@vue-macros/volar': ^3.0.0-beta.15
     tsup: ^8.4.0
     tsx: ^4.20.5

@@ -98,6 +98,7 @@ import type { DevToolsPluginAPI } from '@moluoxixi/plugin-devtools'
 import type { SceneConfig } from '@playground/shared'
 import type { UIAdapter, UILib } from './ui'
 import { DevToolsPanel } from '@moluoxixi/plugin-devtools-vue'
+import { setupLowerCodeDesigner } from '@moluoxixi/plugin-lower-code-vue'
 import { registerComponent } from '@moluoxixi/vue'
 import { getSceneGroups, sceneRegistry } from '@playground/shared'
 import { computed, defineComponent, h, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
@@ -172,6 +173,7 @@ registerComponent('CronEditor', CronEditor, {
 })
 registerComponent('CodeEditor', CodeEditor)
 registerComponent('SignaturePad', SignaturePad)
+setupLowerCodeDesigner()
 
 const uiLibs = [
   { key: 'antd-vue' as UILib, label: 'Ant Design Vue', color: '#1677ff' },

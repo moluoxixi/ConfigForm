@@ -47,7 +47,7 @@ export const FormField = observer<FormFieldProps>(({ name, fieldProps, children 
       const mergedProps: FieldProps = { ...(fieldProps ?? {}), name }
       /* pattern 无需手动注入 form.pattern，field.pattern getter 已自动回退 */
       /* 未显式指定 decorator 时，使用组件注册的默认 decorator */
-      if (!mergedProps.decorator && typeof mergedProps.component === 'string') {
+      if (mergedProps.decorator === undefined && typeof mergedProps.component === 'string') {
         const dd = registry.defaultDecorators.get(mergedProps.component)
         if (dd)
           mergedProps.decorator = dd
