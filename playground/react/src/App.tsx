@@ -103,7 +103,7 @@ export function App(): React.ReactElement {
   }, [i18nFeature.headerExtra])
 
   return (
-    <div style={{ maxWidth: 1400, margin: '0 auto', padding: 16, fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ width: '100%', margin: 0, padding: 16, fontFamily: 'system-ui, sans-serif', height: '100%', minHeight: 0, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <h1 style={{ marginBottom: 4 }}>ConfigForm - React Playground</h1>
       <p style={{ color: '#666', marginBottom: 16, fontSize: 13 }}>
         基于 MobX 的响应式配置化表单 ·
@@ -120,10 +120,10 @@ export function App(): React.ReactElement {
         </span>
       </div>
 
-      <div style={{ display: 'flex', gap: 16 }}>
+      <div style={{ display: 'flex', gap: 16, minWidth: 0, flex: 1, minHeight: 0, overflow: 'hidden' }}>
         {/* 左侧导航 */}
-        <div style={{ width: 280, flexShrink: 0, border: '1px solid #eee', borderRadius: 8, overflow: 'hidden' }}>
-          <div style={{ maxHeight: 'calc(100vh - 180px)', overflow: 'auto', padding: 8 }}>
+        <div style={{ width: 280, flexShrink: 0, border: '1px solid #eee', borderRadius: 8, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', padding: 8 }}>
             {sceneGroups.map(group => (
               <div key={group.key} style={{ marginBottom: 8 }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: '#999', padding: '2px 4px' }}>{group.label}</div>
@@ -142,7 +142,7 @@ export function App(): React.ReactElement {
         </div>
 
         {/* 右侧内容区 */}
-        <div style={{ flex: 1, border: '1px solid #eee', borderRadius: 8, padding: 24, background: '#fff', minHeight: 400 }}>
+        <div style={{ flex: 1, minWidth: 0, minHeight: 0, border: '1px solid #eee', borderRadius: 8, padding: 24, background: '#fff', display: 'flex', flexDirection: 'column', overflowY: 'auto', overflowX: 'hidden' }}>
           {sceneConfig
             ? (
                 <SceneRenderer
@@ -152,9 +152,14 @@ export function App(): React.ReactElement {
                   description={i18nFeature.description}
                   extraPlugins={scenePlugins}
                   headerExtra={sceneHeaderExtra}
+                  style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
                 />
               )
-            : <div style={{ textAlign: 'center', color: '#999', padding: 40 }}>{loading ? '加载中...' : '请选择场景'}</div>}
+            : (
+                <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', color: '#999', padding: 40 }}>
+                  {loading ? '加载中...' : '请选择场景'}
+                </div>
+              )}
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 <template>
-  <div style="max-width: 1400px; margin: 0 auto; padding: 16px; font-family: system-ui, sans-serif;">
+  <div style="width: 100%; margin: 0; padding: 16px; font-family: system-ui, sans-serif; height: 100%; min-height: 0; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden;">
     <h1 style="margin-bottom: 4px;">
       ConfigForm - Vue Playground
     </h1>
@@ -27,10 +27,10 @@
     </div>
 
     <!-- 主体：左侧导航 + 右侧内容 -->
-    <div style="display: flex; gap: 16px;">
+    <div style="display: flex; gap: 16px; min-width: 0; flex: 1; min-height: 0; overflow: hidden;">
       <!-- 左侧导航 -->
-      <div style="width: 280px; flex-shrink: 0; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
-        <div style="max-height: calc(100vh - 180px); overflow: auto; padding: 8px;">
+      <div style="width: 280px; flex-shrink: 0; border: 1px solid #eee; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; min-height: 0;">
+        <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 8px;">
           <div v-for="group in sceneGroups" :key="group.key" style="margin-bottom: 8px;">
             <div style="font-size: 11px; font-weight: 600; color: #999; padding: 2px 4px;">
               {{ group.label }}
@@ -43,7 +43,7 @@
       </div>
 
       <!-- 右侧内容区 -->
-      <div style="flex: 1; border: 1px solid #eee; border-radius: 8px; padding: 24px; background: #fff; min-height: 400px;">
+      <div style="flex: 1; min-width: 0; min-height: 0; border: 1px solid #eee; border-radius: 8px; padding: 24px; background: #fff; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden;">
         <SceneRenderer
           v-if="sceneConfig && currentAdapter"
           :key="`${currentDemo}-${currentUI}`"
@@ -52,6 +52,7 @@
           :description="sceneDescription"
           :extra-plugins="scenePlugins"
           :status-tabs="currentAdapter.StatusTabs"
+          style="flex: 1; min-height: 0; display: flex; flex-direction: column;"
         >
           <template #header-extra>
             <div
@@ -81,7 +82,7 @@
             </div>
           </template>
         </SceneRenderer>
-        <div v-else style="text-align: center; color: #999; padding: 40px;">
+        <div v-else style="flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; text-align: center; color: #999; padding: 40px;">
           {{ loading ? '加载中...' : '请选择场景' }}
         </div>
       </div>
@@ -256,3 +257,17 @@ function navBtnStyle(name: string): Record<string, string> {
   }
 }
 </script>
+
+<style>
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
+}
+</style>
