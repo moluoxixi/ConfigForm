@@ -67,6 +67,7 @@ const DESIGNER_CSS = `
   width: 100%;
   min-height: inherit;
   border-radius: inherit;
+  overflow: visible;
 }
 
 .cf-lc-mask-layer-content {
@@ -101,9 +102,10 @@ const DESIGNER_CSS = `
 
 .cf-lc-mask-layer-actions {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  z-index: 16;
+  top: 0;
+  right: 0;
+  transform: translate(42%, -58%);
+  z-index: 30;
   pointer-events: auto;
   display: flex;
   align-items: flex-start;
@@ -310,12 +312,14 @@ const DESIGNER_CSS = `
 
 .cf-lc-node {
   position: relative;
+  z-index: 0;
   width: 100%;
   box-sizing: border-box;
   border-radius: 10px;
   border: 1px solid transparent;
   background: #ffffff;
   padding: 0;
+  overflow: visible;
   user-select: none;
   touch-action: none;
   transition: border-color .16s ease, box-shadow .16s ease, background-color .16s ease, transform .16s ease;
@@ -344,6 +348,7 @@ const DESIGNER_CSS = `
   border-color: #bfdbfe;
   box-shadow: 0 0 0 1px #dbeafe;
   background: #f8fbff;
+  z-index: 8;
 }
 
 .cf-lc-node--selected.cf-lc-node--container > .cf-lc-mask-layer > .cf-lc-mask-layer-content,
@@ -456,10 +461,12 @@ const DESIGNER_CSS = `
 
 .cf-lc-section {
   position: relative;
+  z-index: 0;
   border: 1px solid transparent;
   border-radius: 9px;
   background: #ffffff;
   padding: 8px;
+  overflow: visible;
 }
 
 .cf-lc-section::after {
@@ -491,6 +498,7 @@ const DESIGNER_CSS = `
   border-color: #bfdbfe;
   box-shadow: 0 0 0 1px #dbeafe;
   background: rgba(239, 246, 255, 0.56);
+  z-index: 6;
 }
 
 .cf-lc-section--selected::after {
@@ -518,8 +526,9 @@ const DESIGNER_CSS = `
 
 .cf-lc-section-action {
   position: absolute;
-  top: -8px;
-  right: -8px;
+  top: 0;
+  right: 0;
+  transform: translate(46%, -54%);
   border: 1px solid #d5e2f3;
   border-radius: 999px;
   width: 22px;
