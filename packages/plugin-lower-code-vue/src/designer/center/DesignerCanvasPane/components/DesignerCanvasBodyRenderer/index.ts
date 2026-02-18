@@ -20,16 +20,9 @@ export const DesignerCanvasBodyRenderer = defineComponent({
   },
   setup(props) {
     return () => h('div', {
+      class: 'cf-lc-canvas-wrap',
       ref: (element: unknown) => {
         props.setCanvasHost(element as HTMLElement | null)
-      },
-      style: {
-        height: '100%',
-        minHeight: 0,
-        overflow: 'auto',
-        padding: '12px',
-        width: '100%',
-        boxSizing: 'border-box',
       },
     }, [
       props.renderDropList(

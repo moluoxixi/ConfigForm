@@ -172,12 +172,12 @@ export function CanvasPanel({
         data-node-id={node.id}
         data-parent-target-key={parentTargetKey}
         className={`cf-lc-node cf-lc-node--field ${selected ? 'cf-lc-node--selected' : ''}`}
+        onMouseDownCapture={() => onSelect(node.id)}
         onClick={() => onSelect(node.id)}
       >
-        {renderNodeToolbar(node.id)}
         <div className="cf-lc-node-preview">
           <div className={`cf-lc-material-preview cf-lc-material-preview--${componentClassName}`}>
-            <CanvasMaskLayer>
+            <CanvasMaskLayer actions={selected ? renderNodeToolbar(node.id) : null}>
               {renderFieldPreviewControl(node, { phase: 'canvas', readonly: false })}
             </CanvasMaskLayer>
           </div>
@@ -225,6 +225,7 @@ export function CanvasPanel({
       <div
         key={section.id}
         className={`cf-lc-section cf-lc-section--${mode} ${selected ? 'cf-lc-section--selected' : ''}`}
+        onMouseDownCapture={() => onSelect(section.id)}
         onClick={(event) => {
           event.stopPropagation()
           onSelect(section.id)
@@ -305,15 +306,22 @@ export function CanvasPanel({
         data-node-id={node.id}
         data-parent-target-key={parentTargetKey}
         className={`cf-lc-node cf-lc-node--container ${selected ? 'cf-lc-node--selected' : ''}`}
+        onMouseDownCapture={() => onSelect(node.id)}
         onClick={() => onSelect(node.id)}
       >
-        {renderNodeToolbar(node.id, {
-          allowAddSection: containerUsesSections(node.component),
-          onAddSection: () => onAddSection(node.id),
-        })}
-        <div className="cf-lc-container-body">
-          {renderContainerContent(node, depth)}
-        </div>
+        <CanvasMaskLayer
+          actions={selected
+            ? renderNodeToolbar(node.id, {
+                allowAddSection: containerUsesSections(node.component),
+                onAddSection: () => onAddSection(node.id),
+              })
+            : null}
+          disablePointerEvents={false}
+        >
+          <div className="cf-lc-container-body">
+            {renderContainerContent(node, depth)}
+          </div>
+        </CanvasMaskLayer>
       </div>
     )
   }
@@ -325,10 +333,8 @@ export function CanvasPanel({
   }
 
   return (
-    <section className="cf-lc-panel">
-      <div ref={canvasHostRef} className="cf-lc-canvas-wrap">
-        {renderDropList(nodes, targetToKey(rootTarget()), 0, '从左侧拖拽一个字段或容器到这里开始设计。')}
-      </div>
-    </section>
+    <div ref={canvasHostRef} className="cf-lc-canvas-wrap">
+      {renderDropList(nodes, targetToKey(rootTarget()), 0, '从左侧拖拽一个字段或容器到这里开始设计。')}
+    </div>
   )
 }

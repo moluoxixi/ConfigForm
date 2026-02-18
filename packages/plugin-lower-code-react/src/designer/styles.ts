@@ -83,6 +83,20 @@ export const DESIGNER_CSS = `
   min-height: 0;
 }
 
+.cf-lc-pane-configform-shell,
+.cf-lc-pane-configform-shell > form,
+.cf-lc-pane-configform-shell > form > div {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+.cf-lc-pane-configform-shell > form {
+  margin: 0;
+}
+
 .cf-lc-panel--side .cf-lc-panel-body {
   height: 100%;
   min-height: 0;
@@ -206,7 +220,7 @@ export const DESIGNER_CSS = `
   height: 100%;
 }
 
-.cf-lc-material-pane-form .ant-tabs-tabpane {
+.cf-lc-material-pane-form .ant-tabs-tabpane:not(.ant-tabs-tabpane-hidden) {
   display: flex;
   flex-direction: column;
 }
@@ -389,9 +403,29 @@ export const DESIGNER_CSS = `
   border-radius: inherit;
 }
 
-.cf-lc-mask-layer-content,
-.cf-lc-mask-layer-content * {
+.cf-lc-mask-layer-content {
+  width: 100%;
+  min-height: inherit;
+  margin: 0;
+  padding: 0;
+  gap: 0;
+  box-sizing: border-box;
+}
+
+.cf-lc-mask-layer--locked .cf-lc-mask-layer-content,
+.cf-lc-mask-layer--locked .cf-lc-mask-layer-content * {
   pointer-events: none !important;
+}
+
+.cf-lc-mask-layer-actions {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  z-index: 16;
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
 }
 
 .cf-lc-mask-layer-overlay {
@@ -399,6 +433,7 @@ export const DESIGNER_CSS = `
   inset: 0;
   border-radius: inherit;
   background: transparent;
+  pointer-events: none;
 }
 
 .cf-lc-real-preview-wrap {
@@ -657,32 +692,35 @@ export const DESIGNER_CSS = `
   box-sizing: border-box;
   border-radius: 10px;
   border: 1px solid transparent;
-  background: rgba(255, 255, 255, 0.72);
-  padding: 10px;
+  background: #ffffff;
+  padding: 0;
   user-select: none;
   touch-action: none;
   transition: border-color .16s ease, box-shadow .16s ease, background-color .16s ease, transform .16s ease;
 }
 
 .cf-lc-node-toolbar {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 5;
+  position: static;
+  z-index: 2;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
+  padding: 3px;
+  border: 1px solid #d5e2f3;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.14);
   opacity: 0;
-  transform: translateY(3px);
+  transform: translateY(-2px) scale(0.98);
   pointer-events: none;
-  transition: opacity .14s ease, transform .14s ease;
+  transition: opacity .12s ease, transform .12s ease, border-color .12s ease;
 }
 
-.cf-lc-node:hover > .cf-lc-node-toolbar,
-.cf-lc-node--selected > .cf-lc-node-toolbar {
+.cf-lc-node--selected .cf-lc-node-toolbar {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
+  border-color: #93c5fd;
 }
 
 .cf-lc-node-tool {
@@ -731,35 +769,39 @@ export const DESIGNER_CSS = `
 .cf-lc-node::after {
   content: "";
   position: absolute;
-  inset: -4px;
-  border-radius: 14px;
-  background: radial-gradient(circle at 15% 0, rgba(96, 165, 250, 0.18), rgba(37, 99, 235, 0.02) 68%);
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.22), 0 14px 26px rgba(37, 99, 235, 0.18);
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, #60a5fa 0 4px, transparent 4px 7px) top / 7px 1px repeat-x,
+    linear-gradient(90deg, #60a5fa 0 4px, transparent 4px 7px) bottom / 7px 1px repeat-x,
+    linear-gradient(0deg, #60a5fa 0 4px, transparent 4px 7px) left / 1px 7px repeat-y,
+    linear-gradient(0deg, #60a5fa 0 4px, transparent 4px 7px) right / 1px 7px repeat-y;
   pointer-events: none;
   opacity: 0;
-  transform: scale(0.985);
-  transition: opacity .16s ease, transform .16s ease;
+  transition: opacity .12s ease;
 }
 
 .cf-lc-node--field {
-  padding: 10px;
-  display: grid;
-  gap: 8px;
+  display: block;
 }
 
 .cf-lc-node--selected {
-  border-color: #93c5fd;
-  box-shadow: 0 0 0 1px #bfdbfe;
-  background: rgba(239, 246, 255, 0.56);
+  border-color: #bfdbfe;
+  box-shadow: 0 0 0 1px #dbeafe;
+  background: #f8fbff;
+}
+
+.cf-lc-node--selected.cf-lc-node--container > .cf-lc-mask-layer > .cf-lc-mask-layer-content,
+.cf-lc-node--selected.cf-lc-node--field > .cf-lc-node-preview > .cf-lc-material-preview > .cf-lc-mask-layer > .cf-lc-mask-layer-content {
+  padding: 2px;
 }
 
 .cf-lc-node--selected::after {
   opacity: 1;
-  transform: scale(1);
 }
 
 .cf-lc-container-body {
-  padding-top: 10px;
+  padding-top: 0;
   display: grid;
   gap: 8px;
   background: transparent;
@@ -767,7 +809,7 @@ export const DESIGNER_CSS = `
 
 .cf-lc-node-preview {
   margin-top: 0;
-  padding-top: 10px;
+  padding-top: 0;
 }
 
 .cf-lc-node-preview .cf-lc-material-preview {
@@ -776,14 +818,23 @@ export const DESIGNER_CSS = `
   background: transparent;
   box-shadow: none;
   padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cf-lc-node-preview--container .cf-lc-material-preview {
   border: 0;
 }
 
+.cf-lc-node--field .cf-lc-mask-layer-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .cf-lc-layout-card-shell {
-  border: 1px solid #d8e3f2;
+  border: 1px solid #dbe4f0;
   border-radius: 12px;
   background: #ffffff;
   overflow: hidden;
@@ -805,7 +856,7 @@ export const DESIGNER_CSS = `
 }
 
 .cf-lc-layout-tabs-shell {
-  border: 1px solid #d8e3f2;
+  border: 1px solid #dbe4f0;
   border-radius: 12px;
   background: #ffffff;
   overflow: hidden;
@@ -850,10 +901,25 @@ export const DESIGNER_CSS = `
 
 .cf-lc-section {
   position: relative;
-  border: 1px solid #dbe4f0;
+  border: 1px solid transparent;
   border-radius: 9px;
   background: #ffffff;
   padding: 8px;
+}
+
+.cf-lc-section::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, #60a5fa 0 4px, transparent 4px 7px) top / 7px 1px repeat-x,
+    linear-gradient(90deg, #60a5fa 0 4px, transparent 4px 7px) bottom / 7px 1px repeat-x,
+    linear-gradient(0deg, #60a5fa 0 4px, transparent 4px 7px) left / 1px 7px repeat-y,
+    linear-gradient(0deg, #60a5fa 0 4px, transparent 4px 7px) right / 1px 7px repeat-y;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .12s ease;
 }
 
 .cf-lc-section--tabs {
@@ -867,16 +933,21 @@ export const DESIGNER_CSS = `
 }
 
 .cf-lc-section--selected {
-  border-color: #60a5fa;
-  box-shadow: 0 0 0 2px #dbeafe;
+  border-color: #bfdbfe;
+  box-shadow: 0 0 0 1px #dbeafe;
   background: rgba(239, 246, 255, 0.56);
+}
+
+.cf-lc-section--selected::after {
+  opacity: 1;
 }
 
 .cf-lc-section-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 8px;
+  padding-right: 28px;
   margin-bottom: 8px;
 }
 
@@ -891,16 +962,32 @@ export const DESIGNER_CSS = `
 }
 
 .cf-lc-section-action {
-  border: 1px solid #fecaca;
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  border: 1px solid #d5e2f3;
   border-radius: 999px;
-  width: 20px;
-  height: 20px;
-  background: #fff5f5;
-  color: #dc2626;
+  width: 22px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.98);
+  color: #64748b;
   font-size: 12px;
   line-height: 1;
   padding: 0;
   cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s ease, border-color .12s ease, color .12s ease;
+}
+
+.cf-lc-section--selected .cf-lc-section-action {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cf-lc-section-action:hover {
+  border-color: #fecaca;
+  color: #dc2626;
 }
 
 .cf-lc-control-label {

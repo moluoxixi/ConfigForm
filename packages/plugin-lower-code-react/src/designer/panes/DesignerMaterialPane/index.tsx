@@ -107,7 +107,7 @@ export function DesignerMaterialPane({
             DesignerMaterialToolbarRenderer,
             DesignerMaterialListRenderer,
           }}
-          className="cf-lc-material-pane-form"
+          className="cf-lc-material-pane-form cf-lc-pane-configform-shell"
         />
       </div>
     </section>

@@ -5,7 +5,9 @@ import { ConfigForm } from '@moluoxixi/vue'
 import {
   containerTarget,
   containerUsesSections,
+  nodesToSchema,
   rootTarget,
+  schemaSignature,
   sectionTarget,
   targetToKey,
 } from '@moluoxixi/plugin-lower-code-core'
@@ -55,16 +57,28 @@ export const DesignerCanvasPane = defineComponent({
   setup(props) {
     const activeTabsByContainer = ref<Record<string, string>>({})
 
-    const renderMaskedCanvasPreview = (node: DesignerFieldPreviewNode): VNodeChild => {
-      return h(DesignerCanvasMaskDecorator, undefined, {
-        default: () => [
-          h(DesignerCanvasPreviewRenderer, {
-            node,
-            render: props.renderFieldPreviewControl,
-          }),
-        ],
-      })
-    }
+    const renderCanvasMask = (
+      content: () => VNodeChild,
+      options?: { actions?: VNodeChild, disablePointerEvents?: boolean },
+    ): VNodeChild => h(DesignerCanvasMaskDecorator, {
+      disablePointerEvents: options?.disablePointerEvents ?? true,
+    }, {
+      default: () => [content()],
+      ...(options?.actions
+        ? { actions: () => [options.actions] }
+        : {}),
+    })
+
+    const renderMaskedCanvasPreview = (
+      node: DesignerFieldPreviewNode,
+      options?: { actions?: VNodeChild },
+    ): VNodeChild => renderCanvasMask(
+      () => h(DesignerCanvasPreviewRenderer, {
+        node,
+        render: props.renderFieldPreviewControl,
+      }),
+      options,
+    )
 
     watch(
       () => props.nodes,
@@ -158,18 +172,39 @@ export const DesignerCanvasPane = defineComponent({
         boxSizing: 'border-box',
         minHeight: depth === 0 ? `${props.minCanvasHeight}px` : '56px',
         padding: depth === 0 ? '12px' : '8px',
-        border: '1px dashed #d7e4f8',
-        borderRadius: '10px',
-        background: depth === 0 ? '#fcfdff' : '#f8fbff',
-        display: 'grid',
-        gap: '8px',
       },
     }, [
       ...items.map(node => renderNodeCard(node, depth, targetKey)),
-      items.length === 0 ? h('div', { style: { color: '#94a3b8', fontSize: '12px' } }, emptyText) : null,
+      items.length === 0 ? h('div', { class: 'cf-lc-empty' }, emptyText) : null,
     ])
 
-    const renderSection = (
+    const renderSectionHead = (
+      container: Extract<DesignerNode, { kind: 'container' }>,
+      section: Extract<DesignerNode, { kind: 'container' }>['sections'][number],
+    ): VNodeChild => {
+      const selected = props.selectedId === section.id
+      return h('div', {
+        class: 'cf-lc-section-head',
+        onClick: (event: Event) => event.stopPropagation(),
+      }, [
+        h('span', {
+          class: `cf-lc-section-title ${selected ? 'is-selected' : ''}`,
+        }, section.title || section.name),
+        !props.readonly
+          ? h('button', {
+              type: 'button',
+              class: 'cf-lc-section-action',
+              title: '删除分组',
+              onClick: (event: Event) => {
+                event.stopPropagation()
+                props.onRemoveSection(container.id, section.id)
+              },
+            }, '✕')
+          : null,
+      ])
+    }
+
+    const renderSectionBody = (
       container: Extract<DesignerNode, { kind: 'container' }>,
       section: Extract<DesignerNode, { kind: 'container' }>['sections'][number],
       depth: number,
@@ -179,118 +214,56 @@ export const DesignerCanvasPane = defineComponent({
       return h('div', {
         key: section.id,
         class: `cf-lc-section cf-lc-section--${mode} ${selected ? 'cf-lc-section--selected' : ''}`,
+        onMousedownCapture: () => {
+          props.onSelect(section.id)
+        },
         onClick: (event: Event) => {
           event.stopPropagation()
           props.onSelect(section.id)
         },
-        style: {
-          width: '100%',
-          boxSizing: 'border-box',
-          border: selected ? '1px solid #60a5fa' : '1px solid #dbe4f0',
-          borderRadius: '8px',
-          padding: '8px',
-          background: selected ? '#eff6ff' : '#fff',
-          display: 'grid',
-          gap: '8px',
-        },
       }, [
-        h('div', {
-          style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' },
-          onClick: (event: Event) => event.stopPropagation(),
-        }, [
-          h('span', {
-            style: {
-              fontSize: '12px',
-              fontWeight: 700,
-              color: selected ? '#1d4ed8' : '#334155',
-            },
-          }, section.title || section.name),
-          !props.readonly
-            ? h('button', {
-                type: 'button',
-                onClick: (event: Event) => {
-                  event.stopPropagation()
-                  props.onRemoveSection(container.id, section.id)
-                },
-                style: {
-                  border: '1px solid #fecaca',
-                  borderRadius: '999px',
-                  width: '20px',
-                  height: '20px',
-                  background: '#fff5f5',
-                  color: '#dc2626',
-                  cursor: 'pointer',
-                },
-              }, '✕')
-            : null,
-        ]),
+        renderSectionHead(container, section),
         renderDropList(section.children, targetToKey(sectionTarget(section.id)), depth + 1, '拖拽字段到该分组'),
       ])
     }
 
     const renderContainerContent = (node: Extract<DesignerNode, { kind: 'container' }>, depth: number): VNodeChild => {
+      const title = node.title || node.name
+
       if (node.component === 'LayoutCard') {
-        return h('div', {
-          style: { border: '1px solid #dbe4f0', borderRadius: '10px', overflow: 'hidden', background: '#fff' },
-        }, [
-          h('div', {
-            style: {
-              padding: '8px 10px',
-              borderBottom: '1px solid #edf2f7',
-              fontSize: '12px',
-              fontWeight: 700,
-              color: '#334155',
-              background: '#f8fbff',
-            },
-          }, node.title || node.name),
-          h('div', { style: { padding: '8px' } }, [
-            renderDropList(node.children, targetToKey(containerTarget(node.id)), depth + 1, '拖拽字段到该容器'),
-          ]),
+        return h('div', { class: 'cf-lc-layout-card-shell' }, [
+          h('div', { class: 'cf-lc-layout-card-head' }, title),
+          renderDropList(node.children, targetToKey(containerTarget(node.id)), depth + 1, '拖拽字段到该容器'),
         ])
       }
 
       if (node.component === 'LayoutTabs') {
         const activeId = activeTabsByContainer.value[node.id] ?? node.sections[0]?.id
         const activeSection = node.sections.find(section => section.id === activeId) ?? node.sections[0] ?? null
-        return h('div', {
-          style: { border: '1px solid #dbe4f0', borderRadius: '10px', background: '#fff', overflow: 'hidden' },
-        }, [
-          h('div', {
-            style: {
-              display: 'flex',
-              gap: '6px',
-              padding: '6px 8px 0',
-              borderBottom: '1px solid #edf2f7',
-              background: '#f8fbff',
-            },
-          }, node.sections.map(section => h('button', {
+        return h('div', { class: 'cf-lc-layout-tabs-shell' }, [
+          h('div', { class: 'cf-lc-layout-tabs-nav' }, node.sections.map(section => h('button', {
             key: section.id,
             type: 'button',
+            class: `cf-lc-layout-tabs-tab ${section.id === activeId ? 'is-active' : ''}`,
             onClick: (event: Event) => {
               event.stopPropagation()
               activeTabsByContainer.value = { ...activeTabsByContainer.value, [node.id]: section.id }
               props.onSelect(section.id)
             },
-            style: {
-              border: '1px solid',
-              borderColor: section.id === activeId ? '#bfdbfe' : 'transparent',
-              borderRadius: '7px 7px 0 0',
-              padding: '5px 10px',
-              background: section.id === activeId ? '#fff' : 'transparent',
-              color: section.id === activeId ? '#1d4ed8' : '#64748b',
-              cursor: 'pointer',
-              fontSize: '12px',
-            },
           }, section.title || section.name))),
-          h('div', { style: { padding: '8px' } }, [
+          h('div', { class: 'cf-lc-layout-tabs-panels' }, [
             activeSection
-              ? renderSection(node, activeSection, depth, 'tabs')
-              : h('div', { style: { color: '#94a3b8', fontSize: '12px' } }, '请先新增分组'),
+              ? renderSectionBody(node, activeSection, depth, 'tabs')
+              : h('div', { class: 'cf-lc-empty' }, '请先新增分组'),
           ]),
         ])
       }
 
-      return h('div', { style: { display: 'grid', gap: '8px' } }, node.sections.map(section => renderSection(node, section, depth, 'collapse')))
+      return h(
+        'div',
+        { class: 'cf-lc-layout-collapse-shell' },
+        node.sections.map(section => renderSectionBody(node, section, depth, 'collapse')),
+      )
     }
 
     const renderFieldNode = (
@@ -298,28 +271,22 @@ export const DesignerCanvasPane = defineComponent({
       parentTargetKey: string,
     ): VNodeChild => {
       const selected = props.selectedId === node.id
+      const componentClassName = node.component.replace(/[^a-zA-Z0-9_-]/g, '-').toLowerCase() || 'component'
       return h('div', {
         key: node.id,
         class: `cf-lc-node cf-lc-node--field ${selected ? 'cf-lc-node--selected' : ''}`,
         'data-node-id': node.id,
         'data-parent-target-key': parentTargetKey,
-        onClick: () => props.onSelect(node.id),
-        style: {
-          width: '100%',
-          boxSizing: 'border-box',
-          position: 'relative',
-          border: selected ? '1px solid #60a5fa' : '1px solid #dbe4f0',
-          borderRadius: '10px',
-          background: selected ? '#eff6ff' : '#fff',
-          padding: '10px',
-          display: 'grid',
-          gap: '8px',
+        onMousedownCapture: () => {
+          props.onSelect(node.id)
         },
+        onClick: () => props.onSelect(node.id),
       }, [
-        renderNodeToolbar(node.id),
-        h('div', {
-          style: { border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px', background: '#fff' },
-        }, [renderMaskedCanvasPreview(node)]),
+        h('div', { class: 'cf-lc-node-preview' }, [
+          h('div', { class: `cf-lc-material-preview cf-lc-material-preview--${componentClassName}` }, [
+            renderMaskedCanvasPreview(node, { actions: selected ? renderNodeToolbar(node.id) : null }),
+          ]),
+        ]),
       ])
     }
 
@@ -334,22 +301,23 @@ export const DesignerCanvasPane = defineComponent({
         class: `cf-lc-node cf-lc-node--container ${selected ? 'cf-lc-node--selected' : ''}`,
         'data-node-id': node.id,
         'data-parent-target-key': parentTargetKey,
-        onClick: () => props.onSelect(node.id),
-        style: {
-          width: '100%',
-          boxSizing: 'border-box',
-          position: 'relative',
-          border: selected ? '1px solid #60a5fa' : '1px solid #dbe4f0',
-          borderRadius: '10px',
-          background: selected ? '#eff6ff' : '#fff',
-          padding: '10px',
+        onMousedownCapture: () => {
+          props.onSelect(node.id)
         },
+        onClick: () => props.onSelect(node.id),
       }, [
-        renderNodeToolbar(node.id, {
-          allowAddSection: containerUsesSections(node.component),
-          onAddSection: () => props.onAddSection(node.id),
-        }),
-        h('div', { style: { paddingTop: '10px' } }, [renderContainerContent(node, depth)]),
+        renderCanvasMask(
+          () => h('div', { class: 'cf-lc-container-body' }, [renderContainerContent(node, depth)]),
+          {
+            disablePointerEvents: false,
+            actions: selected
+              ? renderNodeToolbar(node.id, {
+                  allowAddSection: containerUsesSections(node.component),
+                  onAddSection: () => props.onAddSection(node.id),
+                })
+              : null,
+          },
+        ),
       ])
     }
 
@@ -379,6 +347,10 @@ export const DesignerCanvasPane = defineComponent({
         },
       },
     }))
+
+    const paneRenderKey = computed(
+      () => `${schemaSignature(nodesToSchema(props.nodes))}:${props.selectedId ?? ''}:${props.readonly ? '1' : '0'}`,
+    )
 
     const paneComponents = {
       DesignerCanvasHeaderRenderer,
@@ -418,6 +390,7 @@ export const DesignerCanvasPane = defineComponent({
           },
         }, [
           h(ConfigForm, {
+            key: paneRenderKey.value,
             schema: paneSchema.value,
             components: paneComponents,
           }),

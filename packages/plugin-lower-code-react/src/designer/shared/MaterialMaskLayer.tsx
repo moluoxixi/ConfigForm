@@ -6,7 +6,7 @@ interface MaterialMaskLayerProps {
 
 export function MaterialMaskLayer({ children }: MaterialMaskLayerProps): React.ReactElement {
   return (
-    <div className="cf-lc-mask-layer cf-lc-mask-layer--material">
+    <div className="cf-lc-mask-layer cf-lc-mask-layer--material cf-lc-mask-layer--locked">
       <div className="cf-lc-mask-layer-content">{children}</div>
       <span className="cf-lc-mask-layer-overlay" aria-hidden="true" />
     </div>

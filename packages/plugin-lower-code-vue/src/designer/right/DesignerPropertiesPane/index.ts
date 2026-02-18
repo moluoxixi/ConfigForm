@@ -14,8 +14,10 @@ import {
   containerUsesSections,
   defaultComponentForType,
   normalizeNode,
+  nodesToSchema,
   parseEnumDraft,
   removeSectionFromContainer,
+  schemaSignature,
   updateSectionById,
 } from '@moluoxixi/plugin-lower-code-core'
 import { ConfigForm } from '@moluoxixi/vue'
@@ -602,6 +604,14 @@ export const DesignerPropertiesPane = defineComponent({
       },
     }))
 
+    const paneRenderKey = computed(() => [
+      schemaSignature(nodesToSchema(props.nodes)),
+      props.selectedField?.id ?? '',
+      props.selectedContainer?.id ?? '',
+      props.selectedSection?.id ?? '',
+      props.readonly ? '1' : '0',
+    ].join(':'))
+
     return () => h('section', {
       style: {
         width: '340px',
@@ -635,6 +645,7 @@ export const DesignerPropertiesPane = defineComponent({
           },
         }, [
           h(ConfigForm, {
+            key: paneRenderKey.value,
             schema: paneSchema.value,
             components: {
               DesignerPropertiesSlotRenderer,

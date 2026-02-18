@@ -69,8 +69,17 @@ const DESIGNER_CSS = `
   border-radius: inherit;
 }
 
-.cf-lc-mask-layer-content,
-.cf-lc-mask-layer-content * {
+.cf-lc-mask-layer-content {
+  width: 100%;
+  min-height: inherit;
+  margin: 0;
+  padding: 0;
+  gap: 0;
+  box-sizing: border-box;
+}
+
+.cf-lc-mask-layer--locked .cf-lc-mask-layer-content,
+.cf-lc-mask-layer--locked .cf-lc-mask-layer-content * {
   pointer-events: none !important;
 }
 
@@ -87,6 +96,18 @@ const DESIGNER_CSS = `
   inset: 0;
   border-radius: inherit;
   background: transparent;
+  pointer-events: none;
+}
+
+.cf-lc-mask-layer-actions {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  z-index: 16;
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
 }
 
 .cf-lc-material-list-hidden {
@@ -126,6 +147,11 @@ const DESIGNER_CSS = `
 
 .cf-lc-material-pane .ant-tabs-tabpane,
 .cf-lc-material-pane .el-tab-pane {
+  min-height: 0;
+}
+
+.cf-lc-material-pane .ant-tabs-tabpane:not(.ant-tabs-tabpane-hidden),
+.cf-lc-material-pane .el-tab-pane.is-active {
   display: flex;
   flex-direction: column;
 }
@@ -187,30 +213,28 @@ const DESIGNER_CSS = `
   overflow: hidden;
 }
 
-.cf-lc-real-preview-wrap--canvas {
-  max-height: 180px;
-  overflow: hidden;
-}
-
 .cf-lc-node-toolbar {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 5;
+  position: static;
+  z-index: 2;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
+  padding: 3px;
+  border: 1px solid #d5e2f3;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.14);
   opacity: 0;
-  transform: translateY(3px);
+  transform: translateY(-2px) scale(0.98);
   pointer-events: none;
-  transition: opacity .14s ease, transform .14s ease;
+  transition: opacity .12s ease, transform .12s ease, border-color .12s ease;
 }
 
-.cf-lc-node:hover > .cf-lc-node-toolbar,
-.cf-lc-node--selected > .cf-lc-node-toolbar {
+.cf-lc-node--selected .cf-lc-node-toolbar {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
+  border-color: #93c5fd;
 }
 
 .cf-lc-node-tool {
@@ -252,6 +276,272 @@ const DESIGNER_CSS = `
 .cf-lc-node-tool--danger {
   border-color: #fecaca;
   background: #fff5f5;
+  color: #dc2626;
+}
+
+.cf-lc-canvas-wrap {
+  padding: 12px;
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  box-sizing: border-box;
+}
+
+.cf-lc-drop-list {
+  border: 1px dashed #d4dee9;
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, #fcfdff 0%, #f7fafe 100%),
+    repeating-linear-gradient(45deg, rgba(148, 163, 184, 0.06) 0, rgba(148, 163, 184, 0.06) 4px, transparent 4px, transparent 10px);
+  display: grid;
+  gap: 8px;
+}
+
+.cf-lc-drop-list--nested {
+  border-style: dashed;
+  border-color: #e2e8f0;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+}
+
+.cf-lc-empty {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.cf-lc-node {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: #ffffff;
+  padding: 0;
+  user-select: none;
+  touch-action: none;
+  transition: border-color .16s ease, box-shadow .16s ease, background-color .16s ease, transform .16s ease;
+}
+
+.cf-lc-node::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, #60a5fa 0 4px, transparent 4px 7px) top / 7px 1px repeat-x,
+    linear-gradient(90deg, #60a5fa 0 4px, transparent 4px 7px) bottom / 7px 1px repeat-x,
+    linear-gradient(0deg, #60a5fa 0 4px, transparent 4px 7px) left / 1px 7px repeat-y,
+    linear-gradient(0deg, #60a5fa 0 4px, transparent 4px 7px) right / 1px 7px repeat-y;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .12s ease;
+}
+
+.cf-lc-node--field {
+  display: block;
+}
+
+.cf-lc-node--selected {
+  border-color: #bfdbfe;
+  box-shadow: 0 0 0 1px #dbeafe;
+  background: #f8fbff;
+}
+
+.cf-lc-node--selected.cf-lc-node--container > .cf-lc-mask-layer > .cf-lc-mask-layer-content,
+.cf-lc-node--selected.cf-lc-node--field > .cf-lc-node-preview > .cf-lc-material-preview > .cf-lc-mask-layer > .cf-lc-mask-layer-content {
+  padding: 2px;
+}
+
+.cf-lc-node--selected::after {
+  opacity: 1;
+}
+
+.cf-lc-container-body {
+  padding-top: 0;
+  display: grid;
+  gap: 8px;
+  background: transparent;
+}
+
+.cf-lc-node-preview {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.cf-lc-node-preview .cf-lc-material-preview {
+  min-height: auto;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cf-lc-node-preview--container .cf-lc-material-preview {
+  border: 0;
+}
+
+.cf-lc-node--field .cf-lc-mask-layer-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cf-lc-layout-card-shell {
+  border: 1px solid #dbe4f0;
+  border-radius: 12px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.cf-lc-layout-card-head {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e6edf7;
+  background: linear-gradient(180deg, #fbfdff 0%, #f5f9ff 100%);
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.cf-lc-layout-card-shell > .cf-lc-drop-list {
+  border: 0;
+  border-radius: 0 0 12px 12px;
+  background: #ffffff;
+}
+
+.cf-lc-layout-tabs-shell {
+  border: 1px solid #dbe4f0;
+  border-radius: 12px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.cf-lc-layout-tabs-nav {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid #e6edf7;
+  background: #f8fbff;
+  padding: 4px 8px 0;
+}
+
+.cf-lc-layout-tabs-tab {
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 8px 8px 0 0;
+  background: transparent;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.cf-lc-layout-tabs-tab.is-active {
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+  background: #ffffff;
+}
+
+.cf-lc-layout-tabs-panels {
+  display: grid;
+  gap: 8px;
+  padding: 8px;
+}
+
+.cf-lc-layout-collapse-shell {
+  display: grid;
+  gap: 8px;
+}
+
+.cf-lc-section {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: #ffffff;
+  padding: 8px;
+}
+
+.cf-lc-section::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, #60a5fa 0 4px, transparent 4px 7px) top / 7px 1px repeat-x,
+    linear-gradient(90deg, #60a5fa 0 4px, transparent 4px 7px) bottom / 7px 1px repeat-x,
+    linear-gradient(0deg, #60a5fa 0 4px, transparent 4px 7px) left / 1px 7px repeat-y,
+    linear-gradient(0deg, #60a5fa 0 4px, transparent 4px 7px) right / 1px 7px repeat-y;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .12s ease;
+}
+
+.cf-lc-section--tabs {
+  border-style: dashed;
+  background: #fbfdff;
+}
+
+.cf-lc-section--collapse {
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+}
+
+.cf-lc-section--selected {
+  border-color: #bfdbfe;
+  box-shadow: 0 0 0 1px #dbeafe;
+  background: rgba(239, 246, 255, 0.56);
+}
+
+.cf-lc-section--selected::after {
+  opacity: 1;
+}
+
+.cf-lc-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding-right: 28px;
+  margin-bottom: 8px;
+}
+
+.cf-lc-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.cf-lc-section-title.is-selected {
+  color: #1d4ed8;
+}
+
+.cf-lc-section-action {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  border: 1px solid #d5e2f3;
+  border-radius: 999px;
+  width: 22px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.98);
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s ease, border-color .12s ease, color .12s ease;
+}
+
+.cf-lc-section--selected .cf-lc-section-action {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cf-lc-section-action:hover {
+  border-color: #fecaca;
   color: #dc2626;
 }
 `
@@ -448,6 +738,7 @@ export const LowCodeDesigner = defineComponent({
     const editor = ref<JSONEditor | null>(null)
     const sortables = ref<Sortable[]>([])
     let remountTimer: ReturnType<typeof setTimeout> | null = null
+    let remountAttempts = 0
 
     const injectedRegistry = inject(ComponentRegistrySymbol, null)
     const previewComponents = computed<Record<string, Component>>(() =>
@@ -607,7 +898,7 @@ export const LowCodeDesigner = defineComponent({
       document.body.classList.toggle('cf-lc-body-dragging', dragging)
     }
 
-    async function mountSortables(): Promise<void> {
+    async function mountSortables(): Promise<number> {
       await nextTick()
       destroySortables()
 
@@ -642,7 +933,7 @@ export const LowCodeDesigner = defineComponent({
 
       const canvasSortableRoot = canvasHost.value ?? designerRoot.value
       if (!canvasSortableRoot)
-        return
+        return sortables.value.length
 
       const dropLists = Array.from(canvasSortableRoot.querySelectorAll<HTMLElement>('[data-cf-drop-list="true"]'))
       for (const list of dropLists) {
@@ -747,18 +1038,28 @@ export const LowCodeDesigner = defineComponent({
           },
         }))
       }
+
+      return sortables.value.length
     }
 
-    function scheduleMountSortables(): void {
+    function scheduleMountSortables(resetAttempts = true): void {
       if (remountTimer)
         clearTimeout(remountTimer)
+      if (resetAttempts)
+        remountAttempts = 0
       remountTimer = setTimeout(() => {
         remountTimer = null
-        void mountSortables()
+        void (async () => {
+          const mountedCount = await mountSortables()
+          if (mountedCount > 0 || remountAttempts >= 8)
+            return
+          remountAttempts += 1
+          scheduleMountSortables(false)
+        })()
       }, 80)
     }
 
-      watch([readonly, dropTargetSignature, materialSignature], () => {
+    watch([readonly, dropTargetSignature, materialSignature, selectedId], () => {
       scheduleMountSortables()
     }, { immediate: true })
 
@@ -780,7 +1081,7 @@ export const LowCodeDesigner = defineComponent({
           editor.value.set({})
         }
       }
-      await mountSortables()
+      scheduleMountSortables()
     })
 
     watch(builtSchema, (schema) => {

@@ -319,6 +319,10 @@ export function LowCodeDesigner({
     }),
     [],
   )
+  const mainGridRenderKey = useMemo(
+    () => `${builtSignature}:${selectedId ?? ''}`,
+    [builtSignature, selectedId],
+  )
 
   useEffect(() => {
     componentPropsByComponentRef.current = componentPropsByComponent
@@ -463,141 +467,167 @@ export function LowCodeDesigner({
 
   useEffect(() => {
     const sortables: Sortable[] = []
+    const retryTimers: ReturnType<typeof setTimeout>[] = []
+    let cancelled = false
     const toggleDragging = (dragging: boolean): void => {
       if (typeof document === 'undefined')
         return
       document.body.classList.toggle('cf-lc-body-dragging', dragging)
     }
 
-    const materialSortableRoot = materialHostRef.current ?? designerRootRef.current
-    if (materialSortableRoot) {
-      const materialLists = Array.from(materialSortableRoot.querySelectorAll<HTMLElement>('[data-cf-material-list="true"]'))
-      for (const materialList of materialLists) {
-        sortables.push(Sortable.create(materialList, {
-          group: { name: 'configform-lower-code-tree', pull: 'clone', put: false },
-          sort: false,
-          animation: 90,
-          direction: 'vertical',
-          forceFallback: true,
-          fallbackOnBody: true,
-          fallbackTolerance: 0,
-          delayOnTouchOnly: true,
-          touchStartThreshold: 4,
-          removeCloneOnHide: true,
-          draggable: '[data-material-id]',
-          ghostClass: 'cf-lc-ghost',
-          chosenClass: 'cf-lc-chosen',
-          dragClass: 'cf-lc-dragging',
-          fallbackClass: 'cf-lc-sortable-fallback',
-          onStart: () => toggleDragging(true),
-          onEnd: () => toggleDragging(false),
-          setData: (dataTransfer, dragEl) => {
-            dataTransfer.setData('text/plain', dragEl.getAttribute('data-material-id') ?? '')
-          },
-        }))
-      }
+    const destroySortables = (): void => {
+      while (sortables.length > 0)
+        sortables.pop()?.destroy()
     }
 
-    const canvasSortableRoot = canvasHostRef.current ?? designerRootRef.current
-    if (canvasSortableRoot) {
-      const dropLists = Array.from(canvasSortableRoot.querySelectorAll<HTMLElement>('[data-cf-drop-list="true"]'))
-      for (const list of dropLists) {
-        const targetKey = list.dataset.targetKey
-        const escapedTargetKey = (targetKey ?? '').replace(/\\/g, '\\\\').replace(/"/g, '\\"')
-        const draggableSelector = targetKey
-          ? `[data-parent-target-key="${escapedTargetKey}"], [data-material-id]`
-          : '.cf-lc-node, [data-material-id]'
-        sortables.push(Sortable.create(list, {
-          group: {
-            name: 'configform-lower-code-tree',
-            pull: true,
-            put: (to, from, dragEl) => {
-              const dragNode = dragEl as HTMLElement
-              if (dragNode.dataset.materialId)
-                return true
+    const mountSortables = (): number => {
+      destroySortables()
 
-              const toTarget = keyToTarget((to.el as HTMLElement).dataset.targetKey)
-              const fromTarget = keyToTarget((from.el as HTMLElement).dataset.targetKey)
-              if (!toTarget || !fromTarget)
-                return true
-              if (toTarget.type === 'root')
-                return true
-
-              // 防止根级容器在重排时被误拖进其它容器内部。
-              if (fromTarget.type === 'root' && !dragNode.classList.contains('cf-lc-node--field'))
-                return false
-              return true
+      const materialSortableRoot = materialHostRef.current ?? designerRootRef.current
+      if (materialSortableRoot) {
+        const materialLists = Array.from(materialSortableRoot.querySelectorAll<HTMLElement>('[data-cf-material-list="true"]'))
+        for (const materialList of materialLists) {
+          sortables.push(Sortable.create(materialList, {
+            group: { name: 'configform-lower-code-tree', pull: 'clone', put: false },
+            sort: false,
+            animation: 90,
+            direction: 'vertical',
+            forceFallback: true,
+            fallbackOnBody: true,
+            fallbackTolerance: 0,
+            delayOnTouchOnly: true,
+            touchStartThreshold: 4,
+            removeCloneOnHide: true,
+            draggable: '[data-material-id]',
+            ghostClass: 'cf-lc-ghost',
+            chosenClass: 'cf-lc-chosen',
+            dragClass: 'cf-lc-dragging',
+            fallbackClass: 'cf-lc-sortable-fallback',
+            onStart: () => toggleDragging(true),
+            onEnd: () => toggleDragging(false),
+            setData: (dataTransfer, dragEl) => {
+              dataTransfer.setData('text/plain', dragEl.getAttribute('data-material-id') ?? '')
             },
-          },
-          animation: 100,
-          direction: 'vertical',
-          delayOnTouchOnly: true,
-          touchStartThreshold: 4,
-          removeCloneOnHide: true,
-          swapThreshold: 0.35,
-          invertSwap: true,
-          dragoverBubble: false,
-          emptyInsertThreshold: 24,
-          scroll: true,
-          bubbleScroll: true,
-          scrollSensitivity: 80,
-          scrollSpeed: 14,
-          draggable: draggableSelector,
-          handle: '[data-cf-drag-handle="true"], [data-material-id]',
-          ghostClass: 'cf-lc-ghost',
-          chosenClass: 'cf-lc-chosen',
-          dragClass: 'cf-lc-dragging',
-          fallbackClass: 'cf-lc-sortable-fallback',
-          onStart: () => toggleDragging(true),
-          setData: (dataTransfer, dragEl) => {
-            dataTransfer.setData('text/plain', dragEl.getAttribute('data-node-id') ?? '')
-          },
-          onAdd: (event) => {
-            const item = event.item as HTMLElement
-            const materialId = item.dataset.materialId
-            if (!materialId)
-              return
-
-            item.remove()
-            const targetKey = (event.to as HTMLElement).dataset.targetKey
-            const target = keyToTarget(targetKey)
-            const material = materialsById.get(materialId)
-            if (!target || !material)
-              return
-
-            const insertIndex = Math.max(0, Math.min(event.newIndex ?? 0, Number.MAX_SAFE_INTEGER))
-            const baseNode = defaultNodeFromMaterial(material, [])
-            const nextNode = mergeFieldNodeWithComponentPreset(baseNode, componentPropsByComponentRef.current)
-            setNodes(prev => insertNodeByTarget(prev, target, insertIndex, nextNode))
-          },
-          onEnd: (event) => {
-            toggleDragging(false)
-            const item = event.item as HTMLElement
-            if (item.dataset.materialId)
-              return
-
-            const fromTarget = keyToTarget((event.from as HTMLElement).dataset.targetKey)
-            const toTarget = keyToTarget((event.to as HTMLElement).dataset.targetKey)
-            const oldIndex = event.oldIndex ?? -1
-            const newIndex = event.newIndex ?? -1
-            if (!fromTarget || !toTarget || oldIndex < 0 || newIndex < 0)
-              return
-
-            restoreDraggedDomPosition(event)
-            setNodes(prev => moveNodeByTarget(prev, fromTarget, toTarget, oldIndex, newIndex))
-            const nodeId = item.dataset.nodeId
-            if (nodeId)
-              setSelectedId(nodeId)
-          },
-        }))
+          }))
+        }
       }
+
+      const canvasSortableRoot = canvasHostRef.current ?? designerRootRef.current
+      if (canvasSortableRoot) {
+        const dropLists = Array.from(canvasSortableRoot.querySelectorAll<HTMLElement>('[data-cf-drop-list="true"]'))
+        for (const list of dropLists) {
+          const targetKey = list.dataset.targetKey
+          const escapedTargetKey = (targetKey ?? '').replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+          const draggableSelector = targetKey
+            ? `[data-parent-target-key="${escapedTargetKey}"], [data-material-id]`
+            : '.cf-lc-node, [data-material-id]'
+          sortables.push(Sortable.create(list, {
+            group: {
+              name: 'configform-lower-code-tree',
+              pull: true,
+              put: (to, from, dragEl) => {
+                const dragNode = dragEl as HTMLElement
+                if (dragNode.dataset.materialId)
+                  return true
+
+                const toTarget = keyToTarget((to.el as HTMLElement).dataset.targetKey)
+                const fromTarget = keyToTarget((from.el as HTMLElement).dataset.targetKey)
+                if (!toTarget || !fromTarget)
+                  return true
+                if (toTarget.type === 'root')
+                  return true
+
+                // 防止根级容器在重排时被误拖进其它容器内部。
+                if (fromTarget.type === 'root' && !dragNode.classList.contains('cf-lc-node--field'))
+                  return false
+                return true
+              },
+            },
+            animation: 100,
+            direction: 'vertical',
+            delayOnTouchOnly: true,
+            touchStartThreshold: 4,
+            removeCloneOnHide: true,
+            swapThreshold: 0.35,
+            invertSwap: true,
+            dragoverBubble: false,
+            emptyInsertThreshold: 24,
+            scroll: true,
+            bubbleScroll: true,
+            scrollSensitivity: 80,
+            scrollSpeed: 14,
+            draggable: draggableSelector,
+            handle: '[data-cf-drag-handle="true"], [data-material-id]',
+            ghostClass: 'cf-lc-ghost',
+            chosenClass: 'cf-lc-chosen',
+            dragClass: 'cf-lc-dragging',
+            fallbackClass: 'cf-lc-sortable-fallback',
+            onStart: () => toggleDragging(true),
+            setData: (dataTransfer, dragEl) => {
+              dataTransfer.setData('text/plain', dragEl.getAttribute('data-node-id') ?? '')
+            },
+            onAdd: (event) => {
+              const item = event.item as HTMLElement
+              const materialId = item.dataset.materialId
+              if (!materialId)
+                return
+
+              item.remove()
+              const targetKey = (event.to as HTMLElement).dataset.targetKey
+              const target = keyToTarget(targetKey)
+              const material = materialsById.get(materialId)
+              if (!target || !material)
+                return
+
+              const insertIndex = Math.max(0, Math.min(event.newIndex ?? 0, Number.MAX_SAFE_INTEGER))
+              const baseNode = defaultNodeFromMaterial(material, [])
+              const nextNode = mergeFieldNodeWithComponentPreset(baseNode, componentPropsByComponentRef.current)
+              setNodes(prev => insertNodeByTarget(prev, target, insertIndex, nextNode))
+            },
+            onEnd: (event) => {
+              toggleDragging(false)
+              const item = event.item as HTMLElement
+              if (item.dataset.materialId)
+                return
+
+              const fromTarget = keyToTarget((event.from as HTMLElement).dataset.targetKey)
+              const toTarget = keyToTarget((event.to as HTMLElement).dataset.targetKey)
+              const oldIndex = event.oldIndex ?? -1
+              const newIndex = event.newIndex ?? -1
+              if (!fromTarget || !toTarget || oldIndex < 0 || newIndex < 0)
+                return
+
+              restoreDraggedDomPosition(event)
+              setNodes(prev => moveNodeByTarget(prev, fromTarget, toTarget, oldIndex, newIndex))
+              const nodeId = item.dataset.nodeId
+              if (nodeId)
+                setSelectedId(nodeId)
+            },
+          }))
+        }
+      }
+
+      return sortables.length
     }
+
+    const scheduleMount = (attempt: number): void => {
+      if (cancelled)
+        return
+      const mountedCount = mountSortables()
+      if (mountedCount > 0 || attempt >= 8)
+        return
+      retryTimers.push(setTimeout(() => scheduleMount(attempt + 1), 80))
+    }
+
+    scheduleMount(0)
 
     return () => {
+      cancelled = true
+      retryTimers.forEach(timer => clearTimeout(timer))
       toggleDragging(false)
-      sortables.forEach(sortable => sortable.destroy())
+      destroySortables()
     }
-  }, [dropTargetSignature, materialsById])
+  }, [dropTargetSignature, materialsById, selectedId])
 
   function updateField(nodeId: string, updater: (field: DesignerFieldNode) => DesignerFieldNode): void {
     setNodes(prev => updateNodeById(prev, nodeId, (node) => {
@@ -684,6 +714,7 @@ export function LowCodeDesigner({
       <DesignerHeader />
 
       <ConfigForm
+        key={mainGridRenderKey}
         className="cf-lc-main-grid"
         schema={mainGridSchema}
         components={mainGridComponents}

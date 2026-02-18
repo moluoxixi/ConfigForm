@@ -779,6 +779,11 @@ function removeNodeFromList(nodes: DesignerNode[], nodeId: string): DesignerNode
       ...section,
       children: removeNodeFromList(section.children, nodeId),
     }))
+    const sectionChildrenChanged = nextSections.some(
+      (section, index) => section.children !== node.sections[index].children,
+    )
+    if (nextChildren !== node.children || sectionChildrenChanged)
+      removed = true
     next.push({
       ...node,
       children: nextChildren,
