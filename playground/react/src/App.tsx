@@ -103,7 +103,7 @@ export function App(): React.ReactElement {
   }, [i18nFeature.headerExtra])
 
   return (
-    <div style={{ width: '100%', margin: 0, padding: 16, fontFamily: 'system-ui, sans-serif', height: '100%', minHeight: 0, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <div style={{ width: '100vw', margin: 0, padding: 16, fontFamily: 'system-ui, sans-serif', height: '100vh', minHeight: 0, minWidth: 0, flex: '1 1 auto', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <h1 style={{ marginBottom: 4 }}>ConfigForm - React Playground</h1>
       <p style={{ color: '#666', marginBottom: 16, fontSize: 13 }}>
         基于 MobX 的响应式配置化表单 ·

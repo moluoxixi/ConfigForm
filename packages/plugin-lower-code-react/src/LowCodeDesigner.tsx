@@ -4,6 +4,7 @@ import type {
   DesignerFieldNode,
   DesignerNode,
 } from '@moluoxixi/plugin-lower-code-core'
+import type { ISchema } from '@moluoxixi/core'
 import type {
   LowCodeDesignerComponentDefinition,
   LowCodeDesignerProps,
@@ -20,21 +21,24 @@ import {
   nodesToSchema,
   removeNodeById,
   removeSectionFromContainer,
+  resolveDesignerMaterials,
   schemaSignature,
   schemaToNodes,
   updateNodeById,
+  collectDropTargetKeys,
+  collectPreviewFields,
+  restoreDraggedDomPosition,
 } from '@moluoxixi/plugin-lower-code-core'
-import { ComponentRegistryContext } from '@moluoxixi/react'
+import { ComponentRegistryContext, ConfigForm } from '@moluoxixi/react'
 import JSONEditor from 'jsoneditor'
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import Sortable from 'sortablejs'
 import 'jsoneditor/dist/jsoneditor.css'
-import { CanvasPanel } from './designer/canvas/CanvasPanel'
 import { DesignerHeader } from './designer/Header'
-import { resolveDesignerMaterials } from './designer/materials/registry-materials'
-import { MaterialPanel } from './designer/materials/MaterialPanel'
+import { DesignerCanvasPane } from './designer/panes/DesignerCanvasPane'
+import { DesignerMaterialPane } from './designer/panes/DesignerMaterialPane'
+import { DesignerPropertiesPane } from './designer/panes/DesignerPropertiesPane'
 import { PreviewPanel } from './designer/panels/PreviewPanel'
-import { PropertiesPanel } from './designer/panels/PropertiesPanel'
 import { createMockRenderers } from './designer/renderers/mock'
 import {
   canUseRegistryRenderers,
@@ -43,11 +47,6 @@ import {
 import { mergeRenderers } from './designer/renderers/resolve'
 import { SchemaPanel } from './designer/panels/SchemaPanel'
 import { DESIGNER_CSS } from './designer/styles'
-import {
-  collectDropTargetKeys,
-  collectPreviewFields,
-  restoreDraggedDomPosition,
-} from './designer/utils'
 
 export type {
   LowCodeDesignerComponentDefinition,
@@ -59,6 +58,8 @@ export type {
   LowCodeDesignerRenderers,
   LowCodePreviewRenderMode,
 } from './designer/types'
+
+const REACT_INTERNAL_COMPONENT_NAMES = new Set(['LowCodeDesigner', 'LowerCodeDesigner'])
 
 function shallowEqualRecord(
   a: Record<string, unknown>,
@@ -164,6 +165,7 @@ export function LowCodeDesigner({
 
   const materialHostRef = useRef<HTMLDivElement>(null)
   const canvasHostRef = useRef<HTMLDivElement>(null)
+  const designerRootRef = useRef<HTMLDivElement>(null)
   const editorHostRef = useRef<HTMLDivElement>(null)
   const editorRef = useRef<JSONEditor | null>(null)
   const componentPropsByComponentRef = useRef(componentPropsByComponent)
@@ -203,7 +205,11 @@ export function LowCodeDesigner({
     [componentDefinitions, componentPropsByComponent],
   )
   const designerMaterials = useMemo(
-    () => resolveDesignerMaterials(componentRegistry, mergedComponentDefinitions),
+    () => resolveDesignerMaterials(
+      componentRegistry.components.keys(),
+      mergedComponentDefinitions,
+      { internalComponentNames: REACT_INTERNAL_COMPONENT_NAMES },
+    ),
     [componentRegistry, mergedComponentDefinitions],
   )
   const materialsById = useMemo(
@@ -229,6 +235,90 @@ export function LowCodeDesigner({
       builtin,
     })
   }, [componentRegistry, customRenderers, previewRenderMode])
+
+  const mainGridSchema = useMemo<ISchema>(
+    () => ({
+      type: 'object',
+      properties: {
+        materials: {
+          type: 'void',
+          component: 'DesignerMaterialPane',
+          componentProps: {
+            componentMaterials: designerMaterials.componentMaterials,
+            layoutMaterials: designerMaterials.layoutMaterials,
+            materialHostRef,
+            renderMaterialPreview: resolvedRenderers.renderMaterialPreview,
+          },
+        },
+        canvas: {
+          type: 'void',
+          component: 'DesignerCanvasPane',
+          componentProps: {
+            nodes,
+            minCanvasHeight,
+            selectedId,
+            canvasHostRef,
+            onSelect: setSelectedId,
+            onDuplicateNode: handleDuplicateNode,
+            onRemoveNode: handleRemoveNode,
+            onAddSection: handleAddSection,
+            onRemoveSection: handleRemoveSection,
+            renderFieldPreviewControl: resolvedRenderers.renderFieldPreviewControl,
+          },
+        },
+        properties: {
+          type: 'void',
+          component: 'DesignerPropertiesPane',
+          componentProps: {
+            nodes,
+            selectedField,
+            selectedContainer,
+            selectedSection,
+            enumDraft,
+            setEnumDraft,
+            onUpdateNodes: setNodes,
+            updateField,
+            updateContainer,
+            fieldComponentOptions: designerMaterials.fieldComponentOptions,
+            componentDefinitions: mergedComponentDefinitions,
+            componentPropsByComponent,
+            onUpdateComponentPropByComponentName: updateComponentPropByComponentName,
+          },
+        },
+      },
+    }),
+    [
+      canvasHostRef,
+      componentPropsByComponent,
+      designerMaterials.componentMaterials,
+      designerMaterials.fieldComponentOptions,
+      designerMaterials.layoutMaterials,
+      enumDraft,
+      mergedComponentDefinitions,
+      minCanvasHeight,
+      nodes,
+      selectedContainer,
+      selectedField,
+      selectedId,
+      selectedSection,
+      setEnumDraft,
+      setNodes,
+      updateComponentPropByComponentName,
+      updateContainer,
+      updateField,
+      resolvedRenderers.renderFieldPreviewControl,
+      resolvedRenderers.renderMaterialPreview,
+    ],
+  )
+
+  const mainGridComponents = useMemo(
+    () => ({
+      DesignerMaterialPane,
+      DesignerCanvasPane,
+      DesignerPropertiesPane,
+    }),
+    [],
+  )
 
   useEffect(() => {
     componentPropsByComponentRef.current = componentPropsByComponent
@@ -379,8 +469,9 @@ export function LowCodeDesigner({
       document.body.classList.toggle('cf-lc-body-dragging', dragging)
     }
 
-    if (materialHostRef.current) {
-      const materialLists = Array.from(materialHostRef.current.querySelectorAll<HTMLElement>('[data-cf-material-list="true"]'))
+    const materialSortableRoot = materialHostRef.current ?? designerRootRef.current
+    if (materialSortableRoot) {
+      const materialLists = Array.from(materialSortableRoot.querySelectorAll<HTMLElement>('[data-cf-material-list="true"]'))
       for (const materialList of materialLists) {
         sortables.push(Sortable.create(materialList, {
           group: { name: 'configform-lower-code-tree', pull: 'clone', put: false },
@@ -407,8 +498,9 @@ export function LowCodeDesigner({
       }
     }
 
-    if (canvasHostRef.current) {
-      const dropLists = Array.from(canvasHostRef.current.querySelectorAll<HTMLElement>('[data-cf-drop-list="true"]'))
+    const canvasSortableRoot = canvasHostRef.current ?? designerRootRef.current
+    if (canvasSortableRoot) {
+      const dropLists = Array.from(canvasSortableRoot.querySelectorAll<HTMLElement>('[data-cf-drop-list="true"]'))
       for (const list of dropLists) {
         const targetKey = list.dataset.targetKey
         const escapedTargetKey = (targetKey ?? '').replace(/\\/g, '\\\\').replace(/"/g, '\\"')
@@ -451,9 +543,7 @@ export function LowCodeDesigner({
           scrollSensitivity: 80,
           scrollSpeed: 14,
           draggable: draggableSelector,
-          handle: '[data-cf-drag-handle="true"]',
-          filter: 'button, input, textarea, select, [contenteditable=\"true\"]',
-          preventOnFilter: false,
+          handle: '[data-cf-drag-handle="true"], [data-material-id]',
           ghostClass: 'cf-lc-ghost',
           chosenClass: 'cf-lc-chosen',
           dragClass: 'cf-lc-dragging',
@@ -589,47 +679,15 @@ export function LowCodeDesigner({
   }
 
   return (
-    <div className="cf-lc-root">
+    <div ref={designerRootRef} className="cf-lc-root">
       <style>{DESIGNER_CSS}</style>
       <DesignerHeader />
 
-      <div className="cf-lc-main-grid">
-        <MaterialPanel
-          componentMaterials={designerMaterials.componentMaterials}
-          layoutMaterials={designerMaterials.layoutMaterials}
-          materialHostRef={materialHostRef}
-          renderMaterialPreview={resolvedRenderers.renderMaterialPreview}
-        />
-
-        <CanvasPanel
-          nodes={nodes}
-          minCanvasHeight={minCanvasHeight}
-          selectedId={selectedId}
-          canvasHostRef={canvasHostRef}
-          onSelect={setSelectedId}
-          onDuplicateNode={handleDuplicateNode}
-          onRemoveNode={handleRemoveNode}
-          onAddSection={handleAddSection}
-          onRemoveSection={handleRemoveSection}
-          renderFieldPreviewControl={resolvedRenderers.renderFieldPreviewControl}
-        />
-
-        <PropertiesPanel
-          nodes={nodes}
-          selectedField={selectedField}
-          selectedContainer={selectedContainer}
-          selectedSection={selectedSection}
-          enumDraft={enumDraft}
-          setEnumDraft={setEnumDraft}
-          onUpdateNodes={setNodes}
-          updateField={updateField}
-          updateContainer={updateContainer}
-          fieldComponentOptions={designerMaterials.fieldComponentOptions}
-          componentDefinitions={mergedComponentDefinitions}
-          componentPropsByComponent={componentPropsByComponent}
-          onUpdateComponentPropByComponentName={updateComponentPropByComponentName}
-        />
-      </div>
+      <ConfigForm
+        className="cf-lc-main-grid"
+        schema={mainGridSchema}
+        components={mainGridComponents}
+      />
 
       <div className="cf-lc-bottom-grid">
         <SchemaPanel editorHostRef={editorHostRef} />

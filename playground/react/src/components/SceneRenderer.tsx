@@ -22,6 +22,7 @@ export interface SceneRendererProps {
   description?: string
   extraPlugins?: FormPlugin[]
   headerExtra?: React.ReactNode
+  style?: React.CSSProperties
 }
 
 interface SceneFormProps {
@@ -59,7 +60,7 @@ function SceneForm({ config, schema, mode, extraPlugins, showResult, showErrors 
   )
 }
 
-export const SceneRenderer = observer(({ config, title, description, extraPlugins, headerExtra }: SceneRendererProps): React.ReactElement => {
+export const SceneRenderer = observer(({ config, title, description, extraPlugins, headerExtra, style }: SceneRendererProps): React.ReactElement => {
   const variants = config.schemaVariants
   const [variantValue, setVariantValue] = useState(variants?.defaultValue ?? '')
 
@@ -68,8 +69,8 @@ export const SceneRenderer = observer(({ config, title, description, extraPlugin
     return resolveSceneSchema(config, variantValue)
   }, [config, variantValue])
 
-  const content = (
-    <div>
+  return (
+    <div style={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column', ...style }}>
       <h2>{title ?? config.title}</h2>
       <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
         {description ?? config.description}
@@ -107,21 +108,22 @@ export const SceneRenderer = observer(({ config, title, description, extraPlugin
         </div>
       )}
 
-      <StatusTabs>
-        {({ mode, showResult, showErrors }) => (
-          <div data-configform-print-root="true">
-            <SceneForm
-              config={config}
-              schema={currentSchema}
-              mode={mode}
-              extraPlugins={extraPlugins}
-              showResult={showResult}
-              showErrors={showErrors}
-            />
-          </div>
-        )}
-      </StatusTabs>
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <StatusTabs>
+          {({ mode, showResult, showErrors }) => (
+            <div data-configform-print-root="true" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+              <SceneForm
+                config={config}
+                schema={currentSchema}
+                mode={mode}
+                extraPlugins={extraPlugins}
+                showResult={showResult}
+                showErrors={showErrors}
+              />
+            </div>
+          )}
+        </StatusTabs>
+      </div>
     </div>
   )
-  return content
 })

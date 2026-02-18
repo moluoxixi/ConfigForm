@@ -1,4 +1,5 @@
 import { DatePicker as ADatePicker } from 'ant-design-vue'
+import type { PropType } from 'vue'
 import { defineComponent, h } from 'vue'
 
 const DatePickerComponent = ADatePicker as any
@@ -11,6 +12,7 @@ export const YearPicker = defineComponent({
     placeholder: String,
     disabled: Boolean,
     readonly: Boolean,
+    style: { type: Object as PropType<Record<string, unknown> | undefined>, default: undefined },
   },
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
@@ -21,7 +23,7 @@ export const YearPicker = defineComponent({
         'disabled': props.disabled,
         'picker': 'year',
         'valueFormat': 'YYYY',
-        'style': 'width: 100%',
+        'style': { width: '100%', ...(props.style ?? {}) },
         'onUpdate:value': (v: unknown) => emit('update:modelValue', String(v ?? '')),
       })
     }

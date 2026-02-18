@@ -36,6 +36,30 @@ export {
   updateSectionById,
 } from './designer'
 
+export {
+  collectDropTargetKeys,
+  collectPreviewFields,
+  restoreDraggedDomPosition,
+} from './designer-shared/utils'
+
+export type { DragRestoreEventLike } from './designer-shared/utils'
+
+export { resolveDesignerMaterials } from './designer-shared/materials'
+
+export type {
+  DesignerMaterials,
+  ResolveDesignerMaterialsOptions,
+} from './designer-shared/materials'
+
+export type {
+  LowCodeDesignerComponentDefinition,
+  LowCodeDesignerComponentDefinitions,
+  LowCodeDesignerEditableProp,
+  LowCodeDesignerEditablePropEditor,
+  LowCodeDesignerEditablePropOption,
+  LowCodeDesignerRenderContext,
+} from './designer-shared/types'
+
 export type {
   DesignerContainerComponent,
   DesignerContainerNode,

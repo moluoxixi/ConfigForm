@@ -4,6 +4,7 @@ import { configure } from 'mobx'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { App } from './App'
+import './styles.css'
 
 /* MobX 配置 */
 configure({ enforceActions: 'never' })

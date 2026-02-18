@@ -39,11 +39,18 @@ export const DESIGNER_CSS = `
 }
 
 .cf-lc-main-grid {
+  margin: 0;
+  min-height: 0;
+}
+
+.cf-lc-main-grid > div {
   display: grid;
   grid-template-columns: 250px minmax(560px, 1fr) 340px;
   gap: 14px;
   padding: 14px;
   align-items: stretch;
+  height: clamp(360px, 55vh, 640px);
+  min-height: 0;
 }
 
 .cf-lc-bottom-grid {
@@ -59,6 +66,7 @@ export const DESIGNER_CSS = `
   background: var(--cf-lc-panel-bg);
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
   overflow: hidden;
+  min-height: 0;
 }
 
 .cf-lc-panel-title {
@@ -72,24 +80,28 @@ export const DESIGNER_CSS = `
 
 .cf-lc-panel-body {
   padding: 12px;
+  min-height: 0;
 }
 
 .cf-lc-panel--side .cf-lc-panel-body {
   height: 100%;
+  min-height: 0;
 }
 
 .cf-lc-side-panel-body {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
-  align-content: start;
+  height: 100%;
+  min-height: 0;
 }
 
 .cf-lc-side-panel-shell {
-  grid-template-rows: auto auto;
-  min-height: 540px;
+  min-height: 0;
 }
 
 .cf-lc-side-scroll {
+  flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
   padding-right: 2px;
@@ -159,8 +171,44 @@ export const DESIGNER_CSS = `
 }
 
 .cf-lc-material-panel-body {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
+  min-height: 0;
+}
+
+.cf-lc-material-pane-form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+.cf-lc-material-pane-form > div {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  gap: 10px;
+}
+
+.cf-lc-material-pane-form .ant-tabs {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.cf-lc-material-pane-form .ant-tabs-content-holder,
+.cf-lc-material-pane-form .ant-tabs-content,
+.cf-lc-material-pane-form .ant-tabs-tabpane {
+  min-height: 0;
+  height: 100%;
+}
+
+.cf-lc-material-pane-form .ant-tabs-tabpane {
+  display: flex;
+  flex-direction: column;
 }
 
 .cf-lc-material-toolbar {
@@ -244,86 +292,19 @@ export const DESIGNER_CSS = `
   display: grid;
   gap: 8px;
   align-content: start;
-  overflow: auto;
   padding-right: 2px;
 }
 
 .cf-lc-material-list-wrap {
   position: relative;
-  min-height: 280px;
-  max-height: none;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
   overflow: hidden;
 }
 
 .cf-lc-material-list-wrap .cf-lc-material-list {
-  max-height: 100%;
-}
-
-.cf-lc-material-list--tab.is-hidden {
-  display: none;
-}
-
-.cf-lc-material-tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.cf-lc-material-current {
-  font-size: 11px;
-  color: #64748b;
-  font-weight: 600;
-}
-
-.cf-lc-material-tab {
-  border: 1px solid #d5e2f3;
-  border-radius: 9px;
-  background: #f8fbff;
-  color: #475569;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 6px 8px;
-  cursor: pointer;
-  transition: all .15s ease;
-}
-
-.cf-lc-material-tab-content {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.cf-lc-material-tab-count {
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: 999px;
-  border: 1px solid #cbd5e1;
-  color: #64748b;
-  background: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 16px;
-  box-sizing: border-box;
-}
-
-.cf-lc-material-tab:hover {
-  border-color: #93c5fd;
-  color: #1d4ed8;
-}
-
-.cf-lc-material-tab.is-active {
-  border-color: #60a5fa;
-  background: #eff6ff;
-  color: #1d4ed8;
-  box-shadow: 0 0 0 1px #dbeafe inset;
-}
-
-.cf-lc-material-tab.is-active .cf-lc-material-tab-count {
-  border-color: #93c5fd;
-  color: #1d4ed8;
-  background: #dbeafe;
+  min-height: 0;
 }
 
 .cf-lc-material-item {
@@ -388,6 +369,14 @@ export const DESIGNER_CSS = `
 
 .cf-lc-material-preview--material > .cf-lc-mask-layer {
   min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cf-lc-mask-layer--material > .cf-lc-mask-layer-content {
+  width: 100%;
+  min-height: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -628,6 +617,10 @@ export const DESIGNER_CSS = `
 
 .cf-lc-canvas-wrap {
   padding: 12px;
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  box-sizing: border-box;
 }
 
 .cf-lc-drop-list {
@@ -1114,13 +1107,13 @@ export const DESIGNER_CSS = `
 }
 
 @media (max-width: 1500px) {
-  .cf-lc-main-grid {
+  .cf-lc-main-grid > div {
     grid-template-columns: 230px minmax(480px, 1fr) 320px;
   }
 }
 
 @media (max-width: 1240px) {
-  .cf-lc-main-grid {
+  .cf-lc-main-grid > div {
     grid-template-columns: 1fr;
   }
 

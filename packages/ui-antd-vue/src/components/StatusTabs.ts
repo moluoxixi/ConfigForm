@@ -64,21 +64,8 @@ export const StatusTabs = defineComponent({
       return 'editable'
     }
 
-    return () => [
-      /* 三态切换 */
-      h(SegmentedComponent, {
-        'options': MODE_OPTIONS,
-        'value': mode.value,
-        'onUpdate:value': (v: unknown) => { mode.value = normalizeMode(v) },
-        'onChange': (v: unknown) => { mode.value = normalizeMode(v) },
-        'style': 'margin-bottom: 16px',
-      }),
-
-      /* 表单内容（由场景文件填充） */
-      slots.default?.({ mode: mode.value, showResult, showErrors }),
-
-      /* 错误展示 */
-      errorText.value
+    return () => {
+      const errorNode = errorText.value
         ? h(AlertComponent, {
             type: 'error',
             message: '验证失败',
@@ -86,10 +73,9 @@ export const StatusTabs = defineComponent({
             showIcon: true,
             style: 'margin-top: 16px',
           })
-        : null,
+        : null
 
-      /* 成功结果展示（字段表格） */
-      resultData.value
+      const resultNode = resultData.value
         ? h('div', { style: 'margin-top: 16px; border: 1px solid #b7eb8f; border-radius: 8px; overflow: hidden' }, [
             h('div', { style: 'padding: 8px 16px; background: #f6ffed; font-weight: 600; color: #52c41a; border-bottom: 1px solid #b7eb8f; display: flex; align-items: center; gap: 6px' }, [
               h('span', { style: 'font-size: 16px' }, '✓'),
@@ -108,7 +94,26 @@ export const StatusTabs = defineComponent({
               )),
             ]),
           ])
-        : null,
-    ]
+        : null
+
+      return h('div', {
+        style: 'height: 100%; min-height: 0; display: flex; flex-direction: column;',
+      }, [
+        h(SegmentedComponent, {
+          'options': MODE_OPTIONS,
+          'value': mode.value,
+          'onUpdate:value': (v: unknown) => { mode.value = normalizeMode(v) },
+          'onChange': (v: unknown) => { mode.value = normalizeMode(v) },
+          'style': 'margin-bottom: 16px',
+        }),
+        h('div', {
+          style: 'flex: 1; min-height: 0;',
+        }, [
+          slots.default?.({ mode: mode.value, showResult, showErrors }),
+          errorNode,
+          resultNode,
+        ]),
+      ])
+    }
   },
 })

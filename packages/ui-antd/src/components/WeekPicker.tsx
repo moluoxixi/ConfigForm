@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import type { CSSProperties, ReactElement } from 'react'
 import { DatePicker } from 'antd'
 
 export interface CfWeekPickerProps {
@@ -9,9 +9,10 @@ export interface CfWeekPickerProps {
   disabled?: boolean
   preview?: boolean
   placeholder?: string
+  style?: CSSProperties
 }
 
-export function WeekPicker({ value, onChange, onFocus, onBlur, disabled, preview, placeholder }: CfWeekPickerProps): ReactElement {
+export function WeekPicker({ value, onChange, onFocus, onBlur, disabled, preview, placeholder, style }: CfWeekPickerProps): ReactElement {
   return (
     <DatePicker
       picker="week"
@@ -21,6 +22,7 @@ export function WeekPicker({ value, onChange, onFocus, onBlur, disabled, preview
       onBlur={onBlur}
       disabled={disabled || preview}
       placeholder={placeholder}
+      style={{ width: '100%', ...style }}
     />
   )
 }

@@ -27,6 +27,7 @@ export const RangePicker = defineComponent({
     endPlaceholder: { type: String, default: '结束日期' },
     disabled: Boolean,
     readonly: Boolean,
+    style: { type: Object as PropType<Record<string, unknown> | undefined>, default: undefined },
     /** 日期显示格式 */
     format: { type: String, default: 'YYYY-MM-DD' },
     /** 值格式 */
@@ -61,7 +62,7 @@ export const RangePicker = defineComponent({
         'rangeSeparator': props.rangeSeparator,
         'disabled': props.disabled,
         'clearable': props.clearable,
-        'style': 'width: 100%',
+        'style': { width: '100%', ...(props.style ?? {}) },
         'onUpdate:modelValue': (v: unknown) => emit('update:modelValue', v),
         'onFocus': () => emit('focus'),
         'onBlur': () => emit('blur'),

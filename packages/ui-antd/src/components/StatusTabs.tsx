@@ -59,7 +59,7 @@ export function StatusTabs({ resultTitle = '提交结果', children }: StatusTab
   }, [])
 
   return (
-    <>
+    <div style={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
       {/* 三态切换 */}
       <Segmented
         options={MODE_OPTIONS}
@@ -68,45 +68,47 @@ export function StatusTabs({ resultTitle = '提交结果', children }: StatusTab
         style={{ marginBottom: 16 }}
       />
 
-      {/* 表单内容（由场景文件填充） */}
-      {children({ mode, showResult, showErrors })}
+      <div style={{ flex: 1, minHeight: 0 }}>
+        {/* 表单内容（由场景文件填充） */}
+        {children({ mode, showResult, showErrors })}
 
-      {/* 错误展示 */}
-      {errorText && (
-        <Alert
-          type="error"
-          message="验证失败"
-          description={<pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontSize: 13, color: '#ff4d4f' }}>{errorText}</pre>}
-          style={{ marginTop: 16 }}
-          showIcon
-        />
-      )}
+        {/* 错误展示 */}
+        {errorText && (
+          <Alert
+            type="error"
+            message="验证失败"
+            description={<pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontSize: 13, color: '#ff4d4f' }}>{errorText}</pre>}
+            style={{ marginTop: 16 }}
+            showIcon
+          />
+        )}
 
-      {/* 成功结果展示（字段表格） */}
-      {resultData && (
-        <div style={{ marginTop: 16, border: '1px solid #b7eb8f', borderRadius: 8, overflow: 'hidden' }}>
-          <div style={{ padding: '8px 16px', background: '#f6ffed', fontWeight: 600, color: '#52c41a', borderBottom: '1px solid #b7eb8f', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 16 }}>✓</span>
-            {resultTitle}
-          </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-            <thead>
-              <tr style={{ background: '#fafafa' }}>
-                <th style={{ padding: '8px 16px', textAlign: 'left', borderBottom: '1px solid #f0f0f0', color: '#666', width: 180 }}>字段</th>
-                <th style={{ padding: '8px 16px', textAlign: 'left', borderBottom: '1px solid #f0f0f0', color: '#666' }}>值</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(resultData).map(([key, val], idx) => (
-                <tr key={key} style={idx % 2 === 1 ? { background: '#fafafa' } : undefined}>
-                  <td style={{ padding: '6px 16px', borderBottom: '1px solid #f0f0f0', fontWeight: 500, color: '#333' }}>{key}</td>
-                  <td style={{ padding: '6px 16px', borderBottom: '1px solid #f0f0f0', color: '#555', wordBreak: 'break-all' }}>{formatValue(val)}</td>
+        {/* 成功结果展示（字段表格） */}
+        {resultData && (
+          <div style={{ marginTop: 16, border: '1px solid #b7eb8f', borderRadius: 8, overflow: 'hidden' }}>
+            <div style={{ padding: '8px 16px', background: '#f6ffed', fontWeight: 600, color: '#52c41a', borderBottom: '1px solid #b7eb8f', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 16 }}>✓</span>
+              {resultTitle}
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr style={{ background: '#fafafa' }}>
+                  <th style={{ padding: '8px 16px', textAlign: 'left', borderBottom: '1px solid #f0f0f0', color: '#666', width: 180 }}>字段</th>
+                  <th style={{ padding: '8px 16px', textAlign: 'left', borderBottom: '1px solid #f0f0f0', color: '#666' }}>值</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </>
+              </thead>
+              <tbody>
+                {Object.entries(resultData).map(([key, val], idx) => (
+                  <tr key={key} style={idx % 2 === 1 ? { background: '#fafafa' } : undefined}>
+                    <td style={{ padding: '6px 16px', borderBottom: '1px solid #f0f0f0', fontWeight: 500, color: '#333' }}>{key}</td>
+                    <td style={{ padding: '6px 16px', borderBottom: '1px solid #f0f0f0', color: '#555', wordBreak: 'break-all' }}>{formatValue(val)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
   )
 }

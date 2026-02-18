@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import type { CSSProperties, ReactElement } from 'react'
 import { DatePicker } from 'antd'
 
 const { RangePicker: ARangePicker } = DatePicker
@@ -12,9 +12,10 @@ export interface CfRangePickerProps {
   preview?: boolean
   placeholder?: [string, string]
   format?: string
+  style?: CSSProperties
 }
 
-export function RangePicker({ value, onChange, onFocus, onBlur, disabled, preview, placeholder, format = 'YYYY-MM-DD' }: CfRangePickerProps): ReactElement {
+export function RangePicker({ value, onChange, onFocus, onBlur, disabled, preview, placeholder, format = 'YYYY-MM-DD', style }: CfRangePickerProps): ReactElement {
   return (
     <ARangePicker
       value={value as unknown as undefined}
@@ -24,6 +25,7 @@ export function RangePicker({ value, onChange, onFocus, onBlur, disabled, previe
       disabled={disabled || preview}
       placeholder={placeholder}
       format={format}
+      style={{ width: '100%', ...style }}
     />
   )
 }

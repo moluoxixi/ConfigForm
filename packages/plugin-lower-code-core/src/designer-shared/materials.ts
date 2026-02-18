@@ -4,19 +4,19 @@ import type {
   MaterialContainerItem,
   MaterialFieldItem,
   MaterialItem,
-} from '@moluoxixi/plugin-lower-code-core'
-import {
-  COMPONENT_MATERIALS,
-  LAYOUT_MATERIALS,
-} from '@moluoxixi/plugin-lower-code-core'
-import type { LowCodeDesignerComponentDefinition } from '../types'
-import type { RegistrySnapshot } from '../renderers/registry-shared'
+} from '../designer'
+import { COMPONENT_MATERIALS, LAYOUT_MATERIALS } from '../materials'
+import type { LowCodeDesignerComponentDefinitions, LowCodeDesignerComponentDefinition } from './types'
 
 export interface DesignerMaterials {
   componentMaterials: MaterialFieldItem[]
   layoutMaterials: MaterialContainerItem[]
   allMaterials: MaterialItem[]
   fieldComponentOptions: string[]
+}
+
+export interface ResolveDesignerMaterialsOptions {
+  internalComponentNames?: Iterable<string>
 }
 
 const BUILTIN_FIELD_MATERIAL_BY_COMPONENT = new Map(
@@ -28,11 +28,29 @@ const BUILTIN_LAYOUT_MATERIAL_BY_COMPONENT = new Map(
 const BUILTIN_LAYOUT_COMPONENTS = new Set<DesignerContainerComponent>(
   LAYOUT_MATERIALS.map(item => item.component),
 )
-const INTERNAL_COMPONENT_NAMES = new Set(['LowCodeDesigner', 'LowerCodeDesigner'])
+
+const DEFAULT_INTERNAL_COMPONENT_NAMES = new Set([
+  'LowCodeDesigner',
+  'LowerCodeDesigner',
+  'DesignerMaterialPane',
+  'DesignerCanvasPane',
+  'DesignerPropertiesPane',
+])
+
+function cloneFieldMaterial(item: MaterialFieldItem): MaterialFieldItem {
+  return {
+    ...item,
+    componentProps: item.componentProps ? { ...item.componentProps } : undefined,
+  }
+}
+
+function cloneContainerMaterial(item: MaterialContainerItem): MaterialContainerItem {
+  return { ...item }
+}
 
 function cloneDefaultMaterials(): DesignerMaterials {
-  const componentMaterials = COMPONENT_MATERIALS.map(item => ({ ...item }))
-  const layoutMaterials = LAYOUT_MATERIALS.map(item => ({ ...item }))
+  const componentMaterials = COMPONENT_MATERIALS.map(cloneFieldMaterial)
+  const layoutMaterials = LAYOUT_MATERIALS.map(cloneContainerMaterial)
   return {
     componentMaterials,
     layoutMaterials,
@@ -83,19 +101,41 @@ function createRegistryMaterialId(componentName: string, usedIds: Set<string>): 
   return candidate
 }
 
+function normalizeComponentNames(registeredComponentNames: Iterable<string>): string[] {
+  const names: string[] = []
+  const seen = new Set<string>()
+  for (const rawName of registeredComponentNames) {
+    const name = rawName.trim()
+    if (!name || seen.has(name))
+      continue
+    seen.add(name)
+    names.push(name)
+  }
+  return names
+}
+
+function createInternalComponentNameSet(options: ResolveDesignerMaterialsOptions | undefined): Set<string> {
+  if (!options?.internalComponentNames)
+    return new Set(DEFAULT_INTERNAL_COMPONENT_NAMES)
+  return new Set(options.internalComponentNames)
+}
+
 export function resolveDesignerMaterials(
-  registry: RegistrySnapshot,
-  componentDefinitions?: Record<string, LowCodeDesignerComponentDefinition>,
+  registeredComponentNames: Iterable<string>,
+  componentDefinitions?: LowCodeDesignerComponentDefinitions,
+  options?: ResolveDesignerMaterialsOptions,
 ): DesignerMaterials {
-  if (registry.components.size === 0)
+  const normalizedNames = normalizeComponentNames(registeredComponentNames)
+  if (normalizedNames.length === 0)
     return cloneDefaultMaterials()
 
+  const internalComponentNames = createInternalComponentNameSet(options)
   const componentMaterials: MaterialFieldItem[] = []
   const layoutMaterials: MaterialContainerItem[] = []
   const usedIds = new Set<string>()
 
-  for (const componentName of registry.components.keys()) {
-    if (INTERNAL_COMPONENT_NAMES.has(componentName))
+  for (const componentName of normalizedNames) {
+    if (internalComponentNames.has(componentName))
       continue
 
     if (BUILTIN_LAYOUT_COMPONENTS.has(componentName as DesignerContainerComponent)) {
@@ -112,15 +152,15 @@ export function resolveDesignerMaterials(
       continue
     }
 
-    const builtinField = BUILTIN_FIELD_MATERIAL_BY_COMPONENT.get(componentName)
     const definition = componentDefinitions?.[componentName]
+    const builtinField = BUILTIN_FIELD_MATERIAL_BY_COMPONENT.get(componentName)
     if (builtinField) {
       componentMaterials.push({
         ...builtinField,
         label: definition?.label ?? builtinField.label,
         description: definition?.description ?? builtinField.description,
         type: definition?.fieldType ?? builtinField.type,
-        componentProps: cloneDefaultProps(definition) ?? builtinField.componentProps,
+        componentProps: cloneDefaultProps(definition) ?? (builtinField.componentProps ? { ...builtinField.componentProps } : undefined),
       })
       usedIds.add(builtinField.id)
       continue

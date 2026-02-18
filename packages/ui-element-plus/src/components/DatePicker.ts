@@ -1,10 +1,17 @@
 import { ElDatePicker } from 'element-plus'
+import type { PropType } from 'vue'
 import { defineComponent, h } from 'vue'
 
 /** 日期选择器适配 — readonly 显示日期文本 */
 export const DatePicker = defineComponent({
   name: 'CfDatePicker',
-  props: { modelValue: { type: String, default: '' }, placeholder: String, disabled: Boolean, readonly: Boolean },
+  props: {
+    modelValue: { type: String, default: '' },
+    placeholder: String,
+    disabled: Boolean,
+    readonly: Boolean,
+    style: { type: Object as PropType<Record<string, unknown> | undefined>, default: undefined },
+  },
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
     return () => {
@@ -15,7 +22,7 @@ export const DatePicker = defineComponent({
         'modelValue': props.modelValue,
         'placeholder': props.placeholder,
         'disabled': props.disabled,
-        'style': 'width: 100%',
+        'style': { width: '100%', ...(props.style ?? {}) },
         'valueFormat': 'YYYY-MM-DD',
         'onUpdate:modelValue': (v: string) => emit('update:modelValue', v),
         'onFocus': () => emit('focus'),

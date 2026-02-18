@@ -1,5 +1,5 @@
 <template>
-  <div style="width: 100%; margin: 0; padding: 16px; font-family: system-ui, sans-serif; height: 100%; min-height: 0; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden;">
+  <div style="width: 100vw; margin: 0; padding: 16px; font-family: system-ui, sans-serif; height: 100vh; min-height: 0; min-width: 0; flex: 1 1 auto; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden;">
     <h1 style="margin-bottom: 4px;">
       ConfigForm - Vue Playground
     </h1>
@@ -260,14 +260,28 @@ function navBtnStyle(name: string): Record<string, string> {
 
 <style>
 html,
-body,
-#app {
-  width: 100%;
-  height: 100%;
+body {
+  width: 100vw;
+  height: 100vh;
   margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
 body {
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+#app {
+  width: 100vw;
+  height: 100vh;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
 }
 </style>

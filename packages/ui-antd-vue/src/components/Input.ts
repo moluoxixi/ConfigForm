@@ -1,4 +1,5 @@
 import { Input as AInput } from 'ant-design-vue'
+import type { PropType } from 'vue'
 import { defineComponent, h } from 'vue'
 
 /** 文本输入适配 — 桥接 modelValue + readonly 纯文本 */
@@ -9,6 +10,7 @@ export const Input = defineComponent({
     placeholder: String,
     disabled: Boolean,
     readonly: Boolean,
+    style: { type: Object as PropType<Record<string, unknown> | undefined>, default: undefined },
   },
   emits: ['update:modelValue', 'focus', 'blur'],
   setup(props, { emit }) {
@@ -17,6 +19,7 @@ export const Input = defineComponent({
         'value': props.modelValue,
         'placeholder': props.placeholder,
         'disabled': props.disabled,
+        'style': { width: '100%', ...(props.style ?? {}) },
         'onUpdate:value': (v: string) => emit('update:modelValue', v),
         'onFocus': () => emit('focus'),
         'onBlur': () => emit('blur'),

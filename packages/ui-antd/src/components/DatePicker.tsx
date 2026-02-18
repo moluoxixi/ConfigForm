@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import type { CSSProperties, ReactElement } from 'react'
 import { DatePicker as ADatePicker } from 'antd'
 import dayjs from 'dayjs'
 
@@ -10,9 +10,10 @@ export interface CfDatePickerProps {
   placeholder?: string
   disabled?: boolean
   preview?: boolean
+  style?: CSSProperties
 }
 
-export function DatePicker({ value, onChange, onFocus, onBlur, placeholder, disabled, preview }: CfDatePickerProps): ReactElement {
+export function DatePicker({ value, onChange, onFocus, onBlur, placeholder, disabled, preview, style }: CfDatePickerProps): ReactElement {
   const parsed = value ? dayjs(value) : undefined
   const pickerValue = parsed && parsed.isValid() ? parsed : undefined
   return (
@@ -23,7 +24,7 @@ export function DatePicker({ value, onChange, onFocus, onBlur, placeholder, disa
       onBlur={onBlur}
       placeholder={placeholder}
       disabled={disabled || preview}
-      style={{ width: '100%' }}
+      style={{ width: '100%', ...style }}
     />
   )
 }

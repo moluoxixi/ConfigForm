@@ -13,6 +13,7 @@ export const RangePicker = defineComponent({
     placeholder: { type: Array as unknown as PropType<[string, string]>, default: undefined },
     disabled: Boolean,
     readonly: Boolean,
+    style: { type: Object as PropType<Record<string, unknown> | undefined>, default: undefined },
     /** 日期格式，默认 YYYY-MM-DD */
     format: { type: String, default: 'YYYY-MM-DD' },
   },
@@ -25,7 +26,7 @@ export const RangePicker = defineComponent({
         'disabled': props.disabled,
         'format': props.format,
         'valueFormat': props.format,
-        'style': 'width: 100%',
+        'style': { width: '100%', ...(props.style ?? {}) },
         'onUpdate:value': (v: unknown) => emit('update:modelValue', (v as [string, string] | null) ?? null),
         'onFocus': () => emit('focus'),
         'onBlur': () => emit('blur'),

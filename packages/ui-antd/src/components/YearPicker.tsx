@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import type { CSSProperties, ReactElement } from 'react'
 import { DatePicker } from 'antd'
 
 export interface CfYearPickerProps {
@@ -9,9 +9,10 @@ export interface CfYearPickerProps {
   disabled?: boolean
   preview?: boolean
   placeholder?: string
+  style?: CSSProperties
 }
 
-export function YearPicker({ value, onChange, onFocus, onBlur, disabled, preview, placeholder }: CfYearPickerProps): ReactElement {
+export function YearPicker({ value, onChange, onFocus, onBlur, disabled, preview, placeholder, style }: CfYearPickerProps): ReactElement {
   return (
     <DatePicker
       picker="year"
@@ -22,6 +23,7 @@ export function YearPicker({ value, onChange, onFocus, onBlur, disabled, preview
       disabled={disabled || preview}
       placeholder={placeholder}
       format="YYYY"
+      style={{ width: '100%', ...style }}
     />
   )
 }

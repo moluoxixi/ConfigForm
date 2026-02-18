@@ -9,9 +9,10 @@ export interface CfInputProps {
   placeholder?: string
   disabled?: boolean
   preview?: boolean
+  style?: React.CSSProperties
 }
 
-export function Input({ value, onChange, onFocus, onBlur, placeholder, disabled, preview }: CfInputProps): React.ReactElement {
+export function Input({ value, onChange, onFocus, onBlur, placeholder, disabled, preview, style }: CfInputProps): React.ReactElement {
   return (
     <AInput
       value={value}
@@ -20,6 +21,7 @@ export function Input({ value, onChange, onFocus, onBlur, placeholder, disabled,
       onBlur={onBlur}
       placeholder={placeholder}
       disabled={disabled || preview}
+      style={{ width: '100%', ...style }}
     />
   )
 }

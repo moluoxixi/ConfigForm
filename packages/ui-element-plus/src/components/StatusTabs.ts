@@ -65,22 +65,8 @@ export const StatusTabs = defineComponent({
       return 'editable'
     }
 
-    return () => [
-      /* 三态切换 */
-      h(RadioGroupComponent, {
-        'modelValue': mode.value,
-        'onUpdate:modelValue': (v: unknown) => { mode.value = normalizeMode(v) },
-        'size': 'small',
-        'style': 'margin-bottom: 16px',
-      }, () => MODE_OPTIONS.map(opt =>
-        h(RadioButtonComponent, { key: opt.value, value: opt.value }, () => opt.label),
-      )),
-
-      /* 表单内容（由场景文件填充） */
-      slots.default?.({ mode: mode.value, showResult, showErrors }),
-
-      /* 错误展示 */
-      errorText.value
+    return () => {
+      const errorNode = errorText.value
         ? h(AlertComponent, {
             type: 'error',
             title: '验证失败',
@@ -89,10 +75,9 @@ export const StatusTabs = defineComponent({
             closable: false,
             style: 'margin-top: 16px; white-space: pre-wrap',
           })
-        : null,
+        : null
 
-      /* 成功结果展示（字段表格） */
-      resultData.value
+      const resultNode = resultData.value
         ? h('div', { style: 'margin-top: 16px; border: 1px solid #67c23a; border-radius: 4px; overflow: hidden' }, [
             h('div', { style: 'padding: 8px 16px; background: #f0f9eb; font-weight: 600; color: #67c23a; border-bottom: 1px solid #67c23a; display: flex; align-items: center; gap: 6px' }, [
               h('span', { style: 'font-size: 16px' }, '✓'),
@@ -111,7 +96,27 @@ export const StatusTabs = defineComponent({
               )),
             ]),
           ])
-        : null,
-    ]
+        : null
+
+      return h('div', {
+        style: 'height: 100%; min-height: 0; display: flex; flex-direction: column;',
+      }, [
+        h(RadioGroupComponent, {
+          'modelValue': mode.value,
+          'onUpdate:modelValue': (v: unknown) => { mode.value = normalizeMode(v) },
+          'size': 'small',
+          'style': 'margin-bottom: 16px',
+        }, () => MODE_OPTIONS.map(opt =>
+          h(RadioButtonComponent, { key: opt.value, value: opt.value }, () => opt.label),
+        )),
+        h('div', {
+          style: 'flex: 1; min-height: 0;',
+        }, [
+          slots.default?.({ mode: mode.value, showResult, showErrors }),
+          errorNode,
+          resultNode,
+        ]),
+      ])
+    }
   },
 })

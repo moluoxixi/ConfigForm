@@ -30,6 +30,7 @@ export const DateRangePicker = defineComponent({
     rangeSeparator: { type: String, default: '至' },
     disabled: Boolean,
     readonly: Boolean,
+    style: { type: Object as PropType<Record<string, unknown> | undefined>, default: undefined },
     /** 是否可清空 */
     clearable: { type: Boolean, default: true },
     /** 不可选日期函数 */
@@ -56,7 +57,7 @@ export const DateRangePicker = defineComponent({
         'rangeSeparator': props.rangeSeparator,
         'disabled': props.disabled,
         'clearable': props.clearable,
-        'style': 'width: 100%',
+        'style': { width: '100%', ...(props.style ?? {}) },
         'onUpdate:modelValue': (v: unknown) => emit('update:modelValue', v),
         'onFocus': () => emit('focus'),
         'onBlur': () => emit('blur'),

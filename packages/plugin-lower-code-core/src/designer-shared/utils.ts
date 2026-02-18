@@ -1,26 +1,29 @@
-import type { DesignerFieldNode, DesignerNode } from '@moluoxixi/plugin-lower-code-core'
-import Sortable from 'sortablejs'
+import type { DesignerFieldNode, DesignerNode } from '../designer'
 import {
   containerTarget,
   containerUsesSections,
-  isFieldNode,
   rootTarget,
   sectionTarget,
   targetToKey,
-} from '@moluoxixi/plugin-lower-code-core'
+} from '../designer'
+
+export interface DragRestoreEventLike {
+  item: Element | null
+  from: Element | null
+  oldIndex?: number | null
+}
 
 export function collectPreviewFields(nodes: DesignerNode[]): DesignerFieldNode[] {
   const fields: DesignerFieldNode[] = []
   const walk = (items: DesignerNode[]): void => {
     for (const item of items) {
-      if (isFieldNode(item)) {
+      if (item.kind === 'field') {
         fields.push(item)
         continue
       }
       if (containerUsesSections(item.component)) {
-        for (const section of item.sections) {
+        for (const section of item.sections)
           walk(section.children)
-        }
         continue
       }
       walk(item.children)
@@ -51,10 +54,7 @@ export function collectDropTargetKeys(nodes: DesignerNode[]): string[] {
   return keys
 }
 
-/**
- * Sortable 会直接改 DOM，React 需要先把 DOM 放回旧位置，再由 state 驱动重渲染。
- */
-export function restoreDraggedDomPosition(event: Sortable.SortableEvent): void {
+export function restoreDraggedDomPosition(event: DragRestoreEventLike): void {
   const item = event.item as HTMLElement | null
   const from = event.from as HTMLElement | null
   if (!item || !from)
@@ -69,6 +69,7 @@ export function restoreDraggedDomPosition(event: Sortable.SortableEvent): void {
     from.appendChild(item)
     return
   }
+
   const anchor = siblings[oldIndex]
   if (anchor)
     from.insertBefore(item, anchor)

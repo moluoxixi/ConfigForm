@@ -1,4 +1,5 @@
 import { ElDatePicker } from 'element-plus'
+import type { PropType } from 'vue'
 import { defineComponent, h } from 'vue'
 
 /**
@@ -14,6 +15,7 @@ export const YearPicker = defineComponent({
     placeholder: { type: String, default: '请选择年份' },
     disabled: Boolean,
     readonly: Boolean,
+    style: { type: Object as PropType<Record<string, unknown> | undefined>, default: undefined },
     /** 值格式 */
     valueFormat: { type: String, default: 'YYYY' },
     /** 显示格式 */
@@ -34,7 +36,7 @@ export const YearPicker = defineComponent({
         'disabled': props.disabled,
         'valueFormat': props.valueFormat,
         'format': props.format,
-        'style': 'width: 100%',
+        'style': { width: '100%', ...(props.style ?? {}) },
         'onUpdate:modelValue': (v: string) => emit('update:modelValue', v),
         'onFocus': () => emit('focus'),
         'onBlur': () => emit('blur'),

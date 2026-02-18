@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div style="height: 100%; min-height: 0; display: flex; flex-direction: column;">
     <h2>{{ props.title ?? props.config.title }}</h2>
     <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       {{ props.description ?? props.config.description }}
@@ -30,20 +30,22 @@
       </div>
     </div>
 
-    <component :is="props.statusTabs" ref="st" v-slot="{ mode, showResult }">
-      <div data-configform-print-root="true">
-        <ConfigForm
-          :schema="currentSchema"
-          :pattern="mode"
-          :initial-values="props.config.initialValues"
-          :effects="props.config.effects"
-          :plugins="resolvedPlugins"
-          @submit="showResult"
-          @submit-failed="(e: any) => st?.showErrors(e)"
-          @reset="() => clearStatus()"
-        />
-      </div>
-    </component>
+    <div style="flex: 1; min-height: 0; display: flex; flex-direction: column;">
+      <component :is="props.statusTabs" ref="st" v-slot="{ mode, showResult }">
+        <div data-configform-print-root="true" style="flex: 1; min-height: 0; display: flex; flex-direction: column;">
+          <ConfigForm
+            :schema="currentSchema"
+            :pattern="mode"
+            :initial-values="props.config.initialValues"
+            :effects="props.config.effects"
+            :plugins="resolvedPlugins"
+            @submit="showResult"
+            @submit-failed="(e: any) => st?.showErrors(e)"
+            @reset="() => clearStatus()"
+          />
+        </div>
+      </component>
+    </div>
   </div>
 </template>
 
