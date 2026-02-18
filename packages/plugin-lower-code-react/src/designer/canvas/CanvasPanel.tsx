@@ -37,6 +37,10 @@ export function CanvasPanel({
   renderFieldPreviewControl,
 }: CanvasPanelProps): React.ReactElement {
   const [activeTabsByContainer, setActiveTabsByContainer] = useState<Record<string, string>>({})
+  const consumeToolbarPointer = (event: React.SyntheticEvent): void => {
+    event.preventDefault()
+    event.stopPropagation()
+  }
 
   useEffect(() => {
     setActiveTabsByContainer((prev) => {
@@ -127,6 +131,8 @@ export function CanvasPanel({
             type="button"
             className="cf-lc-node-tool cf-lc-node-tool--primary"
             title="新增分组"
+            onMouseDown={consumeToolbarPointer}
+            onPointerDown={consumeToolbarPointer}
             onClick={(event) => {
               event.stopPropagation()
               options.onAddSection?.()
@@ -139,6 +145,8 @@ export function CanvasPanel({
           type="button"
           className="cf-lc-node-tool"
           title="复制"
+          onMouseDown={consumeToolbarPointer}
+          onPointerDown={consumeToolbarPointer}
           onClick={(event) => {
             event.stopPropagation()
             onDuplicateNode(nodeId)
@@ -150,6 +158,8 @@ export function CanvasPanel({
           type="button"
           className="cf-lc-node-tool cf-lc-node-tool--danger"
           title="删除"
+          onMouseDown={consumeToolbarPointer}
+          onPointerDown={consumeToolbarPointer}
           onClick={(event) => {
             event.stopPropagation()
             onRemoveNode(nodeId)
@@ -203,6 +213,8 @@ export function CanvasPanel({
           type="button"
           className="cf-lc-section-action"
           title="删除分组"
+          onMouseDown={consumeToolbarPointer}
+          onPointerDown={consumeToolbarPointer}
           onClick={(event) => {
             event.stopPropagation()
             onRemoveSection(container.id, section.id)

@@ -103,9 +103,9 @@ const DESIGNER_CSS = `
 .cf-lc-mask-layer-actions {
   position: absolute;
   top: 0;
-  right: 0;
-  transform: translate(42%, -58%);
-  z-index: 30;
+  right: 4px;
+  transform: translate(0, -100%);
+  z-index: 40;
   pointer-events: auto;
   display: flex;
   align-items: flex-start;
@@ -217,15 +217,16 @@ const DESIGNER_CSS = `
 
 .cf-lc-node-toolbar {
   position: static;
-  z-index: 2;
+  z-index: 4;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px;
+  gap: 4px;
+  padding: 2px 4px;
   border: 1px solid #d5e2f3;
-  border-radius: 999px;
+  border-bottom: 0;
+  border-radius: 4px 4px 0 0;
   background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.14);
+  box-shadow: 0 -2px 8px rgba(15, 23, 42, 0.08);
   opacity: 0;
   transform: translateY(-2px) scale(0.98);
   pointer-events: none;
@@ -240,10 +241,10 @@ const DESIGNER_CSS = `
 }
 
 .cf-lc-node-tool {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border: 1px solid #d5e2f3;
-  border-radius: 999px;
+  border-radius: 4px;
   background: rgba(255, 255, 255, 0.98);
   color: #64748b;
   font-size: 12px;
@@ -378,6 +379,7 @@ const DESIGNER_CSS = `
   background: transparent;
   box-shadow: none;
   padding: 0;
+  overflow: visible;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -397,7 +399,7 @@ const DESIGNER_CSS = `
   border: 1px solid #dbe4f0;
   border-radius: 12px;
   background: #ffffff;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .cf-lc-layout-card-head {
@@ -419,10 +421,12 @@ const DESIGNER_CSS = `
   border: 1px solid #dbe4f0;
   border-radius: 12px;
   background: #ffffff;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .cf-lc-layout-tabs-nav {
+  position: relative;
+  z-index: 1;
   display: flex;
   gap: 0;
   border-bottom: 1px solid #e6edf7;
@@ -449,14 +453,18 @@ const DESIGNER_CSS = `
 }
 
 .cf-lc-layout-tabs-panels {
+  position: relative;
+  z-index: 2;
   display: grid;
   gap: 8px;
   padding: 8px;
+  overflow: visible;
 }
 
 .cf-lc-layout-collapse-shell {
   display: grid;
   gap: 8px;
+  overflow: visible;
 }
 
 .cf-lc-section {
@@ -510,7 +518,7 @@ const DESIGNER_CSS = `
   align-items: center;
   justify-content: flex-start;
   gap: 8px;
-  padding-right: 28px;
+  padding-right: 32px;
   margin-bottom: 8px;
 }
 
@@ -527,11 +535,13 @@ const DESIGNER_CSS = `
 .cf-lc-section-action {
   position: absolute;
   top: 0;
-  right: 0;
-  transform: translate(46%, -54%);
+  right: 4px;
+  transform: translate(0, -100%);
+  z-index: 40;
   border: 1px solid #d5e2f3;
-  border-radius: 999px;
-  width: 22px;
+  border-bottom: 0;
+  border-radius: 4px 4px 0 0;
+  width: 24px;
   height: 22px;
   background: rgba(255, 255, 255, 0.98);
   color: #64748b;

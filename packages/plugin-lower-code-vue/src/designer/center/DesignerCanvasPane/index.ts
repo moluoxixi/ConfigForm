@@ -113,6 +113,10 @@ export const DesignerCanvasPane = defineComponent({
     const renderNodeToolbar = (nodeId: string, options?: { allowAddSection?: boolean, onAddSection?: () => void }): VNodeChild => {
       if (props.readonly)
         return null
+      const consumeToolbarPointer = (event: Event): void => {
+        event.preventDefault()
+        event.stopPropagation()
+      }
       return h('div', {
         class: 'cf-lc-node-toolbar',
         onClick: (event: Event) => event.stopPropagation(),
@@ -131,6 +135,8 @@ export const DesignerCanvasPane = defineComponent({
               type: 'button',
               class: 'cf-lc-node-tool cf-lc-node-tool--primary',
               title: '新增分组',
+              onMousedown: consumeToolbarPointer,
+              onPointerdown: consumeToolbarPointer,
               onClick: (event: Event) => {
                 event.stopPropagation()
                 options.onAddSection?.()
@@ -141,6 +147,8 @@ export const DesignerCanvasPane = defineComponent({
           type: 'button',
           class: 'cf-lc-node-tool',
           title: '复制',
+          onMousedown: consumeToolbarPointer,
+          onPointerdown: consumeToolbarPointer,
           onClick: (event: Event) => {
             event.stopPropagation()
             props.onDuplicateNode(nodeId)
@@ -150,6 +158,8 @@ export const DesignerCanvasPane = defineComponent({
           type: 'button',
           class: 'cf-lc-node-tool cf-lc-node-tool--danger',
           title: '删除',
+          onMousedown: consumeToolbarPointer,
+          onPointerdown: consumeToolbarPointer,
           onClick: (event: Event) => {
             event.stopPropagation()
             props.onRemoveNode(nodeId)
@@ -195,6 +205,14 @@ export const DesignerCanvasPane = defineComponent({
               type: 'button',
               class: 'cf-lc-section-action',
               title: '删除分组',
+              onMousedown: (event: Event) => {
+                event.preventDefault()
+                event.stopPropagation()
+              },
+              onPointerdown: (event: Event) => {
+                event.preventDefault()
+                event.stopPropagation()
+              },
               onClick: (event: Event) => {
                 event.stopPropagation()
                 props.onRemoveSection(container.id, section.id)
