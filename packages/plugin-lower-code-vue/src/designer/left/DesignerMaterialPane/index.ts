@@ -57,6 +57,13 @@ export const DesignerMaterialPane = defineComponent({
       }
     }
 
+    /**
+     * render Masked Material Preview：负责“渲染render Masked Material Preview”的核心实现与调用衔接。
+     * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+     * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+     *
+     * 说明：该注释描述 render Masked Material Preview 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+     */
     function renderMaskedMaterialPreview(item: MaterialItem): VNodeChild {
       return h(DesignerMaterialMaskDecorator, undefined, {
         default: () => [
@@ -68,13 +75,20 @@ export const DesignerMaterialPane = defineComponent({
       })
     }
 
+    /**
+     * render Material Item：负责“渲染render Material Item”的核心实现与调用衔接。
+     * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+     * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+     *
+     * 说明：该注释描述 render Material Item 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+     */
     function renderMaterialItem(item: MaterialItem): VNodeChild {
       return h('div', {
-        key: item.id,
-        class: 'cf-lc-material-item',
+        'key': item.id,
+        'class': 'cf-lc-material-item',
         'data-material-id': item.id,
         'data-material-payload': serializeMaterial(item),
-        style: {
+        'style': {
           border: '1px solid #cfe0ff',
           borderRadius: '10px',
           padding: '7px',

@@ -1,5 +1,5 @@
 import type { FormExportDownloadJSONOptions, FormExportPreviewOptions } from '@moluoxixi/plugin-export'
-import type { ReactElement, CSSProperties } from 'react'
+import type { CSSProperties, ReactElement } from 'react'
 import { useForm } from '@moluoxixi/react'
 import { Button, message } from 'antd'
 import { useEffect, useState } from 'react'
@@ -17,6 +17,13 @@ export interface ExportJsonActionProps {
   style?: CSSProperties
 }
 
+/**
+ * Export Json Action：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 Export Json Action 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 export function ExportJsonAction({
   buttonText = '导出预览',
   modalTitle = '导出 JSON 预览',

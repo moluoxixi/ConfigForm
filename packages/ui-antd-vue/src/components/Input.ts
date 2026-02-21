@@ -1,5 +1,5 @@
-import { Input as AInput } from 'ant-design-vue'
 import type { PropType } from 'vue'
+import { Input as AInput } from 'ant-design-vue'
 import { defineComponent, h } from 'vue'
 
 /** 文本输入适配 — 桥接 modelValue + readonly 纯文本 */

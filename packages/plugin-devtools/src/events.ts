@@ -1,5 +1,5 @@
-import { FormLifeCycle } from '@moluoxixi/core'
 import type { DevToolsActionEventType } from './types'
+import { FormLifeCycle } from '@moluoxixi/core'
 
 /** 生命周期事件定义（表单级） */
 export interface DevToolsFormEventDefinition {
@@ -74,4 +74,3 @@ export function buildDevToolsFieldEventSummary(
       return `值变化: ${field.path} = ${JSON.stringify(field.value)?.slice(0, 50)}`
   }
 }
-

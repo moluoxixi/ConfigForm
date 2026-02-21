@@ -396,32 +396,14 @@ export const ConfigForm = defineComponent({
   },
 })
 
-/** 滚动到第一个错误字段 */
-function scrollToFirstError(errors: Array<{ path: string }>): void {
-  if (errors.length === 0)
-    return
-
-  setTimeout(() => {
-    const errorElement = document.querySelector(
-      '[data-field-error="true"], [aria-invalid="true"]',
-    )
-    if (errorElement) {
-      errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      const input = errorElement.querySelector('input, textarea, select') as HTMLElement | null
-      input?.focus()
-      return
-    }
-
-    const firstPath = errors[0].path
-    const fieldElements = document.querySelectorAll(`[data-field-path="${firstPath}"], [name="${firstPath}"]`)
-    if (fieldElements.length > 0) {
-      fieldElements[0].scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }
-  }, 100)
-}
-
-const RESERVED_FORM_ACTION_KEYS = new Set(['submit', 'reset', 'align'])
-
+/**
+ * 滚动到第一个错误字段
+ * is Record：负责“判断is Record”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 is Record 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
@@ -430,6 +412,13 @@ interface PluginContainerBridge {
   getPlugins?: () => ReadonlyMap<string, unknown> | undefined
 }
 
+/**
+ * collect Schema Transformers：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 collect Schema Transformers 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function collectSchemaTransformers(form: PluginContainerBridge): SchemaTransformPluginBridge[] {
   const plugins = form.getPlugins?.()
   if (!plugins) {
@@ -448,6 +437,13 @@ function collectSchemaTransformers(form: PluginContainerBridge): SchemaTransform
   return transformers
 }
 
+/**
+ * apply Schema Transforms：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 apply Schema Transforms 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function applySchemaTransforms(schema: ISchema, transformers: SchemaTransformPluginBridge[]): ISchema {
   let transformed = schema
   for (const transformer of transformers) {
@@ -459,6 +455,13 @@ function applySchemaTransforms(schema: ISchema, transformers: SchemaTransformPlu
   return transformed
 }
 
+/**
+ * extract Extra Actions：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 extract Extra Actions 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function extractExtraActions(actions: Record<string, unknown> | undefined): Record<string, unknown> {
   if (!actions) {
     return {}
@@ -472,14 +475,35 @@ function extractExtraActions(actions: Record<string, unknown> | undefined): Reco
   return extras
 }
 
+/**
+ * has Enabled Extra Actions：负责“判断has Enabled Extra Actions”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 has Enabled Extra Actions 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function hasEnabledExtraActions(actions: Record<string, unknown>): boolean {
   return Object.values(actions).some(isActionEnabled)
 }
 
+/**
+ * is Action Enabled：负责“判断is Action Enabled”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 is Action Enabled 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function isActionEnabled(config: unknown): boolean {
   return config !== false
 }
 
+/**
+ * resolve Action Props：负责“解析resolve Action Props”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 resolve Action Props 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function resolveActionProps(config: unknown): Record<string, unknown> {
   if (typeof config === 'string') {
     return { buttonText: config }

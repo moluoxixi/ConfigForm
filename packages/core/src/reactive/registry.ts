@@ -7,6 +7,13 @@ let defaultAdapter: ReactiveAdapter | null = null
 /** 按表单实例 ID 隔离的适配器映射 */
 const formAdapters = new Map<string, ReactiveAdapter>()
 
+/**
+ * resolve Owner Id：负责“解析resolve Owner Id”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 resolve Owner Id 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function resolveOwnerId(owner?: AdapterOwner | null): string | undefined {
   if (!owner) {
     return undefined

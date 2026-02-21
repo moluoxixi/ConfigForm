@@ -1,8 +1,8 @@
 import type { RegisterComponentOptions } from '@moluoxixi/react'
+import type { LowCodeDesignerProps } from './designer/types'
 import { registerComponent } from '@moluoxixi/react'
 import { createElement } from 'react'
 import { LowCodeDesigner } from './LowCodeDesigner'
-import type { LowCodeDesignerProps } from './designer/types'
 
 export interface SetupLowerCodeDesignerOptions {
   /** 注册到 schema.component 的名称，默认 LowCodeDesigner */

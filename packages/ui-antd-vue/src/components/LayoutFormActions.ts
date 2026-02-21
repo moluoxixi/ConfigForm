@@ -1,6 +1,7 @@
+import type { PropType } from 'vue'
 import { ComponentRegistrySymbol, FormSymbol } from '@moluoxixi/vue'
 import { Button as AButton } from 'ant-design-vue'
-import { defineComponent, h, inject, type PropType } from 'vue'
+import { defineComponent, h, inject } from 'vue'
 
 /**
  * 表单操作按钮（提交 + 重置）

@@ -16,4 +16,3 @@ declare module 'jsoneditor' {
     destroy(): void
   }
 }
-

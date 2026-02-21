@@ -38,10 +38,24 @@ const canvasRef = ref<HTMLCanvasElement | null>(null)
 const isDrawing = ref(false)
 const lastRenderedValue = ref<string | undefined>(undefined)
 
+/**
+ * get Context：负责“获取get Context”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 get Context 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function getContext(): CanvasRenderingContext2D | null {
   return canvasRef.value?.getContext('2d') ?? null
 }
 
+/**
+ * render Canvas：负责“渲染render Canvas”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 render Canvas 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function renderCanvas(value?: string): void {
   const canvas = canvasRef.value
   if (!canvas)
@@ -75,6 +89,13 @@ watch(
   },
 )
 
+/**
+ * handle Mouse Down：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 handle Mouse Down 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function handleMouseDown(event: MouseEvent): void {
   if (props.disabled || props.preview)
     return
@@ -88,6 +109,13 @@ function handleMouseDown(event: MouseEvent): void {
   ctx.moveTo(event.clientX - rect.left, event.clientY - rect.top)
 }
 
+/**
+ * handle Mouse Move：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 handle Mouse Move 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function handleMouseMove(event: MouseEvent): void {
   if (!isDrawing.value || props.disabled || props.preview)
     return
@@ -103,6 +131,13 @@ function handleMouseMove(event: MouseEvent): void {
   ctx.stroke()
 }
 
+/**
+ * handle Mouse Up：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 handle Mouse Up 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function handleMouseUp(): void {
   if (!isDrawing.value)
     return
@@ -113,6 +148,13 @@ function handleMouseUp(): void {
   emit('update:modelValue', canvas.toDataURL('image/png'))
 }
 
+/**
+ * handle Clear：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 handle Clear 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function handleClear(): void {
   const canvas = canvasRef.value
   if (!canvas)

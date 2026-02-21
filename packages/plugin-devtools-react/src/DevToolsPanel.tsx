@@ -66,6 +66,13 @@ const darkTheme: Theme = {
   inputBg: '#1e1f35',
 }
 
+/**
+ * use System Theme：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 use System Theme 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function useSystemTheme(): Theme {
   const [isDark, setIsDark] = useState(() =>
     typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches,
@@ -333,6 +340,13 @@ function Header({ t, overview, onClose, onValidate, onReset, onSubmit }: {
   )
 }
 
+/**
+ * Action Btn：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 Action Btn 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function ActionBtn({ t, label, onClick, color }: { t: Theme, label: string, onClick: () => void, color?: string }): React.ReactElement {
   return (
     <button
@@ -360,6 +374,13 @@ function Badge({ t, label, color }: { t: Theme, label: string, color: string }):
   return <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: t.badgeBg, color }}>{label}</span>
 }
 
+/**
+ * Tab Btn：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 Tab Btn 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function TabBtn({ t, active, onClick, label, count }: { t: Theme, active: boolean, onClick: () => void, label: string, count?: number }): React.ReactElement {
   return (
     <button
@@ -388,6 +409,13 @@ function TabBtn({ t, active, onClick, label, count }: { t: Theme, active: boolea
   )
 }
 
+/**
+ * Filter Pill：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 Filter Pill 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function FilterPill({ t, active, onClick, label }: { t: Theme, active: boolean, onClick: () => void, label: string }): React.ReactElement {
   return (
     <button
@@ -409,6 +437,13 @@ function FilterPill({ t, active, onClick, label }: { t: Theme, active: boolean, 
   )
 }
 
+/**
+ * Empty：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 Empty 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function Empty({ t, text }: { t: Theme, text: string }): React.ReactElement {
   return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: t.textDim }}>{text}</div>
 }
@@ -463,11 +498,25 @@ function TreeView({ t, nodes, selected, onSelect, depth = 0 }: {
   )
 }
 
+/**
+ * Type Badge：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 Type Badge 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function TypeBadge({ type }: { type: string }): React.ReactElement {
   const c = TYPE_CFG[type] ?? TYPE_CFG.field
   return <span style={{ fontSize: 9, fontWeight: 800, width: 16, height: 16, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 4, background: c.bg, color: c.c, flexShrink: 0 }}>{c.ch}</span>
 }
 
+/**
+ * Dot：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 Dot 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function Dot({ color }: { color: string }): React.ReactElement {
   return <span style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }} />
 }
@@ -622,6 +671,13 @@ function DetailView({ t, detail, api }: { t: Theme, detail: FieldDetail, api: De
   )
 }
 
+/**
+ * Sec：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 Sec 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function Sec({ t, title, children }: { t: Theme, title: string, children: React.ReactNode }): React.ReactElement {
   return (
     <div style={{ marginBottom: 12 }}>
@@ -631,6 +687,13 @@ function Sec({ t, title, children }: { t: Theme, title: string, children: React.
   )
 }
 
+/**
+ * Row：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 Row 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function Row({ t, label, value, mono }: { t: Theme, label: string, value: string, mono?: boolean }): React.ReactElement {
   return (
     <div style={{ display: 'flex', gap: 8, padding: '2px 0', fontSize: 12 }}>
@@ -640,6 +703,13 @@ function Row({ t, label, value, mono }: { t: Theme, label: string, value: string
   )
 }
 
+/**
+ * State Pill：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 State Pill 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function StatePill({ t, label, value, color }: { t: Theme, label: string, value: string | boolean, color: string }): React.ReactElement {
   const display = typeof value === 'boolean' ? (value ? 'true' : 'false') : value
   return (
@@ -709,6 +779,13 @@ function EventsView({ t, events, onClear }: { t: Theme, events: EventLogEntry[],
   )
 }
 
+/**
+ * resolve Event Color：负责“解析resolve Event Color”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 resolve Event Color 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function resolveEventColor(type: string, theme: Theme): string {
   const normalizedType = type.toLowerCase()
   if (normalizedType.includes('failed')) {
@@ -816,13 +893,30 @@ function ValuesView({ t, values }: { t: Theme, values: Record<string, unknown> }
 
 /* ======================== 工具 ======================== */
 
-/** 过滤字段树 */
-function filterTree(nodes: FieldTreeNode[], search: string, filter: string, diff: ValueDiffEntry[]): FieldTreeNode[] {
+/**
+ * 过滤字段树
+ *
+ * 支持按关键词搜索（匹配 label/name/path）和按状态过滤（error/required/modified）。
+ * 如果某节点的子节点匹配，即使该节点自身不匹配也会保留（保持树结构完整）。
+ */
+function filterTree(
+  nodes: FieldTreeNode[],
+  search: string,
+  filter: 'all' | 'error' | 'required' | 'modified',
+  diff: ValueDiffEntry[],
+): FieldTreeNode[] {
   const modifiedPaths = new Set(diff.filter(d => d.changed).map(d => d.path))
 
+  /**
+   * 判断单个节点是否匹配过滤条件。
+   * 先做关键词搜索，再做状态过滤，减少不必要的计算。
+   */
   function match(node: FieldTreeNode): boolean {
-    if (search && !(node.label || node.name).toLowerCase().includes(search.toLowerCase()) && !node.path.toLowerCase().includes(search.toLowerCase()))
+    if (search
+      && !(node.label || node.name).toLowerCase().includes(search.toLowerCase())
+      && !node.path.toLowerCase().includes(search.toLowerCase())) {
       return false
+    }
     if (filter === 'error' && node.errorCount === 0)
       return false
     if (filter === 'required' && !node.required)
@@ -832,6 +926,10 @@ function filterTree(nodes: FieldTreeNode[], search: string, filter: string, diff
     return true
   }
 
+  /**
+   * 递归过滤节点与子节点。
+   * 只要自身或任一子节点命中条件，就保留当前节点。
+   */
   function filterNode(node: FieldTreeNode): FieldTreeNode | null {
     const filteredChildren = node.children.map(filterNode).filter(Boolean) as FieldTreeNode[]
     if (match(node) || filteredChildren.length > 0) {

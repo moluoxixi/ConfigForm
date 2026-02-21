@@ -1,5 +1,5 @@
-import { ElInput } from 'element-plus'
 import type { PropType } from 'vue'
+import { ElInput } from 'element-plus'
 import { defineComponent, h } from 'vue'
 
 /** 文本输入适配 — 桥接 modelValue + readonly 纯文本 */

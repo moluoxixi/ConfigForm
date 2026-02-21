@@ -2,7 +2,7 @@
 import type { FormImportJSONOptions, ImportSetValueStrategy } from '@moluoxixi/plugin-import'
 import type { PropType, VNode, VNodeRef } from 'vue'
 import { useForm } from '@moluoxixi/vue'
-import { Alert as AAlert, Button as AButton, Modal as AModal, message, Upload as AUpload } from 'ant-design-vue'
+import { Alert as AAlert, Button as AButton, Modal as AModal, Upload as AUpload, message } from 'ant-design-vue'
 import JSONEditor from 'jsoneditor'
 import { computed, defineComponent, h, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import 'jsoneditor/dist/jsoneditor.css'
@@ -29,10 +29,24 @@ export interface ImportJsonActionProps {
   importOptions?: Omit<FormImportJSONOptions, 'strategy'>
 }
 
+/**
+ * is Record：负责“判断is Record”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 is Record 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
+/**
+ * merge Apply Options：负责“合并merge Apply Options”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 merge Apply Options 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function mergeApplyOptions(
   strategy: ImportSetValueStrategy,
   importOptions: ImportJsonActionProps['importOptions'],
@@ -71,12 +85,26 @@ export const ImportJsonAction = defineComponent({
     const innerStrategy = ref<ImportSetValueStrategy>(props.defaultStrategy)
     const activeStrategy = computed<ImportSetValueStrategy>(() => props.strategy ?? innerStrategy.value)
 
+    /**
+     * notify：负责该函数职责对应的主流程编排。
+     * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+     * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+     *
+     * 说明：该函数聚焦于 notify 的单一职责，调用方可通过函数名快速理解输入输出语义。
+     */
     function notify(tone: 'info' | 'success' | 'error', text: string): void {
       const api = message[tone] as ((content: string) => void) | undefined
       api?.(text)
       emit('message', { tone, text } satisfies ImportJsonActionMessage)
     }
 
+    /**
+     * set Strategy：负责“设置set Strategy”的核心实现与调用衔接。
+     * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+     * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+     *
+     * 说明：该注释描述 set Strategy 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+     */
     function setStrategy(next: ImportSetValueStrategy): void {
       if (!props.strategy) {
         innerStrategy.value = next
@@ -84,11 +112,25 @@ export const ImportJsonAction = defineComponent({
       emit('update:strategy', next)
     }
 
+    /**
+     * destroy Editor：负责该函数职责对应的主流程编排。
+     * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+     * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+     *
+     * 说明：该函数聚焦于 destroy Editor 的单一职责，调用方可通过函数名快速理解输入输出语义。
+     */
     function destroyEditor(): void {
       editorRef.value?.destroy()
       editorRef.value = null
     }
 
+    /**
+     * set Editor Value：负责“设置set Editor Value”的核心实现与调用衔接。
+     * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+     * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+     *
+     * 说明：该注释描述 set Editor Value 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+     */
     function setEditorValue(value: Record<string, unknown> | null): void {
       const editor = editorRef.value
       if (!editor) {
@@ -189,6 +231,13 @@ export const ImportJsonAction = defineComponent({
       destroyEditor()
     })
 
+    /**
+     * render Strategy：负责“渲染render Strategy”的核心实现与调用衔接。
+     * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+     * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+     *
+     * 说明：该注释描述 render Strategy 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+     */
     function renderStrategy(): VNode {
       return h('label', {
         style: {
@@ -215,6 +264,13 @@ export const ImportJsonAction = defineComponent({
       ])
     }
 
+    /**
+     * render Source Modal：负责“渲染render Source Modal”的核心实现与调用衔接。
+     * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+     * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+     *
+     * 说明：该注释描述 render Source Modal 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+     */
     function renderSourceModal(): VNode {
       return h(AModal, {
         title: props.sourceTitle,
@@ -241,6 +297,13 @@ export const ImportJsonAction = defineComponent({
       })
     }
 
+    /**
+     * render Preview Modal：负责“渲染render Preview Modal”的核心实现与调用衔接。
+     * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+     * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+     *
+     * 说明：该注释描述 render Preview Modal 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+     */
     function renderPreviewModal(): VNode {
       const editorHostRef: VNodeRef = (el) => {
         editorHost.value = el as HTMLDivElement | null

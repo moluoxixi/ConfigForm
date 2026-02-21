@@ -1,6 +1,4 @@
 export { LowCodeDesigner } from './LowCodeDesigner'
-export { setupLowerCodeDesigner } from './setup'
-export type { SetupLowerCodeDesignerOptions } from './setup'
 export type {
   LowCodeDesignerComponentDefinition,
   LowCodeDesignerEditableProp,
@@ -10,3 +8,5 @@ export type {
   LowCodeDesignerRenderContext,
   LowCodeDesignerRenderers,
 } from './LowCodeDesigner'
+export { setupLowerCodeDesigner } from './setup'
+export type { SetupLowerCodeDesignerOptions } from './setup'

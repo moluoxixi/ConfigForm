@@ -1,5 +1,5 @@
-import { ElDatePicker } from 'element-plus'
 import type { PropType } from 'vue'
+import { ElDatePicker } from 'element-plus'
 import { defineComponent, h } from 'vue'
 
 /** 日期选择器适配 — readonly 显示日期文本 */

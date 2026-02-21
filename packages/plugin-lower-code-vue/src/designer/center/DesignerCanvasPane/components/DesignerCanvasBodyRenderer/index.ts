@@ -1,7 +1,7 @@
 import type { DesignerNode } from '@moluoxixi/plugin-lower-code-core'
 import type { PropType } from 'vue'
-import { defineComponent, h } from 'vue'
 import type { RenderDropList } from '../../types'
+import { defineComponent, h } from 'vue'
 
 export const DesignerCanvasBodyRenderer = defineComponent({
   name: 'DesignerCanvasBodyRenderer',

@@ -18,31 +18,58 @@ export {
   keyToTarget,
   LAYOUT_MATERIALS,
   MATERIALS,
+  moveNodeByIdToTarget,
   moveNodeByTarget,
   nodesToSchema,
-  normalizeNodes,
   normalizeNode,
+  normalizeNodes,
   parseEnumDraft,
   previewValueByNode,
   removeNodeById,
   removeSectionFromContainer,
   reorder,
   rootTarget,
-  sectionTarget,
   schemaSignature,
   schemaToNodes,
+  sectionTarget,
   targetToKey,
   updateNodeById,
   updateSectionById,
 } from './designer'
 
-export {
-  collectDropTargetKeys,
-  collectPreviewFields,
-  restoreDraggedDomPosition,
-} from './designer-shared/utils'
+export type {
+  DesignerComponent,
+  DesignerContainerComponent,
+  DesignerContainerNode,
+  DesignerDropTarget,
+  DesignerFieldComponent,
+  DesignerFieldNode,
+  DesignerFieldType,
+  DesignerNode,
+  DesignerSectionNode,
+  EnumOption,
+  MaterialContainerItem,
+  MaterialFieldItem,
+  MaterialItem,
+} from './designer'
 
-export type { DragRestoreEventLike } from './designer-shared/utils'
+export {
+  createDesignerCanvasDraggableSelector,
+  createDesignerCanvasPutHandler,
+  createDesignerCanvasSortableOptions,
+  createDesignerMaterialSortableOptions,
+  hasMountedDesignerSortables,
+  resolveDesignerSortableIndex,
+  resolveDesignerSortableInsertIndex,
+  resolveDesignerSortableMoveIndices,
+} from './designer-shared/drag'
+
+export type {
+  DesignerSortableEventLike,
+  DesignerSortableMountResult,
+  DesignerSortablePutHandler,
+  SortableContainerLike,
+} from './designer-shared/drag'
 
 export { resolveDesignerMaterials } from './designer-shared/materials'
 
@@ -60,18 +87,10 @@ export type {
   LowCodeDesignerRenderContext,
 } from './designer-shared/types'
 
-export type {
-  DesignerContainerComponent,
-  DesignerContainerNode,
-  DesignerDropTarget,
-  DesignerComponent,
-  DesignerFieldComponent,
-  DesignerFieldNode,
-  DesignerFieldType,
-  DesignerNode,
-  DesignerSectionNode,
-  EnumOption,
-  MaterialContainerItem,
-  MaterialFieldItem,
-  MaterialItem,
-} from './designer'
+export {
+  collectDropTargetKeys,
+  collectPreviewFields,
+  restoreDraggedDomPosition,
+} from './designer-shared/utils'
+
+export type { DragRestoreEventLike } from './designer-shared/utils'

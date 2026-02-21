@@ -422,9 +422,9 @@ export const DESIGNER_CSS = `
   position: absolute;
   top: 0;
   right: 4px;
-  transform: translate(0, -100%);
+  transform: translate(0, calc(-100% + 12px));
   z-index: 40;
-  pointer-events: auto;
+  pointer-events: none;
   display: flex;
   align-items: flex-start;
   justify-content: flex-end;
@@ -744,10 +744,12 @@ export const DESIGNER_CSS = `
   padding: 0;
   transition: border-color .14s ease, color .14s ease, background-color .14s ease;
   box-shadow: 0 6px 12px rgba(15, 23, 42, 0.12);
+  pointer-events: auto;
 }
 
 .cf-lc-node-tool--move {
   cursor: grab;
+  pointer-events: auto;
 }
 
 .cf-lc-node-tool--move:active {
@@ -795,6 +797,7 @@ export const DESIGNER_CSS = `
   box-shadow: 0 0 0 1px #dbeafe;
   background: #f8fbff;
   z-index: 8;
+  cursor: grab;
 }
 
 .cf-lc-node--selected.cf-lc-node--container > .cf-lc-mask-layer > .cf-lc-mask-layer-content,
@@ -804,6 +807,10 @@ export const DESIGNER_CSS = `
 
 .cf-lc-node--selected::after {
   opacity: 1;
+}
+
+.cf-lc-node--selected:active {
+  cursor: grabbing;
 }
 
 .cf-lc-container-body {
@@ -1184,11 +1191,16 @@ export const DESIGNER_CSS = `
 
 .cf-lc-dragging {
   opacity: 0.95;
+  pointer-events: none;
   transition: none !important;
 }
 
+.cf-lc-sortable-fallback,
+.cf-lc-sortable-fallback * {
+  pointer-events: none !important;
+}
+
 .cf-lc-sortable-fallback {
-  pointer-events: none;
   opacity: 0.96;
   margin: 0 !important;
   transition: none !important;

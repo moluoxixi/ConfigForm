@@ -109,8 +109,21 @@ import { useI18nFeature } from './examples/11-misc/useI18nFeature'
 import { usePrintExportFeature } from './examples/11-misc/usePrintExportFeature'
 import { adapters } from './ui'
 
-/** 确保全局 Hook 存在（与 plugin 中逻辑一致，保证面板先于插件挂载时也能订阅） */
-interface HookType { forms: Map<string, DevToolsPluginAPI>, onChange: (fn: (forms: Map<string, DevToolsPluginAPI>) => void) => () => void }
+interface HookType {
+  forms: Map<string, DevToolsPluginAPI>
+  register: (id: string, api: DevToolsPluginAPI) => void
+  unregister: (id: string) => void
+  onChange: (fn: (forms: Map<string, DevToolsPluginAPI>) => void) => () => void
+}
+
+/**
+ * 确保全局 Hook 存在（与 plugin 中逻辑一致，保证面板先于插件挂载时也能订阅）
+ * get Or Create Hook：负责“获取get Or Create Hook”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 get Or Create Hook 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function getOrCreateHook(): HookType {
   const g = window as unknown as Record<string, unknown>
   if (!g.__CONFIGFORM_DEVTOOLS_HOOK__) {
@@ -205,39 +218,50 @@ async function loadScene(name: string): Promise<void> {
   try {
     sceneConfig.value = (await entry.loader()).default
   }
-  catch (e) {
-    console.error(`加载场景 ${name} 失败:`, e)
+  catch (error) {
+    console.error(`加载场景 ${name} 失败:`, error)
     sceneConfig.value = null
   }
   finally {
     loading.value = false
   }
 }
-watch(currentDemo, name => loadScene(name), { immediate: true })
 
-const {
-  i18nRuntime,
-  locale,
-  localeOptions,
-  sceneTitle,
-  sceneDescription,
-  switchLocale,
-  plugin: i18nPlugin,
-} = useI18nFeature(sceneConfig)
+watch(currentDemo, (name) => {
+  void loadScene(name)
+}, { immediate: true })
 
-const {
-  plugins: ioPlugins,
-} = usePrintExportFeature(currentDemo)
+const i18nFeature = useI18nFeature(sceneConfig)
+const printExportFeature = usePrintExportFeature(currentDemo)
 
 const scenePlugins = computed<FormPlugin[]>(() => {
   const plugins: FormPlugin[] = []
-  if (i18nPlugin.value)
-    plugins.push(i18nPlugin.value)
-  if (ioPlugins.value.length)
-    plugins.push(...ioPlugins.value)
+  const i18nPlugin = i18nFeature.plugin.value
+  if (i18nPlugin)
+    plugins.push(i18nPlugin)
+  if (printExportFeature.plugins.value.length)
+    plugins.push(...printExportFeature.plugins.value)
   return plugins
 })
 
+const sceneTitle = computed(() => i18nFeature.sceneTitle.value || sceneConfig.value?.title || '')
+const sceneDescription = computed(() => i18nFeature.sceneDescription.value || sceneConfig.value?.description || '')
+const i18nRuntime = computed(() => i18nFeature.i18nRuntime.value)
+const localeOptions = computed(() => i18nFeature.localeOptions.value)
+const locale = computed(() => i18nFeature.locale.value)
+
+function switchLocale(value: string): void {
+  i18nFeature.switchLocale(value)
+}
+
+/**
+ * 侧边导航按钮样式计算。
+ * nav Btn Style：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 nav Btn Style 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function navBtnStyle(name: string): Record<string, string> {
   const active = currentDemo.value === name
   const color = currentUI.value === 'antd-vue' ? '#1677ff' : '#409eff'

@@ -24,6 +24,12 @@ interface CanvasPanelProps {
   renderFieldPreviewControl: (node: DesignerFieldNode, context: LowCodeDesignerRenderContext) => React.ReactElement
 }
 
+/**
+ * 画布面板主渲染器。
+ *
+ * 负责把节点树渲染为可选中、可拖拽、可操作的卡片视图，
+ * 并提供容器/分组/字段三层交互入口。
+ */
 export function CanvasPanel({
   nodes,
   minCanvasHeight,
@@ -37,11 +43,35 @@ export function CanvasPanel({
   renderFieldPreviewControl,
 }: CanvasPanelProps): React.ReactElement {
   const [activeTabsByContainer, setActiveTabsByContainer] = useState<Record<string, string>>({})
+  /**
+   * 判断事件是否来自工具栏区域。
+   * 用于避免工具栏点击被节点选中逻辑误拦截。
+   */
+  const isToolbarInteraction = (target: EventTarget | null): boolean => {
+    const element = target instanceof Element
+      ? target
+      : target instanceof Node
+        ? target.parentElement
+        : null
+    return Boolean(element?.closest('[data-cf-toolbar-interactive="true"]'))
+  }
+  const closestNodeId = (target: EventTarget | null): string | null => {
+    const element = target instanceof Element
+      ? target
+      : target instanceof Node
+        ? target.parentElement
+        : null
+    return element?.closest('[data-node-id]')?.getAttribute('data-node-id') ?? null
+  }
+  // 容器点击只在命中容器自身外框时触发，避免误选到内部子节点。
+  const isNodeSelfEvent = (target: EventTarget | null, nodeId: string): boolean =>
+    closestNodeId(target) === nodeId
   const consumeToolbarPointer = (event: React.SyntheticEvent): void => {
     event.preventDefault()
     event.stopPropagation()
   }
 
+  // 节点树变化时，保持每个 LayoutTabs 容器的激活分组稳定。
   useEffect(() => {
     setActiveTabsByContainer((prev) => {
       const next: Record<string, string> = {}
@@ -83,6 +113,9 @@ export function CanvasPanel({
     })
   }, [nodes])
 
+  /**
+   * 渲染一个可挂载 Sortable 的投放列表区域。
+   */
   const renderDropList = (
     items: DesignerNode[],
     targetKey: string,
@@ -106,6 +139,9 @@ export function CanvasPanel({
     )
   }
 
+  /**
+   * 渲染选中节点右上角工具栏。
+   */
   const renderNodeToolbar = (
     nodeId: string,
     options?: { allowAddSection?: boolean, onAddSection?: () => void },
@@ -113,16 +149,20 @@ export function CanvasPanel({
     return (
       <div
         className="cf-lc-node-toolbar"
+        data-cf-toolbar-interactive="true"
         onClick={(event) => {
           event.stopPropagation()
         }}
       >
         <span
-          data-cf-drag-handle="true"
+          data-cf-toolbar-interactive="true"
           className="cf-lc-node-tool cf-lc-node-tool--move"
           role="button"
           aria-label="移动"
-          title="按住拖动"
+          title="拖拽节点移动"
+          onClick={(event) => {
+            event.stopPropagation()
+          }}
         >
           <span className="cf-lc-icon">⠿</span>
         </span>
@@ -130,6 +170,7 @@ export function CanvasPanel({
           <button
             type="button"
             className="cf-lc-node-tool cf-lc-node-tool--primary"
+            data-cf-toolbar-interactive="true"
             title="新增分组"
             onMouseDown={consumeToolbarPointer}
             onPointerDown={consumeToolbarPointer}
@@ -144,6 +185,7 @@ export function CanvasPanel({
         <button
           type="button"
           className="cf-lc-node-tool"
+          data-cf-toolbar-interactive="true"
           title="复制"
           onMouseDown={consumeToolbarPointer}
           onPointerDown={consumeToolbarPointer}
@@ -157,6 +199,7 @@ export function CanvasPanel({
         <button
           type="button"
           className="cf-lc-node-tool cf-lc-node-tool--danger"
+          data-cf-toolbar-interactive="true"
           title="删除"
           onMouseDown={consumeToolbarPointer}
           onPointerDown={consumeToolbarPointer}
@@ -171,10 +214,13 @@ export function CanvasPanel({
     )
   }
 
+  /**
+   * 渲染字段节点卡片（字段预览 + 选中态 + 工具栏）。
+   */
   const renderFieldNode = (node: Extract<DesignerNode, { kind: 'field' }>, parentTargetKey: string): React.ReactElement => {
     const selected = selectedId === node.id
     const componentClassName = node.component
-      .replace(/[^a-zA-Z0-9_-]/g, '-')
+      .replace(/[^\w-]/g, '-')
       .toLowerCase() || 'component'
     return (
       <div
@@ -182,8 +228,16 @@ export function CanvasPanel({
         data-node-id={node.id}
         data-parent-target-key={parentTargetKey}
         className={`cf-lc-node cf-lc-node--field ${selected ? 'cf-lc-node--selected' : ''}`}
-        onMouseDownCapture={() => onSelect(node.id)}
-        onClick={() => onSelect(node.id)}
+        onMouseDownCapture={(event) => {
+          if (isToolbarInteraction(event.target))
+            return
+          onSelect(node.id)
+        }}
+        onClick={(event) => {
+          if (isToolbarInteraction(event.target))
+            return
+          onSelect(node.id)
+        }}
       >
         <div className="cf-lc-node-preview">
           <div className={`cf-lc-material-preview cf-lc-material-preview--${componentClassName}`}>
@@ -196,6 +250,9 @@ export function CanvasPanel({
     )
   }
 
+  /**
+   * 渲染 Tabs/Collapse 分组头部。
+   */
   const renderSectionHead = (
     container: Extract<DesignerNode, { kind: 'container' }>,
     section: Extract<DesignerNode, { kind: 'container' }>['sections'][number],
@@ -212,6 +269,7 @@ export function CanvasPanel({
         <button
           type="button"
           className="cf-lc-section-action"
+          data-cf-toolbar-interactive="true"
           title="删除分组"
           onMouseDown={consumeToolbarPointer}
           onPointerDown={consumeToolbarPointer}
@@ -226,6 +284,9 @@ export function CanvasPanel({
     )
   }
 
+  /**
+   * 渲染完整分组区域：可选中外框 + 内部投放列表。
+   */
   const renderSectionBody = (
     container: Extract<DesignerNode, { kind: 'container' }>,
     section: Extract<DesignerNode, { kind: 'container' }>['sections'][number],
@@ -236,9 +297,21 @@ export function CanvasPanel({
     return (
       <div
         key={section.id}
+        data-section-id={section.id}
         className={`cf-lc-section cf-lc-section--${mode} ${selected ? 'cf-lc-section--selected' : ''}`}
-        onMouseDownCapture={() => onSelect(section.id)}
+        onMouseDownCapture={(event) => {
+          if (isToolbarInteraction(event.target))
+            return
+          if (closestNodeId(event.target))
+            return
+          event.stopPropagation()
+          onSelect(section.id)
+        }}
         onClick={(event) => {
+          if (isToolbarInteraction(event.target))
+            return
+          if (closestNodeId(event.target))
+            return
           event.stopPropagation()
           onSelect(section.id)
         }}
@@ -249,6 +322,9 @@ export function CanvasPanel({
     )
   }
 
+  /**
+   * 按容器组件类型渲染容器内部结构。
+   */
   const renderContainerContent = (
     node: Extract<DesignerNode, { kind: 'container' }>,
     depth: number,
@@ -306,6 +382,9 @@ export function CanvasPanel({
     )
   }
 
+  /**
+   * 渲染容器节点卡片（容器内容 + 选中态 + 工具栏）。
+   */
   const renderContainerNode = (
     node: Extract<DesignerNode, { kind: 'container' }>,
     depth: number,
@@ -318,8 +397,20 @@ export function CanvasPanel({
         data-node-id={node.id}
         data-parent-target-key={parentTargetKey}
         className={`cf-lc-node cf-lc-node--container ${selected ? 'cf-lc-node--selected' : ''}`}
-        onMouseDownCapture={() => onSelect(node.id)}
-        onClick={() => onSelect(node.id)}
+        onMouseDownCapture={(event) => {
+          if (isToolbarInteraction(event.target))
+            return
+          if (!isNodeSelfEvent(event.target, node.id))
+            return
+          onSelect(node.id)
+        }}
+        onClick={(event) => {
+          if (isToolbarInteraction(event.target))
+            return
+          if (!isNodeSelfEvent(event.target, node.id))
+            return
+          onSelect(node.id)
+        }}
       >
         <CanvasMaskLayer
           actions={selected
@@ -338,7 +429,10 @@ export function CanvasPanel({
     )
   }
 
-  const renderNodeCard = (node: DesignerNode, depth: number, parentTargetKey: string): React.ReactElement => {
+  /**
+   * 节点分发渲染入口：field -> 字段卡片，container -> 容器卡片。
+   */
+  function renderNodeCard(node: DesignerNode, depth: number, parentTargetKey: string): React.ReactElement {
     if (node.kind === 'field')
       return renderFieldNode(node, parentTargetKey)
     return renderContainerNode(node, depth, parentTargetKey)

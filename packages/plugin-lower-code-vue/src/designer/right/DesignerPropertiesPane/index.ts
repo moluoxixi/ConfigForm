@@ -1,3 +1,4 @@
+import type { ISchema } from '@moluoxixi/core'
 import type {
   DesignerContainerNode,
   DesignerFieldComponent,
@@ -6,15 +7,14 @@ import type {
   DesignerNode,
   DesignerSectionNode,
 } from '@moluoxixi/plugin-lower-code-core'
-import type { ISchema } from '@moluoxixi/core'
 import type { PropType, VNodeChild } from 'vue'
 import type { LowCodeDesignerComponentDefinition, LowCodeDesignerEditableProp } from '../../types'
 import {
   addSectionToContainer,
   containerUsesSections,
   defaultComponentForType,
-  normalizeNode,
   nodesToSchema,
+  normalizeNode,
   parseEnumDraft,
   removeSectionFromContainer,
   schemaSignature,
@@ -81,6 +81,13 @@ export const DesignerPropertiesPane = defineComponent({
     const componentEditableProps = computed<LowCodeDesignerEditableProp[]>(() =>
       selectedFieldDefinition.value?.editableProps ?? [])
 
+    /**
+     * resolve Meta：负责“解析resolve Meta”的核心实现与调用衔接。
+     * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+     * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+     *
+     * 说明：该注释描述 resolve Meta 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+     */
     function resolveMeta(): string {
       if (props.selectedField)
         return `字段 · ${props.selectedField.name}`
@@ -91,6 +98,13 @@ export const DesignerPropertiesPane = defineComponent({
       return '未选择节点'
     }
 
+    /**
+     * read Editable Prop Value：负责该函数职责对应的主流程编排。
+     * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+     * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+     *
+     * 说明：该函数聚焦于 read Editable Prop Value 的单一职责，调用方可通过函数名快速理解输入输出语义。
+     */
     function readEditablePropValue(field: DesignerFieldNode, editableProp: LowCodeDesignerEditableProp): unknown {
       const presetValue = props.componentPropsByComponent[field.component]?.[editableProp.key]
       if (presetValue !== undefined)
@@ -101,6 +115,13 @@ export const DesignerPropertiesPane = defineComponent({
       return currentValue
     }
 
+    /**
+     * render Editable Prop Editor：负责“渲染render Editable Prop Editor”的核心实现与调用衔接。
+     * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+     * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+     *
+     * 说明：该注释描述 render Editable Prop Editor 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+     */
     function renderEditablePropEditor(editableProp: LowCodeDesignerEditableProp): VNodeChild {
       const selectedField = props.selectedField
       if (!selectedField)
@@ -280,252 +301,256 @@ export const DesignerPropertiesPane = defineComponent({
     ])
 
     const renderBody = (): VNodeChild => h('div', { style: { flex: '1 1 auto', minHeight: 0, padding: '12px', overflow: 'auto' } }, [
-      props.selectedField ? h('div', [
-        h('div', { style: panelSectionStyle }, [
-          h('div', { style: { fontSize: '12px', fontWeight: 700, marginBottom: '8px' } }, '基础信息'),
-          h('label', { style: labelStyle }, [
-            '字段标题',
-            h('input', {
-              value: props.selectedField.title,
-              disabled: props.readonly,
-              style: inputStyle,
-              onInput: (event: Event) => {
-                const target = event.target as HTMLInputElement | null
-                props.updateField(props.selectedField!.id, field => ({ ...field, title: target?.value || field.title }))
-              },
-            }),
-          ]),
-          h('label', { style: labelStyle }, [
-            '字段标识',
-            h('input', {
-              value: props.selectedField.name,
-              disabled: props.readonly,
-              style: inputStyle,
-              onInput: (event: Event) => {
-                const target = event.target as HTMLInputElement | null
-                props.updateField(props.selectedField!.id, field => normalizeNode({ ...field, name: target?.value ?? field.name }, props.nodes) as DesignerFieldNode)
-              },
-            }),
-          ]),
-        ]),
-        h('div', { style: panelSectionStyle }, [
-          h('div', { style: { fontSize: '12px', fontWeight: 700, marginBottom: '8px' } }, '渲染设置'),
-          h('label', { style: labelStyle }, [
-            '数据类型',
-            h('select', {
-              value: props.selectedField.type,
-              disabled: props.readonly,
-              style: inputStyle,
-              onChange: (event: Event) => {
-                const target = event.target as HTMLSelectElement | null
-                const type = (target?.value ?? props.selectedField!.type) as DesignerFieldType
-                const preferred = defaultComponentForType(type)
-                const candidates = selectableComponents.value
-                const resolved = candidates.includes(preferred)
-                  ? preferred
-                  : (candidates[0] ?? props.selectedField!.component)
-                const nextProps = resolved === props.selectedField!.component
-                  ? props.selectedField!.componentProps
-                  : (props.componentPropsByComponent[resolved] ?? {})
-                props.updateField(props.selectedField!.id, field => normalizeNode({
-                  ...field,
-                  type,
-                  component: resolved,
-                  componentProps: { ...nextProps },
-                }, props.nodes) as DesignerFieldNode)
-              },
-            }, [
-              h('option', { value: 'string' }, 'string'),
-              h('option', { value: 'number' }, 'number'),
-              h('option', { value: 'boolean' }, 'boolean'),
-              h('option', { value: 'date' }, 'date'),
-            ]),
-          ]),
-          h('label', { style: labelStyle }, [
-            '渲染组件',
-            h('select', {
-              value: props.selectedField.component,
-              disabled: props.readonly,
-              style: inputStyle,
-              onChange: (event: Event) => {
-                const target = event.target as HTMLSelectElement | null
-                const component = (target?.value ?? props.selectedField!.component) as DesignerFieldComponent
-                const nextProps = component === props.selectedField!.component
-                  ? props.selectedField!.componentProps
-                  : (props.componentPropsByComponent[component] ?? {})
-                props.updateField(props.selectedField!.id, field => normalizeNode({
-                  ...field,
-                  component,
-                  componentProps: { ...nextProps },
-                }, props.nodes) as DesignerFieldNode)
-              },
-            }, selectableComponents.value.map(component => h('option', { key: component, value: component }, component))),
-          ]),
-          h('label', {
-            style: { display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600 },
-          }, [
-            h('input', {
-              type: 'checkbox',
-              checked: props.selectedField.required,
-              disabled: props.readonly,
-              onChange: (event: Event) => {
-                const target = event.target as HTMLInputElement | null
-                props.updateField(props.selectedField!.id, field => ({ ...field, required: Boolean(target?.checked) }))
-              },
-            }),
-            '必填字段',
-          ]),
-        ]),
-        selectedFieldDefinition.value?.description
-          ? h('div', { style: panelSectionStyle }, [
-              h('div', { style: { fontSize: '12px', fontWeight: 700, marginBottom: '8px' } }, `组件说明（${props.selectedField.component}）`),
-              h('div', {
-                style: {
-                  color: '#64748b',
-                  fontSize: '12px',
-                  lineHeight: 1.5,
-                },
-              }, selectedFieldDefinition.value.description),
-            ])
-          : null,
-        props.selectedField.component === 'Select'
-          ? h('div', { style: panelSectionStyle }, [
+      props.selectedField
+        ? h('div', [
+            h('div', { style: panelSectionStyle }, [
+              h('div', { style: { fontSize: '12px', fontWeight: 700, marginBottom: '8px' } }, '基础信息'),
               h('label', { style: labelStyle }, [
-                '枚举选项（label:value 每行一项）',
-                h('textarea', {
-                  value: props.enumDraft,
+                '字段标题',
+                h('input', {
+                  value: props.selectedField.title,
                   disabled: props.readonly,
-                  style: { ...inputStyle, minHeight: '96px', resize: 'vertical', fontFamily: 'Consolas, monospace' },
+                  style: inputStyle,
                   onInput: (event: Event) => {
-                    const target = event.target as HTMLTextAreaElement | null
-                    const text = target?.value ?? ''
-                    props.setEnumDraft(text)
-                    props.updateField(props.selectedField!.id, field => ({
-                      ...field,
-                      enumOptions: parseEnumDraft(text),
-                    }))
+                    const target = event.target as HTMLInputElement | null
+                    props.updateField(props.selectedField!.id, field => ({ ...field, title: target?.value || field.title }))
                   },
                 }),
               ]),
-            ])
-          : null,
-        componentEditableProps.value.length > 0
-          ? h('div', { style: panelSectionStyle }, [
-              h('div', { style: { fontSize: '12px', fontWeight: 700, marginBottom: '8px' } }, `组件属性（${props.selectedField.component}）`),
-              ...componentEditableProps.value.map(renderEditablePropEditor),
-            ])
-          : null,
-      ]) : null,
-
-      props.selectedContainer ? h('div', [
-        h('div', { style: panelSectionStyle }, [
-          h('div', { style: { fontSize: '12px', fontWeight: 700, marginBottom: '8px' } }, '容器信息'),
-          h('label', { style: labelStyle }, [
-            '容器标题',
-            h('input', {
-              value: props.selectedContainer.title,
-              disabled: props.readonly,
-              style: inputStyle,
-              onInput: (event: Event) => {
-                const target = event.target as HTMLInputElement | null
-                props.updateContainer(props.selectedContainer!.id, container => ({ ...container, title: target?.value || container.title }))
-              },
-            }),
-          ]),
-          h('label', { style: labelStyle }, [
-            '容器标识',
-            h('input', {
-              value: props.selectedContainer.name,
-              disabled: props.readonly,
-              style: inputStyle,
-              onInput: (event: Event) => {
-                const target = event.target as HTMLInputElement | null
-                props.updateContainer(props.selectedContainer!.id, container => normalizeNode({ ...container, name: target?.value ?? container.name }, props.nodes) as DesignerContainerNode)
-              },
-            }),
-          ]),
-          h('div', { style: { fontSize: '12px', color: '#64748b' } }, `容器类型：${props.selectedContainer.component}`),
-        ]),
-        containerUsesSections(props.selectedContainer.component)
-          ? h('div', { style: panelSectionStyle }, [
-              h('div', {
-                style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' },
-              }, [
-                h('div', { style: { fontSize: '12px', fontWeight: 700 } }, '分组管理'),
-                !props.readonly
-                  ? h('button', {
-                      type: 'button',
-                      onClick: () => {
-                        props.onUpdateNodes(nodes => addSectionToContainer(nodes, props.selectedContainer!.id))
-                      },
-                      style: {
-                        border: '1px solid #bfdbfe',
-                        borderRadius: '8px',
-                        background: '#eff6ff',
-                        color: '#1677ff',
-                        fontSize: '12px',
-                        padding: '4px 8px',
-                        cursor: 'pointer',
-                      },
-                    }, '新增分组')
-                  : null,
+              h('label', { style: labelStyle }, [
+                '字段标识',
+                h('input', {
+                  value: props.selectedField.name,
+                  disabled: props.readonly,
+                  style: inputStyle,
+                  onInput: (event: Event) => {
+                    const target = event.target as HTMLInputElement | null
+                    props.updateField(props.selectedField!.id, field => normalizeNode({ ...field, name: target?.value ?? field.name }, props.nodes) as DesignerFieldNode)
+                  },
+                }),
               ]),
-              ...props.selectedContainer.sections.map((section, index) => h('div', {
-                key: section.id,
-                style: {
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  padding: '8px',
-                  background: '#fff',
-                  marginBottom: '8px',
-                },
+            ]),
+            h('div', { style: panelSectionStyle }, [
+              h('div', { style: { fontSize: '12px', fontWeight: 700, marginBottom: '8px' } }, '渲染设置'),
+              h('label', { style: labelStyle }, [
+                '数据类型',
+                h('select', {
+                  value: props.selectedField.type,
+                  disabled: props.readonly,
+                  style: inputStyle,
+                  onChange: (event: Event) => {
+                    const target = event.target as HTMLSelectElement | null
+                    const type = (target?.value ?? props.selectedField!.type) as DesignerFieldType
+                    const preferred = defaultComponentForType(type)
+                    const candidates = selectableComponents.value
+                    const resolved = candidates.includes(preferred)
+                      ? preferred
+                      : (candidates[0] ?? props.selectedField!.component)
+                    const nextProps = resolved === props.selectedField!.component
+                      ? props.selectedField!.componentProps
+                      : (props.componentPropsByComponent[resolved] ?? {})
+                    props.updateField(props.selectedField!.id, field => normalizeNode({
+                      ...field,
+                      type,
+                      component: resolved,
+                      componentProps: { ...nextProps },
+                    }, props.nodes) as DesignerFieldNode)
+                  },
+                }, [
+                  h('option', { value: 'string' }, 'string'),
+                  h('option', { value: 'number' }, 'number'),
+                  h('option', { value: 'boolean' }, 'boolean'),
+                  h('option', { value: 'date' }, 'date'),
+                ]),
+              ]),
+              h('label', { style: labelStyle }, [
+                '渲染组件',
+                h('select', {
+                  value: props.selectedField.component,
+                  disabled: props.readonly,
+                  style: inputStyle,
+                  onChange: (event: Event) => {
+                    const target = event.target as HTMLSelectElement | null
+                    const component = (target?.value ?? props.selectedField!.component) as DesignerFieldComponent
+                    const nextProps = component === props.selectedField!.component
+                      ? props.selectedField!.componentProps
+                      : (props.componentPropsByComponent[component] ?? {})
+                    props.updateField(props.selectedField!.id, field => normalizeNode({
+                      ...field,
+                      component,
+                      componentProps: { ...nextProps },
+                    }, props.nodes) as DesignerFieldNode)
+                  },
+                }, selectableComponents.value.map(component => h('option', { key: component, value: component }, component))),
+              ]),
+              h('label', {
+                style: { display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600 },
               }, [
-                h('div', { style: { fontSize: '11px', color: '#64748b', marginBottom: '6px', fontWeight: 700 } }, `分组 ${index + 1}`),
-                h('label', { style: labelStyle }, [
-                  '分组标题',
-                  h('input', {
-                    value: section.title,
-                    disabled: props.readonly,
-                    style: inputStyle,
-                    onInput: (event: Event) => {
-                      const target = event.target as HTMLInputElement | null
-                      props.onUpdateNodes(nodes => updateSectionById(nodes, section.id, old => ({ ...old, title: target?.value || old.title })))
+                h('input', {
+                  type: 'checkbox',
+                  checked: props.selectedField.required,
+                  disabled: props.readonly,
+                  onChange: (event: Event) => {
+                    const target = event.target as HTMLInputElement | null
+                    props.updateField(props.selectedField!.id, field => ({ ...field, required: Boolean(target?.checked) }))
+                  },
+                }),
+                '必填字段',
+              ]),
+            ]),
+            selectedFieldDefinition.value?.description
+              ? h('div', { style: panelSectionStyle }, [
+                  h('div', { style: { fontSize: '12px', fontWeight: 700, marginBottom: '8px' } }, `组件说明（${props.selectedField.component}）`),
+                  h('div', {
+                    style: {
+                      color: '#64748b',
+                      fontSize: '12px',
+                      lineHeight: 1.5,
                     },
-                  }),
-                ]),
-                h('label', { style: labelStyle }, [
-                  '分组标识',
-                  h('input', {
-                    value: section.name,
-                    disabled: props.readonly,
-                    style: inputStyle,
-                    onInput: (event: Event) => {
-                      const target = event.target as HTMLInputElement | null
-                      props.onUpdateNodes(nodes => updateSectionById(nodes, section.id, old => ({ ...old, name: target?.value || old.name })))
+                  }, selectedFieldDefinition.value.description),
+                ])
+              : null,
+            props.selectedField.component === 'Select'
+              ? h('div', { style: panelSectionStyle }, [
+                  h('label', { style: labelStyle }, [
+                    '枚举选项（label:value 每行一项）',
+                    h('textarea', {
+                      value: props.enumDraft,
+                      disabled: props.readonly,
+                      style: { ...inputStyle, minHeight: '96px', resize: 'vertical', fontFamily: 'Consolas, monospace' },
+                      onInput: (event: Event) => {
+                        const target = event.target as HTMLTextAreaElement | null
+                        const text = target?.value ?? ''
+                        props.setEnumDraft(text)
+                        props.updateField(props.selectedField!.id, field => ({
+                          ...field,
+                          enumOptions: parseEnumDraft(text),
+                        }))
+                      },
+                    }),
+                  ]),
+                ])
+              : null,
+            componentEditableProps.value.length > 0
+              ? h('div', { style: panelSectionStyle }, [
+                  h('div', { style: { fontSize: '12px', fontWeight: 700, marginBottom: '8px' } }, `组件属性（${props.selectedField.component}）`),
+                  ...componentEditableProps.value.map(renderEditablePropEditor),
+                ])
+              : null,
+          ])
+        : null,
+
+      props.selectedContainer
+        ? h('div', [
+            h('div', { style: panelSectionStyle }, [
+              h('div', { style: { fontSize: '12px', fontWeight: 700, marginBottom: '8px' } }, '容器信息'),
+              h('label', { style: labelStyle }, [
+                '容器标题',
+                h('input', {
+                  value: props.selectedContainer.title,
+                  disabled: props.readonly,
+                  style: inputStyle,
+                  onInput: (event: Event) => {
+                    const target = event.target as HTMLInputElement | null
+                    props.updateContainer(props.selectedContainer!.id, container => ({ ...container, title: target?.value || container.title }))
+                  },
+                }),
+              ]),
+              h('label', { style: labelStyle }, [
+                '容器标识',
+                h('input', {
+                  value: props.selectedContainer.name,
+                  disabled: props.readonly,
+                  style: inputStyle,
+                  onInput: (event: Event) => {
+                    const target = event.target as HTMLInputElement | null
+                    props.updateContainer(props.selectedContainer!.id, container => normalizeNode({ ...container, name: target?.value ?? container.name }, props.nodes) as DesignerContainerNode)
+                  },
+                }),
+              ]),
+              h('div', { style: { fontSize: '12px', color: '#64748b' } }, `容器类型：${props.selectedContainer.component}`),
+            ]),
+            containerUsesSections(props.selectedContainer.component)
+              ? h('div', { style: panelSectionStyle }, [
+                  h('div', {
+                    style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' },
+                  }, [
+                    h('div', { style: { fontSize: '12px', fontWeight: 700 } }, '分组管理'),
+                    !props.readonly
+                      ? h('button', {
+                          type: 'button',
+                          onClick: () => {
+                            props.onUpdateNodes(nodes => addSectionToContainer(nodes, props.selectedContainer!.id))
+                          },
+                          style: {
+                            border: '1px solid #bfdbfe',
+                            borderRadius: '8px',
+                            background: '#eff6ff',
+                            color: '#1677ff',
+                            fontSize: '12px',
+                            padding: '4px 8px',
+                            cursor: 'pointer',
+                          },
+                        }, '新增分组')
+                      : null,
+                  ]),
+                  ...props.selectedContainer.sections.map((section, index) => h('div', {
+                    key: section.id,
+                    style: {
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      padding: '8px',
+                      background: '#fff',
+                      marginBottom: '8px',
                     },
-                  }),
-                ]),
-                !props.readonly
-                  ? h('button', {
-                      type: 'button',
-                      onClick: () => {
-                        props.onUpdateNodes(nodes => removeSectionFromContainer(nodes, props.selectedContainer!.id, section.id))
-                      },
-                      style: {
-                        border: '1px solid #fecaca',
-                        borderRadius: '8px',
-                        background: '#fff5f5',
-                        color: '#dc2626',
-                        fontSize: '12px',
-                        padding: '4px 8px',
-                        cursor: 'pointer',
-                      },
-                    }, '删除分组')
-                  : null,
-              ])),
-            ])
-          : null,
-      ]) : null,
+                  }, [
+                    h('div', { style: { fontSize: '11px', color: '#64748b', marginBottom: '6px', fontWeight: 700 } }, `分组 ${index + 1}`),
+                    h('label', { style: labelStyle }, [
+                      '分组标题',
+                      h('input', {
+                        value: section.title,
+                        disabled: props.readonly,
+                        style: inputStyle,
+                        onInput: (event: Event) => {
+                          const target = event.target as HTMLInputElement | null
+                          props.onUpdateNodes(nodes => updateSectionById(nodes, section.id, old => ({ ...old, title: target?.value || old.title })))
+                        },
+                      }),
+                    ]),
+                    h('label', { style: labelStyle }, [
+                      '分组标识',
+                      h('input', {
+                        value: section.name,
+                        disabled: props.readonly,
+                        style: inputStyle,
+                        onInput: (event: Event) => {
+                          const target = event.target as HTMLInputElement | null
+                          props.onUpdateNodes(nodes => updateSectionById(nodes, section.id, old => ({ ...old, name: target?.value || old.name })))
+                        },
+                      }),
+                    ]),
+                    !props.readonly
+                      ? h('button', {
+                          type: 'button',
+                          onClick: () => {
+                            props.onUpdateNodes(nodes => removeSectionFromContainer(nodes, props.selectedContainer!.id, section.id))
+                          },
+                          style: {
+                            border: '1px solid #fecaca',
+                            borderRadius: '8px',
+                            background: '#fff5f5',
+                            color: '#dc2626',
+                            fontSize: '12px',
+                            padding: '4px 8px',
+                            cursor: 'pointer',
+                          },
+                        }, '删除分组')
+                      : null,
+                  ])),
+                ])
+              : null,
+          ])
+        : null,
 
       !props.selectedField && !props.selectedContainer && props.selectedSection
         ? h('div', { style: panelSectionStyle }, [

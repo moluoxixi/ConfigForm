@@ -21,7 +21,7 @@ export const DesignerCanvasMaskDecorator = defineComponent({
       slots.actions
         ? h('div', { class: 'cf-lc-mask-layer-actions' }, slots.actions())
         : null,
-      h('span', { class: 'cf-lc-mask-layer-overlay', 'aria-hidden': 'true' }),
+      h('span', { 'class': 'cf-lc-mask-layer-overlay', 'aria-hidden': 'true' }),
     ])
   },
 })

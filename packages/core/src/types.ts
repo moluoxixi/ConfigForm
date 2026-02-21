@@ -1,4 +1,5 @@
 import type { FormEventHandler, FormLifeCycle } from './events'
+import type { ReactiveAdapter } from './reactive'
 import type {
   ComponentType,
   DataSourceItem,
@@ -8,7 +9,6 @@ import type {
   FieldPattern,
   FieldStateUpdate,
 } from './shared'
-import type { ReactiveAdapter } from './reactive'
 import type { ValidationFeedback, ValidationRule, ValidationTrigger } from './validator'
 
 /* ======================== 字段属性 ======================== */

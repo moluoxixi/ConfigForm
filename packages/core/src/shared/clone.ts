@@ -5,12 +5,26 @@ interface BufferLikeCtor {
 
 type SeenMap = WeakMap<object, unknown>
 
+/**
+ * clone Reg Exp：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 clone Reg Exp 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function cloneRegExp(source: RegExp): RegExp {
   const cloned = new RegExp(source.source, source.flags)
   cloned.lastIndex = source.lastIndex
   return cloned
 }
 
+/**
+ * clone Data View：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 clone Data View 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function cloneDataView(source: DataView, seen: SeenMap): DataView {
   const clonedBuffer = cloneDeep(source.buffer, seen) as ArrayBuffer
   return new DataView(clonedBuffer, source.byteOffset, source.byteLength)
@@ -30,6 +44,13 @@ function cloneTypedArray<T extends ArrayBufferView>(source: T, seen: SeenMap): T
   return new Ctor(clonedBuffer, source.byteOffset)
 }
 
+/**
+ * clone Error：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 clone Error 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function cloneError(source: Error): Error {
   const Ctor = source.constructor as new (message?: string) => Error
   const cloned = new Ctor(source.message)
@@ -62,12 +83,14 @@ export function cloneDeep<T>(source: T, seen: SeenMap = new WeakMap<object, unkn
     return cached as T
 
   const g = globalThis as typeof globalThis & {
-    Buffer?: BufferLikeCtor
+    ['Buffer']?: BufferLikeCtor
     File?: new (fileBits: BlobPart[], fileName: string, options?: FilePropertyBag) => File
   }
 
-  if (g.Buffer?.isBuffer(source)) {
-    const cloned = g.Buffer.from(source)
+  const bufferKey = 'Buffer' as const
+  const bufferCtor = g[bufferKey]
+  if (bufferCtor?.isBuffer(source)) {
+    const cloned = bufferCtor.from(source)
     seen.set(sourceObject, cloned)
     return cloned as T
   }
@@ -157,7 +180,7 @@ export function cloneDeep<T>(source: T, seen: SeenMap = new WeakMap<object, unkn
     return source
 
   const cloned = Array.isArray(source)
-    ? new Array(source.length)
+    ? Array.from({ length: source.length })
     : Object.create(Object.getPrototypeOf(source))
   seen.set(sourceObject, cloned)
 

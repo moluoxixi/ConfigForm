@@ -1,4 +1,4 @@
-﻿import type { ISchema } from '@moluoxixi/core'
+import type { ISchema } from '@moluoxixi/core'
 import { cloneDeep } from '@moluoxixi/core'
 
 import {
@@ -90,14 +90,35 @@ const DEFAULT_SELECT_OPTIONS: EnumOption[] = [
 
 export { COMPONENT_MATERIALS, LAYOUT_MATERIALS, MATERIALS }
 
+/**
+ * uid：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 uid 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function uid(prefix: string): string {
   return `${prefix}_${Math.random().toString(36).slice(2, 9)}`
 }
 
+/**
+ * is Record：负责“判断is Record”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 is Record 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
+/**
+ * normalize Name：负责“规范化normalize Name”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 normalize Name 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function normalizeName(value: string, fallback: string): string {
   const trimmed = value.trim().replace(/[^\w$]/g, '_')
   const normalized = trimmed || fallback
@@ -106,11 +127,25 @@ function normalizeName(value: string, fallback: string): string {
   return normalized
 }
 
+/**
+ * normalize Title：负责“规范化normalize Title”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 normalize Title 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function normalizeTitle(value: string, fallback: string): string {
   const trimmed = value.trim()
   return trimmed || fallback
 }
 
+/**
+ * ensure Unique Name：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 ensure Unique Name 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function ensureUniqueName(baseName: string, usedNames: Set<string>): string {
   if (!usedNames.has(baseName)) {
     usedNames.add(baseName)
@@ -125,6 +160,13 @@ function ensureUniqueName(baseName: string, usedNames: Set<string>): string {
   return next
 }
 
+/**
+ * normalize Enum Options：负责“规范化normalize Enum Options”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 normalize Enum Options 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function normalizeEnumOptions(options: EnumOption[]): EnumOption[] {
   const next: EnumOption[] = []
   for (const option of options) {
@@ -140,24 +182,59 @@ function normalizeEnumOptions(options: EnumOption[]): EnumOption[] {
   return next
 }
 
+/**
+ * normalize Component Props：负责“规范化normalize Component Props”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 normalize Component Props 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function normalizeComponentProps(props: unknown): Record<string, unknown> {
   if (!isRecord(props))
     return {}
   return cloneDeep(props)
 }
 
+/**
+ * is Field Node：负责“判断is Field Node”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 is Field Node 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 export function isFieldNode(node: DesignerNode): node is DesignerFieldNode {
   return node.kind === 'field'
 }
 
+/**
+ * is Container Node：负责“判断is Container Node”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 is Container Node 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 export function isContainerNode(node: DesignerNode): node is DesignerContainerNode {
   return node.kind === 'container'
 }
 
+/**
+ * container Uses Sections：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 container Uses Sections 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 export function containerUsesSections(component: DesignerContainerComponent): boolean {
   return component === 'LayoutTabs' || component === 'LayoutCollapse'
 }
 
+/**
+ * default Component For Type：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 default Component For Type 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 export function defaultComponentForType(type: DesignerFieldType): DesignerFieldComponent {
   switch (type) {
     case 'number':
@@ -172,6 +249,13 @@ export function defaultComponentForType(type: DesignerFieldType): DesignerFieldC
   }
 }
 
+/**
+ * allowed Components：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 allowed Components 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 export function allowedComponents(type: DesignerFieldType): DesignerFieldComponent[] {
   switch (type) {
     case 'string':
@@ -187,10 +271,24 @@ export function allowedComponents(type: DesignerFieldType): DesignerFieldCompone
   }
 }
 
+/**
+ * clone Nodes：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 clone Nodes 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 export function cloneNodes(nodes: DesignerNode[]): DesignerNode[] {
   return cloneDeep(nodes)
 }
 
+/**
+ * default Section：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 default Section 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function defaultSection(title: string): DesignerSectionNode {
   return {
     id: uid('section'),
@@ -201,6 +299,13 @@ function defaultSection(title: string): DesignerSectionNode {
   }
 }
 
+/**
+ * default Sections By Container：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 default Sections By Container 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function defaultSectionsByContainer(component: DesignerContainerComponent): DesignerSectionNode[] {
   if (component === 'LayoutTabs')
     return [defaultSection('基础信息'), defaultSection('扩展信息')]
@@ -209,6 +314,13 @@ function defaultSectionsByContainer(component: DesignerContainerComponent): Desi
   return []
 }
 
+/**
+ * normalize Section：负责“规范化normalize Section”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 normalize Section 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function normalizeSection(section: DesignerSectionNode, usedNames: Set<string>): DesignerSectionNode {
   const name = ensureUniqueName(normalizeName(section.name, 'section'), usedNames)
   return {
@@ -219,6 +331,13 @@ function normalizeSection(section: DesignerSectionNode, usedNames: Set<string>):
   }
 }
 
+/**
+ * normalize Container：负责“规范化normalize Container”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 normalize Container 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function normalizeContainer(container: DesignerContainerNode, usedNames: Set<string>): DesignerContainerNode {
   const component = container.component
   const name = ensureUniqueName(normalizeName(container.name, 'group'), usedNames)
@@ -246,6 +365,13 @@ function normalizeContainer(container: DesignerContainerNode, usedNames: Set<str
   }
 }
 
+/**
+ * normalize Field：负责“规范化normalize Field”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 normalize Field 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function normalizeField(field: DesignerFieldNode, usedNames: Set<string>): DesignerFieldNode {
   const type = field.type
   const component = typeof field.component === 'string' && field.component.trim()
@@ -268,6 +394,13 @@ function normalizeField(field: DesignerFieldNode, usedNames: Set<string>): Desig
   }
 }
 
+/**
+ * normalize Node：负责“规范化normalize Node”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 normalize Node 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 export function normalizeNode(node: DesignerNode, siblings: DesignerNode[]): DesignerNode {
   const used = new Set(
     siblings
@@ -279,6 +412,13 @@ export function normalizeNode(node: DesignerNode, siblings: DesignerNode[]): Des
   return normalizeContainer(node, used)
 }
 
+/**
+ * normalize Nodes：负责“规范化normalize Nodes”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 normalize Nodes 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 export function normalizeNodes(nodes: DesignerNode[]): DesignerNode[] {
   const used = new Set<string>()
   const result: DesignerNode[] = []
@@ -288,6 +428,13 @@ export function normalizeNodes(nodes: DesignerNode[]): DesignerNode[] {
   return result
 }
 
+/**
+ * create Field Node：负责“创建create Field Node”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 create Field Node 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function createFieldNode(material: MaterialFieldItem): DesignerFieldNode {
   return {
     id: uid('node'),
@@ -302,6 +449,13 @@ function createFieldNode(material: MaterialFieldItem): DesignerFieldNode {
   }
 }
 
+/**
+ * create Container Node：负责“创建create Container Node”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 create Container Node 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function createContainerNode(material: MaterialContainerItem): DesignerContainerNode {
   return {
     id: uid('node'),
@@ -314,11 +468,25 @@ function createContainerNode(material: MaterialContainerItem): DesignerContainer
   }
 }
 
+/**
+ * default Node From Material：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 default Node From Material 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 export function defaultNodeFromMaterial(material: MaterialItem, siblings: DesignerNode[]): DesignerNode {
   const rawNode = material.kind === 'field' ? createFieldNode(material) : createContainerNode(material)
   return normalizeNode(rawNode, siblings)
 }
 
+/**
+ * default Nodes：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 default Nodes 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 export function defaultNodes(): DesignerNode[] {
   const inputMaterial = MATERIALS.find(item => item.id === 'input')!
   const cardMaterial = MATERIALS.find(item => item.id === 'layout-card')!
@@ -336,6 +504,13 @@ export function defaultNodes(): DesignerNode[] {
   return normalizeNodes([first, second])
 }
 
+/**
+ * resolve Type：负责“解析resolve Type”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 resolve Type 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function resolveType(schema: Record<string, unknown>, component: DesignerFieldComponent): DesignerFieldType {
   if (schema.type === 'number')
     return 'number'
@@ -352,6 +527,13 @@ function resolveType(schema: Record<string, unknown>, component: DesignerFieldCo
   return 'string'
 }
 
+/**
+ * parse Enum Options：负责“解析parse Enum Options”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 parse Enum Options 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function parseEnumOptions(schema: Record<string, unknown>): EnumOption[] {
   if (!Array.isArray(schema.enum))
     return []
@@ -372,6 +554,13 @@ function parseEnumOptions(schema: Record<string, unknown>): EnumOption[] {
   return options
 }
 
+/**
+ * resolve Container Component：负责“解析resolve Container Component”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 resolve Container Component 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function resolveContainerComponent(schema: Record<string, unknown>): DesignerContainerComponent | null {
   const raw = typeof schema.component === 'string' ? schema.component : ''
   if (raw === 'LayoutTabs' || raw === 'Tabs')
@@ -385,6 +574,13 @@ function resolveContainerComponent(schema: Record<string, unknown>): DesignerCon
   return null
 }
 
+/**
+ * parse Title：负责“解析parse Title”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 parse Title 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function parseTitle(schema: Record<string, unknown>, fallback: string): string {
   const props = isRecord(schema.componentProps) ? schema.componentProps : null
   const propsTitle = props && typeof props.title === 'string' ? props.title : ''
@@ -392,6 +588,13 @@ function parseTitle(schema: Record<string, unknown>, fallback: string): string {
   return normalizeTitle(propsTitle || title, fallback)
 }
 
+/**
+ * parse Properties As Nodes：负责“解析parse Properties As Nodes”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 parse Properties As Nodes 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function parsePropertiesAsNodes(
   properties: Record<string, unknown>,
   requiredSet?: Set<string>,
@@ -407,6 +610,13 @@ function parsePropertiesAsNodes(
   return normalizeNodes(rawNodes)
 }
 
+/**
+ * parse Schema Node：负责“解析parse Schema Node”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 parse Schema Node 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function parseSchemaNode(name: string, schema: Record<string, unknown>, requiredHint: boolean): DesignerNode | null {
   const containerComponent = resolveContainerComponent(schema)
   if (containerComponent) {
@@ -474,6 +684,13 @@ function parseSchemaNode(name: string, schema: Record<string, unknown>, required
   }
 }
 
+/**
+ * schema To Nodes：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 schema To Nodes 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 export function schemaToNodes(schemaLike: unknown): DesignerNode[] {
   if (!isRecord(schemaLike))
     return defaultNodes()
@@ -488,6 +705,13 @@ export function schemaToNodes(schemaLike: unknown): DesignerNode[] {
   return nodes.length > 0 ? nodes : defaultNodes()
 }
 
+/**
+ * build Field Schema：负责“构建build Field Schema”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 build Field Schema 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function buildFieldSchema(node: DesignerFieldNode): ISchema {
   const schema: ISchema = {
     type: node.type,
@@ -517,6 +741,13 @@ function buildFieldSchema(node: DesignerFieldNode): ISchema {
   return schema
 }
 
+/**
+ * build Properties：负责“构建build Properties”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 build Properties 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function buildProperties(nodes: DesignerNode[]): Record<string, ISchema> {
   const properties: Record<string, ISchema> = {}
   for (const node of normalizeNodes(nodes)) {
@@ -553,6 +784,13 @@ function buildProperties(nodes: DesignerNode[]): Record<string, ISchema> {
   return properties
 }
 
+/**
+ * nodes To Schema：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 nodes To Schema 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 export function nodesToSchema(nodes: DesignerNode[]): ISchema {
   return {
     type: 'object',
@@ -561,6 +799,13 @@ export function nodesToSchema(nodes: DesignerNode[]): ISchema {
   }
 }
 
+/**
+ * schema Signature：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 schema Signature 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 export function schemaSignature(schemaLike: unknown): string {
   try {
     return JSON.stringify(schemaLike ?? null)
@@ -581,6 +826,13 @@ export function reorder<T>(items: T[], oldIndex: number, newIndex: number): T[] 
   return next
 }
 
+/**
+ * parse Enum Draft：负责“解析parse Enum Draft”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 parse Enum Draft 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 export function parseEnumDraft(text: string): EnumOption[] {
   const lines = text
     .split('\n')
@@ -598,6 +850,13 @@ export function parseEnumDraft(text: string): EnumOption[] {
   return options
 }
 
+/**
+ * preview Value By Node：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 preview Value By Node 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 export function previewValueByNode(node: DesignerFieldNode): unknown {
   switch (node.type) {
     case 'number':
@@ -614,6 +873,13 @@ export function previewValueByNode(node: DesignerFieldNode): unknown {
   }
 }
 
+/**
+ * find Node In List：负责“查找find Node In List”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 find Node In List 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function findNodeInList(nodes: DesignerNode[], nodeId: string): DesignerNode | null {
   for (const node of nodes) {
     if (node.id === nodeId)
@@ -632,6 +898,13 @@ function findNodeInList(nodes: DesignerNode[], nodeId: string): DesignerNode | n
   return null
 }
 
+/**
+ * find Section In List：负责“查找find Section In List”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 find Section In List 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function findSectionInList(nodes: DesignerNode[], sectionId: string): DesignerSectionNode | null {
   for (const node of nodes) {
     if (node.kind !== 'container')
@@ -650,6 +923,13 @@ function findSectionInList(nodes: DesignerNode[], sectionId: string): DesignerSe
   return null
 }
 
+/**
+ * find Container By Section Id：负责“查找find Container By Section Id”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 find Container By Section Id 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function findContainerBySectionId(nodes: DesignerNode[], sectionId: string): DesignerContainerNode | null {
   for (const node of nodes) {
     if (node.kind !== 'container')
@@ -670,14 +950,35 @@ function findContainerBySectionId(nodes: DesignerNode[], sectionId: string): Des
   return null
 }
 
+/**
+ * find Node By Id：负责“查找find Node By Id”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 find Node By Id 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 export function findNodeById(nodes: DesignerNode[], nodeId: string): DesignerNode | null {
   return findNodeInList(nodes, nodeId)
 }
 
+/**
+ * find Section By Id：负责“查找find Section By Id”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 find Section By Id 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 export function findSectionById(nodes: DesignerNode[], sectionId: string): DesignerSectionNode | null {
   return findSectionInList(nodes, sectionId)
 }
 
+/**
+ * update Node List：负责“更新update Node List”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 update Node List 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function updateNodeList(
   nodes: DesignerNode[],
   nodeId: string,
@@ -713,6 +1014,13 @@ function updateNodeList(
   return changed ? next : nodes
 }
 
+/**
+ * update Section List：负责“更新update Section List”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 update Section List 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function updateSectionList(
   nodes: DesignerNode[],
   sectionId: string,
@@ -744,6 +1052,13 @@ function updateSectionList(
   return changed ? next : nodes
 }
 
+/**
+ * update Node By Id：负责“更新update Node By Id”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 update Node By Id 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 export function updateNodeById(
   nodes: DesignerNode[],
   nodeId: string,
@@ -753,6 +1068,13 @@ export function updateNodeById(
   return normalizeNodes(next)
 }
 
+/**
+ * update Section By Id：负责“更新update Section By Id”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 update Section By Id 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 export function updateSectionById(
   nodes: DesignerNode[],
   sectionId: string,
@@ -762,6 +1084,13 @@ export function updateSectionById(
   return normalizeNodes(next)
 }
 
+/**
+ * remove Node From List：负责“移除remove Node From List”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 remove Node From List 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function removeNodeFromList(nodes: DesignerNode[], nodeId: string): DesignerNode[] {
   const next: DesignerNode[] = []
   let removed = false
@@ -793,12 +1122,26 @@ function removeNodeFromList(nodes: DesignerNode[], nodeId: string): DesignerNode
   return removed ? next : nodes
 }
 
+/**
+ * remove Node By Id：负责“移除remove Node By Id”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 remove Node By Id 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 export function removeNodeById(nodes: DesignerNode[], nodeId: string): DesignerNode[] {
   const next = removeNodeFromList(cloneNodes(nodes), nodeId)
   const safe = next.length > 0 ? next : defaultNodes()
   return normalizeNodes(safe)
 }
 
+/**
+ * clone Node With New Ids：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 clone Node With New Ids 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function cloneNodeWithNewIds(node: DesignerNode): DesignerNode {
   if (node.kind === 'field') {
     return {
@@ -819,9 +1162,23 @@ function cloneNodeWithNewIds(node: DesignerNode): DesignerNode {
   }
 }
 
+/**
+ * duplicate Node By Id：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 duplicate Node By Id 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 export function duplicateNodeById(nodes: DesignerNode[], nodeId: string): DesignerNode[] {
   const draft = cloneNodes(nodes)
 
+  /**
+   * duplicate In List：负责该函数职责对应的主流程编排。
+   * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+   * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+   *
+   * 说明：该函数聚焦于 duplicate In List 的单一职责，调用方可通过函数名快速理解输入输出语义。
+   */
   function duplicateInList(list: DesignerNode[]): boolean {
     const index = list.findIndex(item => item.id === nodeId)
     if (index >= 0) {
@@ -848,6 +1205,13 @@ export function duplicateNodeById(nodes: DesignerNode[], nodeId: string): Design
   return normalizeNodes(draft)
 }
 
+/**
+ * find Container In List：负责“查找find Container In List”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 find Container In List 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function findContainerInList(nodes: DesignerNode[], containerId: string): DesignerContainerNode | null {
   for (const node of nodes) {
     if (node.kind !== 'container')
@@ -866,6 +1230,13 @@ function findContainerInList(nodes: DesignerNode[], containerId: string): Design
   return null
 }
 
+/**
+ * add Section To Container：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 add Section To Container 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 export function addSectionToContainer(nodes: DesignerNode[], containerId: string, title?: string): DesignerNode[] {
   const draft = cloneNodes(nodes)
   const container = findContainerInList(draft, containerId)
@@ -875,6 +1246,13 @@ export function addSectionToContainer(nodes: DesignerNode[], containerId: string
   return normalizeNodes(draft)
 }
 
+/**
+ * remove Section From Container：负责“移除remove Section From Container”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 remove Section From Container 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 export function removeSectionFromContainer(nodes: DesignerNode[], containerId: string, sectionId: string): DesignerNode[] {
   const draft = cloneNodes(nodes)
   const container = findContainerInList(draft, containerId)
@@ -886,18 +1264,46 @@ export function removeSectionFromContainer(nodes: DesignerNode[], containerId: s
   return normalizeNodes(draft)
 }
 
+/**
+ * root Target：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 root Target 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 export function rootTarget(): DesignerDropTarget {
   return { type: 'root' }
 }
 
+/**
+ * container Target：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 container Target 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 export function containerTarget(containerId: string): DesignerDropTarget {
   return { type: 'container', containerId }
 }
 
+/**
+ * section Target：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 section Target 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 export function sectionTarget(sectionId: string): DesignerDropTarget {
   return { type: 'section', sectionId }
 }
 
+/**
+ * target To Key：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 target To Key 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 export function targetToKey(target: DesignerDropTarget): string {
   if (target.type === 'root')
     return 'root'
@@ -906,6 +1312,13 @@ export function targetToKey(target: DesignerDropTarget): string {
   return `section:${target.sectionId}`
 }
 
+/**
+ * key To Target：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 key To Target 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 export function keyToTarget(key: string | undefined): DesignerDropTarget | null {
   if (!key)
     return null
@@ -922,10 +1335,21 @@ export function keyToTarget(key: string | undefined): DesignerDropTarget | null 
   return null
 }
 
+/**
+ * is Same Target：负责“判断is Same Target”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 is Same Target 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function isSameTarget(a: DesignerDropTarget, b: DesignerDropTarget): boolean {
   return targetToKey(a) === targetToKey(b)
 }
 
+/**
+ * 根据目标位置解析可写的节点列表。
+ * 返回 `null` 表示该目标当前不可直接写入（例如分组容器本体）。
+ */
 function getListByTarget(nodes: DesignerNode[], target: DesignerDropTarget): DesignerNode[] | null {
   if (target.type === 'root')
     return nodes
@@ -939,6 +1363,13 @@ function getListByTarget(nodes: DesignerNode[], target: DesignerDropTarget): Des
   return section ? section.children : null
 }
 
+/**
+ * accepted Node Kinds By Container：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 accepted Node Kinds By Container 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function acceptedNodeKindsByContainer(component: DesignerContainerComponent): DesignerDropNodeKind[] {
   switch (component) {
     case 'LayoutCard':
@@ -951,6 +1382,10 @@ function acceptedNodeKindsByContainer(component: DesignerContainerComponent): De
   }
 }
 
+/**
+ * 结构层面的落位校验。
+ * 这里只判断“目标类型是否接收该节点类型”，祖先循环校验由 `targetBelongsToNode` 负责。
+ */
 function canAcceptNodeByTarget(nodes: DesignerNode[], target: DesignerDropTarget, node: DesignerNode): boolean {
   if (target.type === 'root')
     return true
@@ -968,6 +1403,10 @@ function canAcceptNodeByTarget(nodes: DesignerNode[], target: DesignerDropTarget
   return acceptedNodeKindsByContainer(ownerContainer.component).includes(node.kind)
 }
 
+/**
+ * 判断目标是否位于节点自身子树内。
+ * 用于阻止“容器拖进自己或后代”这类非法操作。
+ */
 function targetBelongsToNode(node: DesignerNode, target: DesignerDropTarget): boolean {
   if (target.type === 'root')
     return false
@@ -990,6 +1429,13 @@ function targetBelongsToNode(node: DesignerNode, target: DesignerDropTarget): bo
   return false
 }
 
+/**
+ * can Drop Node At Target：负责“判断can Drop Node At Target”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 can Drop Node At Target 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 export function canDropNodeAtTarget(
   nodes: DesignerNode[],
   target: DesignerDropTarget,
@@ -998,12 +1444,20 @@ export function canDropNodeAtTarget(
   return canAcceptNodeByTarget(nodes, target, node)
 }
 
+/**
+ * insert Node By Target：负责“插入insert Node By Target”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 insert Node By Target 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 export function insertNodeByTarget(
   nodes: DesignerNode[],
   target: DesignerDropTarget,
   newIndex: number,
   node: DesignerNode,
 ): DesignerNode[] {
+  // 在草稿上操作，保持入参不可变并便于失败回滚。
   const draft = cloneNodes(nodes)
   if (!canAcceptNodeByTarget(draft, target, node))
     return nodes
@@ -1015,6 +1469,13 @@ export function insertNodeByTarget(
   return normalizeNodes(draft)
 }
 
+/**
+ * move Node By Target：负责“移动move Node By Target”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 move Node By Target 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 export function moveNodeByTarget(
   nodes: DesignerNode[],
   fromTarget: DesignerDropTarget,
@@ -1022,6 +1483,7 @@ export function moveNodeByTarget(
   oldIndex: number,
   newIndex: number,
 ): DesignerNode[] {
+  // 旧版索引移动 API，保留用于兼容历史调用。
   const draft = cloneNodes(nodes)
   const fromList = getListByTarget(draft, fromTarget)
   if (!fromList || oldIndex < 0 || oldIndex >= fromList.length)
@@ -1050,3 +1512,112 @@ export function moveNodeByTarget(
   return normalizeNodes(draft)
 }
 
+interface NodeLocationByTarget {
+  target: DesignerDropTarget
+  index: number
+}
+
+/**
+ * 根据 nodeId 查找节点当前所在位置（根/容器/分组 + 索引）。
+ * 该方式不依赖 DOM 冒泡事件里的临时索引，嵌套拖拽更稳定。
+ */
+function findNodeLocationByTarget(nodes: DesignerNode[], nodeId: string): NodeLocationByTarget | null {
+  const rootIndex = nodes.findIndex(node => node.id === nodeId)
+  if (rootIndex >= 0) {
+    return {
+      target: rootTarget(),
+      index: rootIndex,
+    }
+  }
+
+  const walk = (items: DesignerNode[]): NodeLocationByTarget | null => {
+    for (const node of items) {
+      if (node.kind !== 'container')
+        continue
+
+      const containerIndex = node.children.findIndex(child => child.id === nodeId)
+      if (containerIndex >= 0) {
+        return {
+          target: containerTarget(node.id),
+          index: containerIndex,
+        }
+      }
+
+      for (const section of node.sections) {
+        const sectionIndex = section.children.findIndex(child => child.id === nodeId)
+        if (sectionIndex >= 0) {
+          return {
+            target: sectionTarget(section.id),
+            index: sectionIndex,
+          }
+        }
+      }
+
+      const inChildren = walk(node.children)
+      if (inChildren)
+        return inChildren
+
+      for (const section of node.sections) {
+        const inSection = walk(section.children)
+        if (inSection)
+          return inSection
+      }
+    }
+    return null
+  }
+
+  return walk(nodes)
+}
+
+/**
+ * move Node By Id To Target：负责“移动move Node By Id To Target”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 move Node By Id To Target 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
+export function moveNodeByIdToTarget(
+  nodes: DesignerNode[],
+  nodeId: string,
+  toTarget: DesignerDropTarget,
+  newIndex: number,
+): DesignerNode[] {
+  /**
+   * 统一节点移动 API：
+   * 1) 通过 nodeId 找到真实来源位置
+   * 2) 校验目标约束与反循环规则
+   * 3) 从来源移除并插入目标列表
+   */
+  const draft = cloneNodes(nodes)
+  const location = findNodeLocationByTarget(draft, nodeId)
+  if (!location)
+    return nodes
+
+  const fromList = getListByTarget(draft, location.target)
+  if (!fromList || location.index < 0 || location.index >= fromList.length)
+    return nodes
+  const movingNode = fromList[location.index]
+  if (!movingNode)
+    return nodes
+  if (!canAcceptNodeByTarget(draft, toTarget, movingNode))
+    return nodes
+  if (!isSameTarget(location.target, toTarget) && targetBelongsToNode(movingNode, toTarget))
+    return nodes
+
+  const [moved] = fromList.splice(location.index, 1)
+  if (!moved)
+    return nodes
+
+  const toList = isSameTarget(location.target, toTarget)
+    ? fromList
+    : getListByTarget(draft, toTarget)
+  if (!toList) {
+    fromList.splice(Math.max(0, Math.min(location.index, fromList.length)), 0, moved)
+    return normalizeNodes(draft)
+  }
+
+  const safeIndex = Number.isInteger(newIndex) && newIndex >= 0 ? newIndex : toList.length
+  const insertIndex = Math.max(0, Math.min(safeIndex, toList.length))
+  toList.splice(insertIndex, 0, moved)
+  return normalizeNodes(draft)
+}

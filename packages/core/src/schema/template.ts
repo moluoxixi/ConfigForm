@@ -1,6 +1,6 @@
 import type { ISchema } from './types'
-import { mergeSchema } from './merge'
 import { logger } from '../shared'
+import { mergeSchema } from './merge'
 
 /**
  * Schema 模板定义

@@ -1,7 +1,7 @@
 import type { ArrayFieldInstance, ISchema } from '@moluoxixi/core'
-import { ArrayBase } from './ArrayBase'
 import { useField } from '../hooks'
 import { observer } from '../reactive'
+import { ArrayBase } from './ArrayBase'
 import { RecursionField } from './RecursionField'
 
 export interface ArrayFieldProps {

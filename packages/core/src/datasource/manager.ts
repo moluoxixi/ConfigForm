@@ -95,6 +95,13 @@ function buildCacheKey(config: DataSourceConfig, resolvedParams: Record<string, 
   ].join(CACHE_KEY_SEPARATOR)
 }
 
+/**
+ * normalize Headers：负责“规范化normalize Headers”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 normalize Headers 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function normalizeHeaders(headers?: Record<string, string>): Record<string, string> {
   if (!headers) {
     return {}
@@ -106,6 +113,13 @@ function normalizeHeaders(headers?: Record<string, string>): Record<string, stri
   return normalized
 }
 
+/**
+ * stable Normalize：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 stable Normalize 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function stableNormalize(
   value: unknown,
   seen: WeakSet<object> = new WeakSet<object>(),
@@ -131,16 +145,37 @@ function stableNormalize(
   return normalized
 }
 
+/**
+ * stable Stringify：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 stable Stringify 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function stableStringify(value: unknown): string {
   const serialized = JSON.stringify(stableNormalize(value))
   return serialized ?? 'null'
 }
 
+/**
+ * get Cache Key Url：负责“获取get Cache Key Url”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 get Cache Key Url 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function getCacheKeyUrl(cacheKey: string): string {
   const parts = cacheKey.split(CACHE_KEY_SEPARATOR)
   return parts[1] ?? ''
 }
 
+/**
+ * create Abort Error：负责“创建create Abort Error”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 create Abort Error 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function createAbortError(): Error {
   if (typeof DOMException !== 'undefined') {
     return new DOMException('The operation was aborted.', 'AbortError')

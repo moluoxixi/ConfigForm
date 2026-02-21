@@ -1,7 +1,7 @@
 import type { ISchema } from '@moluoxixi/core'
 import type { DesignerNode } from '@moluoxixi/plugin-lower-code-core'
 import type { PropType, VNodeChild } from 'vue'
-import { ConfigForm } from '@moluoxixi/vue'
+import type { DesignerFieldPreviewNode } from './types'
 import {
   containerTarget,
   containerUsesSections,
@@ -11,12 +11,12 @@ import {
   sectionTarget,
   targetToKey,
 } from '@moluoxixi/plugin-lower-code-core'
+import { ConfigForm } from '@moluoxixi/vue'
 import { computed, defineComponent, h, ref, watch } from 'vue'
 import { DesignerCanvasMaskDecorator } from '../decorators/DesignerCanvasMaskDecorator'
 import { DesignerCanvasPreviewRenderer } from '../renderers/DesignerCanvasPreviewRenderer'
 import { DesignerCanvasBodyRenderer } from './components/DesignerCanvasBodyRenderer'
 import { DesignerCanvasHeaderRenderer } from './components/DesignerCanvasHeaderRenderer'
-import type { DesignerFieldPreviewNode } from './types'
 
 export const DesignerCanvasPane = defineComponent({
   name: 'DesignerCanvasPane',
@@ -56,7 +56,33 @@ export const DesignerCanvasPane = defineComponent({
   },
   setup(props) {
     const activeTabsByContainer = ref<Record<string, string>>({})
+    /**
+     * 判断事件是否来自工具栏交互区。
+     * 防止工具栏按钮触发节点/分组选中逻辑。
+     */
+    const isToolbarInteraction = (target: EventTarget | null): boolean => {
+      const element = target instanceof Element
+        ? target
+        : target instanceof Node
+          ? target.parentElement
+          : null
+      return Boolean(element?.closest('[data-cf-toolbar-interactive="true"]'))
+    }
+    const closestNodeId = (target: EventTarget | null): string | null => {
+      const element = target instanceof Element
+        ? target
+        : target instanceof Node
+          ? target.parentElement
+          : null
+      return element?.closest('[data-node-id]')?.getAttribute('data-node-id') ?? null
+    }
+    // 容器点击仅在命中容器自身外框时选中，避免误选子节点。
+    const isNodeSelfEvent = (target: EventTarget | null, nodeId: string): boolean =>
+      closestNodeId(target) === nodeId
 
+    /**
+     * 通用蒙层渲染器，供物料预览和画布节点预览复用。
+     */
     const renderCanvasMask = (
       content: () => VNodeChild,
       options?: { actions?: VNodeChild, disablePointerEvents?: boolean },
@@ -80,6 +106,7 @@ export const DesignerCanvasPane = defineComponent({
       options,
     )
 
+    // schema 变更后，保持每个 LayoutTabs 容器激活分组稳定。
     watch(
       () => props.nodes,
       (nodes) => {
@@ -110,6 +137,9 @@ export const DesignerCanvasPane = defineComponent({
       { immediate: true, deep: true },
     )
 
+    /**
+     * 渲染选中节点右上角工具栏。
+     */
     const renderNodeToolbar = (nodeId: string, options?: { allowAddSection?: boolean, onAddSection?: () => void }): VNodeChild => {
       if (props.readonly)
         return null
@@ -118,49 +148,51 @@ export const DesignerCanvasPane = defineComponent({
         event.stopPropagation()
       }
       return h('div', {
-        class: 'cf-lc-node-toolbar',
-        onClick: (event: Event) => event.stopPropagation(),
+        'class': 'cf-lc-node-toolbar',
+        'data-cf-toolbar-interactive': 'true',
+        'onClick': (event: Event) => event.stopPropagation(),
       }, [
         h('button', {
-          type: 'button',
-          class: 'cf-lc-node-tool cf-lc-node-tool--move',
-          'data-cf-drag-handle': 'true',
-          title: '拖动排序',
-          onClick: (event: Event) => {
-            event.stopPropagation()
-          },
+          'type': 'button',
+          'class': 'cf-lc-node-tool cf-lc-node-tool--move',
+          'data-cf-toolbar-interactive': 'true',
+          'title': '拖拽节点移动',
+          'onClick': (event: Event) => event.stopPropagation(),
         }, '↕'),
         options?.allowAddSection && options.onAddSection
           ? h('button', {
-              type: 'button',
-              class: 'cf-lc-node-tool cf-lc-node-tool--primary',
-              title: '新增分组',
-              onMousedown: consumeToolbarPointer,
-              onPointerdown: consumeToolbarPointer,
-              onClick: (event: Event) => {
+              'type': 'button',
+              'class': 'cf-lc-node-tool cf-lc-node-tool--primary',
+              'data-cf-toolbar-interactive': 'true',
+              'title': '新增分组',
+              'onMousedown': consumeToolbarPointer,
+              'onPointerdown': consumeToolbarPointer,
+              'onClick': (event: Event) => {
                 event.stopPropagation()
                 options.onAddSection?.()
               },
             }, '＋')
           : null,
         h('button', {
-          type: 'button',
-          class: 'cf-lc-node-tool',
-          title: '复制',
-          onMousedown: consumeToolbarPointer,
-          onPointerdown: consumeToolbarPointer,
-          onClick: (event: Event) => {
+          'type': 'button',
+          'class': 'cf-lc-node-tool',
+          'data-cf-toolbar-interactive': 'true',
+          'title': '复制',
+          'onMousedown': consumeToolbarPointer,
+          'onPointerdown': consumeToolbarPointer,
+          'onClick': (event: Event) => {
             event.stopPropagation()
             props.onDuplicateNode(nodeId)
           },
         }, '⎘'),
         h('button', {
-          type: 'button',
-          class: 'cf-lc-node-tool cf-lc-node-tool--danger',
-          title: '删除',
-          onMousedown: consumeToolbarPointer,
-          onPointerdown: consumeToolbarPointer,
-          onClick: (event: Event) => {
+          'type': 'button',
+          'class': 'cf-lc-node-tool cf-lc-node-tool--danger',
+          'data-cf-toolbar-interactive': 'true',
+          'title': '删除',
+          'onMousedown': consumeToolbarPointer,
+          'onPointerdown': consumeToolbarPointer,
+          'onClick': (event: Event) => {
             event.stopPropagation()
             props.onRemoveNode(nodeId)
           },
@@ -168,16 +200,19 @@ export const DesignerCanvasPane = defineComponent({
       ])
     }
 
+    /**
+     * 渲染一个可挂载 Sortable 的投放列表区域。
+     */
     const renderDropList = (
       items: DesignerNode[],
       targetKey: string,
       depth: number,
       emptyText: string,
     ): VNodeChild => h('div', {
-      class: `cf-lc-drop-list ${depth === 0 ? '' : 'cf-lc-drop-list--nested'}`,
+      'class': `cf-lc-drop-list ${depth === 0 ? '' : 'cf-lc-drop-list--nested'}`,
       'data-cf-drop-list': 'true',
       'data-target-key': targetKey,
-      style: {
+      'style': {
         width: '100%',
         boxSizing: 'border-box',
         minHeight: depth === 0 ? `${props.minCanvasHeight}px` : '56px',
@@ -188,6 +223,9 @@ export const DesignerCanvasPane = defineComponent({
       items.length === 0 ? h('div', { class: 'cf-lc-empty' }, emptyText) : null,
     ])
 
+    /**
+     * 渲染分组头部（含删除动作）。
+     */
     const renderSectionHead = (
       container: Extract<DesignerNode, { kind: 'container' }>,
       section: Extract<DesignerNode, { kind: 'container' }>['sections'][number],
@@ -202,18 +240,19 @@ export const DesignerCanvasPane = defineComponent({
         }, section.title || section.name),
         !props.readonly
           ? h('button', {
-              type: 'button',
-              class: 'cf-lc-section-action',
-              title: '删除分组',
-              onMousedown: (event: Event) => {
+              'type': 'button',
+              'class': 'cf-lc-section-action',
+              'data-cf-toolbar-interactive': 'true',
+              'title': '删除分组',
+              'onMousedown': (event: Event) => {
                 event.preventDefault()
                 event.stopPropagation()
               },
-              onPointerdown: (event: Event) => {
+              'onPointerdown': (event: Event) => {
                 event.preventDefault()
                 event.stopPropagation()
               },
-              onClick: (event: Event) => {
+              'onClick': (event: Event) => {
                 event.stopPropagation()
                 props.onRemoveSection(container.id, section.id)
               },
@@ -222,6 +261,9 @@ export const DesignerCanvasPane = defineComponent({
       ])
     }
 
+    /**
+     * 渲染完整分组区域：可选中外框 + 内部投放列表。
+     */
     const renderSectionBody = (
       container: Extract<DesignerNode, { kind: 'container' }>,
       section: Extract<DesignerNode, { kind: 'container' }>['sections'][number],
@@ -230,12 +272,22 @@ export const DesignerCanvasPane = defineComponent({
     ): VNodeChild => {
       const selected = props.selectedId === section.id
       return h('div', {
-        key: section.id,
-        class: `cf-lc-section cf-lc-section--${mode} ${selected ? 'cf-lc-section--selected' : ''}`,
-        onMousedownCapture: () => {
+        'key': section.id,
+        'data-section-id': section.id,
+        'class': `cf-lc-section cf-lc-section--${mode} ${selected ? 'cf-lc-section--selected' : ''}`,
+        'onMousedownCapture': (event: Event) => {
+          if (isToolbarInteraction(event.target))
+            return
+          if (closestNodeId(event.target))
+            return
+          event.stopPropagation()
           props.onSelect(section.id)
         },
-        onClick: (event: Event) => {
+        'onClick': (event: Event) => {
+          if (isToolbarInteraction(event.target))
+            return
+          if (closestNodeId(event.target))
+            return
           event.stopPropagation()
           props.onSelect(section.id)
         },
@@ -245,6 +297,9 @@ export const DesignerCanvasPane = defineComponent({
       ])
     }
 
+    /**
+     * 按容器类型渲染容器内部结构。
+     */
     const renderContainerContent = (node: Extract<DesignerNode, { kind: 'container' }>, depth: number): VNodeChild => {
       const title = node.title || node.name
 
@@ -284,21 +339,30 @@ export const DesignerCanvasPane = defineComponent({
       )
     }
 
+    /**
+     * 渲染字段节点卡片。
+     */
     const renderFieldNode = (
       node: Extract<DesignerNode, { kind: 'field' }>,
       parentTargetKey: string,
     ): VNodeChild => {
       const selected = props.selectedId === node.id
-      const componentClassName = node.component.replace(/[^a-zA-Z0-9_-]/g, '-').toLowerCase() || 'component'
+      const componentClassName = node.component.replace(/[^\w-]/g, '-').toLowerCase() || 'component'
       return h('div', {
-        key: node.id,
-        class: `cf-lc-node cf-lc-node--field ${selected ? 'cf-lc-node--selected' : ''}`,
+        'key': node.id,
+        'class': `cf-lc-node cf-lc-node--field ${selected ? 'cf-lc-node--selected' : ''}`,
         'data-node-id': node.id,
         'data-parent-target-key': parentTargetKey,
-        onMousedownCapture: () => {
+        'onMousedownCapture': (event: Event) => {
+          if (isToolbarInteraction(event.target))
+            return
           props.onSelect(node.id)
         },
-        onClick: () => props.onSelect(node.id),
+        'onClick': (event: Event) => {
+          if (isToolbarInteraction(event.target))
+            return
+          props.onSelect(node.id)
+        },
       }, [
         h('div', { class: 'cf-lc-node-preview' }, [
           h('div', { class: `cf-lc-material-preview cf-lc-material-preview--${componentClassName}` }, [
@@ -308,6 +372,9 @@ export const DesignerCanvasPane = defineComponent({
       ])
     }
 
+    /**
+     * 渲染容器节点卡片。
+     */
     const renderContainerNode = (
       node: Extract<DesignerNode, { kind: 'container' }>,
       depth: number,
@@ -315,14 +382,24 @@ export const DesignerCanvasPane = defineComponent({
     ): VNodeChild => {
       const selected = props.selectedId === node.id
       return h('div', {
-        key: node.id,
-        class: `cf-lc-node cf-lc-node--container ${selected ? 'cf-lc-node--selected' : ''}`,
+        'key': node.id,
+        'class': `cf-lc-node cf-lc-node--container ${selected ? 'cf-lc-node--selected' : ''}`,
         'data-node-id': node.id,
         'data-parent-target-key': parentTargetKey,
-        onMousedownCapture: () => {
+        'onMousedownCapture': (event: Event) => {
+          if (isToolbarInteraction(event.target))
+            return
+          if (!isNodeSelfEvent(event.target, node.id))
+            return
           props.onSelect(node.id)
         },
-        onClick: () => props.onSelect(node.id),
+        'onClick': (event: Event) => {
+          if (isToolbarInteraction(event.target))
+            return
+          if (!isNodeSelfEvent(event.target, node.id))
+            return
+          props.onSelect(node.id)
+        },
       }, [
         renderCanvasMask(
           () => h('div', { class: 'cf-lc-container-body' }, [renderContainerContent(node, depth)]),
@@ -339,12 +416,18 @@ export const DesignerCanvasPane = defineComponent({
       ])
     }
 
-    const renderNodeCard = (node: DesignerNode, depth: number, parentTargetKey: string): VNodeChild => {
+    /**
+     * 节点分发渲染入口：field -> 字段卡片，container -> 容器卡片。
+     */
+    function renderNodeCard(node: DesignerNode, depth: number, parentTargetKey: string): VNodeChild {
       if (node.kind === 'field')
         return renderFieldNode(node, parentTargetKey)
       return renderContainerNode(node, depth, parentTargetKey)
     }
 
+    /**
+     * 画布面板 schema 本身由 ConfigForm 组合渲染。
+     */
     const paneSchema = computed<ISchema>(() => ({
       type: 'object',
       properties: {
@@ -366,14 +449,14 @@ export const DesignerCanvasPane = defineComponent({
       },
     }))
 
-    const paneRenderKey = computed(
-      () => `${schemaSignature(nodesToSchema(props.nodes))}:${props.selectedId ?? ''}:${props.readonly ? '1' : '0'}`,
-    )
-
     const paneComponents = {
       DesignerCanvasHeaderRenderer,
       DesignerCanvasBodyRenderer,
     }
+    // 重挂载 key：确保渲染树与投放列表 DOM 始终与 schema 结构同步。
+    const paneRenderKey = computed(
+      () => `${schemaSignature(nodesToSchema(props.nodes))}:${props.readonly ? '1' : '0'}`,
+    )
 
     return () => h('section', {
       style: {

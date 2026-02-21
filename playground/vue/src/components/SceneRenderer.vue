@@ -72,17 +72,30 @@ const props = defineProps<{
   extraPlugins?: FormPlugin[]
 }>()
 
-/** DevTools 插件单例 */
-const devTools = devToolsPlugin({ formId: 'vue-playground' })
+/**
+ * 状态标签组件实例引用。
+ * 用于在提交失败时回填错误列表，以及在模式切换时主动清空状态。
+ */
+const st = ref<{
+  mode?: FieldPattern | { value?: FieldPattern }
+  showErrors?: (errors: unknown[]) => void
+} | null>(null)
 
-interface StatusTabsExpose {
-  mode: FieldPattern | { value: FieldPattern }
-  showErrors: (errors: unknown[]) => void
-}
-const st = ref<StatusTabsExpose | null>(null)
+/**
+ * DevTools 插件单例。
+ * 整个场景只创建一个插件实例，避免多次渲染时重复注册监听。
+ */
+const devTools = devToolsPlugin()
 
+/**
+ * clear Status：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 clear Status 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function clearStatus(): void {
-  st.value?.showErrors([])
+  st.value?.showErrors?.([])
 }
 
 /** 变体选中值 */
@@ -99,6 +112,13 @@ const currentSchema = computed<ISchema>(() => {
   return resolveSceneSchema(props.config, variantValue.value)
 })
 
+/**
+ * read Mode Value：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 read Mode Value 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function readModeValue(): FieldPattern | undefined {
   const mode = st.value?.mode
   if (mode && typeof mode === 'object' && 'value' in mode)

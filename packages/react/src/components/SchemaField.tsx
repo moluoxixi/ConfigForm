@@ -25,6 +25,13 @@ export const SchemaField = observer<SchemaFieldProps>(({ schema, compileOptions 
 
   const compiled = useMemo(() => compileSchema(schema, compileOptions), [schema, compileOptions])
 
+  /**
+   * render Node：负责“渲染render Node”的核心实现与调用衔接。
+   * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+   * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+   *
+   * 说明：该注释描述 render Node 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+   */
   function renderNode(cf: CompiledField): React.ReactElement | null {
     if (cf.isVoid)
       return renderVoidNode(cf)
@@ -58,6 +65,13 @@ export const SchemaField = observer<SchemaFieldProps>(({ schema, compileOptions 
     return <FormField key={cf.address} name={cf.dataPath} fieldProps={toFieldProps(cf)} />
   }
 
+  /**
+   * render Void Node：负责“渲染render Void Node”的核心实现与调用衔接。
+   * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+   * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+   *
+   * 说明：该注释描述 render Void Node 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+   */
   function renderVoidNode(cf: CompiledField): React.ReactElement {
     const voidProps = toVoidFieldProps(cf)
     return (
@@ -69,6 +83,13 @@ export const SchemaField = observer<SchemaFieldProps>(({ schema, compileOptions 
     )
   }
 
+  /**
+   * render Object Node：负责“渲染render Object Node”的核心实现与调用衔接。
+   * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+   * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+   *
+   * 说明：该注释描述 render Object Node 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+   */
   function renderObjectNode(cf: CompiledField): React.ReactElement {
     return (
       <SchemaContext.Provider key={cf.address} value={cf.schema}>
@@ -79,6 +100,13 @@ export const SchemaField = observer<SchemaFieldProps>(({ schema, compileOptions 
     )
   }
 
+  /**
+   * render Children：负责“渲染render Children”的核心实现与调用衔接。
+   * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+   * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+   *
+   * 说明：该注释描述 render Children 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+   */
   function renderChildren(childAddresses: string[]): React.ReactElement[] {
     const allFields = compiled.fields
     const result: React.ReactElement[] = []

@@ -1,5 +1,5 @@
 import type { FormImportJSONOptions, ImportSetValueStrategy } from '@moluoxixi/plugin-import'
-import type { ReactElement, CSSProperties } from 'react'
+import type { CSSProperties, ReactElement } from 'react'
 import { useForm } from '@moluoxixi/react'
 import { Button, message, Modal, Upload } from 'antd'
 import { useMemo, useState } from 'react'
@@ -23,6 +23,13 @@ export interface ImportJsonActionProps {
   style?: CSSProperties
 }
 
+/**
+ * merge Apply Options：负责“合并merge Apply Options”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 merge Apply Options 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function mergeApplyOptions(
   strategy: ImportSetValueStrategy,
   importOptions: ImportJsonActionProps['importOptions'],
@@ -34,6 +41,13 @@ function mergeApplyOptions(
   }
 }
 
+/**
+ * Import Json Action：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 Import Json Action 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 export function ImportJsonAction({
   buttonText = '导入 JSON',
   sourceTitle = '选择导入 JSON 文件',

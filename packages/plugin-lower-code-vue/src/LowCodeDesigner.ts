@@ -1,4 +1,4 @@
-﻿/// <reference path="./jsoneditor.d.ts" />
+/// <reference path="./jsoneditor.d.ts" />
 import type {
   DesignerContainerNode,
   DesignerFieldNode,
@@ -15,20 +15,25 @@ import {
   addSectionToContainer,
   collectDropTargetKeys,
   collectPreviewFields,
+  createDesignerCanvasPutHandler,
+  createDesignerCanvasSortableOptions,
+  createDesignerMaterialSortableOptions,
   defaultNodeFromMaterial,
   duplicateNodeById,
   findNodeById,
   findSectionById,
+  hasMountedDesignerSortables,
   insertNodeByTarget,
   keyToTarget,
-  moveNodeByTarget,
+  moveNodeByIdToTarget,
   nodesToSchema,
   previewValueByNode,
-  resolveDesignerMaterials,
-  restoreDraggedDomPosition,
-  rootTarget,
   removeNodeById,
   removeSectionFromContainer,
+  resolveDesignerMaterials,
+  resolveDesignerSortableInsertIndex,
+  restoreDraggedDomPosition,
+  rootTarget,
   schemaSignature,
   schemaToNodes,
   updateNodeById,
@@ -37,11 +42,11 @@ import { ComponentRegistrySymbol } from '@moluoxixi/vue'
 import JSONEditor from 'jsoneditor'
 import Sortable from 'sortablejs'
 import { computed, defineComponent, h, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import 'jsoneditor/dist/jsoneditor.css'
 import { DesignerCanvasPane } from './designer/center/DesignerCanvasPane'
 import { DesignerMaterialPane } from './designer/left/DesignerMaterialPane'
-import { DesignerPropertiesPane } from './designer/right/DesignerPropertiesPane'
 import { mergeDesignerComponentDefinitions } from './designer/right/component-definitions'
+import { DesignerPropertiesPane } from './designer/right/DesignerPropertiesPane'
+import 'jsoneditor/dist/jsoneditor.css'
 
 export type {
   LowCodeDesignerComponentDefinition,
@@ -104,9 +109,9 @@ const DESIGNER_CSS = `
   position: absolute;
   top: 0;
   right: 4px;
-  transform: translate(0, -100%);
+  transform: translate(0, calc(-100% + 12px));
   z-index: 40;
-  pointer-events: auto;
+  pointer-events: none;
   display: flex;
   align-items: flex-start;
   justify-content: flex-end;
@@ -169,10 +174,15 @@ const DESIGNER_CSS = `
 
 .cf-lc-dragging {
   opacity: 0.95;
+  pointer-events: none;
+}
+
+.cf-lc-sortable-fallback,
+.cf-lc-sortable-fallback * {
+  pointer-events: none !important;
 }
 
 .cf-lc-sortable-fallback {
-  pointer-events: none;
   opacity: 0.96;
   margin: 0 !important;
   border-color: #60a5fa !important;
@@ -255,10 +265,12 @@ const DESIGNER_CSS = `
   cursor: pointer;
   padding: 0;
   transition: border-color .14s ease, color .14s ease, background-color .14s ease;
+  pointer-events: auto;
 }
 
 .cf-lc-node-tool--move {
   cursor: grab;
+  pointer-events: auto;
 }
 
 .cf-lc-node-tool--move:active {
@@ -350,6 +362,7 @@ const DESIGNER_CSS = `
   box-shadow: 0 0 0 1px #dbeafe;
   background: #f8fbff;
   z-index: 8;
+  cursor: grab;
 }
 
 .cf-lc-node--selected.cf-lc-node--container > .cf-lc-mask-layer > .cf-lc-mask-layer-content,
@@ -359,6 +372,10 @@ const DESIGNER_CSS = `
 
 .cf-lc-node--selected::after {
   opacity: 1;
+}
+
+.cf-lc-node--selected:active {
+  cursor: grabbing;
 }
 
 .cf-lc-container-body {
@@ -573,6 +590,13 @@ const VUE_INTERNAL_COMPONENT_NAMES = new Set([
   'DesignerPropertiesPane',
 ])
 
+/**
+ * shallow Equal Record：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 shallow Equal Record 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function shallowEqualRecord(
   a: Record<string, unknown>,
   b: Record<string, unknown>,
@@ -597,6 +621,13 @@ function mapToRecord<T>(map: Map<string, T> | undefined): Record<string, T> {
   return record
 }
 
+/**
+ * parse Material Payload：负责“解析parse Material Payload”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 parse Material Payload 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function parseMaterialPayload(raw: string | undefined): MaterialItem | null {
   if (!raw)
     return null
@@ -615,6 +646,13 @@ function parseMaterialPayload(raw: string | undefined): MaterialItem | null {
   }
 }
 
+/**
+ * create Component Props By Component：负责“创建create Component Props By Component”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 create Component Props By Component 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function createComponentPropsByComponent(
   definitions: Record<string, LowCodeDesignerComponentDefinition> | undefined,
 ): Record<string, Record<string, unknown>> {
@@ -630,6 +668,13 @@ function createComponentPropsByComponent(
   return componentPropsByComponent
 }
 
+/**
+ * merge Field Node With Component Preset：负责“合并merge Field Node With Component Preset”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 merge Field Node With Component Preset 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function mergeFieldNodeWithComponentPreset(
   node: DesignerNode,
   componentPropsByComponent: Record<string, Record<string, unknown>>,
@@ -645,6 +690,13 @@ function mergeFieldNodeWithComponentPreset(
   }
 }
 
+/**
+ * update Field Nodes Recursively：负责“更新update Field Nodes Recursively”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 update Field Nodes Recursively 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function updateFieldNodesRecursively(
   nodes: DesignerNode[],
   updater: (field: DesignerFieldNode) => DesignerFieldNode,
@@ -686,6 +738,13 @@ function updateFieldNodesRecursively(
   return changed ? nextNodes : nodes
 }
 
+/**
+ * render Fallback Field Preview：负责“渲染render Fallback Field Preview”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 render Fallback Field Preview 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function renderFallbackFieldPreview(node: DesignerFieldNode): VNodeChild {
   const inputStyle = {
     width: '100%',
@@ -710,6 +769,13 @@ function renderFallbackFieldPreview(node: DesignerFieldNode): VNodeChild {
   return h('input', { type: 'text', disabled: true, readonly: true, value: String(previewValueByNode(node)), placeholder: `请输入${node.title}`, style: inputStyle })
 }
 
+/**
+ * render Fallback Container Preview：负责“渲染render Fallback Container Preview”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 render Fallback Container Preview 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function renderFallbackContainerPreview(node: DesignerNode): VNodeChild {
   if (node.kind !== 'container')
     return null
@@ -758,6 +824,7 @@ export const LowCodeDesigner = defineComponent({
     const sortables = ref<Sortable[]>([])
     let remountTimer: ReturnType<typeof setTimeout> | null = null
     let remountAttempts = 0
+    let canvasSelectionRoot: HTMLElement | null = null
 
     const injectedRegistry = inject(ComponentRegistrySymbol, null)
     const previewComponents = computed<Record<string, Component>>(() =>
@@ -906,103 +973,131 @@ export const LowCodeDesigner = defineComponent({
       enumDraft.value = field.enumOptions.map(option => `${option.label}:${option.value}`).join('\n')
     }, { immediate: true })
 
+    /**
+     * destroy Sortables：负责该函数职责对应的主流程编排。
+     * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+     * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+     *
+     * 说明：该函数聚焦于 destroy Sortables 的单一职责，调用方可通过函数名快速理解输入输出语义。
+     */
     function destroySortables(): void {
       sortables.value.forEach(sortable => sortable.destroy())
       sortables.value = []
     }
+    /**
+     * resolve Event Element：负责“解析resolve Event Element”的核心实现与调用衔接。
+     * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+     * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+     *
+     * 说明：该注释描述 resolve Event Element 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+     */
+    function resolveEventElement(target: EventTarget | null): HTMLElement | null {
+      if (target instanceof HTMLElement)
+        return target
+      if (target instanceof Node)
+        return target.parentElement
+      return null
+    }
+    /**
+     * handle Canvas Pointer Down：负责该函数职责对应的主流程编排。
+     * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+     * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+     *
+     * 说明：该函数聚焦于 handle Canvas Pointer Down 的单一职责，调用方可通过函数名快速理解输入输出语义。
+     */
+    function handleCanvasPointerDown(event: Event): void {
+      const element = resolveEventElement(event.target)
+      if (!element)
+        return
+      if (element.closest('[data-cf-toolbar-interactive="true"]'))
+        return
+      const sectionId = element.closest('[data-section-id]')?.getAttribute('data-section-id')
+      if (sectionId) {
+        selectedId.value = sectionId
+        return
+      }
+      const nodeId = element.closest('[data-node-id]')?.getAttribute('data-node-id')
+      if (nodeId)
+        selectedId.value = nodeId
+    }
+    /**
+     * detach Canvas Selection：负责该函数职责对应的主流程编排。
+     * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+     * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+     *
+     * 说明：该函数聚焦于 detach Canvas Selection 的单一职责，调用方可通过函数名快速理解输入输出语义。
+     */
+    function detachCanvasSelection(): void {
+      if (!canvasSelectionRoot)
+        return
+      canvasSelectionRoot.removeEventListener('pointerdown', handleCanvasPointerDown, true)
+      canvasSelectionRoot = null
+    }
+    /**
+     * attach Canvas Selection：负责该函数职责对应的主流程编排。
+     * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+     * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+     *
+     * 说明：该函数聚焦于 attach Canvas Selection 的单一职责，调用方可通过函数名快速理解输入输出语义。
+     */
+    function attachCanvasSelection(root: HTMLElement): void {
+      if (canvasSelectionRoot === root)
+        return
+      detachCanvasSelection()
+      root.addEventListener('pointerdown', handleCanvasPointerDown, true)
+      canvasSelectionRoot = root
+    }
 
+    /**
+     * toggle Dragging Cursor：负责该函数职责对应的主流程编排。
+     * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+     * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+     *
+     * 说明：该函数聚焦于 toggle Dragging Cursor 的单一职责，调用方可通过函数名快速理解输入输出语义。
+     */
     function toggleDraggingCursor(dragging: boolean): void {
       if (typeof document === 'undefined')
         return
       document.body.classList.toggle('cf-lc-body-dragging', dragging)
     }
+    const canvasPutHandler = createDesignerCanvasPutHandler(keyToTarget)
 
-    async function mountSortables(): Promise<number> {
+    async function mountSortables(): Promise<{ materialMounted: number, canvasMounted: number }> {
       await nextTick()
       destroySortables()
+      let materialMounted = 0
+      let canvasMounted = 0
 
       const materialSortableRoot = materialHost.value ?? designerRoot.value
       if (materialSortableRoot) {
         const materialLists = Array.from(materialSortableRoot.querySelectorAll<HTMLElement>('[data-cf-material-list="true"]'))
         for (const materialList of materialLists) {
-          sortables.value.push(Sortable.create(materialList, {
-            group: { name: 'configform-lower-code-tree', pull: 'clone', put: false },
-            sort: false,
-            animation: 90,
-            direction: 'vertical',
-            forceFallback: true,
-            fallbackOnBody: true,
-            fallbackTolerance: 0,
-            removeCloneOnHide: true,
+          sortables.value.push(Sortable.create(materialList, createDesignerMaterialSortableOptions({
             disabled: readonly.value,
-            draggable: '[data-material-id]',
-            handle: '[data-material-id]',
-            ghostClass: 'cf-lc-ghost',
-            chosenClass: 'cf-lc-chosen',
-            dragClass: 'cf-lc-dragging',
-            fallbackClass: 'cf-lc-sortable-fallback',
             onStart: () => toggleDraggingCursor(true),
             onEnd: () => toggleDraggingCursor(false),
             setData: (dataTransfer, dragElement) => {
               dataTransfer.setData('text/plain', dragElement.getAttribute('data-material-id') ?? '')
             },
-          }))
+          }) as Sortable.Options))
+          materialMounted += 1
         }
       }
 
       const canvasSortableRoot = canvasHost.value ?? designerRoot.value
-      if (!canvasSortableRoot)
-        return sortables.value.length
+      if (!canvasSortableRoot) {
+        detachCanvasSelection()
+        return { materialMounted, canvasMounted }
+      }
+
+      attachCanvasSelection(canvasSortableRoot)
 
       const dropLists = Array.from(canvasSortableRoot.querySelectorAll<HTMLElement>('[data-cf-drop-list="true"]'))
       for (const list of dropLists) {
-        const targetKey = list.dataset.targetKey
-        const escapedTargetKey = (targetKey ?? '').replace(/\\/g, '\\\\').replace(/"/g, '\\"')
-        const draggableSelector = targetKey
-          ? `[data-parent-target-key="${escapedTargetKey}"], [data-material-id]`
-          : '.cf-lc-node, [data-material-id]'
-        sortables.value.push(Sortable.create(list, {
-          group: {
-            name: 'configform-lower-code-tree',
-            pull: true,
-            put: (to, from, dragEl) => {
-              const dragNode = dragEl as HTMLElement
-              if (dragNode.dataset.materialId)
-                return true
-
-              const toTarget = keyToTarget((to.el as HTMLElement).dataset.targetKey)
-              const fromTarget = keyToTarget((from.el as HTMLElement).dataset.targetKey)
-              if (!toTarget || !fromTarget)
-                return true
-              if (toTarget.type === 'root')
-                return true
-              if (fromTarget.type === 'root' && !dragNode.classList.contains('cf-lc-node--field'))
-                return false
-              return true
-            },
-          },
-          animation: 100,
-          direction: 'vertical',
-          delayOnTouchOnly: true,
-          touchStartThreshold: 4,
-          removeCloneOnHide: true,
-          swapThreshold: 0.35,
-          invertSwap: true,
-          dragoverBubble: false,
-          emptyInsertThreshold: 24,
-          scroll: true,
-          bubbleScroll: true,
-          scrollSensitivity: 80,
-          scrollSpeed: 14,
-          forceFallback: true,
-          fallbackOnBody: true,
+        sortables.value.push(Sortable.create(list, createDesignerCanvasSortableOptions({
           disabled: readonly.value,
-          draggable: draggableSelector,
-          handle: '[data-cf-drag-handle="true"], [data-material-id]',
-          ghostClass: 'cf-lc-ghost',
-          chosenClass: 'cf-lc-chosen',
-          dragClass: 'cf-lc-dragging',
-          fallbackClass: 'cf-lc-sortable-fallback',
+          targetKey: list.dataset.targetKey,
+          put: canvasPutHandler,
           onStart: () => toggleDraggingCursor(true),
           setData: (dataTransfer, dragElement) => {
             dataTransfer.setData('text/plain', dragElement.getAttribute('data-node-id') ?? '')
@@ -1022,7 +1117,7 @@ export const LowCodeDesigner = defineComponent({
             if (!target || !material)
               return
 
-            const insertIndex = Math.max(0, Math.min(event.newIndex ?? 0, Number.MAX_SAFE_INTEGER))
+            const insertIndex = resolveDesignerSortableInsertIndex(event)
             const baseNode = defaultNodeFromMaterial(material, [])
             const nextNode = mergeFieldNodeWithComponentPreset(baseNode, componentPropsByComponent.value)
             const previousNodes = nodes.value
@@ -1041,26 +1136,39 @@ export const LowCodeDesigner = defineComponent({
             const item = event.item as HTMLElement
             if (item.dataset.materialId)
               return
-
-            const fromTarget = keyToTarget((event.from as HTMLElement).dataset.targetKey)
-            const toTarget = keyToTarget((event.to as HTMLElement).dataset.targetKey)
-            const oldIndex = event.oldIndex ?? -1
-            const newIndex = event.newIndex ?? -1
-            if (!fromTarget || !toTarget || oldIndex < 0 || newIndex < 0)
+            if (item.parentElement && item.parentElement !== event.to)
               return
 
-            restoreDraggedDomPosition(event)
-            nodes.value = moveNodeByTarget(nodes.value, fromTarget, toTarget, oldIndex, newIndex)
+            const fromTargetKey = (event.from as HTMLElement).dataset.targetKey
+            const toTargetKey = (event.to as HTMLElement).dataset.targetKey
+            // 嵌套拖拽时会触发祖先列表的 onEnd，跳过非真实来源列表事件。
+            if (item.dataset.parentTargetKey && fromTargetKey !== item.dataset.parentTargetKey)
+              return
+
+            const toTarget = keyToTarget(toTargetKey)
             const nodeId = item.dataset.nodeId
-            if (nodeId)
-              selectedId.value = nodeId
+            if (!toTarget || !nodeId)
+              return
+
+            const newIndex = resolveDesignerSortableInsertIndex(event, Number.MAX_SAFE_INTEGER)
+            restoreDraggedDomPosition(event)
+            nodes.value = moveNodeByIdToTarget(nodes.value, nodeId, toTarget, newIndex)
+            selectedId.value = nodeId
           },
-        }))
+        }) as Sortable.Options))
+        canvasMounted += 1
       }
 
-      return sortables.value.length
+      return { materialMounted, canvasMounted }
     }
 
+    /**
+     * schedule Mount Sortables：负责该函数职责对应的主流程编排。
+     * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+     * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+     *
+     * 说明：该函数聚焦于 schedule Mount Sortables 的单一职责，调用方可通过函数名快速理解输入输出语义。
+     */
     function scheduleMountSortables(resetAttempts = true): void {
       if (remountTimer)
         clearTimeout(remountTimer)
@@ -1069,8 +1177,8 @@ export const LowCodeDesigner = defineComponent({
       remountTimer = setTimeout(() => {
         remountTimer = null
         void (async () => {
-          const mountedCount = await mountSortables()
-          if (mountedCount > 0 || remountAttempts >= 8)
+          const mounted = await mountSortables()
+          if (hasMountedDesignerSortables(mounted) || remountAttempts >= 8)
             return
           remountAttempts += 1
           scheduleMountSortables(false)
@@ -1078,7 +1186,7 @@ export const LowCodeDesigner = defineComponent({
       }, 80)
     }
 
-    watch([readonly, dropTargetSignature, materialSignature, selectedId], () => {
+    watch([readonly, dropTargetSignature, materialSignature, builtSignature], () => {
       scheduleMountSortables()
     }, { immediate: true })
 
@@ -1118,41 +1226,98 @@ export const LowCodeDesigner = defineComponent({
       if (remountTimer)
         clearTimeout(remountTimer)
       toggleDraggingCursor(false)
+      detachCanvasSelection()
       destroySortables()
       editor.value?.destroy()
       editor.value = null
     })
 
+    /**
+     * update Field：负责“更新update Field”的核心实现与调用衔接。
+     * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+     * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+     *
+     * 说明：该注释描述 update Field 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+     */
     function updateField(nodeId: string, updater: (field: DesignerFieldNode) => DesignerFieldNode): void {
       nodes.value = updateNodeById(nodes.value, nodeId, node => (node.kind === 'field' ? updater(node) : node))
     }
 
+    /**
+     * update Container：负责“更新update Container”的核心实现与调用衔接。
+     * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+     * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+     *
+     * 说明：该注释描述 update Container 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+     */
     function updateContainer(nodeId: string, updater: (container: DesignerContainerNode) => DesignerContainerNode): void {
       nodes.value = updateNodeById(nodes.value, nodeId, node => (node.kind === 'container' ? updater(node) : node))
     }
 
+    /**
+     * handle Duplicate Node：负责该函数职责对应的主流程编排。
+     * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+     * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+     *
+     * 说明：该函数聚焦于 handle Duplicate Node 的单一职责，调用方可通过函数名快速理解输入输出语义。
+     */
     function handleDuplicateNode(nodeId: string): void {
       nodes.value = duplicateNodeById(nodes.value, nodeId)
     }
 
+    /**
+     * handle Remove Node：负责该函数职责对应的主流程编排。
+     * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+     * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+     *
+     * 说明：该函数聚焦于 handle Remove Node 的单一职责，调用方可通过函数名快速理解输入输出语义。
+     */
     function handleRemoveNode(nodeId: string): void {
       nodes.value = removeNodeById(nodes.value, nodeId)
       if (selectedId.value === nodeId)
         selectedId.value = null
     }
 
+    /**
+     * handle Add Section：负责该函数职责对应的主流程编排。
+     * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+     * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+     *
+     * 说明：该函数聚焦于 handle Add Section 的单一职责，调用方可通过函数名快速理解输入输出语义。
+     */
     function handleAddSection(containerId: string): void {
       nodes.value = addSectionToContainer(nodes.value, containerId)
     }
 
+    /**
+     * handle Remove Section：负责该函数职责对应的主流程编排。
+     * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+     * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+     *
+     * 说明：该函数聚焦于 handle Remove Section 的单一职责，调用方可通过函数名快速理解输入输出语义。
+     */
     function handleRemoveSection(containerId: string, sectionId: string): void {
       nodes.value = removeSectionFromContainer(nodes.value, containerId, sectionId)
     }
 
+    /**
+     * update Nodes：负责“更新update Nodes”的核心实现与调用衔接。
+     * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+     * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+     *
+     * 说明：该注释描述 update Nodes 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+     */
     function updateNodes(updater: (prev: DesignerNode[]) => DesignerNode[]): void {
       nodes.value = updater(nodes.value)
     }
 
+    /**
+     * update Component Prop By Component Name：负责“更新update Component Prop By Component Name”的核心实现与调用衔接。
+     * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+     * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+     *
+     * 说明：该注释描述 update Component Prop By Component Name 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+     */
     function updateComponentPropByComponentName(
       componentName: string,
       propKey: string,
@@ -1197,6 +1362,13 @@ export const LowCodeDesigner = defineComponent({
       })
     }
 
+    /**
+     * build Preview Component Props：负责“构建build Preview Component Props”的核心实现与调用衔接。
+     * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+     * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+     *
+     * 说明：该注释描述 build Preview Component Props 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+     */
     function buildPreviewComponentProps(node: DesignerFieldNode): Record<string, unknown> {
       const componentProps = { ...node.componentProps }
       if (node.enumOptions.length > 0 && !('dataSource' in componentProps) && !('options' in componentProps)) {
@@ -1208,6 +1380,13 @@ export const LowCodeDesigner = defineComponent({
       return componentProps
     }
 
+    /**
+     * render Node By Registry：负责“渲染render Node By Registry”的核心实现与调用衔接。
+     * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+     * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+     *
+     * 说明：该注释描述 render Node By Registry 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+     */
     function renderNodeByRegistry(node: DesignerNode, phase: 'material' | 'canvas' | 'preview'): VNodeChild {
       if (node.kind !== 'field')
         return renderFallbackContainerPreview(node)
@@ -1223,6 +1402,13 @@ export const LowCodeDesigner = defineComponent({
       ])
     }
 
+    /**
+     * render Material Preview：负责“渲染render Material Preview”的核心实现与调用衔接。
+     * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+     * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+     *
+     * 说明：该注释描述 render Material Preview 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+     */
     function renderMaterialPreview(item: MaterialItem): VNodeChild {
       const customPreview = props.renderers?.renderMaterialPreview?.(item, {
         phase: 'material',
@@ -1234,6 +1420,13 @@ export const LowCodeDesigner = defineComponent({
       return renderNodeByRegistry(node, 'material')
     }
 
+    /**
+     * render Field Preview Control：负责“渲染render Field Preview Control”的核心实现与调用衔接。
+     * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+     * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+     *
+     * 说明：该注释描述 render Field Preview Control 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+     */
     function renderFieldPreviewControl(
       node: DesignerFieldNode,
       phase: 'canvas' | 'preview',

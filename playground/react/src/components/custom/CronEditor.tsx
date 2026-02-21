@@ -5,54 +5,27 @@
  */
 import React from 'react'
 
-/** Cron 各段含义 */
-const CRON_LABELS = ['分', '时', '日', '月', '周']
-
+/**
+ * Cron 各段含义
+ * normalize Parts：负责“规范化normalize Parts”的核心实现与调用衔接。
+ * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
+ * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ *
+ * 说明：该注释描述 normalize Parts 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ */
 function normalizeParts(expr: string): string[] {
   const pieces = expr.trim().split(/\s+/).filter(Boolean)
   return CRON_LABELS.map((_, index) => pieces[index] ?? '*')
 }
 
-/** 简单的 Cron 解读（非完整解析） */
-function describeCron(expr: string): string {
-  const rawParts = expr.trim().split(/\s+/).filter(Boolean)
-  if (rawParts.length < 5)
-    return '格式错误（需要 5 段）'
-
-  const [min, hour, day, month, weekday] = normalizeParts(expr)
-  const desc: string[] = []
-
-  if (weekday !== '*')
-    desc.push(`周${weekday}`)
-  if (month !== '*')
-    desc.push(`${month}月`)
-  if (day !== '*')
-    desc.push(`${day}日`)
-  if (hour !== '*')
-    desc.push(`${hour}时`)
-  if (min !== '*')
-    desc.push(`${min}分`)
-  if (min === '*' && hour === '*')
-    desc.push('每分钟')
-  else if (min === '0' && hour === '*')
-    desc.push('每整点')
-
-  return desc.join(' ') || '每分钟'
-}
-
-interface CronPreset {
-  label: string
-  value: string
-}
-
-interface CronEditorProps {
-  value?: string
-  onChange?: (value: string) => void
-  presets?: CronPreset[]
-  disabled?: boolean
-  preview?: boolean
-}
-
+/**
+ * 简单的 Cron 解读（非完整解析）
+ * Cron Editor：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 Cron Editor 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 export function CronEditor({ value = '', onChange, presets = [], disabled, preview }: CronEditorProps): React.ReactElement {
   const parts = normalizeParts(value || '')
 

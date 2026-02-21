@@ -13,10 +13,7 @@ import { resolveSceneSchema } from '@playground/shared'
 import { observer } from 'mobx-react-lite'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
-/** DevTools 插件单例（所有场景共用，避免重复创建） */
-const devTools = devToolsPlugin({ formId: 'playground' })
-
-export interface SceneRendererProps {
+interface SceneRendererProps {
   config: SceneConfig
   title?: string
   description?: string
@@ -30,10 +27,20 @@ interface SceneFormProps {
   schema: ISchema
   mode: FieldPattern
   extraPlugins?: FormPlugin[]
-  showResult: (data: Record<string, unknown>) => void
-  showErrors: (errors: Array<{ path: string, message: string }>) => void
+  showResult: (values: Record<string, unknown>) => void
+  showErrors: (errors: unknown[]) => void
 }
 
+const devTools = devToolsPlugin()
+
+/**
+ * DevTools 插件单例（所有场景共用，避免重复创建）
+ * Scene Form：负责该函数职责对应的主流程编排。
+ * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
+ * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ *
+ * 说明：该函数聚焦于 Scene Form 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ */
 function SceneForm({ config, schema, mode, extraPlugins, showResult, showErrors }: SceneFormProps): React.ReactElement {
   useEffect(() => {
     showErrors([])

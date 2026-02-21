@@ -74,7 +74,7 @@ export const FormItem = defineComponent({
       const showRequired = props.required && props.pattern === 'editable'
 
       return h('div', {
-        ref: (el: Element | null) => {
+        'ref': (el: Element | null) => {
           if (fieldFromContext && 'domRef' in fieldFromContext) {
             ;(fieldFromContext as unknown as { domRef?: HTMLElement | null }).domRef = el as HTMLElement | null
           }

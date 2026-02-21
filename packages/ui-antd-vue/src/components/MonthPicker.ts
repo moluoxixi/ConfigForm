@@ -1,5 +1,5 @@
-import { DatePicker as ADatePicker } from 'ant-design-vue'
 import type { PropType } from 'vue'
+import { DatePicker as ADatePicker } from 'ant-design-vue'
 import { defineComponent, h } from 'vue'
 
 const DatePickerComponent = ADatePicker as any

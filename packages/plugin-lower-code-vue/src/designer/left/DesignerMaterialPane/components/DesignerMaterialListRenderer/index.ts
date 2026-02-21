@@ -1,7 +1,7 @@
 import type { MaterialItem } from '@moluoxixi/plugin-lower-code-core'
 import type { PropType } from 'vue'
-import { defineComponent, h } from 'vue'
 import type { RenderMaterialItem } from '../../types'
+import { defineComponent, h } from 'vue'
 
 export const DesignerMaterialListRenderer = defineComponent({
   name: 'DesignerMaterialListRenderer',
@@ -31,9 +31,9 @@ export const DesignerMaterialListRenderer = defineComponent({
         },
       }, [
         h('div', {
-          class: 'cf-lc-material-list',
+          'class': 'cf-lc-material-list',
           'data-cf-material-list': 'true',
-          style: {
+          'style': {
             display: 'grid',
             gap: '8px',
             alignContent: 'start',
