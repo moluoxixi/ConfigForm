@@ -2,7 +2,7 @@ import type { CSSProperties, ReactElement, ReactNode } from 'react'
 import { InputNumber as AInputNumber } from 'antd'
 
 /**
- * Cf Input Number Props：类型接口定义。
+ * Cf Input Number Props：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/ui-antd/src/components/InputNumber.tsx`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

@@ -76,7 +76,7 @@ export const FormObjectField = defineComponent({
       }, {
         /* 对象字段的 children 是其 properties 子字段 */
         /**
-         * children：执行当前位置的功能逻辑。
+         * children：处理当前分支的交互与状态同步。
          */
         children: () => slots.default?.(),
         default: slots.default,

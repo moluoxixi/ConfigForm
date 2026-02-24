@@ -37,10 +37,8 @@ const config: SceneConfig = {
           precision: 2,
           prefix: '¥',
           /**
-           * formatter：执行当前位置的功能逻辑。
-           * 定位：`playground/shared/src/09-state/DataTransformForm.ts:39`。
+           * formatter：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @param value 参数 value 为输入值，用于驱动后续逻辑。
            * @returns 返回当前分支执行后的处理结果。
            */
@@ -49,10 +47,8 @@ const config: SceneConfig = {
             return str ? `¥${str}` : ''
           },
           /**
-           * parser：执行当前位置的功能逻辑。
-           * 定位：`playground/shared/src/09-state/DataTransformForm.ts:43`。
+           * parser：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @param display 参数 display 为当前功能所需的输入信息。
            * @returns 返回当前分支执行后的处理结果。
            */
@@ -61,10 +57,8 @@ const config: SceneConfig = {
           },
         },
         /**
-         * displayFormat：执行当前位置的功能逻辑。
-         * 定位：`playground/shared/src/09-state/DataTransformForm.ts:47`。
+         * displayFormat：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param value 参数 value 为输入值，用于驱动后续逻辑。
          * @returns 返回当前分支执行后的处理结果。
          */
@@ -75,10 +69,8 @@ const config: SceneConfig = {
           return Number((num / 100).toFixed(2))
         },
         /**
-         * inputParse：执行当前位置的功能逻辑。
-         * 定位：`playground/shared/src/09-state/DataTransformForm.ts:53`。
+         * inputParse：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param inputValue 参数 inputValue 为当前功能所需的输入信息。
          * @returns 返回当前分支执行后的处理结果。
          */
@@ -89,10 +81,8 @@ const config: SceneConfig = {
           return Math.round(num * 100)
         },
         /**
-         * submitTransform：执行当前位置的功能逻辑。
-         * 定位：`playground/shared/src/09-state/DataTransformForm.ts:59`。
+         * submitTransform：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param value 参数 value 为输入值，用于驱动后续逻辑。
          * @returns 返回当前分支执行后的处理结果。
          */
@@ -106,10 +96,8 @@ const config: SceneConfig = {
         description: '显示 138****0000，提交原始号码',
         componentProps: { style: { width: '300px' }, placeholder: '请输入手机号' },
         /**
-         * displayFormat：执行当前位置的功能逻辑。
-         * 定位：`playground/shared/src/09-state/DataTransformForm.ts:68`。
+         * displayFormat：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param value 参数 value 为输入值，用于驱动后续逻辑。
          * @returns 返回当前分支执行后的处理结果。
          */
@@ -127,10 +115,8 @@ const config: SceneConfig = {
         description: '输入时自动去除首尾空格',
         componentProps: { style: { width: '300px' } },
         /**
-         * inputParse：执行当前位置的功能逻辑。
-         * 定位：`playground/shared/src/09-state/DataTransformForm.ts:81`。
+         * inputParse：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param inputValue 参数 inputValue 为当前功能所需的输入信息。
          * @returns 返回当前分支执行后的处理结果。
          */
@@ -144,10 +130,8 @@ const config: SceneConfig = {
         description: '输入逗号分隔字符串，提交时自动转为 string[]',
         componentProps: { style: { width: '300px' }, placeholder: '如: react,vue,typescript' },
         /**
-         * submitTransform：执行当前位置的功能逻辑。
-         * 定位：`playground/shared/src/09-state/DataTransformForm.ts:90`。
+         * submitTransform：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param value 参数 value 为输入值，用于驱动后续逻辑。
          * @returns 返回当前分支执行后的处理结果。
          */

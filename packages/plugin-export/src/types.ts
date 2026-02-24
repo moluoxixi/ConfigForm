@@ -1,7 +1,7 @@
 import type { FormPlugin } from '@moluoxixi/core'
 
 /**
- * Form Export Download Payload：类型接口定义。
+ * Form Export Download Payload：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/plugin-export/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -12,7 +12,7 @@ export interface FormExportDownloadPayload {
 }
 
 /**
- * Form Export Adapters：类型接口定义。
+ * Form Export Adapters：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/plugin-export/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -21,7 +21,7 @@ export interface FormExportAdapters {
 }
 
 /**
- * Form Export Data Options：类型接口定义。
+ * Form Export Data Options：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/plugin-export/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -30,7 +30,7 @@ export interface FormExportDataOptions {
 }
 
 /**
- * Form Export Preview Options：类型接口定义。
+ * Form Export Preview Options：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/plugin-export/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -39,7 +39,7 @@ export interface FormExportPreviewOptions extends FormExportDataOptions {
 }
 
 /**
- * Form Export JSONOptions：类型接口定义。
+ * Form Export JSONOptions：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/plugin-export/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -48,7 +48,7 @@ export interface FormExportJSONOptions extends FormExportDataOptions {
 }
 
 /**
- * Form Export Download JSONOptions：类型接口定义。
+ * Form Export Download JSONOptions：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/plugin-export/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -57,7 +57,7 @@ export interface FormExportDownloadJSONOptions extends FormExportJSONOptions {
 }
 
 /**
- * Form Export Preview：类型接口定义。
+ * Form Export Preview：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/plugin-export/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -67,7 +67,7 @@ export interface FormExportPreview {
 }
 
 /**
- * Form Export Plugin Config：类型接口定义。
+ * Form Export Plugin Config：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/plugin-export/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -79,7 +79,7 @@ export interface FormExportPluginConfig {
 }
 
 /**
- * Form Export Plugin API：类型接口定义。
+ * Form Export Plugin API：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/plugin-export/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -92,13 +92,13 @@ export interface FormExportPluginAPI {
 }
 
 /**
- * Form Export Plugin：类型别名定义。
+ * Form Export Plugin：描述该模块使用的类型别名语义。
  * 所属模块：`packages/plugin-export/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 export type FormExportPlugin = FormPlugin<FormExportPluginAPI>
 /**
- * Form Export Plugin Options：类型别名定义。
+ * Form Export Plugin Options：描述该模块使用的类型别名语义。
  * 所属模块：`packages/plugin-export/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

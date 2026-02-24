@@ -33,17 +33,13 @@ export const Upload = defineComponent({
   name: 'CfUpload',
   props: {
     modelValue: { type: Array as PropType<FileInfo[]>, /**
-                                                        * default：执行当前位置的功能逻辑。
-                                                        * 定位：`packages/ui-element-plus/src/components/Upload.ts:35`。
+                                                        * default：处理当前分支的交互与状态同步。
                                                         * 功能：处理参数消化、状态变更与调用链行为同步。
-                                                        * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                                                         * @returns 返回当前分支执行后的处理结果。
                                                         */
       /**
-       * default：执行当前位置的功能逻辑。
-       * 定位：`packages/ui-element-plus/src/components/Upload.ts:42`。
+       * default：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
-       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
        * @returns 返回当前分支执行后的处理结果。
        */
       default: () => [] },
@@ -65,17 +61,13 @@ export const Upload = defineComponent({
     readonly: Boolean,
     /** 请求头 */
     headers: { type: Object as PropType<Record<string, string>>, /**
-                                                                  * default：执行当前位置的功能逻辑。
-                                                                  * 定位：`packages/ui-element-plus/src/components/Upload.ts:53`。
+                                                                  * default：处理当前分支的交互与状态同步。
                                                                   * 功能：处理参数消化、状态变更与调用链行为同步。
-                                                                  * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                                                                   * @returns 返回当前分支执行后的处理结果。
                                                                   */
       /**
-       * default：执行当前位置的功能逻辑。
-       * 定位：`packages/ui-element-plus/src/components/Upload.ts:67`。
+       * default：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
-       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
        * @returns 返回当前分支执行后的处理结果。
        */
       default: () => ({}) },
@@ -88,10 +80,8 @@ export const Upload = defineComponent({
   },
   emits: ['update:modelValue'],
   /**
-   * setup：执行当前位置的功能逻辑。
-   * 定位：`packages/ui-element-plus/src/components/Upload.ts:62`。
+   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
    */

@@ -23,10 +23,8 @@ const licensePlateRules: ValidationRule[] = [{ pattern: /^[\u4E00-\u9FA5][A-Z][A
 /** 手机号规则：中国大陆 11 位 */
 const phoneRules: ValidationRule[] = [{
   /**
-   * validator：执行当前位置的功能逻辑。
-   * 定位：`playground/shared/src/03-validation/CustomValidationForm.ts:25`。
+   * validator：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
    * @param v 参数 v 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
    */
@@ -46,18 +44,14 @@ const passwordRules: ValidationRule[] = [
   { pattern: /[A-Z]/, message: '需含大写' },
   { pattern: /\d/, message: '需含数字' },
   { /**
-     * validator：执行当前位置的功能逻辑。
-     * 定位：`playground/shared/src/03-validation/CustomValidationForm.ts:40`。
+     * validator：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
-     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
      * @param v 参数 v 为当前功能所需的输入信息。
      * @returns 返回当前分支执行后的处理结果。
      */
     /**
-     * validator：执行当前位置的功能逻辑。
-     * 定位：`playground/shared/src/03-validation/CustomValidationForm.ts:56`。
+     * validator：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
-     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
      * @param v 参数 v 为当前功能所需的输入信息。
      * @returns 返回当前分支执行后的处理结果。
      */
@@ -71,10 +65,8 @@ const ageRules: ValidationRule[] = [
   {
     level: 'warning',
     /**
-     * validator：执行当前位置的功能逻辑。
-     * 定位：`playground/shared/src/03-validation/CustomValidationForm.ts:48`。
+     * validator：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
-     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
      * @param v 参数 v 为当前功能所需的输入信息。
      * @returns 返回当前分支执行后的处理结果。
      */
@@ -92,10 +84,8 @@ const ageRules: ValidationRule[] = [
 /** IP 地址规则：IPv4 格式验证 */
 const ipAddressRules: ValidationRule[] = [{
   /**
-   * validator：执行当前位置的功能逻辑。
-   * 定位：`playground/shared/src/03-validation/CustomValidationForm.ts:61`。
+   * validator：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
    * @param v 参数 v 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
    */
@@ -142,18 +132,14 @@ const config: SceneConfig = {
         title: '证件号码',
         required: true,
         reactions: [{ watch: 'idType', fulfill: { /**
-                                                   * run：执行当前位置的功能逻辑。
-                                                   * 定位：`playground/shared/src/03-validation/CustomValidationForm.ts:103`。
+                                                   * run：处理当前分支的交互与状态同步。
                                                    * 功能：处理参数消化、状态变更与调用链行为同步。
-                                                   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                                                    * @param f 参数 f 为当前功能所需的输入信息。
                                                    * @param ctx 参数 ctx 为上下文对象，用于传递场景数据。
                                                    */
           /**
-           * run：执行当前位置的功能逻辑。
-           * 定位：`playground/shared/src/03-validation/CustomValidationForm.ts:143`。
+           * run：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @param f 参数 f 为当前功能所需的输入信息。
            * @param ctx 参数 ctx 为上下文对象，用于传递环境数据。
            */

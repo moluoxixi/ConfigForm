@@ -1,7 +1,7 @@
 import type React from 'react'
 
 /**
- * preview Control Style：变量或常量声明。
+ * preview Control Style：定义该模块复用的常量配置。
  * 所属模块：`packages/plugin-lower-code-react/src/designer/materials/components/shared.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -17,7 +17,7 @@ export const previewControlStyle: React.CSSProperties = {
 }
 
 /**
- * switch Label Style：变量或常量声明。
+ * switch Label Style：定义该模块复用的常量配置。
  * 所属模块：`packages/plugin-lower-code-react/src/designer/materials/components/shared.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

@@ -985,17 +985,28 @@ implements FormInstance<Values> {
     const hookDisposers: Disposer[] = []
     const context: PluginContext = {
       /**
-       * getPlugin：执行当前位置的功能逻辑。
-       * @param name 参数 name 为当前功能所需的输入信息。
+       * 获取已安装插件暴露的 API。
+       *
+       * 典型用途：
+       * - 插件 A 依赖插件 B 时，通过名称读取 B 的 API。
+       * - 在运行期判断某个能力插件是否已安装。
+       *
+       * @param name 要读取的插件名称。
+       * @returns 对应插件 API；插件未安装时返回 undefined。
        */
       getPlugin: <T = Record<string, unknown>>(name: string): T | undefined => {
         return this._pluginAPIs.get(name) as T | undefined
       },
       hooks: {
         /**
-         * onSubmit：执行当前位置的功能逻辑。
-         * @param handler 参数 handler 为当前功能所需的输入信息。
-         * @param priority 参数 priority 为当前功能所需的输入信息。
+         * 订阅提交管线钩子。
+         *
+         * 插件可以在这里包裹或拦截 `form.submit()` 的执行流程，
+         * 例如注入埋点、权限校验、提交前后副作用。
+         *
+         * @param handler 提交钩子处理函数。
+         * @param priority 可选优先级，数值越大越先执行。
+         * @returns 当前钩子的取消订阅函数。
          */
         onSubmit: (handler, priority) => {
           const disposer = hookManager.submit.tap(handler, priority)
@@ -1003,9 +1014,14 @@ implements FormInstance<Values> {
           return disposer
         },
         /**
-         * onValidate：执行当前位置的功能逻辑。
-         * @param handler 参数 handler 为当前功能所需的输入信息。
-         * @param priority 参数 priority 为当前功能所需的输入信息。
+         * 订阅校验管线钩子。
+         *
+         * 插件可以统一扩展或重写 `form.validate()` 行为，
+         * 例如追加跨字段校验、统计耗时、集中处理异常。
+         *
+         * @param handler 校验钩子处理函数。
+         * @param priority 可选优先级，数值越大越先执行。
+         * @returns 当前钩子的取消订阅函数。
          */
         onValidate: (handler, priority) => {
           const disposer = hookManager.validate.tap(handler, priority)
@@ -1013,9 +1029,14 @@ implements FormInstance<Values> {
           return disposer
         },
         /**
-         * onSetValues：执行当前位置的功能逻辑。
-         * @param handler 参数 handler 为当前功能所需的输入信息。
-         * @param priority 参数 priority 为当前功能所需的输入信息。
+         * 订阅批量赋值管线钩子。
+         *
+         * 插件可以拦截 `form.setValues()`，用于值预处理、审计记录、
+         * 或根据业务策略限制某些字段被程序改写。
+         *
+         * @param handler 赋值钩子处理函数。
+         * @param priority 可选优先级，数值越大越先执行。
+         * @returns 当前钩子的取消订阅函数。
          */
         onSetValues: (handler, priority) => {
           const disposer = hookManager.setValues.tap(handler, priority)
@@ -1023,9 +1044,14 @@ implements FormInstance<Values> {
           return disposer
         },
         /**
-         * onCreateField：执行当前位置的功能逻辑。
-         * @param handler 参数 handler 为当前功能所需的输入信息。
-         * @param priority 参数 priority 为当前功能所需的输入信息。
+         * 订阅字段创建管线钩子。
+         *
+         * 插件可以在字段实例创建时注入默认行为，
+         * 例如自动补充组件属性、统一埋点、注册额外联动规则。
+         *
+         * @param handler 字段创建钩子处理函数。
+         * @param priority 可选优先级，数值越大越先执行。
+         * @returns 当前钩子的取消订阅函数。
          */
         onCreateField: (handler, priority) => {
           const disposer = hookManager.createField.tap(handler, priority)
@@ -1033,9 +1059,14 @@ implements FormInstance<Values> {
           return disposer
         },
         /**
-         * onReset：执行当前位置的功能逻辑。
-         * @param handler 参数 handler 为当前功能所需的输入信息。
-         * @param priority 参数 priority 为当前功能所需的输入信息。
+         * 订阅重置管线钩子。
+         *
+         * 插件可以在 `form.reset()` 前后追加控制逻辑，
+         * 例如重置外部缓存、恢复派生状态、同步联动上下文。
+         *
+         * @param handler 重置钩子处理函数。
+         * @param priority 可选优先级，数值越大越先执行。
+         * @returns 当前钩子的取消订阅函数。
          */
         onReset: (handler, priority) => {
           const disposer = hookManager.reset.tap(handler, priority)

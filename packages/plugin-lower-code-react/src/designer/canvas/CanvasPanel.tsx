@@ -69,10 +69,8 @@ export function CanvasPanel({
    * @returns ?????????????
    */
   const /**
-         * closestNodeId：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-lower-code-react/src/designer/canvas/CanvasPanel.tsx:58`。
+         * closestNodeId：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param target 参数 target 为当前功能所需的输入信息。
          * @returns 返回当前分支执行后的处理结果。
          */
@@ -95,10 +93,8 @@ export function CanvasPanel({
      * @returns ?????????????
      */
   const /**
-         * isNodeSelfEvent：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-lower-code-react/src/designer/canvas/CanvasPanel.tsx:67`。
+         * isNodeSelfEvent：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param target 参数 target 为当前功能所需的输入信息。
          * @param nodeId 参数 nodeId 为当前功能所需的输入信息。
          * @returns 返回当前分支执行后的处理结果。
@@ -113,10 +109,8 @@ export function CanvasPanel({
    * @param event ?? event ????????????
    */
   const /**
-         * consumeToolbarPointer：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-lower-code-react/src/designer/canvas/CanvasPanel.tsx:69`。
+         * consumeToolbarPointer：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param event 参数 event 为事件对象，用于提供交互上下文。
          */
     consumeToolbarPointer = (event: React.SyntheticEvent): void => {
@@ -136,10 +130,8 @@ export function CanvasPanel({
        * @param items ?? items ????????????
        */
       const /**
-             * walk：执行当前位置的功能逻辑。
-             * 定位：`packages/plugin-lower-code-react/src/designer/canvas/CanvasPanel.tsx:78`。
+             * walk：处理当前分支的交互与状态同步。
              * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
              * @param items 参数 items 为当前功能所需的输入信息。
              */
         walk = (items: DesignerNode[]): void => {
@@ -484,10 +476,8 @@ export function CanvasPanel({
             ? renderNodeToolbar(node.id, {
                 allowAddSection: containerUsesSections(node.component),
                 /**
-                 * onAddSection：执行当前位置的功能逻辑。
-                 * 定位：`packages/plugin-lower-code-react/src/designer/canvas/CanvasPanel.tsx:419`。
+                 * onAddSection：处理当前分支的交互与状态同步。
                  * 功能：处理参数消化、状态变更与调用链行为同步。
-                 * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                  * @returns 返回当前分支执行后的处理结果。
                  */
                 onAddSection: () => onAddSection(node.id),

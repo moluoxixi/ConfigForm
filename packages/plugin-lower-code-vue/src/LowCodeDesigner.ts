@@ -593,11 +593,14 @@ const VUE_INTERNAL_COMPONENT_NAMES = new Set([
 ])
 
 /**
- * shallow Equal Record：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 浅比较两个对象是否键值完全一致。
  *
- * 说明：该函数聚焦于 shallow Equal Record 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 该函数用于判断“组件默认属性预设”是否真的变化，
+ * 避免在 watch 中无意义地替换引用导致额外渲染。
+ *
+ * @param a 左侧对象。
+ * @param b 右侧对象。
+ * @returns 两个对象键集合和对应值都一致时返回 true。
  */
 function shallowEqualRecord(
   a: Record<string, unknown>,
@@ -615,10 +618,13 @@ function shallowEqualRecord(
 }
 
 /**
- * mapToRecord：执行当前位置的功能逻辑。
- * 功能：处理参数消化、状态变更与调用链行为同步。
- * @param map 参数 map 为当前功能所需的输入信息。
- * @returns 返回当前分支执行后的处理结果。
+ * 将 `Map` 转换为普通对象。
+ *
+ * 组件注册表来自注入上下文时通常为 `Map`，
+ * 预览渲染阶段更适合通过对象下标快速读取组件实例。
+ *
+ * @param map 组件映射表。
+ * @returns 以 key 为属性名的普通对象。
  */
 function mapToRecord<T>(map: Map<string, T> | undefined): Record<string, T> {
   const record: Record<string, T> = {}
@@ -814,10 +820,13 @@ export const LowCodeDesigner = defineComponent({
   },
   emits: ['update:modelValue'],
   /**
-   * setup：执行当前位置的功能逻辑。
-   * 功能：处理参数消化、状态变更与调用链行为同步。
-   * @param props 参数 props 为当前功能所需的输入信息。
-   * @returns 返回当前分支执行后的处理结果。
+   * 低代码设计器主 setup。
+   *
+   * 负责三栏面板状态编排、拖拽挂载、选中态同步、Schema 双向同步、
+   * 以及预览渲染器与组件预设的合并。
+   *
+   * @param props 组件入参。
+   * @returns 设计器根渲染函数。
    */
   setup(props, { emit }) {
     const readonly = computed(() => Boolean(props.disabled || props.preview))
@@ -843,23 +852,13 @@ export const LowCodeDesigner = defineComponent({
     const injectedRegistry = inject(ComponentRegistrySymbol, null)
     const previewComponents = computed<Record<string, Component>>(() =>
       mapToRecord(injectedRegistry?.value?.components as Map<string, Component> | undefined))
-    /**
-     */
-    const /**
-           * setMaterialHost：执行当前位置的功能逻辑。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * @param element 参数 element 为当前功能所需的输入信息。
-           */
+    /** 记录物料区真实 DOM 根节点，供 Sortable 挂载扫描。 */
+    const
       setMaterialHost = (element: HTMLElement | null): void => {
         materialHost.value = element
       }
-    /**
-     */
-    const /**
-           * setCanvasHost：执行当前位置的功能逻辑。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * @param element 参数 element 为当前功能所需的输入信息。
-           */
+    /** 记录画布区真实 DOM 根节点，供拖拽列表与选中捕获绑定。 */
+    const
       setCanvasHost = (element: HTMLElement | null): void => {
         canvasHost.value = element
       }
@@ -930,12 +929,14 @@ export const LowCodeDesigner = defineComponent({
         let changed = false
 
         /**
+         * 递归遍历节点树，把字段现有 `componentProps` 反向补齐到组件预设。
+         *
+         * 目的：当外部传入 schema 时，如果字段上已经存在某些属性，
+         * 后续同组件新建字段应继承这些属性，保持设计体验一致。
+         *
+         * @param items 当前遍历层级的节点列表。
          */
-        const /**
-               * visit：执行当前位置的功能逻辑。
-               * 功能：处理参数消化、状态变更与调用链行为同步。
-               * @param items 参数 items 为当前功能所需的输入信息。
-               */
+        const
           visit = (items: DesignerNode[]): void => {
             for (const item of items) {
               if (item.kind === 'field') {
@@ -1009,11 +1010,10 @@ export const LowCodeDesigner = defineComponent({
     }, { immediate: true })
 
     /**
-     * destroy Sortables：负责该函数职责对应的主流程编排。
-     * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
-     * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+     * 销毁当前已挂载的全部 Sortable 实例。
      *
-     * 说明：该函数聚焦于 destroy Sortables 的单一职责，调用方可通过函数名快速理解输入输出语义。
+     * 每次重新扫描画布/物料 DOM 之前必须先清理旧实例，
+     * 否则会出现重复监听、事件触发多次和拖拽异常。
      */
     function destroySortables(): void {
       sortables.value.forEach(sortable => sortable.destroy())
@@ -1034,11 +1034,11 @@ export const LowCodeDesigner = defineComponent({
       return null
     }
     /**
-     * handle Canvas Pointer Down：负责该函数职责对应的主流程编排。
-     * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
-     * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+     * 处理画布捕获阶段指针事件，稳定更新当前选中项。
      *
-     * 说明：该函数聚焦于 handle Canvas Pointer Down 的单一职责，调用方可通过函数名快速理解输入输出语义。
+     * 事件优先级高于冒泡阶段，能够规避拖拽库与遮罩层抢事件导致的“点不中”问题。
+     *
+     * @param event 指针事件对象。
      */
     function handleCanvasPointerDown(event: Event): void {
       const element = resolveEventElement(event.target)
@@ -1056,11 +1056,9 @@ export const LowCodeDesigner = defineComponent({
         selectedId.value = nodeId
     }
     /**
-     * detach Canvas Selection：负责该函数职责对应的主流程编排。
-     * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
-     * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+     * 解除画布捕获监听。
      *
-     * 说明：该函数聚焦于 detach Canvas Selection 的单一职责，调用方可通过函数名快速理解输入输出语义。
+     * 在画布根节点变化或组件卸载时调用，防止悬空 DOM 持有事件处理器。
      */
     function detachCanvasSelection(): void {
       if (!canvasSelectionRoot)
@@ -1069,11 +1067,11 @@ export const LowCodeDesigner = defineComponent({
       canvasSelectionRoot = null
     }
     /**
-     * attach Canvas Selection：负责该函数职责对应的主流程编排。
-     * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
-     * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+     * 绑定画布捕获监听。
      *
-     * 说明：该函数聚焦于 attach Canvas Selection 的单一职责，调用方可通过函数名快速理解输入输出语义。
+     * 如果目标根节点已绑定则直接返回；否则先清理旧绑定再绑定新根节点。
+     *
+     * @param root 画布根节点。
      */
     function attachCanvasSelection(root: HTMLElement): void {
       if (canvasSelectionRoot === root)
@@ -1084,11 +1082,11 @@ export const LowCodeDesigner = defineComponent({
     }
 
     /**
-     * toggle Dragging Cursor：负责该函数职责对应的主流程编排。
-     * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
-     * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+     * 切换全局拖拽光标样式。
      *
-     * 说明：该函数聚焦于 toggle Dragging Cursor 的单一职责，调用方可通过函数名快速理解输入输出语义。
+     * 统一在 body 上打标记，保证跨三栏拖拽时视觉反馈一致。
+     *
+     * @param dragging 是否处于拖拽中。
      */
     function toggleDraggingCursor(dragging: boolean): void {
       if (typeof document === 'undefined')
@@ -1098,9 +1096,11 @@ export const LowCodeDesigner = defineComponent({
     const canvasPutHandler = createDesignerCanvasPutHandler(keyToTarget)
 
     /**
-     * mountSortables：执行当前位置的功能逻辑。
-     * 功能：处理参数消化、状态变更与调用链行为同步。
-     * @returns 返回当前分支执行后的处理结果。
+     * 扫描当前 DOM 并挂载物料区/画布区拖拽能力。
+     *
+     * 返回挂载数量用于外层重试逻辑判断“首帧 DOM 是否已就绪”。
+     *
+     * @returns 当前轮次物料列表和画布列表的挂载数量。
      */
     async function mountSortables(): Promise<{ materialMounted: number, canvasMounted: number }> {
       await nextTick()
@@ -1114,23 +1114,15 @@ export const LowCodeDesigner = defineComponent({
         for (const materialList of materialLists) {
           sortables.value.push(Sortable.create(materialList, createDesignerMaterialSortableOptions({
             disabled: readonly.value,
-            /**
-             * onStart：执行当前位置的功能逻辑。
-             * 功能：处理参数消化、状态变更与调用链行为同步。
-             * @returns 返回当前分支执行后的处理结果。
-             */
+            /** 物料开始拖拽时启用全局拖拽光标。 */
             onStart: () => toggleDraggingCursor(true),
-            /**
-             * onEnd：执行当前位置的功能逻辑。
-             * 功能：处理参数消化、状态变更与调用链行为同步。
-             * @returns 返回当前分支执行后的处理结果。
-             */
+            /** 物料拖拽结束后恢复全局光标状态。 */
             onEnd: () => toggleDraggingCursor(false),
             /**
-             * setData：执行当前位置的功能逻辑。
-             * 功能：处理参数消化、状态变更与调用链行为同步。
-             * @param dataTransfer 参数 dataTransfer 为当前功能所需的输入信息。
-             * @param dragElement 参数 dragElement 为当前功能所需的输入信息。
+             * 写入物料拖拽 payload。
+             *
+             * @param dataTransfer 浏览器拖拽数据通道。
+             * @param dragElement 当前被拖拽的物料 DOM。
              */
             setData: (dataTransfer, dragElement) => {
               dataTransfer.setData('text/plain', dragElement.getAttribute('data-material-id') ?? '')
@@ -1154,25 +1146,21 @@ export const LowCodeDesigner = defineComponent({
           disabled: readonly.value,
           targetKey: list.dataset.targetKey,
           put: canvasPutHandler,
-          /**
-           * onStart：执行当前位置的功能逻辑。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * @returns 返回当前分支执行后的处理结果。
-           */
+          /** 画布拖拽开始时启用全局拖拽光标。 */
           onStart: () => toggleDraggingCursor(true),
           /**
-           * setData：执行当前位置的功能逻辑。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * @param dataTransfer 参数 dataTransfer 为当前功能所需的输入信息。
-           * @param dragElement 参数 dragElement 为当前功能所需的输入信息。
+           * 写入画布节点拖拽 payload。
+           *
+           * @param dataTransfer 浏览器拖拽数据通道。
+           * @param dragElement 当前被拖拽的节点 DOM。
            */
           setData: (dataTransfer, dragElement) => {
             dataTransfer.setData('text/plain', dragElement.getAttribute('data-node-id') ?? '')
           },
           /**
-           * onAdd：执行当前位置的功能逻辑。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * @param event 参数 event 为事件对象，用于提供交互上下文。
+           * 处理“物料拖入画布”。
+           *
+           * @param event Sortable 事件对象。
            */
           onAdd: (event) => {
             const item = event.item as HTMLElement
@@ -1204,9 +1192,9 @@ export const LowCodeDesigner = defineComponent({
             selectedId.value = nextNode.id
           },
           /**
-           * onEnd：执行当前位置的功能逻辑。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * @param event 参数 event 为事件对象，用于提供交互上下文。
+           * 处理“画布节点移动/重排”。
+           *
+           * @param event Sortable 事件对象。
            */
           onEnd: (event) => {
             toggleDraggingCursor(false)
@@ -1240,11 +1228,12 @@ export const LowCodeDesigner = defineComponent({
     }
 
     /**
-     * schedule Mount Sortables：负责该函数职责对应的主流程编排。
-     * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
-     * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+     * 调度 Sortable 挂载，并在 DOM 尚未稳定时执行有限重试。
      *
-     * 说明：该函数聚焦于 schedule Mount Sortables 的单一职责，调用方可通过函数名快速理解输入输出语义。
+     * 设计器包含多个异步渲染区块，首轮挂载可能拿不到目标列表；
+     * 因此这里采用“延迟 + 最多 8 次重试”的兜底策略。
+     *
+     * @param resetAttempts 是否重置重试计数器。
      */
     function scheduleMountSortables(resetAttempts = true): void {
       if (remountTimer)
@@ -1276,11 +1265,7 @@ export const LowCodeDesigner = defineComponent({
           navigationBar: true,
           statusBar: true,
           search: true,
-          /**
-           * onEditable：执行当前位置的功能逻辑。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * @returns 返回当前分支执行后的处理结果。
-           */
+          /** JSONEditor 仅用于查看导出 schema，不允许直接编辑。 */
           onEditable: () => false,
         })
         try {
@@ -1337,22 +1322,18 @@ export const LowCodeDesigner = defineComponent({
     }
 
     /**
-     * handle Duplicate Node：负责该函数职责对应的主流程编排。
-     * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
-     * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+     * 复制指定节点，并插入到原节点后方。
      *
-     * 说明：该函数聚焦于 handle Duplicate Node 的单一职责，调用方可通过函数名快速理解输入输出语义。
+     * @param nodeId 目标节点 ID。
      */
     function handleDuplicateNode(nodeId: string): void {
       nodes.value = duplicateNodeById(nodes.value, nodeId)
     }
 
     /**
-     * handle Remove Node：负责该函数职责对应的主流程编排。
-     * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
-     * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+     * 删除指定节点，并在删除当前选中节点时清空选中态。
      *
-     * 说明：该函数聚焦于 handle Remove Node 的单一职责，调用方可通过函数名快速理解输入输出语义。
+     * @param nodeId 目标节点 ID。
      */
     function handleRemoveNode(nodeId: string): void {
       nodes.value = removeNodeById(nodes.value, nodeId)
@@ -1361,22 +1342,19 @@ export const LowCodeDesigner = defineComponent({
     }
 
     /**
-     * handle Add Section：负责该函数职责对应的主流程编排。
-     * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
-     * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+     * 给容器新增一个分组（Tabs / Collapse）。
      *
-     * 说明：该函数聚焦于 handle Add Section 的单一职责，调用方可通过函数名快速理解输入输出语义。
+     * @param containerId 容器节点 ID。
      */
     function handleAddSection(containerId: string): void {
       nodes.value = addSectionToContainer(nodes.value, containerId)
     }
 
     /**
-     * handle Remove Section：负责该函数职责对应的主流程编排。
-     * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
-     * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+     * 删除容器内指定分组。
      *
-     * 说明：该函数聚焦于 handle Remove Section 的单一职责，调用方可通过函数名快速理解输入输出语义。
+     * @param containerId 容器节点 ID。
+     * @param sectionId 分组节点 ID。
      */
     function handleRemoveSection(containerId: string, sectionId: string): void {
       nodes.value = removeSectionFromContainer(nodes.value, containerId, sectionId)
@@ -1580,22 +1558,13 @@ export const LowCodeDesigner = defineComponent({
             selectedId: selectedId.value,
             readonly: readonly.value,
             setCanvasHost,
-            /**
-             * onSelect：执行当前位置的功能逻辑。
-             * 功能：处理参数消化、状态变更与调用链行为同步。
-             * @param id 参数 id 为当前功能所需的输入信息。
-             */
+            /** 画布节点/分组选中回调，驱动右侧属性面板切换。 */
             onSelect: (id: string) => { selectedId.value = id },
             onDuplicateNode: handleDuplicateNode,
             onRemoveNode: handleRemoveNode,
             onAddSection: handleAddSection,
             onRemoveSection: handleRemoveSection,
-            /**
-             * renderFieldPreviewControl：执行当前位置的功能逻辑。
-             * 功能：处理参数消化、状态变更与调用链行为同步。
-             * @param node 参数 node 为业务对象，用于读写状态与属性。
-             * @returns 返回当前分支执行后的处理结果。
-             */
+            /** 画布阶段字段预览渲染入口。 */
             renderFieldPreviewControl: (node: DesignerFieldNode) => renderFieldPreviewControl(node, 'canvas'),
           }),
           h(DesignerPropertiesPane, {
@@ -1605,11 +1574,7 @@ export const LowCodeDesigner = defineComponent({
             selectedContainer: selectedContainer.value,
             selectedSection: selectedSection.value,
             enumDraft: enumDraft.value,
-            /**
-             * setEnumDraft：执行当前位置的功能逻辑。
-             * 功能：处理参数消化、状态变更与调用链行为同步。
-             * @param value 参数 value 为输入值，用于驱动后续逻辑。
-             */
+            /** 更新右侧“枚举草稿文本”，与 Select 字段选项双向同步。 */
             setEnumDraft: (value: string) => { enumDraft.value = value },
             onUpdateNodes: updateNodes,
             updateField,

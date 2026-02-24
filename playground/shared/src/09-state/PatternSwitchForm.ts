@@ -16,7 +16,7 @@ const PATTERN_OPTIONS = [
 ]
 
 /**
- * GENDER OPTIONS：变量或常量声明。
+ * GENDER OPTIONS：定义该模块复用的常量配置。
  * 所属模块：`playground/shared/src/09-state/PatternSwitchForm.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -26,7 +26,7 @@ const GENDER_OPTIONS = [
 ]
 
 /**
- * config：变量或常量声明。
+ * config：定义该模块复用的常量配置。
  * 所属模块：`playground/shared/src/09-state/PatternSwitchForm.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

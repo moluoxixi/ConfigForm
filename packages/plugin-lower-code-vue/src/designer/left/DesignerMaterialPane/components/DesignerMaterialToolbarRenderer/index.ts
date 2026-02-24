@@ -14,10 +14,12 @@ export const DesignerMaterialToolbarRenderer = defineComponent({
   },
 
   /**
-   * setup：执行当前位置的功能处理逻辑。
-   * 功能：完成参数消化、业务分支处理及上下游结果传递。
-   * @param props 参数 props 为当前逻辑所需的输入信息。
-   * @returns 返回当前分支执行后的结果。
+   * 物料工具栏渲染逻辑。
+   *
+   * 包含搜索框、统计徽标和清空按钮。
+   *
+   * @param props 工具栏入参。
+   * @returns 工具栏渲染函数。
    */
   setup(props) {
     return () => h('div', {
@@ -65,11 +67,7 @@ export const DesignerMaterialToolbarRenderer = defineComponent({
         h('input', {
           value: props.keyword,
 
-          /**
-           * onInput：执行当前位置的功能处理逻辑。
-           * 功能：完成参数消化、业务分支处理及上下游结果传递。
-           * @param event 参数 event 为事件对象，承载当前交互上下文。
-           */
+          /** 同步输入值到关键词状态。 */
           onInput: (event: Event) => {
             const target = event.target as HTMLInputElement | null
             props.onKeywordChange(target?.value ?? '')
@@ -86,10 +84,7 @@ export const DesignerMaterialToolbarRenderer = defineComponent({
           ? h('button', {
               type: 'button',
 
-              /**
-               * onClick：执行当前位置的功能处理逻辑。
-               * 功能：完成参数消化、业务分支处理及上下游结果传递。
-               */
+              /** 清空关键词并恢复完整物料列表。 */
               onClick: () => { props.onKeywordChange('') },
               style: {
                 border: '1px solid #d0dbe9',

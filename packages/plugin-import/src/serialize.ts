@@ -1,5 +1,5 @@
 /**
- * is Record：当前功能模块的核心执行单元。
+ * is Record：封装该模块的核心渲染与交互逻辑。
  * 所属模块：`packages/plugin-import/src/serialize.ts`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -11,7 +11,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /**
- * ensure Plain Object：当前功能模块的核心执行单元。
+ * ensure Plain Object：封装该模块的核心渲染与交互逻辑。
  * 所属模块：`packages/plugin-import/src/serialize.ts`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -26,7 +26,7 @@ export function ensurePlainObject(input: unknown): Record<string, unknown> {
 }
 
 /**
- * parse JSON：当前功能模块的核心执行单元。
+ * parse JSON：封装该模块的核心渲染与交互逻辑。
  * 所属模块：`packages/plugin-import/src/serialize.ts`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。

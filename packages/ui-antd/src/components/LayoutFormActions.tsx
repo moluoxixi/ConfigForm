@@ -3,7 +3,7 @@ import { Button as AButton } from 'antd'
 import React, { useCallback, useContext } from 'react'
 
 /**
- * Layout Form Actions Props：类型接口定义。
+ * Layout Form Actions Props：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/ui-antd/src/components/LayoutFormActions.tsx`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

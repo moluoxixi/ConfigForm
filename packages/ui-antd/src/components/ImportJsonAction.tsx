@@ -47,7 +47,7 @@ function mergeApplyOptions(
 }
 
 /**
- * Import Json Action：负责该函数职责对应的主流程编排。
+ * Import Json Action：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
@@ -86,10 +86,8 @@ export function ImportJsonAction({
    * @param file ?? file ????????????
    */
   const /**
-         * handleParseFile：执行当前位置的功能逻辑。
-         * 定位：`packages/ui-antd/src/components/ImportJsonAction.tsx:76`。
+         * handleParseFile：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param file 参数 file 为当前功能所需的输入信息。
          */
     handleParseFile = async (file: File): Promise<void> => {
@@ -118,10 +116,8 @@ export function ImportJsonAction({
    * @param nextData ?? nextData ????????????
    */
   const /**
-         * handleApply：执行当前位置的功能逻辑。
-         * 定位：`packages/ui-antd/src/components/ImportJsonAction.tsx:94`。
+         * handleApply：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param nextData 参数 nextData 为当前功能所需的输入信息。
          */
     handleApply = async (nextData: Record<string, unknown>): Promise<void> => {

@@ -7,7 +7,7 @@ import App from './App.vue'
 setReactiveAdapter(vueAdapter)
 
 /**
- * app：变量或常量声明。
+ * app：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/main.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

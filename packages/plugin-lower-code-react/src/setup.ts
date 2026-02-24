@@ -5,7 +5,7 @@ import { createElement } from 'react'
 import { LowCodeDesigner } from './LowCodeDesigner'
 
 /**
- * Setup Lower Code Designer Options：类型接口定义。
+ * Setup Lower Code Designer Options：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/plugin-lower-code-react/src/setup.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

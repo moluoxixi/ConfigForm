@@ -4,7 +4,7 @@ import { ArrayBase, observer, RecursionField, useField } from '@moluoxixi/react'
 import { Card } from 'antd'
 
 /**
- * Array Cards Props：类型接口定义。
+ * Array Cards Props：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/ui-antd/src/components/ArrayCards.tsx`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -13,7 +13,7 @@ export interface ArrayCardsProps {
 }
 
 /**
- * Array Cards：变量或常量声明。
+ * Array Cards：定义该模块复用的常量配置。
  * 所属模块：`packages/ui-antd/src/components/ArrayCards.tsx`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

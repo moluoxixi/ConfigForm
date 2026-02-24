@@ -18,7 +18,7 @@ export interface SchemaVariants {
 }
 
 /**
- * Scene I18n Config：类型接口定义。
+ * Scene I18n Config：描述该模块对外暴露的数据结构。
  * 所属模块：`playground/shared/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

@@ -49,20 +49,20 @@ registerDecorator('CardDecorator', CardDecorator)
 registerDecorator('InlineDecorator', InlineDecorator)
 
 /**
- * scene Groups：变量或常量声明。
+ * scene Groups：定义该模块复用的常量配置。
  * 所属模块：`playground/react/src/App.tsx`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 const sceneGroups = getSceneGroups()
 /**
- * total Scenes：变量或常量声明。
+ * total Scenes：定义该模块复用的常量配置。
  * 所属模块：`playground/react/src/App.tsx`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 const totalScenes = sceneGroups.reduce((sum, g) => sum + g.items.length, 0)
 
 /**
- * App：当前功能模块的核心执行单元。
+ * App：封装该模块的核心渲染与交互逻辑。
  * 所属模块：`playground/react/src/App.tsx`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -197,7 +197,7 @@ function getOrCreateHook(): { forms: Map<string, DevToolsPluginAPI>, onChange: (
     g.__CONFIGFORM_DEVTOOLS_HOOK__ = {
       forms: new Map(),
       /**
-       * register：当前功能模块的核心执行单元。
+       * register：封装该模块的核心渲染与交互逻辑。
        * 所属模块：`playground/react/src/App.tsx`。
        * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
        * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -210,7 +210,7 @@ function getOrCreateHook(): { forms: Map<string, DevToolsPluginAPI>, onChange: (
         listeners.forEach(fn => fn(hook.forms))
       },
       /**
-       * unregister：当前功能模块的核心执行单元。
+       * unregister：封装该模块的核心渲染与交互逻辑。
        * 所属模块：`playground/react/src/App.tsx`。
        * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
        * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -222,7 +222,7 @@ function getOrCreateHook(): { forms: Map<string, DevToolsPluginAPI>, onChange: (
         listeners.forEach(fn => fn(hook.forms))
       },
       /**
-       * on Change：当前功能模块的核心执行单元。
+       * on Change：封装该模块的核心渲染与交互逻辑。
        * 所属模块：`playground/react/src/App.tsx`。
        * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
        * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -249,7 +249,7 @@ function DevToolsFloating(): React.ReactElement | null {
     const hook = getOrCreateHook()
     let disposed = false
     /**
-     * update：当前功能模块的核心执行单元。
+     * update：封装该模块的核心渲染与交互逻辑。
      * 所属模块：`playground/react/src/App.tsx`。
      * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
      * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。

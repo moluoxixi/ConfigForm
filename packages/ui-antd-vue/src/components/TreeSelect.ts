@@ -6,7 +6,7 @@ import { computed, defineComponent, h } from 'vue'
 const TreeSelectComponent = ATreeSelect as any
 
 /**
- * to Tree Data：负责该函数职责对应的主流程编排。
+ * to Tree Data：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
@@ -25,17 +25,13 @@ export const TreeSelect = defineComponent({
   props: {
     modelValue: { type: [String, Number, Array] as PropType<string | number | (string | number)[]>, default: undefined },
     dataSource: { type: Array as PropType<DataSourceItem[]>, /**
-                                                              * default：执行当前位置的功能逻辑。
-                                                              * 定位：`packages/ui-antd-vue/src/components/TreeSelect.ts:27`。
+                                                              * default：处理当前分支的交互与状态同步。
                                                               * 功能：处理参数消化、状态变更与调用链行为同步。
-                                                              * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                                                               * @returns 返回当前分支执行后的处理结果。
                                                               */
       /**
-       * default：执行当前位置的功能逻辑。
-       * 定位：`packages/ui-antd-vue/src/components/TreeSelect.ts:34`。
+       * default：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
-       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
        * @returns 返回当前分支执行后的处理结果。
        */
       default: () => [] },
@@ -46,10 +42,8 @@ export const TreeSelect = defineComponent({
   },
   emits: ['update:modelValue', 'focus', 'blur'],
   /**
-   * setup：执行当前位置的功能逻辑。
-   * 定位：`packages/ui-antd-vue/src/components/TreeSelect.ts:34`。
+   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
    */
@@ -62,27 +56,21 @@ export const TreeSelect = defineComponent({
       'disabled': props.disabled,
       'multiple': props.multiple,
       /**
-       * onUpdate:value：执行当前位置的功能逻辑。
-       * 定位：`packages/ui-antd-vue/src/components/TreeSelect.ts:42`。
+       * onUpdate:value：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
-       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
        * @param v 参数 v 为当前功能所需的输入信息。
        * @returns 返回当前分支执行后的处理结果。
        */
       'onUpdate:value': (v: unknown) => emit('update:modelValue', v as string | number | (string | number)[]),
       /**
-       * onFocus：执行当前位置的功能逻辑。
-       * 定位：`packages/ui-antd-vue/src/components/TreeSelect.ts:43`。
+       * onFocus：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
-       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
        * @returns 返回当前分支执行后的处理结果。
        */
       'onFocus': () => emit('focus'),
       /**
-       * onBlur：执行当前位置的功能逻辑。
-       * 定位：`packages/ui-antd-vue/src/components/TreeSelect.ts:44`。
+       * onBlur：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
-       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
        * @returns 返回当前分支执行后的处理结果。
        */
       'onBlur': () => emit('blur'),

@@ -79,7 +79,7 @@ function resolveMeta(
 }
 
 /**
- * Properties Panel：负责该函数职责对应的主流程编排。
+ * Properties Panel：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
@@ -117,10 +117,8 @@ export function PropertiesPanel({
    * @returns ?????????????
    */
   const /**
-         * resolveComponentPreset：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-lower-code-react/src/designer/panels/PropertiesPanel.tsx:106`。
+         * resolveComponentPreset：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param componentName 参数 componentName 为当前功能所需的输入信息。
          * @returns 返回当前分支执行后的处理结果。
          */
@@ -136,10 +134,8 @@ export function PropertiesPanel({
    * @returns ?????????????
    */
   const /**
-         * readEditablePropValue：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-lower-code-react/src/designer/panels/PropertiesPanel.tsx:108`。
+         * readEditablePropValue：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param field 参数 field 为业务对象，用于读写状态与属性。
          * @param editableProp 参数 editableProp 为当前功能所需的输入信息。
          * @returns 返回当前分支执行后的处理结果。
@@ -166,10 +162,8 @@ export function PropertiesPanel({
    * @param value ?? value ????????????
    */
   const /**
-         * updateFieldComponentProp：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-lower-code-react/src/designer/panels/PropertiesPanel.tsx:121`。
+         * updateFieldComponentProp：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param propKey 参数 propKey 为当前功能所需的输入信息。
          * @param value 参数 value 为输入值，用于驱动后续逻辑。
          */

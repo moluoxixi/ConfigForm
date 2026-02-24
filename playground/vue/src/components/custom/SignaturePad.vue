@@ -67,7 +67,7 @@ watch(
 )
 
 /**
- * handle Mouse Down：当前功能模块的核心执行单元。
+ * handle Mouse Down：封装该模块的核心渲染与交互逻辑。
  * 所属模块：`playground/vue/src/components/custom/SignaturePad.vue`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -87,7 +87,7 @@ function handleMouseDown(event: MouseEvent): void {
 }
 
 /**
- * handle Mouse Move：当前功能模块的核心执行单元。
+ * handle Mouse Move：封装该模块的核心渲染与交互逻辑。
  * 所属模块：`playground/vue/src/components/custom/SignaturePad.vue`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -109,7 +109,7 @@ function handleMouseMove(event: MouseEvent): void {
 }
 
 /**
- * handle Mouse Up：当前功能模块的核心执行单元。
+ * handle Mouse Up：封装该模块的核心渲染与交互逻辑。
  * 所属模块：`playground/vue/src/components/custom/SignaturePad.vue`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -125,7 +125,7 @@ function handleMouseUp(): void {
 }
 
 /**
- * handle Clear：当前功能模块的核心执行单元。
+ * handle Clear：封装该模块的核心渲染与交互逻辑。
  * 所属模块：`playground/vue/src/components/custom/SignaturePad.vue`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -143,7 +143,7 @@ function handleClear(): void {
 }
 
 /**
- * canvas Style：变量或常量声明。
+ * canvas Style：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/components/custom/SignaturePad.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -156,7 +156,7 @@ const canvasStyle = {
 } as const
 
 /**
- * button Style：变量或常量声明。
+ * button Style：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/components/custom/SignaturePad.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

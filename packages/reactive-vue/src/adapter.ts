@@ -45,7 +45,7 @@ export const vueAdapter: ReactiveAdapter = {
   name: 'vue',
 
   /**
-   * observable：当前功能模块的核心执行单元。
+   * observable：封装该模块的核心渲染与交互逻辑。
    * 所属模块：`packages/reactive-vue/src/adapter.ts`。
    * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
    * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -57,7 +57,7 @@ export const vueAdapter: ReactiveAdapter = {
   },
 
   /**
-   * shallow Observable：当前功能模块的核心执行单元。
+   * shallow Observable：封装该模块的核心渲染与交互逻辑。
    * 所属模块：`packages/reactive-vue/src/adapter.ts`。
    * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
    * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -69,7 +69,7 @@ export const vueAdapter: ReactiveAdapter = {
   },
 
   /**
-   * computed：当前功能模块的核心执行单元。
+   * computed：封装该模块的核心渲染与交互逻辑。
    * 所属模块：`packages/reactive-vue/src/adapter.ts`。
    * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
    * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -81,7 +81,7 @@ export const vueAdapter: ReactiveAdapter = {
   },
 
   /**
-   * autorun：当前功能模块的核心执行单元。
+   * autorun：封装该模块的核心渲染与交互逻辑。
    * 所属模块：`packages/reactive-vue/src/adapter.ts`。
    * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
    * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -96,7 +96,7 @@ export const vueAdapter: ReactiveAdapter = {
   },
 
   /**
-   * reaction：当前功能模块的核心执行单元。
+   * reaction：封装该模块的核心渲染与交互逻辑。
    * 所属模块：`packages/reactive-vue/src/adapter.ts`。
    * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
    * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -117,7 +117,7 @@ export const vueAdapter: ReactiveAdapter = {
       : null
 
     /**
-     * call Effect：当前功能模块的核心执行单元。
+     * call Effect：封装该模块的核心渲染与交互逻辑。
      * 所属模块：`packages/reactive-vue/src/adapter.ts`。
      * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
      * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -168,7 +168,7 @@ export const vueAdapter: ReactiveAdapter = {
   },
 
   /**
-   * batch：当前功能模块的核心执行单元。
+   * batch：封装该模块的核心渲染与交互逻辑。
    * 所属模块：`packages/reactive-vue/src/adapter.ts`。
    * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
    * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -180,7 +180,7 @@ export const vueAdapter: ReactiveAdapter = {
   },
 
   /**
-   * action：当前功能模块的核心执行单元。
+   * action：封装该模块的核心渲染与交互逻辑。
    * 所属模块：`packages/reactive-vue/src/adapter.ts`。
    * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
    * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -193,7 +193,7 @@ export const vueAdapter: ReactiveAdapter = {
   },
 
   /**
-   * make Observable：当前功能模块的核心执行单元。
+   * make Observable：封装该模块的核心渲染与交互逻辑。
    * 所属模块：`packages/reactive-vue/src/adapter.ts`。
    * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
    * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。

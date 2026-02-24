@@ -27,7 +27,7 @@ function formatValue(val: unknown): string {
 }
 
 /**
- * Status Tabs Props：类型接口定义。
+ * Status Tabs Props：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/ui-antd/src/components/StatusTabs.tsx`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

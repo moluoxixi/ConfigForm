@@ -55,10 +55,16 @@ export const DesignerCanvasPane = defineComponent({
     },
   },
   /**
-   * setup：执行当前位置的功能逻辑。
-   * 功能：处理参数消化、状态变更与调用链行为同步。
-   * @param props 参数 props 为当前功能所需的输入信息。
-   * @returns 返回当前分支执行后的处理结果。
+   * 画布面板主 setup。
+   *
+   * 负责：
+   * 1. 选中态命中规则（节点、分组、工具栏）。
+   * 2. 统一蒙层与工具条渲染。
+   * 3. Tabs 活跃分组状态保持。
+   * 4. 基于 ConfigForm 组合 Header/Body。
+   *
+   * @param props 画布面板入参。
+   * @returns 画布面板渲染函数。
    */
   setup(props) {
     const activeTabsByContainer = ref<Record<string, string>>({})
@@ -75,13 +81,12 @@ export const DesignerCanvasPane = defineComponent({
       return Boolean(element?.closest('[data-cf-toolbar-interactive="true"]'))
     }
     /**
+     * 从事件目标向上查找最近的节点 ID。
+     *
+     * @param target 原始事件目标。
+     * @returns 命中的节点 ID，未命中返回 null。
      */
-    const /**
-           * closestNodeId：执行当前位置的功能逻辑。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * @param target 参数 target 为当前功能所需的输入信息。
-           * @returns 返回当前分支执行后的处理结果。
-           */
+    const
       closestNodeId = (target: EventTarget | null): string | null => {
         const element = target instanceof Element
           ? target
@@ -92,14 +97,13 @@ export const DesignerCanvasPane = defineComponent({
       }
     // 容器点击仅在命中容器自身外框时选中，避免误选子节点。
     /**
+     * 判断事件命中是否来自指定节点自身外框。
+     *
+     * @param target 事件目标。
+     * @param nodeId 节点 ID。
+     * @returns true 表示命中当前节点自身。
      */
-    const /**
-           * isNodeSelfEvent：执行当前位置的功能逻辑。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * @param target 参数 target 为当前功能所需的输入信息。
-           * @param nodeId 参数 nodeId 为当前功能所需的输入信息。
-           * @returns 返回当前分支执行后的处理结果。
-           */
+    const
       isNodeSelfEvent = (target: EventTarget | null, nodeId: string): boolean =>
         closestNodeId(target) === nodeId
 
@@ -112,36 +116,25 @@ export const DesignerCanvasPane = defineComponent({
     ): VNodeChild => h(DesignerCanvasMaskDecorator, {
       disablePointerEvents: options?.disablePointerEvents ?? true,
     }, {
-      /**
-       * default：执行当前位置的功能逻辑。
-       * 功能：处理参数消化、状态变更与调用链行为同步。
-       * @returns 返回当前分支执行后的处理结果。
-       */
+      /** 蒙层主体内容。 */
       default: () => [content()],
       ...(options?.actions
-        ? { /**
-             * actions：执行当前位置的功能逻辑。
-             * 功能：处理参数消化、状态变更与调用链行为同步。
-             * @returns 返回当前分支执行后的处理结果。
-             */
-            /**
-             * actions：执行当前位置的功能逻辑。
-             * 功能：处理参数消化、状态变更与调用链行为同步。
-             * @returns 返回当前分支执行后的处理结果。
-             */
+        ? {
+            /** 蒙层右上角操作区。 */
             actions: () => [options.actions],
           }
         : {}),
     })
 
-    const /**
-           * renderMaskedCanvasPreview：执行当前位置的功能逻辑。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * @param node 参数 node 为业务对象，用于读写状态与属性。
-           * @param options 参数 options 为当前功能所需的输入信息。
-           * @param options.actions 可选的右上角操作区渲染内容。
-           * @returns 返回当前分支执行后的处理结果。
-           */
+    /**
+     * 渲染“字段预览 + 统一蒙层”组合块。
+     *
+     * @param node 字段预览节点。
+     * @param options 蒙层可选配置。
+     * @param options.actions 右上角操作区渲染内容。
+     * @returns 画布字段预览 VNode。
+     */
+    const
       renderMaskedCanvasPreview = (
         node: DesignerFieldPreviewNode,
         options?: { actions?: VNodeChild },
@@ -159,12 +152,11 @@ export const DesignerCanvasPane = defineComponent({
       (nodes) => {
         const next: Record<string, string> = {}
         /**
+         * 递归扫描容器，维护每个 Tabs 容器当前激活分组。
+         *
+         * @param items 当前层节点列表。
          */
-        const /**
-               * walk：执行当前位置的功能逻辑。
-               * 功能：处理参数消化、状态变更与调用链行为同步。
-               * @param items 参数 items 为当前功能所需的输入信息。
-               */
+        const
           walk = (items: DesignerNode[]): void => {
             for (const item of items) {
               if (item.kind !== 'container')
@@ -198,12 +190,11 @@ export const DesignerCanvasPane = defineComponent({
       if (props.readonly)
         return null
       /**
+       * 吞掉工具栏按钮的指针事件，避免触发节点选中/拖拽冲突。
+       *
+       * @param event 指针事件。
        */
-      const /**
-             * consumeToolbarPointer：执行当前位置的功能逻辑。
-             * 功能：处理参数消化、状态变更与调用链行为同步。
-             * @param event 参数 event 为事件对象，用于提供交互上下文。
-             */
+      const
         consumeToolbarPointer = (event: Event): void => {
           event.preventDefault()
           event.stopPropagation()
@@ -211,12 +202,7 @@ export const DesignerCanvasPane = defineComponent({
       return h('div', {
         'class': 'cf-lc-node-toolbar',
         'data-cf-toolbar-interactive': 'true',
-        /**
-         * onClick：执行当前位置的功能逻辑。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * @param event 参数 event 为事件对象，用于提供交互上下文。
-         * @returns 返回当前分支执行后的处理结果。
-         */
+        /** 阻止工具栏容器点击冒泡到节点卡片。 */
         'onClick': (event: Event) => event.stopPropagation(),
       }, [
         h('button', {
@@ -224,12 +210,7 @@ export const DesignerCanvasPane = defineComponent({
           'class': 'cf-lc-node-tool cf-lc-node-tool--move',
           'data-cf-toolbar-interactive': 'true',
           'title': '拖拽节点移动',
-          /**
-           * onClick：执行当前位置的功能逻辑。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * @param event 参数 event 为事件对象，用于提供交互上下文。
-           * @returns 返回当前分支执行后的处理结果。
-           */
+          /** 拖拽手柄本身不触发选中切换。 */
           'onClick': (event: Event) => event.stopPropagation(),
         }, '↕'),
         options?.allowAddSection && options.onAddSection
@@ -240,11 +221,7 @@ export const DesignerCanvasPane = defineComponent({
               'title': '新增分组',
               'onMousedown': consumeToolbarPointer,
               'onPointerdown': consumeToolbarPointer,
-              /**
-               * onClick：执行当前位置的功能逻辑。
-               * 功能：处理参数消化、状态变更与调用链行为同步。
-               * @param event 参数 event 为事件对象，用于提供交互上下文。
-               */
+              /** 新增分组并保持当前容器选中状态。 */
               'onClick': (event: Event) => {
                 event.stopPropagation()
                 options.onAddSection?.()
@@ -258,11 +235,7 @@ export const DesignerCanvasPane = defineComponent({
           'title': '复制',
           'onMousedown': consumeToolbarPointer,
           'onPointerdown': consumeToolbarPointer,
-          /**
-           * onClick：执行当前位置的功能逻辑。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * @param event 参数 event 为事件对象，用于提供交互上下文。
-           */
+          /** 复制当前节点。 */
           'onClick': (event: Event) => {
             event.stopPropagation()
             props.onDuplicateNode(nodeId)
@@ -275,11 +248,7 @@ export const DesignerCanvasPane = defineComponent({
           'title': '删除',
           'onMousedown': consumeToolbarPointer,
           'onPointerdown': consumeToolbarPointer,
-          /**
-           * onClick：执行当前位置的功能逻辑。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * @param event 参数 event 为事件对象，用于提供交互上下文。
-           */
+          /** 删除当前节点。 */
           'onClick': (event: Event) => {
             event.stopPropagation()
             props.onRemoveNode(nodeId)
@@ -321,12 +290,7 @@ export const DesignerCanvasPane = defineComponent({
       const selected = props.selectedId === section.id
       return h('div', {
         class: 'cf-lc-section-head',
-        /**
-         * onClick：执行当前位置的功能逻辑。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * @param event 参数 event 为事件对象，用于提供交互上下文。
-         * @returns 返回当前分支执行后的处理结果。
-         */
+        /** 分组头点击只阻止冒泡，不改变选中逻辑。 */
         onClick: (event: Event) => event.stopPropagation(),
       }, [
         h('span', {
@@ -338,29 +302,17 @@ export const DesignerCanvasPane = defineComponent({
               'class': 'cf-lc-section-action',
               'data-cf-toolbar-interactive': 'true',
               'title': '删除分组',
-              /**
-               * onMousedown：执行当前位置的功能逻辑。
-               * 功能：处理参数消化、状态变更与调用链行为同步。
-               * @param event 参数 event 为事件对象，用于提供交互上下文。
-               */
+              /** 阻止按下阶段冒泡，避免触发分组选中切换。 */
               'onMousedown': (event: Event) => {
                 event.preventDefault()
                 event.stopPropagation()
               },
-              /**
-               * onPointerdown：执行当前位置的功能逻辑。
-               * 功能：处理参数消化、状态变更与调用链行为同步。
-               * @param event 参数 event 为事件对象，用于提供交互上下文。
-               */
+              /** 阻止指针按下阶段冒泡，避免触发拖拽/选中。 */
               'onPointerdown': (event: Event) => {
                 event.preventDefault()
                 event.stopPropagation()
               },
-              /**
-               * onClick：执行当前位置的功能逻辑。
-               * 功能：处理参数消化、状态变更与调用链行为同步。
-               * @param event 参数 event 为事件对象，用于提供交互上下文。
-               */
+              /** 删除当前分组。 */
               'onClick': (event: Event) => {
                 event.stopPropagation()
                 props.onRemoveSection(container.id, section.id)
@@ -384,11 +336,7 @@ export const DesignerCanvasPane = defineComponent({
         'key': section.id,
         'data-section-id': section.id,
         'class': `cf-lc-section cf-lc-section--${mode} ${selected ? 'cf-lc-section--selected' : ''}`,
-        /**
-         * onMousedownCapture：执行当前位置的功能逻辑。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * @param event 参数 event 为事件对象，用于提供交互上下文。
-         */
+        /** 分组区域按下时命中自身则选中该分组。 */
         'onMousedownCapture': (event: Event) => {
           if (isToolbarInteraction(event.target))
             return
@@ -397,11 +345,7 @@ export const DesignerCanvasPane = defineComponent({
           event.stopPropagation()
           props.onSelect(section.id)
         },
-        /**
-         * onClick：执行当前位置的功能逻辑。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * @param event 参数 event 为事件对象，用于提供交互上下文。
-         */
+        /** 分组区域点击时命中自身则选中该分组。 */
         'onClick': (event: Event) => {
           if (isToolbarInteraction(event.target))
             return
@@ -437,11 +381,7 @@ export const DesignerCanvasPane = defineComponent({
             key: section.id,
             type: 'button',
             class: `cf-lc-layout-tabs-tab ${section.id === activeId ? 'is-active' : ''}`,
-            /**
-             * onClick：执行当前位置的功能逻辑。
-             * 功能：处理参数消化、状态变更与调用链行为同步。
-             * @param event 参数 event 为事件对象，用于提供交互上下文。
-             */
+            /** 切换 Tabs 活跃分组并同步选中分组。 */
             onClick: (event: Event) => {
               event.stopPropagation()
               activeTabsByContainer.value = { ...activeTabsByContainer.value, [node.id]: section.id }
@@ -477,21 +417,13 @@ export const DesignerCanvasPane = defineComponent({
         'class': `cf-lc-node cf-lc-node--field ${selected ? 'cf-lc-node--selected' : ''}`,
         'data-node-id': node.id,
         'data-parent-target-key': parentTargetKey,
-        /**
-         * onMousedownCapture：执行当前位置的功能逻辑。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * @param event 参数 event 为事件对象，用于提供交互上下文。
-         */
+        /** 字段卡片按下时更新选中项。 */
         'onMousedownCapture': (event: Event) => {
           if (isToolbarInteraction(event.target))
             return
           props.onSelect(node.id)
         },
-        /**
-         * onClick：执行当前位置的功能逻辑。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * @param event 参数 event 为事件对象，用于提供交互上下文。
-         */
+        /** 字段卡片点击时更新选中项。 */
         'onClick': (event: Event) => {
           if (isToolbarInteraction(event.target))
             return
@@ -520,11 +452,7 @@ export const DesignerCanvasPane = defineComponent({
         'class': `cf-lc-node cf-lc-node--container ${selected ? 'cf-lc-node--selected' : ''}`,
         'data-node-id': node.id,
         'data-parent-target-key': parentTargetKey,
-        /**
-         * onMousedownCapture：执行当前位置的功能逻辑。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * @param event 参数 event 为事件对象，用于提供交互上下文。
-         */
+        /** 容器外框按下命中自身时更新选中项。 */
         'onMousedownCapture': (event: Event) => {
           if (isToolbarInteraction(event.target))
             return
@@ -532,11 +460,7 @@ export const DesignerCanvasPane = defineComponent({
             return
           props.onSelect(node.id)
         },
-        /**
-         * onClick：执行当前位置的功能逻辑。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * @param event 参数 event 为事件对象，用于提供交互上下文。
-         */
+        /** 容器外框点击命中自身时更新选中项。 */
         'onClick': (event: Event) => {
           if (isToolbarInteraction(event.target))
             return
@@ -552,11 +476,7 @@ export const DesignerCanvasPane = defineComponent({
             actions: selected
               ? renderNodeToolbar(node.id, {
                   allowAddSection: containerUsesSections(node.component),
-                  /**
-                   * onAddSection：执行当前位置的功能逻辑。
-                   * 功能：处理参数消化、状态变更与调用链行为同步。
-                   * @returns 返回当前分支执行后的处理结果。
-                   */
+                  /** 容器工具栏“新增分组”回调。 */
                   onAddSection: () => props.onAddSection(node.id),
                 })
               : null,

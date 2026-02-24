@@ -21,7 +21,7 @@ import type { SceneConfig } from '../types'
 const PRESETS = ['#1677ff', '#52c41a', '#faad14', '#ff4d4f', '#722ed1', '#13c2c2', '#eb2f96', '#000000']
 
 /**
- * config：变量或常量声明。
+ * config：定义该模块复用的常量配置。
  * 所属模块：`playground/shared/src/08-components/ReadPrettyComponentForm.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

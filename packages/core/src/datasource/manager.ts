@@ -19,8 +19,15 @@ const CACHE_KEY_SEPARATOR = '::'
 /** 默认请求适配器（fetch） */
 const defaultAdapter: RequestAdapter = {
   /**
-   * request：执行当前位置的功能逻辑。
-   * @param config 参数 config 为当前功能所需的输入信息。
+   * 使用原生 `fetch` 执行请求。
+   * 该实现负责处理 GET 查询串拼接、POST JSON body 组装与基础状态码校验。
+   * @param config 请求配置对象。
+   * @param config.url 请求地址。
+   * @param config.method 请求方法（GET / POST）。
+   * @param config.params 请求参数，会按 method 决定放入 query 或 body。
+   * @param config.headers 自定义请求头。
+   * @param config.signal 请求取消信号。
+   * @returns 返回解析后的 JSON 数据。
    */
   async request<T>(config: RequestConfig): Promise<T> {
     const { url, method, params, headers, signal } = config
@@ -100,8 +107,12 @@ function buildCacheKey(config: DataSourceConfig, resolvedParams: Record<string, 
 }
 
 /**
- * normalize Headers。
- *
+ * 标准化请求头对象，确保缓存 key 计算稳定。
+ * 处理策略：
+ * 1. key 全部转为小写，避免大小写差异导致重复缓存。
+ * 2. key 按字典序排序，保证序列化结果稳定。
+ * @param headers 原始请求头对象。
+ * @returns 规范化后的请求头对象。
  */
 function normalizeHeaders(headers?: Record<string, string>): Record<string, string> {
   if (!headers) {
@@ -115,8 +126,11 @@ function normalizeHeaders(headers?: Record<string, string>): Record<string, stri
 }
 
 /**
- * stable Normalize。
- *
+ * 将任意值标准化为“可稳定序列化”的结构。
+ * 主要用于缓存 key 生成，避免对象键顺序和循环引用导致不稳定结果。
+ * @param value 任意输入值。
+ * @param seen 循环引用检测集合。
+ * @returns 可稳定序列化的值。
  */
 function stableNormalize(
   value: unknown,
@@ -144,8 +158,9 @@ function stableNormalize(
 }
 
 /**
- * stable Stringify。
- *
+ * 对输入值做稳定 JSON 序列化。
+ * @param value 任意输入值。
+ * @returns 序列化字符串；无法序列化时返回 `'null'`。
  */
 function stableStringify(value: unknown): string {
   const serialized = JSON.stringify(stableNormalize(value))
@@ -153,8 +168,9 @@ function stableStringify(value: unknown): string {
 }
 
 /**
- * get Cache Key Url。
- *
+ * 从缓存 key 中提取 URL 片段。
+ * @param cacheKey 由 `buildCacheKey` 生成的缓存 key。
+ * @returns URL 片段，不存在时返回空字符串。
  */
 function getCacheKeyUrl(cacheKey: string): string {
   const parts = cacheKey.split(CACHE_KEY_SEPARATOR)
@@ -162,8 +178,9 @@ function getCacheKeyUrl(cacheKey: string): string {
 }
 
 /**
- * create Abort Error。
- *
+ * 构建统一的中止错误对象。
+ * 优先使用 DOMException（浏览器语义），Node 等环境回退到普通 Error。
+ * @returns 中止错误实例（name 固定为 `AbortError`）。
  */
 function createAbortError(): Error {
   if (typeof DOMException !== 'undefined') {

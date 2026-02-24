@@ -4,7 +4,7 @@ import { useForm } from '@moluoxixi/react'
 import { Button, message } from 'antd'
 
 /**
- * Print Action Props：类型接口定义。
+ * Print Action Props：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/ui-antd/src/components/PrintAction.tsx`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -16,7 +16,7 @@ export interface PrintActionProps {
 }
 
 /**
- * Print Action：当前功能模块的核心执行单元。
+ * Print Action：封装该模块的核心渲染与交互逻辑。
  * 所属模块：`packages/ui-antd/src/components/PrintAction.tsx`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -41,7 +41,7 @@ export function PrintAction({
   const form = useForm()
 
   /**
-   * handle Print：当前功能模块的核心执行单元。
+   * handle Print：封装该模块的核心渲染与交互逻辑。
    * 所属模块：`packages/ui-antd/src/components/PrintAction.tsx`。
    * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
    * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。

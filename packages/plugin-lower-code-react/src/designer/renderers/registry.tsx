@@ -13,10 +13,8 @@ import { PreviewBoundary } from './PreviewBoundary'
 import { SchemaPreview } from './SchemaPreview'
 
 /**
- * buildPreviewSchema：执行当前位置的功能处理逻辑。
- * 定位：`packages/plugin-lower-code-react/src/designer/renderers/registry.tsx:17`。
+ * buildPreviewSchema：处理当前分支的交互与状态同步。
  * 功能：完成参数消化、业务分支处理及上下游结果传递。
- * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
  * @param type 参数 type 为当前逻辑所需的输入信息。
  * @param component 参数 component 为当前逻辑所需的输入信息。
  * @param title 参数 title 为当前逻辑所需的输入信息。
@@ -59,7 +57,7 @@ function buildPreviewSchema(
 }
 
 /**
- * render Material Field Preview：当前功能模块的核心执行单元。
+ * render Material Field Preview：封装该模块的核心渲染与交互逻辑。
  * 所属模块：`packages/plugin-lower-code-react/src/designer/renderers/registry.tsx`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -103,7 +101,7 @@ function renderMaterialFieldPreview(
 }
 
 /**
- * render Node Field Preview：当前功能模块的核心执行单元。
+ * render Node Field Preview：封装该模块的核心渲染与交互逻辑。
  * 所属模块：`packages/plugin-lower-code-react/src/designer/renderers/registry.tsx`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -142,7 +140,7 @@ function renderNodeFieldPreview(
 }
 
 /**
- * can Use Registry Renderers：当前功能模块的核心执行单元。
+ * can Use Registry Renderers：封装该模块的核心渲染与交互逻辑。
  * 所属模块：`packages/plugin-lower-code-react/src/designer/renderers/registry.tsx`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -154,7 +152,7 @@ export function canUseRegistryRenderers(registry: RegistrySnapshot): boolean {
 }
 
 /**
- * create Registry Renderers：当前功能模块的核心执行单元。
+ * create Registry Renderers：封装该模块的核心渲染与交互逻辑。
  * 所属模块：`packages/plugin-lower-code-react/src/designer/renderers/registry.tsx`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。

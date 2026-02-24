@@ -9,7 +9,7 @@ import { DesignerMaterialToolbarRenderer } from './components/DesignerMaterialTo
 export type { DesignerMaterialPaneProps } from './types'
 
 /**
- * Designer Material Pane：当前功能模块的核心执行单元。
+ * Designer Material Pane：封装该模块的核心渲染与交互逻辑。
  * 所属模块：`packages/plugin-lower-code-react/src/designer/panes/DesignerMaterialPane/index.tsx`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -30,7 +30,7 @@ export function DesignerMaterialPane({
 
   const normalizedKeyword = keyword.trim().toLowerCase()
   /**
-   * filter By Keyword：当前功能模块的核心执行单元。
+   * filter By Keyword：封装该模块的核心渲染与交互逻辑。
    * 所属模块：`packages/plugin-lower-code-react/src/designer/panes/DesignerMaterialPane/index.tsx`。
    * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
    * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。

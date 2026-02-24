@@ -23,7 +23,7 @@ const wrapperStyle = {
 } as const
 
 /**
- * header Style：变量或常量声明。
+ * header Style：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/components/custom/CodeEditor.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -37,7 +37,7 @@ const headerStyle = {
 } as const
 
 /**
- * textarea Style：变量或常量声明。
+ * textarea Style：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/components/custom/CodeEditor.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -57,7 +57,7 @@ const textareaStyle = {
 } as const
 
 /**
- * on Input：当前功能模块的核心执行单元。
+ * on Input：封装该模块的核心渲染与交互逻辑。
  * 所属模块：`playground/vue/src/components/custom/CodeEditor.vue`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。

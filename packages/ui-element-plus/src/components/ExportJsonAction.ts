@@ -58,10 +58,8 @@ export const ExportJsonAction = defineComponent({
   },
   emits: ['message'],
   /**
-   * setup：执行当前位置的功能逻辑。
-   * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:50`。
+   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
    */
@@ -74,7 +72,7 @@ export const ExportJsonAction = defineComponent({
     const errorMessage = ref('')
 
     /**
-     * notify：负责该函数职责对应的主流程编排。
+     * notify：负责编排该能力的主流程。
      * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
      * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
      *
@@ -86,7 +84,7 @@ export const ExportJsonAction = defineComponent({
     }
 
     /**
-     * destroy Editor：负责该函数职责对应的主流程编排。
+     * destroy Editor：负责编排该能力的主流程。
      * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
      * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
      *
@@ -118,10 +116,8 @@ export const ExportJsonAction = defineComponent({
     }
 
     /**
-     * mountEditor：执行当前位置的功能逻辑。
-     * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:102`。
+     * mountEditor：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
-     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
      */
     async function mountEditor(): Promise<void> {
       await nextTick()
@@ -137,10 +133,8 @@ export const ExportJsonAction = defineComponent({
         statusBar: true,
         search: true,
         /**
-         * onEditable：执行当前位置的功能逻辑。
-         * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:115`。
+         * onEditable：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @returns 返回当前分支执行后的处理结果。
          */
         onEditable: () => false,
@@ -149,10 +143,8 @@ export const ExportJsonAction = defineComponent({
     }
 
     /**
-     * confirmDownload：执行当前位置的功能逻辑。
-     * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:120`。
+     * confirmDownload：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
-     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
      */
     async function confirmDownload(): Promise<void> {
       try {
@@ -220,10 +212,8 @@ export const ExportJsonAction = defineComponent({
      * @returns ?????????????
      */
     const /**
-           * renderPreviewModal：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:178`。
+           * renderPreviewModal：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @returns 返回当前分支执行后的处理结果。
            */
       renderPreviewModal = (): VNode => {
@@ -235,10 +225,8 @@ export const ExportJsonAction = defineComponent({
          * @param el ?? el ????????????
          */
         const /**
-               * editorHostRef：执行当前位置的功能逻辑。
-               * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:179`。
+               * editorHostRef：处理当前分支的交互与状态同步。
                * 功能：处理参数消化、状态变更与调用链行为同步。
-               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                * @param el 参数 el 为当前功能所需的输入信息。
                */
           editorHostRef: VNodeRef = (el) => {
@@ -260,10 +248,8 @@ export const ExportJsonAction = defineComponent({
           'width': 960,
           'destroyOnClose': true,
           /**
-           * onUpdate:modelValue：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:197`。
+           * onUpdate:modelValue：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @param value 参数 value 为输入值，用于驱动后续逻辑。
            */
           'onUpdate:modelValue': (value: boolean) => {
@@ -271,10 +257,8 @@ export const ExportJsonAction = defineComponent({
           },
         }, {
           /**
-           * default：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:201`。
+           * default：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @returns 返回当前分支执行后的处理结果。
            */
           default: () => [
@@ -289,38 +273,28 @@ export const ExportJsonAction = defineComponent({
             errorView,
           ],
           /**
-           * footer：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:212`。
+           * footer：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @returns 返回当前分支执行后的处理结果。
            */
           footer: () => [
             h(ElButton, { /**
-                           * onClick：执行当前位置的功能逻辑。
-                           * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:213`。
+                           * onClick：处理当前分支的交互与状态同步。
                            * 功能：处理参数消化、状态变更与调用链行为同步。
-                           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                            */
               /**
-               * onClick：执行当前位置的功能逻辑。
-               * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:281`。
+               * onClick：处理当前分支的交互与状态同步。
                * 功能：处理参数消化、状态变更与调用链行为同步。
-               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                */
               onClick: () => { open.value = false },
             }, () => props.cancelText),
             h(ElButton, { type: 'primary', /**
-                                            * onClick：执行当前位置的功能逻辑。
-                                            * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:214`。
+                                            * onClick：处理当前分支的交互与状态同步。
                                             * 功能：处理参数消化、状态变更与调用链行为同步。
-                                            * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                                             */
               /**
-               * onClick：执行当前位置的功能逻辑。
-               * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:288`。
+               * onClick：处理当前分支的交互与状态同步。
                * 功能：处理参数消化、状态变更与调用链行为同步。
-               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                */
               onClick: () => { void confirmDownload() } }, () => props.confirmText),
           ],
@@ -329,16 +303,12 @@ export const ExportJsonAction = defineComponent({
 
     return () => h('div', null, [
       h(ElButton, { type: 'primary', /**
-                                      * onClick：执行当前位置的功能逻辑。
-                                      * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:220`。
+                                      * onClick：处理当前分支的交互与状态同步。
                                       * 功能：处理参数消化、状态变更与调用链行为同步。
-                                      * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                                       */
         /**
-         * onClick：执行当前位置的功能逻辑。
-         * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:300`。
+         * onClick：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          */
         onClick: () => { open.value = true } }, () => props.buttonText),
       renderPreviewModal(),

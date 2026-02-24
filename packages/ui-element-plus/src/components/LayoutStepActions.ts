@@ -13,10 +13,8 @@ export const LayoutStepActions = defineComponent({
   },
   emits: ['prev', 'next'],
   /**
-   * setup：执行当前位置的功能逻辑。
-   * 定位：`packages/ui-element-plus/src/components/LayoutStepActions.ts:15`。
+   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
    */
@@ -24,17 +22,13 @@ export const LayoutStepActions = defineComponent({
     return () => h('div', { style: 'display: flex; justify-content: space-between; margin-top: 16px' }, [
       h('div', {}, props.current > 0
         ? h(ButtonComponent, { /**
-                                * onClick：执行当前位置的功能逻辑。
-                                * 定位：`packages/ui-element-plus/src/components/LayoutStepActions.ts:18`。
+                                * onClick：处理当前分支的交互与状态同步。
                                 * 功能：处理参数消化、状态变更与调用链行为同步。
-                                * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                                 * @returns 返回当前分支执行后的处理结果。
                                 */
             /**
-             * onClick：执行当前位置的功能逻辑。
-             * 定位：`packages/ui-element-plus/src/components/LayoutStepActions.ts:33`。
+             * onClick：处理当前分支的交互与状态同步。
              * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
              * @returns 返回当前分支执行后的处理结果。
              */
             onClick: () => emit('prev'),
@@ -42,17 +36,13 @@ export const LayoutStepActions = defineComponent({
         : undefined),
       props.current < props.total - 1
         ? h(ButtonComponent, { type: 'primary', loading: props.loading, /**
-                                                                         * onClick：执行当前位置的功能逻辑。
-                                                                         * 定位：`packages/ui-element-plus/src/components/LayoutStepActions.ts:21`。
+                                                                         * onClick：处理当前分支的交互与状态同步。
                                                                          * 功能：处理参数消化、状态变更与调用链行为同步。
-                                                                         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                                                                          * @returns 返回当前分支执行后的处理结果。
                                                                          */
             /**
-             * onClick：执行当前位置的功能逻辑。
-             * 定位：`packages/ui-element-plus/src/components/LayoutStepActions.ts:43`。
+             * onClick：处理当前分支的交互与状态同步。
              * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
              * @returns 返回当前分支执行后的处理结果。
              */
             onClick: () => emit('next') }, () => '下一步')

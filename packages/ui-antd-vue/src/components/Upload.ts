@@ -22,10 +22,8 @@ export const Upload = defineComponent({
   props: {
     modelValue: { type: Array as PropType<FileItem[]>,
       /**
-       * default：执行当前位置的功能处理逻辑。
-       * 定位：`packages/ui-antd-vue/src/components/Upload.ts:19`。
+       * default：处理当前分支的交互与状态同步。
        * 功能：完成参数消化、业务分支处理及上下游结果传递。
-       * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
        * @returns 返回当前分支执行后的结果。
        */
       default: () => [] },
@@ -38,10 +36,8 @@ export const Upload = defineComponent({
   emits: ['update:modelValue'],
 
   /**
-   * setup：执行当前位置的功能处理逻辑。
-   * 定位：`packages/ui-antd-vue/src/components/Upload.ts:28`。
+   * setup：处理当前分支的交互与状态同步。
    * 功能：完成参数消化、业务分支处理及上下游结果传递。
-   * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
    * @param props 参数 props 为当前逻辑所需的输入信息。
    * @returns 返回当前分支执行后的结果。
    */
@@ -55,10 +51,8 @@ export const Upload = defineComponent({
       'disabled': props.disabled,
 
       /**
-       * onUpdate:fileList：执行当前位置的功能处理逻辑。
-       * 定位：`packages/ui-antd-vue/src/components/Upload.ts:37`。
+       * onUpdate:fileList：处理当前分支的交互与状态同步。
        * 功能：完成参数消化、业务分支处理及上下游结果传递。
-       * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
        * @param list 参数 list 为当前逻辑所需的输入信息。
        * @returns 返回当前分支执行后的结果。
        */

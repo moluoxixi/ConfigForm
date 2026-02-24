@@ -339,7 +339,7 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
    * 用户输入
    *
    * 由 UI 组件的 onChange 回调调用。
-   * 完整流程：parse → 写入 values → 通知字段回调 → 通知表单 → 触发 change 验证。
+   * 完整步骤：parse → 写入 values → 通知字段回调 → 通知表单 → 触发 change 验证。
    *
    * 与 setValue 的区别：
    * - onInput 触发 parse 处理
@@ -457,12 +457,22 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
         path: this.path,
         label: this.label || this.name,
         /**
-         * getFieldValue：执行当前位置的功能逻辑。
-         * @param p 参数 p 为当前功能所需的输入信息。
+         * 供规则函数按路径读取任意字段值。
+         *
+         * 典型场景是“确认密码 = 密码”这类跨字段校验，
+         * 规则内部可以通过该回调读取目标字段最新值。
+         *
+         * @param p 目标字段路径。
+         * @returns 对应路径上的当前值。
          */
         getFieldValue: (p: string) => this.form.getFieldValue(p),
         /**
-         * getValues：执行当前位置的功能逻辑。
+         * 供规则函数读取整份表单值快照。
+         *
+         * 适用于需要联合多个字段做业务校验的场景，
+         * 例如“开始时间必须早于结束时间且同一天内”。
+         *
+         * @returns 当前表单的 values 对象引用。
          */
         getValues: () => this.form.values as Record<string, unknown>,
       }, trigger, signal)

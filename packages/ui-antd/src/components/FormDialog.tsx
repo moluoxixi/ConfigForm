@@ -222,10 +222,8 @@ function openFormDialog<Values extends Record<string, unknown> = Record<string, 
        * @param values ?? values ????????????
        */
       const /**
-             * handleSubmit：执行当前位置的功能逻辑。
-             * 定位：`packages/ui-antd/src/components/FormDialog.tsx:212`。
+             * handleSubmit：处理当前分支的交互与状态同步。
              * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
              * @param values 参数 values 为当前功能所需的输入信息。
              */
         handleSubmit = async (values: Values): Promise<void> => {
@@ -242,10 +240,8 @@ function openFormDialog<Values extends Record<string, unknown> = Record<string, 
        * ??????????????????????????
        */
       const /**
-             * handleCancel：执行当前位置的功能逻辑。
-             * 定位：`packages/ui-antd/src/components/FormDialog.tsx:219`。
+             * handleCancel：处理当前分支的交互与状态同步。
              * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
              */
         handleCancel = (): void => {
           setOpen(false)

@@ -4,7 +4,7 @@ import { ArrayBase, observer, RecursionField, useField } from '@moluoxixi/react'
 import { Collapse } from 'antd'
 
 /**
- * Array Collapse Props：类型接口定义。
+ * Array Collapse Props：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/ui-antd/src/components/ArrayCollapse.tsx`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -14,7 +14,7 @@ export interface ArrayCollapseProps {
 }
 
 /**
- * Array Collapse：变量或常量声明。
+ * Array Collapse：定义该模块复用的常量配置。
  * 所属模块：`packages/ui-antd/src/components/ArrayCollapse.tsx`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

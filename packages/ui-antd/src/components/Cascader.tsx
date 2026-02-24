@@ -4,14 +4,14 @@ import type { ReactElement } from 'react'
 import { Cascader as ACascader } from 'antd'
 
 /**
- * Cascader Value：类型别名定义。
+ * Cascader Value：描述该模块使用的类型别名语义。
  * 所属模块：`packages/ui-antd/src/components/Cascader.tsx`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 type CascaderValue = Array<string | number | null>
 
 /**
- * Cf Cascader Props：类型接口定义。
+ * Cf Cascader Props：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/ui-antd/src/components/Cascader.tsx`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -45,7 +45,7 @@ function toCascaderOptions(items: DataSourceItem[]): DefaultOptionType[] {
 }
 
 /**
- * Cascader：当前功能模块的核心执行单元。
+ * Cascader：封装该模块的核心渲染与交互逻辑。
  * 所属模块：`packages/ui-antd/src/components/Cascader.tsx`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。

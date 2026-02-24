@@ -34,12 +34,12 @@ export const DesignerPropertiesPane = defineComponent({
     selectedSection: { type: Object as PropType<DesignerSectionNode | null>, default: null },
     enumDraft: { type: String, default: '' },
     fieldComponentOptions: { type: Array as PropType<string[]>, /**
-                                                                 * default：执行当前位置的功能逻辑。
+                                                                 * default：处理当前分支的交互与状态同步。
                                                                  * 功能：处理参数消化、状态变更与调用链行为同步。
                                                                  * @returns 返回当前分支执行后的处理结果。
                                                                  */
       /**
-       * default：执行当前位置的功能逻辑。
+       * default：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
        * @returns 返回当前分支执行后的处理结果。
        */
@@ -51,7 +51,7 @@ export const DesignerPropertiesPane = defineComponent({
     componentPropsByComponent: {
       type: Object as PropType<Record<string, Record<string, unknown>>>,
       /**
-       * default：执行当前位置的功能逻辑。
+       * default：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
        * @returns 返回当前分支执行后的处理结果。
        */
@@ -79,7 +79,7 @@ export const DesignerPropertiesPane = defineComponent({
     },
   },
   /**
-   * setup：执行当前位置的功能逻辑。
+   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
@@ -120,7 +120,7 @@ export const DesignerPropertiesPane = defineComponent({
     }
 
     /**
-     * read Editable Prop Value：负责该函数职责对应的主流程编排。
+     * read Editable Prop Value：负责编排该能力的主流程。
      * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
      * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
      *
@@ -151,7 +151,7 @@ export const DesignerPropertiesPane = defineComponent({
       /**
        */
       const /**
-             * updateProp：执行当前位置的功能逻辑。
+             * updateProp：处理当前分支的交互与状态同步。
              * 功能：处理参数消化、状态变更与调用链行为同步。
              * @param value 参数 value 为输入值，用于驱动后续逻辑。
              */
@@ -174,7 +174,7 @@ export const DesignerPropertiesPane = defineComponent({
               checked: Boolean(propValue),
               disabled,
               /**
-               * onChange：执行当前位置的功能逻辑。
+               * onChange：处理当前分支的交互与状态同步。
                * 功能：处理参数消化、状态变更与调用链行为同步。
                * @param event 参数 event 为事件对象，用于提供交互上下文。
                */
@@ -192,7 +192,7 @@ export const DesignerPropertiesPane = defineComponent({
               value: typeof propValue === 'string' ? propValue : '',
               disabled,
               /**
-               * onInput：执行当前位置的功能逻辑。
+               * onInput：处理当前分支的交互与状态同步。
                * 功能：处理参数消化、状态变更与调用链行为同步。
                * @param event 参数 event 为事件对象，用于提供交互上下文。
                */
@@ -223,7 +223,7 @@ export const DesignerPropertiesPane = defineComponent({
               value: typeof propValue === 'number' ? String(propValue) : '',
               disabled,
               /**
-               * onInput：执行当前位置的功能逻辑。
+               * onInput：处理当前分支的交互与状态同步。
                * 功能：处理参数消化、状态变更与调用链行为同步。
                * @param event 参数 event 为事件对象，用于提供交互上下文。
                */
@@ -256,7 +256,7 @@ export const DesignerPropertiesPane = defineComponent({
               value: typeof propValue === 'string' ? propValue : '',
               disabled,
               /**
-               * onChange：执行当前位置的功能逻辑。
+               * onChange：处理当前分支的交互与状态同步。
                * 功能：处理参数消化、状态变更与调用链行为同步。
                * @param event 参数 event 为事件对象，用于提供交互上下文。
                */
@@ -288,7 +288,7 @@ export const DesignerPropertiesPane = defineComponent({
               value: typeof propValue === 'string' ? propValue : '',
               disabled,
               /**
-               * onInput：执行当前位置的功能逻辑。
+               * onInput：处理当前分支的交互与状态同步。
                * 功能：处理参数消化、状态变更与调用链行为同步。
                * @param event 参数 event 为事件对象，用于提供交互上下文。
                */
@@ -341,7 +341,7 @@ export const DesignerPropertiesPane = defineComponent({
     /**
      */
     const /**
-           * renderHeader：执行当前位置的功能逻辑。
+           * renderHeader：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
            * @returns 返回当前分支执行后的处理结果。
            */
@@ -363,7 +363,7 @@ export const DesignerPropertiesPane = defineComponent({
     /**
      */
     const /**
-           * renderBody：执行当前位置的功能逻辑。
+           * renderBody：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
            * @returns 返回当前分支执行后的处理结果。
            */
@@ -379,7 +379,7 @@ export const DesignerPropertiesPane = defineComponent({
                     disabled: props.readonly,
                     style: inputStyle,
                     /**
-                     * onInput：执行当前位置的功能逻辑。
+                     * onInput：处理当前分支的交互与状态同步。
                      * 功能：处理参数消化、状态变更与调用链行为同步。
                      * @param event 参数 event 为事件对象，用于提供交互上下文。
                      */
@@ -396,7 +396,7 @@ export const DesignerPropertiesPane = defineComponent({
                     disabled: props.readonly,
                     style: inputStyle,
                     /**
-                     * onInput：执行当前位置的功能逻辑。
+                     * onInput：处理当前分支的交互与状态同步。
                      * 功能：处理参数消化、状态变更与调用链行为同步。
                      * @param event 参数 event 为事件对象，用于提供交互上下文。
                      */
@@ -416,7 +416,7 @@ export const DesignerPropertiesPane = defineComponent({
                     disabled: props.readonly,
                     style: inputStyle,
                     /**
-                     * onChange：执行当前位置的功能逻辑。
+                     * onChange：处理当前分支的交互与状态同步。
                      * 功能：处理参数消化、状态变更与调用链行为同步。
                      * @param event 参数 event 为事件对象，用于提供交互上下文。
                      */
@@ -452,7 +452,7 @@ export const DesignerPropertiesPane = defineComponent({
                     disabled: props.readonly,
                     style: inputStyle,
                     /**
-                     * onChange：执行当前位置的功能逻辑。
+                     * onChange：处理当前分支的交互与状态同步。
                      * 功能：处理参数消化、状态变更与调用链行为同步。
                      * @param event 参数 event 为事件对象，用于提供交互上下文。
                      */
@@ -478,7 +478,7 @@ export const DesignerPropertiesPane = defineComponent({
                     checked: props.selectedField.required,
                     disabled: props.readonly,
                     /**
-                     * onChange：执行当前位置的功能逻辑。
+                     * onChange：处理当前分支的交互与状态同步。
                      * 功能：处理参数消化、状态变更与调用链行为同步。
                      * @param event 参数 event 为事件对象，用于提供交互上下文。
                      */
@@ -511,7 +511,7 @@ export const DesignerPropertiesPane = defineComponent({
                         disabled: props.readonly,
                         style: { ...inputStyle, minHeight: '96px', resize: 'vertical', fontFamily: 'Consolas, monospace' },
                         /**
-                         * onInput：执行当前位置的功能逻辑。
+                         * onInput：处理当前分支的交互与状态同步。
                          * 功能：处理参数消化、状态变更与调用链行为同步。
                          * @param event 参数 event 为事件对象，用于提供交互上下文。
                          */
@@ -548,7 +548,7 @@ export const DesignerPropertiesPane = defineComponent({
                     disabled: props.readonly,
                     style: inputStyle,
                     /**
-                     * onInput：执行当前位置的功能逻辑。
+                     * onInput：处理当前分支的交互与状态同步。
                      * 功能：处理参数消化、状态变更与调用链行为同步。
                      * @param event 参数 event 为事件对象，用于提供交互上下文。
                      */
@@ -565,7 +565,7 @@ export const DesignerPropertiesPane = defineComponent({
                     disabled: props.readonly,
                     style: inputStyle,
                     /**
-                     * onInput：执行当前位置的功能逻辑。
+                     * onInput：处理当前分支的交互与状态同步。
                      * 功能：处理参数消化、状态变更与调用链行为同步。
                      * @param event 参数 event 为事件对象，用于提供交互上下文。
                      */
@@ -587,7 +587,7 @@ export const DesignerPropertiesPane = defineComponent({
                         ? h('button', {
                             type: 'button',
                             /**
-                             * onClick：执行当前位置的功能逻辑。
+                             * onClick：处理当前分支的交互与状态同步。
                              * 功能：处理参数消化、状态变更与调用链行为同步。
                              */
                             onClick: () => {
@@ -623,7 +623,7 @@ export const DesignerPropertiesPane = defineComponent({
                           disabled: props.readonly,
                           style: inputStyle,
                           /**
-                           * onInput：执行当前位置的功能逻辑。
+                           * onInput：处理当前分支的交互与状态同步。
                            * 功能：处理参数消化、状态变更与调用链行为同步。
                            * @param event 参数 event 为事件对象，用于提供交互上下文。
                            */
@@ -640,7 +640,7 @@ export const DesignerPropertiesPane = defineComponent({
                           disabled: props.readonly,
                           style: inputStyle,
                           /**
-                           * onInput：执行当前位置的功能逻辑。
+                           * onInput：处理当前分支的交互与状态同步。
                            * 功能：处理参数消化、状态变更与调用链行为同步。
                            * @param event 参数 event 为事件对象，用于提供交互上下文。
                            */
@@ -654,7 +654,7 @@ export const DesignerPropertiesPane = defineComponent({
                         ? h('button', {
                             type: 'button',
                             /**
-                             * onClick：执行当前位置的功能逻辑。
+                             * onClick：处理当前分支的交互与状态同步。
                              * 功能：处理参数消化、状态变更与调用链行为同步。
                              */
                             onClick: () => {
@@ -687,7 +687,7 @@ export const DesignerPropertiesPane = defineComponent({
                   disabled: props.readonly,
                   style: inputStyle,
                   /**
-                   * onInput：执行当前位置的功能逻辑。
+                   * onInput：处理当前分支的交互与状态同步。
                    * 功能：处理参数消化、状态变更与调用链行为同步。
                    * @param event 参数 event 为事件对象，用于提供交互上下文。
                    */
@@ -704,7 +704,7 @@ export const DesignerPropertiesPane = defineComponent({
                   disabled: props.readonly,
                   style: inputStyle,
                   /**
-                   * onInput：执行当前位置的功能逻辑。
+                   * onInput：处理当前分支的交互与状态同步。
                    * 功能：处理参数消化、状态变更与调用链行为同步。
                    * @param event 参数 event 为事件对象，用于提供交互上下文。
                    */
@@ -735,7 +735,7 @@ export const DesignerPropertiesPane = defineComponent({
     /**
      */
     const /**
-           * renderFooter：执行当前位置的功能逻辑。
+           * renderFooter：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
            * @returns 返回当前分支执行后的处理结果。
            */

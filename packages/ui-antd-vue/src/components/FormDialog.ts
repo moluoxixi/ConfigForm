@@ -33,10 +33,8 @@ export const FormDialog = defineComponent({
   },
   emits: ['update:open', 'submit', 'submitFailed', 'cancel'],
   /**
-   * setup：执行当前位置的功能逻辑。
-   * 定位：`packages/ui-antd-vue/src/components/FormDialog.ts:35`。
+   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
    */
@@ -56,10 +54,8 @@ export const FormDialog = defineComponent({
      * @returns ?????????????
      */
     const /**
-           * getForm：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-antd-vue/src/components/FormDialog.ts:43`。
+           * getForm：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @returns 返回当前分支执行后的处理结果。
            */
       getForm = (): FormInstance => props.form ?? internalForm
@@ -71,10 +67,8 @@ export const FormDialog = defineComponent({
      * ??????????????????????????
      */
     const /**
-           * handleOk：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-antd-vue/src/components/FormDialog.ts:45`。
+           * handleOk：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            */
       handleOk = async (): Promise<void> => {
         const form = getForm()
@@ -102,10 +96,8 @@ export const FormDialog = defineComponent({
      * ??????????????????????????
      */
     const /**
-           * handleCancel：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-antd-vue/src/components/FormDialog.ts:64`。
+           * handleCancel：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            */
       handleCancel = (): void => {
         emit('update:open', false)
@@ -128,10 +120,8 @@ export const FormDialog = defineComponent({
         onCancel: handleCancel,
       }, {
         /**
-         * default：执行当前位置的功能逻辑。
-         * 定位：`packages/ui-antd-vue/src/components/FormDialog.ts:84`。
+         * default：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @returns 返回当前分支执行后的处理结果。
          */
         default: () => h(FormProvider, {
@@ -186,10 +176,8 @@ FormDialog.open = function openFormDialog(
      * ??????????????????????????
      */
     const /**
-           * destroy：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-antd-vue/src/components/FormDialog.ts:124`。
+           * destroy：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            */
       destroy = (): void => {
         setTimeout(() => {
@@ -207,10 +195,8 @@ FormDialog.open = function openFormDialog(
 
     const DialogWrapper = defineComponent({
       /**
-       * setup：执行当前位置的功能逻辑。
-       * 定位：`packages/ui-antd-vue/src/components/FormDialog.ts:139`。
+       * setup：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
-       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
        * @returns 返回当前分支执行后的处理结果。
        */
       setup() {
@@ -224,10 +210,8 @@ FormDialog.open = function openFormDialog(
          * @param values ?? values ????????????
          */
         const /**
-               * handleSubmit：执行当前位置的功能逻辑。
-               * 定位：`packages/ui-antd-vue/src/components/FormDialog.ts:142`。
+               * handleSubmit：处理当前分支的交互与状态同步。
                * 功能：处理参数消化、状态变更与调用链行为同步。
-               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                * @param values 参数 values 为当前功能所需的输入信息。
                */
           handleSubmit = async (values: Record<string, unknown>): Promise<void> => {
@@ -244,10 +228,8 @@ FormDialog.open = function openFormDialog(
          * ??????????????????????????
          */
         const /**
-               * handleCancel：执行当前位置的功能逻辑。
-               * 定位：`packages/ui-antd-vue/src/components/FormDialog.ts:149`。
+               * handleCancel：处理当前分支的交互与状态同步。
                * 功能：处理参数消化、状态变更与调用链行为同步。
-               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                */
           handleCancel = (): void => {
             open.value = false

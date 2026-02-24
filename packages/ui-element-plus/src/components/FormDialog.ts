@@ -31,10 +31,8 @@ export const FormDialog = defineComponent({
   },
   emits: ['update:modelValue', 'submit', 'submitFailed', 'cancel'],
   /**
-   * setup：执行当前位置的功能逻辑。
-   * 定位：`packages/ui-element-plus/src/components/FormDialog.ts:33`。
+   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
    */
@@ -54,10 +52,8 @@ export const FormDialog = defineComponent({
      * @returns ?????????????
      */
     const /**
-           * getForm：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-element-plus/src/components/FormDialog.ts:41`。
+           * getForm：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @returns 返回当前分支执行后的处理结果。
            */
       getForm = (): FormInstance => props.form ?? internalForm
@@ -69,10 +65,8 @@ export const FormDialog = defineComponent({
      * ??????????????????????????
      */
     const /**
-           * handleOk：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-element-plus/src/components/FormDialog.ts:43`。
+           * handleOk：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            */
       handleOk = async (): Promise<void> => {
         const form = getForm()
@@ -100,10 +94,8 @@ export const FormDialog = defineComponent({
      * ??????????????????????????
      */
     const /**
-           * handleClose：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-element-plus/src/components/FormDialog.ts:62`。
+           * handleClose：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            */
       handleClose = (): void => {
         emit('update:modelValue', false)
@@ -120,10 +112,8 @@ export const FormDialog = defineComponent({
         'destroyOnClose': props.destroyOnClose,
         'closeOnClickModal': false,
         /**
-         * onUpdate:modelValue：执行当前位置的功能逻辑。
-         * 定位：`packages/ui-element-plus/src/components/FormDialog.ts:76`。
+         * onUpdate:modelValue：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param val 参数 val 为输入值，用于驱动后续逻辑。
          */
         'onUpdate:modelValue': (val: boolean) => {
@@ -132,10 +122,8 @@ export const FormDialog = defineComponent({
         },
       }, {
         /**
-         * default：执行当前位置的功能逻辑。
-         * 定位：`packages/ui-element-plus/src/components/FormDialog.ts:81`。
+         * default：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @returns 返回当前分支执行后的处理结果。
          */
         default: () => h(FormProvider, {
@@ -147,10 +135,8 @@ export const FormDialog = defineComponent({
           slots.default?.(),
         ]),
         /**
-         * footer：执行当前位置的功能逻辑。
-         * 定位：`packages/ui-element-plus/src/components/FormDialog.ts:89`。
+         * footer：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @returns 返回当前分支执行后的处理结果。
          */
         footer: () => h(ElSpace, null, () => [
@@ -196,10 +182,8 @@ FormDialog.open = function openFormDialog(
      * ??????????????????????????
      */
     const /**
-           * destroy：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-element-plus/src/components/FormDialog.ts:120`。
+           * destroy：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            */
       destroy = (): void => {
         setTimeout(() => {
@@ -217,10 +201,8 @@ FormDialog.open = function openFormDialog(
 
     const DialogWrapper = defineComponent({
       /**
-       * setup：执行当前位置的功能逻辑。
-       * 定位：`packages/ui-element-plus/src/components/FormDialog.ts:135`。
+       * setup：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
-       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
        * @returns 返回当前分支执行后的处理结果。
        */
       setup() {
@@ -234,10 +216,8 @@ FormDialog.open = function openFormDialog(
          * @param values ?? values ????????????
          */
         const /**
-               * handleSubmit：执行当前位置的功能逻辑。
-               * 定位：`packages/ui-element-plus/src/components/FormDialog.ts:138`。
+               * handleSubmit：处理当前分支的交互与状态同步。
                * 功能：处理参数消化、状态变更与调用链行为同步。
-               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                * @param values 参数 values 为当前功能所需的输入信息。
                */
           handleSubmit = async (values: Record<string, unknown>): Promise<void> => {
@@ -254,10 +234,8 @@ FormDialog.open = function openFormDialog(
          * ??????????????????????????
          */
         const /**
-               * handleCancel：执行当前位置的功能逻辑。
-               * 定位：`packages/ui-element-plus/src/components/FormDialog.ts:145`。
+               * handleCancel：处理当前分支的交互与状态同步。
                * 功能：处理参数消化、状态变更与调用链行为同步。
-               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                */
           handleCancel = (): void => {
             open.value = false

@@ -16,7 +16,7 @@ const DATA_TYPE_OPTIONS = [
 ]
 
 /**
- * INPUT MODE OPTIONS：变量或常量声明。
+ * INPUT MODE OPTIONS：定义该模块复用的常量配置。
  * 所属模块：`playground/shared/src/02-linkage/ComponentSwitchForm.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -27,7 +27,7 @@ const INPUT_MODE_OPTIONS = [
 ]
 
 /**
- * PRESET OPTIONS：变量或常量声明。
+ * PRESET OPTIONS：定义该模块复用的常量配置。
  * 所属模块：`playground/shared/src/02-linkage/ComponentSwitchForm.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -38,7 +38,7 @@ const PRESET_OPTIONS = [
 ]
 
 /**
- * config：变量或常量声明。
+ * config：定义该模块复用的常量配置。
  * 所属模块：`playground/shared/src/02-linkage/ComponentSwitchForm.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

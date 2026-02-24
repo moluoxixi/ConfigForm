@@ -15,7 +15,7 @@ const wrapperStyle = {
 } as const
 
 /**
- * swatch Style：变量或常量声明。
+ * swatch Style：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/components/custom/PreviewColorPicker.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -29,7 +29,7 @@ const swatchStyle = computed(() => ({
 }))
 
 /**
- * text Style：变量或常量声明。
+ * text Style：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/components/custom/PreviewColorPicker.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

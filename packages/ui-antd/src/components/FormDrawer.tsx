@@ -165,10 +165,8 @@ const FormDrawerInner = observer(<Values extends Record<string, unknown> = Recor
 /* ======================== 命令式 API ======================== */
 
 /**
- * openFormDrawer：执行当前位置的功能逻辑。
- * 定位：`packages/ui-antd/src/components/FormDrawer.tsx:162`。
+ * openFormDrawer：处理当前分支的交互与状态同步。
  * 功能：处理参数消化、状态变更与调用链行为同步。
- * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
  * @param options 参数 options 为当前功能所需的输入信息。
  * @returns 返回当前分支执行后的处理结果。
  */
@@ -187,10 +185,8 @@ function openFormDrawer<Values extends Record<string, unknown> = Record<string, 
      * ??????????????????????????
      */
     const /**
-           * destroy：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-antd/src/components/FormDrawer.tsx:170`。
+           * destroy：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            */
       destroy = (): void => {
         setTimeout(() => {
@@ -214,10 +210,8 @@ function openFormDrawer<Values extends Record<string, unknown> = Record<string, 
      * @returns ?????????????
      */
     const /**
-           * DrawerWrapper：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-antd/src/components/FormDrawer.tsx:184`。
+           * DrawerWrapper：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @returns 返回当前分支执行后的处理结果。
            */
       DrawerWrapper = (): ReactElement => {
@@ -231,10 +225,8 @@ function openFormDrawer<Values extends Record<string, unknown> = Record<string, 
          * @param values ?? values ????????????
          */
         const /**
-               * handleSubmit：执行当前位置的功能逻辑。
-               * 定位：`packages/ui-antd/src/components/FormDrawer.tsx:187`。
+               * handleSubmit：处理当前分支的交互与状态同步。
                * 功能：处理参数消化、状态变更与调用链行为同步。
-               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                * @param values 参数 values 为当前功能所需的输入信息。
                */
           handleSubmit = async (values: Values): Promise<void> => {
@@ -251,10 +243,8 @@ function openFormDrawer<Values extends Record<string, unknown> = Record<string, 
          * ??????????????????????????
          */
         const /**
-               * handleCancel：执行当前位置的功能逻辑。
-               * 定位：`packages/ui-antd/src/components/FormDrawer.tsx:194`。
+               * handleCancel：处理当前分支的交互与状态同步。
                * 功能：处理参数消化、状态变更与调用链行为同步。
-               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                */
           handleCancel = (): void => {
             setOpen(false)

@@ -39,10 +39,8 @@ function resolvePrintTarget(target: FormPrintTarget | undefined): string | Eleme
 }
 
 /**
- * waitForPreviewRender：执行当前位置的功能逻辑。
- * 定位：`packages/plugin-print/src/plugin.ts:41`。
+ * waitForPreviewRender：处理当前分支的交互与状态同步。
  * 功能：处理参数消化、状态变更与调用链行为同步。
- * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
  */
 async function waitForPreviewRender(): Promise<void> {
   if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
@@ -57,7 +55,7 @@ async function waitForPreviewRender(): Promise<void> {
 }
 
 /**
- * to Export Data：负责该函数职责对应的主流程编排。
+ * to Export Data：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
@@ -69,7 +67,7 @@ function toExportData(values: Record<string, unknown>, excludePrefixes: string[]
 }
 
 /**
- * to Print Text：负责该函数职责对应的主流程编排。
+ * to Print Text：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
@@ -82,7 +80,7 @@ function toPrintText(values: Record<string, unknown>): string {
 }
 
 /**
- * print Plugin：负责该函数职责对应的主流程编排。
+ * print Plugin：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
@@ -92,10 +90,8 @@ export function printPlugin(config: FormPrintPluginConfig = {}): FormPlugin<Form
   return {
     name: PLUGIN_NAME,
     /**
-     * install：执行当前位置的功能逻辑。
-     * 定位：`packages/plugin-print/src/plugin.ts:88`。
+     * install：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
-     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
      * @param form 参数 form 为业务对象，用于读写状态与属性。
      * @returns 返回当前分支执行后的处理结果。
      */
@@ -106,10 +102,8 @@ export function printPlugin(config: FormPrintPluginConfig = {}): FormPlugin<Form
 
       const api: FormPrintPluginAPI = {
         /**
-         * print：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-print/src/plugin.ts:94`。
+         * print：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param options 参数 options 为当前功能所需的输入信息。
          */
         async print(options = {}) {
@@ -156,10 +150,8 @@ export function printPlugin(config: FormPrintPluginConfig = {}): FormPlugin<Form
       return {
         api,
         /**
-         * dispose：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-print/src/plugin.ts:137`。
+         * dispose：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          */
         dispose() {
           if (formWithPrint.print === api.print)

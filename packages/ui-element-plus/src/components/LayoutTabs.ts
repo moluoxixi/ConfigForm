@@ -18,10 +18,8 @@ const BadgeComponent = ElBadge as any
 export const LayoutTabs = defineComponent({
   name: 'CfLayoutTabs',
   /**
-   * setup：执行当前位置的功能逻辑。
-   * 定位：`packages/ui-element-plus/src/components/LayoutTabs.ts:20`。
+   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
    * @returns 返回当前分支执行后的处理结果。
    */
   setup() {
@@ -39,10 +37,8 @@ export const LayoutTabs = defineComponent({
      * @returns ?????????????
      */
     const /**
-           * getDataPath：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-element-plus/src/components/LayoutTabs.ts:26`。
+           * getDataPath：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @param path 参数 path 为当前功能所需的输入信息。
            * @returns 返回当前分支执行后的处理结果。
            */
@@ -71,10 +67,8 @@ export const LayoutTabs = defineComponent({
      * @param output ?? output ????????????
      */
     const /**
-           * collectDataPaths：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-element-plus/src/components/LayoutTabs.ts:41`。
+           * collectDataPaths：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @param schema 参数 schema 为当前功能所需的输入信息。
            * @param parentPath 参数 parentPath 为当前功能所需的输入信息。
            * @param output 参数 output 为当前功能所需的输入信息。
@@ -118,10 +112,8 @@ export const LayoutTabs = defineComponent({
      * @returns ?????????????
      */
     const /**
-           * getErrorCount：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-element-plus/src/components/LayoutTabs.ts:71`。
+           * getErrorCount：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @param itemName 参数 itemName 为当前功能所需的输入信息。
            * @returns 返回当前分支执行后的处理结果。
            */
@@ -150,10 +142,8 @@ export const LayoutTabs = defineComponent({
     return () => h(TabsComponent, {
       'modelValue': activeKey.value,
       /**
-       * onUpdate:modelValue：执行当前位置的功能逻辑。
-       * 定位：`packages/ui-element-plus/src/components/LayoutTabs.ts:95`。
+       * onUpdate:modelValue：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
-       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
        * @param k 参数 k 为当前功能所需的输入信息。
        */
       'onUpdate:modelValue': (k: unknown) => { activeKey.value = String(k ?? '') },
@@ -169,10 +159,8 @@ export const LayoutTabs = defineComponent({
 
       return h(TabPaneComponent, { key: item.name, name: item.name }, {
         /**
-         * default：执行当前位置的功能逻辑。
-         * 定位：`packages/ui-element-plus/src/components/LayoutTabs.ts:107`。
+         * default：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @returns 返回当前分支执行后的处理结果。
          */
         default: () => h(RecursionField, {
@@ -181,10 +169,8 @@ export const LayoutTabs = defineComponent({
           onlyRenderProperties: true,
         }),
         /**
-         * label：执行当前位置的功能逻辑。
-         * 定位：`packages/ui-element-plus/src/components/LayoutTabs.ts:112`。
+         * label：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @returns 返回当前分支执行后的处理结果。
          */
         label: () => tabLabel,

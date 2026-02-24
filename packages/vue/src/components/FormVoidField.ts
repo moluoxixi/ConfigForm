@@ -75,7 +75,7 @@ export const FormVoidField = defineComponent({
       }, {
         /* children 插槽：传递给 ReactiveField 作为容器组件的子内容 */
         /**
-         * children：执行当前位置的功能逻辑。
+         * children：处理当前分支的交互与状态同步。
          */
         children: () => slots.default?.(),
       })

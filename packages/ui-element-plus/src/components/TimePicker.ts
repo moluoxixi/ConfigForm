@@ -2,7 +2,7 @@ import { ElTimePicker } from 'element-plus'
 import { defineComponent, h } from 'vue'
 
 /**
- * Time Picker：变量或常量声明。
+ * Time Picker：定义该模块复用的常量配置。
  * 所属模块：`packages/ui-element-plus/src/components/TimePicker.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -17,7 +17,7 @@ export const TimePicker = defineComponent({
   },
   emits: ['update:modelValue', 'focus', 'blur'],
   /**
-   * setup：当前功能模块的核心执行单元。
+   * setup：封装该模块的核心渲染与交互逻辑。
    * 所属模块：`packages/ui-element-plus/src/components/TimePicker.ts`。
    * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
    * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。

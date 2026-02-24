@@ -132,11 +132,18 @@ export class DependencyGraph {
   }
 
   /**
-   * dfs：执行当前位置的功能逻辑。
-   * @param node 参数 node 为业务对象，用于读写状态与属性。
-   * @param visited 参数 visited 为当前功能所需的输入信息。
-   * @param recursionStack 参数 recursionStack 为当前功能所需的输入信息。
-   * @param path 参数 path 为当前功能所需的输入信息。
+   * 深度优先遍历图节点并检测回边（循环依赖）。
+   *
+   * 算法说明：
+   * 1. `visited` 记录“已经完整遍历过”的节点，避免重复搜索。
+   * 2. `recursionStack` 记录“当前递归链路上的节点”，用于识别回边。
+   * 3. 当再次遇到 `recursionStack` 中的节点时，说明形成环，立即截取并返回环路径。
+   *
+   * @param node 当前要访问的节点标识。
+   * @param visited 全局已访问集合。
+   * @param recursionStack 当前 DFS 递归栈集合。
+   * @param path 当前递归路径，用于构造可读的环路结果。
+   * @returns 命中循环时返回闭环路径；未命中时返回 null。
    */
   private dfs(
     node: string,

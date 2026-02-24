@@ -26,32 +26,24 @@ export const Transfer = defineComponent({
   name: 'CfTransfer',
   props: {
     modelValue: { type: Array as PropType<Array<string | number>>, /**
-                                                                    * default：执行当前位置的功能逻辑。
-                                                                    * 定位：`packages/ui-element-plus/src/components/Transfer.ts:28`。
+                                                                    * default：处理当前分支的交互与状态同步。
                                                                     * 功能：处理参数消化、状态变更与调用链行为同步。
-                                                                    * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                                                                     * @returns 返回当前分支执行后的处理结果。
                                                                     */
       /**
-       * default：执行当前位置的功能逻辑。
-       * 定位：`packages/ui-element-plus/src/components/Transfer.ts:35`。
+       * default：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
-       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
        * @returns 返回当前分支执行后的处理结果。
        */
       default: () => [] },
     dataSource: { type: Array as PropType<DataSourceItem[]>, /**
-                                                              * default：执行当前位置的功能逻辑。
-                                                              * 定位：`packages/ui-element-plus/src/components/Transfer.ts:29`。
+                                                              * default：处理当前分支的交互与状态同步。
                                                               * 功能：处理参数消化、状态变更与调用链行为同步。
-                                                              * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                                                               * @returns 返回当前分支执行后的处理结果。
                                                               */
       /**
-       * default：执行当前位置的功能逻辑。
-       * 定位：`packages/ui-element-plus/src/components/Transfer.ts:43`。
+       * default：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
-       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
        * @returns 返回当前分支执行后的处理结果。
        */
       default: () => [] },
@@ -63,43 +55,33 @@ export const Transfer = defineComponent({
     filterPlaceholder: { type: String, default: '请输入搜索内容' },
     /** 标题（[左标题, 右标题]） */
     titles: { type: Array as unknown as PropType<[string, string]>, /**
-                                                                     * default：执行当前位置的功能逻辑。
-                                                                     * 定位：`packages/ui-element-plus/src/components/Transfer.ts:37`。
+                                                                     * default：处理当前分支的交互与状态同步。
                                                                      * 功能：处理参数消化、状态变更与调用链行为同步。
-                                                                     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                                                                      * @returns 返回当前分支执行后的处理结果。
                                                                      */
       /**
-       * default：执行当前位置的功能逻辑。
-       * 定位：`packages/ui-element-plus/src/components/Transfer.ts:58`。
+       * default：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
-       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
        * @returns 返回当前分支执行后的处理结果。
        */
       default: () => ['待选', '已选'] as [string, string] },
     /** 按钮文案 */
     buttonTexts: { type: Array as unknown as PropType<[string, string]>, /**
-                                                                          * default：执行当前位置的功能逻辑。
-                                                                          * 定位：`packages/ui-element-plus/src/components/Transfer.ts:39`。
+                                                                          * default：处理当前分支的交互与状态同步。
                                                                           * 功能：处理参数消化、状态变更与调用链行为同步。
-                                                                          * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                                                                           * @returns 返回当前分支执行后的处理结果。
                                                                           */
       /**
-       * default：执行当前位置的功能逻辑。
-       * 定位：`packages/ui-element-plus/src/components/Transfer.ts:67`。
+       * default：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
-       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
        * @returns 返回当前分支执行后的处理结果。
        */
       default: () => ['', ''] as [string, string] },
   },
   emits: ['update:modelValue'],
   /**
-   * setup：执行当前位置的功能逻辑。
-   * 定位：`packages/ui-element-plus/src/components/Transfer.ts:42`。
+   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
    */
@@ -136,10 +118,8 @@ export const Transfer = defineComponent({
         'buttonTexts': props.buttonTexts as [string, string],
         'disabled': props.disabled,
         /**
-         * onUpdate:modelValue：执行当前位置的功能逻辑。
-         * 定位：`packages/ui-element-plus/src/components/Transfer.ts:74`。
+         * onUpdate:modelValue：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param v 参数 v 为当前功能所需的输入信息。
          * @returns 返回当前分支执行后的处理结果。
          */

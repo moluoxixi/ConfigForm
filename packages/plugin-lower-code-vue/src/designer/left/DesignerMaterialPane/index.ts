@@ -28,23 +28,25 @@ export const DesignerMaterialPane = defineComponent({
     },
   },
   /**
-   * setup：执行当前位置的功能逻辑。
-   * 功能：处理参数消化、状态变更与调用链行为同步。
-   * @param props 参数 props 为当前功能所需的输入信息。
-   * @returns 返回当前分支执行后的处理结果。
+   * 物料面板主 setup。
+   *
+   * 负责关键词过滤、物料序列化、ConfigForm schema 组装，
+   * 以及左侧面板 DOM 宿主节点回传（供拖拽挂载）。
+   *
+   * @param props 物料面板入参。
+   * @returns 物料面板渲染函数。
    */
   setup(props) {
     const keyword = ref('')
 
     const normalizedKeyword = computed(() => keyword.value.trim().toLowerCase())
     /**
+     * 按关键词过滤物料项（匹配标题与描述）。
+     *
+     * @param item 物料项。
+     * @returns 命中关键词返回 true。
      */
-    const /**
-           * filterByKeyword：执行当前位置的功能逻辑。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * @param item 参数 item 为业务对象，用于读写状态与属性。
-           * @returns 返回当前分支执行后的处理结果。
-           */
+    const
       filterByKeyword = (item: MaterialItem): boolean => {
         if (!normalizedKeyword.value)
           return true
@@ -63,13 +65,12 @@ export const DesignerMaterialPane = defineComponent({
       filteredComponentMaterials.value.length + filteredLayoutMaterials.value.length)
 
     /**
+     * 序列化物料数据到 DOM 属性，供拖拽跨容器回退解析。
+     *
+     * @param item 物料项。
+     * @returns JSON 字符串，失败返回空串。
      */
-    const /**
-           * serializeMaterial：执行当前位置的功能逻辑。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * @param item 参数 item 为业务对象，用于读写状态与属性。
-           * @returns 返回当前分支执行后的处理结果。
-           */
+    const
       serializeMaterial = (item: MaterialItem): string => {
         try {
           return JSON.stringify(item)
@@ -88,11 +89,7 @@ export const DesignerMaterialPane = defineComponent({
      */
     function renderMaskedMaterialPreview(item: MaterialItem): VNodeChild {
       return h(DesignerMaterialMaskDecorator, undefined, {
-        /**
-         * default：执行当前位置的功能逻辑。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * @returns 返回当前分支执行后的处理结果。
-         */
+        /** 物料预览主体渲染槽位。 */
         default: () => [
           h(DesignerMaterialPreviewRenderer, {
             item,
@@ -155,11 +152,7 @@ export const DesignerMaterialPane = defineComponent({
           component: 'DesignerMaterialToolbarRenderer',
           componentProps: {
             keyword: keyword.value,
-            /**
-             * onKeywordChange：执行当前位置的功能逻辑。
-             * 功能：处理参数消化、状态变更与调用链行为同步。
-             * @param nextKeyword 参数 nextKeyword 为当前功能所需的输入信息。
-             */
+            /** 同步关键词输入，驱动组件/布局列表过滤。 */
             onKeywordChange: (nextKeyword: string) => { keyword.value = nextKeyword },
             totalCount: totalCount.value,
             filteredCount: filteredCount.value,
@@ -218,11 +211,7 @@ export const DesignerMaterialPane = defineComponent({
       },
     }, [
       h('div', {
-        /**
-         * ref：执行当前位置的功能逻辑。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * @param element 参数 element 为当前功能所需的输入信息。
-         */
+        /** 回传物料区宿主 DOM，供拖拽模块扫描挂载。 */
         ref: (element: unknown) => {
           props.setMaterialHost(element as HTMLElement | null)
         },

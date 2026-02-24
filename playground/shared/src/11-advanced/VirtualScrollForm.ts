@@ -12,19 +12,19 @@ import type { SceneConfig } from '../types'
 /** 虚拟滚动常量 */
 const ROW_HEIGHT = 48
 /**
- * BUFFER：变量或常量声明。
+ * BUFFER：定义该模块复用的常量配置。
  * 所属模块：`playground/shared/src/11-advanced/VirtualScrollForm.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 const BUFFER = 5
 /**
- * CONTAINER HEIGHT：变量或常量声明。
+ * CONTAINER HEIGHT：定义该模块复用的常量配置。
  * 所属模块：`playground/shared/src/11-advanced/VirtualScrollForm.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 const CONTAINER_HEIGHT = 400
 /**
- * DEFAULT ITEM COUNT：变量或常量声明。
+ * DEFAULT ITEM COUNT：定义该模块复用的常量配置。
  * 所属模块：`playground/shared/src/11-advanced/VirtualScrollForm.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -44,7 +44,7 @@ function generateItems(count: number): Array<{ name: string, email: string }> {
 }
 
 /**
- * config：变量或常量声明。
+ * config：定义该模块复用的常量配置。
  * 所属模块：`playground/shared/src/11-advanced/VirtualScrollForm.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

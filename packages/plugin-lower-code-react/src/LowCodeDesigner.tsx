@@ -170,20 +170,26 @@ function updateFieldNodesRecursively(
 }
 
 /**
- * Low Code Designer：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * React 低代码设计器入口组件。
  *
- * 说明：该函数聚焦于 Low Code Designer 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 负责：
+ * 1. 维护节点树与选中态。
+ * 2. 在 schema 与节点树之间双向同步。
+ * 3. 挂载拖拽能力并驱动左中右三栏联动。
+ * 4. 组合预览渲染器与组件默认属性预设。
+ *
+ * @param props 设计器组件参数对象。
+ * @returns 设计器 React 元素。
  */
-export function LowCodeDesigner({
-  value,
-  onChange,
-  minCanvasHeight = 420,
-  previewRenderMode = 'auto',
-  renderers: customRenderers,
-  componentDefinitions,
-}: LowCodeDesignerProps): React.ReactElement {
+export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement {
+  const {
+    value,
+    onChange,
+    minCanvasHeight = 420,
+    previewRenderMode = 'auto',
+    renderers: customRenderers,
+    componentDefinitions,
+  } = props
   // Registry 用于在可用时自动启用真实组件预览渲染器。
   const componentRegistry = useContext(ComponentRegistryContext)
   const [nodes, setNodes] = useState<DesignerNode[]>(() => schemaToNodes(value))
@@ -394,19 +400,14 @@ export function LowCodeDesigner({
       let changed = false
 
       /**
-       * visit?????????????????
-       * ???`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:403`?
-       * ?????????????????????????????????
-       * ??????????????????????????
-       * @param items ?? items ????????????
+       * 递归遍历节点树，把字段上的已存在属性回填到组件预设池。
+       *
+       * 这样即使数据来自外部 schema，后续同组件新增字段也能继承当前画布里
+       * 已经出现过的属性，避免“预设丢失”的体验问题。
+       *
+       * @param items 当前遍历层级的节点列表。
        */
-      const /**
-             * visit：执行当前位置的功能逻辑。
-             * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:396`。
-             * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-             * @param items 参数 items 为当前功能所需的输入信息。
-             */
+      const
         visit = (items: DesignerNode[]): void => {
           for (const item of items) {
             if (item.kind === 'field') {
@@ -497,13 +498,7 @@ export function LowCodeDesigner({
       navigationBar: true,
       statusBar: true,
       search: true,
-      /**
-       * onEditable：执行当前位置的功能逻辑。
-       * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:486`。
-       * 功能：处理参数消化、状态变更与调用链行为同步。
-       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-       * @returns 返回当前分支执行后的处理结果。
-       */
+      /** JSONEditor 仅用于展示导出结果，不允许交互编辑。 */
       onEditable: () => false,
     })
 
@@ -537,19 +532,11 @@ export function LowCodeDesigner({
     let canvasSelectionRoot: HTMLElement | null = null
     const canvasPutHandler = createDesignerCanvasPutHandler(keyToTarget)
     /**
-     * toggleDragging?????????????????
-     * ???`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:539`?
-     * ?????????????????????????????????
-     * ??????????????????????????
-     * @param dragging ?? dragging ????????????
+     * 切换全局拖拽状态样式。
+     *
+     * @param dragging 是否处于拖拽中。
      */
-    const /**
-           * toggleDragging：执行当前位置的功能逻辑。
-           * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:518`。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-           * @param dragging 参数 dragging 为当前功能所需的输入信息。
-           */
+    const
       toggleDragging = (dragging: boolean): void => {
         if (typeof document === 'undefined')
           return
@@ -585,17 +572,9 @@ export function LowCodeDesigner({
         setSelectedId(nodeId)
     }
     /**
-     * detachCanvasSelection?????????????????
-     * ???`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:579`?
-     * ?????????????????????????????????
-     * ??????????????????????????
+     * 移除画布捕获监听，防止重复绑定和内存泄漏。
      */
-    const /**
-           * detachCanvasSelection：执行当前位置的功能逻辑。
-           * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:552`。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-           */
+    const
       detachCanvasSelection = (): void => {
         if (!canvasSelectionRoot)
           return
@@ -603,19 +582,11 @@ export function LowCodeDesigner({
         canvasSelectionRoot = null
       }
     /**
-     * attachCanvasSelection?????????????????
-     * ???`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:592`?
-     * ?????????????????????????????????
-     * ??????????????????????????
-     * @param root ?? root ????????????
+     * 在新的画布根节点上安装捕获监听。
+     *
+     * @param root 当前画布根节点。
      */
-    const /**
-           * attachCanvasSelection：执行当前位置的功能逻辑。
-           * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:558`。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-           * @param root 参数 root 为当前功能所需的输入信息。
-           */
+    const
       attachCanvasSelection = (root: HTMLElement): void => {
         if (canvasSelectionRoot === root)
           return
@@ -646,29 +617,15 @@ export function LowCodeDesigner({
         for (const materialList of materialLists) {
           sortables.push(Sortable.create(materialList, createDesignerMaterialSortableOptions({
             disabled: false,
-            /**
-             * onStart：执行当前位置的功能逻辑。
-             * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:588`。
-             * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-             * @returns 返回当前分支执行后的处理结果。
-             */
+            /** 物料拖拽开始，启用拖拽中样式。 */
             onStart: () => toggleDragging(true),
-            /**
-             * onEnd：执行当前位置的功能逻辑。
-             * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:589`。
-             * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-             * @returns 返回当前分支执行后的处理结果。
-             */
+            /** 物料拖拽结束，恢复样式。 */
             onEnd: () => toggleDragging(false),
             /**
-             * setData：执行当前位置的功能逻辑。
-             * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:590`。
-             * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-             * @param dataTransfer 参数 dataTransfer 为当前功能所需的输入信息。
-             * @param dragElement 参数 dragElement 为当前功能所需的输入信息。
+             * 写入物料拖拽 payload。
+             *
+             * @param dataTransfer 浏览器拖拽数据通道。
+             * @param dragElement 被拖拽的物料元素。
              */
             setData: (dataTransfer, dragElement) => {
               dataTransfer.setData('text/plain', dragElement.getAttribute('data-material-id') ?? '')
@@ -687,31 +644,21 @@ export function LowCodeDesigner({
             disabled: false,
             targetKey: list.dataset.targetKey,
             put: canvasPutHandler,
-            /**
-             * onStart：执行当前位置的功能逻辑。
-             * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:607`。
-             * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-             * @returns 返回当前分支执行后的处理结果。
-             */
+            /** 画布拖拽开始，启用拖拽中样式。 */
             onStart: () => toggleDragging(true),
             /**
-             * setData：执行当前位置的功能逻辑。
-             * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:608`。
-             * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-             * @param dataTransfer 参数 dataTransfer 为当前功能所需的输入信息。
-             * @param dragElement 参数 dragElement 为当前功能所需的输入信息。
+             * 写入画布节点拖拽 payload。
+             *
+             * @param dataTransfer 浏览器拖拽数据通道。
+             * @param dragElement 被拖拽的节点元素。
              */
             setData: (dataTransfer, dragElement) => {
               dataTransfer.setData('text/plain', dragElement.getAttribute('data-node-id') ?? '')
             },
             /**
-             * onAdd：执行当前位置的功能逻辑。
-             * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:611`。
-             * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-             * @param event 参数 event 为事件对象，用于提供交互上下文。
+             * 处理“物料克隆进入画布”。
+             *
+             * @param event Sortable 事件对象。
              */
             onAdd: (event) => {
               // 处理“物料克隆进入画布”，生成真实 schema 节点。
@@ -738,11 +685,9 @@ export function LowCodeDesigner({
               setSelectedId(nextNode.id)
             },
             /**
-             * onEnd：执行当前位置的功能逻辑。
-             * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:635`。
-             * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-             * @param event 参数 event 为事件对象，用于提供交互上下文。
+             * 处理“现有节点在画布内移动/重排”。
+             *
+             * @param event Sortable 事件对象。
              */
             onEnd: (event) => {
               // 处理“已存在节点”的跨列表移动与同列表重排。

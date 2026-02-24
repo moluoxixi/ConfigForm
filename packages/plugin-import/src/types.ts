@@ -1,14 +1,14 @@
 import type { FormPlugin } from '@moluoxixi/core'
 
 /**
- * Import Set Value Strategy：类型别名定义。
+ * Import Set Value Strategy：描述该模块使用的类型别名语义。
  * 所属模块：`packages/plugin-import/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 export type ImportSetValueStrategy = 'merge' | 'shallow' | 'replace'
 
 /**
- * Form Import Options：类型接口定义。
+ * Form Import Options：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/plugin-import/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -19,7 +19,7 @@ export interface FormImportOptions {
 }
 
 /**
- * Form Import JSONOptions：类型接口定义。
+ * Form Import JSONOptions：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/plugin-import/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -28,7 +28,7 @@ export interface FormImportJSONOptions extends FormImportOptions {
 }
 
 /**
- * Form Import Result：类型接口定义。
+ * Form Import Result：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/plugin-import/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -42,7 +42,7 @@ export interface FormImportResult {
 }
 
 /**
- * Form Import Plugin Config：类型接口定义。
+ * Form Import Plugin Config：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/plugin-import/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -51,7 +51,7 @@ export interface FormImportPluginConfig {
 }
 
 /**
- * Form Import Plugin API：类型接口定义。
+ * Form Import Plugin API：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/plugin-import/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -64,13 +64,13 @@ export interface FormImportPluginAPI {
 }
 
 /**
- * Form Import Plugin：类型别名定义。
+ * Form Import Plugin：描述该模块使用的类型别名语义。
  * 所属模块：`packages/plugin-import/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 export type FormImportPlugin = FormPlugin<FormImportPluginAPI>
 /**
- * Form Import Plugin Options：类型别名定义。
+ * Form Import Plugin Options：描述该模块使用的类型别名语义。
  * 所属模块：`packages/plugin-import/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

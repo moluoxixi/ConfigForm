@@ -92,7 +92,7 @@ function sortPlugins(plugins: FormPlugin[]): FormPlugin[] {
 /**
  * 创建表单实例
  *
- * 核心流程：
+ * 核心步骤：
  * 1. 创建 Form 原始实例
  * 2. 使 values / initialValues 成为深度响应式
  * 3. 使整个 Form 实例成为响应式（makeObservable）

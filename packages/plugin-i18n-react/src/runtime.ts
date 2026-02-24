@@ -6,7 +6,7 @@ import i18next from 'i18next'
 import { reactI18nPlugin } from './plugin'
 
 /**
- * to Resources：负责该函数职责对应的主流程编排。
+ * to Resources：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
@@ -22,7 +22,7 @@ function toResources(messages: I18nMessages, namespace: string): Resource {
 }
 
 /**
- * translate：负责该函数职责对应的主流程编排。
+ * translate：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
@@ -84,10 +84,8 @@ export function createReactMessageI18nRuntime(options: ReactMessageI18nRuntimeOp
   const plugin: FormPlugin<I18nPluginAPI> = {
     name: rawPlugin.name,
     /**
-     * install：执行当前位置的功能逻辑。
-     * 定位：`packages/plugin-i18n-react/src/runtime.ts:86`。
+     * install：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
-     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
      * @param form 参数 form 为业务对象，用于读写状态与属性。
      * @param context 参数 context 为上下文对象，用于传递场景数据。
      * @returns 返回当前分支执行后的处理结果。
@@ -98,10 +96,8 @@ export function createReactMessageI18nRuntime(options: ReactMessageI18nRuntimeOp
       return {
         api: installed.api,
         /**
-         * dispose：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-i18n-react/src/runtime.ts:91`。
+         * dispose：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          */
         dispose: () => {
           if (pluginApi === installed.api) {
@@ -122,10 +118,8 @@ export function createReactMessageI18nRuntime(options: ReactMessageI18nRuntimeOp
    * @returns ?????????????
    */
   const /**
-         * subscribeLocale：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-i18n-react/src/runtime.ts:101`。
+         * subscribeLocale：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param listener 参数 listener 为当前功能所需的输入信息。
          * @returns 返回当前分支执行后的处理结果。
          */
@@ -138,10 +132,8 @@ export function createReactMessageI18nRuntime(options: ReactMessageI18nRuntimeOp
        * @param nextLocale ?? nextLocale ????????????
        */
       const /**
-             * handler：执行当前位置的功能逻辑。
-             * 定位：`packages/plugin-i18n-react/src/runtime.ts:102`。
+             * handler：处理当前分支的交互与状态同步。
              * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
              * @param nextLocale 参数 nextLocale 为当前功能所需的输入信息。
              */
         handler = (nextLocale: string): void => {
@@ -163,10 +155,8 @@ export function createReactMessageI18nRuntime(options: ReactMessageI18nRuntimeOp
    * @returns ?????????????
    */
   const /**
-         * t：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-i18n-react/src/runtime.ts:111`。
+         * t：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param key 参数 key 为当前功能所需的输入信息。
          * @param params 参数 params 为当前功能所需的输入信息。
          * @returns 返回当前分支执行后的处理结果。
@@ -180,18 +170,14 @@ export function createReactMessageI18nRuntime(options: ReactMessageI18nRuntimeOp
     i18n,
     t,
     /**
-     * getLocale：执行当前位置的功能逻辑。
-     * 定位：`packages/plugin-i18n-react/src/runtime.ts:119`。
+     * getLocale：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
-     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
      * @returns 返回当前分支执行后的处理结果。
      */
     getLocale: () => i18n.resolvedLanguage || i18n.language || resolvedLocale || '',
     /**
-     * setLocale：执行当前位置的功能逻辑。
-     * 定位：`packages/plugin-i18n-react/src/runtime.ts:120`。
+     * setLocale：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
-     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
      * @param nextLocale 参数 nextLocale 为当前功能所需的输入信息。
      */
     setLocale: async (nextLocale) => {

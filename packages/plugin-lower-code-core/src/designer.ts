@@ -91,11 +91,13 @@ const DEFAULT_SELECT_OPTIONS: EnumOption[] = [
 export { COMPONENT_MATERIALS, LAYOUT_MATERIALS, MATERIALS }
 
 /**
- * uid：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 生成设计器节点的临时唯一标识。
  *
- * 说明：该函数聚焦于 uid 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 该 ID 主要用于前端内存态编排（拖拽、选中、增删改）；
+ * 不用于安全场景，也不保证跨进程强唯一。
+ *
+ * @param prefix 标识前缀，用于区分 node / section 等实体类型。
+ * @returns 形如 `node_xxxxxxx` 的短 ID。
  */
 function uid(prefix: string): string {
   return `${prefix}_${Math.random().toString(36).slice(2, 9)}`
@@ -140,11 +142,16 @@ function normalizeTitle(value: string, fallback: string): string {
 }
 
 /**
- * ensure Unique Name：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 基于给定基础名生成同级唯一字段名。
  *
- * 说明：该函数聚焦于 ensure Unique Name 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 规则：
+ * 1. 基础名未占用时直接使用。
+ * 2. 已占用时按 `_1`、`_2`... 递增后缀寻找可用值。
+ * 3. 命中的名称会立即写入 `usedNames`，保证后续调用不冲突。
+ *
+ * @param baseName 候选基础名称。
+ * @param usedNames 当前作用域已占用名称集合。
+ * @returns 去重后的可用名称。
  */
 function ensureUniqueName(baseName: string, usedNames: Set<string>): string {
   if (!usedNames.has(baseName)) {
@@ -218,22 +225,27 @@ export function isContainerNode(node: DesignerNode): node is DesignerContainerNo
 }
 
 /**
- * container Uses Sections：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 判断容器组件是否采用“分组（sections）”作为直接子结构。
  *
- * 说明：该函数聚焦于 container Uses Sections 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 目前 Tabs / Collapse 通过 `sections[].children` 挂载字段，
+ * Card 则直接使用 `children`。
+ *
+ * @param component 容器组件名称。
+ * @returns `true` 表示该容器必须通过 sections 管理子节点。
  */
 export function containerUsesSections(component: DesignerContainerComponent): boolean {
   return component === 'LayoutTabs' || component === 'LayoutCollapse'
 }
 
 /**
- * default Component For Type：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 根据字段值类型返回默认渲染组件。
  *
- * 说明：该函数聚焦于 default Component For Type 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 用于：
+ * - 物料拖入后自动补全 component。
+ * - schema 中缺失 component 时兜底。
+ *
+ * @param type 字段值类型。
+ * @returns 对应的默认组件名。
  */
 export function defaultComponentForType(type: DesignerFieldType): DesignerFieldComponent {
   switch (type) {
@@ -250,11 +262,13 @@ export function defaultComponentForType(type: DesignerFieldType): DesignerFieldC
 }
 
 /**
- * allowed Components：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 返回某字段类型允许切换的组件候选列表。
  *
- * 说明：该函数聚焦于 allowed Components 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 该函数用于属性面板“组件类型”下拉选项约束，
+ * 防止选择与字段类型不兼容的组件。
+ *
+ * @param type 字段值类型。
+ * @returns 允许的组件名称列表。
  */
 export function allowedComponents(type: DesignerFieldType): DesignerFieldComponent[] {
   switch (type) {
@@ -272,22 +286,25 @@ export function allowedComponents(type: DesignerFieldType): DesignerFieldCompone
 }
 
 /**
- * clone Nodes：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 深拷贝节点树，避免调用方直接修改原始数据。
  *
- * 说明：该函数聚焦于 clone Nodes 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 设计器中的插入、移动、删除都基于“先克隆再修改”的不可变思路，
+ * 便于状态回溯与框架层变更检测。
+ *
+ * @param nodes 节点树。
+ * @returns 与入参结构等价的新对象树。
  */
 export function cloneNodes(nodes: DesignerNode[]): DesignerNode[] {
   return cloneDeep(nodes)
 }
 
 /**
- * default Section：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 创建一个空分组节点。
  *
- * 说明：该函数聚焦于 default Section 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 主要用于 Tabs / Collapse 容器的初始分组和动态“新增分组”操作。
+ *
+ * @param title 分组标题。
+ * @returns 初始化后的分组节点（含新 ID 与空 children）。
  */
 function defaultSection(title: string): DesignerSectionNode {
   return {
@@ -300,11 +317,14 @@ function defaultSection(title: string): DesignerSectionNode {
 }
 
 /**
- * default Sections By Container：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 根据容器类型生成默认分组集合。
  *
- * 说明：该函数聚焦于 default Sections By Container 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * - Tabs：预置两个标签页，便于开箱即用演示。
+ * - Collapse：预置一个折叠面板。
+ * - 其他容器：不生成分组。
+ *
+ * @param component 容器组件名称。
+ * @returns 对应容器的默认分组数组。
  */
 function defaultSectionsByContainer(component: DesignerContainerComponent): DesignerSectionNode[] {
   if (component === 'LayoutTabs')
@@ -469,11 +489,14 @@ function createContainerNode(material: MaterialContainerItem): DesignerContainer
 }
 
 /**
- * default Node From Material：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 按物料定义创建节点，并按同级节点进行标准化。
  *
- * 说明：该函数聚焦于 default Node From Material 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 标准化会处理名称去重、标题兜底、组件属性清洗等规则，
+ * 保证新拖入节点可直接参与后续编排与序列化。
+ *
+ * @param material 物料项定义。
+ * @param siblings 同级已有节点，用于名称冲突检测。
+ * @returns 可直接挂载到画布的数据节点。
  */
 export function defaultNodeFromMaterial(material: MaterialItem, siblings: DesignerNode[]): DesignerNode {
   const rawNode = material.kind === 'field' ? createFieldNode(material) : createContainerNode(material)
@@ -481,11 +504,13 @@ export function defaultNodeFromMaterial(material: MaterialItem, siblings: Design
 }
 
 /**
- * default Nodes：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 生成设计器初始示例节点。
  *
- * 说明：该函数聚焦于 default Nodes 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 默认结构：
+ * - 顶层一个输入框字段。
+ * - 顶层一个卡片容器，容器内预置一个数字字段。
+ *
+ * @returns 可用于空白设计器首屏展示的节点树。
  */
 export function defaultNodes(): DesignerNode[] {
   const inputMaterial = MATERIALS.find(item => item.id === 'input')!
@@ -685,11 +710,13 @@ function parseSchemaNode(name: string, schema: Record<string, unknown>, required
 }
 
 /**
- * schema To Nodes：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 将外部 schema 解析为设计器节点树。
  *
- * 说明：该函数聚焦于 schema To Nodes 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 解析失败或 schema 结构不完整时，会回退到 `defaultNodes()`，
+ * 确保设计器始终有可编辑内容，避免空白态阻断操作。
+ *
+ * @param schemaLike 任意输入 schema。
+ * @returns 解析后的节点数组。
  */
 export function schemaToNodes(schemaLike: unknown): DesignerNode[] {
   if (!isRecord(schemaLike))
@@ -785,11 +812,13 @@ function buildProperties(nodes: DesignerNode[]): Record<string, ISchema> {
 }
 
 /**
- * nodes To Schema：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 将设计器节点树导出为 ConfigForm schema。
  *
- * 说明：该函数聚焦于 nodes To Schema 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 导出时会统一设置表单级 `labelPosition='top'`，
+ * 并递归展开容器/分组结构生成 `properties`。
+ *
+ * @param nodes 设计器节点树。
+ * @returns 可直接用于渲染的 schema 对象。
  */
 export function nodesToSchema(nodes: DesignerNode[]): ISchema {
   return {
@@ -800,11 +829,13 @@ export function nodesToSchema(nodes: DesignerNode[]): ISchema {
 }
 
 /**
- * schema Signature：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 计算 schema 的字符串签名。
  *
- * 说明：该函数聚焦于 schema Signature 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 主要用于“变更检测”与“是否需要重建预览”的快速比较。
+ * 若输入存在循环引用导致序列化失败，返回空字符串。
+ *
+ * @param schemaLike 任意 schema 值。
+ * @returns 可比较的签名字符串。
  */
 export function schemaSignature(schemaLike: unknown): string {
   try {
@@ -851,11 +882,12 @@ export function parseEnumDraft(text: string): EnumOption[] {
 }
 
 /**
- * preview Value By Node：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 为字段节点生成预览值。
  *
- * 说明：该函数聚焦于 preview Value By Node 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 用于设计器中的“组件预览渲染”，确保每种字段在无真实数据时也能展示合理形态。
+ *
+ * @param node 字段节点。
+ * @returns 对应字段类型的默认示例值。
  */
 export function previewValueByNode(node: DesignerFieldNode): unknown {
   switch (node.type) {
@@ -1136,11 +1168,13 @@ export function removeNodeById(nodes: DesignerNode[], nodeId: string): DesignerN
 }
 
 /**
- * clone Node With New Ids：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 深拷贝单个节点并为整棵子树重建 ID。
  *
- * 说明：该函数聚焦于 clone Node With New Ids 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 复制容器时会递归处理 `children` 与 `sections.children`，
+ * 防止复制结果与原节点发生 ID 冲突。
+ *
+ * @param node 待复制节点。
+ * @returns 具有全新 ID 的节点副本。
  */
 function cloneNodeWithNewIds(node: DesignerNode): DesignerNode {
   if (node.kind === 'field') {
@@ -1163,21 +1197,25 @@ function cloneNodeWithNewIds(node: DesignerNode): DesignerNode {
 }
 
 /**
- * duplicate Node By Id：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 按节点 ID 在原位置后方插入一个副本。
  *
- * 说明：该函数聚焦于 duplicate Node By Id 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 复制操作支持任意嵌套层级；
+ * 若未命中目标节点，则返回原数据保持幂等。
+ *
+ * @param nodes 当前节点树。
+ * @param nodeId 要复制的目标节点 ID。
+ * @returns 复制后的节点树。
  */
 export function duplicateNodeById(nodes: DesignerNode[], nodeId: string): DesignerNode[] {
   const draft = cloneNodes(nodes)
 
   /**
-   * duplicate In List：负责该函数职责对应的主流程编排。
-   * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
-   * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+   * 在当前列表及其后代中递归执行复制。
    *
-   * 说明：该函数聚焦于 duplicate In List 的单一职责，调用方可通过函数名快速理解输入输出语义。
+   * 命中后立即返回，避免同一次操作复制多个同 ID 节点。
+   *
+   * @param list 当前递归列表。
+   * @returns 是否已成功复制目标节点。
    */
   function duplicateInList(list: DesignerNode[]): boolean {
     const index = list.findIndex(item => item.id === nodeId)
@@ -1231,11 +1269,15 @@ function findContainerInList(nodes: DesignerNode[], containerId: string): Design
 }
 
 /**
- * add Section To Container：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 向支持分组的容器追加一个分组节点。
  *
- * 说明：该函数聚焦于 add Section To Container 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 仅 Tabs / Collapse 可新增分组；其他容器直接返回原数据。
+ * 分组标题为空时自动生成“分组N”。
+ *
+ * @param nodes 当前节点树。
+ * @param containerId 目标容器 ID。
+ * @param title 可选分组标题。
+ * @returns 追加分组后的节点树。
  */
 export function addSectionToContainer(nodes: DesignerNode[], containerId: string, title?: string): DesignerNode[] {
   const draft = cloneNodes(nodes)
@@ -1265,44 +1307,40 @@ export function removeSectionFromContainer(nodes: DesignerNode[], containerId: s
 }
 
 /**
- * root Target：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 root Target 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 创建“根画布”拖拽目标描述对象。
+ * @returns 根目标对象。
  */
 export function rootTarget(): DesignerDropTarget {
   return { type: 'root' }
 }
 
 /**
- * container Target：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 创建“容器 children 区域”拖拽目标描述对象。
  *
- * 说明：该函数聚焦于 container Target 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * @param containerId 目标容器 ID。
+ * @returns 容器目标对象。
  */
 export function containerTarget(containerId: string): DesignerDropTarget {
   return { type: 'container', containerId }
 }
 
 /**
- * section Target：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 创建“分组 children 区域”拖拽目标描述对象。
  *
- * 说明：该函数聚焦于 section Target 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * @param sectionId 目标分组 ID。
+ * @returns 分组目标对象。
  */
 export function sectionTarget(sectionId: string): DesignerDropTarget {
   return { type: 'section', sectionId }
 }
 
 /**
- * target To Key：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 将拖拽目标对象转换为稳定字符串键。
  *
- * 说明：该函数聚焦于 target To Key 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 该键用于缓存映射、列表检索与跨层比较（如 `isSameTarget`）。
+ *
+ * @param target 拖拽目标对象。
+ * @returns 目标唯一键字符串。
  */
 export function targetToKey(target: DesignerDropTarget): string {
   if (target.type === 'root')
@@ -1313,11 +1351,13 @@ export function targetToKey(target: DesignerDropTarget): string {
 }
 
 /**
- * key To Target：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 将目标键反向解析为拖拽目标对象。
  *
- * 说明：该函数聚焦于 key To Target 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 可处理 `root`、`container:xxx`、`section:xxx` 三种格式；
+ * 非法键返回 `null` 供调用方兜底。
+ *
+ * @param key 目标键字符串。
+ * @returns 拖拽目标对象或 null。
  */
 export function keyToTarget(key: string | undefined): DesignerDropTarget | null {
   if (!key)
@@ -1364,11 +1404,13 @@ function getListByTarget(nodes: DesignerNode[], target: DesignerDropTarget): Des
 }
 
 /**
- * accepted Node Kinds By Container：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 返回容器允许接收的节点类型集合。
  *
- * 说明：该函数聚焦于 accepted Node Kinds By Container 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 目前三类布局容器都允许放入字段与子容器；
+ * 保留该函数作为未来做“容器能力差异化”时的单一扩展点。
+ *
+ * @param component 容器组件名称。
+ * @returns 可接收的节点类型列表。
  */
 function acceptedNodeKindsByContainer(component: DesignerContainerComponent): DesignerDropNodeKind[] {
   switch (component) {

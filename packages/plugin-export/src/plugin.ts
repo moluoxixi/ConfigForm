@@ -15,10 +15,8 @@ const DEFAULT_JSON_SPACE = 2
 const DEFAULT_FILE_NAME_BASE = 'config-form'
 
 /**
- * resolveFileNameBase：执行当前位置的功能处理逻辑。
- * 定位：`packages/plugin-export/src/plugin.ts:18`。
+ * resolveFileNameBase：处理当前分支的交互与状态同步。
  * 功能：完成参数消化、业务分支处理及上下游结果传递。
- * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
  * @param config 参数 config 为当前逻辑所需的输入信息。
  * @returns 返回当前分支执行后的结果。
  */
@@ -28,10 +26,8 @@ function resolveFileNameBase(config: FormExportPluginOptions): string {
 }
 
 /**
- * exportPlugin：执行当前位置的功能处理逻辑。
- * 定位：`packages/plugin-export/src/plugin.ts:24`。
+ * exportPlugin：处理当前分支的交互与状态同步。
  * 功能：完成参数消化、业务分支处理及上下游结果传递。
- * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
  * @param config 参数 config 为当前逻辑所需的输入信息。
  * @returns 返回当前分支执行后的结果。
  */
@@ -40,10 +36,8 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
     name: PLUGIN_NAME,
 
     /**
-     * install：执行当前位置的功能处理逻辑。
-     * 定位：`packages/plugin-export/src/plugin.ts:28`。
+     * install：处理当前分支的交互与状态同步。
      * 功能：完成参数消化、业务分支处理及上下游结果传递。
-     * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
      * @param form 参数 form 为业务实体对象，用于读写状态或属性。
      * @returns 返回当前分支执行后的结果。
      */
@@ -61,10 +55,8 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
       const api: FormExportPluginAPI = {
 
         /**
-         * getExportData：执行当前位置的功能处理逻辑。
-         * 定位：`packages/plugin-export/src/plugin.ts:41`。
+         * getExportData：处理当前分支的交互与状态同步。
          * 功能：完成参数消化、业务分支处理及上下游结果传递。
-         * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
          * @param options 参数 options 为当前逻辑所需的输入信息。
          * @returns 返回当前分支执行后的结果。
          */
@@ -74,10 +66,8 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
         },
 
         /**
-         * getExportPreview：执行当前位置的功能处理逻辑。
-         * 定位：`packages/plugin-export/src/plugin.ts:47`。
+         * getExportPreview：处理当前分支的交互与状态同步。
          * 功能：完成参数消化、业务分支处理及上下游结果传递。
-         * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
          * @param options 参数 options 为当前逻辑所需的输入信息。
          * @returns 返回当前分支执行后的结果。
          */
@@ -86,10 +76,8 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
         },
 
         /**
-         * subscribeExportPreview：执行当前位置的功能处理逻辑。
-         * 定位：`packages/plugin-export/src/plugin.ts:52`。
+         * subscribeExportPreview：处理当前分支的交互与状态同步。
          * 功能：完成参数消化、业务分支处理及上下游结果传递。
-         * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
          * @param listener 参数 listener 为当前逻辑所需的输入信息。
          * @param options 参数 options 为当前逻辑所需的输入信息。
          * @returns 返回当前分支执行后的结果。
@@ -103,10 +91,8 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
         },
 
         /**
-         * exportJSON：执行当前位置的功能处理逻辑。
-         * 定位：`packages/plugin-export/src/plugin.ts:61`。
+         * exportJSON：处理当前分支的交互与状态同步。
          * 功能：完成参数消化、业务分支处理及上下游结果传递。
-         * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
          * @param options 参数 options 为当前逻辑所需的输入信息。
          * @returns 返回当前分支执行后的结果。
          */
@@ -117,10 +103,8 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
         },
 
         /**
-         * downloadJSON：执行当前位置的功能处理逻辑。
-         * 定位：`packages/plugin-export/src/plugin.ts:68`。
+         * downloadJSON：处理当前分支的交互与状态同步。
          * 功能：完成参数消化、业务分支处理及上下游结果传递。
-         * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
          * @param options 参数 options 为当前逻辑所需的输入信息。
          */
         async downloadJSON(options) {
@@ -143,10 +127,8 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
        */
       const
         /**
-         * notifyExportPreviewSubscribers：执行当前位置的功能处理逻辑。
-         * 定位：`packages/plugin-export/src/plugin.ts:81`。
+         * notifyExportPreviewSubscribers：处理当前分支的交互与状态同步。
          * 功能：完成参数消化、业务分支处理及上下游结果传递。
-         * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
          */
         notifyExportPreviewSubscribers = (): void => {
           for (const [listener, options] of previewSubscribers.entries()) {
@@ -162,10 +144,8 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
        */
       const
         /**
-         * scheduleNotifyExportPreviewSubscribers：执行当前位置的功能处理逻辑。
-         * 定位：`packages/plugin-export/src/plugin.ts:88`。
+         * scheduleNotifyExportPreviewSubscribers：处理当前分支的交互与状态同步。
          * 功能：完成参数消化、业务分支处理及上下游结果传递。
-         * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
          */
         scheduleNotifyExportPreviewSubscribers = (): void => {
           if (previewNotifyScheduled) {
@@ -181,10 +161,8 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
            */
           const
             /**
-             * flush：执行当前位置的功能处理逻辑。
-             * 定位：`packages/plugin-export/src/plugin.ts:95`。
+             * flush：处理当前分支的交互与状态同步。
              * 功能：完成参数消化、业务分支处理及上下游结果传递。
-             * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
              */
             flush = (): void => {
               previewNotifyScheduled = false
@@ -219,10 +197,8 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
         api,
 
         /**
-         * dispose：执行当前位置的功能处理逻辑。
-         * 定位：`packages/plugin-export/src/plugin.ts:127`。
+         * dispose：处理当前分支的交互与状态同步。
          * 功能：完成参数消化、业务分支处理及上下游结果传递。
-         * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
          */
         dispose() {
           if (formWithExport.getExportData === api.getExportData)

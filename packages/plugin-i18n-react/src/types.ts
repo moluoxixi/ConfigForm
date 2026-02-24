@@ -3,14 +3,14 @@ import type { I18nPluginAPI, I18nPluginConfig, TranslateFunction } from '@moluox
 import type { i18n as I18nextInstance } from 'i18next'
 
 /**
- * I18n Messages：类型别名定义。
+ * I18n Messages：描述该模块使用的类型别名语义。
  * 所属模块：`packages/plugin-i18n-react/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 export type I18nMessages = Record<string, Record<string, string>>
 
 /**
- * React I18n Plugin Options：类型接口定义。
+ * React I18n Plugin Options：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/plugin-i18n-react/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -20,7 +20,7 @@ export interface ReactI18nPluginOptions extends Omit<I18nPluginConfig, 't' | 'ch
 }
 
 /**
- * React Message I18n Runtime Options：类型接口定义。
+ * React Message I18n Runtime Options：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/plugin-i18n-react/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -33,7 +33,7 @@ export interface ReactMessageI18nRuntimeOptions extends Omit<ReactI18nPluginOpti
 }
 
 /**
- * React Message I18n Runtime：类型接口定义。
+ * React Message I18n Runtime：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/plugin-i18n-react/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

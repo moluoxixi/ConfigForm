@@ -1,5 +1,5 @@
 /**
- * DESIGNER CSS：变量或常量声明。
+ * DESIGNER CSS：定义该模块复用的常量配置。
  * 所属模块：`packages/plugin-lower-code-react/src/designer/styles.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

@@ -110,7 +110,7 @@ import { usePrintExportFeature } from './examples/11-misc/usePrintExportFeature'
 import { adapters } from './ui'
 
 /**
- * Hook Type：类型接口定义。
+ * Hook Type：描述该模块对外暴露的数据结构。
  * 所属模块：`playground/vue/src/App.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -122,7 +122,7 @@ interface HookType {
 }
 
 /**
- * get Or Create Hook：当前功能模块的核心执行单元。
+ * get Or Create Hook：封装该模块的核心渲染与交互逻辑。
  * 所属模块：`playground/vue/src/App.vue`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -135,7 +135,7 @@ function getOrCreateHook(): HookType {
     const hook = {
       forms: new Map<string, DevToolsPluginAPI>(),
       /**
-       * register：当前功能模块的核心执行单元。
+       * register：封装该模块的核心渲染与交互逻辑。
        * 所属模块：`playground/vue/src/App.vue`。
        * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
        * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -147,7 +147,7 @@ function getOrCreateHook(): HookType {
         listeners.forEach(fn => fn(hook.forms))
       },
       /**
-       * unregister：当前功能模块的核心执行单元。
+       * unregister：封装该模块的核心渲染与交互逻辑。
        * 所属模块：`playground/vue/src/App.vue`。
        * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
        * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -158,7 +158,7 @@ function getOrCreateHook(): HookType {
         listeners.forEach(fn => fn(hook.forms))
       },
       /**
-       * on Change：当前功能模块的核心执行单元。
+       * on Change：封装该模块的核心渲染与交互逻辑。
        * 所属模块：`playground/vue/src/App.vue`。
        * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
        * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -179,7 +179,7 @@ function getOrCreateHook(): HookType {
 const DevToolsFloating = defineComponent({
   name: 'DevToolsFloating',
   /**
-   * setup：当前功能模块的核心执行单元。
+   * setup：封装该模块的核心渲染与交互逻辑。
    * 所属模块：`playground/vue/src/App.vue`。
    * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
    * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -192,7 +192,7 @@ const DevToolsFloating = defineComponent({
     onMounted(() => {
       const hook = getOrCreateHook()
       /**
-       * update：当前功能模块的核心执行单元。
+       * update：封装该模块的核心渲染与交互逻辑。
        * 所属模块：`playground/vue/src/App.vue`。
        * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
        * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -214,31 +214,31 @@ const DevToolsFloating = defineComponent({
 })
 
 /**
- * current UI：变量或常量声明。
+ * current UI：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/App.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 const currentUI = ref<UILib>('antd-vue')
 /**
- * current Demo：变量或常量声明。
+ * current Demo：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/App.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 const currentDemo = ref('BasicForm')
 /**
- * loading：变量或常量声明。
+ * loading：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/App.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 const loading = ref(false)
 /**
- * scene Config：变量或常量声明。
+ * scene Config：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/App.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 const sceneConfig = ref<SceneConfig | null>(null)
 /**
- * current Adapter：变量或常量声明。
+ * current Adapter：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/App.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -256,7 +256,7 @@ registerComponent('SignaturePad', SignaturePad)
 setupLowerCodeDesigner()
 
 /**
- * ui Libs：变量或常量声明。
+ * ui Libs：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/App.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -266,13 +266,13 @@ const uiLibs = [
 ]
 
 /**
- * scene Groups：变量或常量声明。
+ * scene Groups：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/App.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 const sceneGroups = getSceneGroups()
 /**
- * total Scenes：变量或常量声明。
+ * total Scenes：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/App.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -319,20 +319,20 @@ watch(currentDemo, (name) => {
 }, { immediate: true })
 
 /**
- * i18n Feature：变量或常量声明。
+ * i18n Feature：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/App.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 const i18nFeature = useI18nFeature(sceneConfig)
 /**
- * print Export Feature：变量或常量声明。
+ * print Export Feature：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/App.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 const printExportFeature = usePrintExportFeature(currentDemo)
 
 /**
- * scene Plugins：变量或常量声明。
+ * scene Plugins：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/App.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -347,38 +347,38 @@ const scenePlugins = computed<FormPlugin[]>(() => {
 })
 
 /**
- * scene Title：变量或常量声明。
+ * scene Title：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/App.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 const sceneTitle = computed(() => i18nFeature.sceneTitle.value || sceneConfig.value?.title || '')
 /**
- * scene Description：变量或常量声明。
+ * scene Description：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/App.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 const sceneDescription = computed(() => i18nFeature.sceneDescription.value || sceneConfig.value?.description || '')
 /**
- * i18n Runtime：变量或常量声明。
+ * i18n Runtime：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/App.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 const i18nRuntime = computed(() => i18nFeature.i18nRuntime.value)
 /**
- * locale Options：变量或常量声明。
+ * locale Options：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/App.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 const localeOptions = computed(() => i18nFeature.localeOptions.value)
 /**
- * locale：变量或常量声明。
+ * locale：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/App.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 const locale = computed(() => i18nFeature.locale.value)
 
 /**
- * switch Locale：当前功能模块的核心执行单元。
+ * switch Locale：封装该模块的核心渲染与交互逻辑。
  * 所属模块：`playground/vue/src/App.vue`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -389,7 +389,7 @@ function switchLocale(value: string): void {
 }
 
 /**
- * nav Btn Style：当前功能模块的核心执行单元。
+ * nav Btn Style：封装该模块的核心渲染与交互逻辑。
  * 所属模块：`playground/vue/src/App.vue`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。

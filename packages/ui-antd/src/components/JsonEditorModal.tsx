@@ -35,7 +35,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /**
- * Json Editor Modal：负责该函数职责对应的主流程编排。
+ * Json Editor Modal：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
@@ -102,10 +102,8 @@ export function JsonEditorModal({
    * ??????????????????????????
    */
   const /**
-         * handleConfirm：执行当前位置的功能逻辑。
-         * 定位：`packages/ui-antd/src/components/JsonEditorModal.tsx:93`。
+         * handleConfirm：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          */
     handleConfirm = async (): Promise<void> => {
       if (!editorRef.current) {

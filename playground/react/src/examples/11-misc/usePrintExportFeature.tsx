@@ -5,7 +5,7 @@ import { printPlugin } from '@moluoxixi/plugin-print'
 import { useMemo } from 'react'
 
 /**
- * Print Export Feature State：类型接口定义。
+ * Print Export Feature State：描述该模块对外暴露的数据结构。
  * 所属模块：`playground/react/src/examples/11-misc/usePrintExportFeature.tsx`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -14,7 +14,7 @@ export interface PrintExportFeatureState {
 }
 
 /**
- * use Print Export Feature：当前功能模块的核心执行单元。
+ * use Print Export Feature：封装该模块的核心渲染与交互逻辑。
  * 所属模块：`playground/react/src/examples/11-misc/usePrintExportFeature.tsx`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。

@@ -3,13 +3,13 @@ import { Collapse as ACollapse, CollapsePanel as ACollapsePanel } from 'ant-desi
 import { defineComponent, h, ref } from 'vue'
 
 /**
- * Collapse Component：变量或常量声明。
+ * Collapse Component：定义该模块复用的常量配置。
  * 所属模块：`packages/ui-antd-vue/src/components/LayoutCollapse.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 const CollapseComponent = ACollapse as any
 /**
- * Collapse Panel Component：变量或常量声明。
+ * Collapse Panel Component：定义该模块复用的常量配置。
  * 所属模块：`packages/ui-antd-vue/src/components/LayoutCollapse.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -23,7 +23,7 @@ const CollapsePanelComponent = ACollapsePanel as any
 export const LayoutCollapse = defineComponent({
   name: 'CfLayoutCollapse',
   /**
-   * setup：当前功能模块的核心执行单元。
+   * setup：封装该模块的核心渲染与交互逻辑。
    * 所属模块：`packages/ui-antd-vue/src/components/LayoutCollapse.ts`。
    * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
    * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -36,7 +36,7 @@ export const LayoutCollapse = defineComponent({
     const activeKeys = ref(items.map(item => item.name))
 
     /**
-     * get Data Path：当前功能模块的核心执行单元。
+     * get Data Path：封装该模块的核心渲染与交互逻辑。
      * 所属模块：`packages/ui-antd-vue/src/components/LayoutCollapse.ts`。
      * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
      * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。

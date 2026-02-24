@@ -51,20 +51,16 @@ const config: SceneConfig = {
         componentProps: { disabled: true },
         description: '根据等级动态设置',
         reactions: [{ watch: 'level', fulfill: { /**
-                                                  * value：执行当前位置的功能逻辑。
-                                                  * 定位：`playground/shared/src/01-basic/DefaultValueForm.ts:53`。
+                                                  * value：处理当前分支的交互与状态同步。
                                                   * 功能：处理参数消化、状态变更与调用链行为同步。
-                                                  * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                                                   * @param _field 参数 _field 为当前功能所需的输入信息。
                                                   * @param ctx 参数 ctx 为上下文对象，用于传递场景数据。
                                                   * @param ctx.values 当前表单值集合。
                                                   * @returns 返回当前分支执行后的处理结果。
                                                   */
           /**
-           * value：执行当前位置的功能逻辑。
-           * 定位：`playground/shared/src/01-basic/DefaultValueForm.ts:62`。
+           * value：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @param _field 参数 _field 为当前功能所需的输入信息。
            * @param ctx 参数 ctx 为上下文对象，用于传递环境数据。
            * @param ctx.values 当前表单值集合。

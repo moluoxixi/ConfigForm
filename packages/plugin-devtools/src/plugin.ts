@@ -62,10 +62,8 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
     name: 'devtools',
 
     /**
-     * install：执行当前位置的功能逻辑。
-     * 定位：`packages/plugin-devtools/src/plugin.ts:64`。
+     * install：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
-     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
      * @param form 参数 form 为业务对象，用于读写状态与属性。
      * @returns 返回当前分支执行后的处理结果。
      */
@@ -78,7 +76,7 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
       const listeners = new Set<() => void>()
       /**
        * 字段创建顺序（跨 field / voidField 统一）
-       * invalidate Data Caches：负责该函数职责对应的主流程编排。
+       * invalidate Data Caches：负责编排该能力的主流程。
        * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
        * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
        *
@@ -250,10 +248,8 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
       /* ======================== 字段详情 ======================== */
 
       /**
-       * getFieldDetailImpl：执行当前位置的功能逻辑。
-       * 定位：`packages/plugin-devtools/src/plugin.ts:244`。
+       * getFieldDetailImpl：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
-       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
        * @param path 参数 path 为当前功能所需的输入信息。
        * @returns 返回当前分支执行后的处理结果。
        */
@@ -321,10 +317,8 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
       const api: DevToolsPluginAPI = {
         /* ---- 只读查询 ---- */
         /**
-         * getFieldTree：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-devtools/src/plugin.ts:307`。
+         * getFieldTree：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @returns 返回当前分支执行后的处理结果。
          */
         getFieldTree(): FieldTreeNode[] {
@@ -336,10 +330,8 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
         },
         getFieldDetail: getFieldDetailImpl,
         /**
-         * getFormOverview：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-devtools/src/plugin.ts:315`。
+         * getFormOverview：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @returns 返回当前分支执行后的处理结果。
          */
         getFormOverview(): FormOverview {
@@ -364,18 +356,14 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           return formOverviewCache
         },
         /**
-         * getEventLog：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-devtools/src/plugin.ts:336`。
+         * getEventLog：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @returns 返回当前分支执行后的处理结果。
          */
         getEventLog: () => [...eventLog],
         /**
-         * getValueDiff：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-devtools/src/plugin.ts:337`。
+         * getValueDiff：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @returns 返回当前分支执行后的处理结果。
          */
         getValueDiff(): ValueDiffEntry[] {
@@ -395,10 +383,8 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           return valueDiffCache
         },
         /**
-         * subscribe：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-devtools/src/plugin.ts:353`。
+         * subscribe：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param listener 参数 listener 为当前功能所需的输入信息。
          * @returns 返回当前分支执行后的处理结果。
          */
@@ -409,10 +395,8 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
 
         /* ---- 调试操作 ---- */
         /**
-         * clearEventLog：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-devtools/src/plugin.ts:359`。
+         * clearEventLog：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          */
         clearEventLog(): void {
           eventLog.length = 0
@@ -420,10 +404,8 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           notify()
         },
         /**
-         * highlightField：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-devtools/src/plugin.ts:364`。
+         * highlightField：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param path 参数 path 为当前功能所需的输入信息。
          */
         highlightField(path: string): void {
@@ -436,10 +418,8 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           addEvent('devtools:locate', `定位字段: ${path}`, path)
         },
         /**
-         * setFieldValue：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-devtools/src/plugin.ts:373`。
+         * setFieldValue：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param path 参数 path 为当前功能所需的输入信息。
          * @param value 参数 value 为输入值，用于驱动后续逻辑。
          */
@@ -451,10 +431,8 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           }
         },
         /**
-         * setFieldState：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-devtools/src/plugin.ts:380`。
+         * setFieldState：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param path 参数 path 为当前功能所需的输入信息。
          * @param state 参数 state 为当前功能所需的输入信息。
          */
@@ -473,10 +451,8 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           addEvent('devtools:setState', `修改状态: ${path} → ${JSON.stringify(state)}`, path)
         },
         /**
-         * validateAll：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-devtools/src/plugin.ts:394`。
+         * validateAll：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @returns 返回当前分支执行后的处理结果。
          */
         async validateAll(): Promise<Array<{ path: string, message: string }>> {
@@ -486,20 +462,16 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           return errors
         },
         /**
-         * resetForm：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-devtools/src/plugin.ts:400`。
+         * resetForm：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          */
         resetForm(): void {
           form.reset()
           addEvent('devtools:reset', '手动重置表单')
         },
         /**
-         * submitForm：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-devtools/src/plugin.ts:404`。
+         * submitForm：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @returns 返回当前分支执行后的处理结果。
          */
         async submitForm(): Promise<{ success: boolean, errors: Array<{ path: string, message: string }> }> {
@@ -524,10 +496,8 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
       return {
         api,
         /**
-         * dispose：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-devtools/src/plugin.ts:425`。
+         * dispose：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          */
         dispose: () => {
           for (const d of disposers) {
@@ -683,10 +653,8 @@ function ensureGlobalHook(): DevToolsGlobalHook {
     const hook: DevToolsGlobalHook = {
       forms: new Map(),
       /**
-       * register：执行当前位置的功能逻辑。
-       * 定位：`packages/plugin-devtools/src/plugin.ts:578`。
+       * register：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
-       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
        * @param id 参数 id 为当前功能所需的输入信息。
        * @param api 参数 api 为当前功能所需的输入信息。
        */
@@ -695,10 +663,8 @@ function ensureGlobalHook(): DevToolsGlobalHook {
         for (const fn of listeners) fn(hook.forms)
       },
       /**
-       * unregister：执行当前位置的功能逻辑。
-       * 定位：`packages/plugin-devtools/src/plugin.ts:582`。
+       * unregister：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
-       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
        * @param id 参数 id 为当前功能所需的输入信息。
        */
       unregister(id) {
@@ -706,10 +672,8 @@ function ensureGlobalHook(): DevToolsGlobalHook {
         for (const fn of listeners) fn(hook.forms)
       },
       /**
-       * onChange：执行当前位置的功能逻辑。
-       * 定位：`packages/plugin-devtools/src/plugin.ts:586`。
+       * onChange：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
-       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
        * @param listener 参数 listener 为当前功能所需的输入信息。
        * @returns 返回当前分支执行后的处理结果。
        */

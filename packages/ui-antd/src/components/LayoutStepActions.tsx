@@ -2,7 +2,7 @@ import { Button as AButton } from 'antd'
 import React from 'react'
 
 /**
- * Layout Step Actions Props：类型接口定义。
+ * Layout Step Actions Props：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/ui-antd/src/components/LayoutStepActions.tsx`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -15,7 +15,7 @@ export interface LayoutStepActionsProps {
 }
 
 /**
- * Layout Step Actions：当前功能模块的核心执行单元。
+ * Layout Step Actions：封装该模块的核心渲染与交互逻辑。
  * 所属模块：`packages/ui-antd/src/components/LayoutStepActions.tsx`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。

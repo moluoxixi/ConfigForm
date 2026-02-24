@@ -72,7 +72,7 @@ const darkTheme: Theme = {
 }
 
 /**
- * use System Theme：负责该函数职责对应的主流程编排。
+ * use System Theme：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
@@ -93,10 +93,8 @@ function useSystemTheme(): Theme {
      * @returns ?????????????
      */
     const /**
-           * h：执行当前位置的功能逻辑。
-           * 定位：`packages/plugin-devtools-react/src/DevToolsPanel.tsx:82`。
+           * h：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @param e 参数 e 为事件对象，用于提供交互上下文。
            * @returns 返回当前分支执行后的处理结果。
            */
@@ -130,10 +128,8 @@ type Tab = 'tree' | 'events' | 'diff' | 'values'
 /* ======================== 主面板 ======================== */
 
 /**
- * DevToolsPanel：执行当前位置的功能逻辑。
- * 定位：`packages/plugin-devtools-react/src/DevToolsPanel.tsx:106`。
+ * DevToolsPanel：处理当前分支的交互与状态同步。
  * 功能：处理参数消化、状态变更与调用链行为同步。
- * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
  * @returns 返回当前分支执行后的处理结果。
  */
 export function DevToolsPanel({ api }: DevToolsPanelProps): React.ReactElement {
@@ -158,10 +154,8 @@ export function DevToolsPanel({ api }: DevToolsPanelProps): React.ReactElement {
        * ??????????????????????????
        */
       const /**
-             * flush：执行当前位置的功能逻辑。
-             * 定位：`packages/plugin-devtools-react/src/DevToolsPanel.tsx:121`。
+             * flush：处理当前分支的交互与状态同步。
              * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
              */
         flush = (): void => {
           if (active)
@@ -351,10 +345,8 @@ export function DevToolsPanel({ api }: DevToolsPanelProps): React.ReactElement {
 /* ======================== 标题栏 ======================== */
 
 /**
- * Header：执行当前位置的功能逻辑。
- * 定位：`packages/plugin-devtools-react/src/DevToolsPanel.tsx:308`。
+ * Header：处理当前分支的交互与状态同步。
  * 功能：处理参数消化、状态变更与调用链行为同步。
- * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
  * @returns 返回当前分支执行后的处理结果。
  */
 function Header({ t, overview, onClose, onValidate, onReset, onSubmit }: {
@@ -393,7 +385,7 @@ function Header({ t, overview, onClose, onValidate, onReset, onSubmit }: {
 }
 
 /**
- * Action Btn：负责该函数职责对应的主流程编排。
+ * Action Btn：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
@@ -423,10 +415,8 @@ function ActionBtn({ t, label, onClick, color }: { t: Theme, label: string, onCl
 /* ======================== 基础组件 ======================== */
 
 /**
- * Badge：执行当前位置的功能逻辑。
- * 定位：`packages/plugin-devtools-react/src/DevToolsPanel.tsx:373`。
+ * Badge：处理当前分支的交互与状态同步。
  * 功能：处理参数消化、状态变更与调用链行为同步。
- * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
  * @returns 返回当前分支执行后的处理结果。
  */
 function Badge({ t, label, color }: { t: Theme, label: string, color: string }): React.ReactElement {
@@ -434,7 +424,7 @@ function Badge({ t, label, color }: { t: Theme, label: string, color: string }):
 }
 
 /**
- * Tab Btn：负责该函数职责对应的主流程编排。
+ * Tab Btn：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
@@ -469,7 +459,7 @@ function TabBtn({ t, active, onClick, label, count }: { t: Theme, active: boolea
 }
 
 /**
- * Filter Pill：负责该函数职责对应的主流程编排。
+ * Filter Pill：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
@@ -497,7 +487,7 @@ function FilterPill({ t, active, onClick, label }: { t: Theme, active: boolean, 
 }
 
 /**
- * Empty：负责该函数职责对应的主流程编排。
+ * Empty：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
@@ -510,10 +500,8 @@ function Empty({ t, text }: { t: Theme, text: string }): React.ReactElement {
 /* ======================== 字段树 ======================== */
 
 /**
- * TreeView：执行当前位置的功能逻辑。
- * 定位：`packages/plugin-devtools-react/src/DevToolsPanel.tsx:453`。
+ * TreeView：处理当前分支的交互与状态同步。
  * 功能：处理参数消化、状态变更与调用链行为同步。
- * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
  * @returns 返回当前分支执行后的处理结果。
  */
 function TreeView({ t, nodes, selected, onSelect, depth = 0 }: {
@@ -565,7 +553,7 @@ function TreeView({ t, nodes, selected, onSelect, depth = 0 }: {
 }
 
 /**
- * Type Badge：负责该函数职责对应的主流程编排。
+ * Type Badge：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
@@ -577,7 +565,7 @@ function TypeBadge({ type }: { type: string }): React.ReactElement {
 }
 
 /**
- * Dot：负责该函数职责对应的主流程编排。
+ * Dot：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
@@ -590,10 +578,8 @@ function Dot({ color }: { color: string }): React.ReactElement {
 /* ======================== 字段详情（含编辑能力） ======================== */
 
 /**
- * DetailView：执行当前位置的功能逻辑。
- * 定位：`packages/plugin-devtools-react/src/DevToolsPanel.tsx:526`。
+ * DetailView：处理当前分支的交互与状态同步。
  * 功能：处理参数消化、状态变更与调用链行为同步。
- * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
  * @returns 返回当前分支执行后的处理结果。
  */
 function DetailView({ t, detail, api }: { t: Theme, detail: FieldDetail, api: DevToolsPluginAPI }): React.ReactElement {
@@ -745,7 +731,7 @@ function DetailView({ t, detail, api }: { t: Theme, detail: FieldDetail, api: De
 }
 
 /**
- * Sec：负责该函数职责对应的主流程编排。
+ * Sec：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
@@ -761,7 +747,7 @@ function Sec({ t, title, children }: { t: Theme, title: string, children: React.
 }
 
 /**
- * Row：负责该函数职责对应的主流程编排。
+ * Row：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
@@ -777,7 +763,7 @@ function Row({ t, label, value, mono }: { t: Theme, label: string, value: string
 }
 
 /**
- * State Pill：负责该函数职责对应的主流程编排。
+ * State Pill：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
@@ -823,10 +809,8 @@ function TogglePill({ t, label, value, onClick }: { t: Theme, label: string, val
 /* ======================== 事件视图 ======================== */
 
 /**
- * EventsView：执行当前位置的功能逻辑。
- * 定位：`packages/plugin-devtools-react/src/DevToolsPanel.tsx:752`。
+ * EventsView：处理当前分支的交互与状态同步。
  * 功能：处理参数消化、状态变更与调用链行为同步。
- * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
  * @returns 返回当前分支执行后的处理结果。
  */
 function EventsView({ t, events, onClear }: { t: Theme, events: EventLogEntry[], onClear: () => void }): React.ReactElement {
@@ -883,10 +867,8 @@ function resolveEventColor(type: string, theme: Theme): string {
 /* ======================== Diff 视图 ======================== */
 
 /**
- * DiffView：执行当前位置的功能逻辑。
- * 定位：`packages/plugin-devtools-react/src/DevToolsPanel.tsx:805`。
+ * DiffView：处理当前分支的交互与状态同步。
  * 功能：处理参数消化、状态变更与调用链行为同步。
- * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
  * @returns 返回当前分支执行后的处理结果。
  */
 function DiffView({ t, diff }: { t: Theme, diff: ValueDiffEntry[] }): React.ReactElement {
@@ -940,10 +922,8 @@ function DiffView({ t, diff }: { t: Theme, diff: ValueDiffEntry[] }): React.Reac
 /* ======================== 值视图 ======================== */
 
 /**
- * ValuesView：执行当前位置的功能逻辑。
- * 定位：`packages/plugin-devtools-react/src/DevToolsPanel.tsx:855`。
+ * ValuesView：处理当前分支的交互与状态同步。
  * 功能：处理参数消化、状态变更与调用链行为同步。
- * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
  * @returns 返回当前分支执行后的处理结果。
  */
 function ValuesView({ t, values }: { t: Theme, values: Record<string, unknown> }): React.ReactElement {

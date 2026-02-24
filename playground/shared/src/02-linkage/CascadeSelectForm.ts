@@ -79,10 +79,8 @@ const config: SceneConfig = {
           watch: 'province',
           fulfill: {
             /**
-             * run：执行当前位置的功能逻辑。
-             * 定位：`playground/shared/src/02-linkage/CascadeSelectForm.ts:81`。
+             * run：处理当前分支的交互与状态同步。
              * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
              * @param f 参数 f 为当前功能所需的输入信息。
              * @param ctx 参数 ctx 为上下文对象，用于传递场景数据。
              */
@@ -104,10 +102,8 @@ const config: SceneConfig = {
           watch: 'city',
           fulfill: {
             /**
-             * run：执行当前位置的功能逻辑。
-             * 定位：`playground/shared/src/02-linkage/CascadeSelectForm.ts:98`。
+             * run：处理当前分支的交互与状态同步。
              * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
              * @param f 参数 f 为当前功能所需的输入信息。
              * @param ctx 参数 ctx 为上下文对象，用于传递场景数据。
              */
@@ -137,10 +133,8 @@ const config: SceneConfig = {
           watch: 'categoryL1',
           fulfill: {
             /**
-             * run：执行当前位置的功能逻辑。
-             * 定位：`playground/shared/src/02-linkage/CascadeSelectForm.ts:123`。
+             * run：处理当前分支的交互与状态同步。
              * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
              * @param f 参数 f 为当前功能所需的输入信息。
              * @param ctx 参数 ctx 为上下文对象，用于传递场景数据。
              */
@@ -161,10 +155,8 @@ const config: SceneConfig = {
           watch: 'categoryL2',
           fulfill: {
             /**
-             * run：执行当前位置的功能逻辑。
-             * 定位：`playground/shared/src/02-linkage/CascadeSelectForm.ts:139`。
+             * run：处理当前分支的交互与状态同步。
              * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
              * @param f 参数 f 为当前功能所需的输入信息。
              * @param ctx 参数 ctx 为上下文对象，用于传递场景数据。
              */

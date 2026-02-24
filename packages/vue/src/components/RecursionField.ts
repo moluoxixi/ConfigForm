@@ -166,7 +166,7 @@ export const RecursionField = defineComponent({
       if (schema.type === 'void') {
         return h(SchemaProviderLocal, { key: address, schema }, {
           /**
-           * default：执行当前位置的功能逻辑。
+           * default：处理当前分支的交互与状态同步。
            */
           default: () => h(FormVoidField, {
             name: address,
@@ -182,7 +182,7 @@ export const RecursionField = defineComponent({
             },
           }, {
             /**
-             * default：执行当前位置的功能逻辑。
+             * default：处理当前分支的交互与状态同步。
              */
             default: () => renderProperties(schema, dataPath),
           }),
@@ -228,7 +228,7 @@ export const RecursionField = defineComponent({
           },
         }, {
           /**
-           * default：执行当前位置的功能逻辑。
+           * default：处理当前分支的交互与状态同步。
            */
           default: () => renderProperties(schema, dataPath),
         })
@@ -272,7 +272,7 @@ export const RecursionField = defineComponent({
             },
           }, {
             /**
-             * default：执行当前位置的功能逻辑。
+             * default：处理当前分支的交互与状态同步。
              */
             default: () => renderProperties(schema, path),
           })

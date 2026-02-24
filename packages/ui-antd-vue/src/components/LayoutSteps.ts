@@ -14,10 +14,8 @@ import { defineComponent, h, ref, watch } from 'vue'
 export const LayoutSteps = defineComponent({
   name: 'CfLayoutSteps',
   /**
-   * setup：执行当前位置的功能逻辑。
-   * 定位：`packages/ui-antd-vue/src/components/LayoutSteps.ts:16`。
+   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
    * @returns 返回当前分支执行后的处理结果。
    */
   setup() {
@@ -36,10 +34,8 @@ export const LayoutSteps = defineComponent({
      * @returns ?????????????
      */
     const /**
-           * getDataPath：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-antd-vue/src/components/LayoutSteps.ts:23`。
+           * getDataPath：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @param path 参数 path 为当前功能所需的输入信息。
            * @returns 返回当前分支执行后的处理结果。
            */
@@ -68,10 +64,8 @@ export const LayoutSteps = defineComponent({
      * @param output ?? output ????????????
      */
     const /**
-           * collectDataPaths：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-antd-vue/src/components/LayoutSteps.ts:38`。
+           * collectDataPaths：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @param schema 参数 schema 为当前功能所需的输入信息。
            * @param parentPath 参数 parentPath 为当前功能所需的输入信息。
            * @param output 参数 output 为当前功能所需的输入信息。
@@ -139,10 +133,8 @@ export const LayoutSteps = defineComponent({
      * @returns ?????????????
      */
     const /**
-           * resolveAlign：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-antd-vue/src/components/LayoutSteps.ts:92`。
+           * resolveAlign：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @param value 参数 value 为输入值，用于驱动后续逻辑。
            * @returns 返回当前分支执行后的处理结果。
            */
@@ -164,10 +156,8 @@ export const LayoutSteps = defineComponent({
      * @returns ?????????????
      */
     const /**
-           * resolveLabel：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-antd-vue/src/components/LayoutSteps.ts:100`。
+           * resolveLabel：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @param value 参数 value 为输入值，用于驱动后续逻辑。
            * @param fallback 参数 fallback 为当前功能所需的输入信息。
            * @returns 返回当前分支执行后的处理结果。
@@ -184,10 +174,8 @@ export const LayoutSteps = defineComponent({
      * @returns ?????????????
      */
     const /**
-           * allowAction：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-antd-vue/src/components/LayoutSteps.ts:103`。
+           * allowAction：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @param value 参数 value 为输入值，用于驱动后续逻辑。
            * @returns 返回当前分支执行后的处理结果。
            */
@@ -200,10 +188,8 @@ export const LayoutSteps = defineComponent({
      * ??????????????????????????
      */
     const /**
-           * handleNext：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-antd-vue/src/components/LayoutSteps.ts:105`。
+           * handleNext：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            */
       handleNext = async (): Promise<void> => {
         if (current.value >= items.length - 1)
@@ -240,10 +226,8 @@ export const LayoutSteps = defineComponent({
      * ??????????????????????????
      */
     const /**
-           * handleSubmit：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-antd-vue/src/components/LayoutSteps.ts:133`。
+           * handleSubmit：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            */
       handleSubmit = async (): Promise<void> => {
         const result = await form.submit()
@@ -259,10 +243,8 @@ export const LayoutSteps = defineComponent({
      * ??????????????????????????
      */
     const /**
-           * handleReset：执行当前位置的功能逻辑。
-           * 定位：`packages/ui-antd-vue/src/components/LayoutSteps.ts:140`。
+           * handleReset：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            */
       handleReset = (): void => {
         form.reset()
@@ -293,10 +275,8 @@ export const LayoutSteps = defineComponent({
             current: current.value,
             total: items.length,
             /**
-             * prev：执行当前位置的功能逻辑。
-             * 定位：`packages/ui-antd-vue/src/components/LayoutSteps.ts:168`。
+             * prev：处理当前分支的交互与状态同步。
              * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
              */
             prev: () => {
               if (current.value > 0)
@@ -328,16 +308,12 @@ export const LayoutSteps = defineComponent({
               : [
                   current.value > 0 && allowAction(actions.prev)
                     ? h(AButton, { /**
-                                    * onClick：执行当前位置的功能逻辑。
-                                    * 定位：`packages/ui-antd-vue/src/components/LayoutSteps.ts:197`。
+                                    * onClick：处理当前分支的交互与状态同步。
                                     * 功能：处理参数消化、状态变更与调用链行为同步。
-                                    * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                                     */
                         /**
-                         * onClick：执行当前位置的功能逻辑。
-                         * 定位：`packages/ui-antd-vue/src/components/LayoutSteps.ts:276`。
+                         * onClick：处理当前分支的交互与状态同步。
                          * 功能：处理参数消化、状态变更与调用链行为同步。
-                         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                          */
                         onClick: () => { current.value-- },
                       }, () => resolveLabel(actions.prev, '上一步'))

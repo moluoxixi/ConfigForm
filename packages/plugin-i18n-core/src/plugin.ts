@@ -34,7 +34,7 @@ export function i18nPlugin(config: I18nPluginConfig): FormPlugin<I18nPluginAPI> 
     name: 'i18n',
 
     /**
-     * install：当前功能模块的核心执行单元。
+     * install：封装该模块的核心渲染与交互逻辑。
      * 所属模块：`packages/plugin-i18n-core/src/plugin.ts`。
      * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
      * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -47,7 +47,7 @@ export function i18nPlugin(config: I18nPluginConfig): FormPlugin<I18nPluginAPI> 
       const listeners = new Set<(nextVersion: number) => void>()
 
       /**
-       * refresh：当前功能模块的核心执行单元。
+       * refresh：封装该模块的核心渲染与交互逻辑。
        * 所属模块：`packages/plugin-i18n-core/src/plugin.ts`。
        * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
        * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -63,7 +63,7 @@ export function i18nPlugin(config: I18nPluginConfig): FormPlugin<I18nPluginAPI> 
         }
 
       /**
-       * set Locale：当前功能模块的核心执行单元。
+       * set Locale：封装该模块的核心渲染与交互逻辑。
        * 所属模块：`packages/plugin-i18n-core/src/plugin.ts`。
        * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
        * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -94,7 +94,7 @@ export function i18nPlugin(config: I18nPluginConfig): FormPlugin<I18nPluginAPI> 
         : undefined
 
       /**
-       * subscribe：当前功能模块的核心执行单元。
+       * subscribe：封装该模块的核心渲染与交互逻辑。
        * 所属模块：`packages/plugin-i18n-core/src/plugin.ts`。
        * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
        * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -151,7 +151,7 @@ export function i18nPlugin(config: I18nPluginConfig): FormPlugin<I18nPluginAPI> 
       return {
         api,
         /**
-         * dispose：当前功能模块的核心执行单元。
+         * dispose：封装该模块的核心渲染与交互逻辑。
          * 所属模块：`packages/plugin-i18n-core/src/plugin.ts`。
          * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
          * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。

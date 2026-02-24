@@ -1,20 +1,20 @@
 import type { FieldPattern, FormInstance, FormPlugin } from '@moluoxixi/core'
 
 /**
- * Form Print Target Resolver：类型别名定义。
+ * Form Print Target Resolver：描述该模块使用的类型别名语义。
  * 所属模块：`packages/plugin-print/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 export type FormPrintTargetResolver = () => string | Element | null | undefined
 /**
- * Form Print Target：类型别名定义。
+ * Form Print Target：描述该模块使用的类型别名语义。
  * 所属模块：`packages/plugin-print/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 export type FormPrintTarget = string | Element | FormPrintTargetResolver
 
 /**
- * Form Print Payload：类型接口定义。
+ * Form Print Payload：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/plugin-print/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -28,7 +28,7 @@ export interface FormPrintPayload {
 }
 
 /**
- * Form Print Adapters：类型接口定义。
+ * Form Print Adapters：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/plugin-print/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -37,7 +37,7 @@ export interface FormPrintAdapters {
 }
 
 /**
- * Form Print Options：类型接口定义。
+ * Form Print Options：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/plugin-print/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -52,7 +52,7 @@ export interface FormPrintOptions {
 }
 
 /**
- * Form Print Plugin Config：类型接口定义。
+ * Form Print Plugin Config：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/plugin-print/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -71,7 +71,7 @@ export interface FormPrintPluginConfig {
 }
 
 /**
- * Form Print Plugin API：类型接口定义。
+ * Form Print Plugin API：描述该模块对外暴露的数据结构。
  * 所属模块：`packages/plugin-print/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -79,7 +79,7 @@ export interface FormPrintPluginAPI {
   print: (options?: FormPrintOptions) => Promise<void>
 }
 /**
- * Form Print Plugin：类型别名定义。
+ * Form Print Plugin：描述该模块使用的类型别名语义。
  * 所属模块：`packages/plugin-print/src/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

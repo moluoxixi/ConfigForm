@@ -20,7 +20,7 @@ function resolveComposer(i18n: VueI18nLike): VueComposerLike {
 }
 
 /**
- * read Locale：负责该函数职责对应的主流程编排。
+ * read Locale：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
@@ -35,7 +35,7 @@ function readLocale(composer: VueComposerLike): string {
 }
 
 /**
- * write Locale：负责该函数职责对应的主流程编排。
+ * write Locale：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
@@ -51,7 +51,7 @@ function writeLocale(composer: VueComposerLike, nextLocale: string): void {
 }
 
 /**
- * watch Locale：负责该函数职责对应的主流程编排。
+ * watch Locale：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
@@ -71,7 +71,7 @@ function watchLocale(composer: VueComposerLike, listener: (locale: string) => vo
 }
 
 /**
- * vue I18n Plugin：负责该函数职责对应的主流程编排。
+ * vue I18n Plugin：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
@@ -85,30 +85,24 @@ export function vueI18nPlugin(options: VueI18nPluginOptions): FormPlugin<I18nPlu
     ...rest,
     locale: locale ?? readLocale(composer),
     /**
-     * t：执行当前位置的功能逻辑。
-     * 定位：`packages/plugin-i18n-vue/src/plugin.ts:87`。
+     * t：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
-     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
      * @param key 参数 key 为当前功能所需的输入信息。
      * @param params 参数 params 为当前功能所需的输入信息。
      * @returns 返回当前分支执行后的处理结果。
      */
     t: (key, params) => String(composer.t(key, params)),
     /**
-     * changeLocale：执行当前位置的功能逻辑。
-     * 定位：`packages/plugin-i18n-vue/src/plugin.ts:88`。
+     * changeLocale：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
-     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
      * @param nextLocale 参数 nextLocale 为当前功能所需的输入信息。
      */
     changeLocale: async (nextLocale) => {
       writeLocale(composer, nextLocale)
     },
     /**
-     * onLocaleChange：执行当前位置的功能逻辑。
-     * 定位：`packages/plugin-i18n-vue/src/plugin.ts:91`。
+     * onLocaleChange：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
-     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
      * @param listener 参数 listener 为当前功能所需的输入信息。
      * @returns 返回当前分支执行后的处理结果。
      */
@@ -119,7 +113,7 @@ export function vueI18nPlugin(options: VueI18nPluginOptions): FormPlugin<I18nPlu
 }
 
 /**
- * as Vue I18n：负责该函数职责对应的主流程编排。
+ * as Vue I18n：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
  *
