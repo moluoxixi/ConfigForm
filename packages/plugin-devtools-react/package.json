@@ -32,7 +32,7 @@
     "react": ">=18.0.0"
   },
   "dependencies": {
-    "@moluoxixi/plugin-devtools": "workspace:*"
+    "@moluoxixi/plugin-devtools-core": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "catalog:type",
