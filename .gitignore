@@ -1,5 +1,6 @@
 # 其他用户配置
 typings
+formily
 
 # rules(可选)
 .cursor
@@ -9,11 +10,6 @@ typings
 
 # 测试产物
 .playwright-mcp
-.temp/
-.tmp/
-*.png
-*.jpeg
-*.jpg
 
 # Sentry配置
 .env.sentry-build-plugin
@@ -35,11 +31,7 @@ stats.html
 # 日志
 logs
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+*.log*
 
 # 编辑器
 .vscode/*
