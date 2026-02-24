@@ -1,8 +1,8 @@
 {
-  "name": "@moluoxixi/plugin-devtools-react",
+  "name": "@moluoxixi/plugin-devtools-vue",
   "type": "module",
   "version": "0.0.1",
-  "description": "ConfigForm DevTools React 浮动面板",
+  "description": "ConfigForm DevTools Vue 浮动面板",
   "exports": {
     ".": {
       "types": "./src/index.ts",
@@ -34,13 +34,12 @@
     "test:watch": "vitest -c vitest.config.ts"
   },
   "peerDependencies": {
-    "react": ">=18.0.0"
+    "vue": ">=3.3.0"
   },
   "dependencies": {
-    "@moluoxixi/plugin-devtools-core": "workspace:*"
+    "@moluoxixi/plugin-devtools": "workspace:*"
   },
   "devDependencies": {
-    "@types/react": "catalog:type",
     "tsup": "catalog:type",
     "typescript": "catalog:type"
   }

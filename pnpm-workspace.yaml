@@ -9,7 +9,7 @@ gitChecks: false
 registry: https://registry.npmjs.org/
 
 packages:
-  - 'packages/*'
+  - 'packages/**'
   - 'playground/*'
 catalogs:
   build:
