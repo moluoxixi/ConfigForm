@@ -71,6 +71,18 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
       /** 事件日志 */
       const eventLog: EventLogEntry[] = []
       let eventIdCounter = 0
+      /** 字段树缓存 */
+      let fieldTreeCache: FieldTreeNode[] = []
+      let fieldTreeDirty = true
+      /** 表单概览缓存 */
+      let formOverviewCache: FormOverview | null = null
+      let formOverviewDirty = true
+      /** 值差异缓存 */
+      let valueDiffCache: ValueDiffEntry[] = []
+      let valueDiffDirty = true
+      /** 字段创建顺序缓存 */
+      const fieldOrder = new Map<string, number>()
+      let fieldOrderCounter = 0
 
       /** 数据变化监听器 */
       const listeners = new Set<() => void>()

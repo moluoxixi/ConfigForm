@@ -1,5 +1,6 @@
 import type { FormInstance, FormPlugin } from '@moluoxixi/core'
 import type {
+  FormExportDataOptions,
   FormExportPluginAPI,
   FormExportPluginOptions,
   FormExportPreview,
@@ -13,6 +14,65 @@ export const PLUGIN_NAME = 'form-export'
 const _DEFAULT_EXCLUDE_PREFIXES = ['_']
 const DEFAULT_JSON_SPACE = 2
 const DEFAULT_FILE_NAME_BASE = 'config-form'
+
+/**
+ * resolveExcludePrefixes：合并插件级与调用级的排除前缀配置。
+ */
+function resolveExcludePrefixes(
+  config: FormExportPluginOptions,
+  options?: FormExportDataOptions,
+): string[] {
+  return options?.excludePrefixes ?? config.excludePrefixes ?? _DEFAULT_EXCLUDE_PREFIXES
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+/**
+ * 深拷贝并按前缀过滤对象 key。
+ */
+function sanitizeValue(value: unknown, excludePrefixes: string[]): unknown {
+  if (Array.isArray(value)) {
+    return value.map(item => sanitizeValue(item, excludePrefixes))
+  }
+  if (!isRecord(value)) {
+    return value
+  }
+
+  const next: Record<string, unknown> = {}
+  for (const [key, item] of Object.entries(value)) {
+    if (excludePrefixes.some(prefix => prefix && key.startsWith(prefix))) {
+      continue
+    }
+    next[key] = sanitizeValue(item, excludePrefixes)
+  }
+  return next
+}
+
+/**
+ * toExportData：按配置生成可导出的纯数据对象。
+ */
+function toExportData(values: Record<string, unknown>, excludePrefixes: string[]): Record<string, unknown> {
+  const sanitized = sanitizeValue(values, excludePrefixes)
+  return isRecord(sanitized) ? sanitized : {}
+}
+
+/**
+ * createExportPreview：生成导出预览（对象 + JSON 字符串）。
+ */
+function createExportPreview(
+  api: FormExportPluginAPI,
+  config: FormExportPluginOptions,
+  options?: FormExportPreviewOptions,
+): FormExportPreview {
+  const data = api.getExportData(options)
+  const space = options?.jsonSpace ?? config.jsonSpace ?? DEFAULT_JSON_SPACE
+  return {
+    data,
+    json: JSON.stringify(data, null, space),
+  }
+}
 
 /**
  * resolveFileNameBase：处理当前分支的交互与状态同步。

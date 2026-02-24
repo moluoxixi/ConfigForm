@@ -51,6 +51,8 @@ import {
 } from './components/PreviewText'
 import 'element-plus/dist/index.css'
 
+let styleInjected = false
+
 /**
  * inject Label Align Style：封装该模块的核心渲染与交互逻辑。
  * 所属模块：`packages/ui-element-plus/src/index.ts`。

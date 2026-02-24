@@ -1,7 +1,32 @@
 import type { FormPlugin } from '@moluoxixi/core'
-import type { FormImportPluginAPI, FormImportPluginOptions } from './types'
+import type {
+  FormImportOptions,
+  FormImportPluginAPI,
+  FormImportPluginOptions,
+  ImportSetValueStrategy,
+} from './types'
 import { readFileAsText } from './browser'
 import { ensurePlainObject, parseJSON } from './serialize'
+
+const PLUGIN_NAME = 'form-import'
+const DEFAULT_STRATEGY: ImportSetValueStrategy = 'merge'
+const DEFAULT_EXCLUDE_PREFIXES = ['_']
+
+/**
+ * normalizeImportOptions：合并插件默认配置与单次导入配置。
+ *
+ * 规则：
+ * 1. strategy 默认 `merge`
+ * 2. allowInternal 默认 `false`
+ * 3. excludePrefixes 优先级：调用参数 > 插件配置 > 默认 `['_']`
+ */
+function normalizeImportOptions(config: FormImportPluginOptions, options: FormImportOptions = {}) {
+  return {
+    strategy: options.strategy ?? DEFAULT_STRATEGY,
+    allowInternal: options.allowInternal ?? false,
+    excludePrefixes: options.excludePrefixes ?? config.excludePrefixes ?? DEFAULT_EXCLUDE_PREFIXES,
+  }
+}
 
 /**
  * splitImportData：执行当前功能逻辑。

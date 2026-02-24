@@ -31,9 +31,9 @@
   "scripts": {
     "build": "pnpm -r --filter './packages/*' build",
     "build:core": "pnpm --filter @moluoxixi/core build",
-    "test": "pnpm --filter @moluoxixi/core test",
-    "test:packages": "vitest run -c vitest.packages.config.ts",
-    "test:watch": "pnpm --filter @moluoxixi/core test:watch",
+    "test": "pnpm -r --filter './packages/*' test",
+    "test:packages": "pnpm -r --filter './packages/*' test",
+    "test:watch": "pnpm -r --parallel --filter './packages/*' test:watch",
     "dev:vue": "pnpm --filter @playground/vue dev",
     "dev:react": "pnpm --filter @playground/react dev",
     "lint:eslint": "eslint . --fix && pnpm lint:eslint:vue && pnpm lint:eslint:react",
