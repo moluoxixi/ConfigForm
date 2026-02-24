@@ -986,11 +986,7 @@ implements FormInstance<Values> {
     const context: PluginContext = {
       /**
        * getPlugin：执行当前位置的功能逻辑。
-       * 定位：`packages/core/src/models/Form.ts:979`。
-       * 功能：处理参数消化、状态变更与调用链行为同步。
-       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
        * @param name 参数 name 为当前功能所需的输入信息。
-       * @returns 返回当前分支执行后的处理结果。
        */
       getPlugin: <T = Record<string, unknown>>(name: string): T | undefined => {
         return this._pluginAPIs.get(name) as T | undefined
@@ -998,12 +994,8 @@ implements FormInstance<Values> {
       hooks: {
         /**
          * onSubmit：执行当前位置的功能逻辑。
-         * 定位：`packages/core/src/models/Form.ts:983`。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param handler 参数 handler 为当前功能所需的输入信息。
          * @param priority 参数 priority 为当前功能所需的输入信息。
-         * @returns 返回当前分支执行后的处理结果。
          */
         onSubmit: (handler, priority) => {
           const disposer = hookManager.submit.tap(handler, priority)
@@ -1012,12 +1004,8 @@ implements FormInstance<Values> {
         },
         /**
          * onValidate：执行当前位置的功能逻辑。
-         * 定位：`packages/core/src/models/Form.ts:988`。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param handler 参数 handler 为当前功能所需的输入信息。
          * @param priority 参数 priority 为当前功能所需的输入信息。
-         * @returns 返回当前分支执行后的处理结果。
          */
         onValidate: (handler, priority) => {
           const disposer = hookManager.validate.tap(handler, priority)
@@ -1026,12 +1014,8 @@ implements FormInstance<Values> {
         },
         /**
          * onSetValues：执行当前位置的功能逻辑。
-         * 定位：`packages/core/src/models/Form.ts:993`。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param handler 参数 handler 为当前功能所需的输入信息。
          * @param priority 参数 priority 为当前功能所需的输入信息。
-         * @returns 返回当前分支执行后的处理结果。
          */
         onSetValues: (handler, priority) => {
           const disposer = hookManager.setValues.tap(handler, priority)
@@ -1040,12 +1024,8 @@ implements FormInstance<Values> {
         },
         /**
          * onCreateField：执行当前位置的功能逻辑。
-         * 定位：`packages/core/src/models/Form.ts:998`。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param handler 参数 handler 为当前功能所需的输入信息。
          * @param priority 参数 priority 为当前功能所需的输入信息。
-         * @returns 返回当前分支执行后的处理结果。
          */
         onCreateField: (handler, priority) => {
           const disposer = hookManager.createField.tap(handler, priority)
@@ -1054,12 +1034,8 @@ implements FormInstance<Values> {
         },
         /**
          * onReset：执行当前位置的功能逻辑。
-         * 定位：`packages/core/src/models/Form.ts:1003`。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param handler 参数 handler 为当前功能所需的输入信息。
          * @param priority 参数 priority 为当前功能所需的输入信息。
-         * @returns 返回当前分支执行后的处理结果。
          */
         onReset: (handler, priority) => {
           const disposer = hookManager.reset.tap(handler, priority)

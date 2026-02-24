@@ -6,9 +6,7 @@ import { observer } from '../reactive'
 import { ReactiveField } from './ReactiveField'
 
 /**
- * Form Object Field Props：类型接口定义。
- * 所属模块：`packages/react/src/components/FormObjectField.tsx`。
- * 该声明用于描述模块的对外契约或内部结构边界。
+ * `FormObjectField` 组件属性。
  */
 export interface FormObjectFieldProps {
   name: string
@@ -28,9 +26,8 @@ export const FormObjectField = observer<FormObjectFieldProps>(({ name, fieldProp
     throw new Error('[ConfigForm] <FormObjectField> 必须在 <FormProvider> 内部使用')
 
   /**
-   * 获取或创建字段，并记录是否由本组件创建。
-   *
-   * 兼容 React 18 StrictMode 双挂载（同 FormField / FormVoidField）。
+   * 获取或创建对象字段，并记录是否由本组件创建。
+   * 该标记用于卸载阶段精确清理，避免误删外部已存在字段。
    */
   const fieldRef = useRef<ObjectFieldInstance | null>(null)
   const createdByThisRef = useRef(false)
@@ -44,7 +41,10 @@ export const FormObjectField = observer<FormObjectFieldProps>(({ name, fieldProp
   }
   const field = fieldRef.current
 
-  /* 组件挂载时通知字段 mount，卸载时 unmount + 清理注册 */
+  /**
+   * 管理字段生命周期：
+   * 挂载时 mount，卸载时 unmount，并在必要时 removeField。
+   */
   useEffect(() => {
     const currentField = fieldRef.current
     const fieldName = name

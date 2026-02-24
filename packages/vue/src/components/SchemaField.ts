@@ -15,15 +15,14 @@ const SchemaProvider = defineComponent({
     schema: { type: Object as PropType<ISchema>, required: true },
   },
   /**
-   * setup：当前功能模块的核心执行单元。
-   * 所属模块：`packages/vue/src/components/SchemaField.ts`。
-   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
-   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
-   * @param props 参数 `props`用于提供当前函数执行所需的输入信息。
-   * @param param2 原始解构参数（{ slots }）用于提供当前函数执行所需的输入信息。
-   * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+   * 注入当前节点 schema，并透传默认插槽内容。
+   *
+   * @param props 当前节点 schema。
+   * @param context setup 上下文，用于访问默认插槽。
+   * @returns 返回默认插槽渲染函数。
    */
-  setup(props, { slots }) {
+  setup(props, context) {
+    const { slots } = context
     provide(SchemaSymbol, props.schema)
     return () => slots.default?.()
   },
@@ -53,12 +52,10 @@ export const SchemaField = defineComponent({
     },
   },
   /**
-   * setup：当前功能模块的核心执行单元。
-   * 所属模块：`packages/vue/src/components/SchemaField.ts`。
-   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
-   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
-   * @param props 参数 `props`用于提供当前函数执行所需的输入信息。
-   * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+   * 编译 schema 并递归渲染字段节点。
+   *
+   * @param props 组件属性，包含原始 schema 与可选编译参数。
+   * @returns 返回根节点渲染函数。
    */
   setup(props) {
     const form = inject(FormSymbol)
@@ -70,8 +67,8 @@ export const SchemaField = defineComponent({
 
     /**
      * 渲染一个编译后的节点
-     * @param cf 参数 `cf`用于提供当前函数执行所需的输入信息。
-     * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+     * @param cf 编译后的字段节点。
+     * @returns 返回当前节点对应的 VNode；无法渲染时返回 `null`。
      */
     function renderNode(cf: CompiledField): VNode | null {
       if (cf.isVoid) {
@@ -109,8 +106,8 @@ export const SchemaField = defineComponent({
      *
      * 参考 Formily：将 items schema 通过 componentProps.itemsSchema 传递给
      * ArrayField 组件，由 ArrayField 使用 RecursionField 递归渲染每个数组项。
-     * @param cf 参数 `cf`用于提供当前函数执行所需的输入信息。
-     * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+     * @param cf 编译后的数组节点。
+     * @returns 返回数组字段节点。
      */
     function renderArrayNode(cf: CompiledField): VNode {
       const arrayProps = toArrayFieldProps(cf)
@@ -134,8 +131,8 @@ export const SchemaField = defineComponent({
      * 注入 SchemaSymbol，让布局组件能通过 useFieldSchema() 获取 Schema。
      * 注意：Vue 的 provide 只能在 setup 中调用，
      * 这里通过包裹一个 SchemaProvider 组件来实现运行时注入。
-     * @param cf 参数 `cf`用于提供当前函数执行所需的输入信息。
-     * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+     * @param cf 编译后的 void 节点。
+     * @returns 返回 void 字段节点。
      */
     function renderVoidNode(cf: CompiledField): VNode {
       const voidProps = toVoidFieldProps(cf)
@@ -143,22 +140,12 @@ export const SchemaField = defineComponent({
         key: cf.address,
         schema: cf.schema,
       }, {
-        /**
-         * default：执行当前功能逻辑。
-         *
-         * @returns 返回当前功能的处理结果。
-         */
-
+        /** 默认插槽：渲染当前 void 节点。 */
         default: () => h(FormVoidField, {
           name: cf.address,
           fieldProps: voidProps,
         }, {
-          /**
-           * default：执行当前功能逻辑。
-           *
-           * @returns 返回当前功能的处理结果。
-           */
-
+          /** 默认插槽：递归渲染子节点。 */
           default: () => renderChildren(cf.children),
         }),
       })
@@ -166,30 +153,20 @@ export const SchemaField = defineComponent({
 
     /**
      * object 节点 → FormObjectField + 递归 children
-     * @param cf 参数 `cf`用于提供当前函数执行所需的输入信息。
-     * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+     * @param cf 编译后的对象节点。
+     * @returns 返回对象字段节点。
      */
     function renderObjectNode(cf: CompiledField): VNode {
       return h(SchemaProvider, {
         key: cf.address,
         schema: cf.schema,
       }, {
-        /**
-         * default：执行当前功能逻辑。
-         *
-         * @returns 返回当前功能的处理结果。
-         */
-
+        /** 默认插槽：渲染当前对象节点。 */
         default: () => h(FormObjectField, {
           name: cf.dataPath,
           fieldProps: toFieldProps(cf) as Partial<ObjectFieldProps>,
         }, {
-          /**
-           * default：执行当前功能逻辑。
-           *
-           * @returns 返回当前功能的处理结果。
-           */
-
+          /** 默认插槽：递归渲染对象子节点。 */
           default: () => renderChildren(cf.children),
         }),
       })
@@ -197,8 +174,8 @@ export const SchemaField = defineComponent({
 
     /**
      * 递归渲染子节点
-     * @param childAddresses 参数 `childAddresses`用于提供当前函数执行所需的输入信息。
-     * @returns 返回数组结果，用于后续遍历、渲染或进一步转换。
+     * @param childAddresses 子节点地址列表。
+     * @returns 返回渲染后的子节点数组。
      */
     function renderChildren(childAddresses: string[]): VNode[] {
       const allFields = compiled.value.fields

@@ -6,9 +6,7 @@ import { observer } from '../reactive'
 import { ReactiveField } from './ReactiveField'
 
 /**
- * Form Array Field Component Props：类型接口定义。
- * 所属模块：`packages/react/src/components/FormArrayField.tsx`。
- * 该声明用于描述模块的对外契约或内部结构边界。
+ * `FormArrayField` 组件属性。
  */
 export interface FormArrayFieldComponentProps {
   name: string
@@ -47,7 +45,10 @@ export const FormArrayField = observer<FormArrayFieldComponentProps>(
       throw new Error('[ConfigForm] <FormArrayField> 必须在 <FormProvider> 内部使用')
     }
 
-    /** 兼容 React 18 StrictMode 双挂载（同 FormField） */
+    /**
+     * 兼容 React 18 StrictMode 双挂载。
+     * 若字段在第一次卸载时被移除，第二次挂载会自动重新创建。
+     */
     const fieldRef = useRef<ArrayFieldInstance | null>(null)
     const createdByThisRef = useRef(false)
     if (!fieldRef.current || !form.getArrayField(name)) {
@@ -60,7 +61,10 @@ export const FormArrayField = observer<FormArrayFieldComponentProps>(
     }
     const field = fieldRef.current
 
-    /* 组件挂载时通知字段 mount，卸载时 unmount + 清理注册 */
+    /**
+     * 管理字段生命周期：
+     * 挂载时 mount，卸载时 unmount，并在必要时 removeField。
+     */
     useEffect(() => {
       const currentField = fieldRef.current
       const fieldName = name

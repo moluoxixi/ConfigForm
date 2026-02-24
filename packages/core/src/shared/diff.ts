@@ -241,9 +241,9 @@ function collectDiff(
 
 /**
  * 根据点分路径获取嵌套值
- * @param obj 参数 `obj`用于提供当前函数执行所需的输入信息。
- * @param path 参数 `path`用于提供当前函数执行所需的输入信息。
- * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ * @param obj 源对象。
+ * @param path 点分路径，例如 `user.profile.name`。
+ * @returns 返回路径对应值；路径不存在时返回 `undefined`。
  */
 function getNestedValue(obj: unknown, path: string): unknown {
   const parts = path.split('.')

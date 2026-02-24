@@ -6,9 +6,7 @@ import { ArrayBase } from './ArrayBase'
 import { RecursionField } from './RecursionField'
 
 /**
- * ColumnDef??????
- * ???`packages/vue/src/components/ArrayTable.ts:8`?
- * ??????????????????????????????
+ * 数组表格列定义。
  */
 interface ColumnDef {
   key: string
@@ -17,11 +15,10 @@ interface ColumnDef {
 }
 
 /**
- * extract Columns：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 从数组项 schema 中提取列定义。
  *
- * 说明：该函数聚焦于 extract Columns 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * @param itemsSchema 数组项 schema。
+ * @returns 返回按 `order` 排序后的列定义数组。
  */
 function extractColumns(itemsSchema?: ISchema): ColumnDef[] {
   if (!itemsSchema?.properties)
@@ -46,12 +43,10 @@ export const ArrayTable = defineComponent({
     },
   },
   /**
-   * setup：执行当前位置的功能逻辑。
-   * 定位：`packages/vue/src/components/ArrayTable.ts:43`。
-   * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-   * @param props 参数 props 为当前功能所需的输入信息。
-   * @returns 返回当前分支执行后的处理结果。
+   * 渲染表格形态的数组字段。
+   *
+   * @param props 组件属性，包含数组项 schema。
+   * @returns 返回渲染函数；不在数组字段上下文中时返回空节点。
    */
   setup(props) {
     let field: ArrayFieldInstance
@@ -100,13 +95,7 @@ export const ArrayTable = defineComponent({
 
       const rows: VNode[] = arrayValue.map((_, index) =>
         h(ArrayBase.Item, { key: index, index }, {
-          /**
-           * default：执行当前位置的功能逻辑。
-           * 定位：`packages/vue/src/components/ArrayTable.ts:90`。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-           * @returns 返回当前分支执行后的处理结果。
-           */
+          /** 默认插槽：渲染单行数组项。 */
           default: () => h('tr', { style: { background: index % 2 === 0 ? '#fff' : '#fafafa' } }, [
             h('td', { style: { ...tdStyle, textAlign: 'center', color: '#999' } }, `${index + 1}`),
             ...columns.map(col =>
@@ -147,13 +136,7 @@ export const ArrayTable = defineComponent({
       }
 
       return h(ArrayBase, null, {
-        /**
-         * default：执行当前位置的功能逻辑。
-         * 定位：`packages/vue/src/components/ArrayTable.ts:130`。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-         * @returns 返回当前分支执行后的处理结果。
-         */
+        /** 默认插槽：渲染数组表格主体。 */
         default: () => h('div', { style: { width: '100%' } }, [
           h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' } }, [
             h('span', { style: { fontWeight: 600, color: '#303133' } }, field.label || field.path),

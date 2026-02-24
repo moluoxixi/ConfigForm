@@ -20,11 +20,7 @@ const CACHE_KEY_SEPARATOR = '::'
 const defaultAdapter: RequestAdapter = {
   /**
    * request：执行当前位置的功能逻辑。
-   * 定位：`packages/core/src/datasource/manager.ts:21`。
-   * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
    * @param config 参数 config 为当前功能所需的输入信息。
-   * @returns 返回当前分支执行后的处理结果。
    */
   async request<T>(config: RequestConfig): Promise<T> {
     const { url, method, params, headers, signal } = config
@@ -104,11 +100,8 @@ function buildCacheKey(config: DataSourceConfig, resolvedParams: Record<string, 
 }
 
 /**
- * normalize Headers：负责“规范化normalize Headers”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ * normalize Headers。
  *
- * 说明：该注释描述 normalize Headers 的主要职责边界，便于维护者快速理解函数在链路中的定位。
  */
 function normalizeHeaders(headers?: Record<string, string>): Record<string, string> {
   if (!headers) {
@@ -122,11 +115,8 @@ function normalizeHeaders(headers?: Record<string, string>): Record<string, stri
 }
 
 /**
- * stable Normalize：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * stable Normalize。
  *
- * 说明：该函数聚焦于 stable Normalize 的单一职责，调用方可通过函数名快速理解输入输出语义。
  */
 function stableNormalize(
   value: unknown,
@@ -154,11 +144,8 @@ function stableNormalize(
 }
 
 /**
- * stable Stringify：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * stable Stringify。
  *
- * 说明：该函数聚焦于 stable Stringify 的单一职责，调用方可通过函数名快速理解输入输出语义。
  */
 function stableStringify(value: unknown): string {
   const serialized = JSON.stringify(stableNormalize(value))
@@ -166,11 +153,8 @@ function stableStringify(value: unknown): string {
 }
 
 /**
- * get Cache Key Url：负责“获取get Cache Key Url”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ * get Cache Key Url。
  *
- * 说明：该注释描述 get Cache Key Url 的主要职责边界，便于维护者快速理解函数在链路中的定位。
  */
 function getCacheKeyUrl(cacheKey: string): string {
   const parts = cacheKey.split(CACHE_KEY_SEPARATOR)
@@ -178,11 +162,8 @@ function getCacheKeyUrl(cacheKey: string): string {
 }
 
 /**
- * create Abort Error：负责“创建create Abort Error”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ * create Abort Error。
  *
- * 说明：该注释描述 create Abort Error 的主要职责边界，便于维护者快速理解函数在链路中的定位。
  */
 function createAbortError(): Error {
   if (typeof DOMException !== 'undefined') {

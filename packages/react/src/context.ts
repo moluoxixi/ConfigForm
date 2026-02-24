@@ -34,9 +34,10 @@ export interface ComponentRegistry {
 }
 
 /**
- * Component Registry Context：变量或常量声明。
- * 所属模块：`packages/react/src/context.ts`。
- * 该声明用于描述模块的对外契约或内部结构边界。
+ * 组件注册表上下文实例。
+ *
+ * 默认值为空映射，避免在极端情况下 `useContext` 返回 `undefined`。
+ * 正常运行时由 `FormProvider` 注入合并后的注册表。
  */
 export const ComponentRegistryContext = createContext<ComponentRegistry>({
   components: new Map(),

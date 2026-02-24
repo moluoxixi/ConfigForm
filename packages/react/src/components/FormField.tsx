@@ -5,11 +5,7 @@ import { ComponentRegistryContext, FieldContext, FormContext } from '../context'
 import { observer } from '../reactive'
 import { ReactiveField } from './ReactiveField'
 
-/**
- * FormFieldProps??????
- * ???`packages/react/src/components/FormField.tsx:8`?
- * ??????????????????????????????
- */
+/** FormField 组件属性。 */
 export interface FormFieldProps {
   /** 字段名 */
   name: string

@@ -3,9 +3,7 @@ import type { PropType } from 'vue'
 import { computed, defineComponent, h } from 'vue'
 
 /**
- * Diff Viewer Props：类型接口定义。
- * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
- * 该声明用于描述模块的对外契约或内部结构边界。
+ * DiffViewer 组件属性。
  */
 export interface DiffViewerProps {
   diffs: DiffFieldView[]
@@ -14,9 +12,7 @@ export interface DiffViewerProps {
 }
 
 /**
- * COLORS：变量或常量声明。
- * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
- * 该声明用于描述模块的对外契约或内部结构边界。
+ * 差异类型对应颜色配置。
  */
 const COLORS: Record<DiffType, { bg: string, text: string, border: string }> = {
   added: { bg: '#f6ffed', text: '#52c41a', border: '#b7eb8f' },
@@ -26,9 +22,7 @@ const COLORS: Record<DiffType, { bg: string, text: string, border: string }> = {
 }
 
 /**
- * TYPE LABELS：变量或常量声明。
- * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
- * 该声明用于描述模块的对外契约或内部结构边界。
+ * 差异类型标签映射。
  */
 const TYPE_LABELS: Record<DiffType, string> = {
   added: '新增',
@@ -37,11 +31,7 @@ const TYPE_LABELS: Record<DiffType, string> = {
   unchanged: '未变',
 }
 
-/**
- * container Style：变量或常量声明。
- * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
- * 该声明用于描述模块的对外契约或内部结构边界。
- */
+/** 外层容器样式。 */
 const containerStyle: Record<string, string> = {
   border: '1px solid #e8e8e8',
   borderRadius: '8px',
@@ -49,11 +39,7 @@ const containerStyle: Record<string, string> = {
   fontSize: '14px',
 }
 
-/**
- * header Style：变量或常量声明。
- * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
- * 该声明用于描述模块的对外契约或内部结构边界。
- */
+/** 表头行样式。 */
 const headerStyle: Record<string, string> = {
   display: 'flex',
   background: '#fafafa',
@@ -62,42 +48,26 @@ const headerStyle: Record<string, string> = {
   color: '#333',
 }
 
-/**
- * header Cell Style：变量或常量声明。
- * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
- * 该声明用于描述模块的对外契约或内部结构边界。
- */
+/** 表头单元格样式。 */
 const headerCellStyle: Record<string, string> = {
   flex: '1',
   padding: '10px 12px',
 }
 
-/**
- * row Style：变量或常量声明。
- * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
- * 该声明用于描述模块的对外契约或内部结构边界。
- */
+/** 数据行样式。 */
 const rowStyle: Record<string, string> = {
   display: 'flex',
   borderBottom: '1px solid #f0f0f0',
 }
 
-/**
- * cell Style：变量或常量声明。
- * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
- * 该声明用于描述模块的对外契约或内部结构边界。
- */
+/** 普通单元格样式。 */
 const cellStyle: Record<string, string> = {
   flex: '1',
   padding: '8px 12px',
   wordBreak: 'break-all',
 }
 
-/**
- * empty Style：变量或常量声明。
- * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
- * 该声明用于描述模块的对外契约或内部结构边界。
- */
+/** 空状态样式。 */
 const emptyStyle: Record<string, string> = {
   padding: '24px',
   textAlign: 'center',
@@ -108,12 +78,9 @@ const emptyStyle: Record<string, string> = {
 }
 
 /**
- * format Value：当前功能模块的核心执行单元。
- * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
- * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
- * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
- * @param value 参数 `value`用于提供待处理的值并参与结果计算。
- * @returns 返回字符串结果，通常用于文本展示或下游拼接。
+ * 把任意值格式化为可展示文本。
+ * @param value 待格式化值。
+ * @returns 返回展示文本。
  */
 function formatValue(value: unknown): string {
   if (value === undefined || value === null)
@@ -124,9 +91,8 @@ function formatValue(value: unknown): string {
 }
 
 /**
- * Diff Viewer：变量或常量声明。
- * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
- * 该声明用于描述模块的对外契约或内部结构边界。
+ * 差异可视化组件。
+ * 以“字段 / 旧值 / 新值 / 状态”四列展示变化内容。
  */
 export const DiffViewer = defineComponent({
   name: 'DiffViewer',
@@ -137,12 +103,7 @@ export const DiffViewer = defineComponent({
     },
     labelMap: {
       type: Object as PropType<Record<string, string>>,
-      /**
-       * default：执行当前功能逻辑。
-       *
-       * @returns 返回当前功能的处理结果。
-       */
-
+      /** 默认空映射。 */
       default: () => ({}),
     },
     onlyDirty: {
@@ -151,12 +112,10 @@ export const DiffViewer = defineComponent({
     },
   },
   /**
-   * setup：当前功能模块的核心执行单元。
-   * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
-   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
-   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
-   * @param props 参数 `props`用于提供当前函数执行所需的输入信息。
-   * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+   * 根据筛选条件构造差异列表渲染函数。
+   *
+   * @param props 组件属性。
+   * @returns 返回渲染函数。
    */
   setup(props) {
     const filteredDiffs = computed(() =>

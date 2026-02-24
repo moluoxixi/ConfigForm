@@ -9,11 +9,8 @@ import { FormObjectField } from './FormObjectField'
 import { FormVoidField } from './FormVoidField'
 
 /**
- * normalize Data Source：负责“规范化normalize Data Source”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 normalize Data Source 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * 统一转换 schema 中的数据源定义。
+ * 优先使用 schema.dataSource；否则把 enum 规范化为 DataSourceItem 列表。
  */
 function normalizeDataSource(schema: ISchema): DataSourceItem[] | DataSourceConfig | undefined {
   if (schema.dataSource)
@@ -30,11 +27,7 @@ function normalizeDataSource(schema: ISchema): DataSourceItem[] | DataSourceConf
   })
 }
 
-/**
- * RecursionFieldProps??????
- * ???`packages/react/src/components/RecursionField.tsx:33`?
- * ??????????????????????????????
- */
+/** RecursionField 组件属性。 */
 export interface RecursionFieldProps {
   /** 要渲染的 schema 节点 */
   schema: ISchema
@@ -63,11 +56,8 @@ export const RecursionField = observer<RecursionFieldProps>(
       return null
 
     /**
-     * render Data Field：负责“渲染render Data Field”的核心实现与调用衔接。
-     * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
-     * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
-     *
-     * 说明：该注释描述 render Data Field 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+     * 渲染数据字段节点（非 void 节点）。
+     * 会把 schema 描述映射成 FormField 运行时属性。
      */
     function renderDataField(fieldSchema: ISchema, dataPath: string): React.ReactElement {
       const resolvedComp = resolveComponent(fieldSchema, DEFAULT_COMPONENT_MAPPING)

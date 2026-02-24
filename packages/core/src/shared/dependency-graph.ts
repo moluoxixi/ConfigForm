@@ -133,14 +133,10 @@ export class DependencyGraph {
 
   /**
    * dfs：执行当前位置的功能逻辑。
-   * 定位：`packages/core/src/shared/dependency-graph.ts:134`。
-   * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
    * @param node 参数 node 为业务对象，用于读写状态与属性。
    * @param visited 参数 visited 为当前功能所需的输入信息。
    * @param recursionStack 参数 recursionStack 为当前功能所需的输入信息。
    * @param path 参数 path 为当前功能所需的输入信息。
-   * @returns 返回当前分支执行后的处理结果。
    */
   private dfs(
     node: string,

@@ -9,9 +9,7 @@ import { FormObjectField } from './FormObjectField'
 import { FormVoidField } from './FormVoidField'
 
 /**
- * Schema Field Props：类型接口定义。
- * 所属模块：`packages/react/src/components/SchemaField.tsx`。
- * 该声明用于描述模块的对外契约或内部结构边界。
+ * `SchemaField` 组件属性。
  */
 export interface SchemaFieldProps {
   schema: ISchema
@@ -31,12 +29,11 @@ export const SchemaField = observer<SchemaFieldProps>(({ schema, compileOptions 
   const compiled = useMemo(() => compileSchema(schema, compileOptions), [schema, compileOptions])
 
   /**
-   * render Node：当前功能模块的核心执行单元。
-   * 所属模块：`packages/react/src/components/SchemaField.tsx`。
-   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
-   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
-   * @param cf 参数 `cf`用于提供当前函数执行所需的输入信息。
-   * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+   * 渲染单个编译后节点。
+   * 会根据节点类型分派到 void、array、object 或普通字段渲染路径。
+   *
+   * @param cf 编译后的字段节点对象。
+   * @returns 返回当前节点对应的 React 元素。
    */
   function renderNode(cf: CompiledField): React.ReactElement | null {
     if (cf.isVoid)
@@ -72,12 +69,11 @@ export const SchemaField = observer<SchemaFieldProps>(({ schema, compileOptions 
   }
 
   /**
-   * render Void Node：当前功能模块的核心执行单元。
-   * 所属模块：`packages/react/src/components/SchemaField.tsx`。
-   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
-   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
-   * @param cf 参数 `cf`用于提供当前函数执行所需的输入信息。
-   * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+   * 渲染 void 节点。
+   * void 节点不参与值收集，通常用于布局或分组容器。
+   *
+   * @param cf 编译后的 void 节点。
+   * @returns 返回 void 字段包装后的渲染节点。
    */
   function renderVoidNode(cf: CompiledField): React.ReactElement {
     const voidProps = toVoidFieldProps(cf)
@@ -91,12 +87,11 @@ export const SchemaField = observer<SchemaFieldProps>(({ schema, compileOptions 
   }
 
   /**
-   * render Object Node：当前功能模块的核心执行单元。
-   * 所属模块：`packages/react/src/components/SchemaField.tsx`。
-   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
-   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
-   * @param cf 参数 `cf`用于提供当前函数执行所需的输入信息。
-   * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+   * 渲染对象节点。
+   * 对象节点会创建 `FormObjectField`，并递归渲染其子字段。
+   *
+   * @param cf 编译后的对象节点。
+   * @returns 返回对象字段容器节点。
    */
   function renderObjectNode(cf: CompiledField): React.ReactElement {
     return (
@@ -109,12 +104,10 @@ export const SchemaField = observer<SchemaFieldProps>(({ schema, compileOptions 
   }
 
   /**
-   * render Children：当前功能模块的核心执行单元。
-   * 所属模块：`packages/react/src/components/SchemaField.tsx`。
-   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
-   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
-   * @param childAddresses 参数 `childAddresses`用于提供当前函数执行所需的输入信息。
-   * @returns 返回数组结果，用于后续遍历、渲染或进一步转换。
+   * 按地址列表渲染一组子节点。
+   *
+   * @param childAddresses 子节点地址列表。
+   * @returns 返回渲染后的子节点数组。
    */
   function renderChildren(childAddresses: string[]): React.ReactElement[] {
     const allFields = compiled.fields

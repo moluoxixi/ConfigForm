@@ -3,8 +3,10 @@ import { useContext } from 'react'
 import { FieldContext, FormContext } from '../context'
 
 /**
- * 获取当前字段上下文
- * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ * 读取当前字段实例。
+ * 只能在 `FormField` 或其子组件中调用。
+ *
+ * @returns 返回当前字段上下文中的字段实例。
  */
 export function useField<Value = unknown>(): FieldInstance<Value> {
   const field = useContext(FieldContext)
@@ -15,9 +17,11 @@ export function useField<Value = unknown>(): FieldInstance<Value> {
 }
 
 /**
- * 通过路径获取指定字段
- * @param path 参数 `path`用于提供当前函数执行所需的输入信息。
- * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ * 按字段路径读取指定字段实例。
+ * 该方法不依赖当前 `FieldContext`，可在任意 `FormProvider` 子树内使用。
+ *
+ * @param path 字段路径，例如 `user.name` 或 `items.0.title`。
+ * @returns 返回对应路径的字段实例；找不到时返回 `undefined`。
  */
 export function useFieldByPath<Value = unknown>(path: string): FieldInstance<Value> | undefined {
   const form = useContext(FormContext)

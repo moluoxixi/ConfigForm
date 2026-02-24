@@ -6,9 +6,7 @@ import { observer } from '../reactive'
 import { ReactiveField } from './ReactiveField'
 
 /**
- * Form Void Field Props：类型接口定义。
- * 所属模块：`packages/react/src/components/FormVoidField.tsx`。
- * 该声明用于描述模块的对外契约或内部结构边界。
+ * `FormVoidField` 组件属性。
  */
 export interface FormVoidFieldProps {
   name: string
@@ -27,7 +25,10 @@ export const FormVoidField = observer<FormVoidFieldProps>(({ name, fieldProps, c
   if (!form)
     throw new Error('[ConfigForm] <FormVoidField> 必须在 <FormProvider> 内部使用')
 
-  /** 兼容 React 18 StrictMode 双挂载（同 FormField） */
+  /**
+   * 兼容 React 18 StrictMode 双挂载：
+   * 第二次挂载时若字段已被前一次卸载清理，会自动重新创建并重新注册。
+   */
   const fieldRef = useRef<VoidFieldInstance | null>(null)
   const createdByThisRef = useRef(false)
   if (!fieldRef.current || !form.getAllVoidFields().get(name)) {
@@ -40,7 +41,12 @@ export const FormVoidField = observer<FormVoidFieldProps>(({ name, fieldProps, c
   }
   const field = fieldRef.current
 
-  /* 组件挂载时通知字段 mount，卸载时 unmount + 清理注册 */
+  /**
+   * 管理字段生命周期：
+   * 1. 挂载时调用 `mount`。
+   * 2. 卸载时调用 `unmount`。
+   * 3. 若字段由当前组件创建，额外从 form 注册表中移除。
+   */
   useEffect(() => {
     const currentField = fieldRef.current
     const fieldName = name

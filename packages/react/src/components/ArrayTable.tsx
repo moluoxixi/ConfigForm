@@ -1,14 +1,81 @@
 import type { ArrayFieldInstance, ISchema } from '@moluoxixi/core'
 import type { ReactElement } from 'react'
 import React from 'react'
-
 import { useField } from '../hooks'
 import { observer } from '../reactive'
 import { ArrayBase } from './ArrayBase'
 import { RecursionField } from './RecursionField'
 
-export const ArrayTable = observer<ArrayTableProps>(({ itemsSchema }): ReactElement | null => {
+/**
+ * `ArrayTable` 组件属性。
+ */
+export interface ArrayTableProps {
+  /** 数组项 schema，由 SchemaField 通过 `componentProps.itemsSchema` 透传。 */
+  itemsSchema?: ISchema
+}
+
+/**
+ * 表格列定义。
+ */
+interface ColumnDef {
+  /** 字段键名。 */
+  key: string
+  /** 表头标题。 */
+  title: string
+  /** 列对应的子字段 schema。 */
+  schema: ISchema
+}
+
+/**
+ * 从数组项 schema 中提取列定义。
+ * 按 `order` 从小到大排序，保持与 schema 渲染顺序一致。
+ *
+ * @param itemsSchema 数组项 schema。
+ * @returns 返回可用于表头和单元格渲染的列定义列表。
+ */
+function extractColumns(itemsSchema?: ISchema): ColumnDef[] {
+  if (!itemsSchema?.properties) {
+    return []
+  }
+
+  const entries = Object.entries(itemsSchema.properties)
+  entries.sort(([, left], [, right]) => (left.order ?? 0) - (right.order ?? 0))
+
+  return entries.map(([key, schema]) => ({
+    key,
+    title: schema.title ?? key,
+    schema,
+  }))
+}
+
+/**
+ * 把任意值转换成预览文本。
+ *
+ * @param value 待展示值。
+ * @returns 返回可直接渲染到单元格的文本。
+ */
+function toPreviewText(value: unknown): string {
+  if (value === undefined || value === null) {
+    return '—'
+  }
+  if (typeof value === 'object') {
+    return JSON.stringify(value)
+  }
+  return String(value)
+}
+
+/**
+ * 表格形态的数组字段渲染器。
+ * 每一行对应一个数组项，每一列对应 `itemsSchema.properties` 中的一个字段。
+ *
+ * @param props 组件属性对象。
+ * @param props.itemsSchema 数组项 schema。
+ * @returns 返回数组表格节点；未获取到数组字段上下文时返回 `null`。
+ */
+export const ArrayTable = observer<ArrayTableProps>((props): ReactElement | null => {
+  const { itemsSchema } = props
   let field: ArrayFieldInstance | null = null
+
   try {
     field = useField() as unknown as ArrayFieldInstance
   }
@@ -18,7 +85,6 @@ export const ArrayTable = observer<ArrayTableProps>(({ itemsSchema }): ReactElem
 
   const arrayValue = Array.isArray(field.value) ? field.value : []
   const columns = extractColumns(itemsSchema)
-
   const isEditable = field.editable
   const isPreview = field.isPreview
   const maxItems = field.maxItems === Infinity ? '∞' : field.maxItems
@@ -64,15 +130,13 @@ export const ArrayTable = observer<ArrayTableProps>(({ itemsSchema }): ReactElem
           <thead>
             <tr>
               <th style={{ ...thStyle, width: 50, textAlign: 'center' }}>#</th>
-              {columns.map(col => (
-                <th key={col.key} style={thStyle}>
-                  {col.schema.required && <span style={{ color: '#ff4d4f', marginRight: 4 }}>*</span>}
-                  {col.title}
+              {columns.map(column => (
+                <th key={column.key} style={thStyle}>
+                  {column.schema.required && <span style={{ color: '#ff4d4f', marginRight: 4 }}>*</span>}
+                  {column.title}
                 </th>
               ))}
-              {isEditable && (
-                <th style={{ ...thStyle, width: 120, textAlign: 'center' }}>操作</th>
-              )}
+              {isEditable && <th style={{ ...thStyle, width: 120, textAlign: 'center' }}>操作</th>}
             </tr>
           </thead>
           <tbody>
@@ -80,13 +144,12 @@ export const ArrayTable = observer<ArrayTableProps>(({ itemsSchema }): ReactElem
               <ArrayBase.Item key={index} index={index}>
                 <tr style={{ background: index % 2 === 0 ? '#fff' : '#fafafa' }}>
                   <td style={{ ...tdStyle, textAlign: 'center', color: '#999' }}>{index + 1}</td>
-
-                  {columns.map(col => (
-                    <td key={col.key} style={tdStyle}>
+                  {columns.map(column => (
+                    <td key={column.key} style={tdStyle}>
                       {isPreview
                         ? (
                             <span style={{ color: '#303133' }}>
-                              {toPreviewText((arrayValue[index] as Record<string, unknown> | undefined)?.[col.key])}
+                              {toPreviewText((arrayValue[index] as Record<string, unknown> | undefined)?.[column.key])}
                             </span>
                           )
                         : (
@@ -94,8 +157,8 @@ export const ArrayTable = observer<ArrayTableProps>(({ itemsSchema }): ReactElem
                               schema={{
                                 type: 'object',
                                 properties: {
-                                  [col.key]: {
-                                    ...col.schema,
+                                  [column.key]: {
+                                    ...column.schema,
                                     title: undefined,
                                     decorator: '',
                                   },
@@ -108,7 +171,6 @@ export const ArrayTable = observer<ArrayTableProps>(({ itemsSchema }): ReactElem
                           )}
                     </td>
                   ))}
-
                   {isEditable && (
                     <td style={{ ...tdStyle, textAlign: 'center' }}>
                       <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
@@ -133,8 +195,11 @@ export const ArrayTable = observer<ArrayTableProps>(({ itemsSchema }): ReactElem
             )}
           </tbody>
         </table>
-
-        {isEditable && <div style={{ marginTop: 8 }}><ArrayBase.Addition /></div>}
+        {isEditable && (
+          <div style={{ marginTop: 8 }}>
+            <ArrayBase.Addition />
+          </div>
+        )}
       </div>
     </ArrayBase>
   )

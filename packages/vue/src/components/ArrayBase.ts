@@ -4,61 +4,66 @@ import { defineComponent, h, inject, provide, ref, toRefs } from 'vue'
 import { useField } from '../composables'
 
 /**
- * IArrayBaseContext??????
- * ???`packages/vue/src/components/ArrayBase.ts:6`?
- * ??????????????????????????????
+ * 数组上下文结构。
+ * 保存当前 ArrayField 实例，供增删改排序组件复用。
  */
 export interface IArrayBaseContext {
   field: Ref<ArrayFieldInstance>
 }
 
 /**
- * IArrayBaseItemContext??????
- * ???`packages/vue/src/components/ArrayBase.ts:10`?
- * ??????????????????????????????
+ * 数组项上下文结构。
+ * 保存当前数组项索引，供 MoveUp/MoveDown/Remove 读取。
  */
 export interface IArrayBaseItemContext {
   index: Ref<number>
 }
 
+/**
+ * 数组上下文注入键。
+ */
 const ArrayBaseSymbol: InjectionKey<IArrayBaseContext> = Symbol('ArrayBaseContext')
+
+/**
+ * 数组项上下文注入键。
+ */
 const ArrayBaseItemSymbol: InjectionKey<IArrayBaseItemContext> = Symbol('ArrayBaseItemContext')
 
 /**
- * use Array：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 use Array 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 读取数组上下文。
+ * @returns 返回当前数组上下文；未注入时返回 `null`。
  */
 export function useArray(): IArrayBaseContext | null {
   return inject(ArrayBaseSymbol, null)
 }
 
 /**
- * use Index：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 use Index 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 读取当前数组项索引。
+ * @param defaultIndex 未注入数组项上下文时返回的兜底索引。
+ * @returns 返回当前数组项索引引用。
  */
 export function useIndex(defaultIndex?: number): Ref<number> {
   const ctx = inject(ArrayBaseItemSymbol, null)
   return ctx?.index ?? ref(defaultIndex ?? 0)
 }
 
+/**
+ * ArrayBase 根容器。
+ * 负责把当前数组字段实例注入上下文，供子组件共享访问。
+ */
 const ArrayBaseInner = defineComponent({
   name: 'ArrayBase',
   /**
-   * setup：执行当前位置的功能逻辑。
-   * 定位：`packages/vue/src/components/ArrayBase.ts:42`。
-   * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-   * @param _ 参数 _ 为当前功能所需的输入信息。
-   * @returns 返回当前分支执行后的处理结果。
+   * 注入数组字段上下文。
+   *
+   * @param _ 保留参数，当前组件不消费 props。
+   * @param context setup 上下文，用于读取默认插槽。
+   * @returns 返回默认插槽渲染函数。
    */
-  setup(_, { slots }) {
+  setup(_, context) {
+    const { slots } = context
     let field: ArrayFieldInstance
+
     try {
       field = useField() as unknown as ArrayFieldInstance
     }
@@ -74,35 +79,36 @@ const ArrayBaseInner = defineComponent({
   },
 })
 
+/**
+ * ArrayBase.Item。
+ * 注入当前项索引，供项内操作组件复用。
+ */
 const ArrayBaseItem = defineComponent({
   name: 'ArrayBaseItem',
   props: {
     index: { type: Number, required: true },
   },
   /**
-   * setup：执行当前位置的功能逻辑。
-   * 定位：`packages/vue/src/components/ArrayBase.ts:64`。
-   * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-   * @param props 参数 props 为当前功能所需的输入信息。
-   * @returns 返回当前分支执行后的处理结果。
+   * 注入数组项索引上下文。
+   *
+   * @param props 组件属性，包含当前项索引。
+   * @param context setup 上下文，用于读取默认插槽。
+   * @returns 返回默认插槽渲染函数。
    */
-  setup(props, { slots }) {
+  setup(props, context) {
+    const { slots } = context
     const { index } = toRefs(props)
     provide(ArrayBaseItemSymbol, { index })
     return () => slots.default?.()
   },
 })
 
+/**
+ * ArrayBase.Index。
+ * 展示当前项序号（从 1 开始）。
+ */
 const ArrayBaseIndex = defineComponent({
   name: 'ArrayBaseIndex',
-  /**
-   * setup：执行当前位置的功能逻辑。
-   * 定位：`packages/vue/src/components/ArrayBase.ts:73`。
-   * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-   * @returns 返回当前分支执行后的处理结果。
-   */
   setup() {
     const index = useIndex()
     return () => h('span', {
@@ -112,62 +118,41 @@ const ArrayBaseIndex = defineComponent({
 })
 
 /**
- * use Editable：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 use Editable 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 统一计算数组字段编辑态。
+ * @returns 返回编辑态判断函数和字段获取函数。
  */
 function useEditable(): { isEditable: () => boolean, getField: () => ArrayFieldInstance | null } {
   const ctx = useArray()
 
   return {
-    /**
-     * isEditable：执行当前位置的功能逻辑。
-     * 定位：`packages/vue/src/components/ArrayBase.ts:92`。
-     * 功能：处理参数消化、状态变更与调用链行为同步。
-     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-     * @returns 返回当前分支执行后的处理结果。
-     */
-    isEditable: () => {
-      if (!ctx)
-        return false
-      return ctx.field.value.editable
-    },
-    /**
-     * getField：执行当前位置的功能逻辑。
-     * 定位：`packages/vue/src/components/ArrayBase.ts:97`。
-     * 功能：处理参数消化、状态变更与调用链行为同步。
-     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-     * @returns 返回当前分支执行后的处理结果。
-     */
+    /** 判断当前数组是否允许编辑。 */
+    isEditable: () => !!ctx?.field.value.editable,
+    /** 获取数组字段实例。 */
     getField: () => ctx?.field.value ?? null,
   }
 }
 
+/**
+ * ArrayBase.Addition。
+ * 提供数组追加能力。
+ */
 const ArrayBaseAddition = defineComponent({
   name: 'ArrayBaseAddition',
   props: {
     title: { type: String, default: '+ 添加条目' },
     method: { type: String as PropType<'push' | 'unshift'>, default: 'push' },
   },
-  /**
-   * setup：执行当前位置的功能逻辑。
-   * 定位：`packages/vue/src/components/ArrayBase.ts:107`。
-   * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-   * @param props 参数 props 为当前功能所需的输入信息。
-   * @returns 返回当前分支执行后的处理结果。
-   */
   setup(props) {
     const { isEditable, getField } = useEditable()
 
     return () => {
-      if (!isEditable())
+      if (!isEditable()) {
         return null
+      }
       const field = getField()
-      if (!field)
+      if (!field) {
         return null
+      }
 
       return h('button', {
         type: 'button',
@@ -184,34 +169,14 @@ const ArrayBaseAddition = defineComponent({
           lineHeight: '22px',
           transition: 'all 0.2s',
         },
-        /**
-         * onMouseenter：执行当前位置的功能逻辑。
-         * 定位：`packages/vue/src/components/ArrayBase.ts:132`。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-         * @param e 参数 e 为事件对象，用于提供交互上下文。
-         */
-        onMouseenter: (e: MouseEvent) => {
+        onMouseenter: (event: MouseEvent) => {
           if (field.canAdd) {
-            (e.currentTarget as HTMLElement).style.background = '#e6f4ff'
+            (event.currentTarget as HTMLElement).style.background = '#e6f4ff'
           }
         },
-        /**
-         * onMouseleave：执行当前位置的功能逻辑。
-         * 定位：`packages/vue/src/components/ArrayBase.ts:137`。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-         * @param e 参数 e 为事件对象，用于提供交互上下文。
-         */
-        onMouseleave: (e: MouseEvent) => {
-          (e.currentTarget as HTMLElement).style.background = field.canAdd ? '#fff' : '#f5f5f5'
+        onMouseleave: (event: MouseEvent) => {
+          (event.currentTarget as HTMLElement).style.background = field.canAdd ? '#fff' : '#f5f5f5'
         },
-        /**
-         * onClick：执行当前位置的功能逻辑。
-         * 定位：`packages/vue/src/components/ArrayBase.ts:140`。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-         */
         onClick: () => {
           if (props.method === 'unshift') {
             field.insert(0)
@@ -225,43 +190,34 @@ const ArrayBaseAddition = defineComponent({
   },
 })
 
+/**
+ * ArrayBase.Remove。
+ * 删除当前索引对应的数组项。
+ */
 const ArrayBaseRemove = defineComponent({
   name: 'ArrayBaseRemove',
   props: {
     title: { type: String, default: '删除' },
   },
-  /**
-   * setup：执行当前位置的功能逻辑。
-   * 定位：`packages/vue/src/components/ArrayBase.ts:158`。
-   * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-   * @param props 参数 props 为当前功能所需的输入信息。
-   * @returns 返回当前分支执行后的处理结果。
-   */
   setup(props) {
     const { isEditable, getField } = useEditable()
     const index = useIndex()
 
     return () => {
-      if (!isEditable())
+      if (!isEditable()) {
         return null
+      }
       const field = getField()
-      if (!field)
+      if (!field) {
         return null
+      }
 
       return h('button', {
         type: 'button',
         disabled: !field.canRemove,
         style: opBtnStyle(!field.canRemove, '#f56c6c'),
-        /**
-         * onClick：执行当前位置的功能逻辑。
-         * 定位：`packages/vue/src/components/ArrayBase.ts:173`。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-         * @param e 参数 e 为事件对象，用于提供交互上下文。
-         */
-        onClick: (e: MouseEvent) => {
-          e.stopPropagation()
+        onClick: (event: MouseEvent) => {
+          event.stopPropagation()
           field.remove(index.value)
         },
       }, props.title)
@@ -269,44 +225,35 @@ const ArrayBaseRemove = defineComponent({
   },
 })
 
+/**
+ * ArrayBase.MoveUp。
+ * 把当前项向上移动一个位置。
+ */
 const ArrayBaseMoveUp = defineComponent({
   name: 'ArrayBaseMoveUp',
   props: {
     title: { type: String, default: '↑' },
   },
-  /**
-   * setup：执行当前位置的功能逻辑。
-   * 定位：`packages/vue/src/components/ArrayBase.ts:187`。
-   * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-   * @param props 参数 props 为当前功能所需的输入信息。
-   * @returns 返回当前分支执行后的处理结果。
-   */
   setup(props) {
     const { isEditable, getField } = useEditable()
     const index = useIndex()
 
     return () => {
-      if (!isEditable())
+      if (!isEditable()) {
         return null
+      }
       const field = getField()
-      if (!field)
+      if (!field) {
         return null
+      }
       const disabled = index.value === 0
 
       return h('button', {
         type: 'button',
         disabled,
         style: opBtnStyle(disabled),
-        /**
-         * onClick：执行当前位置的功能逻辑。
-         * 定位：`packages/vue/src/components/ArrayBase.ts:203`。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-         * @param e 参数 e 为事件对象，用于提供交互上下文。
-         */
-        onClick: (e: MouseEvent) => {
-          e.stopPropagation()
+        onClick: (event: MouseEvent) => {
+          event.stopPropagation()
           field.moveUp(index.value)
         },
       }, props.title)
@@ -314,45 +261,36 @@ const ArrayBaseMoveUp = defineComponent({
   },
 })
 
+/**
+ * ArrayBase.MoveDown。
+ * 把当前项向下移动一个位置。
+ */
 const ArrayBaseMoveDown = defineComponent({
   name: 'ArrayBaseMoveDown',
   props: {
     title: { type: String, default: '↓' },
   },
-  /**
-   * setup：执行当前位置的功能逻辑。
-   * 定位：`packages/vue/src/components/ArrayBase.ts:217`。
-   * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-   * @param props 参数 props 为当前功能所需的输入信息。
-   * @returns 返回当前分支执行后的处理结果。
-   */
   setup(props) {
     const { isEditable, getField } = useEditable()
     const index = useIndex()
 
     return () => {
-      if (!isEditable())
+      if (!isEditable()) {
         return null
+      }
       const field = getField()
-      if (!field)
+      if (!field) {
         return null
-      const arr = Array.isArray(field.value) ? field.value : []
-      const disabled = index.value >= arr.length - 1
+      }
+      const values = Array.isArray(field.value) ? field.value : []
+      const disabled = index.value >= values.length - 1
 
       return h('button', {
         type: 'button',
         disabled,
         style: opBtnStyle(disabled),
-        /**
-         * onClick：执行当前位置的功能逻辑。
-         * 定位：`packages/vue/src/components/ArrayBase.ts:234`。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-         * @param e 参数 e 为事件对象，用于提供交互上下文。
-         */
-        onClick: (e: MouseEvent) => {
-          e.stopPropagation()
+        onClick: (event: MouseEvent) => {
+          event.stopPropagation()
           field.moveDown(index.value)
         },
       }, props.title)
@@ -361,11 +299,10 @@ const ArrayBaseMoveDown = defineComponent({
 })
 
 /**
- * op Btn Style：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 op Btn Style 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 生成数组操作按钮样式。
+ * @param disabled 按钮是否禁用。
+ * @param activeColor 按钮可用态主色。
+ * @returns 返回按钮样式对象。
  */
 function opBtnStyle(disabled: boolean, activeColor = '#606266'): Record<string, string> {
   return {
@@ -381,9 +318,7 @@ function opBtnStyle(disabled: boolean, activeColor = '#606266'): Record<string, 
 }
 
 /**
- * ComposedArrayBase????????
- * ???`packages/vue/src/components/ArrayBase.ts:373`?
- * ??????????????????????????????
+ * 组合导出类型，支持 `ArrayBase.Item` 等静态成员访问。
  */
 type ComposedArrayBase = typeof ArrayBaseInner & {
   Item: typeof ArrayBaseItem
@@ -396,6 +331,9 @@ type ComposedArrayBase = typeof ArrayBaseInner & {
   useIndex: typeof useIndex
 }
 
+/**
+ * 组合导出对象。
+ */
 export const ArrayBase = ArrayBaseInner as ComposedArrayBase
 ;(ArrayBase as ComposedArrayBase).Item = ArrayBaseItem
 ;(ArrayBase as ComposedArrayBase).Index = ArrayBaseIndex

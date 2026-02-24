@@ -5,9 +5,7 @@ import { ArrayBase } from './ArrayBase'
 import { RecursionField } from './RecursionField'
 
 /**
- * Array Field Props：类型接口定义。
- * 所属模块：`packages/react/src/components/ArrayField.tsx`。
- * 该声明用于描述模块的对外契约或内部结构边界。
+ * `ArrayField` 组件属性。
  */
 export interface ArrayFieldProps {
   itemsSchema?: ISchema
@@ -15,9 +13,8 @@ export interface ArrayFieldProps {
 }
 
 /**
- * Array Field：变量或常量声明。
- * 所属模块：`packages/react/src/components/ArrayField.tsx`。
- * 该声明用于描述模块的对外契约或内部结构边界。
+ * 数组字段默认渲染器。
+ * 负责渲染数组标题、项列表和增删排序操作按钮。
  */
 export const ArrayField = observer<ArrayFieldProps>(({ itemsSchema }) => {
   let field: ArrayFieldInstance | null = null
@@ -94,8 +91,6 @@ export const ArrayField = observer<ArrayFieldProps>(({ itemsSchema }) => {
 
 /* 兼容历史命名 */
 /**
- * Array Items：变量或常量声明。
- * 所属模块：`packages/react/src/components/ArrayField.tsx`。
- * 该声明用于描述模块的对外契约或内部结构边界。
+ * `ArrayItems` 是历史导出名，保留用于兼容旧代码。
  */
 export const ArrayItems = ArrayField

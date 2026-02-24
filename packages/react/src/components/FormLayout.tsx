@@ -19,16 +19,15 @@ export interface FormLayoutConfig {
 }
 
 /**
- * Form Layout Context：变量或常量声明。
- * 所属模块：`packages/react/src/components/FormLayout.tsx`。
- * 该声明用于描述模块的对外契约或内部结构边界。
+ * FormLayout 上下文对象。
+ * 用于在嵌套布局中逐层传递标签位置、宽度和冒号显示策略。
  */
 export const FormLayoutContext = createContext<FormLayoutConfig | null>(null)
 FormLayoutContext.displayName = 'ConfigFormLayoutContext'
 
 /**
  * 获取最近的 FormLayout 上下文
- * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ * @returns 返回最近一层布局配置；若未声明布局则返回 `null`。
  */
 export function useFormLayout(): FormLayoutConfig | null {
   return useContext(FormLayoutContext)
@@ -37,9 +36,7 @@ export function useFormLayout(): FormLayoutConfig | null {
 /* ======================== 组件 ======================== */
 
 /**
- * Form Layout Props：类型接口定义。
- * 所属模块：`packages/react/src/components/FormLayout.tsx`。
- * 该声明用于描述模块的对外契约或内部结构边界。
+ * `FormLayout` 组件属性。
  */
 export interface FormLayoutProps extends FormLayoutConfig {
   children: ReactNode
@@ -61,10 +58,20 @@ export interface FormLayoutProps extends FormLayoutConfig {
  *   </FormLayout>
  * </FormLayout>
  * ```
- * @param param1 原始解构参数（{ labelPosition, labelWidth, colon, children }）用于提供当前函数执行所需的输入信息。
- * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ * @param props 布局属性对象。
+ * @param props.labelPosition 子布局标签位置，未传时继承父布局。
+ * @param props.labelWidth 子布局标签宽度，未传时继承父布局。
+ * @param props.colon 子布局冒号策略，未传时继承父布局。
+ * @param props.children 子布局内容。
+ * @returns 返回注入合并布局配置后的上下文容器。
  */
-export function FormLayout({ labelPosition, labelWidth, colon, children }: FormLayoutProps): ReactElement {
+export function FormLayout(props: FormLayoutProps): ReactElement {
+  const {
+    labelPosition,
+    labelWidth,
+    colon,
+    children,
+  } = props
   const parentLayout = useFormLayout()
 
   /** 合并：子级覆盖父级，未指定的属性继承父级 */

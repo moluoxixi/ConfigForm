@@ -2,9 +2,7 @@ import type { InjectionKey, PropType, Ref } from 'vue'
 import { computed, defineComponent, inject, provide } from 'vue'
 
 /**
- * Form Layout Config：类型接口定义。
- * 所属模块：`packages/vue/src/components/FormLayout.ts`。
- * 该声明用于描述模块的对外契约或内部结构边界。
+ * FormLayout 可覆盖的布局配置。
  */
 export interface FormLayoutConfig {
   labelPosition?: 'top' | 'left' | 'right'
@@ -13,34 +11,27 @@ export interface FormLayoutConfig {
 }
 
 /**
- * Form Layout Context：类型别名定义。
- * 所属模块：`packages/vue/src/components/FormLayout.ts`。
- * 该声明用于描述模块的对外契约或内部结构边界。
+ * FormLayout 上下文类型。
+ * 通过 `computed` 包装，保证嵌套覆盖时具备响应式继承能力。
  */
 export type FormLayoutContext = Readonly<Ref<FormLayoutConfig>>
 
 /**
- * Form Layout Symbol：变量或常量声明。
- * 所属模块：`packages/vue/src/components/FormLayout.ts`。
- * 该声明用于描述模块的对外契约或内部结构边界。
+ * FormLayout 注入键。
  */
 export const FormLayoutSymbol: InjectionKey<FormLayoutContext> = Symbol('ConfigFormLayout')
 
 /**
- * use Form Layout：当前功能模块的核心执行单元。
- * 所属模块：`packages/vue/src/components/FormLayout.ts`。
- * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
- * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
- * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ * 读取最近一层 FormLayout 上下文。
+ * @returns 返回最近一层布局配置；未声明布局时返回 `null`。
  */
 export function useFormLayout(): FormLayoutContext | null {
   return inject(FormLayoutSymbol, null)
 }
 
 /**
- * Form Layout：变量或常量声明。
- * 所属模块：`packages/vue/src/components/FormLayout.ts`。
- * 该声明用于描述模块的对外契约或内部结构边界。
+ * FormLayout 组件。
+ * 在局部作用域覆盖 `labelPosition/labelWidth/colon`，并向下传递。
  */
 export const FormLayout = defineComponent({
   name: 'FormLayout',
@@ -56,15 +47,14 @@ export const FormLayout = defineComponent({
     },
   },
   /**
-   * setup：当前功能模块的核心执行单元。
-   * 所属模块：`packages/vue/src/components/FormLayout.ts`。
-   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
-   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
-   * @param props 参数 `props`用于提供当前函数执行所需的输入信息。
-   * @param param2 原始解构参数（{ slots }）用于提供当前函数执行所需的输入信息。
-   * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+   * 组合父子布局配置并通过 provide 向下游节点传递。
+   *
+   * @param props 当前节点传入的布局覆盖配置。
+   * @param context setup 上下文，用于访问默认插槽。
+   * @returns 返回渲染函数，输出默认插槽内容。
    */
-  setup(props, { slots }) {
+  setup(props, context) {
+    const { slots } = context
     const parentLayout = useFormLayout()
 
     const mergedConfig = computed<FormLayoutConfig>(() => ({

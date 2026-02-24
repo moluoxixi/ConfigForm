@@ -4,8 +4,10 @@ import { useContext, useEffect, useMemo } from 'react'
 import { FormContext } from '../context'
 
 /**
- * 获取当前表单上下文
- * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ * 读取当前表单实例。
+ * 只能在 `FormProvider` 子树内调用，超出该范围会抛错提示调用位置不合法。
+ *
+ * @returns 返回当前上下文绑定的表单实例。
  */
 export function useForm<Values extends Record<string, unknown> = Record<string, unknown>>(): FormInstance<Values> {
   const form = useContext(FormContext)
@@ -16,13 +18,17 @@ export function useForm<Values extends Record<string, unknown> = Record<string, 
 }
 
 /**
- * 创建表单实例（在组件内使用）
+ * 在组件内部创建表单实例。
  *
- * 保证整个组件生命周期内使用同一个实例，
- * 组件卸载时自动销毁。
- * @param [config] 参数 `config`用于提供可选配置，调整当前功能模块的执行策略。
- * @param [options] 参数 `options`用于提供可选配置，调整当前功能模块的执行策略。
- * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ * 设计目标：
+ * 1. 同一个 `resetKey` 周期内复用同一实例，避免重复创建。
+ * 2. `resetKey` 变化时重建实例，满足动态重置场景。
+ * 3. 组件卸载时调用 `dispose`，释放事件与响应式订阅。
+ *
+ * @param config 创建表单时使用的配置对象。
+ * @param options 额外选项，`resetKey` 变化会触发表单实例重建。
+ * @param options.resetKey 用于控制实例重建的比较键。
+ * @returns 返回可直接用于 `FormProvider` 的表单实例。
  */
 export function useCreateForm<
   Values extends Record<string, unknown> = Record<string, unknown>,

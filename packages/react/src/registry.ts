@@ -1,9 +1,77 @@
 import type { ComponentType } from 'react'
 
 /**
- * notifyRegistryChange：执行当前功能逻辑。
- *
- * @param registry 参数 registry 的输入说明。
+ * 组件注册选项。
+ */
+export interface RegisterComponentOptions {
+  /** 当前组件默认绑定的装饰器名称。 */
+  defaultDecorator?: string
+  /** 预览态下替换使用的只读组件。 */
+  readPrettyComponent?: ComponentType<any>
+}
+
+/**
+ * 组件作用域描述。
+ * 用于构建“实例级注册表”，避免污染全局组件映射。
+ */
+export interface ComponentScope {
+  components: Record<string, ComponentType<any>>
+  decorators: Record<string, ComponentType<any>>
+  actions: Record<string, ComponentType<any>>
+  defaultDecorators: Record<string, string>
+  readPrettyComponents: Record<string, ComponentType<any>>
+}
+
+/**
+ * 运行时注册表结构。
+ * 内部统一使用 `Map`，便于增量更新与高频查询。
+ */
+export interface RegistryState {
+  components: Map<string, ComponentType<any>>
+  decorators: Map<string, ComponentType<any>>
+  actions: Map<string, ComponentType<any>>
+  defaultDecorators: Map<string, string>
+  readPrettyComponents: Map<string, ComponentType<any>>
+}
+
+/**
+ * 创建空注册表。
+ * @returns 返回初始化完成的注册表对象。
+ */
+export function createRegistryState(): RegistryState {
+  return {
+    components: new Map<string, ComponentType<any>>(),
+    decorators: new Map<string, ComponentType<any>>(),
+    actions: new Map<string, ComponentType<any>>(),
+    defaultDecorators: new Map<string, string>(),
+    readPrettyComponents: new Map<string, ComponentType<any>>(),
+  }
+}
+
+/**
+ * 全局注册表实例。
+ * 未显式传入实例级注册表时，所有注册行为都会写入这里。
+ */
+const globalRegistry = createRegistryState()
+
+/**
+ * 注册表变化监听池。
+ * 键为注册表实例，值为该实例对应的监听器集合。
+ */
+const registryListeners = new WeakMap<RegistryState, Set<() => void>>()
+
+/**
+ * 获取目标注册表。
+ * @param registry 可选的目标注册表实例。
+ * @returns 返回传入的注册表，未传入时回退到全局注册表。
+ */
+function getTargetRegistry(registry?: RegistryState): RegistryState {
+  return registry ?? globalRegistry
+}
+
+/**
+ * 广播注册表变更事件。
+ * @param registry 发生变更的注册表实例。
  */
 function notifyRegistryChange(registry: RegistryState): void {
   const listeners = registryListeners.get(registry)
@@ -16,13 +84,12 @@ function notifyRegistryChange(registry: RegistryState): void {
 }
 
 /**
- * subscribe Registry Change：当前功能模块的核心执行单元。
- * 所属模块：`packages/react/src/registry.ts`。
- * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
- * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
- * @param registry 参数 `registry`用于提供当前函数执行所需的输入信息。
- * @param listener 参数 `listener`用于提供集合数据，支撑批量遍历与扩展处理。
- * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ * 订阅注册表变化。
+ * 常用于 `FormProvider` 侦听注册表增量更新并触发重渲染。
+ *
+ * @param registry 目标注册表实例。
+ * @param listener 注册表变化时的回调函数。
+ * @returns 返回取消订阅函数。
  */
 export function subscribeRegistryChange(registry: RegistryState, listener: () => void): () => void {
   let listeners = registryListeners.get(registry)
@@ -31,28 +98,31 @@ export function subscribeRegistryChange(registry: RegistryState, listener: () =>
     registryListeners.set(registry, listeners)
   }
   listeners.add(listener)
+
   return () => {
     listeners?.delete(listener)
+    if (listeners && listeners.size === 0) {
+      registryListeners.delete(registry)
+    }
   }
 }
 
 /**
- * 注册全局组件
- *
- * @param name - 组件名（与 schema.component 对应）
- * @param component - React 组件
- * @param options - 注册选项，可指定 defaultWrapper
+ * 向全局注册表注册单个组件。
+ * @param name 组件名称，对应 schema 中的 `component`。
+ * @param component React 组件实现。
+ * @param options 注册选项。
  */
 export function registerComponent(name: string, component: ComponentType<any>, options?: RegisterComponentOptions): void {
   registerComponentToRegistry(getTargetRegistry(), name, component, options)
 }
 
 /**
- * 向指定注册表注册组件（实例级）
- * @param registry 参数 `registry`用于提供当前函数执行所需的输入信息。
- * @param name 参数 `name`用于提供当前函数执行所需的输入信息。
- * @param component 参数 `component`用于提供当前函数执行所需的输入信息。
- * @param [options] 参数 `options`用于提供可选配置，调整当前功能模块的执行策略。
+ * 向指定注册表注册单个组件。
+ * @param registry 目标注册表实例。
+ * @param name 组件名称。
+ * @param component React 组件实现。
+ * @param options 注册选项。
  */
 export function registerComponentToRegistry(
   registry: RegistryState,
@@ -71,19 +141,19 @@ export function registerComponentToRegistry(
 }
 
 /**
- * 注册全局装饰器组件
- * @param name 参数 `name`用于提供当前函数执行所需的输入信息。
- * @param decorator 参数 `decorator`用于提供当前函数执行所需的输入信息。
+ * 向全局注册表注册装饰器组件。
+ * @param name 装饰器名称。
+ * @param decorator 装饰器组件实现。
  */
 export function registerDecorator(name: string, decorator: ComponentType<any>): void {
   registerDecoratorToRegistry(getTargetRegistry(), name, decorator)
 }
 
 /**
- * 向指定注册表注册装饰器（实例级）
- * @param registry 参数 `registry`用于提供当前函数执行所需的输入信息。
- * @param name 参数 `name`用于提供当前函数执行所需的输入信息。
- * @param decorator 参数 `decorator`用于提供当前函数执行所需的输入信息。
+ * 向指定注册表注册装饰器组件。
+ * @param registry 目标注册表实例。
+ * @param name 装饰器名称。
+ * @param decorator 装饰器组件实现。
  */
 export function registerDecoratorToRegistry(
   registry: RegistryState,
@@ -95,19 +165,19 @@ export function registerDecoratorToRegistry(
 }
 
 /**
- * 注册全局 action 组件
- * @param name 参数 `name`用于提供当前函数执行所需的输入信息。
- * @param action 参数 `action`用于提供当前函数执行所需的输入信息。
+ * 向全局注册表注册操作组件。
+ * @param name 操作名称。
+ * @param action 操作组件实现。
  */
 export function registerAction(name: string, action: ComponentType<any>): void {
   registerActionToRegistry(getTargetRegistry(), name, action)
 }
 
 /**
- * 向指定注册表注册 action 组件（实例级）
- * @param registry 参数 `registry`用于提供当前函数执行所需的输入信息。
- * @param name 参数 `name`用于提供当前函数执行所需的输入信息。
- * @param action 参数 `action`用于提供当前函数执行所需的输入信息。
+ * 向指定注册表注册操作组件。
+ * @param registry 目标注册表实例。
+ * @param name 操作名称。
+ * @param action 操作组件实现。
  */
 export function registerActionToRegistry(
   registry: RegistryState,
@@ -119,19 +189,19 @@ export function registerActionToRegistry(
 }
 
 /**
- * 批量注册组件
- * @param mapping 参数 `mapping`用于提供当前函数执行所需的输入信息。
- * @param [options] 参数 `options`用于提供可选配置，调整当前功能模块的执行策略。
+ * 向全局注册表批量注册组件。
+ * @param mapping 组件映射表。
+ * @param options 注册选项。
  */
 export function registerComponents(mapping: Record<string, ComponentType<any>>, options?: RegisterComponentOptions): void {
   registerComponentsToRegistry(getTargetRegistry(), mapping, options)
 }
 
 /**
- * 向指定注册表批量注册组件（实例级）
- * @param registry 参数 `registry`用于提供当前函数执行所需的输入信息。
- * @param mapping 参数 `mapping`用于提供当前函数执行所需的输入信息。
- * @param [options] 参数 `options`用于提供可选配置，调整当前功能模块的执行策略。
+ * 向指定注册表批量注册组件。
+ * @param registry 目标注册表实例。
+ * @param mapping 组件映射表。
+ * @param options 注册选项。
  */
 export function registerComponentsToRegistry(
   registry: RegistryState,
@@ -151,17 +221,17 @@ export function registerComponentsToRegistry(
 }
 
 /**
- * 批量注册 action 组件
- * @param mapping 参数 `mapping`用于提供当前函数执行所需的输入信息。
+ * 向全局注册表批量注册操作组件。
+ * @param mapping 操作组件映射表。
  */
 export function registerActions(mapping: Record<string, ComponentType<any>>): void {
   registerActionsToRegistry(getTargetRegistry(), mapping)
 }
 
 /**
- * 向指定注册表批量注册 action 组件（实例级）
- * @param registry 参数 `registry`用于提供当前函数执行所需的输入信息。
- * @param mapping 参数 `mapping`用于提供当前函数执行所需的输入信息。
+ * 向指定注册表批量注册操作组件。
+ * @param registry 目标注册表实例。
+ * @param mapping 操作组件映射表。
  */
 export function registerActionsToRegistry(
   registry: RegistryState,
@@ -174,14 +244,19 @@ export function registerActionsToRegistry(
 }
 
 /**
- * 批量注册字段组件 + 装饰器，所有字段组件共享同一个默认 decorator
+ * 向全局注册表批量注册字段组件与默认装饰器。
  *
- * @param fields - 字段组件映射（name → Component）
- * @param decorator - 装饰器配置
- * @param decorator.name - 装饰器注册名
- * @param decorator.component - 装饰器组件
- * @param layouts - 可选的布局组件映射（无默认 decorator）
- * @param [readPretty] 参数 `readPretty`用于提供当前函数执行所需的输入信息。
+ * 该方法用于 UI 适配层一站式注册：
+ * 1. 字段组件自动绑定默认装饰器。
+ * 2. 可选注册布局组件（不绑定默认装饰器）。
+ * 3. 可选注册 readPretty 映射。
+ *
+ * @param fields 字段组件映射表。
+ * @param decorator 默认装饰器定义。
+ * @param decorator.name 默认装饰器名称。
+ * @param decorator.component 默认装饰器组件。
+ * @param layouts 布局组件映射表。
+ * @param readPretty 预览态组件映射表。
  */
 export function registerFieldComponents(
   fields: Record<string, ComponentType<any>>,
@@ -193,12 +268,14 @@ export function registerFieldComponents(
 }
 
 /**
- * 向指定注册表批量注册字段/布局/readPretty（实例级）
- * @param registry 参数 `registry`用于提供当前函数执行所需的输入信息。
- * @param fields 参数 `fields`用于提供当前函数执行所需的输入信息。
- * @param decorator 参数 `decorator`用于提供当前函数执行所需的输入信息。
- * @param [layouts] 参数 `layouts`用于提供当前函数执行所需的输入信息。
- * @param [readPretty] 参数 `readPretty`用于提供当前函数执行所需的输入信息。
+ * 向指定注册表批量注册字段组件与默认装饰器。
+ * @param registry 目标注册表实例。
+ * @param fields 字段组件映射表。
+ * @param decorator 默认装饰器定义。
+ * @param decorator.name 默认装饰器名称。
+ * @param decorator.component 默认装饰器组件。
+ * @param layouts 布局组件映射表。
+ * @param readPretty 预览态组件映射表。
  */
 export function registerFieldComponentsToRegistry(
   registry: RegistryState,
@@ -208,78 +285,83 @@ export function registerFieldComponentsToRegistry(
   readPretty?: Record<string, ComponentType<any>>,
 ): void {
   registry.decorators.set(decorator.name, decorator.component)
+
   for (const [name, component] of Object.entries(fields)) {
     registry.components.set(name, component)
     registry.defaultDecorators.set(name, decorator.name)
   }
+
   if (layouts) {
     for (const [name, component] of Object.entries(layouts)) {
       registry.components.set(name, component)
     }
   }
+
   if (readPretty) {
     for (const [name, component] of Object.entries(readPretty)) {
       registry.readPrettyComponents.set(name, component)
     }
   }
+
   notifyRegistryChange(registry)
 }
 
 /**
- * 获取组件
- * @param name 参数 `name`用于提供当前函数执行所需的输入信息。
- * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ * 从全局注册表获取组件。
+ * @param name 组件名称。
+ * @returns 返回组件实现；未注册时返回 `undefined`。
  */
 export function getComponent(name: string): ComponentType<any> | undefined {
   return globalRegistry.components.get(name)
 }
 
 /**
- * 获取装饰器
- * @param name 参数 `name`用于提供当前函数执行所需的输入信息。
- * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ * 从全局注册表获取装饰器。
+ * @param name 装饰器名称。
+ * @returns 返回装饰器组件；未注册时返回 `undefined`。
  */
 export function getDecorator(name: string): ComponentType<any> | undefined {
   return globalRegistry.decorators.get(name)
 }
 
 /**
- * 获取 action 组件
- * @param name 参数 `name`用于提供当前函数执行所需的输入信息。
- * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ * 从全局注册表获取操作组件。
+ * @param name 操作名称。
+ * @returns 返回操作组件；未注册时返回 `undefined`。
  */
 export function getAction(name: string): ComponentType<any> | undefined {
   return globalRegistry.actions.get(name)
 }
 
 /**
- * 获取组件的默认装饰器名称
- * @param componentName 参数 `componentName`用于提供当前函数执行所需的输入信息。
- * @returns 返回字符串结果，通常用于文本展示或下游拼接。
+ * 读取组件默认装饰器名称。
+ * @param componentName 组件名称。
+ * @returns 返回默认装饰器名称；未配置时返回 `undefined`。
  */
 export function getDefaultDecorator(componentName: string): string | undefined {
   return globalRegistry.defaultDecorators.get(componentName)
 }
 
 /**
- * 获取组件的 readPretty 替代组件
- * @param componentName 参数 `componentName`用于提供当前函数执行所需的输入信息。
- * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ * 读取组件的 readPretty 替代实现。
+ * @param componentName 组件名称。
+ * @returns 返回 readPretty 组件；未配置时返回 `undefined`。
  */
 export function getReadPrettyComponent(componentName: string): ComponentType<any> | undefined {
   return globalRegistry.readPrettyComponents.get(componentName)
 }
 
 /**
- * 获取全局注册表
- * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ * 读取全局注册表实例。
+ * @returns 返回当前全局注册表对象。
  */
 export function getGlobalRegistry(): RegistryState {
   return globalRegistry
 }
 
 /**
- * 清空全局注册表（测试/隔离场景使用）
+ * 重置全局注册表。
+ * 通常用于测试隔离，避免跨用例污染。
  */
 export function resetRegistry(): void {
   globalRegistry.components.clear()
@@ -291,11 +373,11 @@ export function resetRegistry(): void {
 }
 
 /**
- * 创建隔离注册表并通过 setup 填充（不写入全局）
+ * 创建隔离注册表并执行注册回调。
+ * 不会写入全局注册表，适用于 SSR、多实例和单测场景。
  *
- * 适用于 SSR / 多租户 / 测试用例隔离场景。
- * @param [setup] 参数 `setup`用于提供当前函数执行所需的输入信息。
- * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ * @param setup 注册逻辑回调，接收一组注册助手函数。
+ * @returns 返回填充后的隔离注册表实例。
  */
 export function createRegistry(
   setup?: (register: {
@@ -313,83 +395,44 @@ export function createRegistry(
   }) => void,
 ): RegistryState {
   const registry = createRegistryState()
+
   setup?.({
     /**
-     * component：执行当前功能逻辑。
-     *
-     * @param name 参数 name 的输入说明。
-     * @param comp 参数 comp 的输入说明。
-     * @param options 参数 options 的输入说明。
-     *
-     * @returns 返回当前功能的处理结果。
+     * 注册单个组件到隔离注册表。
      */
-
     component: (name, comp, options) => registerComponentToRegistry(registry, name, comp, options),
     /**
-     * decorator：执行当前功能逻辑。
-     *
-     * @param name 参数 name 的输入说明。
-     * @param dec 参数 dec 的输入说明。
-     *
-     * @returns 返回当前功能的处理结果。
+     * 注册单个装饰器到隔离注册表。
      */
-
-    decorator: (name, dec) => registerDecoratorToRegistry(registry, name, dec),
+    decorator: (name, decorator) => registerDecoratorToRegistry(registry, name, decorator),
     /**
-     * action：执行当前功能逻辑。
-     *
-     * @param name 参数 name 的输入说明。
-     * @param action 参数 action 的输入说明。
-     *
-     * @returns 返回当前功能的处理结果。
+     * 注册单个操作组件到隔离注册表。
      */
-
     action: (name, action) => registerActionToRegistry(registry, name, action),
     /**
-     * components：执行当前功能逻辑。
-     *
-     * @param mapping 参数 mapping 的输入说明。
-     * @param options 参数 options 的输入说明。
-     *
-     * @returns 返回当前功能的处理结果。
+     * 批量注册组件到隔离注册表。
      */
-
     components: (mapping, options) => registerComponentsToRegistry(registry, mapping, options),
     /**
-     * actions：执行当前功能逻辑。
-     *
-     * @param mapping 参数 mapping 的输入说明。
-     *
-     * @returns 返回当前功能的处理结果。
+     * 批量注册操作组件到隔离注册表。
      */
-
     actions: mapping => registerActionsToRegistry(registry, mapping),
     /**
-     * fieldComponents：执行当前功能逻辑。
-     *
-     * @param fields 参数 fields 的输入说明。
-     * @param decorator 参数 decorator 的输入说明。
-     * @param layouts 参数 layouts 的输入说明。
-     * @param readPretty 参数 readPretty 的输入说明。
-     *
-     * @returns 返回当前功能的处理结果。
+     * 批量注册字段组件、默认装饰器和扩展映射到隔离注册表。
      */
-
     fieldComponents: (fields, decorator, layouts, readPretty) =>
       registerFieldComponentsToRegistry(registry, fields, decorator, layouts, readPretty),
   })
+
   return registry
 }
 
 /**
- * 创建组件作用域（不写入全局注册表）
+ * 创建组件作用域对象。
+ * 该对象可直接传给 `FormProvider` 或 `ConfigForm`，实现实例级组件隔离。
  *
- * 用于同一页面需要使用多套 UI 组件映射时，
- * 将返回值传给 `<FormProvider components={scope.components} decorators={scope.decorators}>`
- * 或 `<ConfigForm components={scope.components} decorators={scope.decorators}>`
- * 实现实例级隔离，避免全局注册表冲突。
- * @param setup 参数 `setup`用于提供当前函数执行所需的输入信息。
- * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ * @param setup 作用域构建回调，接收注册助手函数。
+ * @returns 返回可直接注入的作用域对象。
  */
 export function createComponentScope(
   setup: (register: {
@@ -408,13 +451,8 @@ export function createComponentScope(
 
   setup({
     /**
-     * component：执行当前功能逻辑。
-     *
-     * @param name 参数 name 的输入说明。
-     * @param comp 参数 comp 的输入说明。
-     * @param options 参数 options 的输入说明。
+     * 注册作用域内组件。
      */
-
     component: (name, comp, options) => {
       components[name] = comp
       if (options?.defaultDecorator) {
@@ -425,38 +463,26 @@ export function createComponentScope(
       }
     },
     /**
-     * decorator：执行当前功能逻辑。
-     *
-     * @param name 参数 name 的输入说明。
-     * @param dec 参数 dec 的输入说明。
+     * 注册作用域内装饰器。
      */
-
-    decorator: (name, dec) => { decorators[name] = dec },
+    decorator: (name, decorator) => {
+      decorators[name] = decorator
+    },
     /**
-     * action：执行当前功能逻辑。
-     *
-     * @param name 参数 name 的输入说明。
-     * @param action 参数 action 的输入说明。
+     * 注册作用域内操作组件。
      */
-
-    action: (name, action) => { actions[name] = action },
+    action: (name, action) => {
+      actions[name] = action
+    },
     /**
-     * defaultDecorator：执行当前功能逻辑。
-     *
-     * @param componentName 参数 componentName 的输入说明。
-     * @param decoratorName 参数 decoratorName 的输入说明。
+     * 显式设置某个组件的默认装饰器。
      */
-
     defaultDecorator: (componentName, decoratorName) => {
       defaultDecorators[componentName] = decoratorName
     },
     /**
-     * readPretty：执行当前功能逻辑。
-     *
-     * @param componentName 参数 componentName 的输入说明。
-     * @param component 参数 component 的输入说明。
+     * 设置某个组件的 readPretty 替代实现。
      */
-
     readPretty: (componentName, component) => {
       readPrettyComponents[componentName] = component
     },

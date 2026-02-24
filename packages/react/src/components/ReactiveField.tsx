@@ -10,24 +10,18 @@ import { ComponentRegistryContext, FormContext } from '../context'
 import { observer } from '../reactive'
 
 /**
- * to Camel Case Style Key：当前功能模块的核心执行单元。
- * 所属模块：`packages/react/src/components/ReactiveField.tsx`。
- * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
- * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
- * @param key 参数 `key`用于提供当前函数执行所需的输入信息。
- * @returns 返回字符串结果，通常用于文本展示或下游拼接。
+ * 把 CSS 短横线风格键名转成 React style 所需的驼峰键名。
+ * @param key 原始样式键名。
+ * @returns 驼峰风格键名。
  */
 function toCamelCaseStyleKey(key: string): string {
   return key.replace(/-([a-z])/g, (_, chr: string) => chr.toUpperCase())
 }
 
 /**
- * parse Style String：当前功能模块的核心执行单元。
- * 所属模块：`packages/react/src/components/ReactiveField.tsx`。
- * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
- * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
- * @param styleText 参数 `styleText`用于提供当前函数执行所需的输入信息。
- * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ * 解析内联 style 字符串为 React 可消费的 style 对象。
+ * @param styleText 内联样式字符串。
+ * @returns 解析后的样式对象；无法解析时返回 undefined。
  */
 function parseStyleString(styleText: string): React.CSSProperties | undefined {
   const entries = styleText
@@ -54,12 +48,9 @@ function parseStyleString(styleText: string): React.CSSProperties | undefined {
 }
 
 /**
- * normalize Component Props：当前功能模块的核心执行单元。
- * 所属模块：`packages/react/src/components/ReactiveField.tsx`。
- * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
- * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
- * @param props 参数 `props`用于提供当前函数执行所需的输入信息。
- * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ * 归一化组件属性，重点处理 style 的多种输入形式。
+ * @param props 组件属性对象。
+ * @returns 归一化后的组件属性对象。
  */
 function normalizeComponentProps(props: ComponentProps): ComponentProps {
   if (!props || typeof props !== 'object')
@@ -94,21 +85,13 @@ function normalizeComponentProps(props: ComponentProps): ComponentProps {
   return props
 }
 
-/**
- * Field Error Boundary Props：类型接口定义。
- * 所属模块：`packages/react/src/components/ReactiveField.tsx`。
- * 该声明用于描述模块的对外契约或内部结构边界。
- */
+/** 字段级错误边界的属性。 */
 interface FieldErrorBoundaryProps {
   fieldPath: string
   children: ReactNode
 }
 
-/**
- * Field Error Boundary State：类型接口定义。
- * 所属模块：`packages/react/src/components/ReactiveField.tsx`。
- * 该声明用于描述模块的对外契约或内部结构边界。
- */
+/** 字段级错误边界的状态。 */
 interface FieldErrorBoundaryState {
   hasError: boolean
   error: Error | null
@@ -122,11 +105,8 @@ interface FieldErrorBoundaryState {
  */
 class FieldErrorBoundary extends Component<FieldErrorBoundaryProps, FieldErrorBoundaryState> {
   /**
-   * constructor?????????????????
-   * ???`packages/react/src/components/ReactiveField.tsx:124`?
-   * ?????????????????????????????????
-   * ??????????????????????????
-   * @param props ?? props ????????????
+   * 创建字段错误边界实例。
+   * @param props 组件属性。
    */
   constructor(props: FieldErrorBoundaryProps) {
     super(props)
@@ -134,36 +114,24 @@ class FieldErrorBoundary extends Component<FieldErrorBoundaryProps, FieldErrorBo
   }
 
   /**
-   * get Derived State From Error：当前功能模块的核心执行单元。
-   * 所属模块：`packages/react/src/components/ReactiveField.tsx`。
-   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
-   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
-   * @param error 参数 `error`用于提供当前函数执行所需的输入信息。
-   * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+   * React 错误边界生命周期：根据异常更新状态。
+   * @param error 捕获到的错误对象。
+   * @returns 新状态。
    */
   static getDerivedStateFromError(error: Error): FieldErrorBoundaryState {
     return { hasError: true, error }
   }
 
   /**
-   * component Did Catch：当前功能模块的核心执行单元。
-   * 所属模块：`packages/react/src/components/ReactiveField.tsx`。
-   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
-   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
-   * @param error 参数 `error`用于提供当前函数执行所需的输入信息。
-   * @param errorInfo 参数 `errorInfo`用于提供当前函数执行所需的输入信息。
+   * React 错误边界生命周期：记录错误细节。
+   * @param error 捕获到的错误对象。
+   * @param errorInfo 组件栈信息。
    */
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error(`[ConfigForm] 字段 "${this.props.fieldPath}" 子组件渲染异常:`, error, errorInfo)
   }
 
-  /**
-   * render：当前功能模块的核心执行单元。
-   * 所属模块：`packages/react/src/components/ReactiveField.tsx`。
-   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
-   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
-   * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
-   */
+  /** 渲染错误兜底 UI 或正常子节点。 */
   render(): ReactNode {
     if (this.state.hasError) {
       return (
@@ -180,16 +148,17 @@ class FieldErrorBoundary extends Component<FieldErrorBoundaryProps, FieldErrorBo
   }
 }
 
-/**
- * Reactive Field Props：类型接口定义。
- * 所属模块：`packages/react/src/components/ReactiveField.tsx`。
- * 该声明用于描述模块的对外契约或内部结构边界。
- */
+/** ReactiveField 组件属性。 */
 export interface ReactiveFieldProps {
   field: FieldInstance | VoidFieldInstance
   isVoid?: boolean
   isArray?: boolean
   children?: ReactNode
+}
+
+/** 装饰器注册表桥接类型，仅暴露当前文件真正需要的 decorators 能力。 */
+interface DecoratorRegistryBridge {
+  decorators: Map<string, ComponentType<any>>
 }
 
 /**
@@ -351,20 +320,24 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
 })
 
 /**
- * object 容器字段渲染（component 作容器包裹 children）
- * @param dataField 参数 `dataField`用于提供当前函数执行所需的输入信息。
- * @param Comp 参数 `Comp`用于提供当前函数执行所需的输入信息。
- * @param children 参数 `children`用于提供当前函数执行所需的输入信息。
- * @param form 参数 `form`用于提供表单上下文或实例，支撑状态读写与生命周期调用。
- * @param registry 参数 `registry`用于提供当前函数执行所需的输入信息。
- * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ * 渲染对象容器字段。
+ *
+ * 当字段是 `type: 'object'` 且声明了 `component` 时，
+ * 该组件应作为容器包裹其子字段，而不是作为输入控件接收 `value/onChange`。
+ *
+ * @param dataField 当前对象字段实例，提供路径、装饰器和组件属性等运行时信息。
+ * @param Comp 已解析的 React 组件，用作对象字段容器。
+ * @param children 对象字段内部的子字段节点。
+ * @param form 当前表单实例，用于生成装饰器渲染契约。
+ * @param registry 装饰器注册表桥接对象，用于根据名称查找装饰器组件。
+ * @returns 返回最终可渲染的 React 元素（已按需包裹装饰器）。
  */
 function renderContainerField(
   dataField: FieldInstance,
   Comp: ComponentType<any>,
   children: ReactNode,
   form: FormInstance,
-  registry: { decorators: Map<string, ComponentType<any>> },
+  registry: DecoratorRegistryBridge,
 ): React.ReactElement {
   const safeProps = normalizeComponentProps(dataField.componentProps as ComponentProps)
   const fieldElement = (
@@ -376,18 +349,23 @@ function renderContainerField(
 }
 
 /**
- * 用 decorator 包裹字段
- * @param dataField 参数 `dataField`用于提供当前函数执行所需的输入信息。
- * @param fieldElement 参数 `fieldElement`用于提供当前函数执行所需的输入信息。
- * @param form 参数 `form`用于提供表单上下文或实例，支撑状态读写与生命周期调用。
- * @param registry 参数 `registry`用于提供当前函数执行所需的输入信息。
- * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ * 用字段装饰器包裹字段主体节点。
+ *
+ * 规则：
+ * 1. 若字段声明了装饰器且注册表中可解析，使用装饰器组件包裹字段节点。
+ * 2. 若无装饰器或无法解析，直接返回原字段节点。
+ *
+ * @param dataField 当前字段实例，用于读取 decorator、label、errors 等状态。
+ * @param fieldElement 字段主体元素（输入控件或容器组件）。
+ * @param form 当前表单实例，用于创建装饰器渲染契约。
+ * @param registry 装饰器注册表桥接对象，用于根据名称查找装饰器组件。
+ * @returns 返回装饰后的字段元素；若无需装饰则返回原字段元素。
  */
 function wrapDecorator(
   dataField: FieldInstance,
   fieldElement: React.ReactElement,
   form: FormInstance,
-  registry: { decorators: Map<string, ComponentType<any>> },
+  registry: DecoratorRegistryBridge,
 ): React.ReactElement {
   const decoratorName = dataField.decorator
   const Decorator = typeof decoratorName === 'string'

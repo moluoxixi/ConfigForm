@@ -6,11 +6,7 @@ import { ComponentRegistryContext, FormContext } from '../context'
 import { observer } from '../reactive'
 import { getGlobalRegistry, subscribeRegistryChange } from '../registry'
 
-/**
- * FormProviderProps??????
- * ???`packages/react/src/components/FormProvider.tsx:9`?
- * ??????????????????????????????
- */
+/** FormProvider 组件属性。 */
 export interface FormProviderProps {
   form: FormInstance<any>
   /** 局部组件注册（优先于全局） */

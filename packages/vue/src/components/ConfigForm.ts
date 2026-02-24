@@ -9,9 +9,8 @@ import { FormProvider } from './FormProvider'
 import { SchemaField } from './SchemaField'
 
 /**
- * SchemaTransformPluginBridge??????
- * ???`packages/vue/src/components/ConfigForm.ts:11`?
- * ??????????????????????????????
+ * schema 转换插件桥接能力。
+ * 同时兼容历史命名 `translateSchema` 与新命名 `transformSchema`。
  */
 interface SchemaTransformPluginBridge {
   translateSchema?: (schema: ISchema) => ISchema
@@ -29,30 +28,16 @@ const FormActionsRenderer = defineComponent({
     submitLabel: { type: String, default: '提交' },
     resetLabel: { type: String, default: '重置' },
     align: { type: String as PropType<'left' | 'center' | 'right'>, default: 'center' },
-    extraActions: { type: Object as PropType<Record<string, unknown>>, /**
-                                                                        * default：执行当前位置的功能逻辑。
-                                                                        * 定位：`packages/vue/src/components/ConfigForm.ts:27`。
-                                                                        * 功能：处理参数消化、状态变更与调用链行为同步。
-                                                                        * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-                                                                        * @returns 返回当前分支执行后的处理结果。
-                                                                        */
-      /**
-       * default：执行当前位置的功能逻辑。
-       * 定位：`packages/vue/src/components/ConfigForm.ts:34`。
-       * 功能：处理参数消化、状态变更与调用链行为同步。
-       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-       * @returns 返回当前分支执行后的处理结果。
-       */
-      default: () => ({}) },
+    extraActions: {
+      type: Object as PropType<Record<string, unknown>>,
+      /** 默认空扩展动作集合。 */
+      default: () => ({}),
+    },
   },
   emits: ['reset', 'submit', 'submitFailed'],
   /**
-   * setup：执行当前位置的功能逻辑。
-   * 定位：`packages/vue/src/components/ConfigForm.ts:30`。
-   * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-   * @param props 参数 props 为当前功能所需的输入信息。
-   * @returns 返回当前分支执行后的处理结果。
+   * 渲染表单操作区。
+   * 优先使用注册表中的 `LayoutFormActions`，未注册时回退为内置按钮样式。
    */
   setup(props, { emit }) {
     const registryRef = inject(ComponentRegistrySymbol)
@@ -77,21 +62,11 @@ const FormActionsRenderer = defineComponent({
         buttons.push(h('button', { type: 'submit', style: 'margin-right: 8px; padding: 4px 16px; cursor: pointer' }, props.submitLabel))
       }
       if (props.showReset) {
-        buttons.push(h('button', { type: 'button', style: 'padding: 4px 16px; cursor: pointer', /**
-                                                                                                 * onClick：执行当前位置的功能逻辑。
-                                                                                                 * 定位：`packages/vue/src/components/ConfigForm.ts:53`。
-                                                                                                 * 功能：处理参数消化、状态变更与调用链行为同步。
-                                                                                                 * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-                                                                                                 * @returns 返回当前分支执行后的处理结果。
-                                                                                                 */
-          /**
-           * onClick：执行当前位置的功能逻辑。
-           * 定位：`packages/vue/src/components/ConfigForm.ts:75`。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-           * @returns 返回当前分支执行后的处理结果。
-           */
-          onClick: () => emit('reset') }, props.resetLabel))
+        buttons.push(h('button', {
+          type: 'button',
+          style: 'padding: 4px 16px; cursor: pointer',
+          onClick: () => emit('reset'),
+        }, props.resetLabel))
       }
       for (const [actionName, config] of Object.entries(props.extraActions)) {
         if (!isActionEnabled(config)) {
@@ -191,14 +166,15 @@ export const ConfigForm = defineComponent({
   },
   emits: ['submit', 'submitFailed', 'valuesChange', 'reset'],
   /**
-   * setup：执行当前位置的功能逻辑。
-   * 定位：`packages/vue/src/components/ConfigForm.ts:152`。
-   * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-   * @param props 参数 props 为当前功能所需的输入信息。
-   * @returns 返回当前分支执行后的处理结果。
+   * 组装 ConfigForm 渲染上下文并输出渲染函数。
+   * 负责桥接 form 生命周期、schema 转换插件、响应式布局和操作按钮逻辑。
+   *
+   * @param props ConfigForm 组件属性。
+   * @param context setup 上下文，包含插槽与事件派发能力。
+   * @returns 返回渲染函数。
    */
-  setup(props, { slots, emit }) {
+  setup(props, context) {
+    const { slots, emit } = context
     /** 从根 schema 的 decoratorProps 提取表单级配置（用于创建表单） */
     const rawDecoratorProps = computed(() =>
       (props.schema?.decoratorProps ?? {}) as Record<string, unknown>,
@@ -227,35 +203,27 @@ export const ConfigForm = defineComponent({
     const schemaTransformDisposers: Array<() => void> = []
 
     /**
-     * bindSchemaTransformers?????????????????
-     * ???`packages/vue/src/components/ConfigForm.ts:230`?
-     * ?????????????????????????????????
-     * ??????????????????????????
+     * 绑定 schema 转换插件的订阅回调。
+     * 每次重新绑定前会先执行旧订阅释放，避免重复订阅导致版本号抖动。
      */
-    const /**
-           * bindSchemaTransformers：执行当前位置的功能逻辑。
-           * 定位：`packages/vue/src/components/ConfigForm.ts:180`。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-           */
-      bindSchemaTransformers = (): void => {
-        while (schemaTransformDisposers.length > 0) {
-          schemaTransformDisposers.pop()?.()
-        }
+    const bindSchemaTransformers = (): void => {
+      while (schemaTransformDisposers.length > 0) {
+        schemaTransformDisposers.pop()?.()
+      }
 
-        for (const transformer of schemaTransformers.value) {
-          const subscribe = transformer.subscribeSchemaChange ?? transformer.subscribe
-          if (typeof subscribe !== 'function') {
-            continue
-          }
-          const dispose = subscribe(() => {
-            schemaTransformVersion.value += 1
-          })
-          if (typeof dispose === 'function') {
-            schemaTransformDisposers.push(dispose)
-          }
+      for (const transformer of schemaTransformers.value) {
+        const subscribe = transformer.subscribeSchemaChange ?? transformer.subscribe
+        if (typeof subscribe !== 'function') {
+          continue
+        }
+        const dispose = subscribe(() => {
+          schemaTransformVersion.value += 1
+        })
+        if (typeof dispose === 'function') {
+          schemaTransformDisposers.push(dispose)
         }
       }
+    }
 
     const effectiveSchema = computed(() => {
       const schema = props.schema
@@ -326,35 +294,23 @@ export const ConfigForm = defineComponent({
     let resizeObserver: ResizeObserver | null = null
 
     /**
-     * resolveBreakpointColumns?????????????????
-     * ???`packages/vue/src/components/ConfigForm.ts:326`?
-     * ?????????????????????????????????
-     * ??????????????????????????
-     * @param width ?? width ????????????
-     * @param breakpoints ?? breakpoints ????????????
-     * @returns ?????????????
+     * 根据容器宽度命中断点并计算列数。
+     * @param width 当前容器宽度。
+     * @param breakpoints 断点配置（键为最小宽度，值为列数）。
+     * @returns 返回当前宽度下应使用的列数。
      */
-    const /**
-           * resolveBreakpointColumns：执行当前位置的功能逻辑。
-           * 定位：`packages/vue/src/components/ConfigForm.ts:267`。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-           * @param width 参数 width 为当前功能所需的输入信息。
-           * @param breakpoints 参数 breakpoints 为当前功能所需的输入信息。
-           * @returns 返回当前分支执行后的处理结果。
-           */
-      resolveBreakpointColumns = (width: number, breakpoints: Record<number, number>): number => {
-        const sortedBreakpoints = Object.entries(breakpoints)
-          .map(([w, c]) => [Number(w), c] as [number, number])
-          .sort((a, b) => a[0] - b[0])
+    const resolveBreakpointColumns = (width: number, breakpoints: Record<number, number>): number => {
+      const sortedBreakpoints = Object.entries(breakpoints)
+        .map(([w, c]) => [Number(w), c] as [number, number])
+        .sort((a, b) => a[0] - b[0])
 
-        let cols = sortedBreakpoints[0]?.[1] ?? 1
-        for (const [minWidth, colCount] of sortedBreakpoints) {
-          if (width >= minWidth)
-            cols = colCount
-        }
-        return cols
+      let cols = sortedBreakpoints[0]?.[1] ?? 1
+      for (const [minWidth, colCount] of sortedBreakpoints) {
+        if (width >= minWidth)
+          cols = colCount
       }
+      return cols
+    }
 
     onMounted(() => {
       bindSchemaTransformers()
@@ -383,24 +339,14 @@ export const ConfigForm = defineComponent({
     })
 
     /**
-     * handleSubmit?????????????????
-     * ???`packages/vue/src/components/ConfigForm.ts:372`?
-     * ?????????????????????????????????
-     * ??????????????????????????
-     * @param e ?? e ????????????
+     * 处理表单 submit 事件，统一走 form.submit。
+     * @param e 原生 submit 事件对象。
      */
-    const /**
-           * handleSubmit：执行当前位置的功能逻辑。
-           * 定位：`packages/vue/src/components/ConfigForm.ts:306`。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-           * @param e 参数 e 为事件对象，用于提供交互上下文。
-           */
-      handleSubmit = async (e: Event): Promise<void> => {
-        e.preventDefault()
-        e.stopPropagation()
-        await form.submit()
-      }
+    const handleSubmit = async (e: Event): Promise<void> => {
+      e.preventDefault()
+      e.stopPropagation()
+      await form.submit()
+    }
 
     return () => {
       const currentDecoratorProps = rootDecoratorProps.value
@@ -477,12 +423,6 @@ export const ConfigForm = defineComponent({
                 resetLabel,
                 align,
                 extraActions,
-                /**
-                 * onReset：执行当前位置的功能逻辑。
-                 * 定位：`packages/vue/src/components/ConfigForm.ts:387`。
-                 * 功能：处理参数消化、状态变更与调用链行为同步。
-                 * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
-                 */
                 onReset: () => {
                   form.reset()
                 },
@@ -495,33 +435,23 @@ export const ConfigForm = defineComponent({
   },
 })
 
-/**
- * 滚动到第一个错误字段
- * is Record：负责“判断is Record”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 is Record 的主要职责边界，便于维护者快速理解函数在链路中的定位。
- */
+/** 判断值是否为普通对象（非 null 且非数组）。 */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 /**
- * PluginContainerBridge??????
- * ???`packages/vue/src/components/ConfigForm.ts:483`?
- * ??????????????????????????????
+ * 插件容器桥接类型。
+ * 仅暴露当前模块需要的 `getPlugins` 能力，避免与具体实现强耦合。
  */
 interface PluginContainerBridge {
   getPlugins?: () => ReadonlyMap<string, unknown> | undefined
 }
 
 /**
- * collect Schema Transformers：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 collect Schema Transformers 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 从已安装插件中提取 schema 转换器。
+ * @param form 插件容器桥接对象。
+ * @returns 返回可执行 schema 转换的插件桥接列表。
  */
 function collectSchemaTransformers(form: PluginContainerBridge): SchemaTransformPluginBridge[] {
   const plugins = form.getPlugins?.()
@@ -542,11 +472,10 @@ function collectSchemaTransformers(form: PluginContainerBridge): SchemaTransform
 }
 
 /**
- * apply Schema Transforms：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 apply Schema Transforms 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 依次应用 schema 转换器。
+ * @param schema 原始 schema。
+ * @param transformers 转换器列表。
+ * @returns 返回转换后的 schema。
  */
 function applySchemaTransforms(schema: ISchema, transformers: SchemaTransformPluginBridge[]): ISchema {
   let transformed = schema
@@ -560,11 +489,11 @@ function applySchemaTransforms(schema: ISchema, transformers: SchemaTransformPlu
 }
 
 /**
- * extract Extra Actions：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * 提取扩展动作配置。
+ * 会排除保留键 `submit`、`reset`、`align`。
  *
- * 说明：该函数聚焦于 extract Extra Actions 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * @param actions 原始动作配置。
+ * @returns 返回扩展动作配置对象。
  */
 function extractExtraActions(actions: Record<string, unknown> | undefined): Record<string, unknown> {
   if (!actions) {
@@ -579,34 +508,20 @@ function extractExtraActions(actions: Record<string, unknown> | undefined): Reco
   return extras
 }
 
-/**
- * has Enabled Extra Actions：负责“判断has Enabled Extra Actions”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 has Enabled Extra Actions 的主要职责边界，便于维护者快速理解函数在链路中的定位。
- */
+/** 判断扩展动作中是否至少存在一个启用项。 */
 function hasEnabledExtraActions(actions: Record<string, unknown>): boolean {
   return Object.values(actions).some(isActionEnabled)
 }
 
-/**
- * is Action Enabled：负责“判断is Action Enabled”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 is Action Enabled 的主要职责边界，便于维护者快速理解函数在链路中的定位。
- */
+/** 动作配置只要不显式等于 `false`，就视为启用。 */
 function isActionEnabled(config: unknown): boolean {
   return config !== false
 }
 
 /**
- * resolve Action Props：负责“解析resolve Action Props”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 resolve Action Props 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * 归一化动作配置为对象形式。
+ * @param config 动作配置，可为字符串或对象。
+ * @returns 返回归一化后的动作属性对象。
  */
 function resolveActionProps(config: unknown): Record<string, unknown> {
   if (typeof config === 'string') {
