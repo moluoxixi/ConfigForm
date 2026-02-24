@@ -1,4 +1,3 @@
-import type { PropType } from 'vue'
 import { defineComponent, h } from 'vue'
 
 export const PreviewInput = createPreview('CfPreviewInput')

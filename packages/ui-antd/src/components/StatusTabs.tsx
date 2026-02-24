@@ -48,6 +48,8 @@ export interface StatusTabsProps {
  * 使用 antd Segmented 组件实现模式切换，结构化表格展示提交结果。
  * 不包含 ConfigForm / FormProvider 等表单逻辑，由各场景文件自行实现。
  * @param param1 原始解构参数（{ resultTitle = '提交结果', children }）用于提供当前函数执行所需的输入信息。
+ * @param param1.resultTitle 参数 resultTitle 的输入说明。
+ * @param param1.children 参数 children 的输入说明。
  * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function StatusTabs({ resultTitle = '提交结果', children }: StatusTabsProps): React.ReactElement {

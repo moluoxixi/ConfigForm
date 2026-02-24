@@ -33,16 +33,15 @@ function joinClassName(...values: Array<string | undefined>): string {
  * 所属模块：`packages/plugin-lower-code-react/src/designer/shared/CardHeader.tsx`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
- * @param param1 原始解构参数（{
-  title,
-  description,
-  actions,
-  className,
-  mainClassName,
-  titleClassName,
-  descriptionClassName,
-  actionsClassName,
-}）用于提供当前函数执行所需的输入信息。
+ * @param param1 组件入参对象。
+ * @param param1.title 头部主标题文本。
+ * @param param1.description 头部描述文本。
+ * @param param1.actions 右侧操作区节点。
+ * @param param1.className 外层容器附加类名。
+ * @param param1.mainClassName 主体容器附加类名。
+ * @param param1.titleClassName 标题节点附加类名。
+ * @param param1.descriptionClassName 描述节点附加类名。
+ * @param param1.actionsClassName 操作区节点附加类名。
  * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function DesignerCardHeader({

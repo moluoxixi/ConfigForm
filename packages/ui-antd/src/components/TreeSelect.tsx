@@ -51,11 +51,25 @@ function toTreeData(items: DataSourceItem[]): unknown[] {
   treeData,
   placeholder,
   disabled,
+  preview,
   loading,
   multiple,
   treeCheckable,
   showSearch,
 }）用于提供待处理的值并参与结果计算。
+ * @param param1.value 当前树选择值。
+ * @param param1.onChange 选择值变更回调。
+ * @param param1.onFocus 获得焦点回调。
+ * @param param1.onBlur 失去焦点回调。
+ * @param param1.dataSource 通用数据源格式。
+ * @param param1.treeData antd 原生 treeData 数据。
+ * @param param1.placeholder 占位提示文本。
+ * @param param1.disabled 是否禁用组件。
+ * @param param1.preview 是否处于预览态。
+ * @param param1.loading 是否处于加载态。
+ * @param param1.multiple 是否开启多选。
+ * @param param1.treeCheckable 是否启用复选框。
+ * @param param1.showSearch 是否开启搜索。
  * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function TreeSelect({
@@ -67,6 +81,7 @@ export function TreeSelect({
   treeData,
   placeholder,
   disabled,
+  preview,
   loading,
   multiple,
   treeCheckable,
@@ -82,7 +97,7 @@ export function TreeSelect({
       onBlur={onBlur}
       treeData={data as any}
       placeholder={placeholder}
-      disabled={disabled}
+      disabled={disabled || preview}
       loading={loading}
       multiple={multiple}
       treeCheckable={treeCheckable}

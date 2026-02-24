@@ -16,11 +16,10 @@ interface CanvasMaskLayerProps {
  * 所属模块：`packages/plugin-lower-code-react/src/designer/shared/CanvasMaskLayer.tsx`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
- * @param param1 原始解构参数（{
-  children,
-  actions,
-  disablePointerEvents = true,
-}）用于传递事件上下文，使逻辑能基于交互状态进行处理。
+ * @param param1 组件入参对象。
+ * @param param1.children 蒙层内部承载的主体节点。
+ * @param param1.actions 右上角操作区节点，不传时不渲染操作条。
+ * @param param1.disablePointerEvents 是否禁用内容层指针事件。
  * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function CanvasMaskLayer({

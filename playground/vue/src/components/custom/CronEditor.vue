@@ -47,9 +47,6 @@
 </template>
 
 <script setup lang="ts">
-import type { CSSProperties } from 'vue'
-import { computed } from 'vue'
-
 /**
  * normalizeParts?????????????????
  * ???`playground/vue/src/components/custom/CronEditor.vue:5`?

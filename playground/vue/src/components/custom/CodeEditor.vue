@@ -15,8 +15,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-
 const wrapperStyle = {
   position: 'relative',
   border: '1px solid #d9d9d9',

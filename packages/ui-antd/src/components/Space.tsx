@@ -28,6 +28,12 @@ export interface SpaceProps {
   children,
   style,
 }）用于提供当前函数执行所需的输入信息。
+ * @param param1.size 子元素间距。
+ * @param param1.direction 排列方向。
+ * @param param1.align 交叉轴对齐方式。
+ * @param param1.wrap 横向排列时是否自动换行。
+ * @param param1.children 子节点内容。
+ * @param param1.style 容器样式。
  * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function Space({

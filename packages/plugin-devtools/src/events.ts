@@ -59,6 +59,8 @@ export const DEVTOOLS_FIELD_EVENT_DEFINITIONS: readonly DevToolsFieldEventDefini
  * 构建字段事件摘要文本
  * @param event 参数 `event`用于传递事件上下文，使逻辑能基于交互状态进行处理。
  * @param field 参数 `field`用于提供当前函数执行所需的输入信息。
+ * @param field.path 字段路径，用于输出事件定位信息。
+ * @param field.value 字段当前值，用于输出变更摘要。
  * @returns 返回字符串结果，通常用于文本展示或下游拼接。
  */
 export function buildDevToolsFieldEventSummary(

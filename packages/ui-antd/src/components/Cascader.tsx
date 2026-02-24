@@ -58,10 +58,23 @@ function toCascaderOptions(items: DataSourceItem[]): DefaultOptionType[] {
   options,
   placeholder,
   disabled,
+  preview,
   loading,
   showSearch,
   changeOnSelect,
 }）用于提供可选配置，调整当前功能模块的执行策略。
+ * @param param1.value 当前级联选择值。
+ * @param param1.onChange 选择值变更回调。
+ * @param param1.onFocus 获得焦点回调。
+ * @param param1.onBlur 失去焦点回调。
+ * @param param1.dataSource 通用数据源格式。
+ * @param param1.options antd 原生 options 数据。
+ * @param param1.placeholder 占位提示文本。
+ * @param param1.disabled 是否禁用组件。
+ * @param param1.preview 是否处于预览态。
+ * @param param1.loading 是否处于加载态。
+ * @param param1.showSearch 是否开启搜索。
+ * @param param1.changeOnSelect 是否每级选择即触发变更。
  * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function Cascader({
@@ -73,6 +86,7 @@ export function Cascader({
   options,
   placeholder,
   disabled,
+  preview,
   loading,
   showSearch,
   changeOnSelect,
@@ -89,7 +103,7 @@ export function Cascader({
       onBlur={onBlur}
       options={data}
       placeholder={placeholder}
-      disabled={disabled}
+      disabled={disabled || preview}
       loading={loading}
       showSearch={showSearch}
       changeOnSelect={changeOnSelect}

@@ -26,6 +26,10 @@ export interface PrintActionProps {
   style,
   options,
 }）用于提供可选配置，调整当前功能模块的执行策略。
+ * @param param1.buttonText 按钮文案。
+ * @param param1.className 外层容器类名。
+ * @param param1.style 外层容器样式。
+ * @param param1.options 打印插件参数。
  * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function PrintAction({

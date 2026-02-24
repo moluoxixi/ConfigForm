@@ -33,6 +33,14 @@ export interface CfUploadProps {
   listType = 'text',
   action,
 }）用于提供待处理的值并参与结果计算。
+ * @param param1.value 当前文件列表值。
+ * @param param1.onChange 文件列表变更回调。
+ * @param param1.disabled 是否禁用上传。
+ * @param param1.accept 可接受的文件类型。
+ * @param param1.maxCount 最大上传数量。
+ * @param param1.multiple 是否允许多选上传。
+ * @param param1.listType 文件列表展示样式。
+ * @param param1.action 上传接口地址。
  * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function Upload({

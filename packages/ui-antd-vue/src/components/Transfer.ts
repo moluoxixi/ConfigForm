@@ -57,6 +57,7 @@ export const Transfer = defineComponent({
        * 功能：完成参数消化、业务分支处理及上下游结果传递。
        * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
        * @param item 参数 item 为业务实体对象，用于读写状态或属性。
+       * @param item.title 列表项标题文本。
        * @returns 返回当前分支执行后的结果。
        */
       'render': (item: { title?: string }) => item.title ?? '',

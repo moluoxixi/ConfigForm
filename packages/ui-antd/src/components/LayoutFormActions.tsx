@@ -36,6 +36,15 @@ export interface LayoutFormActionsProps {
   onSubmitFailed,
   onReset,
 }）用于提供当前函数执行所需的输入信息。
+ * @param param1.showSubmit 是否显示提交按钮。
+ * @param param1.showReset 是否显示重置按钮。
+ * @param param1.submitLabel 提交按钮文案。
+ * @param param1.resetLabel 重置按钮文案。
+ * @param param1.align 按钮区对齐方式。
+ * @param param1.extraActions 额外动作按钮配置。
+ * @param param1.onSubmit 提交成功回调。
+ * @param param1.onSubmitFailed 提交失败回调。
+ * @param param1.onReset 重置回调。
  * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function LayoutFormActions({

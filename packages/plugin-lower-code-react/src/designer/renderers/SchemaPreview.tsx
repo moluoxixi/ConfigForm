@@ -22,12 +22,11 @@ interface SchemaPreviewProps {
  * 所属模块：`packages/plugin-lower-code-react/src/designer/renderers/SchemaPreview.tsx`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
- * @param param1 原始解构参数（{
-  schema,
-  registry,
-  initialValues,
-  className = 'cf-lc-real-preview-wrap cf-lc-real-preview-wrap--container',
-}）用于传入 Schema 结构并参与解析或转换流程。
+ * @param param1 组件入参对象。
+ * @param param1.schema 当前表单 Schema。
+ * @param param1.registry 组件注册表快照。
+ * @param param1.initialValues 表单初始值。
+ * @param param1.className 预览容器类名。
  * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function SchemaPreview({

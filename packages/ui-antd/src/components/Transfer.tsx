@@ -30,6 +30,12 @@ export interface CfTransferProps {
   showSearch,
   titles,
 }）用于提供待处理的值并参与结果计算。
+ * @param param1.value 当前已选值列表。
+ * @param param1.onChange 选择结果变更回调。
+ * @param param1.dataSource 穿梭框数据源。
+ * @param param1.disabled 是否禁用组件。
+ * @param param1.showSearch 是否开启搜索。
+ * @param param1.titles 左右列表标题。
  * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function Transfer({

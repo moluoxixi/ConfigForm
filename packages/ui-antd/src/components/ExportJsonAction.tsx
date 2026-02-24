@@ -38,6 +38,15 @@ export interface ExportJsonActionProps {
   className,
   style,
 }）用于提供可选配置，调整当前功能模块的执行策略。
+ * @param param1.buttonText 触发按钮文案。
+ * @param param1.modalTitle 弹窗标题文案。
+ * @param param1.description 弹窗说明文案。
+ * @param param1.confirmText 确认按钮文案。
+ * @param param1.filename 下载文件名。
+ * @param param1.previewOptions 预览数据生成参数。
+ * @param param1.downloadOptions 下载行为配置。
+ * @param param1.className 外层容器类名。
+ * @param param1.style 外层容器样式。
  * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function ExportJsonAction({

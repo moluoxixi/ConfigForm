@@ -5,7 +5,7 @@ import type {
   FormExportPreview,
   FormExportPreviewOptions,
 } from './types'
-import { cloneWithoutKeyPrefixes, FormLifeCycle, isPlainObject } from '@moluoxixi/core'
+import { FormLifeCycle } from '@moluoxixi/core'
 import { browserDownload } from './browser'
 
 export const PLUGIN_NAME = 'form-export'

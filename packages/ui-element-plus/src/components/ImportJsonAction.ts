@@ -358,6 +358,7 @@ export const ImportJsonAction = defineComponent({
              * 功能：处理参数消化、状态变更与调用链行为同步。
              * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
              * @param file 参数 file 为当前功能所需的输入信息。
+             * @param file.raw 上传文件对象的原始 File 实例。
              * @returns 返回当前分支执行后的处理结果。
              */
             onChange: (file: { raw?: File }) => {

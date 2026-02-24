@@ -108,6 +108,7 @@ const config: SceneConfig = {
                       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                       * @param _field 参数 _field 为当前功能所需的输入信息。
                       * @param ctx 参数 ctx 为上下文对象，用于传递场景数据。
+                      * @param ctx.values 当前表单值集合。
                       * @returns 返回当前分支执行后的处理结果。
                       */
             /**
@@ -117,6 +118,7 @@ const config: SceneConfig = {
              * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
              * @param _field 参数 _field 为当前功能所需的输入信息。
              * @param ctx 参数 ctx 为上下文对象，用于传递环境数据。
+             * @param ctx.values 当前表单值集合。
              * @returns 返回当前分支执行后的处理结果。
              */
             value: (_field: unknown, ctx: { values: Record<string, unknown> }): string => COUNTRY_CODE[ctx.values.country as string] ?? '',
@@ -136,6 +138,7 @@ const config: SceneConfig = {
                       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                       * @param _field 参数 _field 为当前功能所需的输入信息。
                       * @param ctx 参数 ctx 为上下文对象，用于传递场景数据。
+                      * @param ctx.values 当前表单值集合。
                       * @returns 返回当前分支执行后的处理结果。
                       */
             /**
@@ -145,6 +148,7 @@ const config: SceneConfig = {
              * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
              * @param _field 参数 _field 为当前功能所需的输入信息。
              * @param ctx 参数 ctx 为上下文对象，用于传递环境数据。
+             * @param ctx.values 当前表单值集合。
              * @returns 返回当前分支执行后的处理结果。
              */
             value: (_field: unknown, ctx: { values: Record<string, unknown> }): string => COUNTRY_CURRENCY[ctx.values.country as string] ?? '',
