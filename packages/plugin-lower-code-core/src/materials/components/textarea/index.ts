@@ -1,7 +1,7 @@
 import type { MaterialFieldItem } from '../../../designer'
 
 /**
- * TEXTAREA MATERIAL：变量或常量声明。
+ * TEXTAREA MATERIAL：。
  * 所属模块：`packages/plugin-lower-code-core/src/materials/components/textarea/index.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

@@ -35,16 +35,12 @@ export const DesignerPropertiesPane = defineComponent({
     enumDraft: { type: String, default: '' },
     fieldComponentOptions: { type: Array as PropType<string[]>, /**
                                                                  * default：执行当前位置的功能逻辑。
-                                                                 * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:36`。
                                                                  * 功能：处理参数消化、状态变更与调用链行为同步。
-                                                                 * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                                                                  * @returns 返回当前分支执行后的处理结果。
                                                                  */
       /**
        * default：执行当前位置的功能逻辑。
-       * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:43`。
        * 功能：处理参数消化、状态变更与调用链行为同步。
-       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
        * @returns 返回当前分支执行后的处理结果。
        */
       default: () => [] },
@@ -56,9 +52,7 @@ export const DesignerPropertiesPane = defineComponent({
       type: Object as PropType<Record<string, Record<string, unknown>>>,
       /**
        * default：执行当前位置的功能逻辑。
-       * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:43`。
        * 功能：处理参数消化、状态变更与调用链行为同步。
-       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
        * @returns 返回当前分支执行后的处理结果。
        */
       default: () => ({}),
@@ -86,9 +80,7 @@ export const DesignerPropertiesPane = defineComponent({
   },
   /**
    * setup：执行当前位置的功能逻辑。
-   * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:66`。
    * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
    */
@@ -157,17 +149,10 @@ export const DesignerPropertiesPane = defineComponent({
         return null
       const propValue = readEditablePropValue(selectedField, editableProp)
       /**
-       * updateProp?????????????????
-       * ???`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:166`?
-       * ?????????????????????????????????
-       * ??????????????????????????
-       * @param value ?? value ????????????
        */
       const /**
              * updateProp：执行当前位置的功能逻辑。
-             * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:130`。
              * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
              * @param value 参数 value 为输入值，用于驱动后续逻辑。
              */
         updateProp = (value: unknown): void => {
@@ -190,9 +175,7 @@ export const DesignerPropertiesPane = defineComponent({
               disabled,
               /**
                * onChange：执行当前位置的功能逻辑。
-               * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:148`。
                * 功能：处理参数消化、状态变更与调用链行为同步。
-               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                * @param event 参数 event 为事件对象，用于提供交互上下文。
                */
               onChange: (event: Event) => {
@@ -210,9 +193,7 @@ export const DesignerPropertiesPane = defineComponent({
               disabled,
               /**
                * onInput：执行当前位置的功能逻辑。
-               * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:161`。
                * 功能：处理参数消化、状态变更与调用链行为同步。
-               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                * @param event 参数 event 为事件对象，用于提供交互上下文。
                */
               onInput: (event: Event) => {
@@ -243,9 +224,7 @@ export const DesignerPropertiesPane = defineComponent({
               disabled,
               /**
                * onInput：执行当前位置的功能逻辑。
-               * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:187`。
                * 功能：处理参数消化、状态变更与调用链行为同步。
-               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                * @param event 参数 event 为事件对象，用于提供交互上下文。
                */
               onInput: (event: Event) => {
@@ -278,9 +257,7 @@ export const DesignerPropertiesPane = defineComponent({
               disabled,
               /**
                * onChange：执行当前位置的功能逻辑。
-               * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:215`。
                * 功能：处理参数消化、状态变更与调用链行为同步。
-               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                * @param event 参数 event 为事件对象，用于提供交互上下文。
                */
               onChange: (event: Event) => {
@@ -312,9 +289,7 @@ export const DesignerPropertiesPane = defineComponent({
               disabled,
               /**
                * onInput：执行当前位置的功能逻辑。
-               * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:242`。
                * 功能：处理参数消化、状态变更与调用链行为同步。
-               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                * @param event 参数 event 为事件对象，用于提供交互上下文。
                */
               onInput: (event: Event) => {
@@ -364,17 +339,10 @@ export const DesignerPropertiesPane = defineComponent({
     } as const
 
     /**
-     * renderHeader?????????????????
-     * ???`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:366`?
-     * ?????????????????????????????????
-     * ??????????????????????????
-     * @returns ?????????????
      */
     const /**
            * renderHeader：执行当前位置的功能逻辑。
-           * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:288`。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @returns 返回当前分支执行后的处理结果。
            */
       renderHeader = (): VNodeChild => h('div', {
@@ -393,17 +361,10 @@ export const DesignerPropertiesPane = defineComponent({
       ])
 
     /**
-     * renderBody?????????????????
-     * ???`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:388`?
-     * ?????????????????????????????????
-     * ??????????????????????????
-     * @returns ?????????????
      */
     const /**
            * renderBody：执行当前位置的功能逻辑。
-           * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:303`。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @returns 返回当前分支执行后的处理结果。
            */
       renderBody = (): VNodeChild => h('div', { style: { flex: '1 1 auto', minHeight: 0, padding: '12px', overflow: 'auto' } }, [
@@ -419,9 +380,7 @@ export const DesignerPropertiesPane = defineComponent({
                     style: inputStyle,
                     /**
                      * onInput：执行当前位置的功能逻辑。
-                     * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:314`。
                      * 功能：处理参数消化、状态变更与调用链行为同步。
-                     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                      * @param event 参数 event 为事件对象，用于提供交互上下文。
                      */
                     onInput: (event: Event) => {
@@ -438,9 +397,7 @@ export const DesignerPropertiesPane = defineComponent({
                     style: inputStyle,
                     /**
                      * onInput：执行当前位置的功能逻辑。
-                     * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:326`。
                      * 功能：处理参数消化、状态变更与调用链行为同步。
-                     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                      * @param event 参数 event 为事件对象，用于提供交互上下文。
                      */
                     onInput: (event: Event) => {
@@ -460,9 +417,7 @@ export const DesignerPropertiesPane = defineComponent({
                     style: inputStyle,
                     /**
                      * onChange：执行当前位置的功能逻辑。
-                     * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:341`。
                      * 功能：处理参数消化、状态变更与调用链行为同步。
-                     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                      * @param event 参数 event 为事件对象，用于提供交互上下文。
                      */
                     onChange: (event: Event) => {
@@ -498,9 +453,7 @@ export const DesignerPropertiesPane = defineComponent({
                     style: inputStyle,
                     /**
                      * onChange：执行当前位置的功能逻辑。
-                     * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:372`。
                      * 功能：处理参数消化、状态变更与调用链行为同步。
-                     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                      * @param event 参数 event 为事件对象，用于提供交互上下文。
                      */
                     onChange: (event: Event) => {
@@ -526,9 +479,7 @@ export const DesignerPropertiesPane = defineComponent({
                     disabled: props.readonly,
                     /**
                      * onChange：执行当前位置的功能逻辑。
-                     * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:393`。
                      * 功能：处理参数消化、状态变更与调用链行为同步。
-                     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                      * @param event 参数 event 为事件对象，用于提供交互上下文。
                      */
                     onChange: (event: Event) => {
@@ -561,9 +512,7 @@ export const DesignerPropertiesPane = defineComponent({
                         style: { ...inputStyle, minHeight: '96px', resize: 'vertical', fontFamily: 'Consolas, monospace' },
                         /**
                          * onInput：执行当前位置的功能逻辑。
-                         * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:421`。
                          * 功能：处理参数消化、状态变更与调用链行为同步。
-                         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                          * @param event 参数 event 为事件对象，用于提供交互上下文。
                          */
                         onInput: (event: Event) => {
@@ -600,9 +549,7 @@ export const DesignerPropertiesPane = defineComponent({
                     style: inputStyle,
                     /**
                      * onInput：执行当前位置的功能逻辑。
-                     * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:453`。
                      * 功能：处理参数消化、状态变更与调用链行为同步。
-                     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                      * @param event 参数 event 为事件对象，用于提供交互上下文。
                      */
                     onInput: (event: Event) => {
@@ -619,9 +566,7 @@ export const DesignerPropertiesPane = defineComponent({
                     style: inputStyle,
                     /**
                      * onInput：执行当前位置的功能逻辑。
-                     * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:465`。
                      * 功能：处理参数消化、状态变更与调用链行为同步。
-                     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                      * @param event 参数 event 为事件对象，用于提供交互上下文。
                      */
                     onInput: (event: Event) => {
@@ -643,9 +588,7 @@ export const DesignerPropertiesPane = defineComponent({
                             type: 'button',
                             /**
                              * onClick：执行当前位置的功能逻辑。
-                             * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:482`。
                              * 功能：处理参数消化、状态变更与调用链行为同步。
-                             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                              */
                             onClick: () => {
                               props.onUpdateNodes(nodes => addSectionToContainer(nodes, props.selectedContainer!.id))
@@ -681,9 +624,7 @@ export const DesignerPropertiesPane = defineComponent({
                           style: inputStyle,
                           /**
                            * onInput：执行当前位置的功能逻辑。
-                           * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:514`。
                            * 功能：处理参数消化、状态变更与调用链行为同步。
-                           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                            * @param event 参数 event 为事件对象，用于提供交互上下文。
                            */
                           onInput: (event: Event) => {
@@ -700,9 +641,7 @@ export const DesignerPropertiesPane = defineComponent({
                           style: inputStyle,
                           /**
                            * onInput：执行当前位置的功能逻辑。
-                           * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:526`。
                            * 功能：处理参数消化、状态变更与调用链行为同步。
-                           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                            * @param event 参数 event 为事件对象，用于提供交互上下文。
                            */
                           onInput: (event: Event) => {
@@ -716,9 +655,7 @@ export const DesignerPropertiesPane = defineComponent({
                             type: 'button',
                             /**
                              * onClick：执行当前位置的功能逻辑。
-                             * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:535`。
                              * 功能：处理参数消化、状态变更与调用链行为同步。
-                             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                              */
                             onClick: () => {
                               props.onUpdateNodes(nodes => removeSectionFromContainer(nodes, props.selectedContainer!.id, section.id))
@@ -751,9 +688,7 @@ export const DesignerPropertiesPane = defineComponent({
                   style: inputStyle,
                   /**
                    * onInput：执行当前位置的功能逻辑。
-                   * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:564`。
                    * 功能：处理参数消化、状态变更与调用链行为同步。
-                   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                    * @param event 参数 event 为事件对象，用于提供交互上下文。
                    */
                   onInput: (event: Event) => {
@@ -770,9 +705,7 @@ export const DesignerPropertiesPane = defineComponent({
                   style: inputStyle,
                   /**
                    * onInput：执行当前位置的功能逻辑。
-                   * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:576`。
                    * 功能：处理参数消化、状态变更与调用链行为同步。
-                   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                    * @param event 参数 event 为事件对象，用于提供交互上下文。
                    */
                   onInput: (event: Event) => {
@@ -800,17 +733,10 @@ export const DesignerPropertiesPane = defineComponent({
       ])
 
     /**
-     * renderFooter?????????????????
-     * ???`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:788`?
-     * ?????????????????????????????????
-     * ??????????????????????????
-     * @returns ?????????????
      */
     const /**
            * renderFooter：执行当前位置的功能逻辑。
-           * 定位：`packages/plugin-lower-code-vue/src/designer/right/DesignerPropertiesPane/index.ts:600`。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @returns 返回当前分支执行后的处理结果。
            */
       renderFooter = (): VNodeChild => (props.selectedField || props.selectedContainer || props.selectedSection)

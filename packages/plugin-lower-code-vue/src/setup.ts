@@ -3,7 +3,7 @@ import { registerComponent } from '@moluoxixi/vue'
 import { LowCodeDesigner } from './LowCodeDesigner'
 
 /**
- * Setup Lower Code Designer Options：类型接口定义。
+ * Setup Lower Code Designer Options：。
  * 所属模块：`packages/plugin-lower-code-vue/src/setup.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

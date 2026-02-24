@@ -56,9 +56,7 @@ export const DesignerCanvasPane = defineComponent({
   },
   /**
    * setup：执行当前位置的功能逻辑。
-   * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:57`。
    * 功能：处理参数消化、状态变更与调用链行为同步。
-   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
    */
@@ -77,18 +75,10 @@ export const DesignerCanvasPane = defineComponent({
       return Boolean(element?.closest('[data-cf-toolbar-interactive="true"]'))
     }
     /**
-     * closestNodeId?????????????????
-     * ???`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:87`?
-     * ?????????????????????????????????
-     * ??????????????????????????
-     * @param target ?? target ????????????
-     * @returns ?????????????
      */
     const /**
            * closestNodeId：执行当前位置的功能逻辑。
-           * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:71`。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @param target 参数 target 为当前功能所需的输入信息。
            * @returns 返回当前分支执行后的处理结果。
            */
@@ -102,19 +92,10 @@ export const DesignerCanvasPane = defineComponent({
       }
     // 容器点击仅在命中容器自身外框时选中，避免误选子节点。
     /**
-     * isNodeSelfEvent?????????????????
-     * ???`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:105`?
-     * ?????????????????????????????????
-     * ??????????????????????????
-     * @param target ?? target ????????????
-     * @param nodeId ?? nodeId ????????????
-     * @returns ?????????????
      */
     const /**
            * isNodeSelfEvent：执行当前位置的功能逻辑。
-           * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:80`。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @param target 参数 target 为当前功能所需的输入信息。
            * @param nodeId 参数 nodeId 为当前功能所需的输入信息。
            * @returns 返回当前分支执行后的处理结果。
@@ -133,25 +114,19 @@ export const DesignerCanvasPane = defineComponent({
     }, {
       /**
        * default：执行当前位置的功能逻辑。
-       * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:92`。
        * 功能：处理参数消化、状态变更与调用链行为同步。
-       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
        * @returns 返回当前分支执行后的处理结果。
        */
       default: () => [content()],
       ...(options?.actions
         ? { /**
              * actions：执行当前位置的功能逻辑。
-             * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:94`。
              * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
              * @returns 返回当前分支执行后的处理结果。
              */
             /**
              * actions：执行当前位置的功能逻辑。
-             * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:133`。
              * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
              * @returns 返回当前分支执行后的处理结果。
              */
             actions: () => [options.actions],
@@ -159,22 +134,12 @@ export const DesignerCanvasPane = defineComponent({
         : {}),
     })
 
-    /**
-     * renderMaskedCanvasPreview?????????????????
-     * ???`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:154`?
-     * ?????????????????????????????????
-     * ??????????????????????????
-     * @param node ?? node ????????????
-     * @param options ?? options ????????????
-     * @returns ?????????????
-     */
     const /**
            * renderMaskedCanvasPreview：执行当前位置的功能逻辑。
-           * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:98`。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @param node 参数 node 为业务对象，用于读写状态与属性。
            * @param options 参数 options 为当前功能所需的输入信息。
+           * @param options.actions 可选的右上角操作区渲染内容。
            * @returns 返回当前分支执行后的处理结果。
            */
       renderMaskedCanvasPreview = (
@@ -194,17 +159,10 @@ export const DesignerCanvasPane = defineComponent({
       (nodes) => {
         const next: Record<string, string> = {}
         /**
-         * walk?????????????????
-         * ???`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:177`?
-         * ?????????????????????????????????
-         * ??????????????????????????
-         * @param items ?? items ????????????
          */
         const /**
                * walk：执行当前位置的功能逻辑。
-               * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:114`。
                * 功能：处理参数消化、状态变更与调用链行为同步。
-               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                * @param items 参数 items 为当前功能所需的输入信息。
                */
           walk = (items: DesignerNode[]): void => {
@@ -240,17 +198,10 @@ export const DesignerCanvasPane = defineComponent({
       if (props.readonly)
         return null
       /**
-       * consumeToolbarPointer?????????????????
-       * ???`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:216`?
-       * ?????????????????????????????????
-       * ??????????????????????????
-       * @param event ?? event ????????????
        */
       const /**
              * consumeToolbarPointer：执行当前位置的功能逻辑。
-             * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:146`。
              * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
              * @param event 参数 event 为事件对象，用于提供交互上下文。
              */
         consumeToolbarPointer = (event: Event): void => {
@@ -262,9 +213,7 @@ export const DesignerCanvasPane = defineComponent({
         'data-cf-toolbar-interactive': 'true',
         /**
          * onClick：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:153`。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param event 参数 event 为事件对象，用于提供交互上下文。
          * @returns 返回当前分支执行后的处理结果。
          */
@@ -277,9 +226,7 @@ export const DesignerCanvasPane = defineComponent({
           'title': '拖拽节点移动',
           /**
            * onClick：执行当前位置的功能逻辑。
-           * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:160`。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @param event 参数 event 为事件对象，用于提供交互上下文。
            * @returns 返回当前分支执行后的处理结果。
            */
@@ -295,9 +242,7 @@ export const DesignerCanvasPane = defineComponent({
               'onPointerdown': consumeToolbarPointer,
               /**
                * onClick：执行当前位置的功能逻辑。
-               * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:170`。
                * 功能：处理参数消化、状态变更与调用链行为同步。
-               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                * @param event 参数 event 为事件对象，用于提供交互上下文。
                */
               'onClick': (event: Event) => {
@@ -315,9 +260,7 @@ export const DesignerCanvasPane = defineComponent({
           'onPointerdown': consumeToolbarPointer,
           /**
            * onClick：执行当前位置的功能逻辑。
-           * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:183`。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @param event 参数 event 为事件对象，用于提供交互上下文。
            */
           'onClick': (event: Event) => {
@@ -334,9 +277,7 @@ export const DesignerCanvasPane = defineComponent({
           'onPointerdown': consumeToolbarPointer,
           /**
            * onClick：执行当前位置的功能逻辑。
-           * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:195`。
            * 功能：处理参数消化、状态变更与调用链行为同步。
-           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
            * @param event 参数 event 为事件对象，用于提供交互上下文。
            */
           'onClick': (event: Event) => {
@@ -382,9 +323,7 @@ export const DesignerCanvasPane = defineComponent({
         class: 'cf-lc-section-head',
         /**
          * onClick：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:236`。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param event 参数 event 为事件对象，用于提供交互上下文。
          * @returns 返回当前分支执行后的处理结果。
          */
@@ -401,9 +340,7 @@ export const DesignerCanvasPane = defineComponent({
               'title': '删除分组',
               /**
                * onMousedown：执行当前位置的功能逻辑。
-               * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:247`。
                * 功能：处理参数消化、状态变更与调用链行为同步。
-               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                * @param event 参数 event 为事件对象，用于提供交互上下文。
                */
               'onMousedown': (event: Event) => {
@@ -412,9 +349,7 @@ export const DesignerCanvasPane = defineComponent({
               },
               /**
                * onPointerdown：执行当前位置的功能逻辑。
-               * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:251`。
                * 功能：处理参数消化、状态变更与调用链行为同步。
-               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                * @param event 参数 event 为事件对象，用于提供交互上下文。
                */
               'onPointerdown': (event: Event) => {
@@ -423,9 +358,7 @@ export const DesignerCanvasPane = defineComponent({
               },
               /**
                * onClick：执行当前位置的功能逻辑。
-               * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:255`。
                * 功能：处理参数消化、状态变更与调用链行为同步。
-               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                * @param event 参数 event 为事件对象，用于提供交互上下文。
                */
               'onClick': (event: Event) => {
@@ -453,9 +386,7 @@ export const DesignerCanvasPane = defineComponent({
         'class': `cf-lc-section cf-lc-section--${mode} ${selected ? 'cf-lc-section--selected' : ''}`,
         /**
          * onMousedownCapture：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:278`。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param event 参数 event 为事件对象，用于提供交互上下文。
          */
         'onMousedownCapture': (event: Event) => {
@@ -468,9 +399,7 @@ export const DesignerCanvasPane = defineComponent({
         },
         /**
          * onClick：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:286`。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param event 参数 event 为事件对象，用于提供交互上下文。
          */
         'onClick': (event: Event) => {
@@ -510,9 +439,7 @@ export const DesignerCanvasPane = defineComponent({
             class: `cf-lc-layout-tabs-tab ${section.id === activeId ? 'is-active' : ''}`,
             /**
              * onClick：执行当前位置的功能逻辑。
-             * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:321`。
              * 功能：处理参数消化、状态变更与调用链行为同步。
-             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
              * @param event 参数 event 为事件对象，用于提供交互上下文。
              */
             onClick: (event: Event) => {
@@ -552,9 +479,7 @@ export const DesignerCanvasPane = defineComponent({
         'data-parent-target-key': parentTargetKey,
         /**
          * onMousedownCapture：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:356`。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param event 参数 event 为事件对象，用于提供交互上下文。
          */
         'onMousedownCapture': (event: Event) => {
@@ -564,9 +489,7 @@ export const DesignerCanvasPane = defineComponent({
         },
         /**
          * onClick：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:361`。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param event 参数 event 为事件对象，用于提供交互上下文。
          */
         'onClick': (event: Event) => {
@@ -599,9 +522,7 @@ export const DesignerCanvasPane = defineComponent({
         'data-parent-target-key': parentTargetKey,
         /**
          * onMousedownCapture：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:389`。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param event 参数 event 为事件对象，用于提供交互上下文。
          */
         'onMousedownCapture': (event: Event) => {
@@ -613,9 +534,7 @@ export const DesignerCanvasPane = defineComponent({
         },
         /**
          * onClick：执行当前位置的功能逻辑。
-         * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:396`。
          * 功能：处理参数消化、状态变更与调用链行为同步。
-         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
          * @param event 参数 event 为事件对象，用于提供交互上下文。
          */
         'onClick': (event: Event) => {
@@ -635,9 +554,7 @@ export const DesignerCanvasPane = defineComponent({
                   allowAddSection: containerUsesSections(node.component),
                   /**
                    * onAddSection：执行当前位置的功能逻辑。
-                   * 定位：`packages/plugin-lower-code-vue/src/designer/center/DesignerCanvasPane/index.ts:411`。
                    * 功能：处理参数消化、状态变更与调用链行为同步。
-                   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
                    * @returns 返回当前分支执行后的处理结果。
                    */
                   onAddSection: () => props.onAddSection(node.id),

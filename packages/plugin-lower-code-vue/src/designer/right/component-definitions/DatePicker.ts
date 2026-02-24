@@ -1,7 +1,7 @@
 import type { LowCodeDesignerComponentDefinition } from '../../types'
 
 /**
- * Date Picker Definition：变量或常量声明。
+ * Date Picker Definition：。
  * 所属模块：`packages/plugin-lower-code-vue/src/designer/right/component-definitions/DatePicker.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

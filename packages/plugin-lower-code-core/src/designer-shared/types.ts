@@ -1,7 +1,7 @@
 import type { DesignerFieldType } from '../designer'
 
 /**
- * Low Code Designer Render Context：类型接口定义。
+ * Low Code Designer Render Context：。
  * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -11,14 +11,14 @@ export interface LowCodeDesignerRenderContext {
 }
 
 /**
- * Low Code Designer Editable Prop Editor：类型别名定义。
+ * Low Code Designer Editable Prop Editor：。
  * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 export type LowCodeDesignerEditablePropEditor = 'text' | 'textarea' | 'number' | 'switch' | 'select'
 
 /**
- * Low Code Designer Editable Prop Option：类型接口定义。
+ * Low Code Designer Editable Prop Option：。
  * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -28,7 +28,7 @@ export interface LowCodeDesignerEditablePropOption {
 }
 
 /**
- * Low Code Designer Editable Prop：类型接口定义。
+ * Low Code Designer Editable Prop：。
  * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -42,7 +42,7 @@ export interface LowCodeDesignerEditableProp {
 }
 
 /**
- * Low Code Designer Component Definition：类型接口定义。
+ * Low Code Designer Component Definition：。
  * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -55,7 +55,7 @@ export interface LowCodeDesignerComponentDefinition {
 }
 
 /**
- * Low Code Designer Component Definitions：类型别名定义。
+ * Low Code Designer Component Definitions：。
  * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

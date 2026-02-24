@@ -1,7 +1,7 @@
 import type { LowCodeDesignerComponentDefinition } from '../../types'
 
 /**
- * Switch Definition：变量或常量声明。
+ * Switch Definition：。
  * 所属模块：`packages/plugin-lower-code-vue/src/designer/right/component-definitions/Switch.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

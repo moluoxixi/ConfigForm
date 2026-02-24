@@ -1,7 +1,7 @@
 import type { MaterialContainerItem } from '../../../designer'
 
 /**
- * LAYOUT TABS MATERIAL：变量或常量声明。
+ * LAYOUT TABS MATERIAL：。
  * 所属模块：`packages/plugin-lower-code-core/src/materials/layouts/layout-tabs/index.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

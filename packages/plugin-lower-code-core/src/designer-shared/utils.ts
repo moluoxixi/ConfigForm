@@ -8,7 +8,7 @@ import {
 } from '../designer'
 
 /**
- * Drag Restore Event Like：类型接口定义。
+ * Drag Restore Event Like：。
  * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/utils.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
@@ -19,7 +19,7 @@ export interface DragRestoreEventLike {
 }
 
 /**
- * collect Preview Fields：当前功能模块的核心执行单元。
+ * collect Preview Fields：。
  * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/utils.ts`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -29,7 +29,7 @@ export interface DragRestoreEventLike {
 export function collectPreviewFields(nodes: DesignerNode[]): DesignerFieldNode[] {
   const fields: DesignerFieldNode[] = []
   /**
-   * walk：当前功能模块的核心执行单元。
+   * walk：。
    * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/utils.ts`。
    * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
    * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -59,7 +59,7 @@ export function collectPreviewFields(nodes: DesignerNode[]): DesignerFieldNode[]
 }
 
 /**
- * collect Drop Target Keys：当前功能模块的核心执行单元。
+ * collect Drop Target Keys：。
  * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/utils.ts`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -69,7 +69,7 @@ export function collectPreviewFields(nodes: DesignerNode[]): DesignerFieldNode[]
 export function collectDropTargetKeys(nodes: DesignerNode[]): string[] {
   const keys = [targetToKey(rootTarget())]
   /**
-   * walk：当前功能模块的核心执行单元。
+   * walk：。
    * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/utils.ts`。
    * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
    * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
@@ -100,7 +100,7 @@ export function collectDropTargetKeys(nodes: DesignerNode[]): string[] {
 }
 
 /**
- * restore Dragged Dom Position：当前功能模块的核心执行单元。
+ * restore Dragged Dom Position：。
  * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/utils.ts`。
  * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
  * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。

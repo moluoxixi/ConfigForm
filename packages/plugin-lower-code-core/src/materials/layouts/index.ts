@@ -10,7 +10,7 @@ export {
 }
 
 /**
- * LAYOUT MATERIALS：变量或常量声明。
+ * LAYOUT MATERIALS：。
  * 所属模块：`packages/plugin-lower-code-core/src/materials/layouts/index.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */

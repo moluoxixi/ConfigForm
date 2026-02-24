@@ -15,9 +15,7 @@ export const DesignerMaterialToolbarRenderer = defineComponent({
 
   /**
    * setup：执行当前位置的功能处理逻辑。
-   * 定位：`packages/plugin-lower-code-vue/src/designer/left/DesignerMaterialPane/components/DesignerMaterialToolbarRenderer/index.ts:16`。
    * 功能：完成参数消化、业务分支处理及上下游结果传递。
-   * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
    * @param props 参数 props 为当前逻辑所需的输入信息。
    * @returns 返回当前分支执行后的结果。
    */
@@ -69,9 +67,7 @@ export const DesignerMaterialToolbarRenderer = defineComponent({
 
           /**
            * onInput：执行当前位置的功能处理逻辑。
-           * 定位：`packages/plugin-lower-code-vue/src/designer/left/DesignerMaterialPane/components/DesignerMaterialToolbarRenderer/index.ts:62`。
            * 功能：完成参数消化、业务分支处理及上下游结果传递。
-           * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
            * @param event 参数 event 为事件对象，承载当前交互上下文。
            */
           onInput: (event: Event) => {
@@ -92,9 +88,7 @@ export const DesignerMaterialToolbarRenderer = defineComponent({
 
               /**
                * onClick：执行当前位置的功能处理逻辑。
-               * 定位：`packages/plugin-lower-code-vue/src/designer/left/DesignerMaterialPane/components/DesignerMaterialToolbarRenderer/index.ts:78`。
                * 功能：完成参数消化、业务分支处理及上下游结果传递。
-               * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
                */
               onClick: () => { props.onKeywordChange('') },
               style: {
