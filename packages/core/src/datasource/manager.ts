@@ -18,6 +18,14 @@ const CACHE_KEY_SEPARATOR = '::'
 
 /** 默认请求适配器（fetch） */
 const defaultAdapter: RequestAdapter = {
+  /**
+   * request：执行当前位置的功能逻辑。
+   * 定位：`packages/core/src/datasource/manager.ts:21`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param config 参数 config 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   async request<T>(config: RequestConfig): Promise<T> {
     const { url, method, params, headers, signal } = config
     let finalUrl = url
@@ -229,6 +237,11 @@ function transformResponse(
     const valueField = config.valueField ?? 'value'
     const childrenField = config.childrenField ?? 'children'
 
+    /**
+     * 把响应项递归映射为标准 DataSourceItem 结构。
+     * @param item 任意响应项。
+     * @returns 标准数据源项。
+     */
     const mapItem = (item: unknown): DataSourceItem => {
       if (!isObject(item)) {
         return { label: String(item), value: item as string | number | boolean }

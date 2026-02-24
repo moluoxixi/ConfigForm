@@ -17,6 +17,11 @@ const DISPLAY_OPTIONS = [
   { label: 'none（隐藏且排除数据）', value: 'none' },
 ]
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/09-state/DisplayTriStateForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: 'display 三态',
   description: 'visible / hidden / none — 隐藏 vs 排除数据的差异',
@@ -49,6 +54,13 @@ const config: SceneConfig = {
           {
             watch: 'displayMode',
             fulfill: {
+              /**
+               * run：执行当前功能逻辑。
+               *
+               * @param field 参数 field 的输入说明。
+               * @param ctx 参数 ctx 的输入说明。
+               */
+
               run: (field: { display: string }, ctx: { values: Record<string, unknown> }): void => {
                 const mode = ctx.values.displayMode as string
                 field.display = mode
@@ -67,6 +79,13 @@ const config: SceneConfig = {
           {
             watch: 'displayMode',
             fulfill: {
+              /**
+               * run：执行当前功能逻辑。
+               *
+               * @param field 参数 field 的输入说明。
+               * @param ctx 参数 ctx 的输入说明。
+               */
+
               run: (field: { display: string }, ctx: { values: Record<string, unknown> }): void => {
                 const mode = ctx.values.displayMode as string
                 field.display = mode
@@ -86,6 +105,13 @@ const config: SceneConfig = {
           {
             watch: 'displayMode',
             fulfill: {
+              /**
+               * run：执行当前功能逻辑。
+               *
+               * @param field 参数 field 的输入说明。
+               * @param ctx 参数 ctx 的输入说明。
+               */
+
               run: (field: { display: string }, ctx: { values: Record<string, unknown> }): void => {
                 const mode = ctx.values.displayMode as string
                 field.display = mode

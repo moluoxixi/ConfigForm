@@ -21,6 +21,11 @@ import {
   updateSectionById,
 } from '@moluoxixi/plugin-lower-code-core'
 
+/**
+ * PropertiesPanelProps??????
+ * ???`packages/plugin-lower-code-react/src/designer/panels/PropertiesPanel.tsx:24`?
+ * ??????????????????????????????
+ */
 interface PropertiesPanelProps {
   nodes: DesignerNode[]
   selectedField: DesignerFieldNode | null
@@ -103,26 +108,76 @@ export function PropertiesPanel({
     ? componentDefinitions?.[selectedField.component]
     : undefined
   const componentEditableProps = activeComponentDefinition?.editableProps ?? []
-  const resolveComponentPreset = (componentName: string): Record<string, unknown> => ({ ...(componentPropsByComponent[componentName] ?? {}) })
+  /**
+   * resolveComponentPreset?????????????????
+   * ???`packages/plugin-lower-code-react/src/designer/panels/PropertiesPanel.tsx:114`?
+   * ?????????????????????????????????
+   * ??????????????????????????
+   * @param componentName ?? componentName ????????????
+   * @returns ?????????????
+   */
+  const /**
+         * resolveComponentPreset：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-lower-code-react/src/designer/panels/PropertiesPanel.tsx:106`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param componentName 参数 componentName 为当前功能所需的输入信息。
+         * @returns 返回当前分支执行后的处理结果。
+         */
+    resolveComponentPreset = (componentName: string): Record<string, unknown> => ({ ...(componentPropsByComponent[componentName] ?? {}) })
 
-  const readEditablePropValue = (
-    field: DesignerFieldNode,
-    editableProp: LowCodeDesignerEditableProp,
-  ): unknown => {
-    const presetValue = componentPropsByComponent[field.component]?.[editableProp.key]
-    if (presetValue !== undefined)
-      return presetValue
-    const currentValue = field.componentProps?.[editableProp.key]
-    if (currentValue === undefined)
-      return editableProp.defaultValue
-    return currentValue
-  }
+  /**
+   * readEditablePropValue?????????????????
+   * ???`packages/plugin-lower-code-react/src/designer/panels/PropertiesPanel.tsx:125`?
+   * ?????????????????????????????????
+   * ??????????????????????????
+   * @param field ?? field ????????????
+   * @param editableProp ?? editableProp ????????????
+   * @returns ?????????????
+   */
+  const /**
+         * readEditablePropValue：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-lower-code-react/src/designer/panels/PropertiesPanel.tsx:108`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param field 参数 field 为业务对象，用于读写状态与属性。
+         * @param editableProp 参数 editableProp 为当前功能所需的输入信息。
+         * @returns 返回当前分支执行后的处理结果。
+         */
+    readEditablePropValue = (
+      field: DesignerFieldNode,
+      editableProp: LowCodeDesignerEditableProp,
+    ): unknown => {
+      const presetValue = componentPropsByComponent[field.component]?.[editableProp.key]
+      if (presetValue !== undefined)
+        return presetValue
+      const currentValue = field.componentProps?.[editableProp.key]
+      if (currentValue === undefined)
+        return editableProp.defaultValue
+      return currentValue
+    }
 
-  const updateFieldComponentProp = (propKey: string, value: unknown): void => {
-    if (!selectedField)
-      return
-    onUpdateComponentPropByComponentName(selectedField.component, propKey, value)
-  }
+  /**
+   * updateFieldComponentProp?????????????????
+   * ???`packages/plugin-lower-code-react/src/designer/panels/PropertiesPanel.tsx:146`?
+   * ?????????????????????????????????
+   * ??????????????????????????
+   * @param propKey ?? propKey ????????????
+   * @param value ?? value ????????????
+   */
+  const /**
+         * updateFieldComponentProp：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-lower-code-react/src/designer/panels/PropertiesPanel.tsx:121`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param propKey 参数 propKey 为当前功能所需的输入信息。
+         * @param value 参数 value 为输入值，用于驱动后续逻辑。
+         */
+    updateFieldComponentProp = (propKey: string, value: unknown): void => {
+      if (!selectedField)
+        return
+      onUpdateComponentPropByComponentName(selectedField.component, propKey, value)
+    }
 
   return (
     <section className="cf-lc-panel cf-lc-panel--side">

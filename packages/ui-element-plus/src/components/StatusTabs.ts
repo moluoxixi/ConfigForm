@@ -2,8 +2,23 @@ import type { FieldPattern } from '@moluoxixi/core'
 import { ElAlert, ElRadioButton, ElRadioGroup } from 'element-plus'
 import { defineComponent, h, ref } from 'vue'
 
+/**
+ * Radio Group Component：变量或常量声明。
+ * 所属模块：`packages/ui-element-plus/src/components/StatusTabs.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const RadioGroupComponent = ElRadioGroup as any
+/**
+ * Radio Button Component：变量或常量声明。
+ * 所属模块：`packages/ui-element-plus/src/components/StatusTabs.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const RadioButtonComponent = ElRadioButton as any
+/**
+ * Alert Component：变量或常量声明。
+ * 所属模块：`packages/ui-element-plus/src/components/StatusTabs.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const AlertComponent = ElAlert as any
 
 /** 三态选项 */
@@ -15,6 +30,8 @@ const MODE_OPTIONS = [
 
 /**
  * 格式化值为可读字符串
+ * @param val 参数 `val`用于提供待处理的值并参与结果计算。
+ * @returns 返回字符串结果，通常用于文本展示或下游拼接。
  */
 function formatValue(val: unknown): string {
   if (val === null || val === undefined || val === '')
@@ -40,18 +57,33 @@ export const StatusTabs = defineComponent({
     /** 结果区域标题 */
     resultTitle: { type: String, default: '提交结果' },
   },
+  /**
+   * setup：当前功能模块的核心执行单元。
+   * 所属模块：`packages/ui-element-plus/src/components/StatusTabs.ts`。
+   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+   * @param props 参数 `props`用于提供当前函数执行所需的输入信息。
+   * @param param2 原始解构参数（{ slots, expose }）用于提供当前函数执行所需的输入信息。
+   * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+   */
   setup(props, { slots, expose }) {
     const mode = ref<FieldPattern>('editable')
     const resultData = ref<Record<string, unknown> | null>(null)
     const errorText = ref('')
 
-    /** 显示提交结果（结构化展示） */
+    /**
+     * 显示提交结果（结构化展示）
+     * @param data 参数 `data`用于提供当前函数执行所需的输入信息。
+     */
     function showResult(data: Record<string, unknown>): void {
       resultData.value = data
       errorText.value = ''
     }
 
-    /** 显示验证错误列表 */
+    /**
+     * 显示验证错误列表
+     * @param errors 参数 `errors`用于提供当前函数执行所需的输入信息。
+     */
     function showErrors(errors: Array<{ path: string, message: string }>): void {
       resultData.value = null
       errorText.value = errors.map(e => `[${e.path}] ${e.message}`).join('\n')
@@ -59,11 +91,26 @@ export const StatusTabs = defineComponent({
 
     expose({ mode, showResult, showErrors })
 
-    const normalizeMode = (value: unknown): FieldPattern => {
-      if (value === 'preview' || value === 'disabled')
-        return value
-      return 'editable'
-    }
+    /**
+     * normalize Mode：当前功能模块的核心执行单元。
+     * 所属模块：`packages/ui-element-plus/src/components/StatusTabs.ts`。
+     * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+     * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+     * @param value 参数 `value`用于提供待处理的值并参与结果计算。
+     * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+     */
+    const /**
+           * normalizeMode：执行当前功能逻辑。
+           *
+           * @param value 参数 value 的输入说明。
+           *
+           * @returns 返回当前功能的处理结果。
+           */
+      normalizeMode = (value: unknown): FieldPattern => {
+        if (value === 'preview' || value === 'disabled')
+          return value
+        return 'editable'
+      }
 
     return () => {
       const errorNode = errorText.value
@@ -103,6 +150,12 @@ export const StatusTabs = defineComponent({
       }, [
         h(RadioGroupComponent, {
           'modelValue': mode.value,
+          /**
+           * onUpdate:modelValue：执行当前功能逻辑。
+           *
+           * @param v 参数 v 的输入说明。
+           */
+
           'onUpdate:modelValue': (v: unknown) => { mode.value = normalizeMode(v) },
           'size': 'small',
           'style': 'margin-bottom: 16px',

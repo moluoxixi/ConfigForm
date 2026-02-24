@@ -1,3 +1,8 @@
+/**
+ * DESIGNER CSS：变量或常量声明。
+ * 所属模块：`packages/plugin-lower-code-react/src/designer/styles.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export const DESIGNER_CSS = `
 .cf-lc-root {
   --cf-lc-blue: #2563eb;

@@ -84,10 +84,34 @@ export function vueI18nPlugin(options: VueI18nPluginOptions): FormPlugin<I18nPlu
   return i18nPlugin({
     ...rest,
     locale: locale ?? readLocale(composer),
+    /**
+     * t：执行当前位置的功能逻辑。
+     * 定位：`packages/plugin-i18n-vue/src/plugin.ts:87`。
+     * 功能：处理参数消化、状态变更与调用链行为同步。
+     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+     * @param key 参数 key 为当前功能所需的输入信息。
+     * @param params 参数 params 为当前功能所需的输入信息。
+     * @returns 返回当前分支执行后的处理结果。
+     */
     t: (key, params) => String(composer.t(key, params)),
+    /**
+     * changeLocale：执行当前位置的功能逻辑。
+     * 定位：`packages/plugin-i18n-vue/src/plugin.ts:88`。
+     * 功能：处理参数消化、状态变更与调用链行为同步。
+     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+     * @param nextLocale 参数 nextLocale 为当前功能所需的输入信息。
+     */
     changeLocale: async (nextLocale) => {
       writeLocale(composer, nextLocale)
     },
+    /**
+     * onLocaleChange：执行当前位置的功能逻辑。
+     * 定位：`packages/plugin-i18n-vue/src/plugin.ts:91`。
+     * 功能：处理参数消化、状态变更与调用链行为同步。
+     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+     * @param listener 参数 listener 为当前功能所需的输入信息。
+     * @returns 返回当前分支执行后的处理结果。
+     */
     onLocaleChange: (listener) => {
       return watchLocale(composer, listener)
     },

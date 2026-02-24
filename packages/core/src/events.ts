@@ -153,7 +153,9 @@ export class FormEventEmitter {
     }
   }
 
-  /** 清空所有订阅 */
+  /**
+   * 清空所有订阅
+   */
   clear(): void {
     this.handlers.clear()
     this.globalHandlers.clear()

@@ -52,12 +52,17 @@ class HookPipeline<H> {
     }
   }
 
-  /** 获取已排序的处理器列表 */
+  /**
+   * 获取已排序的处理器列表
+   * @returns 返回数组结果，用于后续遍历、渲染或进一步转换。
+   */
   getHandlers(): H[] {
     return this.handlers.map(h => h.handler)
   }
 
-  /** 清空所有处理器 */
+  /**
+   * 清空所有处理器
+   */
   clear(): void {
     this.handlers = []
   }
@@ -200,7 +205,7 @@ export class FormHookManager {
     if (handlers.length === 0)
       return original(props)
 
-    /* createField 管线：每层可修改 props，传给 next */
+    // createField 管线：每层 Hook 可以改写 props，再交给下一层继续处理。
     let pipeline: (p: FieldProps) => FieldInstance = p => original(p as FieldProps<V>) as unknown as FieldInstance
     for (let i = handlers.length - 1; i >= 0; i--) {
       const handler = handlers[i]
@@ -241,7 +246,9 @@ export class FormHookManager {
     pipeline()
   }
 
-  /** 清空所有管线 */
+  /**
+   * 清空所有管线
+   */
   dispose(): void {
     this.submit.clear()
     this.validate.clear()

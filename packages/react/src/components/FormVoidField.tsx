@@ -5,6 +5,11 @@ import { FieldContext, FormContext } from '../context'
 import { observer } from '../reactive'
 import { ReactiveField } from './ReactiveField'
 
+/**
+ * Form Void Field Props：类型接口定义。
+ * 所属模块：`packages/react/src/components/FormVoidField.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export interface FormVoidFieldProps {
   name: string
   fieldProps?: Partial<VoidFieldProps>

@@ -31,6 +31,14 @@ export const FormDrawer = defineComponent({
     destroyOnClose: { type: Boolean, default: true },
   },
   emits: ['update:modelValue', 'submit', 'submitFailed', 'cancel'],
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/ui-element-plus/src/components/FormDrawer.ts:34`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props, { emit, slots }) {
     const submitting = ref(false)
 
@@ -39,31 +47,69 @@ export const FormDrawer = defineComponent({
       initialValues: props.initialValues ?? props.formConfig?.initialValues,
     })
 
-    const getForm = (): FormInstance => props.form ?? internalForm
+    /**
+     * getForm?????????????????
+     * ???`packages/ui-element-plus/src/components/FormDrawer.ts:57`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     * @returns ?????????????
+     */
+    const /**
+           * getForm：执行当前位置的功能逻辑。
+           * 定位：`packages/ui-element-plus/src/components/FormDrawer.ts:42`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @returns 返回当前分支执行后的处理结果。
+           */
+      getForm = (): FormInstance => props.form ?? internalForm
 
-    const handleOk = async (): Promise<void> => {
-      const form = getForm()
-      submitting.value = true
-      try {
-        const result = await form.submit()
-        if (result.errors.length > 0) {
-          emit('submitFailed', result.errors)
-          return
+    /**
+     * handleOk?????????????????
+     * ???`packages/ui-element-plus/src/components/FormDrawer.ts:65`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     */
+    const /**
+           * handleOk：执行当前位置的功能逻辑。
+           * 定位：`packages/ui-element-plus/src/components/FormDrawer.ts:44`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           */
+      handleOk = async (): Promise<void> => {
+        const form = getForm()
+        submitting.value = true
+        try {
+          const result = await form.submit()
+          if (result.errors.length > 0) {
+            emit('submitFailed', result.errors)
+            return
+          }
+          emit('submit', result.values)
         }
-        emit('submit', result.values)
+        catch (error: unknown) {
+          console.error('[FormDrawer] 提交异常', error)
+        }
+        finally {
+          submitting.value = false
+        }
       }
-      catch (error: unknown) {
-        console.error('[FormDrawer] 提交异常', error)
-      }
-      finally {
-        submitting.value = false
-      }
-    }
 
-    const handleClose = (): void => {
-      emit('update:modelValue', false)
-      emit('cancel')
-    }
+    /**
+     * handleClose?????????????????
+     * ???`packages/ui-element-plus/src/components/FormDrawer.ts:90`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     */
+    const /**
+           * handleClose：执行当前位置的功能逻辑。
+           * 定位：`packages/ui-element-plus/src/components/FormDrawer.ts:63`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           */
+      handleClose = (): void => {
+        emit('update:modelValue', false)
+        emit('cancel')
+      }
 
     return () => {
       const form = getForm()
@@ -75,11 +121,25 @@ export const FormDrawer = defineComponent({
         'direction': props.direction,
         'destroyOnClose': props.destroyOnClose,
         'closeOnClickModal': false,
+        /**
+         * onUpdate:modelValue：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-element-plus/src/components/FormDrawer.ts:78`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param val 参数 val 为输入值，用于驱动后续逻辑。
+         */
         'onUpdate:modelValue': (val: boolean) => {
           if (!val)
             handleClose()
         },
       }, {
+        /**
+         * default：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-element-plus/src/components/FormDrawer.ts:83`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         default: () => h(FormProvider, {
           form,
           components: props.components,
@@ -88,6 +148,13 @@ export const FormDrawer = defineComponent({
           h(SchemaField, { schema: props.schema }),
           slots.default?.(),
         ]),
+        /**
+         * footer：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-element-plus/src/components/FormDrawer.ts:91`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         footer: () => h(ElSpace, null, () => [
           h(ElButton, { onClick: handleClose }, () => props.cancelText),
           h(ElButton, { type: 'primary', loading: submitting.value, onClick: handleOk }, () => props.okText),
@@ -99,6 +166,11 @@ export const FormDrawer = defineComponent({
 
 /* ======================== 命令式 API ======================== */
 
+/**
+ * FormDrawerOpenOptions??????
+ * ???`packages/ui-element-plus/src/components/FormDrawer.ts:150`?
+ * ??????????????????????????????
+ */
 export interface FormDrawerOpenOptions {
   title?: string
   schema: ISchema
@@ -120,14 +192,26 @@ FormDrawer.open = function openFormDrawer(
 
     let appInstance: App | null = null
 
-    const destroy = (): void => {
-      setTimeout(() => {
-        appInstance?.unmount()
-        if (document.body.contains(container)) {
-          document.body.removeChild(container)
-        }
-      }, 300)
-    }
+    /**
+     * destroy?????????????????
+     * ???`packages/ui-element-plus/src/components/FormDrawer.ts:177`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     */
+    const /**
+           * destroy：执行当前位置的功能逻辑。
+           * 定位：`packages/ui-element-plus/src/components/FormDrawer.ts:123`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           */
+      destroy = (): void => {
+        setTimeout(() => {
+          appInstance?.unmount()
+          if (document.body.contains(container)) {
+            document.body.removeChild(container)
+          }
+        }, 300)
+      }
 
     const form = createForm({
       ...options.formConfig,
@@ -135,21 +219,54 @@ FormDrawer.open = function openFormDrawer(
     })
 
     const DrawerWrapper = defineComponent({
+      /**
+       * setup：执行当前位置的功能逻辑。
+       * 定位：`packages/ui-element-plus/src/components/FormDrawer.ts:138`。
+       * 功能：处理参数消化、状态变更与调用链行为同步。
+       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+       * @returns 返回当前分支执行后的处理结果。
+       */
       setup() {
         const open = ref(true)
 
-        const handleSubmit = async (values: Record<string, unknown>): Promise<void> => {
-          await options.onSubmit?.(values)
-          open.value = false
-          resolve(values)
-          destroy()
-        }
+        /**
+         * handleSubmit?????????????????
+         * ???`packages/ui-element-plus/src/components/FormDrawer.ts:209`?
+         * ?????????????????????????????????
+         * ??????????????????????????
+         * @param values ?? values ????????????
+         */
+        const /**
+               * handleSubmit：执行当前位置的功能逻辑。
+               * 定位：`packages/ui-element-plus/src/components/FormDrawer.ts:141`。
+               * 功能：处理参数消化、状态变更与调用链行为同步。
+               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+               * @param values 参数 values 为当前功能所需的输入信息。
+               */
+          handleSubmit = async (values: Record<string, unknown>): Promise<void> => {
+            await options.onSubmit?.(values)
+            open.value = false
+            resolve(values)
+            destroy()
+          }
 
-        const handleCancel = (): void => {
-          open.value = false
-          reject(new Error('FormDrawer cancelled'))
-          destroy()
-        }
+        /**
+         * handleCancel?????????????????
+         * ???`packages/ui-element-plus/src/components/FormDrawer.ts:222`?
+         * ?????????????????????????????????
+         * ??????????????????????????
+         */
+        const /**
+               * handleCancel：执行当前位置的功能逻辑。
+               * 定位：`packages/ui-element-plus/src/components/FormDrawer.ts:148`。
+               * 功能：处理参数消化、状态变更与调用链行为同步。
+               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+               */
+          handleCancel = (): void => {
+            open.value = false
+            reject(new Error('FormDrawer cancelled'))
+            destroy()
+          }
 
         return () => h(FormDrawer, {
           title: options.title,

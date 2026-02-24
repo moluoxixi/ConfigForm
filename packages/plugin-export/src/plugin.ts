@@ -10,39 +10,17 @@ import { browserDownload } from './browser'
 
 export const PLUGIN_NAME = 'form-export'
 
-const DEFAULT_EXCLUDE_PREFIXES = ['_']
+const _DEFAULT_EXCLUDE_PREFIXES = ['_']
 const DEFAULT_JSON_SPACE = 2
 const DEFAULT_FILE_NAME_BASE = 'config-form'
 
 /**
- * to Export Data：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 to Export Data 的单一职责，调用方可通过函数名快速理解输入输出语义。
- */
-function toExportData(values: Record<string, unknown>, excludePrefixes: string[]): Record<string, unknown> {
-  const cloned = cloneWithoutKeyPrefixes(values, excludePrefixes)
-  return isPlainObject(cloned) ? cloned : {}
-}
-
-/**
- * resolve Exclude Prefixes：负责“解析resolve Exclude Prefixes”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 resolve Exclude Prefixes 的主要职责边界，便于维护者快速理解函数在链路中的定位。
- */
-function resolveExcludePrefixes(config: FormExportPluginOptions, options?: { excludePrefixes?: string[] }): string[] {
-  return options?.excludePrefixes ?? config.excludePrefixes ?? DEFAULT_EXCLUDE_PREFIXES
-}
-
-/**
- * resolve File Name Base：负责“解析resolve File Name Base”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 resolve File Name Base 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * resolveFileNameBase：执行当前位置的功能处理逻辑。
+ * 定位：`packages/plugin-export/src/plugin.ts:18`。
+ * 功能：完成参数消化、业务分支处理及上下游结果传递。
+ * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
+ * @param config 参数 config 为当前逻辑所需的输入信息。
+ * @returns 返回当前分支执行后的结果。
  */
 function resolveFileNameBase(config: FormExportPluginOptions): string {
   const base = typeof config.filenameBase === 'function' ? config.filenameBase() : config.filenameBase
@@ -50,34 +28,25 @@ function resolveFileNameBase(config: FormExportPluginOptions): string {
 }
 
 /**
- * create Export Preview：负责“创建create Export Preview”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 create Export Preview 的主要职责边界，便于维护者快速理解函数在链路中的定位。
- */
-function createExportPreview(
-  api: Pick<FormExportPluginAPI, 'getExportData'>,
-  config: FormExportPluginOptions,
-  options: FormExportPreviewOptions = {},
-): FormExportPreview {
-  const data = api.getExportData(options)
-  return {
-    data,
-    json: JSON.stringify(data, null, options.jsonSpace ?? config.jsonSpace ?? DEFAULT_JSON_SPACE),
-  }
-}
-
-/**
- * export Plugin：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 export Plugin 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * exportPlugin：执行当前位置的功能处理逻辑。
+ * 定位：`packages/plugin-export/src/plugin.ts:24`。
+ * 功能：完成参数消化、业务分支处理及上下游结果传递。
+ * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
+ * @param config 参数 config 为当前逻辑所需的输入信息。
+ * @returns 返回当前分支执行后的结果。
  */
 export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<FormExportPluginAPI> {
   return {
     name: PLUGIN_NAME,
+
+    /**
+     * install：执行当前位置的功能处理逻辑。
+     * 定位：`packages/plugin-export/src/plugin.ts:28`。
+     * 功能：完成参数消化、业务分支处理及上下游结果传递。
+     * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
+     * @param form 参数 form 为业务实体对象，用于读写状态或属性。
+     * @returns 返回当前分支执行后的结果。
+     */
     install(form: FormInstance) {
       const formWithExport = form as FormInstance & {
         getExportData?: FormExportPluginAPI['getExportData']
@@ -90,15 +59,41 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
       const previewSubscribers = new Map<(preview: FormExportPreview) => void, FormExportPreviewOptions | undefined>()
       let previewNotifyScheduled = false
       const api: FormExportPluginAPI = {
+
+        /**
+         * getExportData：执行当前位置的功能处理逻辑。
+         * 定位：`packages/plugin-export/src/plugin.ts:41`。
+         * 功能：完成参数消化、业务分支处理及上下游结果传递。
+         * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
+         * @param options 参数 options 为当前逻辑所需的输入信息。
+         * @returns 返回当前分支执行后的结果。
+         */
         getExportData(options) {
           const excludePrefixes = resolveExcludePrefixes(config, options)
           return toExportData(form.values as Record<string, unknown>, excludePrefixes)
         },
 
+        /**
+         * getExportPreview：执行当前位置的功能处理逻辑。
+         * 定位：`packages/plugin-export/src/plugin.ts:47`。
+         * 功能：完成参数消化、业务分支处理及上下游结果传递。
+         * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
+         * @param options 参数 options 为当前逻辑所需的输入信息。
+         * @returns 返回当前分支执行后的结果。
+         */
         getExportPreview(options) {
           return createExportPreview(api, config, options)
         },
 
+        /**
+         * subscribeExportPreview：执行当前位置的功能处理逻辑。
+         * 定位：`packages/plugin-export/src/plugin.ts:52`。
+         * 功能：完成参数消化、业务分支处理及上下游结果传递。
+         * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
+         * @param listener 参数 listener 为当前逻辑所需的输入信息。
+         * @param options 参数 options 为当前逻辑所需的输入信息。
+         * @returns 返回当前分支执行后的结果。
+         */
         subscribeExportPreview(listener, options) {
           previewSubscribers.set(listener, options)
           listener(api.getExportPreview(options))
@@ -107,12 +102,27 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
           }
         },
 
+        /**
+         * exportJSON：执行当前位置的功能处理逻辑。
+         * 定位：`packages/plugin-export/src/plugin.ts:61`。
+         * 功能：完成参数消化、业务分支处理及上下游结果传递。
+         * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
+         * @param options 参数 options 为当前逻辑所需的输入信息。
+         * @returns 返回当前分支执行后的结果。
+         */
         exportJSON(options) {
           const data = api.getExportData(options)
           const space = options?.space ?? config.jsonSpace ?? DEFAULT_JSON_SPACE
           return JSON.stringify(data, null, space)
         },
 
+        /**
+         * downloadJSON：执行当前位置的功能处理逻辑。
+         * 定位：`packages/plugin-export/src/plugin.ts:68`。
+         * 功能：完成参数消化、业务分支处理及上下游结果传递。
+         * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
+         * @param options 参数 options 为当前逻辑所需的输入信息。
+         */
         async downloadJSON(options) {
           const download = config.adapters?.download ?? browserDownload
           const content = api.exportJSON(options)
@@ -125,30 +135,69 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
         },
       }
 
-      const notifyExportPreviewSubscribers = (): void => {
-        for (const [listener, options] of previewSubscribers.entries()) {
-          listener(api.getExportPreview(options))
+      /**
+       * notifyExportPreviewSubscribers?????????????????
+       * ???`packages/plugin-export/src/plugin.ts:145`?
+       * ?????????????????????????????????
+       * ??????????????????????????
+       */
+      const
+        /**
+         * notifyExportPreviewSubscribers：执行当前位置的功能处理逻辑。
+         * 定位：`packages/plugin-export/src/plugin.ts:81`。
+         * 功能：完成参数消化、业务分支处理及上下游结果传递。
+         * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
+         */
+        notifyExportPreviewSubscribers = (): void => {
+          for (const [listener, options] of previewSubscribers.entries()) {
+            listener(api.getExportPreview(options))
+          }
         }
-      }
 
-      const scheduleNotifyExportPreviewSubscribers = (): void => {
-        if (previewNotifyScheduled) {
-          return
-        }
-        previewNotifyScheduled = true
+      /**
+       * scheduleNotifyExportPreviewSubscribers?????????????????
+       * ???`packages/plugin-export/src/plugin.ts:158`?
+       * ?????????????????????????????????
+       * ??????????????????????????
+       */
+      const
+        /**
+         * scheduleNotifyExportPreviewSubscribers：执行当前位置的功能处理逻辑。
+         * 定位：`packages/plugin-export/src/plugin.ts:88`。
+         * 功能：完成参数消化、业务分支处理及上下游结果传递。
+         * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
+         */
+        scheduleNotifyExportPreviewSubscribers = (): void => {
+          if (previewNotifyScheduled) {
+            return
+          }
+          previewNotifyScheduled = true
 
-        const flush = (): void => {
-          previewNotifyScheduled = false
-          notifyExportPreviewSubscribers()
-        }
+          /**
+           * flush?????????????????
+           * ???`packages/plugin-export/src/plugin.ts:171`?
+           * ?????????????????????????????????
+           * ??????????????????????????
+           */
+          const
+            /**
+             * flush：执行当前位置的功能处理逻辑。
+             * 定位：`packages/plugin-export/src/plugin.ts:95`。
+             * 功能：完成参数消化、业务分支处理及上下游结果传递。
+             * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
+             */
+            flush = (): void => {
+              previewNotifyScheduled = false
+              notifyExportPreviewSubscribers()
+            }
 
-        if (typeof queueMicrotask === 'function') {
-          queueMicrotask(flush)
+          if (typeof queueMicrotask === 'function') {
+            queueMicrotask(flush)
+          }
+          else {
+            Promise.resolve().then(flush)
+          }
         }
-        else {
-          Promise.resolve().then(flush)
-        }
-      }
 
       const disposeValues = form.onValuesChange(() => {
         scheduleNotifyExportPreviewSubscribers()
@@ -168,6 +217,13 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
 
       return {
         api,
+
+        /**
+         * dispose：执行当前位置的功能处理逻辑。
+         * 定位：`packages/plugin-export/src/plugin.ts:127`。
+         * 功能：完成参数消化、业务分支处理及上下游结果传递。
+         * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
+         */
         dispose() {
           if (formWithExport.getExportData === api.getExportData)
             delete formWithExport.getExportData

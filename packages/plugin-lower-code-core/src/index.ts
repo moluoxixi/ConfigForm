@@ -1,3 +1,9 @@
+/**
+ * plugin-lower-code-core 包入口。
+ * 该入口统一导出低代码设计器的核心建模、拖拽编排、物料解析与目标定位工具。
+ * React/Vue 侧插件均应依赖这里的公共逻辑，避免重复实现导致行为不一致。
+ * 新增导出时需同步评估跨端兼容性与命名稳定性。
+ */
 export {
   addSectionToContainer,
   allowedComponents,

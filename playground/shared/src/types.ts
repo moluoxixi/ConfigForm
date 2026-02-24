@@ -17,6 +17,11 @@ export interface SchemaVariants {
   factory: (value: string) => ISchema
 }
 
+/**
+ * Scene I18n Config：类型接口定义。
+ * 所属模块：`playground/shared/src/types.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export interface SceneI18nConfig {
   /** 多语言资源 */
   messages: Record<string, Record<string, string>>

@@ -70,6 +70,14 @@ export const RecursionField = defineComponent({
       default: false,
     },
   },
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/vue/src/components/RecursionField.ts:73`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props) {
     /**
      * render Data Field：负责“渲染render Data Field”的核心实现与调用衔接。
@@ -137,6 +145,14 @@ export const RecursionField = defineComponent({
     const SchemaProviderLocal = defineComponent({
       name: 'SchemaProviderLocal',
       props: { schema: { type: Object as PropType<ISchema>, required: true } },
+      /**
+       * setup：执行当前位置的功能逻辑。
+       * 定位：`packages/vue/src/components/RecursionField.ts:140`。
+       * 功能：处理参数消化、状态变更与调用链行为同步。
+       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+       * @param localProps 参数 localProps 为当前功能所需的输入信息。
+       * @returns 返回当前分支执行后的处理结果。
+       */
       setup(localProps, { slots }) {
         provide(SchemaSymbol, localProps.schema)
         return () => slots.default?.()
@@ -157,6 +173,13 @@ export const RecursionField = defineComponent({
       /* void 字段 — 通过 FormVoidField 渲染，注入 SchemaSymbol */
       if (schema.type === 'void') {
         return h(SchemaProviderLocal, { key: address, schema }, {
+          /**
+           * default：执行当前位置的功能逻辑。
+           * 定位：`packages/vue/src/components/RecursionField.ts:160`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @returns 返回当前分支执行后的处理结果。
+           */
           default: () => h(FormVoidField, {
             name: address,
             fieldProps: {
@@ -170,6 +193,13 @@ export const RecursionField = defineComponent({
               reactions: schema.reactions,
             },
           }, {
+            /**
+             * default：执行当前位置的功能逻辑。
+             * 定位：`packages/vue/src/components/RecursionField.ts:173`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @returns 返回当前分支执行后的处理结果。
+             */
             default: () => renderProperties(schema, dataPath),
           }),
         })
@@ -213,6 +243,13 @@ export const RecursionField = defineComponent({
             decoratorProps: schema.decoratorProps,
           },
         }, {
+          /**
+           * default：执行当前位置的功能逻辑。
+           * 定位：`packages/vue/src/components/RecursionField.ts:216`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @returns 返回当前分支执行后的处理结果。
+           */
           default: () => renderProperties(schema, dataPath),
         })
       }
@@ -254,6 +291,13 @@ export const RecursionField = defineComponent({
               decoratorProps: schema.decoratorProps,
             },
           }, {
+            /**
+             * default：执行当前位置的功能逻辑。
+             * 定位：`packages/vue/src/components/RecursionField.ts:257`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @returns 返回当前分支执行后的处理结果。
+             */
             default: () => renderProperties(schema, path),
           })
         }

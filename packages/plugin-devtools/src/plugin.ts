@@ -61,6 +61,14 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
   return {
     name: 'devtools',
 
+    /**
+     * install：执行当前位置的功能逻辑。
+     * 定位：`packages/plugin-devtools/src/plugin.ts:64`。
+     * 功能：处理参数消化、状态变更与调用链行为同步。
+     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+     * @param form 参数 form 为业务对象，用于读写状态与属性。
+     * @returns 返回当前分支执行后的处理结果。
+     */
     install(form: FormInstance) {
       /** 事件日志 */
       const eventLog: EventLogEntry[] = []
@@ -241,6 +249,14 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
 
       /* ======================== 字段详情 ======================== */
 
+      /**
+       * getFieldDetailImpl：执行当前位置的功能逻辑。
+       * 定位：`packages/plugin-devtools/src/plugin.ts:244`。
+       * 功能：处理参数消化、状态变更与调用链行为同步。
+       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+       * @param path 参数 path 为当前功能所需的输入信息。
+       * @returns 返回当前分支执行后的处理结果。
+       */
       function getFieldDetailImpl(path: string): FieldDetail | null {
         const field = form.getField(path) as FieldInstance | undefined
         const voidField = form.getAllVoidFields().get(path)
@@ -304,6 +320,13 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
 
       const api: DevToolsPluginAPI = {
         /* ---- 只读查询 ---- */
+        /**
+         * getFieldTree：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-devtools/src/plugin.ts:307`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         getFieldTree(): FieldTreeNode[] {
           if (fieldTreeDirty) {
             fieldTreeCache = buildFieldTree()
@@ -312,6 +335,13 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           return fieldTreeCache
         },
         getFieldDetail: getFieldDetailImpl,
+        /**
+         * getFormOverview：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-devtools/src/plugin.ts:315`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         getFormOverview(): FormOverview {
           if (formOverviewDirty || !formOverviewCache) {
             const allFields = form.getAllFields()
@@ -333,7 +363,21 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           }
           return formOverviewCache
         },
+        /**
+         * getEventLog：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-devtools/src/plugin.ts:336`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         getEventLog: () => [...eventLog],
+        /**
+         * getValueDiff：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-devtools/src/plugin.ts:337`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         getValueDiff(): ValueDiffEntry[] {
           if (valueDiffDirty) {
             const diff: ValueDiffEntry[] = []
@@ -350,17 +394,38 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           }
           return valueDiffCache
         },
+        /**
+         * subscribe：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-devtools/src/plugin.ts:353`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param listener 参数 listener 为当前功能所需的输入信息。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         subscribe(listener: () => void): () => void {
           listeners.add(listener)
           return () => listeners.delete(listener)
         },
 
         /* ---- 调试操作 ---- */
+        /**
+         * clearEventLog：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-devtools/src/plugin.ts:359`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         */
         clearEventLog(): void {
           eventLog.length = 0
           eventIdCounter = 0
           notify()
         },
+        /**
+         * highlightField：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-devtools/src/plugin.ts:364`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param path 参数 path 为当前功能所需的输入信息。
+         */
         highlightField(path: string): void {
           const el = resolveFieldElement(form, path)
           if (!el) {
@@ -370,6 +435,14 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           flashFieldElement(el)
           addEvent('devtools:locate', `定位字段: ${path}`, path)
         },
+        /**
+         * setFieldValue：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-devtools/src/plugin.ts:373`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param path 参数 path 为当前功能所需的输入信息。
+         * @param value 参数 value 为输入值，用于驱动后续逻辑。
+         */
         setFieldValue(path: string, value: unknown): void {
           const field = form.getField(path) as FieldInstance | undefined
           if (field) {
@@ -377,6 +450,14 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
             addEvent('devtools:setValue', `手动赋值: ${path} = ${JSON.stringify(value)?.slice(0, 50)}`, path)
           }
         },
+        /**
+         * setFieldState：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-devtools/src/plugin.ts:380`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param path 参数 path 为当前功能所需的输入信息。
+         * @param state 参数 state 为当前功能所需的输入信息。
+         */
         setFieldState(path: string, state: Partial<{ visible: boolean, disabled: boolean, preview: boolean, pattern: string }>): void {
           const field = form.getField(path) as FieldInstance | undefined
           if (!field)
@@ -391,16 +472,36 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
             field.selfPattern = state.pattern as FieldInstance['selfPattern']
           addEvent('devtools:setState', `修改状态: ${path} → ${JSON.stringify(state)}`, path)
         },
+        /**
+         * validateAll：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-devtools/src/plugin.ts:394`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         async validateAll(): Promise<Array<{ path: string, message: string }>> {
           const result = await form.validate()
           const errors = result.errors.map(e => ({ path: e.path, message: e.message }))
           addEvent('devtools:validate', `手动验证: ${errors.length} 个错误`)
           return errors
         },
+        /**
+         * resetForm：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-devtools/src/plugin.ts:400`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         */
         resetForm(): void {
           form.reset()
           addEvent('devtools:reset', '手动重置表单')
         },
+        /**
+         * submitForm：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-devtools/src/plugin.ts:404`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         async submitForm(): Promise<{ success: boolean, errors: Array<{ path: string, message: string }> }> {
           const result = await form.submit()
           const errors = result.errors.map(e => ({ path: e.path, message: e.message }))
@@ -422,6 +523,12 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
 
       return {
         api,
+        /**
+         * dispose：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-devtools/src/plugin.ts:425`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         */
         dispose: () => {
           for (const d of disposers) {
             d()
@@ -575,14 +682,37 @@ function ensureGlobalHook(): DevToolsGlobalHook {
     const listeners = new Set<(forms: Map<string, DevToolsPluginAPI>) => void>()
     const hook: DevToolsGlobalHook = {
       forms: new Map(),
+      /**
+       * register：执行当前位置的功能逻辑。
+       * 定位：`packages/plugin-devtools/src/plugin.ts:578`。
+       * 功能：处理参数消化、状态变更与调用链行为同步。
+       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+       * @param id 参数 id 为当前功能所需的输入信息。
+       * @param api 参数 api 为当前功能所需的输入信息。
+       */
       register(id, api) {
         hook.forms.set(id, api)
         for (const fn of listeners) fn(hook.forms)
       },
+      /**
+       * unregister：执行当前位置的功能逻辑。
+       * 定位：`packages/plugin-devtools/src/plugin.ts:582`。
+       * 功能：处理参数消化、状态变更与调用链行为同步。
+       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+       * @param id 参数 id 为当前功能所需的输入信息。
+       */
       unregister(id) {
         hook.forms.delete(id)
         for (const fn of listeners) fn(hook.forms)
       },
+      /**
+       * onChange：执行当前位置的功能逻辑。
+       * 定位：`packages/plugin-devtools/src/plugin.ts:586`。
+       * 功能：处理参数消化、状态变更与调用链行为同步。
+       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+       * @param listener 参数 listener 为当前功能所需的输入信息。
+       * @returns 返回当前分支执行后的处理结果。
+       */
       onChange(listener) {
         listeners.add(listener)
         return () => listeners.delete(listener)

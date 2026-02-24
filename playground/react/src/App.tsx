@@ -48,15 +48,25 @@ setupLowerCodeDesigner()
 registerDecorator('CardDecorator', CardDecorator)
 registerDecorator('InlineDecorator', InlineDecorator)
 
+/**
+ * scene Groups：变量或常量声明。
+ * 所属模块：`playground/react/src/App.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const sceneGroups = getSceneGroups()
+/**
+ * total Scenes：变量或常量声明。
+ * 所属模块：`playground/react/src/App.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const totalScenes = sceneGroups.reduce((sum, g) => sum + g.items.length, 0)
 
 /**
- * App：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 App 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * App：当前功能模块的核心执行单元。
+ * 所属模块：`playground/react/src/App.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function App(): React.ReactElement {
   const [currentDemo, setCurrentDemo] = useState('BasicForm')
@@ -176,23 +186,49 @@ export function App(): React.ReactElement {
   )
 }
 
-/** 确保全局 Hook 存在（与 plugin 中的 ensureGlobalHook 逻辑一致） */
+/**
+ * 确保全局 Hook 存在（与 plugin 中的 ensureGlobalHook 逻辑一致）
+ * @returns} 返回对象结构，其字段布局遵循当前模块约定。
+ */
 function getOrCreateHook(): { forms: Map<string, DevToolsPluginAPI>, onChange: (fn: (forms: Map<string, DevToolsPluginAPI>) => void) => () => void } {
   const g = window as unknown as Record<string, unknown>
   if (!g.__CONFIGFORM_DEVTOOLS_HOOK__) {
     const listeners = new Set<(forms: Map<string, DevToolsPluginAPI>) => void>()
     g.__CONFIGFORM_DEVTOOLS_HOOK__ = {
       forms: new Map(),
+      /**
+       * register：当前功能模块的核心执行单元。
+       * 所属模块：`playground/react/src/App.tsx`。
+       * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+       * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+       * @param id 参数 `id`用于提供唯一标识，确保操作可以精确命中对象。
+       * @param api 参数 `api`用于提供当前函数执行所需的输入信息。
+       */
       register(id: string, api: DevToolsPluginAPI) {
         const hook = g.__CONFIGFORM_DEVTOOLS_HOOK__ as { forms: Map<string, DevToolsPluginAPI> }
         hook.forms.set(id, api)
         listeners.forEach(fn => fn(hook.forms))
       },
+      /**
+       * unregister：当前功能模块的核心执行单元。
+       * 所属模块：`playground/react/src/App.tsx`。
+       * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+       * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+       * @param id 参数 `id`用于提供唯一标识，确保操作可以精确命中对象。
+       */
       unregister(id: string) {
         const hook = g.__CONFIGFORM_DEVTOOLS_HOOK__ as { forms: Map<string, DevToolsPluginAPI> }
         hook.forms.delete(id)
         listeners.forEach(fn => fn(hook.forms))
       },
+      /**
+       * on Change：当前功能模块的核心执行单元。
+       * 所属模块：`playground/react/src/App.tsx`。
+       * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+       * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+       * @param fn 参数 `fn`用于提供当前函数执行所需的输入信息。
+       * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+       */
       onChange(fn: (forms: Map<string, DevToolsPluginAPI>) => void) {
         listeners.add(fn)
         return () => listeners.delete(fn)
@@ -202,20 +238,35 @@ function getOrCreateHook(): { forms: Map<string, DevToolsPluginAPI>, onChange: (
   return g.__CONFIGFORM_DEVTOOLS_HOOK__ as ReturnType<typeof getOrCreateHook>
 }
 
-/** DevTools 浮动面板包装器：通过全局 Hook 的 onChange 事件驱动更新（零轮询） */
+/**
+ * DevTools 浮动面板包装器：通过全局 Hook 的 onChange 事件驱动更新（零轮询）
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ */
 function DevToolsFloating(): React.ReactElement | null {
   const [api, setApi] = useState<DevToolsPluginAPI | null>(null)
 
   useEffect(() => {
     const hook = getOrCreateHook()
     let disposed = false
-    const update = (forms: Map<string, DevToolsPluginAPI>): void => {
-      const nextApi = forms.size > 0 ? forms.values().next().value! : null
-      Promise.resolve().then(() => {
-        if (!disposed)
-          setApi(nextApi)
-      })
-    }
+    /**
+     * update：当前功能模块的核心执行单元。
+     * 所属模块：`playground/react/src/App.tsx`。
+     * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+     * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+     * @param forms 参数 `forms`用于提供表单上下文或实例，支撑状态读写与生命周期调用。
+     */
+    const /**
+           * update：执行当前功能逻辑。
+           *
+           * @param forms 参数 forms 的输入说明。
+           */
+      update = (forms: Map<string, DevToolsPluginAPI>): void => {
+        const nextApi = forms.size > 0 ? forms.values().next().value! : null
+        Promise.resolve().then(() => {
+          if (!disposed)
+            setApi(nextApi)
+        })
+      }
     update(hook.forms)
     const unsubscribe = hook.onChange(update)
     return () => {

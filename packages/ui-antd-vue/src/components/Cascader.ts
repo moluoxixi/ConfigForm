@@ -21,13 +21,49 @@ function toOptions(items: DataSourceItem[]): any[] {
 export const Cascader = defineComponent({
   name: 'CfCascader',
   props: {
-    modelValue: { type: Array as PropType<(string | number)[]>, default: () => [] },
-    dataSource: { type: Array as PropType<DataSourceItem[]>, default: () => [] },
+    modelValue: { type: Array as PropType<(string | number)[]>, /**
+                                                                 * default：执行当前位置的功能逻辑。
+                                                                 * 定位：`packages/ui-antd-vue/src/components/Cascader.ts:24`。
+                                                                 * 功能：处理参数消化、状态变更与调用链行为同步。
+                                                                 * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                                                                 * @returns 返回当前分支执行后的处理结果。
+                                                                 */
+      /**
+       * default：执行当前位置的功能逻辑。
+       * 定位：`packages/ui-antd-vue/src/components/Cascader.ts:31`。
+       * 功能：处理参数消化、状态变更与调用链行为同步。
+       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+       * @returns 返回当前分支执行后的处理结果。
+       */
+      default: () => [] },
+    dataSource: { type: Array as PropType<DataSourceItem[]>, /**
+                                                              * default：执行当前位置的功能逻辑。
+                                                              * 定位：`packages/ui-antd-vue/src/components/Cascader.ts:25`。
+                                                              * 功能：处理参数消化、状态变更与调用链行为同步。
+                                                              * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                                                              * @returns 返回当前分支执行后的处理结果。
+                                                              */
+      /**
+       * default：执行当前位置的功能逻辑。
+       * 定位：`packages/ui-antd-vue/src/components/Cascader.ts:39`。
+       * 功能：处理参数消化、状态变更与调用链行为同步。
+       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+       * @returns 返回当前分支执行后的处理结果。
+       */
+      default: () => [] },
     placeholder: String,
     disabled: Boolean,
     readonly: Boolean,
   },
   emits: ['update:modelValue', 'focus', 'blur'],
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/ui-antd-vue/src/components/Cascader.ts:31`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props, { emit }) {
     const options = computed(() => toOptions(props.dataSource))
     return () => h(ACascader, {
@@ -35,8 +71,30 @@ export const Cascader = defineComponent({
       'options': options.value as any,
       'placeholder': props.placeholder,
       'disabled': props.disabled,
+      /**
+       * onUpdate:value：执行当前位置的功能逻辑。
+       * 定位：`packages/ui-antd-vue/src/components/Cascader.ts:38`。
+       * 功能：处理参数消化、状态变更与调用链行为同步。
+       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+       * @param v 参数 v 为当前功能所需的输入信息。
+       * @returns 返回当前分支执行后的处理结果。
+       */
       'onUpdate:value': (v: unknown) => emit('update:modelValue', (v ?? []) as (string | number)[]),
+      /**
+       * onFocus：执行当前位置的功能逻辑。
+       * 定位：`packages/ui-antd-vue/src/components/Cascader.ts:39`。
+       * 功能：处理参数消化、状态变更与调用链行为同步。
+       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+       * @returns 返回当前分支执行后的处理结果。
+       */
       'onFocus': () => emit('focus'),
+      /**
+       * onBlur：执行当前位置的功能逻辑。
+       * 定位：`packages/ui-antd-vue/src/components/Cascader.ts:40`。
+       * 功能：处理参数消化、状态变更与调用链行为同步。
+       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+       * @returns 返回当前分支执行后的处理结果。
+       */
       'onBlur': () => emit('blur'),
     })
   },

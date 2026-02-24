@@ -20,6 +20,11 @@ const FREQUENCY_OPTIONS = [
   { label: '每周', value: 'weekly' },
 ]
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/02-linkage/VisibilityLinkageForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: '显隐联动',
   description: '用户类型切换 / 开关控制多字段 / 嵌套显隐',

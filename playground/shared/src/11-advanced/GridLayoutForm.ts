@@ -14,6 +14,11 @@ const PROVINCE_OPTIONS = [
   { label: '广东', value: 'guangdong' },
 ]
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/11-advanced/GridLayoutForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: 'Grid 栅格布局',
   description: '通过 layout.columns 控制列数，多列表单自动排列',

@@ -8,6 +8,11 @@ import { createRoot } from 'react-dom/client'
 
 /* ======================== 类型定义 ======================== */
 
+/**
+ * FormDialogProps??????
+ * ???`packages/ui-antd/src/components/FormDialog.tsx:11`?
+ * ??????????????????????????????
+ */
 export interface FormDialogProps<Values extends Record<string, unknown> = Record<string, unknown>> {
   /** 弹窗标题 */
   title?: ReactNode
@@ -209,18 +214,44 @@ function openFormDialog<Values extends Record<string, unknown> = Record<string, 
     const DialogWrapper = (): ReactElement => {
       const [open, setOpen] = useState(true)
 
-      const handleSubmit = async (values: Values): Promise<void> => {
-        await options.onSubmit?.(values)
-        setOpen(false)
-        resolve(values)
-        destroy()
-      }
+      /**
+       * handleSubmit?????????????????
+       * ???`packages/ui-antd/src/components/FormDialog.tsx:219`?
+       * ?????????????????????????????????
+       * ??????????????????????????
+       * @param values ?? values ????????????
+       */
+      const /**
+             * handleSubmit：执行当前位置的功能逻辑。
+             * 定位：`packages/ui-antd/src/components/FormDialog.tsx:212`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @param values 参数 values 为当前功能所需的输入信息。
+             */
+        handleSubmit = async (values: Values): Promise<void> => {
+          await options.onSubmit?.(values)
+          setOpen(false)
+          resolve(values)
+          destroy()
+        }
 
-      const handleCancel = (): void => {
-        setOpen(false)
-        reject(new Error('FormDialog cancelled'))
-        destroy()
-      }
+      /**
+       * handleCancel?????????????????
+       * ???`packages/ui-antd/src/components/FormDialog.tsx:232`?
+       * ?????????????????????????????????
+       * ??????????????????????????
+       */
+      const /**
+             * handleCancel：执行当前位置的功能逻辑。
+             * 定位：`packages/ui-antd/src/components/FormDialog.tsx:219`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             */
+        handleCancel = (): void => {
+          setOpen(false)
+          reject(new Error('FormDialog cancelled'))
+          destroy()
+        }
 
       return (
         <FormDialogInner<Values>
@@ -243,6 +274,11 @@ function openFormDialog<Values extends Record<string, unknown> = Record<string, 
 
 /* ======================== 组合导出 ======================== */
 
+/**
+ * FormDialogType????????
+ * ???`packages/ui-antd/src/components/FormDialog.tsx:259`?
+ * ??????????????????????????????
+ */
 type FormDialogType = typeof FormDialogInner & {
   open: typeof openFormDialog
 }

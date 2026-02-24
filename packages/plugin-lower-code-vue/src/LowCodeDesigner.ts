@@ -57,6 +57,11 @@ export type {
   LowCodeDesignerRenderers,
 } from './designer/types'
 
+/**
+ * LowCodeDesignerProps??????
+ * ???`packages/plugin-lower-code-vue/src/LowCodeDesigner.ts:60`?
+ * ??????????????????????????????
+ */
 export interface LowCodeDesignerProps {
   modelValue?: unknown
   disabled?: boolean
@@ -612,6 +617,14 @@ function shallowEqualRecord(
   return true
 }
 
+/**
+ * mapToRecord：执行当前位置的功能逻辑。
+ * 定位：`packages/plugin-lower-code-vue/src/LowCodeDesigner.ts:615`。
+ * 功能：处理参数消化、状态变更与调用链行为同步。
+ * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+ * @param map 参数 map 为当前功能所需的输入信息。
+ * @returns 返回当前分支执行后的处理结果。
+ */
 function mapToRecord<T>(map: Map<string, T> | undefined): Record<string, T> {
   const record: Record<string, T> = {}
   if (!map)
@@ -805,6 +818,14 @@ export const LowCodeDesigner = defineComponent({
     },
   },
   emits: ['update:modelValue'],
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/plugin-lower-code-vue/src/LowCodeDesigner.ts:808`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props, { emit }) {
     const readonly = computed(() => Boolean(props.disabled || props.preview))
     const nodes = ref<DesignerNode[]>(schemaToNodes(props.modelValue))
@@ -829,12 +850,40 @@ export const LowCodeDesigner = defineComponent({
     const injectedRegistry = inject(ComponentRegistrySymbol, null)
     const previewComponents = computed<Record<string, Component>>(() =>
       mapToRecord(injectedRegistry?.value?.components as Map<string, Component> | undefined))
-    const setMaterialHost = (element: HTMLElement | null): void => {
-      materialHost.value = element
-    }
-    const setCanvasHost = (element: HTMLElement | null): void => {
-      canvasHost.value = element
-    }
+    /**
+     * setMaterialHost?????????????????
+     * ???`packages/plugin-lower-code-vue/src/LowCodeDesigner.ts:855`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     * @param element ?? element ????????????
+     */
+    const /**
+           * setMaterialHost：执行当前位置的功能逻辑。
+           * 定位：`packages/plugin-lower-code-vue/src/LowCodeDesigner.ts:832`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @param element 参数 element 为当前功能所需的输入信息。
+           */
+      setMaterialHost = (element: HTMLElement | null): void => {
+        materialHost.value = element
+      }
+    /**
+     * setCanvasHost?????????????????
+     * ???`packages/plugin-lower-code-vue/src/LowCodeDesigner.ts:865`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     * @param element ?? element ????????????
+     */
+    const /**
+           * setCanvasHost：执行当前位置的功能逻辑。
+           * 定位：`packages/plugin-lower-code-vue/src/LowCodeDesigner.ts:835`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @param element 参数 element 为当前功能所需的输入信息。
+           */
+      setCanvasHost = (element: HTMLElement | null): void => {
+        canvasHost.value = element
+      }
 
     const registeredComponentNames = computed(() =>
       Array.from(injectedRegistry?.value?.components.keys() ?? []))
@@ -901,39 +950,53 @@ export const LowCodeDesigner = defineComponent({
         const next = { ...prev }
         let changed = false
 
-        const visit = (items: DesignerNode[]): void => {
-          for (const item of items) {
-            if (item.kind === 'field') {
-              const currentPreset = next[item.component]
-              if (!currentPreset) {
-                next[item.component] = { ...item.componentProps }
-                changed = true
+        /**
+         * visit?????????????????
+         * ???`packages/plugin-lower-code-vue/src/LowCodeDesigner.ts:941`?
+         * ?????????????????????????????????
+         * ??????????????????????????
+         * @param items ?? items ????????????
+         */
+        const /**
+               * visit：执行当前位置的功能逻辑。
+               * 定位：`packages/plugin-lower-code-vue/src/LowCodeDesigner.ts:904`。
+               * 功能：处理参数消化、状态变更与调用链行为同步。
+               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+               * @param items 参数 items 为当前功能所需的输入信息。
+               */
+          visit = (items: DesignerNode[]): void => {
+            for (const item of items) {
+              if (item.kind === 'field') {
+                const currentPreset = next[item.component]
+                if (!currentPreset) {
+                  next[item.component] = { ...item.componentProps }
+                  changed = true
+                  continue
+                }
+
+                let localChanged = false
+                const mergedPreset = { ...currentPreset }
+                for (const [propKey, propValue] of Object.entries(item.componentProps)) {
+                  if (!(propKey in mergedPreset)) {
+                    mergedPreset[propKey] = propValue
+                    localChanged = true
+                  }
+                }
+                if (localChanged) {
+                  next[item.component] = mergedPreset
+                  changed = true
+                }
                 continue
               }
 
-              let localChanged = false
-              const mergedPreset = { ...currentPreset }
-              for (const [propKey, propValue] of Object.entries(item.componentProps)) {
-                if (!(propKey in mergedPreset)) {
-                  mergedPreset[propKey] = propValue
-                  localChanged = true
-                }
+              if (item.children.length > 0)
+                visit(item.children)
+              if (item.sections.length > 0) {
+                for (const section of item.sections)
+                  visit(section.children)
               }
-              if (localChanged) {
-                next[item.component] = mergedPreset
-                changed = true
-              }
-              continue
-            }
-
-            if (item.children.length > 0)
-              visit(item.children)
-            if (item.sections.length > 0) {
-              for (const section of item.sections)
-                visit(section.children)
             }
           }
-        }
 
         visit(nextNodes)
         return changed ? next : prev
@@ -1062,6 +1125,13 @@ export const LowCodeDesigner = defineComponent({
     }
     const canvasPutHandler = createDesignerCanvasPutHandler(keyToTarget)
 
+    /**
+     * mountSortables：执行当前位置的功能逻辑。
+     * 定位：`packages/plugin-lower-code-vue/src/LowCodeDesigner.ts:1065`。
+     * 功能：处理参数消化、状态变更与调用链行为同步。
+     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+     * @returns 返回当前分支执行后的处理结果。
+     */
     async function mountSortables(): Promise<{ materialMounted: number, canvasMounted: number }> {
       await nextTick()
       destroySortables()
@@ -1074,8 +1144,30 @@ export const LowCodeDesigner = defineComponent({
         for (const materialList of materialLists) {
           sortables.value.push(Sortable.create(materialList, createDesignerMaterialSortableOptions({
             disabled: readonly.value,
+            /**
+             * onStart：执行当前位置的功能逻辑。
+             * 定位：`packages/plugin-lower-code-vue/src/LowCodeDesigner.ts:1077`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @returns 返回当前分支执行后的处理结果。
+             */
             onStart: () => toggleDraggingCursor(true),
+            /**
+             * onEnd：执行当前位置的功能逻辑。
+             * 定位：`packages/plugin-lower-code-vue/src/LowCodeDesigner.ts:1078`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @returns 返回当前分支执行后的处理结果。
+             */
             onEnd: () => toggleDraggingCursor(false),
+            /**
+             * setData：执行当前位置的功能逻辑。
+             * 定位：`packages/plugin-lower-code-vue/src/LowCodeDesigner.ts:1079`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @param dataTransfer 参数 dataTransfer 为当前功能所需的输入信息。
+             * @param dragElement 参数 dragElement 为当前功能所需的输入信息。
+             */
             setData: (dataTransfer, dragElement) => {
               dataTransfer.setData('text/plain', dragElement.getAttribute('data-material-id') ?? '')
             },
@@ -1098,10 +1190,32 @@ export const LowCodeDesigner = defineComponent({
           disabled: readonly.value,
           targetKey: list.dataset.targetKey,
           put: canvasPutHandler,
+          /**
+           * onStart：执行当前位置的功能逻辑。
+           * 定位：`packages/plugin-lower-code-vue/src/LowCodeDesigner.ts:1101`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @returns 返回当前分支执行后的处理结果。
+           */
           onStart: () => toggleDraggingCursor(true),
+          /**
+           * setData：执行当前位置的功能逻辑。
+           * 定位：`packages/plugin-lower-code-vue/src/LowCodeDesigner.ts:1102`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @param dataTransfer 参数 dataTransfer 为当前功能所需的输入信息。
+           * @param dragElement 参数 dragElement 为当前功能所需的输入信息。
+           */
           setData: (dataTransfer, dragElement) => {
             dataTransfer.setData('text/plain', dragElement.getAttribute('data-node-id') ?? '')
           },
+          /**
+           * onAdd：执行当前位置的功能逻辑。
+           * 定位：`packages/plugin-lower-code-vue/src/LowCodeDesigner.ts:1105`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @param event 参数 event 为事件对象，用于提供交互上下文。
+           */
           onAdd: (event) => {
             const item = event.item as HTMLElement
             const materialId = item.dataset.materialId
@@ -1131,6 +1245,13 @@ export const LowCodeDesigner = defineComponent({
             nodes.value = nextNodes
             selectedId.value = nextNode.id
           },
+          /**
+           * onEnd：执行当前位置的功能逻辑。
+           * 定位：`packages/plugin-lower-code-vue/src/LowCodeDesigner.ts:1134`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @param event 参数 event 为事件对象，用于提供交互上下文。
+           */
           onEnd: (event) => {
             toggleDraggingCursor(false)
             const item = event.item as HTMLElement
@@ -1199,6 +1320,13 @@ export const LowCodeDesigner = defineComponent({
           navigationBar: true,
           statusBar: true,
           search: true,
+          /**
+           * onEditable：执行当前位置的功能逻辑。
+           * 定位：`packages/plugin-lower-code-vue/src/LowCodeDesigner.ts:1202`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @returns 返回当前分支执行后的处理结果。
+           */
           onEditable: () => false,
         })
         try {
@@ -1498,11 +1626,26 @@ export const LowCodeDesigner = defineComponent({
             selectedId: selectedId.value,
             readonly: readonly.value,
             setCanvasHost,
+            /**
+             * onSelect：执行当前位置的功能逻辑。
+             * 定位：`packages/plugin-lower-code-vue/src/LowCodeDesigner.ts:1501`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @param id 参数 id 为当前功能所需的输入信息。
+             */
             onSelect: (id: string) => { selectedId.value = id },
             onDuplicateNode: handleDuplicateNode,
             onRemoveNode: handleRemoveNode,
             onAddSection: handleAddSection,
             onRemoveSection: handleRemoveSection,
+            /**
+             * renderFieldPreviewControl：执行当前位置的功能逻辑。
+             * 定位：`packages/plugin-lower-code-vue/src/LowCodeDesigner.ts:1506`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @param node 参数 node 为业务对象，用于读写状态与属性。
+             * @returns 返回当前分支执行后的处理结果。
+             */
             renderFieldPreviewControl: (node: DesignerFieldNode) => renderFieldPreviewControl(node, 'canvas'),
           }),
           h(DesignerPropertiesPane, {
@@ -1512,6 +1655,13 @@ export const LowCodeDesigner = defineComponent({
             selectedContainer: selectedContainer.value,
             selectedSection: selectedSection.value,
             enumDraft: enumDraft.value,
+            /**
+             * setEnumDraft：执行当前位置的功能逻辑。
+             * 定位：`packages/plugin-lower-code-vue/src/LowCodeDesigner.ts:1515`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @param value 参数 value 为输入值，用于驱动后续逻辑。
+             */
             setEnumDraft: (value: string) => { enumDraft.value = value },
             onUpdateNodes: updateNodes,
             updateField,

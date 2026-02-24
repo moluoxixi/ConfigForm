@@ -29,6 +29,10 @@ import { Field } from './Field'
 import { ObjectField } from './ObjectField'
 import { VoidField } from './VoidField'
 
+/**
+ * queryFields 缓存条目。
+ * 记录某个 pattern 在当前前缀版本下的匹配路径结果，避免重复扫描。
+ */
 interface FieldQueryCacheEntry {
   matchedPaths: string[]
   version: number
@@ -99,6 +103,10 @@ implements FormInstance<Values> {
   /** 查询缓存最大数量，防止高频动态 pattern 导致内存增长 */
   private static readonly FIELD_QUERY_CACHE_LIMIT = 300
 
+  /**
+   * 创建表单模型实例。
+   * @param config 表单初始化配置。
+   */
   constructor(config: FormConfig<Values> = {}) {
     this.id = uid('form')
     this.values = (config.initialValues ? deepClone(config.initialValues) : {}) as Values
@@ -976,30 +984,83 @@ implements FormInstance<Values> {
     const hookManager = this._hookManager
     const hookDisposers: Disposer[] = []
     const context: PluginContext = {
+      /**
+       * getPlugin：执行当前位置的功能逻辑。
+       * 定位：`packages/core/src/models/Form.ts:979`。
+       * 功能：处理参数消化、状态变更与调用链行为同步。
+       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+       * @param name 参数 name 为当前功能所需的输入信息。
+       * @returns 返回当前分支执行后的处理结果。
+       */
       getPlugin: <T = Record<string, unknown>>(name: string): T | undefined => {
         return this._pluginAPIs.get(name) as T | undefined
       },
       hooks: {
+        /**
+         * onSubmit：执行当前位置的功能逻辑。
+         * 定位：`packages/core/src/models/Form.ts:983`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param handler 参数 handler 为当前功能所需的输入信息。
+         * @param priority 参数 priority 为当前功能所需的输入信息。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         onSubmit: (handler, priority) => {
           const disposer = hookManager.submit.tap(handler, priority)
           hookDisposers.push(disposer)
           return disposer
         },
+        /**
+         * onValidate：执行当前位置的功能逻辑。
+         * 定位：`packages/core/src/models/Form.ts:988`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param handler 参数 handler 为当前功能所需的输入信息。
+         * @param priority 参数 priority 为当前功能所需的输入信息。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         onValidate: (handler, priority) => {
           const disposer = hookManager.validate.tap(handler, priority)
           hookDisposers.push(disposer)
           return disposer
         },
+        /**
+         * onSetValues：执行当前位置的功能逻辑。
+         * 定位：`packages/core/src/models/Form.ts:993`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param handler 参数 handler 为当前功能所需的输入信息。
+         * @param priority 参数 priority 为当前功能所需的输入信息。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         onSetValues: (handler, priority) => {
           const disposer = hookManager.setValues.tap(handler, priority)
           hookDisposers.push(disposer)
           return disposer
         },
+        /**
+         * onCreateField：执行当前位置的功能逻辑。
+         * 定位：`packages/core/src/models/Form.ts:998`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param handler 参数 handler 为当前功能所需的输入信息。
+         * @param priority 参数 priority 为当前功能所需的输入信息。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         onCreateField: (handler, priority) => {
           const disposer = hookManager.createField.tap(handler, priority)
           hookDisposers.push(disposer)
           return disposer
         },
+        /**
+         * onReset：执行当前位置的功能逻辑。
+         * 定位：`packages/core/src/models/Form.ts:1003`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param handler 参数 handler 为当前功能所需的输入信息。
+         * @param priority 参数 priority 为当前功能所需的输入信息。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         onReset: (handler, priority) => {
           const disposer = hookManager.reset.tap(handler, priority)
           hookDisposers.push(disposer)

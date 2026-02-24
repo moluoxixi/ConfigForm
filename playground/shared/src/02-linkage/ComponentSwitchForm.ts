@@ -15,18 +15,33 @@ const DATA_TYPE_OPTIONS = [
   { label: '布尔', value: 'boolean' },
 ]
 
+/**
+ * INPUT MODE OPTIONS：变量或常量声明。
+ * 所属模块：`playground/shared/src/02-linkage/ComponentSwitchForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const INPUT_MODE_OPTIONS = [
   { label: '手动输入', value: 'input' },
   { label: '下拉选择', value: 'select' },
   { label: '单选', value: 'radio' },
 ]
 
+/**
+ * PRESET OPTIONS：变量或常量声明。
+ * 所属模块：`playground/shared/src/02-linkage/ComponentSwitchForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const PRESET_OPTIONS = [
   { label: '选项 A', value: 'optionA' },
   { label: '选项 B', value: 'optionB' },
   { label: '选项 C', value: 'optionC' },
 ]
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/02-linkage/ComponentSwitchForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: '组件切换联动',
   description: 'reactions.fulfill.component — 动态切换字段的渲染组件',

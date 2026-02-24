@@ -61,12 +61,33 @@ const config: SceneConfig = {
     },
   },
 
+  /**
+   * effects：执行当前位置的功能逻辑。
+   * 定位：`playground/shared/src/11-advanced/EffectsAPIForm.ts:64`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param form 参数 form 为业务对象，用于读写状态与属性。
+   */
   effects: (form) => {
     const logs: string[] = []
-    const pushLog = (msg: string): void => {
-      logs.unshift(`[${new Date().toLocaleTimeString()}] ${msg}`)
-      form.setFieldState('log', { value: logs.slice(0, 20).join('\n') })
-    }
+    /**
+     * pushLog?????????????????
+     * ???`playground/shared/src/11-advanced/EffectsAPIForm.ts:80`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     * @param msg ?? msg ????????????
+     */
+    const /**
+           * pushLog：执行当前位置的功能逻辑。
+           * 定位：`playground/shared/src/11-advanced/EffectsAPIForm.ts:66`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @param msg 参数 msg 为当前功能所需的输入信息。
+           */
+      pushLog = (msg: string): void => {
+        logs.unshift(`[${new Date().toLocaleTimeString()}] ${msg}`)
+        form.setFieldState('log', { value: logs.slice(0, 20).join('\n') })
+      }
 
     /**
      * onFormReact：响应式自动追踪

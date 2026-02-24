@@ -56,6 +56,8 @@ export function registerFormat(name: string, validator: FormatValidator): void {
 
 /**
  * 获取格式验证器
+ * @param name 参数 `name`用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function getFormatValidator(name: string): FormatValidator | undefined {
   return formatRegistry.get(name)
@@ -63,6 +65,8 @@ export function getFormatValidator(name: string): FormatValidator | undefined {
 
 /**
  * 判断格式验证器是否已注册
+ * @param name 参数 `name`用于提供当前函数执行所需的输入信息。
+ * @returns 返回布尔值，用于表示条件是否成立或操作是否成功。
  */
 export function hasFormat(name: string): boolean {
   return formatRegistry.has(name)

@@ -5,6 +5,11 @@ import { Button, message } from 'antd'
 import { useEffect, useState } from 'react'
 import { JsonEditorModal } from './JsonEditorModal'
 
+/**
+ * Export Json Action Props：类型接口定义。
+ * 所属模块：`packages/ui-antd/src/components/ExportJsonAction.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export interface ExportJsonActionProps {
   buttonText?: string
   modalTitle?: string
@@ -18,11 +23,22 @@ export interface ExportJsonActionProps {
 }
 
 /**
- * Export Json Action：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 Export Json Action 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * Export Json Action：当前功能模块的核心执行单元。
+ * 所属模块：`packages/ui-antd/src/components/ExportJsonAction.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param param1 原始解构参数（{
+  buttonText = '导出预览',
+  modalTitle = '导出 JSON 预览',
+  description = '当前表单值的 JSON 预览。点击“下载 JSON”导出文件。',
+  confirmText = '下载 JSON',
+  filename = 'order-export.json',
+  previewOptions,
+  downloadOptions,
+  className,
+  style,
+}）用于提供可选配置，调整当前功能模块的执行策略。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function ExportJsonAction({
   buttonText = '导出预览',
@@ -49,24 +65,35 @@ export function ExportJsonAction({
     }, previewOptions)
   }, [form, previewOptions])
 
-  const handleDownload = async (): Promise<void> => {
-    try {
-      const downloadJSON = form.downloadJSON
-      if (!downloadJSON) {
-        throw new Error('exportPlugin is not installed.')
+  /**
+   * handle Download：当前功能模块的核心执行单元。
+   * 所属模块：`packages/ui-antd/src/components/ExportJsonAction.tsx`。
+   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+   */
+  const /**
+         * handleDownload：执行当前功能逻辑。
+         *
+         * @returns 返回当前功能的处理结果。
+         */
+    handleDownload = async (): Promise<void> => {
+      try {
+        const downloadJSON = form.downloadJSON
+        if (!downloadJSON) {
+          throw new Error('exportPlugin is not installed.')
+        }
+        await downloadJSON({
+          ...downloadOptions,
+          filename,
+        })
+        message.success('JSON 导出成功')
+        setOpen(false)
       }
-      await downloadJSON({
-        ...downloadOptions,
-        filename,
-      })
-      message.success('JSON 导出成功')
-      setOpen(false)
+      catch (error) {
+        const text = error instanceof Error ? error.message : String(error)
+        message.error(`导出失败：${text}`)
+      }
     }
-    catch (error) {
-      const text = error instanceof Error ? error.message : String(error)
-      message.error(`导出失败：${text}`)
-    }
-  }
 
   return (
     <div className={className} style={style}>

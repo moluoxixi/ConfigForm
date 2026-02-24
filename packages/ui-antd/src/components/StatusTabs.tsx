@@ -11,6 +11,8 @@ const MODE_OPTIONS = [
 
 /**
  * 格式化值为可读字符串
+ * @param val 参数 `val`用于提供待处理的值并参与结果计算。
+ * @returns 返回字符串结果，通常用于文本展示或下游拼接。
  */
 function formatValue(val: unknown): string {
   if (val === null || val === undefined || val === '')
@@ -24,6 +26,11 @@ function formatValue(val: unknown): string {
   return String(val)
 }
 
+/**
+ * Status Tabs Props：类型接口定义。
+ * 所属模块：`packages/ui-antd/src/components/StatusTabs.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export interface StatusTabsProps {
   /** 结果区域标题 */
   resultTitle?: string
@@ -40,6 +47,8 @@ export interface StatusTabsProps {
  *
  * 使用 antd Segmented 组件实现模式切换，结构化表格展示提交结果。
  * 不包含 ConfigForm / FormProvider 等表单逻辑，由各场景文件自行实现。
+ * @param param1 原始解构参数（{ resultTitle = '提交结果', children }）用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function StatusTabs({ resultTitle = '提交结果', children }: StatusTabsProps): React.ReactElement {
   const [mode, setMode] = useState<FieldPattern>('editable')

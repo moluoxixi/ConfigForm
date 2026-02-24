@@ -3,10 +3,20 @@ import type { ReactElement } from 'react'
 import { ArrayBase, observer, RecursionField, useField } from '@moluoxixi/react'
 import { Card } from 'antd'
 
+/**
+ * Array Cards Props：类型接口定义。
+ * 所属模块：`packages/ui-antd/src/components/ArrayCards.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export interface ArrayCardsProps {
   itemsSchema?: ISchema
 }
 
+/**
+ * Array Cards：变量或常量声明。
+ * 所属模块：`packages/ui-antd/src/components/ArrayCards.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export const ArrayCards = observer<ArrayCardsProps>(({ itemsSchema }): ReactElement | null => {
   let field: ArrayFieldInstance | null = null
   try {

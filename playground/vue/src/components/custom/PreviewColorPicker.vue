@@ -8,22 +8,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-const props = defineProps<{
-  modelValue?: string
-}>()
-
-const displayValue = computed(() => (props.modelValue && props.modelValue.length > 0 ? props.modelValue : '—'))
-const swatchColor = computed(() => {
-  const value = props.modelValue ?? ''
-  return /^#[0-9a-f]{6}$/i.test(value) ? value : '#000000'
-})
-
 const wrapperStyle = {
   display: 'inline-flex',
   alignItems: 'center',
   gap: '6px',
 } as const
 
+/**
+ * swatch Style：变量或常量声明。
+ * 所属模块：`playground/vue/src/components/custom/PreviewColorPicker.vue`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const swatchStyle = computed(() => ({
   width: '16px',
   height: '16px',
@@ -33,6 +28,11 @@ const swatchStyle = computed(() => ({
   display: 'inline-block',
 }))
 
+/**
+ * text Style：变量或常量声明。
+ * 所属模块：`playground/vue/src/components/custom/PreviewColorPicker.vue`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const textStyle = {
   fontFamily: 'monospace',
   fontSize: '13px',

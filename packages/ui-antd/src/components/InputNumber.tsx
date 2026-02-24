@@ -1,6 +1,11 @@
 import type { CSSProperties, ReactElement, ReactNode } from 'react'
 import { InputNumber as AInputNumber } from 'antd'
 
+/**
+ * Cf Input Number Props：类型接口定义。
+ * 所属模块：`packages/ui-antd/src/components/InputNumber.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export interface CfInputNumberProps {
   value?: number
   onChange?: (value?: number) => void
@@ -26,6 +31,8 @@ export interface CfInputNumberProps {
  *
  * Ant Design 的 InputNumber.onChange 传入 number | null，
  * 清空时传 null，统一转为 undefined 传递给表单字段。
+ * @param props 参数 `props`用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function InputNumber(props: CfInputNumberProps): ReactElement {
   const {

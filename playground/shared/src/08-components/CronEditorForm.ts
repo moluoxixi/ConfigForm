@@ -16,6 +16,11 @@ const CRON_PRESETS = [
   { label: '每 5 分钟', value: '*/5 * * * *' },
 ]
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/08-components/CronEditorForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: 'Cron 表达式编辑器',
   description: '自定义组件 CronEditor — 分段编辑 + 输入 + 预设 + 实时解读',

@@ -11,6 +11,11 @@ import {
 import { useEffect, useState } from 'react'
 import { CanvasMaskLayer } from '../shared/CanvasMaskLayer'
 
+/**
+ * CanvasPanelProps??????
+ * ???`packages/plugin-lower-code-react/src/designer/canvas/CanvasPanel.tsx:14`?
+ * ??????????????????????????????
+ */
 interface CanvasPanelProps {
   nodes: DesignerNode[]
   minCanvasHeight: number
@@ -55,49 +60,111 @@ export function CanvasPanel({
         : null
     return Boolean(element?.closest('[data-cf-toolbar-interactive="true"]'))
   }
-  const closestNodeId = (target: EventTarget | null): string | null => {
-    const element = target instanceof Element
-      ? target
-      : target instanceof Node
-        ? target.parentElement
-        : null
-    return element?.closest('[data-node-id]')?.getAttribute('data-node-id') ?? null
-  }
+  /**
+   * closestNodeId?????????????????
+   * ???`packages/plugin-lower-code-react/src/designer/canvas/CanvasPanel.tsx:66`?
+   * ?????????????????????????????????
+   * ??????????????????????????
+   * @param target ?? target ????????????
+   * @returns ?????????????
+   */
+  const /**
+         * closestNodeId：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-lower-code-react/src/designer/canvas/CanvasPanel.tsx:58`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param target 参数 target 为当前功能所需的输入信息。
+         * @returns 返回当前分支执行后的处理结果。
+         */
+    closestNodeId = (target: EventTarget | null): string | null => {
+      const element = target instanceof Element
+        ? target
+        : target instanceof Node
+          ? target.parentElement
+          : null
+      return element?.closest('[data-node-id]')?.getAttribute('data-node-id') ?? null
+    }
   // 容器点击只在命中容器自身外框时触发，避免误选到内部子节点。
-  const isNodeSelfEvent = (target: EventTarget | null, nodeId: string): boolean =>
-    closestNodeId(target) === nodeId
-  const consumeToolbarPointer = (event: React.SyntheticEvent): void => {
-    event.preventDefault()
-    event.stopPropagation()
-  }
+    /**
+     * isNodeSelfEvent?????????????????
+     * ???`packages/plugin-lower-code-react/src/designer/canvas/CanvasPanel.tsx:84`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     * @param target ?? target ????????????
+     * @param nodeId ?? nodeId ????????????
+     * @returns ?????????????
+     */
+  const /**
+         * isNodeSelfEvent：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-lower-code-react/src/designer/canvas/CanvasPanel.tsx:67`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param target 参数 target 为当前功能所需的输入信息。
+         * @param nodeId 参数 nodeId 为当前功能所需的输入信息。
+         * @returns 返回当前分支执行后的处理结果。
+         */
+    isNodeSelfEvent = (target: EventTarget | null, nodeId: string): boolean =>
+      closestNodeId(target) === nodeId
+  /**
+   * consumeToolbarPointer?????????????????
+   * ???`packages/plugin-lower-code-react/src/designer/canvas/CanvasPanel.tsx:93`?
+   * ?????????????????????????????????
+   * ??????????????????????????
+   * @param event ?? event ????????????
+   */
+  const /**
+         * consumeToolbarPointer：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-lower-code-react/src/designer/canvas/CanvasPanel.tsx:69`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param event 参数 event 为事件对象，用于提供交互上下文。
+         */
+    consumeToolbarPointer = (event: React.SyntheticEvent): void => {
+      event.preventDefault()
+      event.stopPropagation()
+    }
 
   // 节点树变化时，保持每个 LayoutTabs 容器的激活分组稳定。
   useEffect(() => {
     setActiveTabsByContainer((prev) => {
       const next: Record<string, string> = {}
-      const walk = (items: DesignerNode[]): void => {
-        for (const item of items) {
-          if (item.kind !== 'container')
-            continue
+      /**
+       * walk?????????????????
+       * ???`packages/plugin-lower-code-react/src/designer/canvas/CanvasPanel.tsx:109`?
+       * ?????????????????????????????????
+       * ??????????????????????????
+       * @param items ?? items ????????????
+       */
+      const /**
+             * walk：执行当前位置的功能逻辑。
+             * 定位：`packages/plugin-lower-code-react/src/designer/canvas/CanvasPanel.tsx:78`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @param items 参数 items 为当前功能所需的输入信息。
+             */
+        walk = (items: DesignerNode[]): void => {
+          for (const item of items) {
+            if (item.kind !== 'container')
+              continue
 
-          if (item.component === 'LayoutTabs') {
-            const sectionIds = item.sections.map(section => section.id)
-            if (sectionIds.length > 0) {
-              const previous = prev[item.id]
-              next[item.id] = previous && sectionIds.includes(previous) ? previous : sectionIds[0]
+            if (item.component === 'LayoutTabs') {
+              const sectionIds = item.sections.map(section => section.id)
+              if (sectionIds.length > 0) {
+                const previous = prev[item.id]
+                next[item.id] = previous && sectionIds.includes(previous) ? previous : sectionIds[0]
+              }
             }
-          }
 
-          if (containerUsesSections(item.component)) {
-            for (const section of item.sections) {
-              walk(section.children)
+            if (containerUsesSections(item.component)) {
+              for (const section of item.sections) {
+                walk(section.children)
+              }
             }
-          }
-          else {
-            walk(item.children)
+            else {
+              walk(item.children)
+            }
           }
         }
-      }
 
       walk(nodes)
 
@@ -416,6 +483,13 @@ export function CanvasPanel({
           actions={selected
             ? renderNodeToolbar(node.id, {
                 allowAddSection: containerUsesSections(node.component),
+                /**
+                 * onAddSection：执行当前位置的功能逻辑。
+                 * 定位：`packages/plugin-lower-code-react/src/designer/canvas/CanvasPanel.tsx:419`。
+                 * 功能：处理参数消化、状态变更与调用链行为同步。
+                 * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                 * @returns 返回当前分支执行后的处理结果。
+                 */
                 onAddSection: () => onAddSection(node.id),
               })
             : null}

@@ -22,6 +22,11 @@ const ORDER_TYPE_OPTIONS = [
   { label: 'VIP 订单', value: 'vip' },
 ]
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/11-advanced/ExpressionEngineForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: '表达式引擎',
   description: '使用 {{expression}} 字符串表达式实现联动，Schema 可纯 JSON 序列化',

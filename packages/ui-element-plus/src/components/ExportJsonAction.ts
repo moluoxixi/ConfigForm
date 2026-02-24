@@ -7,11 +7,21 @@ import JSONEditor from 'jsoneditor'
 import { defineComponent, h, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import 'jsoneditor/dist/jsoneditor.css'
 
+/**
+ * ExportJsonActionMessage??????
+ * ???`packages/ui-element-plus/src/components/ExportJsonAction.ts:10`?
+ * ??????????????????????????????
+ */
 export interface ExportJsonActionMessage {
   tone: 'info' | 'success' | 'error'
   text: string
 }
 
+/**
+ * ExportJsonActionProps??????
+ * ???`packages/ui-element-plus/src/components/ExportJsonAction.ts:15`?
+ * ??????????????????????????????
+ */
 export interface ExportJsonActionProps {
   buttonText?: string
   modalTitle?: string
@@ -47,6 +57,14 @@ export const ExportJsonAction = defineComponent({
     downloadOptions: { type: Object as PropType<ExportJsonActionProps['downloadOptions']>, default: undefined },
   },
   emits: ['message'],
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:50`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props, { emit }) {
     const form = useForm()
     const open = ref(false)
@@ -99,6 +117,12 @@ export const ExportJsonAction = defineComponent({
       }
     }
 
+    /**
+     * mountEditor：执行当前位置的功能逻辑。
+     * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:102`。
+     * 功能：处理参数消化、状态变更与调用链行为同步。
+     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+     */
     async function mountEditor(): Promise<void> {
       await nextTick()
       if (!editorHost.value) {
@@ -112,11 +136,24 @@ export const ExportJsonAction = defineComponent({
         navigationBar: true,
         statusBar: true,
         search: true,
+        /**
+         * onEditable：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:115`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         onEditable: () => false,
       })
       setEditorValue(previewData.value)
     }
 
+    /**
+     * confirmDownload：执行当前位置的功能逻辑。
+     * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:120`。
+     * 功能：处理参数消化、状态变更与调用链行为同步。
+     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+     */
     async function confirmDownload(): Promise<void> {
       try {
         const downloadJSON = form.downloadJSON
@@ -175,49 +212,135 @@ export const ExportJsonAction = defineComponent({
       destroyEditor()
     })
 
-    const renderPreviewModal = (): VNode => {
-      const editorHostRef: VNodeRef = (el) => {
-        editorHost.value = el as HTMLDivElement | null
+    /**
+     * renderPreviewModal?????????????????
+     * ???`packages/ui-element-plus/src/components/ExportJsonAction.ts:212`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     * @returns ?????????????
+     */
+    const /**
+           * renderPreviewModal：执行当前位置的功能逻辑。
+           * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:178`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @returns 返回当前分支执行后的处理结果。
+           */
+      renderPreviewModal = (): VNode => {
+        /**
+         * editorHostRef?????????????????
+         * ???`packages/ui-element-plus/src/components/ExportJsonAction.ts:220`?
+         * ?????????????????????????????????
+         * ??????????????????????????
+         * @param el ?? el ????????????
+         */
+        const /**
+               * editorHostRef：执行当前位置的功能逻辑。
+               * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:179`。
+               * 功能：处理参数消化、状态变更与调用链行为同步。
+               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+               * @param el 参数 el 为当前功能所需的输入信息。
+               */
+          editorHostRef: VNodeRef = (el) => {
+            editorHost.value = el as HTMLDivElement | null
+          }
+
+        const editorView = h('div', {
+          ref: editorHostRef,
+          style: { minHeight: '420px', overflow: 'auto' },
+        })
+
+        const errorView = errorMessage.value
+          ? h('p', { style: { color: '#be123c', fontSize: '12px', margin: '8px 0 0' } }, errorMessage.value)
+          : null
+
+        return h(ElDialog, {
+          'modelValue': open.value,
+          'title': props.modalTitle,
+          'width': 960,
+          'destroyOnClose': true,
+          /**
+           * onUpdate:modelValue：执行当前位置的功能逻辑。
+           * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:197`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @param value 参数 value 为输入值，用于驱动后续逻辑。
+           */
+          'onUpdate:modelValue': (value: boolean) => {
+            open.value = value
+          },
+        }, {
+          /**
+           * default：执行当前位置的功能逻辑。
+           * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:201`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @returns 返回当前分支执行后的处理结果。
+           */
+          default: () => [
+            h(ElAlert, {
+              type: 'info',
+              showIcon: true,
+              title: props.description,
+              closable: false,
+              style: { marginBottom: '12px' },
+            }),
+            editorView,
+            errorView,
+          ],
+          /**
+           * footer：执行当前位置的功能逻辑。
+           * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:212`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @returns 返回当前分支执行后的处理结果。
+           */
+          footer: () => [
+            h(ElButton, { /**
+                           * onClick：执行当前位置的功能逻辑。
+                           * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:213`。
+                           * 功能：处理参数消化、状态变更与调用链行为同步。
+                           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                           */
+              /**
+               * onClick：执行当前位置的功能逻辑。
+               * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:281`。
+               * 功能：处理参数消化、状态变更与调用链行为同步。
+               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+               */
+              onClick: () => { open.value = false },
+            }, () => props.cancelText),
+            h(ElButton, { type: 'primary', /**
+                                            * onClick：执行当前位置的功能逻辑。
+                                            * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:214`。
+                                            * 功能：处理参数消化、状态变更与调用链行为同步。
+                                            * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                                            */
+              /**
+               * onClick：执行当前位置的功能逻辑。
+               * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:288`。
+               * 功能：处理参数消化、状态变更与调用链行为同步。
+               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+               */
+              onClick: () => { void confirmDownload() } }, () => props.confirmText),
+          ],
+        })
       }
 
-      const editorView = h('div', {
-        ref: editorHostRef,
-        style: { minHeight: '420px', overflow: 'auto' },
-      })
-
-      const errorView = errorMessage.value
-        ? h('p', { style: { color: '#be123c', fontSize: '12px', margin: '8px 0 0' } }, errorMessage.value)
-        : null
-
-      return h(ElDialog, {
-        'modelValue': open.value,
-        'title': props.modalTitle,
-        'width': 960,
-        'destroyOnClose': true,
-        'onUpdate:modelValue': (value: boolean) => {
-          open.value = value
-        },
-      }, {
-        default: () => [
-          h(ElAlert, {
-            type: 'info',
-            showIcon: true,
-            title: props.description,
-            closable: false,
-            style: { marginBottom: '12px' },
-          }),
-          editorView,
-          errorView,
-        ],
-        footer: () => [
-          h(ElButton, { onClick: () => { open.value = false } }, () => props.cancelText),
-          h(ElButton, { type: 'primary', onClick: () => { void confirmDownload() } }, () => props.confirmText),
-        ],
-      })
-    }
-
     return () => h('div', null, [
-      h(ElButton, { type: 'primary', onClick: () => { open.value = true } }, () => props.buttonText),
+      h(ElButton, { type: 'primary', /**
+                                      * onClick：执行当前位置的功能逻辑。
+                                      * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:220`。
+                                      * 功能：处理参数消化、状态变更与调用链行为同步。
+                                      * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                                      */
+        /**
+         * onClick：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-element-plus/src/components/ExportJsonAction.ts:300`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         */
+        onClick: () => { open.value = true } }, () => props.buttonText),
       renderPreviewModal(),
     ])
   },

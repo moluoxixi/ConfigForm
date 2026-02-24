@@ -13,7 +13,21 @@ export const TreeSelect = defineComponent({
   name: 'CfTreeSelect',
   props: {
     modelValue: { type: [String, Number, Array], default: undefined },
-    dataSource: { type: Array as PropType<DataSourceItem[]>, default: () => [] },
+    dataSource: { type: Array as PropType<DataSourceItem[]>, /**
+                                                              * default：执行当前位置的功能逻辑。
+                                                              * 定位：`packages/ui-element-plus/src/components/TreeSelect.ts:16`。
+                                                              * 功能：处理参数消化、状态变更与调用链行为同步。
+                                                              * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                                                              * @returns 返回当前分支执行后的处理结果。
+                                                              */
+      /**
+       * default：执行当前位置的功能逻辑。
+       * 定位：`packages/ui-element-plus/src/components/TreeSelect.ts:23`。
+       * 功能：处理参数消化、状态变更与调用链行为同步。
+       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+       * @returns 返回当前分支执行后的处理结果。
+       */
+      default: () => [] },
     placeholder: String,
     disabled: Boolean,
     readonly: Boolean,
@@ -32,6 +46,14 @@ export const TreeSelect = defineComponent({
     defaultExpandAll: Boolean,
   },
   emits: ['update:modelValue', 'focus', 'blur'],
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/ui-element-plus/src/components/TreeSelect.ts:35`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props, { emit }) {
     /**
      * 将 DataSourceItem 转为 Element Plus TreeSelect 的 data 格式
@@ -85,8 +107,30 @@ export const TreeSelect = defineComponent({
         'defaultExpandAll': props.defaultExpandAll,
         'renderAfterExpand': false,
         'style': 'width: 100%',
+        /**
+         * onUpdate:modelValue：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-element-plus/src/components/TreeSelect.ts:88`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param v 参数 v 为当前功能所需的输入信息。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         'onUpdate:modelValue': (v: unknown) => emit('update:modelValue', v),
+        /**
+         * onFocus：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-element-plus/src/components/TreeSelect.ts:89`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         'onFocus': () => emit('focus'),
+        /**
+         * onBlur：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-element-plus/src/components/TreeSelect.ts:90`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         'onBlur': () => emit('blur'),
       })
     }

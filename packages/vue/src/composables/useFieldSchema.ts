@@ -8,6 +8,7 @@ import { SchemaSymbol } from '../context'
  * 由 SchemaField 在渲染每个节点时注入。
  * 布局组件（LayoutTabs/LayoutCollapse/LayoutSteps）通过此 composable
  * 读取自身 Schema，遍历 properties 发现子面板。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function useFieldSchema(): ISchema {
   const schema = inject(SchemaSymbol)

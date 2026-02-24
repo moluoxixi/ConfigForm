@@ -52,12 +52,22 @@ const STUDENT_OVERLAY: ISchema = {
   },
 }
 
+/**
+ * OVERLAYS：变量或常量声明。
+ * 所属模块：`playground/shared/src/07-dynamic/DynamicSchemaForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const OVERLAYS: Record<string, ISchema> = {
   personal: PERSONAL_OVERLAY,
   enterprise: ENTERPRISE_OVERLAY,
   student: STUDENT_OVERLAY,
 }
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/07-dynamic/DynamicSchemaForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: '动态 Schema 合并',
   description: 'mergeSchema — 基础 schema + 场景覆盖层，切换场景动态合并',
@@ -84,6 +94,14 @@ const config: SceneConfig = {
       { label: '学生', value: 'student' },
     ],
     defaultValue: 'personal',
+    /**
+     * factory：执行当前功能逻辑。
+     *
+     * @param value 参数 value 的输入说明。
+     *
+     * @returns 返回当前功能的处理结果。
+     */
+
     factory: (value: string): ISchema => {
       const overlay = OVERLAYS[value]
       if (!overlay)

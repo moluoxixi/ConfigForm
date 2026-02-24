@@ -5,6 +5,11 @@ import { useField } from '../composables'
 import { ArrayBase } from './ArrayBase'
 import { RecursionField } from './RecursionField'
 
+/**
+ * ColumnDef??????
+ * ???`packages/vue/src/components/ArrayTable.ts:8`?
+ * ??????????????????????????????
+ */
 interface ColumnDef {
   key: string
   title: string
@@ -40,6 +45,14 @@ export const ArrayTable = defineComponent({
       default: undefined,
     },
   },
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/vue/src/components/ArrayTable.ts:43`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props) {
     let field: ArrayFieldInstance
     try {
@@ -87,6 +100,13 @@ export const ArrayTable = defineComponent({
 
       const rows: VNode[] = arrayValue.map((_, index) =>
         h(ArrayBase.Item, { key: index, index }, {
+          /**
+           * default：执行当前位置的功能逻辑。
+           * 定位：`packages/vue/src/components/ArrayTable.ts:90`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @returns 返回当前分支执行后的处理结果。
+           */
           default: () => h('tr', { style: { background: index % 2 === 0 ? '#fff' : '#fafafa' } }, [
             h('td', { style: { ...tdStyle, textAlign: 'center', color: '#999' } }, `${index + 1}`),
             ...columns.map(col =>
@@ -127,6 +147,13 @@ export const ArrayTable = defineComponent({
       }
 
       return h(ArrayBase, null, {
+        /**
+         * default：执行当前位置的功能逻辑。
+         * 定位：`packages/vue/src/components/ArrayTable.ts:130`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         default: () => h('div', { style: { width: '100%' } }, [
           h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' } }, [
             h('span', { style: { fontWeight: 600, color: '#303133' } }, field.label || field.path),

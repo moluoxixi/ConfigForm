@@ -17,6 +17,11 @@ const LEAVE_TYPE_OPTIONS = [
   { label: '其他', value: 'other' },
 ]
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/02-linkage/ConditionalRequiredForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: '条件必填',
   description: '开关控制必填 / 金额阈值 / 选择「其他」必填 / 多条件组合',

@@ -18,7 +18,11 @@ const FIELD_OPTIONS = [
   { label: '备注', value: 'remark' },
 ]
 
-/** 生成通用的显隐联动 reaction：监听 _selectedFields，判断数组是否包含当前字段名 */
+/**
+ * 生成通用的显隐联动 reaction：监听 _selectedFields，判断数组是否包含当前字段名
+ * @param fieldName 参数 `fieldName`用于提供当前函数执行所需的输入信息。
+ * @returns 返回数组结果，用于后续遍历、渲染或进一步转换。
+ */
 function makeVisibilityReaction(fieldName: string): ReactionRule[] {
   return [{
     watch: '_selectedFields',
@@ -28,6 +32,11 @@ function makeVisibilityReaction(fieldName: string): ReactionRule[] {
   }]
 }
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/07-dynamic/DynamicFieldForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: '动态增删字段',
   description: 'CheckboxGroup 控制字段显隐 — 勾选后对应字段出现',

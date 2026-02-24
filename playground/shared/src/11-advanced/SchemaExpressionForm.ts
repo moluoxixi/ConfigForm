@@ -20,6 +20,11 @@ const INVOICE_TYPE_OPTIONS = [
   { label: '企业', value: 'company' },
 ]
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/11-advanced/SchemaExpressionForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: 'Schema 表达式',
   description: '通过 {{表达式}} 驱动的 Schema 联动 — 条件显隐 / 自动计算 / 状态控制',

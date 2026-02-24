@@ -15,11 +15,21 @@ const PATTERN_OPTIONS = [
   { label: '预览 (preview)', value: 'preview' },
 ]
 
+/**
+ * GENDER OPTIONS：变量或常量声明。
+ * 所属模块：`playground/shared/src/09-state/PatternSwitchForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const GENDER_OPTIONS = [
   { label: '男', value: 'male' },
   { label: '女', value: 'female' },
 ]
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/09-state/PatternSwitchForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: '表单模式切换',
   description: 'pattern: editable / disabled / preview — 表单级 + 字段级模式',
@@ -33,6 +43,12 @@ const config: SceneConfig = {
     bio: '这是一段个人简介，用于测试不同模式下的展示效果。',
     alwaysEditable: '',
   },
+
+  /**
+   * effects：执行当前功能逻辑。
+   *
+   * @param form 参数 form 的输入说明。
+   */
 
   effects: (form: FormInstance): void => {
     /**

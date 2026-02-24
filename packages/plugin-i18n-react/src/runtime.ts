@@ -83,11 +83,26 @@ export function createReactMessageI18nRuntime(options: ReactMessageI18nRuntimeOp
   let pluginApi: I18nPluginAPI | undefined
   const plugin: FormPlugin<I18nPluginAPI> = {
     name: rawPlugin.name,
+    /**
+     * install：执行当前位置的功能逻辑。
+     * 定位：`packages/plugin-i18n-react/src/runtime.ts:86`。
+     * 功能：处理参数消化、状态变更与调用链行为同步。
+     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+     * @param form 参数 form 为业务对象，用于读写状态与属性。
+     * @param context 参数 context 为上下文对象，用于传递场景数据。
+     * @returns 返回当前分支执行后的处理结果。
+     */
     install(form, context) {
       const installed = rawPlugin.install(form, context)
       pluginApi = installed.api
       return {
         api: installed.api,
+        /**
+         * dispose：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-i18n-react/src/runtime.ts:91`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         */
         dispose: () => {
           if (pluginApi === installed.api) {
             pluginApi = undefined
@@ -98,25 +113,87 @@ export function createReactMessageI18nRuntime(options: ReactMessageI18nRuntimeOp
     },
   }
 
-  const subscribeLocale = (listener: (nextLocale: string) => void): (() => void) => {
-    const handler = (nextLocale: string): void => {
-      listener(nextLocale)
+  /**
+   * subscribeLocale?????????????????
+   * ???`packages/plugin-i18n-react/src/runtime.ts:124`?
+   * ?????????????????????????????????
+   * ??????????????????????????
+   * @param listener ?? listener ????????????
+   * @returns ?????????????
+   */
+  const /**
+         * subscribeLocale：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-i18n-react/src/runtime.ts:101`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param listener 参数 listener 为当前功能所需的输入信息。
+         * @returns 返回当前分支执行后的处理结果。
+         */
+    subscribeLocale = (listener: (nextLocale: string) => void): (() => void) => {
+      /**
+       * handler?????????????????
+       * ???`packages/plugin-i18n-react/src/runtime.ts:132`?
+       * ?????????????????????????????????
+       * ??????????????????????????
+       * @param nextLocale ?? nextLocale ????????????
+       */
+      const /**
+             * handler：执行当前位置的功能逻辑。
+             * 定位：`packages/plugin-i18n-react/src/runtime.ts:102`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @param nextLocale 参数 nextLocale 为当前功能所需的输入信息。
+             */
+        handler = (nextLocale: string): void => {
+          listener(nextLocale)
+        }
+      i18n.on('languageChanged', handler)
+      return () => {
+        i18n.off('languageChanged', handler)
+      }
     }
-    i18n.on('languageChanged', handler)
-    return () => {
-      i18n.off('languageChanged', handler)
-    }
-  }
 
-  const t = (key: string, params?: Record<string, unknown>): string => {
-    return translate(i18n, key, params)
-  }
+  /**
+   * t?????????????????
+   * ???`packages/plugin-i18n-react/src/runtime.ts:150`?
+   * ?????????????????????????????????
+   * ??????????????????????????
+   * @param key ?? key ????????????
+   * @param params ?? params ????????????
+   * @returns ?????????????
+   */
+  const /**
+         * t：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-i18n-react/src/runtime.ts:111`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param key 参数 key 为当前功能所需的输入信息。
+         * @param params 参数 params 为当前功能所需的输入信息。
+         * @returns 返回当前分支执行后的处理结果。
+         */
+    t = (key: string, params?: Record<string, unknown>): string => {
+      return translate(i18n, key, params)
+    }
 
   return {
     plugin,
     i18n,
     t,
+    /**
+     * getLocale：执行当前位置的功能逻辑。
+     * 定位：`packages/plugin-i18n-react/src/runtime.ts:119`。
+     * 功能：处理参数消化、状态变更与调用链行为同步。
+     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+     * @returns 返回当前分支执行后的处理结果。
+     */
     getLocale: () => i18n.resolvedLanguage || i18n.language || resolvedLocale || '',
+    /**
+     * setLocale：执行当前位置的功能逻辑。
+     * 定位：`packages/plugin-i18n-react/src/runtime.ts:120`。
+     * 功能：处理参数消化、状态变更与调用链行为同步。
+     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+     * @param nextLocale 参数 nextLocale 为当前功能所需的输入信息。
+     */
     setLocale: async (nextLocale) => {
       if (pluginApi) {
         await pluginApi.setLocale(nextLocale)

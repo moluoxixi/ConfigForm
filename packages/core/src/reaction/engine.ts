@@ -59,6 +59,10 @@ function extractArrayContext(
   return {}
 }
 
+/**
+ * watch 路径编译后的描述信息。
+ * 无通配符路径会提前拆分 segments，减少运行时重复解析成本。
+ */
 interface WatchDescriptor {
   path: string
   hasWildcard: boolean
@@ -66,11 +70,9 @@ interface WatchDescriptor {
 }
 
 /**
- * compile Watch Descriptors：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 compile Watch Descriptors 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 预编译 watch 路径列表。
+ * @param watchPaths reaction 监听路径。
+ * @returns 编译后的 watch 描述数组。
  */
 function compileWatchDescriptors(watchPaths: string[]): WatchDescriptor[] {
   return watchPaths.map((path) => {
@@ -86,11 +88,10 @@ function compileWatchDescriptors(watchPaths: string[]): WatchDescriptor[] {
 }
 
 /**
- * create Array Context Resolver：负责“创建create Array Context Resolver”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 create Array Context Resolver 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * 基于字段路径创建数组上下文解析器。
+ * 当路径中包含数组索引时，解析结果会携带 `$record` 与 `$index`。
+ * @param fieldPath 当前字段路径。
+ * @returns 数组上下文解析函数。
  */
 function createArrayContextResolver(fieldPath: string): (values: Record<string, unknown>) => {
   record?: Record<string, unknown>
@@ -121,6 +122,8 @@ function createArrayContextResolver(fieldPath: string): (values: Record<string, 
  * - context.record → $record
  * - context.index → $index
  * - context.deps → $deps
+ * @param context 当前联动上下文。
+ * @returns 表达式引擎可读取的标准作用域对象。
  */
 function contextToScope(context: ReactionContext): ExpressionScope {
   return {
@@ -140,11 +143,9 @@ function contextToScope(context: ReactionContext): ExpressionScope {
 const MAX_REACTION_EXECUTIONS_PER_BATCH = 100
 
 /**
- * defer Microtask：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 defer Microtask 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * 在微任务队列中延后执行。
+ * 优先使用 queueMicrotask，低版本环境回退到 Promise.then。
+ * @param fn 需要延后执行的函数。
  */
 function deferMicrotask(fn: () => void): void {
   if (typeof queueMicrotask === 'function') {
@@ -191,12 +192,20 @@ export class ReactionTracer {
   /** 是否启用追踪（性能开关） */
   enabled: boolean
 
+  /**
+   * 创建联动追踪器。
+   * @param maxRecords 最大记录条数。
+   * @param enabled 是否默认启用追踪。
+   */
   constructor(maxRecords = 200, enabled = false) {
     this.maxRecords = maxRecords
     this.enabled = enabled
   }
 
-  /** 记录一次联动执行 */
+  /**
+   * 记录一次联动执行
+   * @param record 参数 `record`用于提供当前函数执行所需的输入信息。
+   */
   trace(record: ReactionTraceRecord): void {
     if (!this.enabled)
       return
@@ -207,26 +216,46 @@ export class ReactionTracer {
     }
   }
 
-  /** 获取所有追踪记录 */
+  /**
+   * 获取所有追踪记录
+   * @returns 返回数组结果，用于后续遍历、渲染或进一步转换。
+   */
   getRecords(): readonly ReactionTraceRecord[] {
     return this.records
   }
 
-  /** 获取指定字段的触发记录 */
+  /**
+   * 获取指定字段的触发记录
+   * @param sourcePath 触发源字段路径。
+   * @returns 与该 sourcePath 匹配的追踪记录列表。
+   */
   getRecordsBySource(sourcePath: string): ReactionTraceRecord[] {
     return this.records.filter(r => r.sourcePath === sourcePath)
   }
 
-  /** 获取指定字段被影响的记录 */
+  /**
+   * 获取指定字段被影响的记录
+   * @param targetPath 目标字段路径。
+   * @returns 与该 targetPath 匹配的追踪记录列表。
+   */
   getRecordsByTarget(targetPath: string): ReactionTraceRecord[] {
     return this.records.filter(r => r.targetPath === targetPath)
   }
 
-  /** 获取完整联动链路（A → B → C → ...） */
+  /**
+   * 获取完整联动链路（A → B → C → ...）
+   * @param startPath 起始字段路径。
+   * @returns 从起点出发推导出的所有链路。
+   */
   getChain(startPath: string): string[][] {
     const chains: string[][] = []
     const visited = new Set<string>()
 
+    /**
+     * 深度优先遍历联动图，收集从起点可达的路径链。
+     * @param path 当前节点路径。
+     * @param chain 当前链路快照。
+     */
     const dfs = (path: string, chain: string[]): void => {
       if (visited.has(path))
         return
@@ -254,7 +283,9 @@ export class ReactionTracer {
     return chains
   }
 
-  /** 清空记录 */
+  /**
+   * 清空记录
+   */
   clear(): void {
     this.records = []
   }
@@ -283,17 +314,26 @@ export class ReactionEngine {
   /** 联动追踪器（调试用） */
   readonly tracer = new ReactionTracer()
 
+  /**
+   * 创建联动引擎实例。
+   * @param form 当前表单实例。
+   */
   constructor(form: FormInstance) {
     this.form = form
   }
 
-  /** 启用/禁用联动链路追踪 */
+  /**
+   * 启用/禁用联动链路追踪
+   * @param enabled 是否启用追踪。
+   */
   enableTracing(enabled: boolean): void {
     this.tracer.enabled = enabled
   }
 
   /**
    * 注册字段的联动规则
+   * @param field 参数 `field`用于提供当前函数执行所需的输入信息。
+   * @param rules 参数 `rules`用于提供当前函数执行所需的输入信息。
    */
   registerFieldReactions(field: FieldInstance, rules: ReactionRule[]): void {
     for (const rule of rules) {
@@ -303,6 +343,8 @@ export class ReactionEngine {
 
   /**
    * 注册单条联动规则
+   * @param field 触发联动的源字段。
+   * @param rule 联动规则定义。
    */
   private registerReaction(field: FieldInstance, rule: ReactionRule): void {
     const adapter = getReactiveAdapter(this.form)
@@ -328,7 +370,10 @@ export class ReactionEngine {
       return
     }
 
-    /** 收集监听的字段值 */
+    /**
+     * 收集监听的字段值
+     * @returns watch 描述对应的依赖值数组。
+     */
     const getWatchedValues = (): unknown[] => {
       const formValues = this.form.values as Record<string, unknown>
       const deps = Array.from({ length: watchDescriptors.length })
@@ -356,6 +401,7 @@ export class ReactionEngine {
      * 构建联动上下文（含数组上下文和依赖值）
      *
      * @param deps - getWatchedValues() 返回的依赖值数组
+     * @returns 当前联动执行上下文。
      */
     const buildContext = (deps: unknown[]): ReactionContext => {
       const formValues = this.form.values as Record<string, unknown>
@@ -370,7 +416,12 @@ export class ReactionEngine {
       }
     }
 
-    /** 在指定字段上执行联动效果 */
+    /**
+     * 在指定字段上执行联动效果
+     * @param target 需要被更新的目标字段。
+     * @param effect 联动效果配置。
+     * @param context 当前联动上下文。
+     */
     const executeEffect = (
       target: FieldInstance,
       effect: ReactionEffect,
@@ -452,6 +503,7 @@ export class ReactionEngine {
     /**
      * 解析联动目标字段。
      * 有 target 时作用于目标字段，否则作用于自身。
+     * @returns 可执行联动的目标字段；找不到目标时返回 null。
      */
     const resolveTarget = (): FieldInstance | null => {
       if (!rule.target)
@@ -464,7 +516,9 @@ export class ReactionEngine {
       return t
     }
 
-    /** 联动执行函数（支持同步和异步效果） */
+    /**
+     * 联动执行函数（支持同步和异步效果）
+     */
     const execute = (): void => {
       /**
        * 运行时死循环防护。
@@ -555,6 +609,9 @@ export class ReactionEngine {
      */
     let disposed = false
 
+    /**
+     * 统一执行入口，先检查释放状态再触发最终执行函数。
+     */
     const runFinalExecute = (): void => {
       if (disposed)
         return
@@ -590,6 +647,7 @@ export class ReactionEngine {
    *
    * 同时清理依赖图和该字段关联的所有 reaction disposers，
    * 防止已删除字段的联动回调继续在后台运行导致内存泄漏。
+   * @param fieldPath 参数 `fieldPath`用于提供当前函数执行所需的输入信息。
    */
   removeFieldReactions(fieldPath: string): void {
     this.depGraph.removeNode(fieldPath)

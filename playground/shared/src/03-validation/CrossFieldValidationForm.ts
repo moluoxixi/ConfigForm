@@ -1,48 +1,17 @@
 import type { ValidationRule } from '@moluoxixi/core'
 import type { SceneConfig } from '../types'
 
-/**
- * 场景：跨字段验证
- *
- * 覆盖：密码一致性 / 日期范围 / 比例总和=100% / 数值区间 / 预算限制
- */
-
-/** 确认密码规则：与密码一致 */
-const confirmPasswordRules: ValidationRule[] = [{
-  validator: (v: unknown, _r: unknown, ctx: any): string | undefined => {
-    if (v && ctx.getFieldValue('password') && v !== ctx.getFieldValue('password'))
-      return '密码不一致'
-    return undefined
-  },
-  trigger: 'blur',
-}]
-
-/** 结束日期规则：不能早于开始日期 */
-const endDateRules: ValidationRule[] = [{
-  validator: (v: unknown, _r: unknown, ctx: any): string | undefined => {
-    const s = ctx.getFieldValue('startDate') as string
-    if (s && v && String(v) < s)
-      return '结束日期不能早于开始日期'
-    return undefined
-  },
-  trigger: 'blur',
-}]
-
-/** 项目 C 比例规则：A+B+C 须等于 100 */
-const ratioCRules: ValidationRule[] = [{
-  validator: (_v: unknown, _r: unknown, ctx: any): string | undefined => {
-    const t = ((ctx.getFieldValue('ratioA') as number) ?? 0)
-      + ((ctx.getFieldValue('ratioB') as number) ?? 0)
-      + ((ctx.getFieldValue('ratioC') as number) ?? 0)
-    if (t !== 100)
-      return `总和须为 100%，当前 ${t}%`
-    return undefined
-  },
-  trigger: 'blur',
-}]
-
-/** 最大年龄规则：须大于最小年龄 */
 const maxAgeRules: ValidationRule[] = [{
+  /**
+   * validator：执行当前功能逻辑。
+   *
+   * @param v 参数 v 的输入说明。
+   * @param _r 参数 _r 的输入说明。
+   * @param ctx 参数 ctx 的输入说明。
+   *
+   * @returns 返回当前功能的处理结果。
+   */
+
   validator: (v: unknown, _r: unknown, ctx: any): string | undefined => {
     if (Number(v) <= (ctx.getFieldValue('minAge') as number))
       return '须大于最小年龄'
@@ -53,6 +22,16 @@ const maxAgeRules: ValidationRule[] = [{
 
 /** 实际支出规则：不能超过预算 */
 const expenseRules: ValidationRule[] = [{
+  /**
+   * validator：执行当前功能逻辑。
+   *
+   * @param v 参数 v 的输入说明。
+   * @param _r 参数 _r 的输入说明。
+   * @param ctx 参数 ctx 的输入说明。
+   *
+   * @returns 返回当前功能的处理结果。
+   */
+
   validator: (v: unknown, _r: unknown, ctx: any): string | undefined => {
     if (Number(v) > (ctx.getFieldValue('budget') as number))
       return '支出不能超过预算'
@@ -61,6 +40,11 @@ const expenseRules: ValidationRule[] = [{
   trigger: 'blur',
 }]
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/03-validation/CrossFieldValidationForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: '跨字段验证',
   description: '密码一致性 / 日期范围 / 比例总和=100% / 数值区间 / 预算限制',

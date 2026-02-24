@@ -421,6 +421,13 @@ function renderTreeView(
     ...nodes.map(n => h('div', { key: n.path }, [
       /* 节点行 */
       h('div', {
+        /**
+         * onClick：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-devtools-vue/src/DevToolsPanel.ts:424`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         onClick: () => onSelect(n.path),
         title: n.path,
         style: {
@@ -435,11 +442,25 @@ function renderTreeView(
             ? `3px solid ${t.accent}`
             : '3px solid transparent',
         },
+        /**
+         * onMouseenter：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-devtools-vue/src/DevToolsPanel.ts:438`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param e 参数 e 为事件对象，用于提供交互上下文。
+         */
         onMouseenter: (e: MouseEvent): void => {
           if (selected !== n.path) {
             (e.currentTarget as HTMLElement).style.background = t.bgHover
           }
         },
+        /**
+         * onMouseleave：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-devtools-vue/src/DevToolsPanel.ts:443`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param e 参数 e 为事件对象，用于提供交互上下文。
+         */
         onMouseleave: (e: MouseEvent): void => {
           if (selected !== n.path) {
             (e.currentTarget as HTMLElement).style.background = 'transparent'
@@ -487,6 +508,14 @@ const DetailViewComponent = defineComponent({
     detail: { type: Object as PropType<FieldDetail>, required: true },
     api: { type: Object as PropType<DevToolsPluginAPI>, required: true },
   },
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/plugin-devtools-vue/src/DevToolsPanel.ts:490`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props) {
     /** 编辑框当前输入值 */
     const editValue = ref('')
@@ -550,6 +579,13 @@ const DetailViewComponent = defineComponent({
               style: { fontSize: '15px', fontWeight: 700 },
             }, detail.label || detail.name),
             h('button', {
+              /**
+               * onClick：执行当前位置的功能逻辑。
+               * 定位：`packages/plugin-devtools-vue/src/DevToolsPanel.ts:553`。
+               * 功能：处理参数消化、状态变更与调用链行为同步。
+               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+               * @returns 返回当前分支执行后的处理结果。
+               */
               onClick: () => api.highlightField(detail.path),
               title: '在页面中定位',
               style: {
@@ -620,9 +656,23 @@ const DetailViewComponent = defineComponent({
               ? h('div', { style: { flex: 1, display: 'flex', gap: '4px' } }, [
                   h('input', {
                     value: editValue.value,
+                    /**
+                     * onInput：执行当前位置的功能逻辑。
+                     * 定位：`packages/plugin-devtools-vue/src/DevToolsPanel.ts:623`。
+                     * 功能：处理参数消化、状态变更与调用链行为同步。
+                     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                     * @param e 参数 e 为事件对象，用于提供交互上下文。
+                     */
                     onInput: (e: Event): void => {
                       editValue.value = (e.target as HTMLInputElement).value
                     },
+                    /**
+                     * onKeydown：执行当前位置的功能逻辑。
+                     * 定位：`packages/plugin-devtools-vue/src/DevToolsPanel.ts:626`。
+                     * 功能：处理参数消化、状态变更与调用链行为同步。
+                     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                     * @param e 参数 e 为事件对象，用于提供交互上下文。
+                     */
                     onKeydown: (e: KeyboardEvent): void => {
                       if (e.key === 'Enter')
                         applyEdit()
@@ -653,6 +703,12 @@ const DetailViewComponent = defineComponent({
                     },
                   }, '确定'),
                   h('button', {
+                    /**
+                     * onClick：执行当前位置的功能逻辑。
+                     * 定位：`packages/plugin-devtools-vue/src/DevToolsPanel.ts:656`。
+                     * 功能：处理参数消化、状态变更与调用链行为同步。
+                     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                     */
                     onClick: (): void => { editing.value = false },
                     style: {
                       background: 'none',
@@ -916,6 +972,14 @@ const ValuesViewComponent = defineComponent({
     theme: { type: Object as PropType<Theme>, required: true },
     values: { type: Object as PropType<Record<string, unknown>>, required: true },
   },
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/plugin-devtools-vue/src/DevToolsPanel.ts:919`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props) {
     /** 是否已复制到剪贴板 */
     const copied = ref(false)
@@ -1002,6 +1066,14 @@ export const DevToolsPanel = defineComponent({
       required: true,
     },
   },
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/plugin-devtools-vue/src/DevToolsPanel.ts:1005`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props) {
     /* ---- 系统主题跟随 ---- */
     const isDark = ref(
@@ -1012,9 +1084,23 @@ export const DevToolsPanel = defineComponent({
     onMounted(() => {
       const mq = window.matchMedia('(prefers-color-scheme: dark)')
       isDark.value = mq.matches
-      const handler = (e: MediaQueryListEvent): void => {
-        isDark.value = e.matches
-      }
+      /**
+       * handler?????????????????
+       * ???`packages/plugin-devtools-vue/src/DevToolsPanel.ts:1094`?
+       * ?????????????????????????????????
+       * ??????????????????????????
+       * @param e ?? e ????????????
+       */
+      const /**
+             * handler：执行当前位置的功能逻辑。
+             * 定位：`packages/plugin-devtools-vue/src/DevToolsPanel.ts:1015`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @param e 参数 e 为事件对象，用于提供交互上下文。
+             */
+        handler = (e: MediaQueryListEvent): void => {
+          isDark.value = e.matches
+        }
       mq.addEventListener('change', handler)
       onUnmounted(() => mq.removeEventListener('change', handler))
     })
@@ -1099,6 +1185,12 @@ export const DevToolsPanel = defineComponent({
       /* ===== 未展开时：浮动触发按钮 ===== */
       if (!visible.value) {
         return h('button', {
+          /**
+           * onClick：执行当前位置的功能逻辑。
+           * 定位：`packages/plugin-devtools-vue/src/DevToolsPanel.ts:1102`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           */
           onClick: (): void => { visible.value = true },
           title: 'ConfigForm DevTools',
           style: {
@@ -1197,6 +1289,13 @@ export const DevToolsPanel = defineComponent({
           tab.value === 'tree'
             ? h('input', {
                 value: search.value,
+                /**
+                 * onInput：执行当前位置的功能逻辑。
+                 * 定位：`packages/plugin-devtools-vue/src/DevToolsPanel.ts:1200`。
+                 * 功能：处理参数消化、状态变更与调用链行为同步。
+                 * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                 * @param e 参数 e 为事件对象，用于提供交互上下文。
+                 */
                 onInput: (e: Event): void => {
                   search.value = (e.target as HTMLInputElement).value
                 },

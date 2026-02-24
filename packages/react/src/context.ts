@@ -33,6 +33,11 @@ export interface ComponentRegistry {
   readPrettyComponents: Map<string, React.ComponentType<any>>
 }
 
+/**
+ * Component Registry Context：变量或常量声明。
+ * 所属模块：`packages/react/src/context.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export const ComponentRegistryContext = createContext<ComponentRegistry>({
   components: new Map(),
   decorators: new Map(),

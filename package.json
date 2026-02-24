@@ -32,6 +32,7 @@
     "build": "pnpm -r --filter './packages/*' build",
     "build:core": "pnpm --filter @moluoxixi/core build",
     "test": "pnpm --filter @moluoxixi/core test",
+    "test:packages": "vitest run -c vitest.packages.config.ts",
     "test:watch": "pnpm --filter @moluoxixi/core test:watch",
     "dev:vue": "pnpm --filter @playground/vue dev",
     "dev:react": "pnpm --filter @playground/react dev",
@@ -61,7 +62,8 @@
     "husky": "catalog:dev",
     "lint-staged": "catalog:dev",
     "tsx": "catalog:type",
-    "typescript": "catalog:type"
+    "typescript": "catalog:type",
+    "vitest": "catalog:dev"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [

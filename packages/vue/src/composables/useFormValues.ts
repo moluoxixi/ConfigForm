@@ -7,6 +7,7 @@ import { FormSymbol } from '../context'
  *
  * 由于 form.values 本身就是 Vue reactive 对象，
  * 直接在模板中使用就能自动追踪依赖。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function useFormValues<Values extends Record<string, unknown> = Record<string, unknown>>(): Values {
   const form = inject(FormSymbol)
@@ -21,6 +22,7 @@ export function useFormValues<Values extends Record<string, unknown> = Record<st
  *
  * 返回 ComputedRef<boolean>，在模板中使用 `.value` 访问，
  * 当字段验证状态变化时自动更新。
+ * @returns 返回布尔值，用于表示条件是否成立或操作是否成功。
  */
 export function useFormValid(): ComputedRef<boolean> {
   const form = inject(FormSymbol)
@@ -35,6 +37,7 @@ export function useFormValid(): ComputedRef<boolean> {
  *
  * 返回 ComputedRef<boolean>，在模板中使用 `.value` 访问，
  * 当提交状态变化时自动更新。
+ * @returns 返回布尔值，用于表示条件是否成立或操作是否成功。
  */
 export function useFormSubmitting(): ComputedRef<boolean> {
   const form = inject(FormSymbol)

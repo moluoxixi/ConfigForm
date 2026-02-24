@@ -6,6 +6,11 @@ import { observer, RecursionField, useField, useForm, useSchemaItems } from '@mo
 import { Tabs as ATabs, Badge } from 'antd'
 import { useEffect, useState } from 'react'
 
+/**
+ * LayoutTabsProps??????
+ * ???`packages/ui-antd/src/components/LayoutTabs.tsx:9`?
+ * ??????????????????????????????
+ */
 export interface LayoutTabsProps {}
 
 /**
@@ -24,43 +29,77 @@ export const LayoutTabs = observer((_props: LayoutTabsProps): ReactElement => {
   const items = useSchemaItems()
   const [activeKey, setActiveKey] = useState('0')
 
-  const getDataPath = (path: string): string => {
-    if (!path)
-      return ''
-    const segments = path.split('.')
-    const dataSegments: string[] = []
-    let currentPath = ''
-    for (const seg of segments) {
-      currentPath = currentPath ? `${currentPath}.${seg}` : seg
-      if (form.getAllVoidFields().has(currentPath))
-        continue
-      dataSegments.push(seg)
-    }
-    return dataSegments.join('.')
-  }
-
-  const collectDataPaths = (schema: ISchema, parentPath: string, output: Set<string>): void => {
-    if (!schema.properties)
-      return
-    for (const [name, childSchema] of Object.entries(schema.properties)) {
-      if (childSchema.type === 'void') {
-        collectDataPaths(childSchema, parentPath, output)
-        continue
+  /**
+   * getDataPath?????????????????
+   * ???`packages/ui-antd/src/components/LayoutTabs.tsx:35`?
+   * ?????????????????????????????????
+   * ??????????????????????????
+   * @param path ?? path ????????????
+   * @returns ?????????????
+   */
+  const /**
+         * getDataPath：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-antd/src/components/LayoutTabs.tsx:27`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param path 参数 path 为当前功能所需的输入信息。
+         * @returns 返回当前分支执行后的处理结果。
+         */
+    getDataPath = (path: string): string => {
+      if (!path)
+        return ''
+      const segments = path.split('.')
+      const dataSegments: string[] = []
+      let currentPath = ''
+      for (const seg of segments) {
+        currentPath = currentPath ? `${currentPath}.${seg}` : seg
+        if (form.getAllVoidFields().has(currentPath))
+          continue
+        dataSegments.push(seg)
       }
+      return dataSegments.join('.')
+    }
 
-      const nextPath = parentPath ? `${parentPath}.${name}` : name
-      output.add(nextPath)
+  /**
+   * collectDataPaths?????????????????
+   * ???`packages/ui-antd/src/components/LayoutTabs.tsx:59`?
+   * ?????????????????????????????????
+   * ??????????????????????????
+   * @param schema ?? schema ????????????
+   * @param parentPath ?? parentPath ????????????
+   * @param output ?? output ????????????
+   */
+  const /**
+         * collectDataPaths：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-antd/src/components/LayoutTabs.tsx:42`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param schema 参数 schema 为当前功能所需的输入信息。
+         * @param parentPath 参数 parentPath 为当前功能所需的输入信息。
+         * @param output 参数 output 为当前功能所需的输入信息。
+         */
+    collectDataPaths = (schema: ISchema, parentPath: string, output: Set<string>): void => {
+      if (!schema.properties)
+        return
+      for (const [name, childSchema] of Object.entries(schema.properties)) {
+        if (childSchema.type === 'void') {
+          collectDataPaths(childSchema, parentPath, output)
+          continue
+        }
 
-      if (childSchema.properties)
-        collectDataPaths(childSchema, nextPath, output)
+        const nextPath = parentPath ? `${parentPath}.${name}` : name
+        output.add(nextPath)
 
-      if (childSchema.items) {
-        const itemPath = `${nextPath}.*`
-        output.add(itemPath)
-        collectDataPaths(childSchema.items, itemPath, output)
+        if (childSchema.properties)
+          collectDataPaths(childSchema, nextPath, output)
+
+        if (childSchema.items) {
+          const itemPath = `${nextPath}.*`
+          output.add(itemPath)
+          collectDataPaths(childSchema.items, itemPath, output)
+        }
       }
     }
-  }
 
   const basePath = getDataPath(field.path)
   const itemPatterns = new Map(items.map((item) => {

@@ -12,141 +12,17 @@ import { previewValueByNode } from '@moluoxixi/plugin-lower-code-core'
 import { PreviewBoundary } from './PreviewBoundary'
 import { SchemaPreview } from './SchemaPreview'
 
-const DEFAULT_SELECT_OPTIONS = [
-  { label: '选项一', value: 'option_1' },
-  { label: '选项二', value: 'option_2' },
-]
-const PREVIEW_FIELD_NAME = '__preview__'
 /**
- * 这里列出的组件不走 registry 真实预览。
- * 原因：在预览态可能触发副作用或上下文递归渲染。
- */
-const UNSAFE_REGISTRY_PREVIEW_COMPONENTS = new Set(['StatusTabs'])
-
-/**
- * has Component：负责“判断has Component”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 has Component 的主要职责边界，便于维护者快速理解函数在链路中的定位。
- */
-function hasComponent(registry: RegistrySnapshot, componentName: string): boolean {
-  return registry.components.has(componentName)
-}
-
-/**
- * resolve Field Props By Component：负责“解析resolve Field Props By Component”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 resolve Field Props By Component 的主要职责边界，便于维护者快速理解函数在链路中的定位。
- */
-function resolveFieldPropsByComponent(
-  component: DesignerFieldComponent,
-  title: string,
-  options: Array<{ label: string, value: string }>,
-  value: unknown,
-  componentProps?: Record<string, unknown>,
-): Record<string, unknown> {
-  // 按组件类型构建“保守且稳定”的预览属性。
-  const base = {
-    disabled: false,
-    preview: false,
-  }
-
-  switch (component) {
-    case 'Textarea': {
-      const resolved = {
-        ...base,
-        value: String(value ?? ''),
-        placeholder: `请输入${title}`,
-        rows: 3,
-      }
-      return { ...resolved, ...componentProps }
-    }
-    case 'Select': {
-      const resolved = {
-        ...base,
-        value: value ?? '',
-        placeholder: `请选择${title}`,
-        dataSource: options.length > 0 ? options : DEFAULT_SELECT_OPTIONS,
-      }
-      return { ...resolved, ...componentProps }
-    }
-    case 'InputNumber': {
-      const resolved = {
-        ...base,
-        value: typeof value === 'number' ? value : 0,
-        placeholder: `请输入${title}`,
-      }
-      return { ...resolved, ...componentProps }
-    }
-    case 'Switch': {
-      const resolved = {
-        ...base,
-        value: Boolean(value),
-      }
-      return { ...resolved, ...componentProps }
-    }
-    case 'DatePicker': {
-      const resolved = {
-        ...base,
-        value: typeof value === 'string' ? value : '',
-        placeholder: `请选择${title}`,
-      }
-      return { ...resolved, ...componentProps }
-    }
-    case 'Input':
-    default:
-    {
-      const resolved = {
-        ...base,
-        checked: Boolean(value),
-        value: value ?? '',
-        placeholder: `请输入${title}`,
-      }
-      return { ...resolved, ...componentProps }
-    }
-  }
-}
-
-/**
- * split Preview Props：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 split Preview Props 的单一职责，调用方可通过函数名快速理解输入输出语义。
- */
-function splitPreviewProps(
-  component: DesignerFieldComponent,
-  props: Record<string, unknown>,
-): { componentProps: Record<string, unknown>, initialValue: unknown } {
-  // ConfigForm 的字段值在 form state，不应留在 componentProps。
-  const nextComponentProps = { ...props }
-  let initialValue: unknown
-
-  if (component === 'Switch') {
-    initialValue = Boolean(nextComponentProps.value ?? nextComponentProps.checked)
-  }
-  else {
-    initialValue = nextComponentProps.value
-  }
-
-  delete nextComponentProps.value
-  delete nextComponentProps.checked
-
-  return {
-    componentProps: nextComponentProps,
-    initialValue,
-  }
-}
-
-/**
- * build Preview Schema：负责“构建build Preview Schema”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 build Preview Schema 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * buildPreviewSchema：执行当前位置的功能处理逻辑。
+ * 定位：`packages/plugin-lower-code-react/src/designer/renderers/registry.tsx:17`。
+ * 功能：完成参数消化、业务分支处理及上下游结果传递。
+ * 流程：先执行输入边界处理，再运行核心逻辑，最后返回或触发后续动作。
+ * @param type 参数 type 为当前逻辑所需的输入信息。
+ * @param component 参数 component 为当前逻辑所需的输入信息。
+ * @param title 参数 title 为当前逻辑所需的输入信息。
+ * @param componentProps 参数 componentProps 为当前逻辑所需的输入信息。
+ * @param options 参数 options 为当前逻辑所需的输入信息。
+ * @returns 返回当前分支执行后的结果。
  */
 function buildPreviewSchema(
   type: DesignerFieldType,
@@ -183,11 +59,13 @@ function buildPreviewSchema(
 }
 
 /**
- * render Material Field Preview：负责“渲染render Material Field Preview”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 render Material Field Preview 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * render Material Field Preview：当前功能模块的核心执行单元。
+ * 所属模块：`packages/plugin-lower-code-react/src/designer/renderers/registry.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param registry 参数 `registry`用于提供当前函数执行所需的输入信息。
+ * @param item 参数 `item`用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 function renderMaterialFieldPreview(
   registry: RegistrySnapshot,
@@ -225,11 +103,13 @@ function renderMaterialFieldPreview(
 }
 
 /**
- * render Node Field Preview：负责“渲染render Node Field Preview”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 render Node Field Preview 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * render Node Field Preview：当前功能模块的核心执行单元。
+ * 所属模块：`packages/plugin-lower-code-react/src/designer/renderers/registry.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param registry 参数 `registry`用于提供当前函数执行所需的输入信息。
+ * @param node 参数 `node`用于提供节点数据并定位或更新目标节点。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 function renderNodeFieldPreview(
   registry: RegistrySnapshot,
@@ -262,28 +142,40 @@ function renderNodeFieldPreview(
 }
 
 /**
- * can Use Registry Renderers：负责“判断can Use Registry Renderers”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 can Use Registry Renderers 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * can Use Registry Renderers：当前功能模块的核心执行单元。
+ * 所属模块：`packages/plugin-lower-code-react/src/designer/renderers/registry.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param registry 参数 `registry`用于提供当前函数执行所需的输入信息。
+ * @returns 返回布尔值，用于表示条件是否成立或操作是否成功。
  */
 export function canUseRegistryRenderers(registry: RegistrySnapshot): boolean {
   return registry.components.size > 0
 }
 
 /**
- * create Registry Renderers：负责“创建create Registry Renderers”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 create Registry Renderers 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * create Registry Renderers：当前功能模块的核心执行单元。
+ * 所属模块：`packages/plugin-lower-code-react/src/designer/renderers/registry.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param registry 参数 `registry`用于提供当前函数执行所需的输入信息。
+ * @param fallback 参数 `fallback`用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function createRegistryRenderers(
   registry: RegistrySnapshot,
   fallback: ResolvedLowCodeDesignerRenderers,
 ): ResolvedLowCodeDesignerRenderers {
   return {
+    /**
+     * renderMaterialPreview：执行当前功能逻辑。
+     *
+     * @param item 参数 item 的输入说明。
+     * @param context 参数 context 的输入说明。
+     *
+     * @returns 返回当前功能的处理结果。
+     */
+
     renderMaterialPreview: (item, context) => {
       // 容器预览统一走轻量 mock，规避 LayoutTabs/LayoutCollapse 在设计态引起的渲染副作用。
       if (item.kind === 'container')
@@ -303,6 +195,15 @@ export function createRegistryRenderers(
         </PreviewBoundary>
       )
     },
+    /**
+     * renderFieldPreviewControl：执行当前功能逻辑。
+     *
+     * @param node 参数 node 的输入说明。
+     * @param context 参数 context 的输入说明。
+     *
+     * @returns 返回当前功能的处理结果。
+     */
+
     renderFieldPreviewControl: (node, context) => {
       const fallbackNode = fallback.renderFieldPreviewControl(node, context)
       const registryNode = renderNodeFieldPreview(registry, node)

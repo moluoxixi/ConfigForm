@@ -18,31 +18,77 @@ export const LayoutFormActions = defineComponent({
     submitLabel: { type: String, default: '提交' },
     resetLabel: { type: String, default: '重置' },
     align: { type: String, default: 'center' },
-    extraActions: { type: Object as PropType<Record<string, unknown>>, default: () => ({}) },
+    extraActions: { type: Object as PropType<Record<string, unknown>>, /**
+                                                                        * default：执行当前位置的功能逻辑。
+                                                                        * 定位：`packages/ui-element-plus/src/components/LayoutFormActions.ts:21`。
+                                                                        * 功能：处理参数消化、状态变更与调用链行为同步。
+                                                                        * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                                                                        * @returns 返回当前分支执行后的处理结果。
+                                                                        */
+      /**
+       * default：执行当前位置的功能逻辑。
+       * 定位：`packages/ui-element-plus/src/components/LayoutFormActions.ts:28`。
+       * 功能：处理参数消化、状态变更与调用链行为同步。
+       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+       * @returns 返回当前分支执行后的处理结果。
+       */
+      default: () => ({}) },
   },
   emits: ['submit', 'submitFailed', 'reset'],
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/ui-element-plus/src/components/LayoutFormActions.ts:24`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props, { emit }) {
     const form = inject(FormSymbol, null)
     const registryRef = inject(ComponentRegistrySymbol)
 
-    const handleSubmit = async (): Promise<void> => {
-      if (!form)
-        return
-      const result = await form.submit()
-      if (result.errors.length > 0) {
-        emit('submitFailed', result.errors)
+    /**
+     * handleSubmit?????????????????
+     * ???`packages/ui-element-plus/src/components/LayoutFormActions.ts:56`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     */
+    const /**
+           * handleSubmit：执行当前位置的功能逻辑。
+           * 定位：`packages/ui-element-plus/src/components/LayoutFormActions.ts:28`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           */
+      handleSubmit = async (): Promise<void> => {
+        if (!form)
+          return
+        const result = await form.submit()
+        if (result.errors.length > 0) {
+          emit('submitFailed', result.errors)
+        }
+        else {
+          emit('submit', result.values)
+        }
       }
-      else {
-        emit('submit', result.values)
-      }
-    }
 
-    const handleReset = (): void => {
-      if (form) {
-        form.reset()
+    /**
+     * handleReset?????????????????
+     * ???`packages/ui-element-plus/src/components/LayoutFormActions.ts:74`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     */
+    const /**
+           * handleReset：执行当前位置的功能逻辑。
+           * 定位：`packages/ui-element-plus/src/components/LayoutFormActions.ts:40`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           */
+      handleReset = (): void => {
+        if (form) {
+          form.reset()
+        }
+        emit('reset')
       }
-      emit('reset')
-    }
 
     return () => {
       /** preview/disabled 模式下自动隐藏操作按钮 */

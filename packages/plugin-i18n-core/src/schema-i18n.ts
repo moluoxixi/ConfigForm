@@ -44,6 +44,8 @@ const TRANSLATABLE_COMPONENT_PROPS = ['placeholder', 'label', 'title', 'descript
  * isI18nKey('$t:user.name') // true
  * isI18nKey('用户名')        // false
  * ```
+ * @param value 参数 `value`用于提供待处理的值并参与结果计算。
+ * @returns 返回字符串结果，通常用于文本展示或下游拼接。
  */
 export function isI18nKey(value: unknown): value is string {
   return typeof value === 'string' && value.startsWith('$t:')
@@ -51,6 +53,8 @@ export function isI18nKey(value: unknown): value is string {
 
 /**
  * 提取翻译 key（去掉 $t: 前缀）
+ * @param value 参数 `value`用于提供待处理的值并参与结果计算。
+ * @returns 返回字符串结果，通常用于文本展示或下游拼接。
  */
 function extractKey(value: string): string {
   return value.slice(3)
@@ -84,6 +88,11 @@ export function translateSchema(schema: ISchema, config: SchemaI18nConfig): ISch
 
 /**
  * 递归翻译单个节点
+ * @param schema 参数 `schema`用于传入 Schema 结构并参与解析或转换流程。
+ * @param t 参数 `t`用于提供当前函数执行所需的输入信息。
+ * @param translatableProps 参数 `translatableProps`用于提供当前函数执行所需的输入信息。
+ * @param translateEnumLabels 参数 `translateEnumLabels`用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 function translateNode(
   schema: ISchema,
@@ -189,6 +198,9 @@ function translateNode(
 
 /**
  * 翻译 dataSource 中的 label（递归处理 children）
+ * @param items 参数 `items`用于提供集合数据，支撑批量遍历与扩展处理。
+ * @param t 参数 `t`用于提供当前函数执行所需的输入信息。
+ * @returns 返回数组结果，用于后续遍历、渲染或进一步转换。
  */
 function translateDataSource(
   items: DataSourceItem[],
@@ -207,11 +219,13 @@ function translateDataSource(
 }
 
 /**
- * translate Action Values：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 translate Action Values 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * translate Action Values：当前功能模块的核心执行单元。
+ * 所属模块：`packages/plugin-i18n-core/src/schema-i18n.ts`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param value 参数 `value`用于提供待处理的值并参与结果计算。
+ * @param t 参数 `t`用于提供当前函数执行所需的输入信息。
+ * @returns 返回数组结果，用于后续遍历、渲染或进一步转换。
  */
 function translateActionValues(
   value: Record<string, unknown> | unknown[],
@@ -228,11 +242,13 @@ function translateActionValues(
 }
 
 /**
- * translate Action Value：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 translate Action Value 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * translate Action Value：当前功能模块的核心执行单元。
+ * 所属模块：`packages/plugin-i18n-core/src/schema-i18n.ts`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param value 参数 `value`用于提供待处理的值并参与结果计算。
+ * @param t 参数 `t`用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 function translateActionValue(value: unknown, t: TranslateFunction): unknown {
   if (isI18nKey(value)) {

@@ -9,6 +9,11 @@ import type { SceneConfig } from '../types'
 
 const PRESETS = ['#1677ff', '#52c41a', '#faad14', '#ff4d4f', '#722ed1', '#13c2c2', '#eb2f96', '#000000']
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/08-components/ColorPickerForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: '颜色选择器',
   description: '自定义组件 ColorPicker — 原生 color input + 预设色板 + HEX 输入',

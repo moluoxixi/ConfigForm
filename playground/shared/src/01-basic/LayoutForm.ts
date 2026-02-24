@@ -40,6 +40,8 @@ const PROPERTIES: ISchema['properties'] = {
  *
  * LayoutForm 是特殊场景：需要动态切换布局。
  * Config 模式通过 createSchema 动态生成；Field 模式通过外层容器样式控制。
+ * @param layoutType 参数 `layoutType`用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function createSchema(layoutType: LayoutType): ISchema {
   const s: ISchema = {
@@ -68,6 +70,11 @@ export function createSchema(layoutType: LayoutType): ISchema {
   return s
 }
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/01-basic/LayoutForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: '表单布局',
   description: '水平 / 垂直 / 行内 / 栅格布局',
@@ -82,6 +89,14 @@ const config: SceneConfig = {
     label: '布局方式',
     options: LAYOUT_OPTIONS,
     defaultValue: 'horizontal',
+    /**
+     * factory：执行当前功能逻辑。
+     *
+     * @param value 参数 value 的输入说明。
+     *
+     * @returns 返回当前功能的处理结果。
+     */
+
     factory: (value: string) => createSchema(value as LayoutType),
   },
 }

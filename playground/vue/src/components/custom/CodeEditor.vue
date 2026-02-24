@@ -17,19 +17,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-const props = defineProps<{
-  modelValue?: string
-  disabled?: boolean
-  preview?: boolean
-  language?: string
-}>()
-
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void
-}>()
-
-const lines = computed(() => (props.modelValue ?? '').split('\n').length)
-
 const wrapperStyle = {
   position: 'relative',
   border: '1px solid #d9d9d9',
@@ -37,6 +24,11 @@ const wrapperStyle = {
   overflow: 'hidden',
 } as const
 
+/**
+ * header Style：变量或常量声明。
+ * 所属模块：`playground/vue/src/components/custom/CodeEditor.vue`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const headerStyle = {
   padding: '4px 12px',
   background: '#f5f5f5',
@@ -46,6 +38,11 @@ const headerStyle = {
   fontFamily: 'monospace',
 } as const
 
+/**
+ * textarea Style：变量或常量声明。
+ * 所属模块：`playground/vue/src/components/custom/CodeEditor.vue`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const textareaStyle = {
   width: '100%',
   minHeight: '200px',
@@ -62,11 +59,11 @@ const textareaStyle = {
 } as const
 
 /**
- * on Input：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 on Input 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * on Input：当前功能模块的核心执行单元。
+ * 所属模块：`playground/vue/src/components/custom/CodeEditor.vue`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param {Event} event 参数 `event`用于传递事件上下文，使逻辑能基于交互状态进行处理。
  */
 function onInput(event: Event): void {
   const target = event.target as HTMLTextAreaElement | null

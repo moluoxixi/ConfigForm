@@ -16,6 +16,11 @@ const PROVINCE_OPTIONS = [
   { label: '上海', value: 'sh' },
 ]
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/07-dynamic/TemplateReuseForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: 'Schema 片段复用',
   description: '$ref + definitions — 联系人信息和地址信息片段复用',

@@ -4,10 +4,20 @@ import { observer, useField, useForm } from '@moluoxixi/react'
 import { Popover } from 'antd'
 import { useCallback, useState } from 'react'
 
+/**
+ * Editable Props：类型接口定义。
+ * 所属模块：`packages/ui-antd/src/components/Editable.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export interface EditableProps {
   children: ReactNode
 }
 
+/**
+ * Editable：变量或常量声明。
+ * 所属模块：`packages/ui-antd/src/components/Editable.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export const Editable = observer(({ children }: EditableProps): ReactElement => {
   let field: FieldInstance | null = null
   let formPattern: string = 'editable'
@@ -73,11 +83,21 @@ export const Editable = observer(({ children }: EditableProps): ReactElement => 
   )
 })
 
+/**
+ * Editable Popover Props：类型接口定义。
+ * 所属模块：`packages/ui-antd/src/components/Editable.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export interface EditablePopoverProps {
   children: ReactNode
   title?: string
 }
 
+/**
+ * Editable Popover：变量或常量声明。
+ * 所属模块：`packages/ui-antd/src/components/Editable.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export const EditablePopover = observer(({ children, title }: EditablePopoverProps): ReactElement => {
   let field: FieldInstance | null = null
   let formPattern: string = 'editable'

@@ -66,6 +66,11 @@ const LOCALE_OPTIONS = [
   { label: '🇯🇵 日本語', value: 'ja-JP' },
 ]
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/10-misc/I18nForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig & { i18n: { messages: typeof I18N_MESSAGES, defaultLocale: string }, localeOptions: typeof LOCALE_OPTIONS } = {
   title: '$t:scene.title',
   description: '$t:scene.desc',

@@ -23,11 +23,26 @@ const config: SceneConfig = {
     graphJson: '',
   },
 
+  /**
+   * effects：执行当前功能逻辑。
+   *
+   * @param form 参数 form 的输入说明。
+   */
+
   effects: (form: FormInstance): void => {
-    const updateGraph = (): void => {
-      const graph = form.getGraph()
-      form.setFieldValue('graphJson', JSON.stringify(graph, null, 2))
-    }
+    /**
+     * update Graph：当前功能模块的核心执行单元。
+     * 所属模块：`playground/shared/src/09-state/FormGraphForm.ts`。
+     * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+     * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+     */
+    const /**
+           * updateGraph：执行当前功能逻辑。
+           */
+      updateGraph = (): void => {
+        const graph = form.getGraph()
+        form.setFieldValue('graphJson', JSON.stringify(graph, null, 2))
+      }
     updateGraph()
     form.on(FormLifeCycle.ON_FORM_MOUNT, updateGraph)
   },

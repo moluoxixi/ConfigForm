@@ -3,38 +3,14 @@ import type { FormImportPluginAPI, FormImportPluginOptions } from './types'
 import { readFileAsText } from './browser'
 import { ensurePlainObject, parseJSON } from './serialize'
 
-export const PLUGIN_NAME = 'form-import'
-
-const DEFAULT_EXCLUDE_PREFIXES = ['_']
-
 /**
- * normalize Import Options：负责“规范化normalize Import Options”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ * splitImportData：执行当前功能逻辑。
  *
- * 说明：该注释描述 normalize Import Options 的主要职责边界，便于维护者快速理解函数在链路中的定位。
- */
-function normalizeImportOptions(
-  config: FormImportPluginOptions,
-  options: Parameters<FormImportPluginAPI['applyImport']>[1] = {},
-): {
-  strategy: 'merge' | 'shallow' | 'replace'
-  allowInternal: boolean
-  excludePrefixes: string[]
-} {
-  return {
-    strategy: options.strategy ?? 'merge',
-    allowInternal: options.allowInternal ?? false,
-    excludePrefixes: options.excludePrefixes ?? config.excludePrefixes ?? DEFAULT_EXCLUDE_PREFIXES,
-  }
-}
-
-/**
- * split Import Data：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * @param data 参数 data 的输入说明。
+ * @param allowInternal 参数 allowInternal 的输入说明。
+ * @param excludePrefixes 参数 excludePrefixes 的输入说明。
  *
- * 说明：该函数聚焦于 split Import Data 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * @returns 返回当前功能的处理结果。
  */
 function splitImportData(
   data: Record<string, unknown>,
@@ -58,11 +34,13 @@ function splitImportData(
 }
 
 /**
- * create Import Result：负责“创建create Import Result”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 create Import Result 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * create Import Result：当前功能模块的核心执行单元。
+ * 所属模块：`packages/plugin-import/src/plugin.ts`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param data 参数 `data`用于提供当前函数执行所需的输入信息。
+ * @param normalized 参数 `normalized`用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 function createImportResult(
   data: Record<string, unknown>,
@@ -80,15 +58,24 @@ function createImportResult(
 }
 
 /**
- * import Plugin：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 import Plugin 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * import Plugin：当前功能模块的核心执行单元。
+ * 所属模块：`packages/plugin-import/src/plugin.ts`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param [config] 参数 `config`用于提供可选配置，调整当前功能模块的执行策略。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function importPlugin(config: FormImportPluginOptions = {}): FormPlugin<FormImportPluginAPI> {
   return {
     name: PLUGIN_NAME,
+    /**
+     * install：当前功能模块的核心执行单元。
+     * 所属模块：`packages/plugin-import/src/plugin.ts`。
+     * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+     * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+     * @param form 参数 `form`用于提供表单上下文或实例，支撑状态读写与生命周期调用。
+     * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+     */
     install(form) {
       const formWithImport = form as typeof form & {
         parseImportJSON?: FormImportPluginAPI['parseImportJSON']
@@ -99,6 +86,15 @@ export function importPlugin(config: FormImportPluginOptions = {}): FormPlugin<F
       }
 
       const api: FormImportPluginAPI = {
+        /**
+         * parse Import JSON：当前功能模块的核心执行单元。
+         * 所属模块：`packages/plugin-import/src/plugin.ts`。
+         * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+         * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+         * @param input 参数 `input`用于提供当前函数执行所需的输入信息。
+         * @param [options] 参数 `options`用于提供可选配置，调整当前功能模块的执行策略。
+         * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+         */
         parseImportJSON(input, options = {}) {
           const data = typeof input === 'string'
             ? parseJSON(input, options.reviver)
@@ -106,6 +102,15 @@ export function importPlugin(config: FormImportPluginOptions = {}): FormPlugin<F
           return createImportResult(data, normalizeImportOptions(config, options))
         },
 
+        /**
+         * apply Import：当前功能模块的核心执行单元。
+         * 所属模块：`packages/plugin-import/src/plugin.ts`。
+         * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+         * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+         * @param data 参数 `data`用于提供当前函数执行所需的输入信息。
+         * @param [options] 参数 `options`用于提供可选配置，调整当前功能模块的执行策略。
+         * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+         */
         applyImport(data, options = {}) {
           const normalized = normalizeImportOptions(config, options)
           const result = createImportResult(ensurePlainObject(data), normalized)
@@ -113,16 +118,43 @@ export function importPlugin(config: FormImportPluginOptions = {}): FormPlugin<F
           return result
         },
 
+        /**
+         * import JSON：当前功能模块的核心执行单元。
+         * 所属模块：`packages/plugin-import/src/plugin.ts`。
+         * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+         * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+         * @param input 参数 `input`用于提供当前函数执行所需的输入信息。
+         * @param [options] 参数 `options`用于提供可选配置，调整当前功能模块的执行策略。
+         * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+         */
         importJSON(input, options = {}) {
           const parsed = api.parseImportJSON(input, options)
           return api.applyImport(parsed.data, options)
         },
 
+        /**
+         * parse Import JSONFile：当前功能模块的核心执行单元。
+         * 所属模块：`packages/plugin-import/src/plugin.ts`。
+         * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+         * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+         * @param file 参数 `file`用于提供当前函数执行所需的输入信息。
+         * @param [options] 参数 `options`用于提供可选配置，调整当前功能模块的执行策略。
+         * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+         */
         async parseImportJSONFile(file, options = {}) {
           const content = await readFileAsText(file)
           return api.parseImportJSON(content, options)
         },
 
+        /**
+         * import JSONFile：当前功能模块的核心执行单元。
+         * 所属模块：`packages/plugin-import/src/plugin.ts`。
+         * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+         * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+         * @param file 参数 `file`用于提供当前函数执行所需的输入信息。
+         * @param [options] 参数 `options`用于提供可选配置，调整当前功能模块的执行策略。
+         * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+         */
         async importJSONFile(file, options = {}) {
           const content = await readFileAsText(file)
           return api.importJSON(content, options)
@@ -137,6 +169,12 @@ export function importPlugin(config: FormImportPluginOptions = {}): FormPlugin<F
 
       return {
         api,
+        /**
+         * dispose：当前功能模块的核心执行单元。
+         * 所属模块：`packages/plugin-import/src/plugin.ts`。
+         * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+         * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+         */
         dispose() {
           if (formWithImport.parseImportJSON === api.parseImportJSON)
             delete formWithImport.parseImportJSON

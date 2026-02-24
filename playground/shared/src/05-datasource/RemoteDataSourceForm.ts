@@ -49,6 +49,14 @@ const config: SceneConfig = {
           url: 'https://jsonplaceholder.typicode.com/posts',
           method: 'GET',
           params: { userId: '$values.userId' },
+          /**
+           * transform：执行当前功能逻辑。
+           *
+           * @param response 参数 response 的输入说明。
+           *
+           * @returns 返回当前功能的处理结果。
+           */
+
           transform: (response: unknown): DataSourceItem[] => {
             const posts = response as Array<{ id: number, title: string }>
             return posts.slice(0, 10).map(p => ({
@@ -63,6 +71,15 @@ const config: SceneConfig = {
           {
             watch: 'userId',
             fulfill: {
+              /**
+               * run：执行当前功能逻辑。
+               *
+               * @param field 参数 field 的输入说明。
+               * @param ctx 参数 ctx 的输入说明。
+               *
+               * @returns 返回当前功能的处理结果。
+               */
+
               run: (field, ctx: ReactionContext): void => {
                 const selectField = field as {
                   setDataSource: (items: DataSourceItem[]) => void
@@ -76,6 +93,14 @@ const config: SceneConfig = {
                   url: 'https://jsonplaceholder.typicode.com/posts',
                   method: 'GET' as const,
                   params: { userId: String(ctx.values.userId) },
+                  /**
+                   * transform：执行当前功能逻辑。
+                   *
+                   * @param response 参数 response 的输入说明。
+                   *
+                   * @returns 返回当前功能的处理结果。
+                   */
+
                   transform: (response: unknown): DataSourceItem[] => {
                     const posts = response as Array<{ id: number, title: string }>
                     return posts.slice(0, 10).map(p => ({

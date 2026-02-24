@@ -20,6 +20,11 @@ const PRODUCT_TYPE_OPTIONS = [
   { label: '计重品', value: 'weight' },
 ]
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/02-linkage/PropertyLinkageForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: '属性联动',
   description: '动态 disabled / required / placeholder / componentProps',

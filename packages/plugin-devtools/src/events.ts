@@ -55,7 +55,12 @@ export const DEVTOOLS_FIELD_EVENT_DEFINITIONS: readonly DevToolsFieldEventDefini
   { type: FormLifeCycle.ON_FIELD_INPUT_VALUE_CHANGE, label: '用户输入' },
 ] as const
 
-/** 构建字段事件摘要文本 */
+/**
+ * 构建字段事件摘要文本
+ * @param event 参数 `event`用于传递事件上下文，使逻辑能基于交互状态进行处理。
+ * @param field 参数 `field`用于提供当前函数执行所需的输入信息。
+ * @returns 返回字符串结果，通常用于文本展示或下游拼接。
+ */
 export function buildDevToolsFieldEventSummary(
   event: DevToolsFieldEventDefinition['type'],
   field: { path: string, value: unknown },

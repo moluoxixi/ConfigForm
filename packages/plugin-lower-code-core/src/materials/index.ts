@@ -4,4 +4,9 @@ import { LAYOUT_MATERIALS } from './layouts'
 
 export { COMPONENT_MATERIALS, LAYOUT_MATERIALS }
 
+/**
+ * MATERIALS：变量或常量声明。
+ * 所属模块：`packages/plugin-lower-code-core/src/materials/index.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export const MATERIALS: MaterialItem[] = [...COMPONENT_MATERIALS, ...LAYOUT_MATERIALS]

@@ -10,6 +10,11 @@ import { observer } from '../reactive'
 import { FormProvider } from './FormProvider'
 import { SchemaField } from './SchemaField'
 
+/**
+ * SchemaTransformPluginBridge??????
+ * ???`packages/react/src/components/ConfigForm.tsx:13`?
+ * ??????????????????????????????
+ */
 interface SchemaTransformPluginBridge {
   translateSchema?: (schema: FormSchema) => FormSchema
   transformSchema?: (schema: FormSchema) => FormSchema
@@ -17,6 +22,11 @@ interface SchemaTransformPluginBridge {
   subscribeSchemaChange?: (listener: () => void) => (() => void) | void
 }
 
+/**
+ * ConfigFormProps??????
+ * ???`packages/react/src/components/ConfigForm.tsx:20`?
+ * ??????????????????????????????
+ */
 export interface ConfigFormProps<Values extends Record<string, unknown> = Record<string, unknown>> {
   /** 外部传入的 form 实例（可选） */
   form?: FormInstance<Values>
@@ -383,6 +393,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
+/**
+ * PluginContainerBridge??????
+ * ???`packages/react/src/components/ConfigForm.tsx:386`?
+ * ??????????????????????????????
+ */
 interface PluginContainerBridge {
   getPlugins?: () => ReadonlyMap<string, unknown> | undefined
 }

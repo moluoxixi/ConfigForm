@@ -78,6 +78,14 @@ const config: SceneConfig = {
         reactions: [{
           watch: 'province',
           fulfill: {
+            /**
+             * run：执行当前位置的功能逻辑。
+             * 定位：`playground/shared/src/02-linkage/CascadeSelectForm.ts:81`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @param f 参数 f 为当前功能所需的输入信息。
+             * @param ctx 参数 ctx 为上下文对象，用于传递场景数据。
+             */
             run: (f: any, ctx: any) => {
               const p = ctx.values.province as string
               f.setValue(undefined)
@@ -95,6 +103,14 @@ const config: SceneConfig = {
         reactions: [{
           watch: 'city',
           fulfill: {
+            /**
+             * run：执行当前位置的功能逻辑。
+             * 定位：`playground/shared/src/02-linkage/CascadeSelectForm.ts:98`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @param f 参数 f 为当前功能所需的输入信息。
+             * @param ctx 参数 ctx 为上下文对象，用于传递场景数据。
+             */
             run: (f: any, ctx: any) => {
               const c = ctx.values.city as string
               f.setValue(undefined)
@@ -120,6 +136,14 @@ const config: SceneConfig = {
         reactions: [{
           watch: 'categoryL1',
           fulfill: {
+            /**
+             * run：执行当前位置的功能逻辑。
+             * 定位：`playground/shared/src/02-linkage/CascadeSelectForm.ts:123`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @param f 参数 f 为当前功能所需的输入信息。
+             * @param ctx 参数 ctx 为上下文对象，用于传递场景数据。
+             */
             run: (f: any, ctx: any) => {
               const l1 = ctx.values.categoryL1 as string
               f.setValue(undefined)
@@ -136,6 +160,14 @@ const config: SceneConfig = {
         reactions: [{
           watch: 'categoryL2',
           fulfill: {
+            /**
+             * run：执行当前位置的功能逻辑。
+             * 定位：`playground/shared/src/02-linkage/CascadeSelectForm.ts:139`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @param f 参数 f 为当前功能所需的输入信息。
+             * @param ctx 参数 ctx 为上下文对象，用于传递场景数据。
+             */
             run: (f: any, ctx: any) => {
               const l2 = ctx.values.categoryL2 as string
               f.setValue(undefined)

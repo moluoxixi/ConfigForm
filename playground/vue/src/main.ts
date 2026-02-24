@@ -6,5 +6,10 @@ import App from './App.vue'
 /* 初始化响应式适配器 */
 setReactiveAdapter(vueAdapter)
 
+/**
+ * app：变量或常量声明。
+ * 所属模块：`playground/vue/src/main.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const app = createApp(App)
 app.mount('#app')

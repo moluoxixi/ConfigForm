@@ -3,11 +3,21 @@ import type { ReactElement } from 'react'
 import { ArrayBase, observer, RecursionField, useField } from '@moluoxixi/react'
 import { Collapse } from 'antd'
 
+/**
+ * Array Collapse Props：类型接口定义。
+ * 所属模块：`packages/ui-antd/src/components/ArrayCollapse.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export interface ArrayCollapseProps {
   itemsSchema?: ISchema
   defaultExpandAll?: boolean
 }
 
+/**
+ * Array Collapse：变量或常量声明。
+ * 所属模块：`packages/ui-antd/src/components/ArrayCollapse.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export const ArrayCollapse = observer<ArrayCollapseProps>(({ itemsSchema, defaultExpandAll = true }): ReactElement | null => {
   let field: ArrayFieldInstance | null = null
   try {

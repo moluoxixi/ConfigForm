@@ -14,6 +14,11 @@ import type { SceneConfig } from '../types'
 
 const DEFAULT_CODE = 'function hello() {\n  return "world";\n}'
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/08-components/RawComponentForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: '无装饰器组件',
   description: 'registerComponent 不传 defaultDecorator — 裸渲染，无 FormItem 包裹',

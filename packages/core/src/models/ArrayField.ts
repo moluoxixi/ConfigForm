@@ -25,6 +25,12 @@ export class ArrayField<Value extends unknown[] = unknown[]>
   /** 自动清理的 reaction disposer（_ 前缀跳过 MobX observable 标注） */
   private _autoCleanDisposer: Disposer | null = null
 
+  /**
+   * 创建数组字段实例。
+   * @param form 所属表单实例。
+   * @param props 字段初始化属性。
+   * @param parentPath 父路径。
+   */
   constructor(form: FormInstance, props: ArrayFieldProps<Value>, parentPath = '') {
     super(form, props, parentPath)
     this.minItems = props.minItems ?? 0

@@ -4,11 +4,21 @@ import { observer } from '../reactive'
 import { ArrayBase } from './ArrayBase'
 import { RecursionField } from './RecursionField'
 
+/**
+ * Array Field Props：类型接口定义。
+ * 所属模块：`packages/react/src/components/ArrayField.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export interface ArrayFieldProps {
   itemsSchema?: ISchema
   sortable?: boolean
 }
 
+/**
+ * Array Field：变量或常量声明。
+ * 所属模块：`packages/react/src/components/ArrayField.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export const ArrayField = observer<ArrayFieldProps>(({ itemsSchema }) => {
   let field: ArrayFieldInstance | null = null
   try {
@@ -83,4 +93,9 @@ export const ArrayField = observer<ArrayFieldProps>(({ itemsSchema }) => {
 })
 
 /* 兼容历史命名 */
+/**
+ * Array Items：变量或常量声明。
+ * 所属模块：`packages/react/src/components/ArrayField.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export const ArrayItems = ArrayField

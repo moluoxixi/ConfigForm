@@ -14,6 +14,7 @@ export interface SchemaItem {
  * 从当前字段的 Schema properties 中发现子面板
  *
  * 跨 UI 库通用的布局逻辑，Vue composable 版本。
+ * @returns 返回数组结果，用于后续遍历、渲染或进一步转换。
  */
 export function useSchemaItems(): SchemaItem[] {
   const field = useField()

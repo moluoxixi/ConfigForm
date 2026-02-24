@@ -42,6 +42,10 @@ export class VoidField implements VoidFieldInstance {
     return this.form.pattern
   }
 
+  /**
+   * 设置字段自身 pattern。
+   * @param val 字段模式值。
+   */
   set pattern(val: FieldPattern) {
     this.selfPattern = val
   }
@@ -51,6 +55,12 @@ export class VoidField implements VoidFieldInstance {
     return this.pattern === 'editable' && !this.disabled && !this.preview
   }
 
+  /**
+   * 创建虚拟字段实例。
+   * @param form 所属表单实例。
+   * @param props 字段初始化属性。
+   * @param parentPath 父路径。
+   */
   constructor(form: FormInstance, props: VoidFieldProps, parentPath = '') {
     this.id = uid('void')
     this.form = form

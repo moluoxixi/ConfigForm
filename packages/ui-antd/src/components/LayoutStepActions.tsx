@@ -1,6 +1,11 @@
 import { Button as AButton } from 'antd'
 import React from 'react'
 
+/**
+ * Layout Step Actions Props：类型接口定义。
+ * 所属模块：`packages/ui-antd/src/components/LayoutStepActions.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export interface LayoutStepActionsProps {
   current: number
   total: number
@@ -10,11 +15,12 @@ export interface LayoutStepActionsProps {
 }
 
 /**
- * Layout Step Actions：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 Layout Step Actions 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * Layout Step Actions：当前功能模块的核心执行单元。
+ * 所属模块：`packages/ui-antd/src/components/LayoutStepActions.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param param1 原始解构参数（{ current, total, loading, onPrev, onNext }）用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function LayoutStepActions({ current, total, loading, onPrev, onNext }: LayoutStepActionsProps): React.ReactElement {
   return (

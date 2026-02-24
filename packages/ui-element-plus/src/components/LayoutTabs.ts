@@ -17,49 +17,90 @@ const BadgeComponent = ElBadge as any
  */
 export const LayoutTabs = defineComponent({
   name: 'CfLayoutTabs',
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/ui-element-plus/src/components/LayoutTabs.ts:20`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup() {
     const field = useField()
     const form = useForm()
     const items = useSchemaItems()
     const activeKey = ref(items.length > 0 ? items[0].name : '')
 
-    const getDataPath = (path: string): string => {
-      if (!path)
-        return ''
-      const segments = path.split('.')
-      const dataSegments: string[] = []
-      let currentPath = ''
-      for (const seg of segments) {
-        currentPath = currentPath ? `${currentPath}.${seg}` : seg
-        if (form.getAllVoidFields().has(currentPath))
-          continue
-        dataSegments.push(seg)
-      }
-      return dataSegments.join('.')
-    }
-
-    const collectDataPaths = (schema: ISchema, parentPath: string, output: Set<string>): void => {
-      if (!schema.properties)
-        return
-      for (const [name, childSchema] of Object.entries(schema.properties)) {
-        if (childSchema.type === 'void') {
-          collectDataPaths(childSchema, parentPath, output)
-          continue
+    /**
+     * getDataPath?????????????????
+     * ???`packages/ui-element-plus/src/components/LayoutTabs.ts:41`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     * @param path ?? path ????????????
+     * @returns ?????????????
+     */
+    const /**
+           * getDataPath：执行当前位置的功能逻辑。
+           * 定位：`packages/ui-element-plus/src/components/LayoutTabs.ts:26`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @param path 参数 path 为当前功能所需的输入信息。
+           * @returns 返回当前分支执行后的处理结果。
+           */
+      getDataPath = (path: string): string => {
+        if (!path)
+          return ''
+        const segments = path.split('.')
+        const dataSegments: string[] = []
+        let currentPath = ''
+        for (const seg of segments) {
+          currentPath = currentPath ? `${currentPath}.${seg}` : seg
+          if (form.getAllVoidFields().has(currentPath))
+            continue
+          dataSegments.push(seg)
         }
+        return dataSegments.join('.')
+      }
 
-        const nextPath = parentPath ? `${parentPath}.${name}` : name
-        output.add(nextPath)
+    /**
+     * collectDataPaths?????????????????
+     * ???`packages/ui-element-plus/src/components/LayoutTabs.ts:65`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     * @param schema ?? schema ????????????
+     * @param parentPath ?? parentPath ????????????
+     * @param output ?? output ????????????
+     */
+    const /**
+           * collectDataPaths：执行当前位置的功能逻辑。
+           * 定位：`packages/ui-element-plus/src/components/LayoutTabs.ts:41`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @param schema 参数 schema 为当前功能所需的输入信息。
+           * @param parentPath 参数 parentPath 为当前功能所需的输入信息。
+           * @param output 参数 output 为当前功能所需的输入信息。
+           */
+      collectDataPaths = (schema: ISchema, parentPath: string, output: Set<string>): void => {
+        if (!schema.properties)
+          return
+        for (const [name, childSchema] of Object.entries(schema.properties)) {
+          if (childSchema.type === 'void') {
+            collectDataPaths(childSchema, parentPath, output)
+            continue
+          }
 
-        if (childSchema.properties)
-          collectDataPaths(childSchema, nextPath, output)
+          const nextPath = parentPath ? `${parentPath}.${name}` : name
+          output.add(nextPath)
 
-        if (childSchema.items) {
-          const itemPath = `${nextPath}.*`
-          output.add(itemPath)
-          collectDataPaths(childSchema.items, itemPath, output)
+          if (childSchema.properties)
+            collectDataPaths(childSchema, nextPath, output)
+
+          if (childSchema.items) {
+            const itemPath = `${nextPath}.*`
+            output.add(itemPath)
+            collectDataPaths(childSchema.items, itemPath, output)
+          }
         }
       }
-    }
 
     const basePath = getDataPath(field.path)
     const itemPatterns = new Map(items.map((item) => {
@@ -68,14 +109,30 @@ export const LayoutTabs = defineComponent({
       return [item.name, Array.from(paths)] as const
     }))
 
-    const getErrorCount = (itemName: string): number => {
-      const patterns = itemPatterns.get(itemName) ?? []
-      if (patterns.length === 0)
-        return 0
-      return form.errors.filter(e =>
-        patterns.some(pattern => FormPath.match(pattern, e.path)),
-      ).length
-    }
+    /**
+     * getErrorCount?????????????????
+     * ???`packages/ui-element-plus/src/components/LayoutTabs.ts:103`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     * @param itemName ?? itemName ????????????
+     * @returns ?????????????
+     */
+    const /**
+           * getErrorCount：执行当前位置的功能逻辑。
+           * 定位：`packages/ui-element-plus/src/components/LayoutTabs.ts:71`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @param itemName 参数 itemName 为当前功能所需的输入信息。
+           * @returns 返回当前分支执行后的处理结果。
+           */
+      getErrorCount = (itemName: string): number => {
+        const patterns = itemPatterns.get(itemName) ?? []
+        if (patterns.length === 0)
+          return 0
+        return form.errors.filter(e =>
+          patterns.some(pattern => FormPath.match(pattern, e.path)),
+        ).length
+      }
 
     watch(() => form.errors.length, () => {
       if (form.errors.length === 0)
@@ -92,6 +149,13 @@ export const LayoutTabs = defineComponent({
 
     return () => h(TabsComponent, {
       'modelValue': activeKey.value,
+      /**
+       * onUpdate:modelValue：执行当前位置的功能逻辑。
+       * 定位：`packages/ui-element-plus/src/components/LayoutTabs.ts:95`。
+       * 功能：处理参数消化、状态变更与调用链行为同步。
+       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+       * @param k 参数 k 为当前功能所需的输入信息。
+       */
       'onUpdate:modelValue': (k: unknown) => { activeKey.value = String(k ?? '') },
     }, () => items.map((item) => {
       const errorCount = getErrorCount(item.name)
@@ -104,11 +168,25 @@ export const LayoutTabs = defineComponent({
         : item.title
 
       return h(TabPaneComponent, { key: item.name, name: item.name }, {
+        /**
+         * default：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-element-plus/src/components/LayoutTabs.ts:107`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         default: () => h(RecursionField, {
           schema: item.schema,
           basePath,
           onlyRenderProperties: true,
         }),
+        /**
+         * label：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-element-plus/src/components/LayoutTabs.ts:112`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         label: () => tabLabel,
       })
     }))

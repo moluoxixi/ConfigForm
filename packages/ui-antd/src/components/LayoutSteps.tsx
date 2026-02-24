@@ -6,6 +6,11 @@ import { observer, RecursionField, useField, useForm, useSchemaItems } from '@mo
 import { Steps as ASteps, Button } from 'antd'
 import { useEffect, useMemo, useState } from 'react'
 
+/**
+ * LayoutStepsProps??????
+ * ???`packages/ui-antd/src/components/LayoutSteps.tsx:9`?
+ * ??????????????????????????????
+ */
 export interface LayoutStepsProps {}
 
 /**
@@ -25,43 +30,77 @@ export const LayoutSteps = observer((_props: LayoutStepsProps): ReactElement => 
   const [current, setCurrent] = useState(0)
   const [actionLoading, setActionLoading] = useState(false)
 
-  const getDataPath = (path: string): string => {
-    if (!path)
-      return ''
-    const segments = path.split('.')
-    const dataSegments: string[] = []
-    let currentPath = ''
-    for (const seg of segments) {
-      currentPath = currentPath ? `${currentPath}.${seg}` : seg
-      if (form.getAllVoidFields().has(currentPath))
-        continue
-      dataSegments.push(seg)
-    }
-    return dataSegments.join('.')
-  }
-
-  const collectDataPaths = (schema: ISchema, parentPath: string, output: Set<string>): void => {
-    if (!schema.properties)
-      return
-    for (const [name, childSchema] of Object.entries(schema.properties)) {
-      if (childSchema.type === 'void') {
-        collectDataPaths(childSchema, parentPath, output)
-        continue
+  /**
+   * getDataPath?????????????????
+   * ???`packages/ui-antd/src/components/LayoutSteps.tsx:36`?
+   * ?????????????????????????????????
+   * ??????????????????????????
+   * @param path ?? path ????????????
+   * @returns ?????????????
+   */
+  const /**
+         * getDataPath：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-antd/src/components/LayoutSteps.tsx:28`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param path 参数 path 为当前功能所需的输入信息。
+         * @returns 返回当前分支执行后的处理结果。
+         */
+    getDataPath = (path: string): string => {
+      if (!path)
+        return ''
+      const segments = path.split('.')
+      const dataSegments: string[] = []
+      let currentPath = ''
+      for (const seg of segments) {
+        currentPath = currentPath ? `${currentPath}.${seg}` : seg
+        if (form.getAllVoidFields().has(currentPath))
+          continue
+        dataSegments.push(seg)
       }
+      return dataSegments.join('.')
+    }
 
-      const nextPath = parentPath ? `${parentPath}.${name}` : name
-      output.add(nextPath)
+  /**
+   * collectDataPaths?????????????????
+   * ???`packages/ui-antd/src/components/LayoutSteps.tsx:60`?
+   * ?????????????????????????????????
+   * ??????????????????????????
+   * @param schema ?? schema ????????????
+   * @param parentPath ?? parentPath ????????????
+   * @param output ?? output ????????????
+   */
+  const /**
+         * collectDataPaths：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-antd/src/components/LayoutSteps.tsx:43`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param schema 参数 schema 为当前功能所需的输入信息。
+         * @param parentPath 参数 parentPath 为当前功能所需的输入信息。
+         * @param output 参数 output 为当前功能所需的输入信息。
+         */
+    collectDataPaths = (schema: ISchema, parentPath: string, output: Set<string>): void => {
+      if (!schema.properties)
+        return
+      for (const [name, childSchema] of Object.entries(schema.properties)) {
+        if (childSchema.type === 'void') {
+          collectDataPaths(childSchema, parentPath, output)
+          continue
+        }
 
-      if (childSchema.properties)
-        collectDataPaths(childSchema, nextPath, output)
+        const nextPath = parentPath ? `${parentPath}.${name}` : name
+        output.add(nextPath)
 
-      if (childSchema.items) {
-        const itemPath = `${nextPath}.*`
-        output.add(itemPath)
-        collectDataPaths(childSchema.items, itemPath, output)
+        if (childSchema.properties)
+          collectDataPaths(childSchema, nextPath, output)
+
+        if (childSchema.items) {
+          const itemPath = `${nextPath}.*`
+          output.add(itemPath)
+          collectDataPaths(childSchema.items, itemPath, output)
+        }
       }
     }
-  }
 
   const basePath = getDataPath(field.path)
   const itemPatterns = useMemo(() => new Map(items.map((item) => {
@@ -102,57 +141,143 @@ export const LayoutSteps = observer((_props: LayoutStepsProps): ReactElement => 
     : undefined
   const actions = { ...rawActions, ...(stepOverrides ?? {}) } as Record<string, unknown>
 
-  const resolveAlign = (value?: unknown): 'flex-start' | 'center' | 'flex-end' => {
-    if (value === 'left')
-      return 'flex-start'
-    if (value === 'right')
-      return 'flex-end'
-    return 'center'
-  }
-
-  const resolveLabel = (value: unknown, fallback: string): string =>
-    typeof value === 'string' ? value : fallback
-
-  const allowAction = (value: unknown): boolean => value !== false
-
-  const handleNext = async (): Promise<void> => {
-    if (current >= items.length - 1)
-      return
-    const currentItem = items[current]
-    if (!currentItem) {
-      setCurrent(current + 1)
-      return
+  /**
+   * resolveAlign?????????????????
+   * ???`packages/ui-antd/src/components/LayoutSteps.tsx:130`?
+   * ?????????????????????????????????
+   * ??????????????????????????
+   * @param value ?? value ????????????
+   * @returns ?????????????
+   */
+  const /**
+         * resolveAlign：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-antd/src/components/LayoutSteps.tsx:105`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param value 参数 value 为输入值，用于驱动后续逻辑。
+         * @returns 返回当前分支执行后的处理结果。
+         */
+    resolveAlign = (value?: unknown): 'flex-start' | 'center' | 'flex-end' => {
+      if (value === 'left')
+        return 'flex-start'
+      if (value === 'right')
+        return 'flex-end'
+      return 'center'
     }
-    const patterns = itemPatterns.get(currentItem.name) ?? []
-    if (patterns.length === 0) {
-      setCurrent(current + 1)
-      return
-    }
-    setActionLoading(true)
-    try {
-      const result = await form.validateSection(patterns)
-      if (result.valid) {
+
+  /**
+   * resolveLabel?????????????????
+   * ???`packages/ui-antd/src/components/LayoutSteps.tsx:147`?
+   * ?????????????????????????????????
+   * ??????????????????????????
+   * @param value ?? value ????????????
+   * @param fallback ?? fallback ????????????
+   * @returns ?????????????
+   */
+  const /**
+         * resolveLabel：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-antd/src/components/LayoutSteps.tsx:113`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param value 参数 value 为输入值，用于驱动后续逻辑。
+         * @param fallback 参数 fallback 为当前功能所需的输入信息。
+         * @returns 返回当前分支执行后的处理结果。
+         */
+    resolveLabel = (value: unknown, fallback: string): string =>
+      typeof value === 'string' ? value : fallback
+
+  /**
+   * allowAction?????????????????
+   * ???`packages/ui-antd/src/components/LayoutSteps.tsx:158`?
+   * ?????????????????????????????????
+   * ??????????????????????????
+   * @param value ?? value ????????????
+   * @returns ?????????????
+   */
+  const /**
+         * allowAction：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-antd/src/components/LayoutSteps.tsx:116`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param value 参数 value 为输入值，用于驱动后续逻辑。
+         * @returns 返回当前分支执行后的处理结果。
+         */
+    allowAction = (value: unknown): boolean => value !== false
+
+  /**
+   * handleNext?????????????????
+   * ???`packages/ui-antd/src/components/LayoutSteps.tsx:166`?
+   * ?????????????????????????????????
+   * ??????????????????????????
+   */
+  const /**
+         * handleNext：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-antd/src/components/LayoutSteps.tsx:118`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         */
+    handleNext = async (): Promise<void> => {
+      if (current >= items.length - 1)
+        return
+      const currentItem = items[current]
+      if (!currentItem) {
         setCurrent(current + 1)
+        return
       }
-      else {
+      const patterns = itemPatterns.get(currentItem.name) ?? []
+      if (patterns.length === 0) {
+        setCurrent(current + 1)
+        return
+      }
+      setActionLoading(true)
+      try {
+        const result = await form.validateSection(patterns)
+        if (result.valid) {
+          setCurrent(current + 1)
+        }
+        else {
+          form.scrollToFirstError()
+        }
+      }
+      finally {
+        setActionLoading(false)
+      }
+    }
+
+  /**
+   * handleSubmit?????????????????
+   * ???`packages/ui-antd/src/components/LayoutSteps.tsx:200`?
+   * ?????????????????????????????????
+   * ??????????????????????????
+   */
+  const /**
+         * handleSubmit：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-antd/src/components/LayoutSteps.tsx:146`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         */
+    handleSubmit = async (): Promise<void> => {
+      const result = await form.submit()
+      if (result.errors.length > 0) {
         form.scrollToFirstError()
       }
     }
-    finally {
-      setActionLoading(false)
-    }
-  }
 
-  const handleSubmit = async (): Promise<void> => {
-    const result = await form.submit()
-    if (result.errors.length > 0) {
-      form.scrollToFirstError()
+  /**
+   * handleReset?????????????????
+   * ???`packages/ui-antd/src/components/LayoutSteps.tsx:213`?
+   * ?????????????????????????????????
+   * ??????????????????????????
+   */
+  const /**
+         * handleReset：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-antd/src/components/LayoutSteps.tsx:153`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         */
+    handleReset = (): void => {
+      form.reset()
     }
-  }
-
-  const handleReset = (): void => {
-    form.reset()
-  }
 
   const renderActions = typeof (actions as { render?: unknown }).render === 'function'
     ? (actions as { render: (ctx: {
@@ -170,6 +295,13 @@ export const LayoutSteps = observer((_props: LayoutStepsProps): ReactElement => 
     ? renderActions({
         current,
         total: items.length,
+        /**
+         * prev：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-antd/src/components/LayoutSteps.tsx:173`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         prev: () => setCurrent(current - 1),
         next: handleNext,
         submit: handleSubmit,

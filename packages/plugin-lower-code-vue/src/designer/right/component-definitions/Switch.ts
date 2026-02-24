@@ -1,5 +1,10 @@
 import type { LowCodeDesignerComponentDefinition } from '../../types'
 
+/**
+ * Switch Definition：变量或常量声明。
+ * 所属模块：`packages/plugin-lower-code-vue/src/designer/right/component-definitions/Switch.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export const SwitchDefinition: LowCodeDesignerComponentDefinition = {
   label: '开关',
   description: '用于布尔状态切换，适合启用、开关、状态控制类配置。',

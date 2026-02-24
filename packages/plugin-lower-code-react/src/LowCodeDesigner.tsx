@@ -393,40 +393,54 @@ export function LowCodeDesigner({
       const next = { ...prev }
       let changed = false
 
-      const visit = (items: DesignerNode[]): void => {
-        for (const item of items) {
-          if (item.kind === 'field') {
-            const currentPreset = next[item.component]
-            if (!currentPreset) {
-              next[item.component] = { ...item.componentProps }
-              changed = true
+      /**
+       * visit?????????????????
+       * ???`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:403`?
+       * ?????????????????????????????????
+       * ??????????????????????????
+       * @param items ?? items ????????????
+       */
+      const /**
+             * visit：执行当前位置的功能逻辑。
+             * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:396`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @param items 参数 items 为当前功能所需的输入信息。
+             */
+        visit = (items: DesignerNode[]): void => {
+          for (const item of items) {
+            if (item.kind === 'field') {
+              const currentPreset = next[item.component]
+              if (!currentPreset) {
+                next[item.component] = { ...item.componentProps }
+                changed = true
+                continue
+              }
+
+              let localChanged = false
+              const mergedPreset = { ...currentPreset }
+              for (const [propKey, propValue] of Object.entries(item.componentProps)) {
+                if (!(propKey in mergedPreset)) {
+                  mergedPreset[propKey] = propValue
+                  localChanged = true
+                }
+              }
+
+              if (localChanged) {
+                next[item.component] = mergedPreset
+                changed = true
+              }
               continue
             }
 
-            let localChanged = false
-            const mergedPreset = { ...currentPreset }
-            for (const [propKey, propValue] of Object.entries(item.componentProps)) {
-              if (!(propKey in mergedPreset)) {
-                mergedPreset[propKey] = propValue
-                localChanged = true
-              }
+            if (item.children.length > 0)
+              visit(item.children)
+            if (item.sections.length > 0) {
+              for (const section of item.sections)
+                visit(section.children)
             }
-
-            if (localChanged) {
-              next[item.component] = mergedPreset
-              changed = true
-            }
-            continue
-          }
-
-          if (item.children.length > 0)
-            visit(item.children)
-          if (item.sections.length > 0) {
-            for (const section of item.sections)
-              visit(section.children)
           }
         }
-      }
 
       visit(nodes)
       return changed ? next : prev
@@ -483,6 +497,13 @@ export function LowCodeDesigner({
       navigationBar: true,
       statusBar: true,
       search: true,
+      /**
+       * onEditable：执行当前位置的功能逻辑。
+       * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:486`。
+       * 功能：处理参数消化、状态变更与调用链行为同步。
+       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+       * @returns 返回当前分支执行后的处理结果。
+       */
       onEditable: () => false,
     })
 
@@ -515,11 +536,25 @@ export function LowCodeDesigner({
     let cancelled = false
     let canvasSelectionRoot: HTMLElement | null = null
     const canvasPutHandler = createDesignerCanvasPutHandler(keyToTarget)
-    const toggleDragging = (dragging: boolean): void => {
-      if (typeof document === 'undefined')
-        return
-      document.body.classList.toggle('cf-lc-body-dragging', dragging)
-    }
+    /**
+     * toggleDragging?????????????????
+     * ???`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:539`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     * @param dragging ?? dragging ????????????
+     */
+    const /**
+           * toggleDragging：执行当前位置的功能逻辑。
+           * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:518`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @param dragging 参数 dragging 为当前功能所需的输入信息。
+           */
+      toggleDragging = (dragging: boolean): void => {
+        if (typeof document === 'undefined')
+          return
+        document.body.classList.toggle('cf-lc-body-dragging', dragging)
+      }
     /**
      * 归一化事件目标为 HTMLElement，便于做 closest 查询。
      */
@@ -549,19 +584,45 @@ export function LowCodeDesigner({
       if (nodeId)
         setSelectedId(nodeId)
     }
-    const detachCanvasSelection = (): void => {
-      if (!canvasSelectionRoot)
-        return
-      canvasSelectionRoot.removeEventListener('pointerdown', handleCanvasPointerDown, true)
-      canvasSelectionRoot = null
-    }
-    const attachCanvasSelection = (root: HTMLElement): void => {
-      if (canvasSelectionRoot === root)
-        return
-      detachCanvasSelection()
-      root.addEventListener('pointerdown', handleCanvasPointerDown, true)
-      canvasSelectionRoot = root
-    }
+    /**
+     * detachCanvasSelection?????????????????
+     * ???`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:579`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     */
+    const /**
+           * detachCanvasSelection：执行当前位置的功能逻辑。
+           * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:552`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           */
+      detachCanvasSelection = (): void => {
+        if (!canvasSelectionRoot)
+          return
+        canvasSelectionRoot.removeEventListener('pointerdown', handleCanvasPointerDown, true)
+        canvasSelectionRoot = null
+      }
+    /**
+     * attachCanvasSelection?????????????????
+     * ???`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:592`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     * @param root ?? root ????????????
+     */
+    const /**
+           * attachCanvasSelection：执行当前位置的功能逻辑。
+           * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:558`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @param root 参数 root 为当前功能所需的输入信息。
+           */
+      attachCanvasSelection = (root: HTMLElement): void => {
+        if (canvasSelectionRoot === root)
+          return
+        detachCanvasSelection()
+        root.addEventListener('pointerdown', handleCanvasPointerDown, true)
+        canvasSelectionRoot = root
+      }
 
     /**
      * 销毁当前所有已挂载的 Sortable 实例。
@@ -585,8 +646,30 @@ export function LowCodeDesigner({
         for (const materialList of materialLists) {
           sortables.push(Sortable.create(materialList, createDesignerMaterialSortableOptions({
             disabled: false,
+            /**
+             * onStart：执行当前位置的功能逻辑。
+             * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:588`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @returns 返回当前分支执行后的处理结果。
+             */
             onStart: () => toggleDragging(true),
+            /**
+             * onEnd：执行当前位置的功能逻辑。
+             * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:589`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @returns 返回当前分支执行后的处理结果。
+             */
             onEnd: () => toggleDragging(false),
+            /**
+             * setData：执行当前位置的功能逻辑。
+             * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:590`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @param dataTransfer 参数 dataTransfer 为当前功能所需的输入信息。
+             * @param dragElement 参数 dragElement 为当前功能所需的输入信息。
+             */
             setData: (dataTransfer, dragElement) => {
               dataTransfer.setData('text/plain', dragElement.getAttribute('data-material-id') ?? '')
             },
@@ -604,10 +687,33 @@ export function LowCodeDesigner({
             disabled: false,
             targetKey: list.dataset.targetKey,
             put: canvasPutHandler,
+            /**
+             * onStart：执行当前位置的功能逻辑。
+             * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:607`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @returns 返回当前分支执行后的处理结果。
+             */
             onStart: () => toggleDragging(true),
+            /**
+             * setData：执行当前位置的功能逻辑。
+             * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:608`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @param dataTransfer 参数 dataTransfer 为当前功能所需的输入信息。
+             * @param dragElement 参数 dragElement 为当前功能所需的输入信息。
+             */
             setData: (dataTransfer, dragElement) => {
               dataTransfer.setData('text/plain', dragElement.getAttribute('data-node-id') ?? '')
             },
+            /**
+             * onAdd：执行当前位置的功能逻辑。
+             * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:611`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @param event 参数 event 为事件对象，用于提供交互上下文。
+             * @returns 返回当前分支执行后的处理结果。
+             */
             onAdd: (event) => {
               // 处理“物料克隆进入画布”，生成真实 schema 节点。
               const item = event.item as HTMLElement
@@ -632,6 +738,13 @@ export function LowCodeDesigner({
               })
               setSelectedId(nextNode.id)
             },
+            /**
+             * onEnd：执行当前位置的功能逻辑。
+             * 定位：`packages/plugin-lower-code-react/src/LowCodeDesigner.tsx:635`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @param event 参数 event 为事件对象，用于提供交互上下文。
+             */
             onEnd: (event) => {
               // 处理“已存在节点”的跨列表移动与同列表重排。
               toggleDragging(false)

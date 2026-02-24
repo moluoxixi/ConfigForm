@@ -1,5 +1,10 @@
 import type { LowCodeDesignerComponentDefinition } from '../../types'
 
+/**
+ * Input Number Definition：变量或常量声明。
+ * 所属模块：`packages/plugin-lower-code-vue/src/designer/right/component-definitions/InputNumber.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export const InputNumberDefinition: LowCodeDesignerComponentDefinition = {
   label: '数字输入',
   description: '用于整数或小数输入，适合金额、数量、权重等数值场景。',

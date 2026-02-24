@@ -8,6 +8,11 @@ import { ComponentRegistrySymbol } from '../context'
 import { FormProvider } from './FormProvider'
 import { SchemaField } from './SchemaField'
 
+/**
+ * SchemaTransformPluginBridge??????
+ * ???`packages/vue/src/components/ConfigForm.ts:11`?
+ * ??????????????????????????????
+ */
 interface SchemaTransformPluginBridge {
   translateSchema?: (schema: ISchema) => ISchema
   transformSchema?: (schema: ISchema) => ISchema
@@ -24,9 +29,31 @@ const FormActionsRenderer = defineComponent({
     submitLabel: { type: String, default: '提交' },
     resetLabel: { type: String, default: '重置' },
     align: { type: String as PropType<'left' | 'center' | 'right'>, default: 'center' },
-    extraActions: { type: Object as PropType<Record<string, unknown>>, default: () => ({}) },
+    extraActions: { type: Object as PropType<Record<string, unknown>>, /**
+                                                                        * default：执行当前位置的功能逻辑。
+                                                                        * 定位：`packages/vue/src/components/ConfigForm.ts:27`。
+                                                                        * 功能：处理参数消化、状态变更与调用链行为同步。
+                                                                        * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                                                                        * @returns 返回当前分支执行后的处理结果。
+                                                                        */
+      /**
+       * default：执行当前位置的功能逻辑。
+       * 定位：`packages/vue/src/components/ConfigForm.ts:34`。
+       * 功能：处理参数消化、状态变更与调用链行为同步。
+       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+       * @returns 返回当前分支执行后的处理结果。
+       */
+      default: () => ({}) },
   },
   emits: ['reset', 'submit', 'submitFailed'],
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/vue/src/components/ConfigForm.ts:30`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props, { emit }) {
     const registryRef = inject(ComponentRegistrySymbol)
 
@@ -50,7 +77,21 @@ const FormActionsRenderer = defineComponent({
         buttons.push(h('button', { type: 'submit', style: 'margin-right: 8px; padding: 4px 16px; cursor: pointer' }, props.submitLabel))
       }
       if (props.showReset) {
-        buttons.push(h('button', { type: 'button', style: 'padding: 4px 16px; cursor: pointer', onClick: () => emit('reset') }, props.resetLabel))
+        buttons.push(h('button', { type: 'button', style: 'padding: 4px 16px; cursor: pointer', /**
+                                                                                                 * onClick：执行当前位置的功能逻辑。
+                                                                                                 * 定位：`packages/vue/src/components/ConfigForm.ts:53`。
+                                                                                                 * 功能：处理参数消化、状态变更与调用链行为同步。
+                                                                                                 * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                                                                                                 * @returns 返回当前分支执行后的处理结果。
+                                                                                                 */
+          /**
+           * onClick：执行当前位置的功能逻辑。
+           * 定位：`packages/vue/src/components/ConfigForm.ts:75`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @returns 返回当前分支执行后的处理结果。
+           */
+          onClick: () => emit('reset') }, props.resetLabel))
       }
       for (const [actionName, config] of Object.entries(props.extraActions)) {
         if (!isActionEnabled(config)) {
@@ -149,6 +190,14 @@ export const ConfigForm = defineComponent({
     },
   },
   emits: ['submit', 'submitFailed', 'valuesChange', 'reset'],
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/vue/src/components/ConfigForm.ts:152`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props, { slots, emit }) {
     /** 从根 schema 的 decoratorProps 提取表单级配置（用于创建表单） */
     const rawDecoratorProps = computed(() =>
@@ -177,24 +226,36 @@ export const ConfigForm = defineComponent({
     const schemaTransformers = computed(() => collectSchemaTransformers(form))
     const schemaTransformDisposers: Array<() => void> = []
 
-    const bindSchemaTransformers = (): void => {
-      while (schemaTransformDisposers.length > 0) {
-        schemaTransformDisposers.pop()?.()
-      }
+    /**
+     * bindSchemaTransformers?????????????????
+     * ???`packages/vue/src/components/ConfigForm.ts:230`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     */
+    const /**
+           * bindSchemaTransformers：执行当前位置的功能逻辑。
+           * 定位：`packages/vue/src/components/ConfigForm.ts:180`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           */
+      bindSchemaTransformers = (): void => {
+        while (schemaTransformDisposers.length > 0) {
+          schemaTransformDisposers.pop()?.()
+        }
 
-      for (const transformer of schemaTransformers.value) {
-        const subscribe = transformer.subscribeSchemaChange ?? transformer.subscribe
-        if (typeof subscribe !== 'function') {
-          continue
-        }
-        const dispose = subscribe(() => {
-          schemaTransformVersion.value += 1
-        })
-        if (typeof dispose === 'function') {
-          schemaTransformDisposers.push(dispose)
+        for (const transformer of schemaTransformers.value) {
+          const subscribe = transformer.subscribeSchemaChange ?? transformer.subscribe
+          if (typeof subscribe !== 'function') {
+            continue
+          }
+          const dispose = subscribe(() => {
+            schemaTransformVersion.value += 1
+          })
+          if (typeof dispose === 'function') {
+            schemaTransformDisposers.push(dispose)
+          }
         }
       }
-    }
 
     const effectiveSchema = computed(() => {
       const schema = props.schema
@@ -264,18 +325,36 @@ export const ConfigForm = defineComponent({
     const responsiveColumns = ref<number | null>(null)
     let resizeObserver: ResizeObserver | null = null
 
-    const resolveBreakpointColumns = (width: number, breakpoints: Record<number, number>): number => {
-      const sortedBreakpoints = Object.entries(breakpoints)
-        .map(([w, c]) => [Number(w), c] as [number, number])
-        .sort((a, b) => a[0] - b[0])
+    /**
+     * resolveBreakpointColumns?????????????????
+     * ???`packages/vue/src/components/ConfigForm.ts:326`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     * @param width ?? width ????????????
+     * @param breakpoints ?? breakpoints ????????????
+     * @returns ?????????????
+     */
+    const /**
+           * resolveBreakpointColumns：执行当前位置的功能逻辑。
+           * 定位：`packages/vue/src/components/ConfigForm.ts:267`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @param width 参数 width 为当前功能所需的输入信息。
+           * @param breakpoints 参数 breakpoints 为当前功能所需的输入信息。
+           * @returns 返回当前分支执行后的处理结果。
+           */
+      resolveBreakpointColumns = (width: number, breakpoints: Record<number, number>): number => {
+        const sortedBreakpoints = Object.entries(breakpoints)
+          .map(([w, c]) => [Number(w), c] as [number, number])
+          .sort((a, b) => a[0] - b[0])
 
-      let cols = sortedBreakpoints[0]?.[1] ?? 1
-      for (const [minWidth, colCount] of sortedBreakpoints) {
-        if (width >= minWidth)
-          cols = colCount
+        let cols = sortedBreakpoints[0]?.[1] ?? 1
+        for (const [minWidth, colCount] of sortedBreakpoints) {
+          if (width >= minWidth)
+            cols = colCount
+        }
+        return cols
       }
-      return cols
-    }
 
     onMounted(() => {
       bindSchemaTransformers()
@@ -303,11 +382,25 @@ export const ConfigForm = defineComponent({
       resizeObserver = null
     })
 
-    const handleSubmit = async (e: Event): Promise<void> => {
-      e.preventDefault()
-      e.stopPropagation()
-      await form.submit()
-    }
+    /**
+     * handleSubmit?????????????????
+     * ???`packages/vue/src/components/ConfigForm.ts:372`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     * @param e ?? e ????????????
+     */
+    const /**
+           * handleSubmit：执行当前位置的功能逻辑。
+           * 定位：`packages/vue/src/components/ConfigForm.ts:306`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @param e 参数 e 为事件对象，用于提供交互上下文。
+           */
+      handleSubmit = async (e: Event): Promise<void> => {
+        e.preventDefault()
+        e.stopPropagation()
+        await form.submit()
+      }
 
     return () => {
       const currentDecoratorProps = rootDecoratorProps.value
@@ -384,6 +477,12 @@ export const ConfigForm = defineComponent({
                 resetLabel,
                 align,
                 extraActions,
+                /**
+                 * onReset：执行当前位置的功能逻辑。
+                 * 定位：`packages/vue/src/components/ConfigForm.ts:387`。
+                 * 功能：处理参数消化、状态变更与调用链行为同步。
+                 * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                 */
                 onReset: () => {
                   form.reset()
                 },
@@ -408,6 +507,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
+/**
+ * PluginContainerBridge??????
+ * ???`packages/vue/src/components/ConfigForm.ts:483`?
+ * ??????????????????????????????
+ */
 interface PluginContainerBridge {
   getPlugins?: () => ReadonlyMap<string, unknown> | undefined
 }

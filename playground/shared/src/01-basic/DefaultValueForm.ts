@@ -50,7 +50,26 @@ const config: SceneConfig = {
         title: '折扣率（%）',
         componentProps: { disabled: true },
         description: '根据等级动态设置',
-        reactions: [{ watch: 'level', fulfill: { value: (_field: unknown, ctx: { values: Record<string, unknown> }): number => LEVEL_DISCOUNT_MAP[ctx.values.level as string] ?? 0 } }],
+        reactions: [{ watch: 'level', fulfill: { /**
+                                                  * value：执行当前位置的功能逻辑。
+                                                  * 定位：`playground/shared/src/01-basic/DefaultValueForm.ts:53`。
+                                                  * 功能：处理参数消化、状态变更与调用链行为同步。
+                                                  * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                                                  * @param _field 参数 _field 为当前功能所需的输入信息。
+                                                  * @param ctx 参数 ctx 为上下文对象，用于传递场景数据。
+                                                  * @returns 返回当前分支执行后的处理结果。
+                                                  */
+          /**
+           * value：执行当前位置的功能逻辑。
+           * 定位：`playground/shared/src/01-basic/DefaultValueForm.ts:62`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @param _field 参数 _field 为当前功能所需的输入信息。
+           * @param ctx 参数 ctx 为上下文对象，用于传递环境数据。
+           * @returns 返回当前分支执行后的处理结果。
+           */
+          value: (_field: unknown, ctx: { values: Record<string, unknown> }): number => LEVEL_DISCOUNT_MAP[ctx.values.level as string] ?? 0,
+        } }],
       },
     },
   },

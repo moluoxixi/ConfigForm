@@ -35,6 +35,15 @@ export const FormArrayField = defineComponent({
       default: undefined,
     },
   },
+  /**
+   * setup：当前功能模块的核心执行单元。
+   * 所属模块：`packages/vue/src/components/FormArrayField.ts`。
+   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+   * @param props 参数 `props`用于提供当前函数执行所需的输入信息。
+   * @param param2 原始解构参数（{ slots }）用于提供当前函数执行所需的输入信息。
+   * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+   */
   setup(props, { slots }) {
     const form = inject(FormSymbol)
 
@@ -76,6 +85,14 @@ export const FormArrayField = defineComponent({
         /* 自定义渲染：将 field 暴露给用户插槽 */
         ...(hasSlot
           ? {
+              /**
+               * default：执行当前功能逻辑。
+               *
+               * @param renderProps 参数 renderProps 的输入说明。
+               *
+               * @returns 返回当前功能的处理结果。
+               */
+
               default: (renderProps: Record<string, unknown>) => slots.default!({
                 field,
                 arrayField: field,

@@ -9,11 +9,17 @@ import { DesignerMaterialToolbarRenderer } from './components/DesignerMaterialTo
 export type { DesignerMaterialPaneProps } from './types'
 
 /**
- * Designer Material Pane：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 Designer Material Pane 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * Designer Material Pane：当前功能模块的核心执行单元。
+ * 所属模块：`packages/plugin-lower-code-react/src/designer/panes/DesignerMaterialPane/index.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param param1 原始解构参数（{
+  componentMaterials,
+  layoutMaterials,
+  materialHostRef,
+  renderMaterialPreview,
+}）用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function DesignerMaterialPane({
   componentMaterials,
@@ -24,12 +30,27 @@ export function DesignerMaterialPane({
   const [keyword, setKeyword] = useState('')
 
   const normalizedKeyword = keyword.trim().toLowerCase()
-  const filterByKeyword = (item: MaterialItem): boolean => {
-    if (!normalizedKeyword)
-      return true
-    const text = `${item.label} ${item.description ?? ''}`.toLowerCase()
-    return text.includes(normalizedKeyword)
-  }
+  /**
+   * filter By Keyword：当前功能模块的核心执行单元。
+   * 所属模块：`packages/plugin-lower-code-react/src/designer/panes/DesignerMaterialPane/index.tsx`。
+   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+   * @param item 参数 `item`用于提供当前函数执行所需的输入信息。
+   * @returns 返回布尔值，用于表示条件是否成立或操作是否成功。
+   */
+  const /**
+         * filterByKeyword：执行当前功能逻辑。
+         *
+         * @param item 参数 item 的输入说明。
+         *
+         * @returns 返回当前功能的处理结果。
+         */
+    filterByKeyword = (item: MaterialItem): boolean => {
+      if (!normalizedKeyword)
+        return true
+      const text = `${item.label} ${item.description ?? ''}`.toLowerCase()
+      return text.includes(normalizedKeyword)
+    }
 
   const filteredComponentMaterials = useMemo(
     () => componentMaterials.filter(filterByKeyword),

@@ -83,11 +83,26 @@ export function createVueMessageI18nRuntime(options: VueMessageI18nRuntimeOption
   let pluginApi: I18nPluginAPI | undefined
   const plugin: FormPlugin<I18nPluginAPI> = {
     name: rawPlugin.name,
+    /**
+     * install：执行当前位置的功能逻辑。
+     * 定位：`packages/plugin-i18n-vue/src/runtime.ts:86`。
+     * 功能：处理参数消化、状态变更与调用链行为同步。
+     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+     * @param form 参数 form 为业务对象，用于读写状态与属性。
+     * @param context 参数 context 为上下文对象，用于传递场景数据。
+     * @returns 返回当前分支执行后的处理结果。
+     */
     install(form, context) {
       const installed = rawPlugin.install(form, context)
       pluginApi = installed.api
       return {
         api: installed.api,
+        /**
+         * dispose：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-i18n-vue/src/runtime.ts:91`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         */
         dispose: () => {
           if (pluginApi === installed.api) {
             pluginApi = undefined
@@ -98,27 +113,75 @@ export function createVueMessageI18nRuntime(options: VueMessageI18nRuntimeOption
     },
   }
 
-  const subscribeLocale = (listener: (nextLocale: string) => void): (() => void) => {
-    if (!isRef(composer.locale)) {
-      return () => {}
+  /**
+   * subscribeLocale?????????????????
+   * ???`packages/plugin-i18n-vue/src/runtime.ts:124`?
+   * ?????????????????????????????????
+   * ??????????????????????????
+   * @param listener ?? listener ????????????
+   * @returns ?????????????
+   */
+  const /**
+         * subscribeLocale：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-i18n-vue/src/runtime.ts:101`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param listener 参数 listener 为当前功能所需的输入信息。
+         * @returns 返回当前分支执行后的处理结果。
+         */
+    subscribeLocale = (listener: (nextLocale: string) => void): (() => void) => {
+      if (!isRef(composer.locale)) {
+        return () => {}
+      }
+      const stop = watch(composer.locale, (nextLocale) => {
+        listener(String(nextLocale))
+      })
+      return () => {
+        stop()
+      }
     }
-    const stop = watch(composer.locale, (nextLocale) => {
-      listener(String(nextLocale))
-    })
-    return () => {
-      stop()
-    }
-  }
 
-  const t = (key: string, params?: Record<string, unknown>): string => {
-    return String(composer.t(key, params))
-  }
+  /**
+   * t?????????????????
+   * ???`packages/plugin-i18n-vue/src/runtime.ts:145`?
+   * ?????????????????????????????????
+   * ??????????????????????????
+   * @param key ?? key ????????????
+   * @param params ?? params ????????????
+   * @returns ?????????????
+   */
+  const /**
+         * t：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-i18n-vue/src/runtime.ts:113`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param key 参数 key 为当前功能所需的输入信息。
+         * @param params 参数 params 为当前功能所需的输入信息。
+         * @returns 返回当前分支执行后的处理结果。
+         */
+    t = (key: string, params?: Record<string, unknown>): string => {
+      return String(composer.t(key, params))
+    }
 
   return {
     plugin,
     i18n,
     t,
+    /**
+     * getLocale：执行当前位置的功能逻辑。
+     * 定位：`packages/plugin-i18n-vue/src/runtime.ts:121`。
+     * 功能：处理参数消化、状态变更与调用链行为同步。
+     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+     * @returns 返回当前分支执行后的处理结果。
+     */
     getLocale: () => readLocale(composer),
+    /**
+     * setLocale：执行当前位置的功能逻辑。
+     * 定位：`packages/plugin-i18n-vue/src/runtime.ts:122`。
+     * 功能：处理参数消化、状态变更与调用链行为同步。
+     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+     * @param nextLocale 参数 nextLocale 为当前功能所需的输入信息。
+     */
     setLocale: (nextLocale) => {
       if (pluginApi) {
         void pluginApi.setLocale(nextLocale)

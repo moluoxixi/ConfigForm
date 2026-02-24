@@ -5,6 +5,11 @@ import JSONEditor from 'jsoneditor'
 import { useEffect, useRef, useState } from 'react'
 import 'jsoneditor/dist/jsoneditor.css'
 
+/**
+ * JsonEditorModalProps??????
+ * ???`packages/ui-antd/src/components/JsonEditorModal.tsx:8`?
+ * ??????????????????????????????
+ */
 interface JsonEditorModalProps {
   open: boolean
   title: string
@@ -90,25 +95,37 @@ export function JsonEditorModal({
     }
   }, [editorHost, open, readOnly, value])
 
-  const handleConfirm = async (): Promise<void> => {
-    if (!editorRef.current) {
-      onCancel()
-      return
-    }
-
-    try {
-      const nextValue = editorRef.current.get()
-      if (!isRecord(nextValue)) {
-        throw new Error('JSON 根节点必须是对象')
+  /**
+   * handleConfirm?????????????????
+   * ???`packages/ui-antd/src/components/JsonEditorModal.tsx:99`?
+   * ?????????????????????????????????
+   * ??????????????????????????
+   */
+  const /**
+         * handleConfirm：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-antd/src/components/JsonEditorModal.tsx:93`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         */
+    handleConfirm = async (): Promise<void> => {
+      if (!editorRef.current) {
+        onCancel()
+        return
       }
-      onChange?.(nextValue)
-      await onConfirm?.(nextValue)
+
+      try {
+        const nextValue = editorRef.current.get()
+        if (!isRecord(nextValue)) {
+          throw new Error('JSON 根节点必须是对象')
+        }
+        onChange?.(nextValue)
+        await onConfirm?.(nextValue)
+      }
+      catch (error) {
+        const text = error instanceof Error ? error.message : String(error)
+        message.error(text || 'JSON 解析失败')
+      }
     }
-    catch (error) {
-      const text = error instanceof Error ? error.message : String(error)
-      message.error(text || 'JSON 解析失败')
-    }
-  }
 
   return (
     <Modal

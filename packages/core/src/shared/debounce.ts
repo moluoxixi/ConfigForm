@@ -1,86 +1,20 @@
 import type { AnyFunction } from './types'
 
-export interface DebouncedFunction<T extends AnyFunction> {
-  (...args: Parameters<T>): void
-  /** 取消等待中的调用 */
-  cancel: () => void
-  /** 立即执行等待中的调用 */
-  flush: () => void
-}
-
 /**
- * 防抖函数
- * @param fn - 要防抖的函数
- * @param delay - 延迟毫秒数
- * @param options - 配置项
- * @param options.leading - 是否在延迟前立即执行一次
+ * 节流函数返回类型。
+ * 除了可调用本体外，还提供 `cancel` 用于主动清理挂起任务。
  */
-export function debounce<T extends AnyFunction>(
-  fn: T,
-  delay: number,
-  options?: { leading?: boolean },
-): DebouncedFunction<T> {
-  let timer: ReturnType<typeof setTimeout> | null = null
-  /** 暂存最近一次调用的参数和上下文，用于延迟执行 */
-  let pending: { ctx: unknown, args: Parameters<T> } | null = null
-  const leading = options?.leading ?? false
-
-  const debounced = function (this: unknown, ...args: Parameters<T>) {
-    pending = { ctx: this, args }
-
-    if (timer !== null) {
-      clearTimeout(timer)
-    }
-
-    if (leading && timer === null) {
-      fn.apply(this, args)
-      pending = null
-      timer = setTimeout(() => {
-        timer = null
-      }, delay)
-      return
-    }
-
-    timer = setTimeout(() => {
-      if (pending) {
-        fn.apply(pending.ctx, pending.args)
-        pending = null
-      }
-      timer = null
-    }, delay)
-  } as DebouncedFunction<T>
-
-  debounced.cancel = () => {
-    if (timer !== null) {
-      clearTimeout(timer)
-      timer = null
-    }
-    pending = null
-  }
-
-  debounced.flush = () => {
-    if (timer !== null) {
-      clearTimeout(timer)
-      timer = null
-    }
-    if (pending) {
-      fn.apply(pending.ctx, pending.args)
-      pending = null
-    }
-  }
-
-  return debounced
-}
-
 export interface ThrottledFunction<T extends AnyFunction> {
   (...args: Parameters<T>): void
   cancel: () => void
 }
 
 /**
- * 节流函数
- * @param fn - 要节流的函数
- * @param interval - 最小间隔毫秒数
+ * 创建节流函数。
+ * 在一个节流窗口内，函数最多执行一次；窗口末尾可补执行一次尾调用。
+ * @param fn 需要节流的原始函数。
+ * @param interval 节流间隔（毫秒）。
+ * @returns 带 cancel 能力的节流函数。
  */
 export function throttle<T extends AnyFunction>(
   fn: T,

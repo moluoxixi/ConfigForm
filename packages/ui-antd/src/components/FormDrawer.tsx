@@ -8,6 +8,11 @@ import { createRoot } from 'react-dom/client'
 
 /* ======================== 类型定义 ======================== */
 
+/**
+ * FormDrawerProps??????
+ * ???`packages/ui-antd/src/components/FormDrawer.tsx:11`?
+ * ??????????????????????????????
+ */
 export interface FormDrawerProps<Values extends Record<string, unknown> = Record<string, unknown>> {
   /** 抽屉标题 */
   title?: ReactNode
@@ -159,6 +164,14 @@ const FormDrawerInner = observer(<Values extends Record<string, unknown> = Recor
 
 /* ======================== 命令式 API ======================== */
 
+/**
+ * openFormDrawer：执行当前位置的功能逻辑。
+ * 定位：`packages/ui-antd/src/components/FormDrawer.tsx:162`。
+ * 功能：处理参数消化、状态变更与调用链行为同步。
+ * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+ * @param options 参数 options 为当前功能所需的输入信息。
+ * @returns 返回当前分支执行后的处理结果。
+ */
 function openFormDrawer<Values extends Record<string, unknown> = Record<string, unknown>>(
   options: FormDrawerOpenOptions<Values>,
 ): Promise<Values> {
@@ -167,51 +180,103 @@ function openFormDrawer<Values extends Record<string, unknown> = Record<string, 
     document.body.appendChild(container)
     const root = createRoot(container)
 
-    const destroy = (): void => {
-      setTimeout(() => {
-        root.unmount()
-        if (document.body.contains(container)) {
-          document.body.removeChild(container)
-        }
-      }, 300)
-    }
+    /**
+     * destroy?????????????????
+     * ???`packages/ui-antd/src/components/FormDrawer.tsx:184`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     */
+    const /**
+           * destroy：执行当前位置的功能逻辑。
+           * 定位：`packages/ui-antd/src/components/FormDrawer.tsx:170`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           */
+      destroy = (): void => {
+        setTimeout(() => {
+          root.unmount()
+          if (document.body.contains(container)) {
+            document.body.removeChild(container)
+          }
+        }, 300)
+      }
 
     const form = createForm<Values>({
       ...options.formConfig,
       initialValues: options.initialValues ?? options.formConfig?.initialValues,
     })
 
-    const DrawerWrapper = (): ReactElement => {
-      const [open, setOpen] = useState(true)
+    /**
+     * DrawerWrapper?????????????????
+     * ???`packages/ui-antd/src/components/FormDrawer.tsx:205`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     * @returns ?????????????
+     */
+    const /**
+           * DrawerWrapper：执行当前位置的功能逻辑。
+           * 定位：`packages/ui-antd/src/components/FormDrawer.tsx:184`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @returns 返回当前分支执行后的处理结果。
+           */
+      DrawerWrapper = (): ReactElement => {
+        const [open, setOpen] = useState(true)
 
-      const handleSubmit = async (values: Values): Promise<void> => {
-        await options.onSubmit?.(values)
-        setOpen(false)
-        resolve(values)
-        destroy()
+        /**
+         * handleSubmit?????????????????
+         * ???`packages/ui-antd/src/components/FormDrawer.tsx:215`?
+         * ?????????????????????????????????
+         * ??????????????????????????
+         * @param values ?? values ????????????
+         */
+        const /**
+               * handleSubmit：执行当前位置的功能逻辑。
+               * 定位：`packages/ui-antd/src/components/FormDrawer.tsx:187`。
+               * 功能：处理参数消化、状态变更与调用链行为同步。
+               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+               * @param values 参数 values 为当前功能所需的输入信息。
+               */
+          handleSubmit = async (values: Values): Promise<void> => {
+            await options.onSubmit?.(values)
+            setOpen(false)
+            resolve(values)
+            destroy()
+          }
+
+        /**
+         * handleCancel?????????????????
+         * ???`packages/ui-antd/src/components/FormDrawer.tsx:228`?
+         * ?????????????????????????????????
+         * ??????????????????????????
+         */
+        const /**
+               * handleCancel：执行当前位置的功能逻辑。
+               * 定位：`packages/ui-antd/src/components/FormDrawer.tsx:194`。
+               * 功能：处理参数消化、状态变更与调用链行为同步。
+               * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+               */
+          handleCancel = (): void => {
+            setOpen(false)
+            reject(new Error('FormDrawer cancelled'))
+            destroy()
+          }
+
+        return (
+          <FormDrawerInner<Values>
+            title={options.title}
+            open={open}
+            schema={options.schema}
+            form={form}
+            width={options.width}
+            placement={options.placement}
+            okText={options.okText}
+            cancelText={options.cancelText}
+            onSubmit={handleSubmit}
+            onCancel={handleCancel}
+          />
+        )
       }
-
-      const handleCancel = (): void => {
-        setOpen(false)
-        reject(new Error('FormDrawer cancelled'))
-        destroy()
-      }
-
-      return (
-        <FormDrawerInner<Values>
-          title={options.title}
-          open={open}
-          schema={options.schema}
-          form={form}
-          width={options.width}
-          placement={options.placement}
-          okText={options.okText}
-          cancelText={options.cancelText}
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
-        />
-      )
-    }
 
     root.render(<DrawerWrapper />)
   })
@@ -219,6 +284,11 @@ function openFormDrawer<Values extends Record<string, unknown> = Record<string, 
 
 /* ======================== 组合导出 ======================== */
 
+/**
+ * FormDrawerType????????
+ * ???`packages/ui-antd/src/components/FormDrawer.tsx:256`?
+ * ??????????????????????????????
+ */
 type FormDrawerType = typeof FormDrawerInner & {
   open: typeof openFormDrawer
 }

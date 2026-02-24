@@ -25,6 +25,12 @@ export const AutoComplete = defineComponent({
     /** 候选数据源 */
     dataSource: {
       type: Array as PropType<AutoCompleteOption[]>,
+      /**
+       * default：执行当前功能逻辑。
+       *
+       * @returns 返回当前功能的处理结果。
+       */
+
       default: () => [],
     },
     /** 是否在输入时触发搜索过滤 */
@@ -33,6 +39,15 @@ export const AutoComplete = defineComponent({
     clearable: { type: Boolean, default: true },
   },
   emits: ['update:modelValue', 'focus', 'blur'],
+  /**
+   * setup：当前功能模块的核心执行单元。
+   * 所属模块：`packages/ui-element-plus/src/components/AutoComplete.ts`。
+   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+   * @param props 参数 `props`用于提供当前函数执行所需的输入信息。
+   * @param param2 原始解构参数（{ emit }）用于提供当前函数执行所需的输入信息。
+   * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+   */
   setup(props, { emit }) {
     /**
      * 将 dataSource 数组转换为 ElAutocomplete 所需的 fetchSuggestions 回调
@@ -76,8 +91,28 @@ export const AutoComplete = defineComponent({
         'triggerOnFocus': props.triggerOnFocus,
         'clearable': props.clearable,
         'style': 'width: 100%',
+        /**
+         * onUpdate:modelValue：执行当前功能逻辑。
+         *
+         * @param v 参数 v 的输入说明。
+         *
+         * @returns 返回当前功能的处理结果。
+         */
+
         'onUpdate:modelValue': (v: string | number) => emit('update:modelValue', String(v)),
+        /**
+         * onFocus：执行当前功能逻辑。
+         *
+         * @returns 返回当前功能的处理结果。
+         */
+
         'onFocus': () => emit('focus'),
+        /**
+         * onBlur：执行当前功能逻辑。
+         *
+         * @returns 返回当前功能的处理结果。
+         */
+
         'onBlur': () => emit('blur'),
       })
     }

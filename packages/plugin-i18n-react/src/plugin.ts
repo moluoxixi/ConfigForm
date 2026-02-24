@@ -40,14 +40,52 @@ export function reactI18nPlugin(options: ReactI18nPluginOptions): FormPlugin<I18
   return i18nPlugin({
     ...rest,
     locale: locale ?? resolveLocale(i18n),
+    /**
+     * t：执行当前位置的功能逻辑。
+     * 定位：`packages/plugin-i18n-react/src/plugin.ts:43`。
+     * 功能：处理参数消化、状态变更与调用链行为同步。
+     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+     * @param key 参数 key 为当前功能所需的输入信息。
+     * @param params 参数 params 为当前功能所需的输入信息。
+     * @returns 返回当前分支执行后的处理结果。
+     */
     t: (key, params) => translate(i18n, key, params),
+    /**
+     * changeLocale：执行当前位置的功能逻辑。
+     * 定位：`packages/plugin-i18n-react/src/plugin.ts:44`。
+     * 功能：处理参数消化、状态变更与调用链行为同步。
+     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+     * @param nextLocale 参数 nextLocale 为当前功能所需的输入信息。
+     */
     changeLocale: async (nextLocale) => {
       await i18n.changeLanguage(nextLocale)
     },
+    /**
+     * onLocaleChange：执行当前位置的功能逻辑。
+     * 定位：`packages/plugin-i18n-react/src/plugin.ts:47`。
+     * 功能：处理参数消化、状态变更与调用链行为同步。
+     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+     * @param listener 参数 listener 为当前功能所需的输入信息。
+     * @returns 返回当前分支执行后的处理结果。
+     */
     onLocaleChange: (listener) => {
-      const handler = (nextLocale: string): void => {
-        listener(nextLocale)
-      }
+      /**
+       * handler?????????????????
+       * ???`packages/plugin-i18n-react/src/plugin.ts:79`?
+       * ?????????????????????????????????
+       * ??????????????????????????
+       * @param nextLocale ?? nextLocale ????????????
+       */
+      const /**
+             * handler：执行当前位置的功能逻辑。
+             * 定位：`packages/plugin-i18n-react/src/plugin.ts:48`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @param nextLocale 参数 nextLocale 为当前功能所需的输入信息。
+             */
+        handler = (nextLocale: string): void => {
+          listener(nextLocale)
+        }
       i18n.on('languageChanged', handler)
       return () => {
         i18n.off('languageChanged', handler)

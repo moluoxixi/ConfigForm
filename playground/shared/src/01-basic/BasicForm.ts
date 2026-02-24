@@ -25,6 +25,11 @@ const HOBBY_OPTIONS = [
   { label: '编程', value: 'coding' },
 ]
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/01-basic/BasicForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: '基础表单',
   description: 'Input / Password / Textarea / InputNumber / Select / RadioGroup / CheckboxGroup / Switch / DatePicker',

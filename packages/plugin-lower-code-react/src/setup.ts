@@ -4,6 +4,11 @@ import { registerComponent } from '@moluoxixi/react'
 import { createElement } from 'react'
 import { LowCodeDesigner } from './LowCodeDesigner'
 
+/**
+ * Setup Lower Code Designer Options：类型接口定义。
+ * 所属模块：`packages/plugin-lower-code-react/src/setup.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export interface SetupLowerCodeDesignerOptions {
   /** 注册到 schema.component 的名称，默认 LowCodeDesigner */
   name?: string
@@ -21,6 +26,7 @@ export interface SetupLowerCodeDesignerOptions {
  * setupLowerCodeDesigner()
  * // schema: { component: 'LowCodeDesigner' }
  * ```
+ * @param [options] 参数 `options`用于提供可选配置，调整当前功能模块的执行策略。
  */
 export function setupLowerCodeDesigner(options: SetupLowerCodeDesignerOptions = {}): void {
   const Designer = options.designerProps

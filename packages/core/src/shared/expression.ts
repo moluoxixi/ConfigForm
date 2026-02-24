@@ -113,6 +113,7 @@ export function isExpression(value: unknown): value is string {
  *
  * 非可信 schema 输入场景建议关闭：
  * `setUnsafeExpressionEvalEnabled(false)`
+ * @param enabled 参数 `enabled`用于提供当前函数执行所需的输入信息。
  */
 export function setUnsafeExpressionEvalEnabled(enabled: boolean): void {
   unsafeExpressionEvalEnabled = enabled
@@ -121,7 +122,10 @@ export function setUnsafeExpressionEvalEnabled(enabled: boolean): void {
   }
 }
 
-/** 当前是否启用 new Function 表达式执行 */
+/**
+ * 当前是否启用 new Function 表达式执行
+ * @returns 返回布尔值，用于表示条件是否成立或操作是否成功。
+ */
 export function isUnsafeExpressionEvalEnabled(): boolean {
   return unsafeExpressionEvalEnabled
 }

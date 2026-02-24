@@ -4,6 +4,11 @@ import { observer, RecursionField, useField, useForm, useSchemaItems } from '@mo
 import { Collapse as ACollapse } from 'antd'
 import { useState } from 'react'
 
+/**
+ * Layout Collapse Props：类型接口定义。
+ * 所属模块：`packages/ui-antd/src/components/LayoutCollapse.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export interface LayoutCollapseProps {}
 
 /**
@@ -20,20 +25,35 @@ export const LayoutCollapse = observer((_props: LayoutCollapseProps): ReactEleme
   const allKeys = items.map((_, i) => String(i))
   const [activeKeys, setActiveKeys] = useState(allKeys)
 
-  const getDataPath = (path: string): string => {
-    if (!path)
-      return ''
-    const segments = path.split('.')
-    const dataSegments: string[] = []
-    let currentPath = ''
-    for (const seg of segments) {
-      currentPath = currentPath ? `${currentPath}.${seg}` : seg
-      if (form.getAllVoidFields().has(currentPath))
-        continue
-      dataSegments.push(seg)
+  /**
+   * get Data Path：当前功能模块的核心执行单元。
+   * 所属模块：`packages/ui-antd/src/components/LayoutCollapse.tsx`。
+   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+   * @param path 参数 `path`用于提供当前函数执行所需的输入信息。
+   * @returns 返回字符串结果，通常用于文本展示或下游拼接。
+   */
+  const /**
+         * getDataPath：执行当前功能逻辑。
+         *
+         * @param path 参数 path 的输入说明。
+         *
+         * @returns 返回当前功能的处理结果。
+         */
+    getDataPath = (path: string): string => {
+      if (!path)
+        return ''
+      const segments = path.split('.')
+      const dataSegments: string[] = []
+      let currentPath = ''
+      for (const seg of segments) {
+        currentPath = currentPath ? `${currentPath}.${seg}` : seg
+        if (form.getAllVoidFields().has(currentPath))
+          continue
+        dataSegments.push(seg)
+      }
+      return dataSegments.join('.')
     }
-    return dataSegments.join('.')
-  }
 
   const basePath = getDataPath(field.path)
 

@@ -166,6 +166,11 @@ if (formSchema.properties?.skills) {
   formSchema.properties.skills.itemTemplate = { name: '', level: 'intermediate' }
 }
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/11-advanced/JsonSchemaAdapterForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: 'JSON Schema 适配器',
   description: '从标准 JSON Schema (Draft-07/2020-12) 自动转换为表单 — 支持 if/then/else、dependentRequired、$defs、allOf 等',

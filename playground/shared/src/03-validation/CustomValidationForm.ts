@@ -22,6 +22,14 @@ const licensePlateRules: ValidationRule[] = [{ pattern: /^[\u4E00-\u9FA5][A-Z][A
 
 /** 手机号规则：中国大陆 11 位 */
 const phoneRules: ValidationRule[] = [{
+  /**
+   * validator：执行当前位置的功能逻辑。
+   * 定位：`playground/shared/src/03-validation/CustomValidationForm.ts:25`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param v 参数 v 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   validator: (v: unknown): string | undefined => {
     if (!v)
       return undefined
@@ -37,7 +45,24 @@ const passwordRules: ValidationRule[] = [
   { pattern: /[a-z]/, message: '需含小写' },
   { pattern: /[A-Z]/, message: '需含大写' },
   { pattern: /\d/, message: '需含数字' },
-  { validator: (v: unknown): string | undefined => WEAK_PWD.includes(String(v).toLowerCase()) ? '密码过于简单' : undefined },
+  { /**
+     * validator：执行当前位置的功能逻辑。
+     * 定位：`playground/shared/src/03-validation/CustomValidationForm.ts:40`。
+     * 功能：处理参数消化、状态变更与调用链行为同步。
+     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+     * @param v 参数 v 为当前功能所需的输入信息。
+     * @returns 返回当前分支执行后的处理结果。
+     */
+    /**
+     * validator：执行当前位置的功能逻辑。
+     * 定位：`playground/shared/src/03-validation/CustomValidationForm.ts:56`。
+     * 功能：处理参数消化、状态变更与调用链行为同步。
+     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+     * @param v 参数 v 为当前功能所需的输入信息。
+     * @returns 返回当前分支执行后的处理结果。
+     */
+    validator: (v: unknown): string | undefined => WEAK_PWD.includes(String(v).toLowerCase()) ? '密码过于简单' : undefined,
+  },
 ]
 
 /** 年龄规则：范围校验 + 警告级提示 */
@@ -45,6 +70,14 @@ const ageRules: ValidationRule[] = [
   { min: 0, max: 150, message: '0-150' },
   {
     level: 'warning',
+    /**
+     * validator：执行当前位置的功能逻辑。
+     * 定位：`playground/shared/src/03-validation/CustomValidationForm.ts:48`。
+     * 功能：处理参数消化、状态变更与调用链行为同步。
+     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+     * @param v 参数 v 为当前功能所需的输入信息。
+     * @returns 返回当前分支执行后的处理结果。
+     */
     validator: (v: unknown): string | undefined => {
       const a = Number(v)
       if (a > 0 && a < 18)
@@ -58,6 +91,14 @@ const ageRules: ValidationRule[] = [
 
 /** IP 地址规则：IPv4 格式验证 */
 const ipAddressRules: ValidationRule[] = [{
+  /**
+   * validator：执行当前位置的功能逻辑。
+   * 定位：`playground/shared/src/03-validation/CustomValidationForm.ts:61`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param v 参数 v 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   validator: (v: unknown): string | undefined => {
     if (!v)
       return undefined
@@ -100,23 +141,40 @@ const config: SceneConfig = {
         type: 'string',
         title: '证件号码',
         required: true,
-        reactions: [{ watch: 'idType', fulfill: { run: (f: any, ctx: any) => {
-          const t = ctx.values.idType as string
-          f.setValue('')
-          f.errors = []
-          if (t === 'idcard') {
-            f.rules = [{ required: true, message: '请输入' }, { pattern: /^\d{17}[\dX]$/i, message: '无效身份证' }]
-            f.setComponentProps({ placeholder: '18 位身份证' })
-          }
-          else if (t === 'passport') {
-            f.rules = [{ required: true, message: '请输入' }, { pattern: /^[A-Z]\d{8}$/, message: '格式：E12345678' }]
-            f.setComponentProps({ placeholder: 'E12345678' })
-          }
-          else {
-            f.rules = [{ required: true, message: '请输入' }, { minLength: 6, maxLength: 12, message: '6-12 位' }]
-            f.setComponentProps({ placeholder: '军官证号' })
-          }
-        } } }],
+        reactions: [{ watch: 'idType', fulfill: { /**
+                                                   * run：执行当前位置的功能逻辑。
+                                                   * 定位：`playground/shared/src/03-validation/CustomValidationForm.ts:103`。
+                                                   * 功能：处理参数消化、状态变更与调用链行为同步。
+                                                   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                                                   * @param f 参数 f 为当前功能所需的输入信息。
+                                                   * @param ctx 参数 ctx 为上下文对象，用于传递场景数据。
+                                                   */
+          /**
+           * run：执行当前位置的功能逻辑。
+           * 定位：`playground/shared/src/03-validation/CustomValidationForm.ts:143`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @param f 参数 f 为当前功能所需的输入信息。
+           * @param ctx 参数 ctx 为上下文对象，用于传递环境数据。
+           */
+          run: (f: any, ctx: any) => {
+            const t = ctx.values.idType as string
+            f.setValue('')
+            f.errors = []
+            if (t === 'idcard') {
+              f.rules = [{ required: true, message: '请输入' }, { pattern: /^\d{17}[\dX]$/i, message: '无效身份证' }]
+              f.setComponentProps({ placeholder: '18 位身份证' })
+            }
+            else if (t === 'passport') {
+              f.rules = [{ required: true, message: '请输入' }, { pattern: /^[A-Z]\d{8}$/, message: '格式：E12345678' }]
+              f.setComponentProps({ placeholder: 'E12345678' })
+            }
+            else {
+              f.rules = [{ required: true, message: '请输入' }, { minLength: 6, maxLength: 12, message: '6-12 位' }]
+              f.setComponentProps({ placeholder: '军官证号' })
+            }
+          },
+        } }],
       },
       ipAddress: { type: 'string', title: 'IP 地址', componentProps: { placeholder: '192.168.1.1' }, rules: ipAddressRules },
     },

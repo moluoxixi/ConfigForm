@@ -109,6 +109,11 @@ import { useI18nFeature } from './examples/11-misc/useI18nFeature'
 import { usePrintExportFeature } from './examples/11-misc/usePrintExportFeature'
 import { adapters } from './ui'
 
+/**
+ * Hook Type：类型接口定义。
+ * 所属模块：`playground/vue/src/App.vue`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 interface HookType {
   forms: Map<string, DevToolsPluginAPI>
   register: (id: string, api: DevToolsPluginAPI) => void
@@ -117,12 +122,11 @@ interface HookType {
 }
 
 /**
- * 确保全局 Hook 存在（与 plugin 中逻辑一致，保证面板先于插件挂载时也能订阅）
- * get Or Create Hook：负责“获取get Or Create Hook”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 get Or Create Hook 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * get Or Create Hook：当前功能模块的核心执行单元。
+ * 所属模块：`playground/vue/src/App.vue`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @returns {HookType} 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 function getOrCreateHook(): HookType {
   const g = window as unknown as Record<string, unknown>
@@ -130,14 +134,37 @@ function getOrCreateHook(): HookType {
     const listeners = new Set<(forms: Map<string, DevToolsPluginAPI>) => void>()
     const hook = {
       forms: new Map<string, DevToolsPluginAPI>(),
+      /**
+       * register：当前功能模块的核心执行单元。
+       * 所属模块：`playground/vue/src/App.vue`。
+       * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+       * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+       * @param {string} id 参数 `id`用于提供唯一标识，确保操作可以精确命中对象。
+       * @param {DevToolsPluginAPI} api 参数 `api`用于提供当前函数执行所需的输入信息。
+       */
       register(id: string, api: DevToolsPluginAPI) {
         hook.forms.set(id, api)
         listeners.forEach(fn => fn(hook.forms))
       },
+      /**
+       * unregister：当前功能模块的核心执行单元。
+       * 所属模块：`playground/vue/src/App.vue`。
+       * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+       * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+       * @param {string} id 参数 `id`用于提供唯一标识，确保操作可以精确命中对象。
+       */
       unregister(id: string) {
         hook.forms.delete(id)
         listeners.forEach(fn => fn(hook.forms))
       },
+      /**
+       * on Change：当前功能模块的核心执行单元。
+       * 所属模块：`playground/vue/src/App.vue`。
+       * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+       * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+       * @param {(forms: Map<string, DevToolsPluginAPI>) => void} fn 参数 `fn`用于提供当前函数执行所需的输入信息。
+       * @returns {unknown} 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+       */
       onChange(fn: (forms: Map<string, DevToolsPluginAPI>) => void) {
         listeners.add(fn)
         return () => listeners.delete(fn)
@@ -151,12 +178,26 @@ function getOrCreateHook(): HookType {
 /** DevTools 浮动面板包装器：通过全局 Hook 的 onChange 事件驱动更新（零轮询） */
 const DevToolsFloating = defineComponent({
   name: 'DevToolsFloating',
+  /**
+   * setup：当前功能模块的核心执行单元。
+   * 所属模块：`playground/vue/src/App.vue`。
+   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+   * @returns {unknown} 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+   */
   setup() {
     const api = shallowRef<DevToolsPluginAPI | null>(null)
     let dispose: (() => void) | null = null
 
     onMounted(() => {
       const hook = getOrCreateHook()
+      /**
+       * update：当前功能模块的核心执行单元。
+       * 所属模块：`playground/vue/src/App.vue`。
+       * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+       * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+       * @param {Map<string, DevToolsPluginAPI>} forms 参数 `forms`用于提供表单上下文或实例，支撑状态读写与生命周期调用。
+       */
       const update = (forms: Map<string, DevToolsPluginAPI>): void => {
         api.value = forms.size > 0 ? forms.values().next().value! : null
       }
@@ -172,10 +213,35 @@ const DevToolsFloating = defineComponent({
   },
 })
 
+/**
+ * current UI：变量或常量声明。
+ * 所属模块：`playground/vue/src/App.vue`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const currentUI = ref<UILib>('antd-vue')
+/**
+ * current Demo：变量或常量声明。
+ * 所属模块：`playground/vue/src/App.vue`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const currentDemo = ref('BasicForm')
+/**
+ * loading：变量或常量声明。
+ * 所属模块：`playground/vue/src/App.vue`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const loading = ref(false)
+/**
+ * scene Config：变量或常量声明。
+ * 所属模块：`playground/vue/src/App.vue`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const sceneConfig = ref<SceneConfig | null>(null)
+/**
+ * current Adapter：变量或常量声明。
+ * 所属模块：`playground/vue/src/App.vue`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const currentAdapter = shallowRef<UIAdapter | null>(null)
 
 registerComponent('ColorPicker', ColorPicker, {
@@ -189,15 +255,33 @@ registerComponent('CodeEditor', CodeEditor)
 registerComponent('SignaturePad', SignaturePad)
 setupLowerCodeDesigner()
 
+/**
+ * ui Libs：变量或常量声明。
+ * 所属模块：`playground/vue/src/App.vue`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const uiLibs = [
   { key: 'antd-vue' as UILib, label: 'Ant Design Vue', color: '#1677ff' },
   { key: 'element-plus' as UILib, label: 'Element Plus', color: '#409eff' },
 ]
 
+/**
+ * scene Groups：变量或常量声明。
+ * 所属模块：`playground/vue/src/App.vue`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const sceneGroups = getSceneGroups()
+/**
+ * total Scenes：变量或常量声明。
+ * 所属模块：`playground/vue/src/App.vue`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const totalScenes = sceneGroups.reduce((sum, g) => sum + g.items.length, 0)
 
-/** 切换 UI 库：加载适配器 → 注册组件 → 更新引用 */
+/**
+ * 切换 UI 库：加载适配器 → 注册组件 → 更新引用
+ * @param {UILib} lib 参数 `lib`用于提供当前函数执行所需的输入信息。
+ */
 async function switchUI(lib: UILib): Promise<void> {
   const adapter = await adapters[lib]()
   adapter.setup()
@@ -206,7 +290,10 @@ async function switchUI(lib: UILib): Promise<void> {
 switchUI(currentUI.value)
 watch(currentUI, switchUI)
 
-/** 加载场景配置（切换场景时先清空，确保 ConfigForm 完全重建） */
+/**
+ * 加载场景配置（切换场景时先清空，确保 ConfigForm 完全重建）
+ * @param {string} name 参数 `name`用于提供当前函数执行所需的输入信息。
+ */
 async function loadScene(name: string): Promise<void> {
   const entry = sceneRegistry[name]
   if (!entry) {
@@ -231,9 +318,24 @@ watch(currentDemo, (name) => {
   void loadScene(name)
 }, { immediate: true })
 
+/**
+ * i18n Feature：变量或常量声明。
+ * 所属模块：`playground/vue/src/App.vue`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const i18nFeature = useI18nFeature(sceneConfig)
+/**
+ * print Export Feature：变量或常量声明。
+ * 所属模块：`playground/vue/src/App.vue`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const printExportFeature = usePrintExportFeature(currentDemo)
 
+/**
+ * scene Plugins：变量或常量声明。
+ * 所属模块：`playground/vue/src/App.vue`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const scenePlugins = computed<FormPlugin[]>(() => {
   const plugins: FormPlugin[] = []
   const i18nPlugin = i18nFeature.plugin.value
@@ -244,23 +346,55 @@ const scenePlugins = computed<FormPlugin[]>(() => {
   return plugins
 })
 
+/**
+ * scene Title：变量或常量声明。
+ * 所属模块：`playground/vue/src/App.vue`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const sceneTitle = computed(() => i18nFeature.sceneTitle.value || sceneConfig.value?.title || '')
+/**
+ * scene Description：变量或常量声明。
+ * 所属模块：`playground/vue/src/App.vue`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const sceneDescription = computed(() => i18nFeature.sceneDescription.value || sceneConfig.value?.description || '')
+/**
+ * i18n Runtime：变量或常量声明。
+ * 所属模块：`playground/vue/src/App.vue`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const i18nRuntime = computed(() => i18nFeature.i18nRuntime.value)
+/**
+ * locale Options：变量或常量声明。
+ * 所属模块：`playground/vue/src/App.vue`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const localeOptions = computed(() => i18nFeature.localeOptions.value)
+/**
+ * locale：变量或常量声明。
+ * 所属模块：`playground/vue/src/App.vue`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const locale = computed(() => i18nFeature.locale.value)
 
+/**
+ * switch Locale：当前功能模块的核心执行单元。
+ * 所属模块：`playground/vue/src/App.vue`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param {string} value 参数 `value`用于提供待处理的值并参与结果计算。
+ */
 function switchLocale(value: string): void {
   i18nFeature.switchLocale(value)
 }
 
 /**
- * 侧边导航按钮样式计算。
- * nav Btn Style：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 nav Btn Style 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * nav Btn Style：当前功能模块的核心执行单元。
+ * 所属模块：`playground/vue/src/App.vue`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param {string} name 参数 `name`用于提供当前函数执行所需的输入信息。
+ * @returns {Record<string, string>} 返回对象结构，其字段布局遵循当前模块约定。
  */
 function navBtnStyle(name: string): Record<string, string> {
   const active = currentDemo.value === name

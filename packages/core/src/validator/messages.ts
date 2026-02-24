@@ -1,6 +1,11 @@
 import type { ValidationMessages, ValidationRule } from './types'
 
-/** 消息模板中的变量替换 */
+/**
+ * 消息模板中的变量替换
+ * @param template 参数 `template`用于提供当前函数执行所需的输入信息。
+ * @param vars 参数 `vars`用于提供当前函数执行所需的输入信息。
+ * @returns 返回字符串结果，通常用于文本展示或下游拼接。
+ */
 function interpolate(template: string, vars: Record<string, unknown>): string {
   return template.replace(/\{(\w+)\}/g, (_, key: string) => {
     return vars[key] !== undefined ? String(vars[key]) : `{${key}}`
@@ -24,7 +29,10 @@ const defaultMessages: Required<ValidationMessages> = {
 /** 全局覆盖消息（框架外可注入自定义模板） */
 let registeredMessages: ValidationMessages = {}
 
-/** 注册验证消息模板（全局合并） */
+/**
+ * 注册验证消息模板（全局合并）
+ * @param messages 参数 `messages`用于提供当前函数执行所需的输入信息。
+ */
 export function registerMessages(messages: ValidationMessages): void {
   registeredMessages = { ...registeredMessages, ...messages }
 }
@@ -32,6 +40,10 @@ export function registerMessages(messages: ValidationMessages): void {
 /**
  * 获取验证消息
  * 优先级：rule.message > 注册模板 > 默认模板
+ * @param ruleName 参数 `ruleName`用于提供当前函数执行所需的输入信息。
+ * @param rule 参数 `rule`用于提供当前函数执行所需的输入信息。
+ * @param label 参数 `label`用于提供当前函数执行所需的输入信息。
+ * @returns 返回字符串结果，通常用于文本展示或下游拼接。
  */
 export function getMessage(
   ruleName: string,

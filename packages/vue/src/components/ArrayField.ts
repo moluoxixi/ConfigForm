@@ -5,6 +5,11 @@ import { useField } from '../composables'
 import { ArrayBase } from './ArrayBase'
 import { RecursionField } from './RecursionField'
 
+/**
+ * Array Field：变量或常量声明。
+ * 所属模块：`packages/vue/src/components/ArrayField.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export const ArrayField = defineComponent({
   name: 'ArrayField',
   props: {
@@ -13,6 +18,14 @@ export const ArrayField = defineComponent({
       default: undefined,
     },
   },
+  /**
+   * setup：当前功能模块的核心执行单元。
+   * 所属模块：`packages/vue/src/components/ArrayField.ts`。
+   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+   * @param props 参数 `props`用于提供当前函数执行所需的输入信息。
+   * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+   */
   setup(props) {
     let field: ArrayFieldInstance
     try {
@@ -29,6 +42,12 @@ export const ArrayField = defineComponent({
 
       const items: VNode[] = arrayValue.map((_, index) => {
         return h(ArrayBase.Item, { key: index, index }, {
+          /**
+           * default：执行当前功能逻辑。
+           *
+           * @returns 返回当前功能的处理结果。
+           */
+
           default: () => h('div', {
             style: {
               display: 'flex',
@@ -62,6 +81,12 @@ export const ArrayField = defineComponent({
       })
 
       return h(ArrayBase, null, {
+        /**
+         * default：执行当前功能逻辑。
+         *
+         * @returns 返回当前功能的处理结果。
+         */
+
         default: () => h('div', { style: { width: '100%' } }, [
           h('div', {
             style: {
@@ -83,4 +108,9 @@ export const ArrayField = defineComponent({
 })
 
 /* 兼容旧命名 */
+/**
+ * Array Items：变量或常量声明。
+ * 所属模块：`packages/vue/src/components/ArrayField.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export const ArrayItems = ArrayField

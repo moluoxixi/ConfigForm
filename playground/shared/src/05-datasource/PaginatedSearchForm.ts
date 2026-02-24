@@ -21,6 +21,11 @@ const DEPARTMENT_OPTIONS = [
   { label: '运营部', value: 'operation' },
 ]
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/05-datasource/PaginatedSearchForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: '大数据量下拉搜索',
   description: 'Select + showSearch — 50 条预加载数据的客户端搜索过滤',

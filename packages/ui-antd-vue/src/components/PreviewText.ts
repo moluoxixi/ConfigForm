@@ -16,6 +16,14 @@ const EMPTY = '—'
 export const PreviewInput = defineComponent({
   name: 'CfPreviewInput',
   props: { modelValue: { type: [String, Number], default: '' } },
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/ui-antd-vue/src/components/PreviewText.ts:19`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props) {
     return () => h('span', null, props.modelValue ? String(props.modelValue) : EMPTY)
   },
@@ -25,6 +33,14 @@ export const PreviewInput = defineComponent({
 export const PreviewPassword = defineComponent({
   name: 'CfPreviewPassword',
   props: { modelValue: { type: String, default: '' } },
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/ui-antd-vue/src/components/PreviewText.ts:28`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props) {
     return () => h('span', null, props.modelValue ? '••••••••' : EMPTY)
   },
@@ -34,6 +50,14 @@ export const PreviewPassword = defineComponent({
 export const PreviewTextarea = defineComponent({
   name: 'CfPreviewTextarea',
   props: { modelValue: { type: String, default: '' } },
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/ui-antd-vue/src/components/PreviewText.ts:37`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props) {
     return () => h('span', { style: 'white-space: pre-wrap' }, props.modelValue || EMPTY)
   },
@@ -48,6 +72,14 @@ export const PreviewInputNumber = defineComponent({
     prefix: { type: String, default: '' },
     suffix: { type: String, default: '' },
   },
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/ui-antd-vue/src/components/PreviewText.ts:51`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props) {
     return () => {
       if (props.modelValue == null)
@@ -63,8 +95,30 @@ export const PreviewSelect = defineComponent({
   name: 'CfPreviewSelect',
   props: {
     modelValue: { type: [String, Number, Array], default: undefined },
-    dataSource: { type: Array as PropType<DataSourceItem[]>, default: () => [] },
+    dataSource: { type: Array as PropType<DataSourceItem[]>, /**
+                                                              * default：执行当前位置的功能逻辑。
+                                                              * 定位：`packages/ui-antd-vue/src/components/PreviewText.ts:66`。
+                                                              * 功能：处理参数消化、状态变更与调用链行为同步。
+                                                              * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                                                              * @returns 返回当前分支执行后的处理结果。
+                                                              */
+      /**
+       * default：执行当前位置的功能逻辑。
+       * 定位：`packages/ui-antd-vue/src/components/PreviewText.ts:105`。
+       * 功能：处理参数消化、状态变更与调用链行为同步。
+       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+       * @returns 返回当前分支执行后的处理结果。
+       */
+      default: () => [] },
   },
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/ui-antd-vue/src/components/PreviewText.ts:68`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props) {
     return () => {
       const val = props.modelValue
@@ -89,8 +143,30 @@ export const PreviewRadioGroup = defineComponent({
   name: 'CfPreviewRadioGroup',
   props: {
     modelValue: { type: [String, Number], default: undefined },
-    dataSource: { type: Array as PropType<DataSourceItem[]>, default: () => [] },
+    dataSource: { type: Array as PropType<DataSourceItem[]>, /**
+                                                              * default：执行当前位置的功能逻辑。
+                                                              * 定位：`packages/ui-antd-vue/src/components/PreviewText.ts:92`。
+                                                              * 功能：处理参数消化、状态变更与调用链行为同步。
+                                                              * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                                                              * @returns 返回当前分支执行后的处理结果。
+                                                              */
+      /**
+       * default：执行当前位置的功能逻辑。
+       * 定位：`packages/ui-antd-vue/src/components/PreviewText.ts:146`。
+       * 功能：处理参数消化、状态变更与调用链行为同步。
+       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+       * @returns 返回当前分支执行后的处理结果。
+       */
+      default: () => [] },
   },
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/ui-antd-vue/src/components/PreviewText.ts:94`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props) {
     return () => {
       const selectedLabel = props.dataSource.find(item => item.value === props.modelValue)?.label
@@ -103,9 +179,45 @@ export const PreviewRadioGroup = defineComponent({
 export const PreviewCheckboxGroup = defineComponent({
   name: 'CfPreviewCheckboxGroup',
   props: {
-    modelValue: { type: Array as PropType<unknown[]>, default: () => [] },
-    dataSource: { type: Array as PropType<DataSourceItem[]>, default: () => [] },
+    modelValue: { type: Array as PropType<unknown[]>, /**
+                                                       * default：执行当前位置的功能逻辑。
+                                                       * 定位：`packages/ui-antd-vue/src/components/PreviewText.ts:106`。
+                                                       * 功能：处理参数消化、状态变更与调用链行为同步。
+                                                       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                                                       * @returns 返回当前分支执行后的处理结果。
+                                                       */
+      /**
+       * default：执行当前位置的功能逻辑。
+       * 定位：`packages/ui-antd-vue/src/components/PreviewText.ts:175`。
+       * 功能：处理参数消化、状态变更与调用链行为同步。
+       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+       * @returns 返回当前分支执行后的处理结果。
+       */
+      default: () => [] },
+    dataSource: { type: Array as PropType<DataSourceItem[]>, /**
+                                                              * default：执行当前位置的功能逻辑。
+                                                              * 定位：`packages/ui-antd-vue/src/components/PreviewText.ts:107`。
+                                                              * 功能：处理参数消化、状态变更与调用链行为同步。
+                                                              * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                                                              * @returns 返回当前分支执行后的处理结果。
+                                                              */
+      /**
+       * default：执行当前位置的功能逻辑。
+       * 定位：`packages/ui-antd-vue/src/components/PreviewText.ts:183`。
+       * 功能：处理参数消化、状态变更与调用链行为同步。
+       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+       * @returns 返回当前分支执行后的处理结果。
+       */
+      default: () => [] },
   },
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/ui-antd-vue/src/components/PreviewText.ts:109`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props) {
     return () => {
       const labels = (props.modelValue ?? [])
@@ -120,6 +232,14 @@ export const PreviewCheckboxGroup = defineComponent({
 export const PreviewSwitch = defineComponent({
   name: 'CfPreviewSwitch',
   props: { modelValue: { type: Boolean, default: false } },
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/ui-antd-vue/src/components/PreviewText.ts:123`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props) {
     return () => h('span', null, props.modelValue ? '是' : '否')
   },
@@ -129,6 +249,14 @@ export const PreviewSwitch = defineComponent({
 export const PreviewDatePicker = defineComponent({
   name: 'CfPreviewDatePicker',
   props: { modelValue: { type: String, default: '' } },
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/ui-antd-vue/src/components/PreviewText.ts:132`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props) {
     return () => h('span', null, props.modelValue || EMPTY)
   },

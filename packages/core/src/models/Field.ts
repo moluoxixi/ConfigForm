@@ -86,6 +86,10 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     return this.selfPattern
   }
 
+  /**
+   * 设置字段自身 pattern（会覆盖表单级 pattern）。
+   * @param val 字段模式值。
+   */
   set pattern(val: FieldPattern) {
     this.selfPattern = val
   }
@@ -162,6 +166,12 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
   /** 数据源请求取消控制器 */
   private _dataSourceAbortController: AbortController | null = null
 
+  /**
+   * 创建字段实例。
+   * @param form 所属表单实例。
+   * @param props 字段初始化属性。
+   * @param parentPath 父路径。
+   */
   constructor(form: FormInstance, props: FieldProps<Value>, parentPath = '') {
     this.id = uid('field')
     this.form = form
@@ -277,6 +287,10 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     return this.display === 'visible'
   }
 
+  /**
+   * 兼容 visible 写法，内部统一映射到 display。
+   * @param val 是否可见。
+   */
   set visible(val: boolean) {
     this.display = val ? 'visible' : 'none'
   }
@@ -286,6 +300,10 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     return FormPath.getIn<Value>(this.form.values, this.path) as Value
   }
 
+  /**
+   * 设置字段值（等价于调用 setValue）。
+   * @param val 新字段值。
+   */
   set value(val: Value) {
     this.setValue(val)
   }
@@ -295,6 +313,10 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     return FormPath.getIn<Value>(this.form.initialValues, this.path) as Value
   }
 
+  /**
+   * 设置字段初始值。
+   * @param val 新初始值。
+   */
   set initialValue(val: Value) {
     const oldValue = this.initialValue
     FormPath.setIn(this.form.initialValues as Record<string, unknown>, this.path, val)
@@ -434,7 +456,22 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
       const result = await validate(this.value, this.rules, {
         path: this.path,
         label: this.label || this.name,
+        /**
+         * getFieldValue：执行当前位置的功能逻辑。
+         * 定位：`packages/core/src/models/Field.ts:437`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param p 参数 p 为当前功能所需的输入信息。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         getFieldValue: (p: string) => this.form.getFieldValue(p),
+        /**
+         * getValues：执行当前位置的功能逻辑。
+         * 定位：`packages/core/src/models/Field.ts:438`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         getValues: () => this.form.values as Record<string, unknown>,
       }, trigger, signal)
 

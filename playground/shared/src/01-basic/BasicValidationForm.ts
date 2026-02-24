@@ -16,6 +16,11 @@ const passwordRules = [
   { pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, message: '需含大小写和数字' },
 ]
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/01-basic/BasicValidationForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: '必填与格式验证',
   description: 'required / email / phone / URL / pattern / min-max',

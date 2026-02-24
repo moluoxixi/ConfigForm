@@ -2,12 +2,22 @@ import type { DiffFieldView, DiffType } from '@moluoxixi/core'
 import type { PropType } from 'vue'
 import { computed, defineComponent, h } from 'vue'
 
+/**
+ * Diff Viewer Props：类型接口定义。
+ * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export interface DiffViewerProps {
   diffs: DiffFieldView[]
   labelMap?: Record<string, string>
   onlyDirty?: boolean
 }
 
+/**
+ * COLORS：变量或常量声明。
+ * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const COLORS: Record<DiffType, { bg: string, text: string, border: string }> = {
   added: { bg: '#f6ffed', text: '#52c41a', border: '#b7eb8f' },
   removed: { bg: '#fff2f0', text: '#ff4d4f', border: '#ffccc7' },
@@ -15,6 +25,11 @@ const COLORS: Record<DiffType, { bg: string, text: string, border: string }> = {
   unchanged: { bg: '#fff', text: '#999', border: '#f0f0f0' },
 }
 
+/**
+ * TYPE LABELS：变量或常量声明。
+ * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const TYPE_LABELS: Record<DiffType, string> = {
   added: '新增',
   removed: '删除',
@@ -22,6 +37,11 @@ const TYPE_LABELS: Record<DiffType, string> = {
   unchanged: '未变',
 }
 
+/**
+ * container Style：变量或常量声明。
+ * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const containerStyle: Record<string, string> = {
   border: '1px solid #e8e8e8',
   borderRadius: '8px',
@@ -29,6 +49,11 @@ const containerStyle: Record<string, string> = {
   fontSize: '14px',
 }
 
+/**
+ * header Style：变量或常量声明。
+ * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const headerStyle: Record<string, string> = {
   display: 'flex',
   background: '#fafafa',
@@ -37,22 +62,42 @@ const headerStyle: Record<string, string> = {
   color: '#333',
 }
 
+/**
+ * header Cell Style：变量或常量声明。
+ * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const headerCellStyle: Record<string, string> = {
   flex: '1',
   padding: '10px 12px',
 }
 
+/**
+ * row Style：变量或常量声明。
+ * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const rowStyle: Record<string, string> = {
   display: 'flex',
   borderBottom: '1px solid #f0f0f0',
 }
 
+/**
+ * cell Style：变量或常量声明。
+ * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const cellStyle: Record<string, string> = {
   flex: '1',
   padding: '8px 12px',
   wordBreak: 'break-all',
 }
 
+/**
+ * empty Style：变量或常量声明。
+ * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const emptyStyle: Record<string, string> = {
   padding: '24px',
   textAlign: 'center',
@@ -63,11 +108,12 @@ const emptyStyle: Record<string, string> = {
 }
 
 /**
- * format Value：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 format Value 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * format Value：当前功能模块的核心执行单元。
+ * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param value 参数 `value`用于提供待处理的值并参与结果计算。
+ * @returns 返回字符串结果，通常用于文本展示或下游拼接。
  */
 function formatValue(value: unknown): string {
   if (value === undefined || value === null)
@@ -77,6 +123,11 @@ function formatValue(value: unknown): string {
   return String(value)
 }
 
+/**
+ * Diff Viewer：变量或常量声明。
+ * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export const DiffViewer = defineComponent({
   name: 'DiffViewer',
   props: {
@@ -86,6 +137,12 @@ export const DiffViewer = defineComponent({
     },
     labelMap: {
       type: Object as PropType<Record<string, string>>,
+      /**
+       * default：执行当前功能逻辑。
+       *
+       * @returns 返回当前功能的处理结果。
+       */
+
       default: () => ({}),
     },
     onlyDirty: {
@@ -93,6 +150,14 @@ export const DiffViewer = defineComponent({
       default: true,
     },
   },
+  /**
+   * setup：当前功能模块的核心执行单元。
+   * 所属模块：`packages/vue/src/components/DiffViewer.ts`。
+   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+   * @param props 参数 `props`用于提供当前函数执行所需的输入信息。
+   * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+   */
   setup(props) {
     const filteredDiffs = computed(() =>
       props.onlyDirty

@@ -1,5 +1,10 @@
 import type { LowCodeDesignerComponentDefinition } from '../../types'
 
+/**
+ * Select Definition：变量或常量声明。
+ * 所属模块：`packages/plugin-lower-code-vue/src/designer/right/component-definitions/Select.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export const SelectDefinition: LowCodeDesignerComponentDefinition = {
   label: '下拉选择',
   description: '用于单选或多选的选项录入，搭配枚举值进行数据约束。',

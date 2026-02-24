@@ -9,6 +9,11 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
 /* ======================== 主题 ======================== */
 
+/**
+ * Theme??????
+ * ???`packages/plugin-devtools-react/src/DevToolsPanel.tsx:12`?
+ * ??????????????????????????????
+ */
 interface Theme {
   bg: string
   bgPanel: string
@@ -79,7 +84,23 @@ function useSystemTheme(): Theme {
   )
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    const h = (e: MediaQueryListEvent): void => setIsDark(e.matches)
+    /**
+     * h?????????????????
+     * ???`packages/plugin-devtools-react/src/DevToolsPanel.tsx:90`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     * @param e ?? e ????????????
+     * @returns ?????????????
+     */
+    const /**
+           * h：执行当前位置的功能逻辑。
+           * 定位：`packages/plugin-devtools-react/src/DevToolsPanel.tsx:82`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @param e 参数 e 为事件对象，用于提供交互上下文。
+           * @returns 返回当前分支执行后的处理结果。
+           */
+      h = (e: MediaQueryListEvent): void => setIsDark(e.matches)
     mq.addEventListener('change', h)
     return () => mq.removeEventListener('change', h)
   }, [])
@@ -99,10 +120,22 @@ const TYPE_CFG: Record<string, { ch: string, c: string, bg: string }> = {
   voidField: { ch: 'V', c: '#f59e0b', bg: '#f59e0b20' },
 }
 
+/**
+ * Tab????????
+ * ???`packages/plugin-devtools-react/src/DevToolsPanel.tsx:110`?
+ * ??????????????????????????????
+ */
 type Tab = 'tree' | 'events' | 'diff' | 'values'
 
 /* ======================== 主面板 ======================== */
 
+/**
+ * DevToolsPanel：执行当前位置的功能逻辑。
+ * 定位：`packages/plugin-devtools-react/src/DevToolsPanel.tsx:106`。
+ * 功能：处理参数消化、状态变更与调用链行为同步。
+ * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+ * @returns 返回当前分支执行后的处理结果。
+ */
 export function DevToolsPanel({ api }: DevToolsPanelProps): React.ReactElement {
   const t = useSystemTheme()
   const [visible, setVisible] = useState(false)
@@ -118,10 +151,22 @@ export function DevToolsPanel({ api }: DevToolsPanelProps): React.ReactElement {
       if (!active)
         return
 
-      const flush = (): void => {
-        if (active)
-          setTick(n => n + 1)
-      }
+      /**
+       * flush?????????????????
+       * ???`packages/plugin-devtools-react/src/DevToolsPanel.tsx:142`?
+       * ?????????????????????????????????
+       * ??????????????????????????
+       */
+      const /**
+             * flush：执行当前位置的功能逻辑。
+             * 定位：`packages/plugin-devtools-react/src/DevToolsPanel.tsx:121`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             */
+        flush = (): void => {
+          if (active)
+            setTick(n => n + 1)
+        }
 
       if (typeof queueMicrotask === 'function') {
         queueMicrotask(flush)
@@ -305,6 +350,13 @@ export function DevToolsPanel({ api }: DevToolsPanelProps): React.ReactElement {
 
 /* ======================== 标题栏 ======================== */
 
+/**
+ * Header：执行当前位置的功能逻辑。
+ * 定位：`packages/plugin-devtools-react/src/DevToolsPanel.tsx:308`。
+ * 功能：处理参数消化、状态变更与调用链行为同步。
+ * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+ * @returns 返回当前分支执行后的处理结果。
+ */
 function Header({ t, overview, onClose, onValidate, onReset, onSubmit }: {
   t: Theme
   overview: FormOverview
@@ -370,6 +422,13 @@ function ActionBtn({ t, label, onClick, color }: { t: Theme, label: string, onCl
 
 /* ======================== 基础组件 ======================== */
 
+/**
+ * Badge：执行当前位置的功能逻辑。
+ * 定位：`packages/plugin-devtools-react/src/DevToolsPanel.tsx:373`。
+ * 功能：处理参数消化、状态变更与调用链行为同步。
+ * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+ * @returns 返回当前分支执行后的处理结果。
+ */
 function Badge({ t, label, color }: { t: Theme, label: string, color: string }): React.ReactElement {
   return <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: t.badgeBg, color }}>{label}</span>
 }
@@ -450,6 +509,13 @@ function Empty({ t, text }: { t: Theme, text: string }): React.ReactElement {
 
 /* ======================== 字段树 ======================== */
 
+/**
+ * TreeView：执行当前位置的功能逻辑。
+ * 定位：`packages/plugin-devtools-react/src/DevToolsPanel.tsx:453`。
+ * 功能：处理参数消化、状态变更与调用链行为同步。
+ * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+ * @returns 返回当前分支执行后的处理结果。
+ */
 function TreeView({ t, nodes, selected, onSelect, depth = 0 }: {
   t: Theme
   nodes: FieldTreeNode[]
@@ -523,6 +589,13 @@ function Dot({ color }: { color: string }): React.ReactElement {
 
 /* ======================== 字段详情（含编辑能力） ======================== */
 
+/**
+ * DetailView：执行当前位置的功能逻辑。
+ * 定位：`packages/plugin-devtools-react/src/DevToolsPanel.tsx:526`。
+ * 功能：处理参数消化、状态变更与调用链行为同步。
+ * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+ * @returns 返回当前分支执行后的处理结果。
+ */
 function DetailView({ t, detail, api }: { t: Theme, detail: FieldDetail, api: DevToolsPluginAPI }): React.ReactElement {
   const [editValue, setEditValue] = useState('')
   const [editing, setEditing] = useState(false)
@@ -749,6 +822,13 @@ function TogglePill({ t, label, value, onClick }: { t: Theme, label: string, val
 
 /* ======================== 事件视图 ======================== */
 
+/**
+ * EventsView：执行当前位置的功能逻辑。
+ * 定位：`packages/plugin-devtools-react/src/DevToolsPanel.tsx:752`。
+ * 功能：处理参数消化、状态变更与调用链行为同步。
+ * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+ * @returns 返回当前分支执行后的处理结果。
+ */
 function EventsView({ t, events, onClear }: { t: Theme, events: EventLogEntry[], onClear: () => void }): React.ReactElement {
   const reversed = useMemo(() => [...events].reverse(), [events])
   return (
@@ -802,6 +882,13 @@ function resolveEventColor(type: string, theme: Theme): string {
 
 /* ======================== Diff 视图 ======================== */
 
+/**
+ * DiffView：执行当前位置的功能逻辑。
+ * 定位：`packages/plugin-devtools-react/src/DevToolsPanel.tsx:805`。
+ * 功能：处理参数消化、状态变更与调用链行为同步。
+ * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+ * @returns 返回当前分支执行后的处理结果。
+ */
 function DiffView({ t, diff }: { t: Theme, diff: ValueDiffEntry[] }): React.ReactElement {
   const changed = useMemo(() => diff.filter(d => d.changed), [diff])
   return (
@@ -852,6 +939,13 @@ function DiffView({ t, diff }: { t: Theme, diff: ValueDiffEntry[] }): React.Reac
 
 /* ======================== 值视图 ======================== */
 
+/**
+ * ValuesView：执行当前位置的功能逻辑。
+ * 定位：`packages/plugin-devtools-react/src/DevToolsPanel.tsx:855`。
+ * 功能：处理参数消化、状态变更与调用链行为同步。
+ * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+ * @returns 返回当前分支执行后的处理结果。
+ */
 function ValuesView({ t, values }: { t: Theme, values: Record<string, unknown> }): React.ReactElement {
   const json = useMemo(() => JSON.stringify(values, null, 2), [values])
   const [copied, setCopied] = useState(false)

@@ -10,11 +10,21 @@ import 'jsoneditor/dist/jsoneditor.css'
 const DEFAULT_STRATEGY: ImportSetValueStrategy = 'merge'
 const STRATEGY_OPTIONS: ImportSetValueStrategy[] = ['merge', 'shallow', 'replace']
 
+/**
+ * ImportJsonActionMessage??????
+ * ???`packages/ui-antd-vue/src/components/ImportJsonAction.ts:13`?
+ * ??????????????????????????????
+ */
 export interface ImportJsonActionMessage {
   tone: 'info' | 'success' | 'error'
   text: string
 }
 
+/**
+ * ImportJsonActionProps??????
+ * ???`packages/ui-antd-vue/src/components/ImportJsonAction.ts:18`?
+ * ??????????????????????????????
+ */
 export interface ImportJsonActionProps {
   buttonText?: string
   sourceTitle?: string
@@ -74,6 +84,14 @@ export const ImportJsonAction = defineComponent({
     importOptions: { type: Object as PropType<ImportJsonActionProps['importOptions']>, default: undefined },
   },
   emits: ['update:strategy', 'message'],
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/ui-antd-vue/src/components/ImportJsonAction.ts:77`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props, { emit }) {
     const form = useForm()
     const sourceOpen = ref(false)
@@ -144,6 +162,12 @@ export const ImportJsonAction = defineComponent({
       }
     }
 
+    /**
+     * mountEditor：执行当前位置的功能逻辑。
+     * 定位：`packages/ui-antd-vue/src/components/ImportJsonAction.ts:147`。
+     * 功能：处理参数消化、状态变更与调用链行为同步。
+     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+     */
     async function mountEditor(): Promise<void> {
       await nextTick()
       if (!editorHost.value) {
@@ -161,6 +185,13 @@ export const ImportJsonAction = defineComponent({
       setEditorValue(previewData.value)
     }
 
+    /**
+     * parseFile：执行当前位置的功能逻辑。
+     * 定位：`packages/ui-antd-vue/src/components/ImportJsonAction.ts:164`。
+     * 功能：处理参数消化、状态变更与调用链行为同步。
+     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+     * @param file 参数 file 为当前功能所需的输入信息。
+     */
     async function parseFile(file: File): Promise<void> {
       try {
         const parseImportJSONFile = form.parseImportJSONFile
@@ -183,6 +214,12 @@ export const ImportJsonAction = defineComponent({
       }
     }
 
+    /**
+     * confirmImport：执行当前位置的功能逻辑。
+     * 定位：`packages/ui-antd-vue/src/components/ImportJsonAction.ts:186`。
+     * 功能：处理参数消化、状态变更与调用链行为同步。
+     * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+     */
     async function confirmImport(): Promise<void> {
       const editor = editorRef.value
       if (!editor) {
@@ -256,6 +293,13 @@ export const ImportJsonAction = defineComponent({
             borderRadius: '6px',
             padding: '4px 8px',
           },
+          /**
+           * onChange：执行当前位置的功能逻辑。
+           * 定位：`packages/ui-antd-vue/src/components/ImportJsonAction.ts:259`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @param event 参数 event 为事件对象，用于提供交互上下文。
+           */
           onChange: (event: Event) => {
             const value = (event.target as HTMLSelectElement).value as ImportSetValueStrategy
             setStrategy(value)
@@ -277,20 +321,48 @@ export const ImportJsonAction = defineComponent({
         open: sourceOpen.value,
         footer: null,
         destroyOnClose: true,
+        /**
+         * onCancel：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-antd-vue/src/components/ImportJsonAction.ts:280`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         */
         onCancel: () => {
           sourceOpen.value = false
         },
       }, {
+        /**
+         * default：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-antd-vue/src/components/ImportJsonAction.ts:284`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         default: () => [
           h('p', { style: { color: '#64748b', fontSize: '12px', margin: '0 0 12px' } }, props.sourceDescription),
           h(AUpload, {
             showUploadList: false,
             accept: '.json,application/json',
+            /**
+             * beforeUpload：执行当前位置的功能逻辑。
+             * 定位：`packages/ui-antd-vue/src/components/ImportJsonAction.ts:289`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @param file 参数 file 为当前功能所需的输入信息。
+             * @returns 返回当前分支执行后的处理结果。
+             */
             beforeUpload: (file: File) => {
               void parseFile(file)
               return false
             },
           }, {
+            /**
+             * default：执行当前位置的功能逻辑。
+             * 定位：`packages/ui-antd-vue/src/components/ImportJsonAction.ts:294`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @returns 返回当前分支执行后的处理结果。
+             */
             default: () => h(AButton, {}, () => '选择 JSON 文件'),
           }),
         ],
@@ -305,9 +377,23 @@ export const ImportJsonAction = defineComponent({
      * 说明：该注释描述 render Preview Modal 的主要职责边界，便于维护者快速理解函数在链路中的定位。
      */
     function renderPreviewModal(): VNode {
-      const editorHostRef: VNodeRef = (el) => {
-        editorHost.value = el as HTMLDivElement | null
-      }
+      /**
+       * editorHostRef?????????????????
+       * ???`packages/ui-antd-vue/src/components/ImportJsonAction.ts:377`?
+       * ?????????????????????????????????
+       * ??????????????????????????
+       * @param el ?? el ????????????
+       */
+      const /**
+             * editorHostRef：执行当前位置的功能逻辑。
+             * 定位：`packages/ui-antd-vue/src/components/ImportJsonAction.ts:308`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @param el 参数 el 为当前功能所需的输入信息。
+             */
+        editorHostRef: VNodeRef = (el) => {
+          editorHost.value = el as HTMLDivElement | null
+        }
 
       const editorView = h('div', {
         ref: editorHostRef,
@@ -325,13 +411,32 @@ export const ImportJsonAction = defineComponent({
         okText: props.confirmText,
         cancelText: props.cancelText,
         destroyOnClose: true,
+        /**
+         * onCancel：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-antd-vue/src/components/ImportJsonAction.ts:328`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         */
         onCancel: () => {
           previewOpen.value = false
         },
+        /**
+         * onOk：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-antd-vue/src/components/ImportJsonAction.ts:331`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         */
         onOk: () => {
           void confirmImport()
         },
       }, {
+        /**
+         * default：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-antd-vue/src/components/ImportJsonAction.ts:335`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         default: () => [
           h(AAlert, {
             type: 'info',
@@ -354,7 +459,20 @@ export const ImportJsonAction = defineComponent({
           flexWrap: 'wrap',
         },
       }, [
-        h(AButton, { onClick: () => { sourceOpen.value = true } }, () => props.buttonText),
+        h(AButton, { /**
+                      * onClick：执行当前位置的功能逻辑。
+                      * 定位：`packages/ui-antd-vue/src/components/ImportJsonAction.ts:357`。
+                      * 功能：处理参数消化、状态变更与调用链行为同步。
+                      * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                      */
+          /**
+           * onClick：执行当前位置的功能逻辑。
+           * 定位：`packages/ui-antd-vue/src/components/ImportJsonAction.ts:451`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           */
+          onClick: () => { sourceOpen.value = true },
+        }, () => props.buttonText),
         props.showStrategy ? renderStrategy() : null,
       ]),
       renderSourceModal(),

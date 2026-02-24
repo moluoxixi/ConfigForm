@@ -8,6 +8,11 @@ import type {
 import type { LowCodeDesignerComponentDefinition, LowCodeDesignerComponentDefinitions } from './types'
 import { COMPONENT_MATERIALS, LAYOUT_MATERIALS } from '../materials'
 
+/**
+ * Designer Materials：类型接口定义。
+ * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/materials.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export interface DesignerMaterials {
   componentMaterials: MaterialFieldItem[]
   layoutMaterials: MaterialContainerItem[]
@@ -15,20 +20,45 @@ export interface DesignerMaterials {
   fieldComponentOptions: string[]
 }
 
+/**
+ * Resolve Designer Materials Options：类型接口定义。
+ * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/materials.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export interface ResolveDesignerMaterialsOptions {
   internalComponentNames?: Iterable<string>
 }
 
+/**
+ * BUILTIN FIELD MATERIAL BY COMPONENT：变量或常量声明。
+ * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/materials.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const BUILTIN_FIELD_MATERIAL_BY_COMPONENT = new Map(
   COMPONENT_MATERIALS.map(item => [item.component, item] as const),
 )
+/**
+ * BUILTIN LAYOUT MATERIAL BY COMPONENT：变量或常量声明。
+ * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/materials.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const BUILTIN_LAYOUT_MATERIAL_BY_COMPONENT = new Map(
   LAYOUT_MATERIALS.map(item => [item.component, item] as const),
 )
+/**
+ * BUILTIN LAYOUT COMPONENTS：变量或常量声明。
+ * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/materials.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const BUILTIN_LAYOUT_COMPONENTS = new Set<DesignerContainerComponent>(
   LAYOUT_MATERIALS.map(item => item.component),
 )
 
+/**
+ * DEFAULT INTERNAL COMPONENT NAMES：变量或常量声明。
+ * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/materials.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const DEFAULT_INTERNAL_COMPONENT_NAMES = new Set([
   'LowCodeDesigner',
   'LowerCodeDesigner',
@@ -38,11 +68,12 @@ const DEFAULT_INTERNAL_COMPONENT_NAMES = new Set([
 ])
 
 /**
- * clone Field Material：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 clone Field Material 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * clone Field Material：当前功能模块的核心执行单元。
+ * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/materials.ts`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param item 参数 `item`用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 function cloneFieldMaterial(item: MaterialFieldItem): MaterialFieldItem {
   return {
@@ -52,22 +83,23 @@ function cloneFieldMaterial(item: MaterialFieldItem): MaterialFieldItem {
 }
 
 /**
- * clone Container Material：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 clone Container Material 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * clone Container Material：当前功能模块的核心执行单元。
+ * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/materials.ts`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param item 参数 `item`用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 function cloneContainerMaterial(item: MaterialContainerItem): MaterialContainerItem {
   return { ...item }
 }
 
 /**
- * clone Default Materials：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 clone Default Materials 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * clone Default Materials：当前功能模块的核心执行单元。
+ * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/materials.ts`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 function cloneDefaultMaterials(): DesignerMaterials {
   const componentMaterials = COMPONENT_MATERIALS.map(cloneFieldMaterial)
@@ -81,11 +113,12 @@ function cloneDefaultMaterials(): DesignerMaterials {
 }
 
 /**
- * clone Default Props：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 clone Default Props 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * clone Default Props：当前功能模块的核心执行单元。
+ * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/materials.ts`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param definition 参数 `definition`用于提供当前函数执行所需的输入信息。
+ * @returns 返回对象结构，其字段布局遵循当前模块约定。
  */
 function cloneDefaultProps(definition: LowCodeDesignerComponentDefinition | undefined): Record<string, unknown> | undefined {
   if (!definition?.defaultProps)
@@ -94,11 +127,12 @@ function cloneDefaultProps(definition: LowCodeDesignerComponentDefinition | unde
 }
 
 /**
- * infer Field Type By Component Name：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 infer Field Type By Component Name 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * infer Field Type By Component Name：当前功能模块的核心执行单元。
+ * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/materials.ts`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param componentName 参数 `componentName`用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 function inferFieldTypeByComponentName(componentName: string): DesignerFieldType {
   switch (componentName) {
@@ -121,11 +155,13 @@ function inferFieldTypeByComponentName(componentName: string): DesignerFieldType
 }
 
 /**
- * create Registry Material Id：负责“创建create Registry Material Id”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 create Registry Material Id 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * create Registry Material Id：当前功能模块的核心执行单元。
+ * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/materials.ts`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param componentName 参数 `componentName`用于提供当前函数执行所需的输入信息。
+ * @param usedIds 参数 `usedIds`用于提供当前函数执行所需的输入信息。
+ * @returns 返回字符串结果，通常用于文本展示或下游拼接。
  */
 function createRegistryMaterialId(componentName: string, usedIds: Set<string>): string {
   const baseName = componentName
@@ -144,11 +180,12 @@ function createRegistryMaterialId(componentName: string, usedIds: Set<string>): 
 }
 
 /**
- * normalize Component Names：负责“规范化normalize Component Names”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 normalize Component Names 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * normalize Component Names：当前功能模块的核心执行单元。
+ * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/materials.ts`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param registeredComponentNames 参数 `registeredComponentNames`用于提供当前函数执行所需的输入信息。
+ * @returns 返回数组结果，用于后续遍历、渲染或进一步转换。
  */
 function normalizeComponentNames(registeredComponentNames: Iterable<string>): string[] {
   const names: string[] = []
@@ -164,11 +201,12 @@ function normalizeComponentNames(registeredComponentNames: Iterable<string>): st
 }
 
 /**
- * create Internal Component Name Set：负责“创建create Internal Component Name Set”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 create Internal Component Name Set 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * create Internal Component Name Set：当前功能模块的核心执行单元。
+ * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/materials.ts`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param options 参数 `options`用于提供可选配置，调整当前功能模块的执行策略。
+ * @returns 返回字符串结果，通常用于文本展示或下游拼接。
  */
 function createInternalComponentNameSet(options: ResolveDesignerMaterialsOptions | undefined): Set<string> {
   if (!options?.internalComponentNames)
@@ -177,11 +215,14 @@ function createInternalComponentNameSet(options: ResolveDesignerMaterialsOptions
 }
 
 /**
- * resolve Designer Materials：负责“解析resolve Designer Materials”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 resolve Designer Materials 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * resolve Designer Materials：当前功能模块的核心执行单元。
+ * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/materials.ts`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param registeredComponentNames 参数 `registeredComponentNames`用于提供当前函数执行所需的输入信息。
+ * @param [componentDefinitions] 参数 `componentDefinitions`用于提供当前函数执行所需的输入信息。
+ * @param [options] 参数 `options`用于提供可选配置，调整当前功能模块的执行策略。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function resolveDesignerMaterials(
   registeredComponentNames: Iterable<string>,

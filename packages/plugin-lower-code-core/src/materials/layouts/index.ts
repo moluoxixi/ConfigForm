@@ -9,6 +9,11 @@ export {
   LAYOUT_TABS_MATERIAL,
 }
 
+/**
+ * LAYOUT MATERIALS：变量或常量声明。
+ * 所属模块：`packages/plugin-lower-code-core/src/materials/layouts/index.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export const LAYOUT_MATERIALS: MaterialContainerItem[] = [
   LAYOUT_CARD_MATERIAL,
   LAYOUT_TABS_MATERIAL,

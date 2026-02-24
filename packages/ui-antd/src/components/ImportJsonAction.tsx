@@ -8,6 +8,11 @@ import { JsonEditorModal } from './JsonEditorModal'
 const DEFAULT_STRATEGY: ImportSetValueStrategy = 'merge'
 const STRATEGY_OPTIONS: ImportSetValueStrategy[] = ['merge', 'shallow', 'replace']
 
+/**
+ * ImportJsonActionProps??????
+ * ???`packages/ui-antd/src/components/ImportJsonAction.tsx:11`?
+ * ??????????????????????????????
+ */
 export interface ImportJsonActionProps {
   buttonText?: string
   sourceTitle?: string
@@ -73,40 +78,68 @@ export function ImportJsonAction({
     strategy: activeStrategy,
   }), [activeStrategy, importOptions])
 
-  const handleParseFile = async (file: File): Promise<void> => {
-    try {
-      const parseImportJSONFile = form.parseImportJSONFile
-      if (!parseImportJSONFile) {
-        throw new Error('importPlugin is not installed.')
+  /**
+   * handleParseFile?????????????????
+   * ???`packages/ui-antd/src/components/ImportJsonAction.tsx:83`?
+   * ?????????????????????????????????
+   * ??????????????????????????
+   * @param file ?? file ????????????
+   */
+  const /**
+         * handleParseFile：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-antd/src/components/ImportJsonAction.tsx:76`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param file 参数 file 为当前功能所需的输入信息。
+         */
+    handleParseFile = async (file: File): Promise<void> => {
+      try {
+        const parseImportJSONFile = form.parseImportJSONFile
+        if (!parseImportJSONFile) {
+          throw new Error('importPlugin is not installed.')
+        }
+        const parsed = await parseImportJSONFile(file, parseOptions)
+        setPreviewData(parsed.data)
+        setPreviewOpen(true)
+        setSourceOpen(false)
+        message.info(`JSON 解析完成：可导入 ${parsed.appliedKeys.length} 个字段`)
       }
-      const parsed = await parseImportJSONFile(file, parseOptions)
-      setPreviewData(parsed.data)
-      setPreviewOpen(true)
-      setSourceOpen(false)
-      message.info(`JSON 解析完成：可导入 ${parsed.appliedKeys.length} 个字段`)
+      catch (error) {
+        const text = error instanceof Error ? error.message : String(error)
+        message.error(`导入失败：${text}`)
+      }
     }
-    catch (error) {
-      const text = error instanceof Error ? error.message : String(error)
-      message.error(`导入失败：${text}`)
-    }
-  }
 
-  const handleApply = async (nextData: Record<string, unknown>): Promise<void> => {
-    try {
-      const applyImport = form.applyImport
-      if (!applyImport) {
-        throw new Error('importPlugin is not installed.')
+  /**
+   * handleApply?????????????????
+   * ???`packages/ui-antd/src/components/ImportJsonAction.tsx:108`?
+   * ?????????????????????????????????
+   * ??????????????????????????
+   * @param nextData ?? nextData ????????????
+   */
+  const /**
+         * handleApply：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-antd/src/components/ImportJsonAction.tsx:94`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param nextData 参数 nextData 为当前功能所需的输入信息。
+         */
+    handleApply = async (nextData: Record<string, unknown>): Promise<void> => {
+      try {
+        const applyImport = form.applyImport
+        if (!applyImport) {
+          throw new Error('importPlugin is not installed.')
+        }
+        const applied = applyImport(nextData, mergeApplyOptions(activeStrategy, importOptions))
+        setPreviewData(nextData)
+        setPreviewOpen(false)
+        message.success(`JSON 导入成功：已更新 ${applied.appliedKeys.length} 个字段`)
       }
-      const applied = applyImport(nextData, mergeApplyOptions(activeStrategy, importOptions))
-      setPreviewData(nextData)
-      setPreviewOpen(false)
-      message.success(`JSON 导入成功：已更新 ${applied.appliedKeys.length} 个字段`)
+      catch (error) {
+        const text = error instanceof Error ? error.message : String(error)
+        message.error(`导入失败：${text}`)
+      }
     }
-    catch (error) {
-      const text = error instanceof Error ? error.message : String(error)
-      message.error(`导入失败：${text}`)
-    }
-  }
 
   return (
     <div className={className} style={style}>

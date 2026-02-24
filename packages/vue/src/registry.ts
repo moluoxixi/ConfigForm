@@ -1,62 +1,9 @@
 import type { Component } from 'vue'
 
-/** 组件注册选项 */
-export interface RegisterComponentOptions {
-  /** 该组件的默认装饰器名称，字段未显式指定 decorator 时自动使用 */
-  defaultDecorator?: string
-  /** 阅读态替代组件（readPretty），isPreview 时自动替换 */
-  readPrettyComponent?: Component
-}
-
-/** 组件作用域（可传给 FormProvider 的 components/decorators） */
-export interface ComponentScope {
-  components: Record<string, Component>
-  decorators: Record<string, Component>
-  actions?: Record<string, Component>
-  defaultDecorators?: Record<string, string>
-  readPrettyComponents?: Record<string, Component>
-}
-
-/** 组件注册表（Map 结构，适合注入 FormProvider） */
-export interface RegistryState {
-  components: Map<string, Component>
-  decorators: Map<string, Component>
-  actions: Map<string, Component>
-  defaultDecorators: Map<string, string>
-  readPrettyComponents: Map<string, Component>
-}
-
-/** 创建一个空注册表（实例级隔离） */
-export function createRegistryState(): RegistryState {
-  return {
-    components: new Map<string, Component>(),
-    decorators: new Map<string, Component>(),
-    actions: new Map<string, Component>(),
-    defaultDecorators: new Map<string, string>(),
-    readPrettyComponents: new Map<string, Component>(),
-  }
-}
-
-const globalRegistry = createRegistryState()
-const registryListeners = new WeakMap<RegistryState, Set<() => void>>()
-
 /**
- * get Target Registry：负责“获取get Target Registry”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
+ * notifyRegistryChange：执行当前功能逻辑。
  *
- * 说明：该注释描述 get Target Registry 的主要职责边界，便于维护者快速理解函数在链路中的定位。
- */
-function getTargetRegistry(registry?: RegistryState): RegistryState {
-  return registry ?? globalRegistry
-}
-
-/**
- * notify Registry Change：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 notify Registry Change 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * @param registry 参数 registry 的输入说明。
  */
 function notifyRegistryChange(registry: RegistryState): void {
   const listeners = registryListeners.get(registry)
@@ -69,11 +16,13 @@ function notifyRegistryChange(registry: RegistryState): void {
 }
 
 /**
- * subscribe Registry Change：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 subscribe Registry Change 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * subscribe Registry Change：当前功能模块的核心执行单元。
+ * 所属模块：`packages/vue/src/registry.ts`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param registry 参数 `registry`用于提供当前函数执行所需的输入信息。
+ * @param listener 参数 `listener`用于提供集合数据，支撑批量遍历与扩展处理。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function subscribeRegistryChange(registry: RegistryState, listener: () => void): () => void {
   let listeners = registryListeners.get(registry)
@@ -98,7 +47,13 @@ export function registerComponent(name: string, component: Component, options?: 
   registerComponentToRegistry(getTargetRegistry(), name, component, options)
 }
 
-/** 向指定注册表注册组件（实例级） */
+/**
+ * 向指定注册表注册组件（实例级）
+ * @param registry 参数 `registry`用于提供当前函数执行所需的输入信息。
+ * @param name 参数 `name`用于提供当前函数执行所需的输入信息。
+ * @param component 参数 `component`用于提供当前函数执行所需的输入信息。
+ * @param [options] 参数 `options`用于提供可选配置，调整当前功能模块的执行策略。
+ */
 export function registerComponentToRegistry(
   registry: RegistryState,
   name: string,
@@ -117,12 +72,19 @@ export function registerComponentToRegistry(
 
 /**
  * 注册全局装饰器
+ * @param name 参数 `name`用于提供当前函数执行所需的输入信息。
+ * @param decorator 参数 `decorator`用于提供当前函数执行所需的输入信息。
  */
 export function registerDecorator(name: string, decorator: Component): void {
   registerDecoratorToRegistry(getTargetRegistry(), name, decorator)
 }
 
-/** 向指定注册表注册装饰器（实例级） */
+/**
+ * 向指定注册表注册装饰器（实例级）
+ * @param registry 参数 `registry`用于提供当前函数执行所需的输入信息。
+ * @param name 参数 `name`用于提供当前函数执行所需的输入信息。
+ * @param decorator 参数 `decorator`用于提供当前函数执行所需的输入信息。
+ */
 export function registerDecoratorToRegistry(
   registry: RegistryState,
   name: string,
@@ -134,12 +96,19 @@ export function registerDecoratorToRegistry(
 
 /**
  * 注册全局 action 组件
+ * @param name 参数 `name`用于提供当前函数执行所需的输入信息。
+ * @param action 参数 `action`用于提供当前函数执行所需的输入信息。
  */
 export function registerAction(name: string, action: Component): void {
   registerActionToRegistry(getTargetRegistry(), name, action)
 }
 
-/** 向指定注册表注册 action 组件（实例级） */
+/**
+ * 向指定注册表注册 action 组件（实例级）
+ * @param registry 参数 `registry`用于提供当前函数执行所需的输入信息。
+ * @param name 参数 `name`用于提供当前函数执行所需的输入信息。
+ * @param action 参数 `action`用于提供当前函数执行所需的输入信息。
+ */
 export function registerActionToRegistry(
   registry: RegistryState,
   name: string,
@@ -151,12 +120,19 @@ export function registerActionToRegistry(
 
 /**
  * 批量注册组件
+ * @param mapping 参数 `mapping`用于提供当前函数执行所需的输入信息。
+ * @param [options] 参数 `options`用于提供可选配置，调整当前功能模块的执行策略。
  */
 export function registerComponents(mapping: Record<string, Component>, options?: RegisterComponentOptions): void {
   registerComponentsToRegistry(getTargetRegistry(), mapping, options)
 }
 
-/** 向指定注册表批量注册组件（实例级） */
+/**
+ * 向指定注册表批量注册组件（实例级）
+ * @param registry 参数 `registry`用于提供当前函数执行所需的输入信息。
+ * @param mapping 参数 `mapping`用于提供当前函数执行所需的输入信息。
+ * @param [options] 参数 `options`用于提供可选配置，调整当前功能模块的执行策略。
+ */
 export function registerComponentsToRegistry(
   registry: RegistryState,
   mapping: Record<string, Component>,
@@ -176,12 +152,17 @@ export function registerComponentsToRegistry(
 
 /**
  * 批量注册 action 组件
+ * @param mapping 参数 `mapping`用于提供当前函数执行所需的输入信息。
  */
 export function registerActions(mapping: Record<string, Component>): void {
   registerActionsToRegistry(getTargetRegistry(), mapping)
 }
 
-/** 向指定注册表批量注册 action 组件（实例级） */
+/**
+ * 向指定注册表批量注册 action 组件（实例级）
+ * @param registry 参数 `registry`用于提供当前函数执行所需的输入信息。
+ * @param mapping 参数 `mapping`用于提供当前函数执行所需的输入信息。
+ */
 export function registerActionsToRegistry(
   registry: RegistryState,
   mapping: Record<string, Component>,
@@ -211,6 +192,7 @@ export function registerActionsToRegistry(
  *   { LayoutTabs, LayoutCard, LayoutSteps },
  * )
  * ```
+ * @param [readPretty] 参数 `readPretty`用于提供当前函数执行所需的输入信息。
  */
 export function registerFieldComponents(
   fields: Record<string, Component>,
@@ -221,7 +203,14 @@ export function registerFieldComponents(
   registerFieldComponentsToRegistry(getTargetRegistry(), fields, decorator, layouts, readPretty)
 }
 
-/** 向指定注册表批量注册字段/布局/readPretty（实例级） */
+/**
+ * 向指定注册表批量注册字段/布局/readPretty（实例级）
+ * @param registry 参数 `registry`用于提供当前函数执行所需的输入信息。
+ * @param fields 参数 `fields`用于提供当前函数执行所需的输入信息。
+ * @param decorator 参数 `decorator`用于提供当前函数执行所需的输入信息。
+ * @param [layouts] 参数 `layouts`用于提供当前函数执行所需的输入信息。
+ * @param [readPretty] 参数 `readPretty`用于提供当前函数执行所需的输入信息。
+ */
 export function registerFieldComponentsToRegistry(
   registry: RegistryState,
   fields: Record<string, Component>,
@@ -254,37 +243,62 @@ export function registerFieldComponentsToRegistry(
   notifyRegistryChange(registry)
 }
 
-/** 获取组件 */
+/**
+ * 获取组件
+ * @param name 参数 `name`用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ */
 export function getComponent(name: string): Component | undefined {
   return globalRegistry.components.get(name)
 }
 
-/** 获取装饰器 */
+/**
+ * 获取装饰器
+ * @param name 参数 `name`用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ */
 export function getDecorator(name: string): Component | undefined {
   return globalRegistry.decorators.get(name)
 }
 
-/** 获取 action 组件 */
+/**
+ * 获取 action 组件
+ * @param name 参数 `name`用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ */
 export function getAction(name: string): Component | undefined {
   return globalRegistry.actions.get(name)
 }
 
-/** 获取组件的默认装饰器名称 */
+/**
+ * 获取组件的默认装饰器名称
+ * @param componentName 参数 `componentName`用于提供当前函数执行所需的输入信息。
+ * @returns 返回字符串结果，通常用于文本展示或下游拼接。
+ */
 export function getDefaultDecorator(componentName: string): string | undefined {
   return globalRegistry.defaultDecorators.get(componentName)
 }
 
-/** 获取组件的 readPretty 替代组件 */
+/**
+ * 获取组件的 readPretty 替代组件
+ * @param componentName 参数 `componentName`用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ */
 export function getReadPrettyComponent(componentName: string): Component | undefined {
   return globalRegistry.readPrettyComponents.get(componentName)
 }
 
-/** 获取全局注册表 */
+/**
+ * 获取全局注册表
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ */
 export function getGlobalRegistry(): RegistryState {
   return globalRegistry
 }
 
-/** 清空全局注册表（测试/隔离场景使用） */
+/**
+ * 清空全局注册表（测试/隔离场景使用）
+ */
 export function resetRegistry(): void {
   globalRegistry.components.clear()
   globalRegistry.decorators.clear()
@@ -298,6 +312,8 @@ export function resetRegistry(): void {
  * 创建隔离注册表并通过 setup 填充（不写入全局）
  *
  * 适用于 SSR / 多租户 / 测试用例隔离场景。
+ * @param [setup] 参数 `setup`用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function createRegistry(
   setup?: (register: {
@@ -316,11 +332,67 @@ export function createRegistry(
 ): RegistryState {
   const registry = createRegistryState()
   setup?.({
+    /**
+     * component：执行当前功能逻辑。
+     *
+     * @param name 参数 name 的输入说明。
+     * @param comp 参数 comp 的输入说明。
+     * @param options 参数 options 的输入说明。
+     *
+     * @returns 返回当前功能的处理结果。
+     */
+
     component: (name, comp, options) => registerComponentToRegistry(registry, name, comp, options),
+    /**
+     * decorator：执行当前功能逻辑。
+     *
+     * @param name 参数 name 的输入说明。
+     * @param dec 参数 dec 的输入说明。
+     *
+     * @returns 返回当前功能的处理结果。
+     */
+
     decorator: (name, dec) => registerDecoratorToRegistry(registry, name, dec),
+    /**
+     * action：执行当前功能逻辑。
+     *
+     * @param name 参数 name 的输入说明。
+     * @param action 参数 action 的输入说明。
+     *
+     * @returns 返回当前功能的处理结果。
+     */
+
     action: (name, action) => registerActionToRegistry(registry, name, action),
+    /**
+     * components：执行当前功能逻辑。
+     *
+     * @param mapping 参数 mapping 的输入说明。
+     * @param options 参数 options 的输入说明。
+     *
+     * @returns 返回当前功能的处理结果。
+     */
+
     components: (mapping, options) => registerComponentsToRegistry(registry, mapping, options),
+    /**
+     * actions：执行当前功能逻辑。
+     *
+     * @param mapping 参数 mapping 的输入说明。
+     *
+     * @returns 返回当前功能的处理结果。
+     */
+
     actions: mapping => registerActionsToRegistry(registry, mapping),
+    /**
+     * fieldComponents：执行当前功能逻辑。
+     *
+     * @param fields 参数 fields 的输入说明。
+     * @param decorator 参数 decorator 的输入说明。
+     * @param layouts 参数 layouts 的输入说明。
+     * @param readPretty 参数 readPretty 的输入说明。
+     *
+     * @returns 返回当前功能的处理结果。
+     */
+
     fieldComponents: (fields, decorator, layouts, readPretty) =>
       registerFieldComponentsToRegistry(registry, fields, decorator, layouts, readPretty),
   })
@@ -343,6 +415,8 @@ export function createRegistry(
  *   register.decorator('FormItem', AntdFormItem)
  * })
  * ```
+ * @param setup 参数 `setup`用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function createComponentScope(
   setup: (register: {
@@ -360,6 +434,14 @@ export function createComponentScope(
   const readPrettyComponents: Record<string, Component> = {}
 
   setup({
+    /**
+     * component：执行当前功能逻辑。
+     *
+     * @param name 参数 name 的输入说明。
+     * @param comp 参数 comp 的输入说明。
+     * @param options 参数 options 的输入说明。
+     */
+
     component: (name, comp, options) => {
       components[name] = comp
       if (options?.defaultDecorator) {
@@ -369,11 +451,39 @@ export function createComponentScope(
         readPrettyComponents[name] = options.readPrettyComponent
       }
     },
+    /**
+     * decorator：执行当前功能逻辑。
+     *
+     * @param name 参数 name 的输入说明。
+     * @param dec 参数 dec 的输入说明。
+     */
+
     decorator: (name, dec) => { decorators[name] = dec },
+    /**
+     * action：执行当前功能逻辑。
+     *
+     * @param name 参数 name 的输入说明。
+     * @param action 参数 action 的输入说明。
+     */
+
     action: (name, action) => { actions[name] = action },
+    /**
+     * defaultDecorator：执行当前功能逻辑。
+     *
+     * @param componentName 参数 componentName 的输入说明。
+     * @param decoratorName 参数 decoratorName 的输入说明。
+     */
+
     defaultDecorator: (componentName, decoratorName) => {
       defaultDecorators[componentName] = decoratorName
     },
+    /**
+     * readPretty：执行当前功能逻辑。
+     *
+     * @param componentName 参数 componentName 的输入说明。
+     * @param component 参数 component 的输入说明。
+     */
+
     readPretty: (componentName, component) => {
       readPrettyComponents[componentName] = component
     },

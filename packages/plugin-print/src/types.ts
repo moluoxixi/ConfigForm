@@ -1,8 +1,23 @@
 import type { FieldPattern, FormInstance, FormPlugin } from '@moluoxixi/core'
 
+/**
+ * Form Print Target Resolver：类型别名定义。
+ * 所属模块：`packages/plugin-print/src/types.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export type FormPrintTargetResolver = () => string | Element | null | undefined
+/**
+ * Form Print Target：类型别名定义。
+ * 所属模块：`packages/plugin-print/src/types.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export type FormPrintTarget = string | Element | FormPrintTargetResolver
 
+/**
+ * Form Print Payload：类型接口定义。
+ * 所属模块：`packages/plugin-print/src/types.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export interface FormPrintPayload {
   title?: string
   values: Record<string, unknown>
@@ -12,10 +27,20 @@ export interface FormPrintPayload {
   target?: string | Element
 }
 
+/**
+ * Form Print Adapters：类型接口定义。
+ * 所属模块：`packages/plugin-print/src/types.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export interface FormPrintAdapters {
   print?: (payload: FormPrintPayload) => void | Promise<void>
 }
 
+/**
+ * Form Print Options：类型接口定义。
+ * 所属模块：`packages/plugin-print/src/types.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export interface FormPrintOptions {
   excludePrefixes?: string[]
   title?: string
@@ -26,6 +51,11 @@ export interface FormPrintOptions {
   formatText?: (values: Record<string, unknown>) => string
 }
 
+/**
+ * Form Print Plugin Config：类型接口定义。
+ * 所属模块：`packages/plugin-print/src/types.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export interface FormPrintPluginConfig {
   excludePrefixes?: string[]
   jsonSpace?: number
@@ -40,13 +70,33 @@ export interface FormPrintPluginConfig {
   }
 }
 
+/**
+ * Form Print Plugin API：类型接口定义。
+ * 所属模块：`packages/plugin-print/src/types.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export interface FormPrintPluginAPI {
   print: (options?: FormPrintOptions) => Promise<void>
 }
+/**
+ * Form Print Plugin：类型别名定义。
+ * 所属模块：`packages/plugin-print/src/types.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export type FormPrintPlugin = FormPlugin<FormPrintPluginAPI>
 
 declare module '@moluoxixi/core' {
+  /**
+   * 为 `FormInstance` 注入打印插件能力。
+   * 该方法由打印插件在运行时挂载，未安装插件时可能为 `undefined`。
+   */
   interface FormInstance {
+    /**
+     * 执行表单打印流程。
+     *
+     * @param options 打印选项，例如目标容器与模式切换策略。
+     * @returns 打印流程完成后的 Promise。
+     */
     print?: FormPrintPluginAPI['print']
   }
 }

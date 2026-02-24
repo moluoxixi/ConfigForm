@@ -21,35 +21,98 @@ import {
 export const mobxAdapter: ReactiveAdapter = {
   name: 'mobx',
 
+  /**
+   * observable：当前功能模块的核心执行单元。
+   * 所属模块：`packages/reactive-react/src/adapter.ts`。
+   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+   * @param target 参数 `target`用于提供当前函数执行所需的输入信息。
+   * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+   */
   observable<T extends object>(target: T): T {
     return observable(target)
   },
 
+  /**
+   * shallow Observable：当前功能模块的核心执行单元。
+   * 所属模块：`packages/reactive-react/src/adapter.ts`。
+   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+   * @param target 参数 `target`用于提供当前函数执行所需的输入信息。
+   * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+   */
   shallowObservable<T extends object>(target: T): T {
     return observable(target, {}, { deep: false })
   },
 
+  /**
+   * computed：当前功能模块的核心执行单元。
+   * 所属模块：`packages/reactive-react/src/adapter.ts`。
+   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+   * @param getter 参数 `getter`用于提供当前函数执行所需的输入信息。
+   * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+   */
   computed<T>(getter: () => T) {
     const computedValue = computed(getter)
     return {
+      /**
+       * value?????????????????
+       * ???`packages/reactive-react/src/adapter.ts:59`?
+       * ?????????????????????????????????
+       * ??????????????????????????
+       * @returns ?????????????
+       */
       get value() {
         return computedValue.get()
       },
     }
   },
 
+  /**
+   * autorun：当前功能模块的核心执行单元。
+   * 所属模块：`packages/reactive-react/src/adapter.ts`。
+   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+   * @param effect 参数 `effect`用于提供当前函数执行所需的输入信息。
+   * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+   */
   autorun(effect: () => void): Disposer {
     return autorun(effect)
   },
 
+  /**
+   * reaction：当前功能模块的核心执行单元。
+   * 所属模块：`packages/reactive-react/src/adapter.ts`。
+   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+   * @param track 参数 `track`用于提供当前函数执行所需的输入信息。
+   * @param effect 参数 `effect`用于提供当前函数执行所需的输入信息。
+   * @param [options] 参数 `options`用于提供可选配置，调整当前功能模块的执行策略。
+   * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+   */
   reaction<T>(
     track: () => T,
     effect: (value: T, oldValue: T) => void,
     options?: ReactionOptions,
   ): Disposer {
-    const runEffect = (value: T, oldValue: T | undefined) => {
-      effect(value, oldValue === undefined ? value : oldValue)
-    }
+    /**
+     * run Effect：当前功能模块的核心执行单元。
+     * 所属模块：`packages/reactive-react/src/adapter.ts`。
+     * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+     * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+     * @param value 参数 `value`用于提供待处理的值并参与结果计算。
+     * @param oldValue 参数 `oldValue`用于提供待处理的值并参与结果计算。
+     */
+    const /**
+           * runEffect：执行当前功能逻辑。
+           *
+           * @param value 参数 value 的输入说明。
+           * @param oldValue 参数 oldValue 的输入说明。
+           */
+      runEffect = (value: T, oldValue: T | undefined) => {
+        effect(value, oldValue === undefined ? value : oldValue)
+      }
 
     if (options?.debounce && options.debounce > 0) {
       const debouncedEffect = createDebounce(runEffect, options.debounce)
@@ -68,14 +131,37 @@ export const mobxAdapter: ReactiveAdapter = {
     })
   },
 
+  /**
+   * batch：当前功能模块的核心执行单元。
+   * 所属模块：`packages/reactive-react/src/adapter.ts`。
+   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+   * @param fn 参数 `fn`用于提供当前函数执行所需的输入信息。
+   */
   batch(fn: () => void): void {
     runInAction(fn)
   },
 
+  /**
+   * action：当前功能模块的核心执行单元。
+   * 所属模块：`packages/reactive-react/src/adapter.ts`。
+   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+   * @param fn 参数 `fn`用于提供当前函数执行所需的输入信息。
+   * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+   */
   action<T extends (...args: any[]) => any>(fn: T): T {
     return action(fn) as T
   },
 
+  /**
+   * make Observable：当前功能模块的核心执行单元。
+   * 所属模块：`packages/reactive-react/src/adapter.ts`。
+   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+   * @param target 参数 `target`用于提供当前函数执行所需的输入信息。
+   * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+   */
   makeObservable<T extends object>(target: T): T {
     /**
      * 动态生成 MobX 注解，支持继承类（如 ArrayField extends Field）

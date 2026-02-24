@@ -3,8 +3,18 @@ import type { DefaultOptionType } from 'antd/es/cascader'
 import type { ReactElement } from 'react'
 import { Cascader as ACascader } from 'antd'
 
+/**
+ * Cascader Value：类型别名定义。
+ * 所属模块：`packages/ui-antd/src/components/Cascader.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 type CascaderValue = Array<string | number | null>
 
+/**
+ * Cf Cascader Props：类型接口定义。
+ * 所属模块：`packages/ui-antd/src/components/Cascader.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export interface CfCascaderProps {
   value?: unknown[]
   onChange?: (value: unknown[]) => void
@@ -22,6 +32,8 @@ export interface CfCascaderProps {
 
 /**
  * 将 DataSourceItem 转为 antd Cascader 的 options 格式
+ * @param items 参数 `items`用于提供集合数据，支撑批量遍历与扩展处理。
+ * @returns 返回数组结果，用于后续遍历、渲染或进一步转换。
  */
 function toCascaderOptions(items: DataSourceItem[]): DefaultOptionType[] {
   return items.map(item => ({
@@ -33,11 +45,24 @@ function toCascaderOptions(items: DataSourceItem[]): DefaultOptionType[] {
 }
 
 /**
- * Cascader：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 Cascader 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * Cascader：当前功能模块的核心执行单元。
+ * 所属模块：`packages/ui-antd/src/components/Cascader.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param param1 原始解构参数（{
+  value,
+  onChange,
+  onFocus,
+  onBlur,
+  dataSource,
+  options,
+  placeholder,
+  disabled,
+  loading,
+  showSearch,
+  changeOnSelect,
+}）用于提供可选配置，调整当前功能模块的执行策略。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function Cascader({
   value,

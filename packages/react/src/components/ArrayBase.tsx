@@ -3,46 +3,10 @@ import type { ReactNode } from 'react'
 import React, { createContext, useContext } from 'react'
 import { useField } from '../hooks'
 
-interface ArrayBaseContextValue {
-  field: ArrayFieldInstance
-}
-
-interface ArrayBaseItemContextValue {
-  index: number
-}
-
-const ArrayBaseContext = createContext<ArrayBaseContextValue | null>(null)
-const ArrayBaseItemContext = createContext<ArrayBaseItemContextValue | null>(null)
-
 /**
- * use Array：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
+ * useEditable：执行当前功能逻辑。
  *
- * 说明：该函数聚焦于 use Array 的单一职责，调用方可通过函数名快速理解输入输出语义。
- */
-export function useArray(): ArrayBaseContextValue | null {
-  return useContext(ArrayBaseContext)
-}
-
-/**
- * use Index：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 use Index 的单一职责，调用方可通过函数名快速理解输入输出语义。
- */
-export function useIndex(defaultIndex = 0): number {
-  const ctx = useContext(ArrayBaseItemContext)
-  return ctx?.index ?? defaultIndex
-}
-
-/**
- * use Editable：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 use Editable 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * @returns 返回当前功能的处理结果。
  */
 function useEditable(): { isEditable: boolean, field: ArrayFieldInstance | null } {
   const ctx = useArray()
@@ -52,11 +16,12 @@ function useEditable(): { isEditable: boolean, field: ArrayFieldInstance | null 
 }
 
 /**
- * Array Base：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 Array Base 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * Array Base：当前功能模块的核心执行单元。
+ * 所属模块：`packages/react/src/components/ArrayBase.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param param1 原始解构参数（{ children }）用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function ArrayBase({ children }: { children: ReactNode }): React.ReactElement | null {
   let field: ArrayFieldInstance | null = null
@@ -75,11 +40,12 @@ export function ArrayBase({ children }: { children: ReactNode }): React.ReactEle
 }
 
 /**
- * Array Base Item：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 Array Base Item 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * Array Base Item：当前功能模块的核心执行单元。
+ * 所属模块：`packages/react/src/components/ArrayBase.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param param1 原始解构参数（{ index, children }）用于提供位置序号，支撑排序或插入等序列操作。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 function ArrayBaseItem({ index, children }: { index: number, children: ReactNode }): React.ReactElement {
   return (
@@ -90,11 +56,11 @@ function ArrayBaseItem({ index, children }: { index: number, children: ReactNode
 }
 
 /**
- * Array Base Index：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 Array Base Index 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * Array Base Index：当前功能模块的核心执行单元。
+ * 所属模块：`packages/react/src/components/ArrayBase.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 function ArrayBaseIndex(): React.ReactElement {
   const index = useIndex()
@@ -107,11 +73,12 @@ function ArrayBaseIndex(): React.ReactElement {
 }
 
 /**
- * Array Base Addition：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 Array Base Addition 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * Array Base Addition：当前功能模块的核心执行单元。
+ * 所属模块：`packages/react/src/components/ArrayBase.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param param1 原始解构参数（{ title = '+ 添加条目' }）用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 function ArrayBaseAddition({ title = '+ 添加条目' }: { title?: string }): React.ReactElement | null {
   const { isEditable, field } = useEditable()
@@ -150,11 +117,12 @@ function ArrayBaseAddition({ title = '+ 添加条目' }: { title?: string }): Re
 }
 
 /**
- * Array Base Remove：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 Array Base Remove 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * Array Base Remove：当前功能模块的核心执行单元。
+ * 所属模块：`packages/react/src/components/ArrayBase.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param param1 原始解构参数（{ title = '删除' }）用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 function ArrayBaseRemove({ title = '删除' }: { title?: string }): React.ReactElement | null {
   const { isEditable, field } = useEditable()
@@ -178,11 +146,12 @@ function ArrayBaseRemove({ title = '删除' }: { title?: string }): React.ReactE
 }
 
 /**
- * Array Base Move Up：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 Array Base Move Up 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * Array Base Move Up：当前功能模块的核心执行单元。
+ * 所属模块：`packages/react/src/components/ArrayBase.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param param1 原始解构参数（{ title = '↑' }）用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 function ArrayBaseMoveUp({ title = '↑' }: { title?: string }): React.ReactElement | null {
   const { isEditable, field } = useEditable()
@@ -207,11 +176,12 @@ function ArrayBaseMoveUp({ title = '↑' }: { title?: string }): React.ReactElem
 }
 
 /**
- * Array Base Move Down：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 Array Base Move Down 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * Array Base Move Down：当前功能模块的核心执行单元。
+ * 所属模块：`packages/react/src/components/ArrayBase.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param param1 原始解构参数（{ title = '↓' }）用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 function ArrayBaseMoveDown({ title = '↓' }: { title?: string }): React.ReactElement | null {
   const { isEditable, field } = useEditable()
@@ -237,11 +207,13 @@ function ArrayBaseMoveDown({ title = '↓' }: { title?: string }): React.ReactEl
 }
 
 /**
- * op Btn Style：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 op Btn Style 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * op Btn Style：当前功能模块的核心执行单元。
+ * 所属模块：`packages/react/src/components/ArrayBase.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param disabled 参数 `disabled`用于提供当前函数执行所需的输入信息。
+ * @param [activeColor] 参数 `activeColor`用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 function opBtnStyle(disabled: boolean, activeColor = '#606266'): React.CSSProperties {
   return {

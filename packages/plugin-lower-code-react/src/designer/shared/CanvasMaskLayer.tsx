@@ -1,5 +1,10 @@
 import type React from 'react'
 
+/**
+ * Canvas Mask Layer Props：类型接口定义。
+ * 所属模块：`packages/plugin-lower-code-react/src/designer/shared/CanvasMaskLayer.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 interface CanvasMaskLayerProps {
   children: React.ReactNode
   actions?: React.ReactNode
@@ -7,11 +12,16 @@ interface CanvasMaskLayerProps {
 }
 
 /**
- * Canvas Mask Layer：负责“判断Canvas Mask Layer”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 Canvas Mask Layer 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * Canvas Mask Layer：当前功能模块的核心执行单元。
+ * 所属模块：`packages/plugin-lower-code-react/src/designer/shared/CanvasMaskLayer.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param param1 原始解构参数（{
+  children,
+  actions,
+  disablePointerEvents = true,
+}）用于传递事件上下文，使逻辑能基于交互状态进行处理。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function CanvasMaskLayer({
   children,

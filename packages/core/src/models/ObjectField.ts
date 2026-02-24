@@ -23,6 +23,12 @@ import { Field } from './Field'
 export class ObjectField<Value extends Record<string, unknown> = Record<string, unknown>>
   extends Field<Value>
   implements ObjectFieldInstance<Value> {
+  /**
+   * 创建对象字段实例。
+   * @param form 所属表单实例。
+   * @param props 字段初始化属性。
+   * @param parentPath 父路径。
+   */
   constructor(form: FormInstance, props: ObjectFieldProps<Value>, parentPath = '') {
     super(form, props, parentPath)
 

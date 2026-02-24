@@ -10,23 +10,24 @@ import { ComponentRegistryContext, FormContext } from '../context'
 import { observer } from '../reactive'
 
 /**
- * 错误边界样式
- * to Camel Case Style Key：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 to Camel Case Style Key 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * to Camel Case Style Key：当前功能模块的核心执行单元。
+ * 所属模块：`packages/react/src/components/ReactiveField.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param key 参数 `key`用于提供当前函数执行所需的输入信息。
+ * @returns 返回字符串结果，通常用于文本展示或下游拼接。
  */
 function toCamelCaseStyleKey(key: string): string {
   return key.replace(/-([a-z])/g, (_, chr: string) => chr.toUpperCase())
 }
 
 /**
- * parse Style String：负责“解析parse Style String”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 parse Style String 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * parse Style String：当前功能模块的核心执行单元。
+ * 所属模块：`packages/react/src/components/ReactiveField.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param styleText 参数 `styleText`用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 function parseStyleString(styleText: string): React.CSSProperties | undefined {
   const entries = styleText
@@ -53,11 +54,12 @@ function parseStyleString(styleText: string): React.CSSProperties | undefined {
 }
 
 /**
- * normalize Component Props：负责“规范化normalize Component Props”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 normalize Component Props 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * normalize Component Props：当前功能模块的核心执行单元。
+ * 所属模块：`packages/react/src/components/ReactiveField.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param props 参数 `props`用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 function normalizeComponentProps(props: ComponentProps): ComponentProps {
   if (!props || typeof props !== 'object')
@@ -92,11 +94,21 @@ function normalizeComponentProps(props: ComponentProps): ComponentProps {
   return props
 }
 
+/**
+ * Field Error Boundary Props：类型接口定义。
+ * 所属模块：`packages/react/src/components/ReactiveField.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 interface FieldErrorBoundaryProps {
   fieldPath: string
   children: ReactNode
 }
 
+/**
+ * Field Error Boundary State：类型接口定义。
+ * 所属模块：`packages/react/src/components/ReactiveField.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 interface FieldErrorBoundaryState {
   hasError: boolean
   error: Error | null
@@ -109,19 +121,49 @@ interface FieldErrorBoundaryState {
  * 捕获子组件树中的渲染错误，展示友好的错误提示。
  */
 class FieldErrorBoundary extends Component<FieldErrorBoundaryProps, FieldErrorBoundaryState> {
+  /**
+   * constructor?????????????????
+   * ???`packages/react/src/components/ReactiveField.tsx:124`?
+   * ?????????????????????????????????
+   * ??????????????????????????
+   * @param props ?? props ????????????
+   */
   constructor(props: FieldErrorBoundaryProps) {
     super(props)
     this.state = { hasError: false, error: null }
   }
 
+  /**
+   * get Derived State From Error：当前功能模块的核心执行单元。
+   * 所属模块：`packages/react/src/components/ReactiveField.tsx`。
+   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+   * @param error 参数 `error`用于提供当前函数执行所需的输入信息。
+   * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+   */
   static getDerivedStateFromError(error: Error): FieldErrorBoundaryState {
     return { hasError: true, error }
   }
 
+  /**
+   * component Did Catch：当前功能模块的核心执行单元。
+   * 所属模块：`packages/react/src/components/ReactiveField.tsx`。
+   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+   * @param error 参数 `error`用于提供当前函数执行所需的输入信息。
+   * @param errorInfo 参数 `errorInfo`用于提供当前函数执行所需的输入信息。
+   */
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error(`[ConfigForm] 字段 "${this.props.fieldPath}" 子组件渲染异常:`, error, errorInfo)
   }
 
+  /**
+   * render：当前功能模块的核心执行单元。
+   * 所属模块：`packages/react/src/components/ReactiveField.tsx`。
+   * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+   * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+   * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+   */
   render(): ReactNode {
     if (this.state.hasError) {
       return (
@@ -138,6 +180,11 @@ class FieldErrorBoundary extends Component<FieldErrorBoundaryProps, FieldErrorBo
   }
 }
 
+/**
+ * Reactive Field Props：类型接口定义。
+ * 所属模块：`packages/react/src/components/ReactiveField.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 export interface ReactiveFieldProps {
   field: FieldInstance | VoidFieldInstance
   isVoid?: boolean
@@ -303,7 +350,15 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
   }
 })
 
-/** object 容器字段渲染（component 作容器包裹 children） */
+/**
+ * object 容器字段渲染（component 作容器包裹 children）
+ * @param dataField 参数 `dataField`用于提供当前函数执行所需的输入信息。
+ * @param Comp 参数 `Comp`用于提供当前函数执行所需的输入信息。
+ * @param children 参数 `children`用于提供当前函数执行所需的输入信息。
+ * @param form 参数 `form`用于提供表单上下文或实例，支撑状态读写与生命周期调用。
+ * @param registry 参数 `registry`用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ */
 function renderContainerField(
   dataField: FieldInstance,
   Comp: ComponentType<any>,
@@ -320,7 +375,14 @@ function renderContainerField(
   return wrapDecorator(dataField, fieldElement, form, registry)
 }
 
-/** 用 decorator 包裹字段 */
+/**
+ * 用 decorator 包裹字段
+ * @param dataField 参数 `dataField`用于提供当前函数执行所需的输入信息。
+ * @param fieldElement 参数 `fieldElement`用于提供当前函数执行所需的输入信息。
+ * @param form 参数 `form`用于提供表单上下文或实例，支撑状态读写与生命周期调用。
+ * @param registry 参数 `registry`用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ */
 function wrapDecorator(
   dataField: FieldInstance,
   fieldElement: React.ReactElement,

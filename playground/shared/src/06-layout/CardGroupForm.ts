@@ -6,6 +6,11 @@ const GENDER_OPTIONS = [
   { label: '女', value: 'female' },
 ]
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/06-layout/CardGroupForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: '卡片分组',
   description: 'Card 多卡片分组 / void 节点布局 / 卡片内验证',

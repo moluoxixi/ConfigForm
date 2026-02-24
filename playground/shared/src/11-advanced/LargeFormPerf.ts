@@ -67,6 +67,11 @@ function generateFields(count: number): Array<{ name: string, label: string, com
   return fields
 }
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/11-advanced/LargeFormPerf.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig & {
   generateSchemaProperties: typeof generateSchemaProperties
   generateInitialValues: typeof generateInitialValues

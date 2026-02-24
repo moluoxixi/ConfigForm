@@ -170,25 +170,12 @@ export function onFieldUnmount(
 }
 
 /**
- * 响应式监听（自动追踪依赖，依赖变化时重新执行）
- *
- * 使用响应式适配器的 autorun API 实现自动依赖追踪。
- * 回调函数中访问的响应式属性（如 form.values.xxx、field.visible 等）
- * 会被自动追踪，任何依赖变化时回调自动重新执行。
- *
- * @param form - 表单实例
- * @param callback - 响应式回调（自动追踪依赖）
- * @returns 取消监听的 Disposer
- *
- * @example
- * ```ts
- * onFormReact(form, (form) => {
- *   // 自动追踪 form.values.firstName 和 form.values.lastName
- *   form.setFieldState('fullName', {
- *     value: `${form.values.firstName ?? ''} ${form.values.lastName ?? ''}`.trim(),
- *   })
- * })
- * ```
+ * 表单级响应式监听。
+ * 依赖当前表单绑定的响应式适配器创建 autorun，
+ * 当回调中读取到的响应式依赖变化时会自动重跑。
+ * @param form 表单实例。
+ * @param callback 响应式回调。
+ * @returns 取消监听的 disposer。
  */
 export function onFormReact(
   form: FormInstance,
@@ -230,7 +217,10 @@ export function onFieldReact(
   /** 跟踪每个字段的 autorun disposer */
   const fieldAutorunDisposers = new Map<string, Disposer>()
 
-  /** 为匹配字段创建 autorun */
+  /**
+   * 为匹配字段创建 autorun
+   * @param field 已匹配并挂载的字段实例。
+   */
   const setupAutorun = (field: FieldInstance): void => {
     /* 清理同路径的旧 autorun（防止重复挂载） */
     fieldAutorunDisposers.get(field.path)?.()

@@ -27,16 +27,40 @@ export const DesignerMaterialPane = defineComponent({
       required: true,
     },
   },
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/plugin-lower-code-vue/src/designer/left/DesignerMaterialPane/index.ts:30`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props) {
     const keyword = ref('')
 
     const normalizedKeyword = computed(() => keyword.value.trim().toLowerCase())
-    const filterByKeyword = (item: MaterialItem): boolean => {
-      if (!normalizedKeyword.value)
-        return true
-      const text = `${item.label} ${item.description ?? ''}`.toLowerCase()
-      return text.includes(normalizedKeyword.value)
-    }
+    /**
+     * filterByKeyword?????????????????
+     * ???`packages/plugin-lower-code-vue/src/designer/left/DesignerMaterialPane/index.ts:50`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     * @param item ?? item ????????????
+     * @returns ?????????????
+     */
+    const /**
+           * filterByKeyword：执行当前位置的功能逻辑。
+           * 定位：`packages/plugin-lower-code-vue/src/designer/left/DesignerMaterialPane/index.ts:34`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @param item 参数 item 为业务对象，用于读写状态与属性。
+           * @returns 返回当前分支执行后的处理结果。
+           */
+      filterByKeyword = (item: MaterialItem): boolean => {
+        if (!normalizedKeyword.value)
+          return true
+        const text = `${item.label} ${item.description ?? ''}`.toLowerCase()
+        return text.includes(normalizedKeyword.value)
+      }
 
     const filteredComponentMaterials = computed(() =>
       props.componentMaterials.filter(filterByKeyword))
@@ -48,14 +72,30 @@ export const DesignerMaterialPane = defineComponent({
     const filteredCount = computed(() =>
       filteredComponentMaterials.value.length + filteredLayoutMaterials.value.length)
 
-    const serializeMaterial = (item: MaterialItem): string => {
-      try {
-        return JSON.stringify(item)
+    /**
+     * serializeMaterial?????????????????
+     * ???`packages/plugin-lower-code-vue/src/designer/left/DesignerMaterialPane/index.ts:75`?
+     * ?????????????????????????????????
+     * ??????????????????????????
+     * @param item ?? item ????????????
+     * @returns ?????????????
+     */
+    const /**
+           * serializeMaterial：执行当前位置的功能逻辑。
+           * 定位：`packages/plugin-lower-code-vue/src/designer/left/DesignerMaterialPane/index.ts:51`。
+           * 功能：处理参数消化、状态变更与调用链行为同步。
+           * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+           * @param item 参数 item 为业务对象，用于读写状态与属性。
+           * @returns 返回当前分支执行后的处理结果。
+           */
+      serializeMaterial = (item: MaterialItem): string => {
+        try {
+          return JSON.stringify(item)
+        }
+        catch {
+          return ''
+        }
       }
-      catch {
-        return ''
-      }
-    }
 
     /**
      * render Masked Material Preview：负责“渲染render Masked Material Preview”的核心实现与调用衔接。
@@ -66,6 +106,13 @@ export const DesignerMaterialPane = defineComponent({
      */
     function renderMaskedMaterialPreview(item: MaterialItem): VNodeChild {
       return h(DesignerMaterialMaskDecorator, undefined, {
+        /**
+         * default：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-lower-code-vue/src/designer/left/DesignerMaterialPane/index.ts:69`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         default: () => [
           h(DesignerMaterialPreviewRenderer, {
             item,
@@ -128,6 +175,13 @@ export const DesignerMaterialPane = defineComponent({
           component: 'DesignerMaterialToolbarRenderer',
           componentProps: {
             keyword: keyword.value,
+            /**
+             * onKeywordChange：执行当前位置的功能逻辑。
+             * 定位：`packages/plugin-lower-code-vue/src/designer/left/DesignerMaterialPane/index.ts:131`。
+             * 功能：处理参数消化、状态变更与调用链行为同步。
+             * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+             * @param nextKeyword 参数 nextKeyword 为当前功能所需的输入信息。
+             */
             onKeywordChange: (nextKeyword: string) => { keyword.value = nextKeyword },
             totalCount: totalCount.value,
             filteredCount: filteredCount.value,
@@ -186,6 +240,13 @@ export const DesignerMaterialPane = defineComponent({
       },
     }, [
       h('div', {
+        /**
+         * ref：执行当前位置的功能逻辑。
+         * 定位：`packages/plugin-lower-code-vue/src/designer/left/DesignerMaterialPane/index.ts:189`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param element 参数 element 为当前功能所需的输入信息。
+         */
         ref: (element: unknown) => {
           props.setMaterialHost(element as HTMLElement | null)
         },

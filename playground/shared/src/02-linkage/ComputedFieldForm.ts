@@ -13,6 +13,11 @@ const CALC_TYPE_OPTIONS = [
   { label: '不含税', value: 'exclusive' },
 ]
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/02-linkage/ComputedFieldForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: '计算字段',
   description: '乘法（单价×数量） / 百分比 / 聚合 / 条件计算',

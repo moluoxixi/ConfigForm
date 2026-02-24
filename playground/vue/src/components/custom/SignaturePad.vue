@@ -24,37 +24,14 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
 
-const props = defineProps<{
-  modelValue?: string
-  disabled?: boolean
-  preview?: boolean
-}>()
-
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void
-}>()
-
 const canvasRef = ref<HTMLCanvasElement | null>(null)
-const isDrawing = ref(false)
-const lastRenderedValue = ref<string | undefined>(undefined)
 
 /**
- * get Context：负责“获取get Context”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 get Context 的主要职责边界，便于维护者快速理解函数在链路中的定位。
- */
-function getContext(): CanvasRenderingContext2D | null {
-  return canvasRef.value?.getContext('2d') ?? null
-}
-
-/**
- * render Canvas：负责“渲染render Canvas”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 render Canvas 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * renderCanvas?????????????????
+ * ???`playground/vue/src/components/custom/SignaturePad.vue:6`?
+ * ?????????????????????????????????
+ * ??????????????????????????
+ * @param value ?? value ????????????
  */
 function renderCanvas(value?: string): void {
   const canvas = canvasRef.value
@@ -90,11 +67,11 @@ watch(
 )
 
 /**
- * handle Mouse Down：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 handle Mouse Down 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * handle Mouse Down：当前功能模块的核心执行单元。
+ * 所属模块：`playground/vue/src/components/custom/SignaturePad.vue`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param {MouseEvent} event 参数 `event`用于传递事件上下文，使逻辑能基于交互状态进行处理。
  */
 function handleMouseDown(event: MouseEvent): void {
   if (props.disabled || props.preview)
@@ -110,11 +87,11 @@ function handleMouseDown(event: MouseEvent): void {
 }
 
 /**
- * handle Mouse Move：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 handle Mouse Move 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * handle Mouse Move：当前功能模块的核心执行单元。
+ * 所属模块：`playground/vue/src/components/custom/SignaturePad.vue`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param {MouseEvent} event 参数 `event`用于传递事件上下文，使逻辑能基于交互状态进行处理。
  */
 function handleMouseMove(event: MouseEvent): void {
   if (!isDrawing.value || props.disabled || props.preview)
@@ -132,11 +109,10 @@ function handleMouseMove(event: MouseEvent): void {
 }
 
 /**
- * handle Mouse Up：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 handle Mouse Up 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * handle Mouse Up：当前功能模块的核心执行单元。
+ * 所属模块：`playground/vue/src/components/custom/SignaturePad.vue`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
  */
 function handleMouseUp(): void {
   if (!isDrawing.value)
@@ -149,11 +125,10 @@ function handleMouseUp(): void {
 }
 
 /**
- * handle Clear：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 handle Clear 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * handle Clear：当前功能模块的核心执行单元。
+ * 所属模块：`playground/vue/src/components/custom/SignaturePad.vue`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
  */
 function handleClear(): void {
   const canvas = canvasRef.value
@@ -167,6 +142,11 @@ function handleClear(): void {
   emit('update:modelValue', '')
 }
 
+/**
+ * canvas Style：变量或常量声明。
+ * 所属模块：`playground/vue/src/components/custom/SignaturePad.vue`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const canvasStyle = {
   border: '1px solid #d9d9d9',
   borderRadius: '6px',
@@ -175,6 +155,11 @@ const canvasStyle = {
   background: '#fff',
 } as const
 
+/**
+ * button Style：变量或常量声明。
+ * 所属模块：`playground/vue/src/components/custom/SignaturePad.vue`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const buttonStyle = {
   marginTop: '4px',
   padding: '2px 12px',

@@ -31,6 +31,14 @@ export const FormVoidField = defineComponent({
       default: undefined,
     },
   },
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/vue/src/components/FormVoidField.ts:34`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props, { slots }) {
     const form = inject(FormSymbol)
 
@@ -70,6 +78,13 @@ export const FormVoidField = defineComponent({
         isVoid: true,
       }, {
         /* children 插槽：传递给 ReactiveField 作为容器组件的子内容 */
+        /**
+         * children：执行当前位置的功能逻辑。
+         * 定位：`packages/vue/src/components/FormVoidField.ts:73`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @returns 返回当前分支执行后的处理结果。
+         */
         children: () => slots.default?.(),
       })
     }

@@ -10,8 +10,36 @@ export const FormItem = defineComponent({
   props: {
     label: String,
     required: Boolean,
-    errors: { type: Array as PropType<ValidationFeedback[]>, default: () => [] },
-    warnings: { type: Array as PropType<ValidationFeedback[]>, default: () => [] },
+    errors: { type: Array as PropType<ValidationFeedback[]>, /**
+                                                              * default：执行当前位置的功能逻辑。
+                                                              * 定位：`packages/ui-antd-vue/src/components/FormItem.ts:13`。
+                                                              * 功能：处理参数消化、状态变更与调用链行为同步。
+                                                              * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                                                              * @returns 返回当前分支执行后的处理结果。
+                                                              */
+      /**
+       * default：执行当前位置的功能逻辑。
+       * 定位：`packages/ui-antd-vue/src/components/FormItem.ts:20`。
+       * 功能：处理参数消化、状态变更与调用链行为同步。
+       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+       * @returns 返回当前分支执行后的处理结果。
+       */
+      default: () => [] },
+    warnings: { type: Array as PropType<ValidationFeedback[]>, /**
+                                                                * default：执行当前位置的功能逻辑。
+                                                                * 定位：`packages/ui-antd-vue/src/components/FormItem.ts:14`。
+                                                                * 功能：处理参数消化、状态变更与调用链行为同步。
+                                                                * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+                                                                * @returns 返回当前分支执行后的处理结果。
+                                                                */
+      /**
+       * default：执行当前位置的功能逻辑。
+       * 定位：`packages/ui-antd-vue/src/components/FormItem.ts:28`。
+       * 功能：处理参数消化、状态变更与调用链行为同步。
+       * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+       * @returns 返回当前分支执行后的处理结果。
+       */
+      default: () => [] },
     description: String,
     fieldPath: String,
     hasErrors: { type: Boolean as PropType<boolean | undefined>, default: undefined },
@@ -22,6 +50,14 @@ export const FormItem = defineComponent({
     /** 表单模式（editable/preview/disabled），preview/disabled 时隐藏必填标记 */
     pattern: { type: String as PropType<'editable' | 'preview' | 'disabled'>, default: 'editable' },
   },
+  /**
+   * setup：执行当前位置的功能逻辑。
+   * 定位：`packages/ui-antd-vue/src/components/FormItem.ts:25`。
+   * 功能：处理参数消化、状态变更与调用链行为同步。
+   * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+   * @param props 参数 props 为当前功能所需的输入信息。
+   * @returns 返回当前分支执行后的处理结果。
+   */
   setup(props, { slots }) {
     const layout = useFormLayout()
     let fieldFromContext: ReturnType<typeof useField> | null = null
@@ -65,6 +101,13 @@ export const FormItem = defineComponent({
         : undefined
 
       return h('div', {
+        /**
+         * ref：执行当前位置的功能逻辑。
+         * 定位：`packages/ui-antd-vue/src/components/FormItem.ts:68`。
+         * 功能：处理参数消化、状态变更与调用链行为同步。
+         * 流程：先进行输入校验与分支判断，再执行核心处理，最后输出结果或副作用。
+         * @param el 参数 el 为当前功能所需的输入信息。
+         */
         'ref': (el: Element | null) => {
           if (fieldFromContext && 'domRef' in fieldFromContext) {
             ;(fieldFromContext as unknown as { domRef?: HTMLElement | null }).domRef = el as HTMLElement | null

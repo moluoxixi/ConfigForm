@@ -5,6 +5,7 @@ import { FormContext } from '../context'
  * 获取表单值（响应式）
  *
  * 在 observer 包装的组件中使用，当值变化时自动重渲染
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function useFormValues<Values extends Record<string, unknown> = Record<string, unknown>>(): Values {
   const form = useContext(FormContext)
@@ -16,6 +17,7 @@ export function useFormValues<Values extends Record<string, unknown> = Record<st
 
 /**
  * 获取表单是否有效
+ * @returns 返回布尔值，用于表示条件是否成立或操作是否成功。
  */
 export function useFormValid(): boolean {
   const form = useContext(FormContext)
@@ -26,6 +28,7 @@ export function useFormValid(): boolean {
 
 /**
  * 获取表单提交状态
+ * @returns 返回布尔值，用于表示条件是否成立或操作是否成功。
  */
 export function useFormSubmitting(): boolean {
   const form = useContext(FormContext)

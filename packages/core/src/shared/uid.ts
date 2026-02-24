@@ -4,12 +4,15 @@ let counter = 0
 /**
  * 生成唯一 ID
  * @param prefix - ID 前缀，默认 'cf'
+ * @returns 返回字符串结果，通常用于文本展示或下游拼接。
  */
 export function uid(prefix = 'cf'): string {
   return `${prefix}_${++counter}_${Math.random().toString(36).slice(2, 8)}`
 }
 
-/** 重置计数器（仅用于测试） */
+/**
+ * 重置计数器（仅用于测试）
+ */
 export function resetUidCounter(): void {
   counter = 0
 }

@@ -54,6 +54,9 @@ export interface DiffFieldView {
 
 /**
  * 深度比较两个值是否相等
+ * @param a 参数 `a`用于提供当前函数执行所需的输入信息。
+ * @param b 参数 `b`用于提供当前函数执行所需的输入信息。
+ * @returns 返回布尔值，用于表示条件是否成立或操作是否成功。
  */
 export function deepEqual(a: unknown, b: unknown): boolean {
   if (a === b)
@@ -128,6 +131,7 @@ export function diff(
  * @param oldValues - 旧值
  * @param newValues - 新值
  * @param paths - 要对比的字段路径列表（不传则对比所有叶子节点）
+ * @returns 返回数组结果，用于后续遍历、渲染或进一步转换。
  */
 export function getDiffView(
   oldValues: Record<string, unknown>,
@@ -166,7 +170,13 @@ export function getDiffView(
 
 /* ======================== 内部辅助 ======================== */
 
-/** 递归收集差异 */
+/**
+ * 递归收集差异
+ * @param oldObj 参数 `oldObj`用于提供当前函数执行所需的输入信息。
+ * @param newObj 参数 `newObj`用于提供当前函数执行所需的输入信息。
+ * @param path 参数 `path`用于提供当前函数执行所需的输入信息。
+ * @param entries 参数 `entries`用于提供当前函数执行所需的输入信息。
+ */
 function collectDiff(
   oldObj: unknown,
   newObj: unknown,
@@ -229,7 +239,12 @@ function collectDiff(
   }
 }
 
-/** 根据点分路径获取嵌套值 */
+/**
+ * 根据点分路径获取嵌套值
+ * @param obj 参数 `obj`用于提供当前函数执行所需的输入信息。
+ * @param path 参数 `path`用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
+ */
 function getNestedValue(obj: unknown, path: string): unknown {
   const parts = path.split('.')
   let current = obj

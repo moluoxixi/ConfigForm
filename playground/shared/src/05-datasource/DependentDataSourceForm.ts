@@ -117,6 +117,13 @@ const config: SceneConfig = {
         reactions: [{
           watch: 'grade',
           fulfill: {
+            /**
+             * run：执行当前功能逻辑。
+             *
+             * @param field 参数 field 的输入说明。
+             * @param ctx 参数 ctx 的输入说明。
+             */
+
             run: (field, ctx) => {
               const grade = ctx.values.grade as string | undefined
               if (grade && CLASS_MAP[grade]) {

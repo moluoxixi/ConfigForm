@@ -4,11 +4,12 @@ import type { ResolvedLowCodeDesignerRenderers, ResolveLowCodeDesignerRenderersO
 import { isValidElement } from 'react'
 
 /**
- * to Element：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 to Element 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * to Element：当前功能模块的核心执行单元。
+ * 所属模块：`packages/plugin-lower-code-react/src/designer/renderers/resolve.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param node 参数 `node`用于提供节点数据并定位或更新目标节点。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 function toElement(node: React.ReactNode): React.ReactElement {
   if (isValidElement(node))
@@ -17,11 +18,17 @@ function toElement(node: React.ReactNode): React.ReactElement {
 }
 
 /**
- * merge Renderers：负责“合并merge Renderers”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 merge Renderers 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * merge Renderers：当前功能模块的核心执行单元。
+ * 所属模块：`packages/plugin-lower-code-react/src/designer/renderers/resolve.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param param1 原始解构参数（{
+  mode,
+  custom,
+  fallback,
+  builtin,
+}）用于提供当前函数执行所需的输入信息。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function mergeRenderers({
   mode,
@@ -32,12 +39,30 @@ export function mergeRenderers({
   const useBuiltin = mode === 'registry' ? builtin : fallback
 
   return {
+    /**
+     * renderMaterialPreview：执行当前功能逻辑。
+     *
+     * @param item 参数 item 的输入说明。
+     * @param context 参数 context 的输入说明。
+     *
+     * @returns 返回当前功能的处理结果。
+     */
+
     renderMaterialPreview: (item, context) => {
       const customNode = custom?.renderMaterialPreview?.(item, context)
       if (customNode !== undefined)
         return toElement(customNode)
       return useBuiltin.renderMaterialPreview(item, context)
     },
+    /**
+     * renderFieldPreviewControl：执行当前功能逻辑。
+     *
+     * @param node 参数 node 的输入说明。
+     * @param context 参数 context 的输入说明。
+     *
+     * @returns 返回当前功能的处理结果。
+     */
+
     renderFieldPreviewControl: (node, context) => {
       const customNode = custom?.renderFieldPreviewControl?.(node, context)
       if (customNode !== undefined)
@@ -48,11 +73,12 @@ export function mergeRenderers({
 }
 
 /**
- * is Custom Renderer Provided：负责“判断is Custom Renderer Provided”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 is Custom Renderer Provided 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * is Custom Renderer Provided：当前功能模块的核心执行单元。
+ * 所属模块：`packages/plugin-lower-code-react/src/designer/renderers/resolve.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param renderers 参数 `renderers`用于提供当前函数执行所需的输入信息。
+ * @returns 返回布尔值，用于表示条件是否成立或操作是否成功。
  */
 export function isCustomRendererProvided(renderers: LowCodeDesignerRenderers | undefined): boolean {
   return Boolean(renderers?.renderMaterialPreview || renderers?.renderFieldPreviewControl)

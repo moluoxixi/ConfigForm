@@ -39,6 +39,7 @@ export interface SchemaItem {
  *   }))} />
  * }
  * ```
+ * @returns 返回数组结果，用于后续遍历、渲染或进一步转换。
  */
 export function useSchemaItems(): SchemaItem[] {
   const field = useField()

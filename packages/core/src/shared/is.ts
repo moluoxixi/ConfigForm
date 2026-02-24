@@ -1,65 +1,54 @@
 /**
- * 类型守卫工具集
- * is String：负责“判断is String”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 is String 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * 判断值是否为字符串。
+ * @param val 待判断值。
+ * @returns 当且仅当 val 的运行时类型为 string 时返回 true。
  */
 export function isString(val: unknown): val is string {
   return typeof val === 'string'
 }
 
 /**
- * is Number：负责“判断is Number”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 is Number 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * 判断值是否为有效数字（排除 NaN）。
+ * @param val 待判断值。
+ * @returns 当 val 为 number 且不是 NaN 时返回 true。
  */
 export function isNumber(val: unknown): val is number {
   return typeof val === 'number' && !Number.isNaN(val)
 }
 
 /**
- * is Boolean：负责“判断is Boolean”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 is Boolean 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * 判断值是否为布尔类型。
+ * @param val 待判断值。
+ * @returns 当 val 为 true 或 false 时返回 true。
  */
 export function isBoolean(val: unknown): val is boolean {
   return typeof val === 'boolean'
 }
 
 /**
- * is Function：负责“判断is Function”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 is Function 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * 判断值是否为函数。
+ * @param val 待判断值。
+ * @returns 当 val 可被调用时返回 true。
  */
 export function isFunction(val: unknown): val is (...args: any[]) => any {
   return typeof val === 'function'
 }
 
 /**
- * is Object：负责“判断is Object”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 is Object 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * 判断值是否为对象字面意义上的“对象”。
+ * 这里会排除 null 与数组。
+ * @param val 待判断值。
+ * @returns 当 val 为非 null 且非数组对象时返回 true。
  */
 export function isObject(val: unknown): val is Record<string, unknown> {
   return val !== null && typeof val === 'object' && !Array.isArray(val)
 }
 
 /**
- * is Plain Object：负责“判断is Plain Object”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 is Plain Object 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * 判断值是否为“纯对象”。
+ * 纯对象指原型为 Object.prototype 或 null 的对象。
+ * @param val 待判断值。
+ * @returns 当 val 为纯对象时返回 true。
  */
 export function isPlainObject(val: unknown): val is Record<string, unknown> {
   if (!isObject(val))
@@ -69,38 +58,38 @@ export function isPlainObject(val: unknown): val is Record<string, unknown> {
 }
 
 /**
- * is Array：负责“判断is Array”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 is Array 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * 判断值是否为数组。
+ * @param val 待判断值。
+ * @returns 当 val 为 Array 实例时返回 true。
  */
 export function isArray(val: unknown): val is unknown[] {
   return Array.isArray(val)
 }
 
 /**
- * is Date：负责“判断is Date”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 is Date 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * 判断值是否为 Date 对象。
+ * @param val 待判断值。
+ * @returns 当 val 为 Date 实例时返回 true。
  */
 export function isDate(val: unknown): val is Date {
   return toString.call(val) === '[object Date]'
 }
 
 /**
- * is Reg Exp：负责“判断is Reg Exp”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 is Reg Exp 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * 判断值是否为 RegExp 对象。
+ * @param val 待判断值。
+ * @returns 当 val 为 RegExp 实例时返回 true。
  */
 export function isRegExp(val: unknown): val is RegExp {
   return toString.call(val) === '[object RegExp]'
 }
 
+/**
+ * 判断值是否为 Promise 或 Promise-like 对象。
+ * Promise-like 需同时具备 then 与 catch 两个函数属性。
+ * @param val 待判断值。
+ * @returns 当 val 可按 Promise 语义处理时返回 true。
+ */
 export function isPromise<T = unknown>(val: unknown): val is Promise<T> {
   return (
     val instanceof Promise
@@ -109,22 +98,23 @@ export function isPromise<T = unknown>(val: unknown): val is Promise<T> {
 }
 
 /**
- * is Nullish：负责“判断is Nullish”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 is Nullish 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * 判断值是否为 null 或 undefined。
+ * @param val 待判断值。
+ * @returns 当 val 为 null 或 undefined 时返回 true。
  */
 export function isNullish(val: unknown): val is null | undefined {
   return val === null || val === undefined
 }
 
 /**
- * is Empty：负责“判断is Empty”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 is Empty 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * 判断值是否为空值语义。
+ * 判定规则：
+ * 1. null / undefined 视为空。
+ * 2. 字符串在 trim 后长度为 0 视为空。
+ * 3. 数组长度为 0 视为空。
+ * 4. 对象无可枚举自有属性视为空。
+ * @param val 待判断值。
+ * @returns 当值满足空语义时返回 true。
  */
 export function isEmpty(val: unknown): boolean {
   if (isNullish(val))
@@ -139,17 +129,19 @@ export function isEmpty(val: unknown): boolean {
 }
 
 /**
- * is Undefined：负责“判断is Undefined”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 is Undefined 的主要职责边界，便于维护者快速理解函数在链路中的定位。
+ * 判断值是否严格为 undefined。
+ * @param val 待判断值。
+ * @returns 当值为 undefined 时返回 true。
  */
 export function isUndefined(val: unknown): val is undefined {
   return val === undefined
 }
 
-/** 判断一个值是否可用作表单字段值（非 null/undefined） */
+/**
+ * 判断值是否可作为有效字段值（非 null 且非 undefined）。
+ * @param val 待判断值。
+ * @returns 当值有效时返回 true。
+ */
 export function isValid(val: unknown): boolean {
   return !isNullish(val)
 }

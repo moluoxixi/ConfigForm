@@ -6,6 +6,11 @@
  */
 import React from 'react'
 
+/**
+ * Color Picker Props：类型接口定义。
+ * 所属模块：`playground/react/src/components/custom/ColorPicker.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 interface ColorPickerProps {
   value?: string
   onChange?: (value: string) => void
@@ -14,15 +19,36 @@ interface ColorPickerProps {
   preview?: boolean
 }
 
+/**
+ * hex Pattern：变量或常量声明。
+ * 所属模块：`playground/react/src/components/custom/ColorPicker.tsx`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const hexPattern = /^#[0-9a-f]{6}$/i
-const isHexColor = (next: string): boolean => hexPattern.test(next)
+/**
+ * is Hex Color：当前功能模块的核心执行单元。
+ * 所属模块：`playground/react/src/components/custom/ColorPicker.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param next 参数 `next`用于提供当前函数执行所需的输入信息。
+ * @returns 返回布尔值，用于表示条件是否成立或操作是否成功。
+ */
+const /**
+       * isHexColor：执行当前功能逻辑。
+       *
+       * @param next 参数 next 的输入说明。
+       *
+       * @returns 返回当前功能的处理结果。
+       */
+  isHexColor = (next: string): boolean => hexPattern.test(next)
 
 /**
- * Color Picker：负责该函数职责对应的主流程编排。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 Color Picker 的单一职责，调用方可通过函数名快速理解输入输出语义。
+ * Color Picker：当前功能模块的核心执行单元。
+ * 所属模块：`playground/react/src/components/custom/ColorPicker.tsx`。
+ * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
+ * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
+ * @param param1 原始解构参数（{ value = '', onChange, presets = [], disabled, preview }）用于提供待处理的值并参与结果计算。
+ * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function ColorPicker({ value = '', onChange, presets = [], disabled, preview }: ColorPickerProps): React.ReactElement {
   const isDisabled = disabled || preview

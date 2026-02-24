@@ -18,12 +18,22 @@ const GENDER_OPTIONS = [
   { label: '女', value: 'female' },
 ]
 
+/**
+ * PROVINCE OPTIONS：变量或常量声明。
+ * 所属模块：`playground/shared/src/04-complex-data/NestedObjectForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const PROVINCE_OPTIONS = [
   { label: '北京', value: 'beijing' },
   { label: '上海', value: 'shanghai' },
   { label: '广东', value: 'guangdong' },
 ]
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/04-complex-data/NestedObjectForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: '嵌套对象',
   description: 'type: object 嵌套数据路径 — profile.name / address.city / emergency.contact.phone',

@@ -16,7 +16,12 @@ const REGISTERED_EMAILS = ['admin@test.com', 'test@test.com']
 /** 有效邀请码列表 */
 const VALID_CODES = ['INVITE2024', 'VIP888', 'NEWUSER']
 
-/** 可取消的延迟函数 */
+/**
+ * 可取消的延迟函数
+ * @param ms 参数 `ms`用于提供当前函数执行所需的输入信息。
+ * @param signal 参数 `signal`用于提供当前函数执行所需的输入信息。
+ * @returns 返回 Promise 异步结果，调用方应通过 await 或 then 获取最终数据。
+ */
 function delay(ms: number, signal: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(resolve, ms)
@@ -31,6 +36,17 @@ function delay(ms: number, signal: AbortSignal): Promise<void> {
 const usernameRules: ValidationRule[] = [
   { minLength: 3, maxLength: 20, message: '3-20 字符' },
   {
+    /**
+     * asyncValidator：执行当前功能逻辑。
+     *
+     * @param v 参数 v 的输入说明。
+     * @param _r 参数 _r 的输入说明。
+     * @param _c 参数 _c 的输入说明。
+     * @param signal 参数 signal 的输入说明。
+     *
+     * @returns 返回当前功能的处理结果。
+     */
+
     asyncValidator: async (v: unknown, _r: unknown, _c: unknown, signal: AbortSignal): Promise<string | undefined> => {
       await delay(800, signal)
       if (REGISTERED.includes(String(v).toLowerCase()))
@@ -46,6 +62,17 @@ const usernameRules: ValidationRule[] = [
 const emailRules: ValidationRule[] = [
   { format: 'email', message: '无效邮箱' },
   {
+    /**
+     * asyncValidator：执行当前功能逻辑。
+     *
+     * @param v 参数 v 的输入说明。
+     * @param _r 参数 _r 的输入说明。
+     * @param _c 参数 _c 的输入说明。
+     * @param signal 参数 signal 的输入说明。
+     *
+     * @returns 返回当前功能的处理结果。
+     */
+
     asyncValidator: async (v: unknown, _r: unknown, _c: unknown, signal: AbortSignal): Promise<string | undefined> => {
       if (!v)
         return undefined
@@ -63,6 +90,17 @@ const emailRules: ValidationRule[] = [
 const inviteCodeRules: ValidationRule[] = [
   { minLength: 3, message: '至少 3 字符' },
   {
+    /**
+     * asyncValidator：执行当前功能逻辑。
+     *
+     * @param v 参数 v 的输入说明。
+     * @param _r 参数 _r 的输入说明。
+     * @param _c 参数 _c 的输入说明。
+     * @param signal 参数 signal 的输入说明。
+     *
+     * @returns 返回当前功能的处理结果。
+     */
+
     asyncValidator: async (v: unknown, _r: unknown, _c: unknown, signal: AbortSignal): Promise<string | undefined> => {
       if (!v)
         return undefined
@@ -76,6 +114,11 @@ const inviteCodeRules: ValidationRule[] = [
   },
 ]
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/03-validation/AsyncValidationForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: '异步验证',
   description: '用户名唯一性 / 邮箱可用性 / 邀请码 / 防抖 + AbortSignal',

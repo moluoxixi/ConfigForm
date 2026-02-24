@@ -104,6 +104,11 @@ const INITIAL_GENERATED_SCHEMA: ISchema = {
   },
 }
 
+/**
+ * config：变量或常量声明。
+ * 所属模块：`playground/shared/src/10-misc/LowCodeDesignerForm.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
 const config: SceneConfig = {
   title: '低代码可视化设计器',
   description: '拖拽搭建字段与布局容器（Card/Tabs/Collapse），通过框架侧低代码包注册的 LowCodeDesigner 组件实时设计 Schema',
