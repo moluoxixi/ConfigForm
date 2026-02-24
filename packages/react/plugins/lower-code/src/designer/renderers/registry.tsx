@@ -12,6 +12,62 @@ import { previewValueByNode } from '@moluoxixi/plugin-lower-code-core'
 import { PreviewBoundary } from './PreviewBoundary'
 import { SchemaPreview } from './SchemaPreview'
 
+const PREVIEW_FIELD_NAME = '__preview_field__'
+const DEFAULT_SELECT_OPTIONS: Array<{ label: string, value: string }> = [
+  { label: 'Option A', value: 'A' },
+  { label: 'Option B', value: 'B' },
+]
+const UNSAFE_REGISTRY_PREVIEW_COMPONENTS = new Set<DesignerFieldComponent>()
+
+function hasComponent(registry: RegistrySnapshot, component: DesignerFieldComponent): boolean {
+  return registry.components.has(component)
+}
+
+function resolveFieldPropsByComponent(
+  component: DesignerFieldComponent,
+  _title: string,
+  options: Array<{ label: string, value: string }>,
+  value: unknown,
+  componentProps?: Record<string, unknown>,
+): Record<string, unknown> {
+  const nextProps: Record<string, unknown> = { ...(componentProps ?? {}) }
+  let nextValue = value
+
+  if (component === 'Select' || component === 'RadioGroup' || component === 'CheckboxGroup') {
+    nextProps.dataSource = Array.isArray(componentProps?.dataSource)
+      ? componentProps?.dataSource
+      : options
+  }
+
+  if (nextValue === undefined) {
+    if (component === 'Switch') {
+      nextValue = false
+    }
+    else if (component === 'CheckboxGroup') {
+      nextValue = []
+    }
+    else if (component === 'Select' || component === 'RadioGroup') {
+      nextValue = options[0]?.value ?? ''
+    }
+    else {
+      nextValue = ''
+    }
+  }
+
+  return {
+    ...nextProps,
+    value: nextValue,
+  }
+}
+
+function splitPreviewProps(
+  _component: DesignerFieldComponent,
+  props: Record<string, unknown>,
+): { componentProps: Record<string, unknown>, initialValue: unknown } {
+  const { value, ...componentProps } = props
+  return { componentProps, initialValue: value }
+}
+
 /**
  * buildPreviewSchema：处理当前分支的交互与状态同步。
  * 功能：完成参数消化、业务分支处理及上下游结果传递。

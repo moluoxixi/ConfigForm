@@ -17,6 +17,11 @@ import { getReactiveAdapter, setReactiveAdapterForForm } from './reactive'
 function sortPlugins(plugins: FormPlugin[]): FormPlugin[] {
   const nameMap = new Map<string, FormPlugin>()
   for (const plugin of plugins) {
+    if (nameMap.has(plugin.name)) {
+      throw new Error(
+        `[ConfigForm] 插件名称重复："${plugin.name}"。请确保 plugins 中每个插件 name 唯一。`,
+      )
+    }
     nameMap.set(plugin.name, plugin)
   }
 

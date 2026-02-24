@@ -68,7 +68,7 @@ describe('field-render contracts', () => {
       component: 'Input',
     })
 
-    field.errors = [{ path: field.path, message: '必填', type: 'error' }]
+    ;(field as any).errors = [{ path: field.path, message: '必填', type: 'error' }]
 
     const contract = createDecoratorRenderContract(field, form)
     expect(contract.fieldPath).toBe('username')

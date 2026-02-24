@@ -1179,7 +1179,7 @@ implements FormInstance<Values> {
     /* 兜底：通过 DOM 查询查找错误元素 */
     if (typeof document !== 'undefined') {
       const errorElement = document.querySelector(
-        '.ant-form-item-has-error, .el-form-item.is-error, [aria-invalid="true"]',
+        '[data-field-error="true"], [aria-invalid="true"]',
       )
       if (errorElement) {
         errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })

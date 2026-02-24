@@ -73,7 +73,7 @@ const ArrayBaseItemContext = createContext<ArrayBaseItemContextValue | null>(nul
  * 读取数组字段上下文。
  * @returns 返回当前数组上下文；若不在 ArrayBase 内部则返回 `null`。
  */
-function useArray(): ArrayBaseContextValue | null {
+export function useArray(): ArrayBaseContextValue | null {
   return useContext(ArrayBaseContext)
 }
 
@@ -82,7 +82,7 @@ function useArray(): ArrayBaseContextValue | null {
  * @param defaultIndex 当不在 `ArrayBase.Item` 内部时返回的兜底索引。
  * @returns 返回当前数组项索引。
  */
-function useIndex(defaultIndex = 0): number {
+export function useIndex(defaultIndex = 0): number {
   const ctx = useContext(ArrayBaseItemContext)
   return ctx?.index ?? defaultIndex
 }

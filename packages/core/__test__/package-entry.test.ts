@@ -103,4 +103,27 @@ describe('core createForm', () => {
       })
     }).toThrow('依赖')
   })
+
+  it('throws on duplicate plugin names', () => {
+    setReactiveAdapter(testAdapter)
+
+    expect(() => {
+      createForm({
+        plugins: [
+          {
+            name: 'dup-plugin',
+            install() {
+              return { api: {} }
+            },
+          },
+          {
+            name: 'dup-plugin',
+            install() {
+              return { api: {} }
+            },
+          },
+        ],
+      })
+    }).toThrow('名称重复')
+  })
 })

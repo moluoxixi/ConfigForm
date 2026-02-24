@@ -23,11 +23,9 @@ export function DesignerPropertiesPane(props: DesignerPropertiesPaneProps): Reac
       props.selectedField?.id ?? '',
       props.selectedContainer?.id ?? '',
       props.selectedSection?.id ?? '',
-      props.readonly ? '1' : '0',
     ].join(':'),
     [
       props.nodes,
-      props.readonly,
       props.selectedContainer?.id,
       props.selectedField?.id,
       props.selectedSection?.id,
@@ -40,7 +38,7 @@ export function DesignerPropertiesPane(props: DesignerPropertiesPaneProps): Reac
       content: {
         type: 'void',
         component: 'DesignerPropertiesRenderer',
-        componentProps: props,
+        componentProps: { ...props },
       },
     },
   }), [props])

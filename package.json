@@ -39,7 +39,7 @@
     "lint:eslint": "eslint . --fix && pnpm lint:eslint:vue && pnpm lint:eslint:react",
     "lint:eslint:vue": "pnpm --filter @playground/vue lint:eslint",
     "lint:eslint:react": "pnpm --filter @playground/react lint:eslint",
-    "typecheck": "pnpm -r --filter './packages/**' typecheck",
+    "typecheck": "pnpm -r --filter './packages/**' exec tsc -p tsconfig.build.json --noEmit",
     "submodule:update": "cd .cursor && git pull && cd .. && git submodule update --init --recursive --remote",
     "lint-staged": "lint-staged",
     "commit": "git add . && git-cz"

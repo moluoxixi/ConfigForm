@@ -9,6 +9,18 @@ import { Component, useContext } from 'react'
 import { ComponentRegistryContext, FormContext } from '../context'
 import { observer } from '../reactive'
 
+type ComponentProps = Record<string, unknown> | undefined
+
+const errorBoundaryStyle: React.CSSProperties = {
+  padding: '8px 12px',
+  border: '1px solid #ffccc7',
+  background: '#fff2f0',
+  color: '#cf1322',
+  borderRadius: 4,
+  fontSize: 12,
+  lineHeight: 1.5,
+}
+
 /**
  * 把 CSS 短横线风格键名转成 React style 所需的驼峰键名。
  * @param key 原始样式键名。

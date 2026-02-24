@@ -1,5 +1,15 @@
 import { defineComponent, h } from 'vue'
 
+function createPreview(name: string) {
+  return defineComponent({
+    name,
+    props: { modelValue: { type: [String, Number], default: '' } },
+    setup(props) {
+      return () => h('span', null, props.modelValue ? String(props.modelValue) : '-')
+    },
+  })
+}
+
 export const PreviewInput = createPreview('CfPreviewInput')
 /**
  * Preview Password：定义该模块复用的常量配置。

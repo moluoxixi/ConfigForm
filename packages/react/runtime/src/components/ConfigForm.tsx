@@ -318,6 +318,16 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
   props: ConfigFormProps<Values>,
 ) => ReactElement | null
 
+interface FormActionsRendererProps {
+  showSubmit: boolean
+  showReset: boolean
+  submitLabel: string
+  resetLabel: string
+  align: 'left' | 'center' | 'right'
+  extraActions?: Record<string, unknown>
+  onReset: () => void
+}
+
 /**
  * 操作按钮渲染器（优先从 registry 获取 LayoutFormActions）
  */

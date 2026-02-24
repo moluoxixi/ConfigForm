@@ -1,31 +1,64 @@
 import type { FormPrintPayload } from './types'
-import printJS from 'print-js'
 
-/**
- * ensureElementId：执行当前功能逻辑。
- *
- * @param target 参数 target 的输入说明。
- *
- * @returns 返回当前功能的处理结果。
- */
-function ensureElementId(target: Element): { id: string, cleanup: () => void } {
-  const id = target.id
-  if (id) {
-    return { id,
-      /**
-       * cleanup：执行当前功能逻辑。
-       */
-      cleanup: () => {} }
+interface PrintJSOptions {
+  printable: string
+  type: 'html' | 'raw-html'
+  scanStyles?: boolean
+  targetStyles?: string[]
+  css?: string[]
+  style?: string
+  documentTitle?: string
+}
+
+type PrintJSFn = (options: PrintJSOptions) => void
+
+interface DocumentPrintStyles {
+  cssLinks: string[]
+  inlineStyleText: string
+}
+
+const PRINT_STYLE = `
+.configform-print {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  line-height: 1.5;
+}
+.configform-print h1,
+.configform-print h2 {
+  margin: 0 0 12px 0;
+}
+.configform-print section + section {
+  margin-top: 16px;
+}
+.configform-print pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+`
+
+function assertBrowserAPI(apiName: 'window' | 'document', value: unknown): void {
+  if (!value) {
+    throw new Error(`[ConfigForm][print] browserPrint requires browser "${apiName}" API.`)
   }
+}
 
+async function resolvePrintJS(): Promise<PrintJSFn> {
+  const mod = await import('print-js')
+  const candidate = (mod as { default?: unknown }).default ?? mod
+  if (typeof candidate !== 'function') {
+    throw new Error('[ConfigForm][print] Failed to load print-js runtime.')
+  }
+  return candidate as PrintJSFn
+}
+
+function ensureElementId(target: Element): { id: string, cleanup: () => void } {
+  if (target.id) {
+    return { id: target.id, cleanup: () => {} }
+  }
   const generatedId = `configform-print-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
   target.id = generatedId
   return {
     id: generatedId,
-    /**
-     * cleanup：执行当前功能逻辑。
-     */
-
     cleanup: () => {
       if (target.id === generatedId) {
         target.removeAttribute('id')
@@ -34,19 +67,63 @@ function ensureElementId(target: Element): { id: string, cleanup: () => void } {
   }
 }
 
-/**
- * browser Print：封装该模块的核心渲染与交互逻辑。
- * 所属模块：`packages/plugin-print/src/browser.ts`。
- * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
- * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
- * @param payload 参数 `payload`用于提供当前函数执行所需的输入信息。
- */
+function resolveTargetElement(payload: FormPrintPayload): Element | null {
+  const { target } = payload
+  if (!target) {
+    return null
+  }
+  if (typeof target === 'string') {
+    return document.querySelector(target)
+  }
+  return target
+}
+
+function collectDocumentPrintStyles(): DocumentPrintStyles {
+  const cssLinks = Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]'))
+    .map(link => link.href)
+    .filter(Boolean)
+
+  const inlineStyleText = Array.from(document.querySelectorAll<HTMLStyleElement>('style'))
+    .map(style => style.textContent ?? '')
+    .filter(Boolean)
+    .join('\n')
+
+  return { cssLinks, inlineStyleText }
+}
+
+function escapeHtml(content: string): string {
+  return content
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+}
+
+function renderFallbackHtml(payload: FormPrintPayload): string {
+  const title = payload.title ?? document.title ?? 'ConfigForm Print Preview'
+  return `
+<div class="configform-print">
+  <h1>${escapeHtml(title)}</h1>
+  <section>
+    <h2>JSON</h2>
+    <pre>${escapeHtml(payload.json)}</pre>
+  </section>
+  <section>
+    <h2>Text</h2>
+    <pre>${escapeHtml(payload.text)}</pre>
+  </section>
+</div>
+`.trim()
+}
+
 export async function browserPrint(payload: FormPrintPayload): Promise<void> {
   assertBrowserAPI('window', typeof window !== 'undefined' ? window : undefined)
   assertBrowserAPI('document', typeof document !== 'undefined' ? document : undefined)
 
+  const printJS = await resolvePrintJS()
   const target = resolveTargetElement(payload)
-  const title = payload.title || 'ConfigForm Print Preview'
+  const title = payload.title ?? document.title ?? 'ConfigForm Print Preview'
   const styles = collectDocumentPrintStyles()
   const style = `${PRINT_STYLE}\n${styles.inlineStyleText}`
 
@@ -69,10 +146,8 @@ export async function browserPrint(payload: FormPrintPayload): Promise<void> {
     return
   }
 
-  const printable = renderFallbackHtml(payload)
-
   printJS({
-    printable,
+    printable: renderFallbackHtml(payload),
     type: 'raw-html',
     scanStyles: true,
     targetStyles: ['*'],
