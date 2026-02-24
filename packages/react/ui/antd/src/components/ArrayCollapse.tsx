@@ -1,6 +1,7 @@
 import type { ArrayFieldInstance, ISchema } from '@moluoxixi/core'
 import type { ReactElement } from 'react'
-import { ArrayBase, observer, RecursionField, useField } from '@moluoxixi/react'
+import { observer, RecursionField, useField } from '@moluoxixi/react'
+import { ArrayBase } from '@moluoxixi/ui-basic-react'
 import { Collapse } from 'antd'
 
 /**

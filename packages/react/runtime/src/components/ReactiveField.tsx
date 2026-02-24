@@ -11,15 +11,6 @@ import { observer } from '../reactive'
 
 type ComponentProps = Record<string, unknown> | undefined
 
-const errorBoundaryStyle: React.CSSProperties = {
-  padding: '8px 12px',
-  border: '1px solid #ffccc7',
-  background: '#fff2f0',
-  color: '#cf1322',
-  borderRadius: 4,
-  fontSize: 12,
-  lineHeight: 1.5,
-}
 
 /**
  * 把 CSS 短横线风格键名转成 React style 所需的驼峰键名。
@@ -146,15 +137,7 @@ class FieldErrorBoundary extends Component<FieldErrorBoundaryProps, FieldErrorBo
   /** 渲染错误兜底 UI 或正常子节点。 */
   render(): ReactNode {
     if (this.state.hasError) {
-      return (
-        <div style={errorBoundaryStyle}>
-          ⚠ 字段 &quot;
-          {this.props.fieldPath}
-          &quot; 渲染异常:
-          {' '}
-          {this.state.error?.message}
-        </div>
-      )
+      return null
     }
     return this.props.children
   }
@@ -221,13 +204,7 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
     if (!Comp) {
       if (componentName) {
         console.warn(`[ConfigForm] 字段 "${field.path}" 未找到组件 "${String(componentName)}"`)
-        return (
-          <div style={errorBoundaryStyle}>
-            ⚠ 组件 &quot;
-            {String(componentName)}
-            &quot; 未注册
-          </div>
-        )
+        return null
       }
       return <>{children}</>
     }
@@ -320,14 +297,7 @@ export const ReactiveField = observer<ReactiveFieldProps>(({ field, isVoid = fal
   }
   catch (err) {
     console.error(`[ConfigForm] 字段 "${field.path}" 渲染异常:`, err)
-    return (
-      <div style={errorBoundaryStyle}>
-        ⚠ 字段 &quot;
-        {field.path}
-        &quot; 渲染异常:
-        {err instanceof Error ? err.message : String(err)}
-      </div>
-    )
+    return null
   }
 })
 

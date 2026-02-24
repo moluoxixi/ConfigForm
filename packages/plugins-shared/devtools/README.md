@@ -128,10 +128,11 @@ JSON.stringify(value, (key, val) => {
 
 #### 字段高亮
 
-利用 `field.domRef`（由 FormItem 在挂载时设置）：
+通过 `data-field-path` 查询 DOM 元素：
 ```typescript
 highlightField(path) {
-  const el = form.getField(path).domRef   ← 真实 DOM 元素
+  const el = document.querySelector(`[data-field-path="${path}"]`)
+  if (!el) return
   el.scrollIntoView({ behavior: 'smooth' })
   el.style.outline = '2px solid #3b82f6'  ← 蓝色轮廓
   // 300ms 后切红色 → 300ms 后切蓝色 → 300ms 后清除

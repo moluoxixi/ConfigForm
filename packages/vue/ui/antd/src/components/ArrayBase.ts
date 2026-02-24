@@ -4,4 +4,4 @@ export {
   type IArrayBaseItemContext,
   useArray,
   useIndex,
-} from '@moluoxixi/vue'
+} from '@moluoxixi/ui-basic-vue'

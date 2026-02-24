@@ -21,6 +21,7 @@
     "@moluoxixi/plugin-print": "workspace:*",
     "@moluoxixi/reactive-vue": "workspace:*",
     "@moluoxixi/ui-antd-vue": "workspace:*",
+    "@moluoxixi/ui-basic-vue": "workspace:*",
     "@moluoxixi/ui-element-plus": "workspace:*",
     "@moluoxixi/vue": "workspace:*",
     "@playground/shared": "workspace:*",

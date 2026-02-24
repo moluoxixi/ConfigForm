@@ -42,6 +42,7 @@
     "@moluoxixi/plugin-import": "workspace:*",
     "@moluoxixi/plugin-print": "workspace:*",
     "@moluoxixi/vue": "workspace:*",
+    "@moluoxixi/ui-basic-vue": "workspace:*",
     "jsoneditor": "catalog:build"
   },
   "devDependencies": {

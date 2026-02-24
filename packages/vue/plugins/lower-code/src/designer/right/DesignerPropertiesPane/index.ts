@@ -20,7 +20,7 @@ import {
   schemaSignature,
   updateSectionById,
 } from '@moluoxixi/plugin-lower-code-core'
-import { ConfigForm } from '@moluoxixi/vue'
+import { ConfigForm } from '@moluoxixi/ui-basic-vue'
 import { computed, defineComponent, h } from 'vue'
 import { DesignerPropertiesSlotRenderer } from './components/DesignerPropertiesSlotRenderer'
 

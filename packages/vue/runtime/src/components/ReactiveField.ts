@@ -99,9 +99,7 @@ export const ReactiveField = defineComponent({
           }
           else {
             console.warn(`[ConfigForm] 字段 "${field.path}" 未找到组件 "${String(componentName)}"`)
-            return h('div', {
-              style: 'color: #ff4d4f; padding: 8px 12px; border: 1px dashed #ff4d4f; border-radius: 4px; font-size: 12px; background: #fff2f0;',
-            }, `⚠ 组件 "${String(componentName)}" 未注册`)
+            return null
           }
         }
 
@@ -211,9 +209,7 @@ export const ReactiveField = defineComponent({
       }
       catch (err) {
         console.error(`[ConfigForm] 字段 "${field.path}" 渲染异常:`, err)
-        return h('div', {
-          style: 'color: #ff4d4f; padding: 8px 12px; border: 1px dashed #ff4d4f; border-radius: 4px; font-size: 12px; background: #fff2f0;',
-        }, `⚠ 字段 "${field.path}" 渲染异常: ${err instanceof Error ? err.message : String(err)}`)
+        return null
       }
     }
   },

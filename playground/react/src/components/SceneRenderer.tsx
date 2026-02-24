@@ -7,7 +7,7 @@
 import type { FieldPattern, FormPlugin, ISchema } from '@moluoxixi/core'
 import type { SceneConfig } from '@playground/shared'
 import { devToolsPlugin } from '@moluoxixi/plugin-devtools'
-import { ConfigForm } from '@moluoxixi/react'
+import { ConfigForm } from '@moluoxixi/ui-basic-react'
 import { StatusTabs } from '@moluoxixi/ui-antd'
 import { resolveSceneSchema } from '@playground/shared'
 import { observer } from 'mobx-react-lite'

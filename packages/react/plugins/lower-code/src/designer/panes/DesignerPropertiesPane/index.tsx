@@ -2,7 +2,7 @@ import type { ISchema } from '@moluoxixi/core'
 import type { ReactElement } from 'react'
 import type { DesignerPropertiesPaneProps } from './types'
 import { nodesToSchema, schemaSignature } from '@moluoxixi/plugin-lower-code-core'
-import { ConfigForm } from '@moluoxixi/react'
+import { ConfigForm } from '@moluoxixi/ui-basic-react'
 import { useMemo } from 'react'
 import { DesignerPropertiesRenderer } from './components/DesignerPropertiesRenderer'
 

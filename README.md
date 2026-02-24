@@ -10,6 +10,8 @@
 @moluoxixi/reactive-vue     ← Vue 原生响应式适配器
 @moluoxixi/react            ← React 框架层（组件 + Hooks）
 @moluoxixi/vue              ← Vue 框架层（组件 + Composables）
+@moluoxixi/ui-basic-react   ← 基础 UI 组件（React）
+@moluoxixi/ui-basic-vue     ← 基础 UI 组件（Vue）
 @moluoxixi/ui-antd          ← Ant Design (React) UI 适配
 @moluoxixi/ui-antd-vue      ← Ant Design Vue UI 适配
 @moluoxixi/ui-element-plus  ← Element Plus UI 适配
@@ -26,9 +28,12 @@
 
 ```
 ┌───────────────────────────────────────────────────────┐
-│  UI 层 — UI 库专属的控件、装饰器、布局与数组组件       │
-│  ui-antd / ui-antd-vue / ui-element-plus              │
+│  UI 层 — UI 渲染与控件封装                            │
+│  ui-basic-react / ui-basic-vue / ui-antd / ui-antd-vue │
+│  / ui-element-plus                                    │
 │                                                       │
+│  基础：ConfigForm / ArrayBase / ArrayField / ArrayTable │
+│        / DiffViewer                                    │
 │  控件：Input / Select / DatePicker / FormItem 等       │
 │  布局：LayoutTabs / LayoutCollapse / LayoutSteps 等    │
 │  数组：ArrayField / ArrayTable / ArrayCards 等          │
@@ -41,7 +46,7 @@
 │  框架层 — 跨 UI 库通用的组件逻辑（不含任何 UI 渲染）   │
 │  @moluoxixi/react / @moluoxixi/vue                    │
 │                                                       │
-│  组件：ConfigForm / SchemaField / RecursionField       │
+│  组件：SchemaField / RecursionField                    │
 │        ReactiveField / FormField / FormArrayField      │
 │        FormObjectField / FormVoidField / FormProvider   │
 │                                                       │
@@ -75,6 +80,7 @@
 **UI 组件为什么放在 UI 层（参考 Formily）？**
 
 ArrayField / ArrayTable / ArrayBase 等组件的渲染与 UI 库强耦合（表格用 `ElTable` / `antd Table`，按钮用 `ElButton` / `antd Button`），因此遵循 Formily 的做法，由各 UI 包分别使用各自 UI 库的组件实现。框架层只提供 Schema 递归渲染、字段状态注入、context 传递等与 UI 库无关的通用逻辑。
+ConfigForm 虽然不依赖具体 UI 库，但仍包含 HTML 表单容器、基础布局与提交交互，因此归入基础 UI（ui-basic），框架层保持纯逻辑。
 
 **布局组件的 Schema 感知：**
 
@@ -96,7 +102,7 @@ LayoutTabs / LayoutCollapse / LayoutSteps 等布局容器需要感知 Schema 结
 ```tsx
 // React
 import { setReactiveAdapter } from '@moluoxixi/core'
-import { ConfigForm } from '@moluoxixi/react'
+import { ConfigForm } from '@moluoxixi/ui-basic-react'
 import { mobxAdapter } from '@moluoxixi/reactive-react'
 import { setupAntd } from '@moluoxixi/ui-antd'
 

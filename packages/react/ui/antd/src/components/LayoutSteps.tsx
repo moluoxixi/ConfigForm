@@ -2,6 +2,7 @@ import type { ISchema } from '@moluoxixi/core'
 import type { ReactElement } from 'react'
 import { FormPath } from '@moluoxixi/core'
 import { observer, RecursionField, useField, useForm, useSchemaItems } from '@moluoxixi/react'
+import { scrollToFirstError } from '@moluoxixi/ui-basic-react'
 
 import { Steps as ASteps, Button } from 'antd'
 import { useEffect, useMemo, useState } from 'react'
@@ -224,7 +225,7 @@ export const LayoutSteps = observer((_props: LayoutStepsProps): ReactElement => 
           setCurrent(current + 1)
         }
         else {
-          form.scrollToFirstError()
+          scrollToFirstError(form.errors)
         }
       }
       finally {
@@ -245,7 +246,7 @@ export const LayoutSteps = observer((_props: LayoutStepsProps): ReactElement => 
     handleSubmit = async (): Promise<void> => {
       const result = await form.submit()
       if (result.errors.length > 0) {
-        form.scrollToFirstError()
+        scrollToFirstError(result.errors)
       }
     }
 

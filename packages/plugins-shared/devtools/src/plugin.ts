@@ -585,13 +585,8 @@ function safeSerialize(value: unknown): unknown {
   }
 }
 
-/** 定位字段对应的 DOM 元素（优先 domRef，兜底 data-field-path 查询） */
+/** 定位字段对应的 DOM 元素（通过 data-field-path 查询） */
 function resolveFieldElement(form: FormInstance, path: string): HTMLElement | null {
-  const field = form.getField(path) as FieldInstance | undefined
-  if (field?.domRef) {
-    return field.domRef
-  }
-
   if (typeof document === 'undefined') {
     return null
   }

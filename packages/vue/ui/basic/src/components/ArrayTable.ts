@@ -1,9 +1,8 @@
 import type { ArrayFieldInstance, ISchema } from '@moluoxixi/core'
 import type { PropType, VNode } from 'vue'
 import { defineComponent, h } from 'vue'
-import { useField } from '../composables'
+import { RecursionField, useField } from '@moluoxixi/vue'
 import { ArrayBase } from './ArrayBase'
-import { RecursionField } from './RecursionField'
 
 /**
  * 数组表格列定义。

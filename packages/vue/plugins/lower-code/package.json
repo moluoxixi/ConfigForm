@@ -40,6 +40,7 @@
     "@moluoxixi/core": "workspace:*",
     "@moluoxixi/plugin-lower-code-core": "workspace:*",
     "@moluoxixi/vue": "workspace:*",
+    "@moluoxixi/ui-basic-vue": "workspace:*",
     "jsoneditor": "catalog:build",
     "sortablejs": "catalog:build",
     "vue": "catalog:build"

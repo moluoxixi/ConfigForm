@@ -5,7 +5,7 @@ import type {
   MaterialItem,
 } from '@moluoxixi/plugin-lower-code-core'
 import type { PropType, VNodeChild } from 'vue'
-import { ConfigForm } from '@moluoxixi/vue'
+import { ConfigForm } from '@moluoxixi/ui-basic-vue'
 import { computed, defineComponent, h, ref } from 'vue'
 import { DesignerMaterialMaskDecorator } from '../decorators/DesignerMaterialMaskDecorator'
 import { DesignerMaterialPreviewRenderer } from '../renderers/DesignerMaterialPreviewRenderer'

@@ -1,7 +1,7 @@
 import type { ISchema } from '@moluoxixi/core'
 import type React from 'react'
 import type { RegistrySnapshot } from './registry-shared'
-import { ConfigForm } from '@moluoxixi/react'
+import { ConfigForm } from '@moluoxixi/ui-basic-react'
 import { useMemo } from 'react'
 import { mapToRecord } from './registry-shared'
 

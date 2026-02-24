@@ -1,7 +1,7 @@
 import type { ISchema } from '@moluoxixi/core'
 import type { MaterialItem } from '@moluoxixi/plugin-lower-code-core'
 import type { DesignerMaterialPaneProps } from './types'
-import { ConfigForm } from '@moluoxixi/react'
+import { ConfigForm } from '@moluoxixi/ui-basic-react'
 import React, { useMemo, useState } from 'react'
 import { DesignerMaterialListRenderer } from './components/DesignerMaterialListRenderer'
 import { DesignerMaterialToolbarRenderer } from './components/DesignerMaterialToolbarRenderer'

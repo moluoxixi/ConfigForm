@@ -41,14 +41,6 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
   /** 是否已挂载到 DOM */
   mounted: boolean
 
-  /**
-   * DOM 元素引用
-   *
-   * 由 UI 层（如 FormItem）在挂载时设置，用于 scrollToFirstError 等功能。
-   * 核心层不直接操作此引用，仅做存储。
-   */
-  domRef: HTMLElement | null
-
   /* ======================== a11y 无障碍属性 ======================== */
 
   /** ARIA 标签（覆盖 label） */
@@ -178,8 +170,6 @@ export class Field<Value = unknown> implements FieldInstance<Value> {
     this.name = props.name
     this.path = parentPath ? FormPath.join(parentPath, props.name) : props.name
     this.mounted = false
-    this.domRef = null
-
     /* a11y */
     this.ariaLabel = props.ariaLabel
     this.ariaDescribedBy = props.ariaDescribedBy

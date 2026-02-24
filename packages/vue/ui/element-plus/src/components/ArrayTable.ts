@@ -1,1 +1,1 @@
-export { ArrayTable } from '@moluoxixi/vue'
+export { ArrayTable } from '@moluoxixi/ui-basic-vue'

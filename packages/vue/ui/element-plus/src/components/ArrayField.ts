@@ -1,1 +1,1 @@
-export { ArrayField, ArrayItems } from '@moluoxixi/vue'
+export { ArrayField, ArrayItems } from '@moluoxixi/ui-basic-vue'

@@ -91,16 +91,6 @@ export const FormItem = defineComponent({
         : undefined
 
       return h('div', {
-        /**
-         * ref：处理当前分支的交互与状态同步。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * @param el 参数 el 为当前功能所需的输入信息。
-         */
-        'ref': (el: Element | null) => {
-          if (fieldFromContext && 'domRef' in fieldFromContext) {
-            ;(fieldFromContext as unknown as { domRef?: HTMLElement | null }).domRef = el as HTMLElement | null
-          }
-        },
         'role': 'group',
         'data-field-path': fieldPath,
         'data-field-error': hasErrors ? 'true' : undefined,

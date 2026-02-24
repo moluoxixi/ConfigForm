@@ -1,14 +1,15 @@
 import type { FieldPattern, FormConfig, FormInstance, FormPlugin, FormSchema, ValidationFeedback } from '@moluoxixi/core'
 import type { ComponentType, CSSProperties, FormEvent, ReactElement, ReactNode } from 'react'
 
-import type { ComponentScope, RegistryState } from '../registry'
+import type { ComponentScope, RegistryState } from '@moluoxixi/react'
 import { FormLifeCycle } from '@moluoxixi/core'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { ComponentRegistryContext } from '../context'
-import { useCreateForm } from '../hooks/useForm'
-import { observer } from '../reactive'
-import { FormProvider } from './FormProvider'
-import { SchemaField } from './SchemaField'
+import { ComponentRegistryContext } from '@moluoxixi/react'
+import { useCreateForm } from '@moluoxixi/react'
+import { observer } from '@moluoxixi/react'
+import { FormProvider } from '@moluoxixi/react'
+import { SchemaField } from '@moluoxixi/react'
+import { scrollToFirstError } from '../utils/scrollToFirstError'
 
 /**
  * Schema 转换插件桥接能力。
@@ -485,28 +486,3 @@ function resolveActionProps(config: unknown): Record<string, unknown> {
  * 验证失败时自动滚动到第一个有错误的字段，让用户看到错误提示。
  * 使用 setTimeout 等待 DOM 更新（错误提示渲染完成后再滚动）。
  */
-function scrollToFirstError(errors: Array<{ path: string }>): void {
-  if (errors.length === 0)
-    return
-
-  setTimeout(() => {
-    /* 查找表单中第一个带错误样式的元素 */
-    const errorElement = document.querySelector(
-      '[data-field-error="true"], [aria-invalid="true"]',
-    )
-    if (errorElement) {
-      errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      /* 尝试聚焦到错误字段的输入元素 */
-      const input = errorElement.querySelector('input, textarea, select') as HTMLElement | null
-      input?.focus()
-      return
-    }
-
-    /* 兜底：按字段路径查找 */
-    const firstPath = errors[0].path
-    const fieldElements = document.querySelectorAll(`[data-field-path="${firstPath}"], [name="${firstPath}"]`)
-    if (fieldElements.length > 0) {
-      fieldElements[0].scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }
-  }, 100)
-}

@@ -35,7 +35,8 @@ import {
   schemaToNodes,
   updateNodeById,
 } from '@moluoxixi/plugin-lower-code-core'
-import { ComponentRegistryContext, ConfigForm } from '@moluoxixi/react'
+import { ComponentRegistryContext } from '@moluoxixi/react'
+import { ConfigForm } from '@moluoxixi/ui-basic-react'
 import JSONEditor from 'jsoneditor'
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import Sortable from 'sortablejs'

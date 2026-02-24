@@ -1,7 +1,7 @@
 import type { ValidationFeedback } from '@moluoxixi/core'
 import { useField, useFormLayout } from '@moluoxixi/react'
 import { Form as AForm } from 'antd'
-import React, { useCallback } from 'react'
+import React from 'react'
 
 /**
  * CfFormItemProps??????
@@ -31,7 +31,7 @@ export interface CfFormItemProps {
  * FormItem 装饰器适配（参考 Formily takeAsterisk）
  *
  * preview/disabled 时隐藏必填星号标记。
- * 挂载时自动设置 field.domRef，支持 scrollToFirstError。
+ * 通过 data-field-path/aria-invalid 提供错误定位能力。
  */
 export function FormItem({
   label,
@@ -47,7 +47,7 @@ export function FormItem({
   labelWidth: labelWidthProp,
   children,
 }: CfFormItemProps): React.ReactElement {
-  /** 设置 field.domRef，支持 scrollToFirstError */
+  /** 读取 Field 上下文，供 data-field-path/a11y 绑定使用 */
   let field: ReturnType<typeof useField> | null = null
   try {
     field = useField()
@@ -62,11 +62,6 @@ export function FormItem({
   const labelWidth = labelWidthProp ?? layoutConfig?.labelWidth
   const colon = colonProp ?? layoutConfig?.colon ?? true
 
-  const refCallback = useCallback((el: HTMLDivElement | null) => {
-    if (field && 'domRef' in field) {
-      field.domRef = el
-    }
-  }, [field])
   const validateStatus = errors.length > 0
     ? 'error' as const
     : warnings.length > 0
@@ -98,7 +93,6 @@ export function FormItem({
 
   return (
     <div
-      ref={refCallback}
       role="group"
       data-field-path={fieldPath}
       data-field-error={hasErrors ? 'true' : undefined}

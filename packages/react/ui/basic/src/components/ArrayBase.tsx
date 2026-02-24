@@ -1,7 +1,7 @@
 import type { ArrayFieldInstance } from '@moluoxixi/core'
 import type { ReactNode } from 'react'
 import React, { createContext, useContext } from 'react'
-import { useField } from '../hooks'
+import { useField } from '@moluoxixi/react'
 
 /**
  * 数组上下文值。

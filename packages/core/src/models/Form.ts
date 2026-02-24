@@ -1150,48 +1150,6 @@ implements FormInstance<Values> {
     return coreGetDiffView(base, this.values, targetPaths)
   }
 
-  /**
-   * 滚动到第一个有验证错误的字段
-   *
-   * 遍历 form.errors，找到第一个有 domRef 的错误字段，
-   * 调用 scrollIntoView 将其滚动到可视区域并尝试聚焦输入元素。
-   *
-   * @returns 是否成功定位到错误字段
-   */
-  scrollToFirstError(): boolean {
-    const allErrors = this.errors
-    if (allErrors.length === 0)
-      return false
-
-    for (const error of allErrors) {
-      const field = this.fields.get(error.path)
-      if (field?.domRef) {
-        field.domRef.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        /* 尝试聚焦到输入元素 */
-        const input = field.domRef.querySelector('input, textarea, select') as HTMLElement | null
-        if (input) {
-          input.focus()
-        }
-        return true
-      }
-    }
-
-    /* 兜底：通过 DOM 查询查找错误元素 */
-    if (typeof document !== 'undefined') {
-      const errorElement = document.querySelector(
-        '[data-field-error="true"], [aria-invalid="true"]',
-      )
-      if (errorElement) {
-        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        const input = errorElement.querySelector('input, textarea, select') as HTMLElement | null
-        input?.focus()
-        return true
-      }
-    }
-
-    return false
-  }
-
   /** 销毁表单 */
   dispose(): void {
     /* 先销毁插件（插件可能依赖字段/事件系统） */

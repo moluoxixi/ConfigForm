@@ -11,7 +11,7 @@ import {
   sectionTarget,
   targetToKey,
 } from '@moluoxixi/plugin-lower-code-core'
-import { ConfigForm } from '@moluoxixi/vue'
+import { ConfigForm } from '@moluoxixi/ui-basic-vue'
 import { computed, defineComponent, h, ref, watch } from 'vue'
 import { DesignerCanvasMaskDecorator } from '../decorators/DesignerCanvasMaskDecorator'
 import { DesignerCanvasPreviewRenderer } from '../renderers/DesignerCanvasPreviewRenderer'

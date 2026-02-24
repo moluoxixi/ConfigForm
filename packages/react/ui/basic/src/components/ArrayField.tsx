@@ -1,8 +1,6 @@
 import type { ArrayFieldInstance, ISchema } from '@moluoxixi/core'
-import { useField } from '../hooks'
-import { observer } from '../reactive'
+import { observer, RecursionField, useField } from '@moluoxixi/react'
 import { ArrayBase } from './ArrayBase'
-import { RecursionField } from './RecursionField'
 
 /**
  * `ArrayField` 组件属性。

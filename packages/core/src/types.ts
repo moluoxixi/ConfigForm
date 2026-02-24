@@ -757,15 +757,6 @@ export interface FormInstance<Values extends Record<string, unknown> = Record<st
   diff: (otherValues?: Record<string, unknown>) => import('./shared/diff').DiffResult
   /** 获取字段级别的 Diff 视图（用于 DiffViewer 渲染） */
   getDiffView: (paths?: string[], otherValues?: Record<string, unknown>) => import('./shared/diff').DiffFieldView[]
-  /**
-   * 滚动到第一个有验证错误的字段
-   *
-   * 遍历 form.errors，找到第一个有 domRef 的错误字段，
-   * 调用 scrollIntoView 将其滚动到可视区域并聚焦。
-   *
-   * @returns 是否成功定位到错误字段
-   */
-  scrollToFirstError: () => boolean
   dispose: () => void
 }
 
@@ -779,8 +770,6 @@ export interface FieldInstance<Value = unknown> {
   readonly modified: boolean
   /** 是否已挂载到 DOM */
   mounted: boolean
-  /** DOM 元素引用（由 UI 层设置，用于 scrollToFirstError） */
-  domRef: HTMLElement | null
   /* a11y 无障碍属性 */
   ariaLabel?: string
   ariaDescribedBy?: string

@@ -23,6 +23,7 @@
     "@moluoxixi/react": "workspace:*",
     "@moluoxixi/reactive-react": "workspace:*",
     "@moluoxixi/ui-antd": "workspace:*",
+    "@moluoxixi/ui-basic-react": "workspace:*",
     "@playground/shared": "workspace:*",
     "antd": "catalog:build",
     "i18next": "catalog:build",

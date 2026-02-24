@@ -1,5 +1,6 @@
 import { setReactiveAdapter } from '@moluoxixi/core'
 import { vueAdapter } from '@moluoxixi/reactive-vue'
+import { ConfigForm } from '@moluoxixi/ui-basic-vue'
 import { createApp } from 'vue'
 import App from './App.vue'
 
@@ -12,4 +13,5 @@ setReactiveAdapter(vueAdapter)
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 const app = createApp(App)
+app.component('ConfigForm', ConfigForm)
 app.mount('#app')

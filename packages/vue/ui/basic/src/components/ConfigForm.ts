@@ -1,12 +1,13 @@
 import type { ComponentType, FieldPattern, FormConfig, FormInstance, FormPlugin, ISchema } from '@moluoxixi/core'
 import type { Component, PropType } from 'vue'
-import type { ComponentScope, RegistryState } from '../registry'
+import type { ComponentScope, RegistryState } from '@moluoxixi/vue'
 import { FormLifeCycle } from '@moluoxixi/core'
 import { computed, defineComponent, h, inject, onMounted, onUnmounted, ref, watch } from 'vue'
-import { useCreateForm } from '../composables/useForm'
-import { ComponentRegistrySymbol } from '../context'
-import { FormProvider } from './FormProvider'
-import { SchemaField } from './SchemaField'
+import { useCreateForm } from '@moluoxixi/vue'
+import { ComponentRegistrySymbol } from '@moluoxixi/vue'
+import { FormProvider } from '@moluoxixi/vue'
+import { SchemaField } from '@moluoxixi/vue'
+import { scrollToFirstError } from '../utils/scrollToFirstError'
 
 /**
  * schema 转换插件桥接能力。
@@ -533,27 +534,4 @@ function resolveActionProps(config: unknown): Record<string, unknown> {
     return config
   }
   return {}
-}
-
-function scrollToFirstError(errors: Array<{ path: string }>): void {
-  if (errors.length === 0)
-    return
-
-  setTimeout(() => {
-    const errorElement = document.querySelector(
-      '[data-field-error="true"], [aria-invalid="true"]',
-    )
-    if (errorElement) {
-      errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      const input = errorElement.querySelector('input, textarea, select') as HTMLElement | null
-      input?.focus()
-      return
-    }
-
-    const firstPath = errors[0].path
-    const fieldElements = document.querySelectorAll(`[data-field-path="${firstPath}"], [name="${firstPath}"]`)
-    if (fieldElements.length > 0) {
-      fieldElements[0].scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }
-  }, 100)
 }
