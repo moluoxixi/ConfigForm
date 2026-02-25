@@ -1,4 +1,5 @@
 import type { DesignerNode } from '@moluoxixi/plugin-lower-code-core'
+import { LOW_CODE_DESIGNER_TEXT } from '@moluoxixi/plugin-lower-code-core'
 import type { PropType } from 'vue'
 import type { RenderDropList } from '../../types'
 import { defineComponent, h } from 'vue'
@@ -48,7 +49,7 @@ export const DesignerCanvasBodyRenderer = defineComponent({
         props.nodes,
         props.rootTargetKey,
         0,
-        '从左侧拖拽一个字段或容器到这里开始设计。',
+        LOW_CODE_DESIGNER_TEXT.canvas.emptyRoot,
       ),
     ])
   },

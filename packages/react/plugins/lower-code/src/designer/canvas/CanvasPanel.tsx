@@ -4,6 +4,8 @@ import type { LowCodeDesignerRenderContext } from '../types'
 import {
   containerTarget,
   containerUsesSections,
+  LOW_CODE_DESIGNER_TEXT,
+  LOW_CODE_NODE_TOOLBAR_ICONS,
   rootTarget,
   sectionTarget,
   targetToKey,
@@ -205,6 +207,7 @@ export function CanvasPanel({
     nodeId: string,
     options?: { allowAddSection?: boolean, onAddSection?: () => void },
   ): React.ReactElement => {
+    const t = LOW_CODE_DESIGNER_TEXT.toolbar
     return (
       <div
         className="cf-lc-node-toolbar"
@@ -218,19 +221,19 @@ export function CanvasPanel({
           className="cf-lc-node-tool cf-lc-node-tool--move"
           role="button"
           aria-label="移动"
-          title="拖拽节点移动"
+          title={t.move}
           onClick={(event) => {
             event.stopPropagation()
           }}
         >
-          <span className="cf-lc-icon">⠿</span>
+          <span className="cf-lc-icon">{LOW_CODE_NODE_TOOLBAR_ICONS.move}</span>
         </span>
         {options?.allowAddSection && options.onAddSection && (
           <button
             type="button"
             className="cf-lc-node-tool cf-lc-node-tool--primary"
             data-cf-toolbar-interactive="true"
-            title="新增分组"
+            title={t.addSection}
             onMouseDown={consumeToolbarPointer}
             onPointerDown={consumeToolbarPointer}
             onClick={(event) => {
@@ -238,14 +241,14 @@ export function CanvasPanel({
               options.onAddSection?.()
             }}
           >
-            <span className="cf-lc-icon">＋</span>
+            <span className="cf-lc-icon">{LOW_CODE_NODE_TOOLBAR_ICONS.addSection}</span>
           </button>
         )}
         <button
           type="button"
           className="cf-lc-node-tool"
           data-cf-toolbar-interactive="true"
-          title="复制"
+          title={t.duplicate}
           onMouseDown={consumeToolbarPointer}
           onPointerDown={consumeToolbarPointer}
           onClick={(event) => {
@@ -253,13 +256,13 @@ export function CanvasPanel({
             onDuplicateNode(nodeId)
           }}
         >
-          <span className="cf-lc-icon">⎘</span>
+          <span className="cf-lc-icon">{LOW_CODE_NODE_TOOLBAR_ICONS.duplicate}</span>
         </button>
         <button
           type="button"
           className="cf-lc-node-tool cf-lc-node-tool--danger"
           data-cf-toolbar-interactive="true"
-          title="删除"
+          title={t.remove}
           onMouseDown={consumeToolbarPointer}
           onPointerDown={consumeToolbarPointer}
           onClick={(event) => {
@@ -267,7 +270,7 @@ export function CanvasPanel({
             onRemoveNode(nodeId)
           }}
         >
-          <span className="cf-lc-icon">✕</span>
+          <span className="cf-lc-icon">{LOW_CODE_NODE_TOOLBAR_ICONS.remove}</span>
         </button>
       </div>
     )
@@ -317,6 +320,7 @@ export function CanvasPanel({
     section: Extract<DesignerNode, { kind: 'container' }>['sections'][number],
   ): React.ReactElement => {
     const selected = selectedId === section.id
+    const t = LOW_CODE_DESIGNER_TEXT.toolbar
     return (
       <div
         className="cf-lc-section-head"
@@ -329,7 +333,7 @@ export function CanvasPanel({
           type="button"
           className="cf-lc-section-action"
           data-cf-toolbar-interactive="true"
-          title="删除分组"
+          title={t.removeSection}
           onMouseDown={consumeToolbarPointer}
           onPointerDown={consumeToolbarPointer}
           onClick={(event) => {
@@ -376,7 +380,7 @@ export function CanvasPanel({
         }}
       >
         {renderSectionHead(container, section)}
-        {renderDropList(section.children, targetToKey(sectionTarget(section.id)), depth + 1, '拖拽字段到该分组')}
+        {renderDropList(section.children, targetToKey(sectionTarget(section.id)), depth + 1, LOW_CODE_DESIGNER_TEXT.canvas.emptySection)}
       </div>
     )
   }
@@ -394,7 +398,7 @@ export function CanvasPanel({
       return (
         <div className="cf-lc-layout-card-shell">
           <div className="cf-lc-layout-card-head">{title}</div>
-          {renderDropList(node.children, targetToKey(containerTarget(node.id)), depth + 1, '拖拽字段到该容器')}
+          {renderDropList(node.children, targetToKey(containerTarget(node.id)), depth + 1, LOW_CODE_DESIGNER_TEXT.canvas.emptyContainer)}
         </div>
       )
     }
@@ -426,7 +430,7 @@ export function CanvasPanel({
               ? renderSectionBody(node, activeSection, depth, 'tabs')
               : (
                   <div className="cf-lc-empty">
-                    请先新增分组
+                    {LOW_CODE_DESIGNER_TEXT.canvas.emptyTabs}
                   </div>
                 )}
           </div>
@@ -504,7 +508,7 @@ export function CanvasPanel({
 
   return (
     <div ref={canvasHostRef} className="cf-lc-canvas-wrap">
-      {renderDropList(nodes, targetToKey(rootTarget()), 0, '从左侧拖拽一个字段或容器到这里开始设计。')}
+      {renderDropList(nodes, targetToKey(rootTarget()), 0, LOW_CODE_DESIGNER_TEXT.canvas.emptyRoot)}
     </div>
   )
 }

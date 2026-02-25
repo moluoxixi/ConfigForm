@@ -5,6 +5,8 @@ import type { DesignerFieldPreviewNode } from './types'
 import {
   containerTarget,
   containerUsesSections,
+  LOW_CODE_DESIGNER_TEXT,
+  LOW_CODE_NODE_TOOLBAR_ICONS,
   nodesToSchema,
   rootTarget,
   schemaSignature,
@@ -189,6 +191,7 @@ export const DesignerCanvasPane = defineComponent({
     const renderNodeToolbar = (nodeId: string, options?: { allowAddSection?: boolean, onAddSection?: () => void }): VNodeChild => {
       if (props.readonly)
         return null
+      const t = LOW_CODE_DESIGNER_TEXT.toolbar
       /**
        * 吞掉工具栏按钮的指针事件，避免触发节点选中/拖拽冲突。
        *
@@ -209,16 +212,16 @@ export const DesignerCanvasPane = defineComponent({
           'type': 'button',
           'class': 'cf-lc-node-tool cf-lc-node-tool--move',
           'data-cf-toolbar-interactive': 'true',
-          'title': '拖拽节点移动',
+          'title': t.move,
           /** 拖拽手柄本身不触发选中切换。 */
           'onClick': (event: Event) => event.stopPropagation(),
-        }, '↕'),
+        }, LOW_CODE_NODE_TOOLBAR_ICONS.move),
         options?.allowAddSection && options.onAddSection
           ? h('button', {
               'type': 'button',
               'class': 'cf-lc-node-tool cf-lc-node-tool--primary',
               'data-cf-toolbar-interactive': 'true',
-              'title': '新增分组',
+              'title': t.addSection,
               'onMousedown': consumeToolbarPointer,
               'onPointerdown': consumeToolbarPointer,
               /** 新增分组并保持当前容器选中状态。 */
@@ -226,13 +229,13 @@ export const DesignerCanvasPane = defineComponent({
                 event.stopPropagation()
                 options.onAddSection?.()
               },
-            }, '＋')
+            }, LOW_CODE_NODE_TOOLBAR_ICONS.addSection)
           : null,
         h('button', {
           'type': 'button',
           'class': 'cf-lc-node-tool',
           'data-cf-toolbar-interactive': 'true',
-          'title': '复制',
+          'title': t.duplicate,
           'onMousedown': consumeToolbarPointer,
           'onPointerdown': consumeToolbarPointer,
           /** 复制当前节点。 */
@@ -240,12 +243,12 @@ export const DesignerCanvasPane = defineComponent({
             event.stopPropagation()
             props.onDuplicateNode(nodeId)
           },
-        }, '⎘'),
+        }, LOW_CODE_NODE_TOOLBAR_ICONS.duplicate),
         h('button', {
           'type': 'button',
           'class': 'cf-lc-node-tool cf-lc-node-tool--danger',
           'data-cf-toolbar-interactive': 'true',
-          'title': '删除',
+          'title': t.remove,
           'onMousedown': consumeToolbarPointer,
           'onPointerdown': consumeToolbarPointer,
           /** 删除当前节点。 */
@@ -253,7 +256,7 @@ export const DesignerCanvasPane = defineComponent({
             event.stopPropagation()
             props.onRemoveNode(nodeId)
           },
-        }, '✕'),
+        }, LOW_CODE_NODE_TOOLBAR_ICONS.remove),
       ])
     }
 
@@ -301,7 +304,7 @@ export const DesignerCanvasPane = defineComponent({
               'type': 'button',
               'class': 'cf-lc-section-action',
               'data-cf-toolbar-interactive': 'true',
-              'title': '删除分组',
+              'title': LOW_CODE_DESIGNER_TEXT.toolbar.removeSection,
               /** 阻止按下阶段冒泡，避免触发分组选中切换。 */
               'onMousedown': (event: Event) => {
                 event.preventDefault()
@@ -356,7 +359,7 @@ export const DesignerCanvasPane = defineComponent({
         },
       }, [
         renderSectionHead(container, section),
-        renderDropList(section.children, targetToKey(sectionTarget(section.id)), depth + 1, '拖拽字段到该分组'),
+        renderDropList(section.children, targetToKey(sectionTarget(section.id)), depth + 1, LOW_CODE_DESIGNER_TEXT.canvas.emptySection),
       ])
     }
 
@@ -369,7 +372,7 @@ export const DesignerCanvasPane = defineComponent({
       if (node.component === 'LayoutCard') {
         return h('div', { class: 'cf-lc-layout-card-shell' }, [
           h('div', { class: 'cf-lc-layout-card-head' }, title),
-          renderDropList(node.children, targetToKey(containerTarget(node.id)), depth + 1, '拖拽字段到该容器'),
+          renderDropList(node.children, targetToKey(containerTarget(node.id)), depth + 1, LOW_CODE_DESIGNER_TEXT.canvas.emptyContainer),
         ])
       }
 
@@ -391,7 +394,7 @@ export const DesignerCanvasPane = defineComponent({
           h('div', { class: 'cf-lc-layout-tabs-panels' }, [
             activeSection
               ? renderSectionBody(node, activeSection, depth, 'tabs')
-              : h('div', { class: 'cf-lc-empty' }, '请先新增分组'),
+              : h('div', { class: 'cf-lc-empty' }, LOW_CODE_DESIGNER_TEXT.canvas.emptyTabs),
           ]),
         ])
       }

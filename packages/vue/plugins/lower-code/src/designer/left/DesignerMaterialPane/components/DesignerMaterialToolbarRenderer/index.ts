@@ -1,4 +1,5 @@
 import type { PropType } from 'vue'
+import { LOW_CODE_DESIGNER_TEXT } from '@moluoxixi/plugin-lower-code-core'
 import { defineComponent, h } from 'vue'
 
 export const DesignerMaterialToolbarRenderer = defineComponent({
@@ -22,6 +23,7 @@ export const DesignerMaterialToolbarRenderer = defineComponent({
    * @returns 工具栏渲染函数。
    */
   setup(props) {
+    const t = LOW_CODE_DESIGNER_TEXT.material
     return () => h('div', {
       style: {
         display: 'grid',
@@ -42,7 +44,7 @@ export const DesignerMaterialToolbarRenderer = defineComponent({
             fontWeight: 700,
             color: '#0f172a',
           },
-        }, '物料'),
+        }, t.title),
         h('div', {
           style: {
             border: '1px solid #d5e2f3',
@@ -54,7 +56,7 @@ export const DesignerMaterialToolbarRenderer = defineComponent({
             fontWeight: 600,
             whiteSpace: 'nowrap',
           },
-        }, '拖拽到画布'),
+        }, t.hint),
       ]),
       h('div', {
         style: {
@@ -72,7 +74,7 @@ export const DesignerMaterialToolbarRenderer = defineComponent({
             const target = event.target as HTMLInputElement | null
             props.onKeywordChange(target?.value ?? '')
           },
-          placeholder: '搜索组件或布局',
+          placeholder: t.searchPlaceholder,
           style: {
             border: '1px solid #dbe4f0',
             borderRadius: '8px',
@@ -95,7 +97,7 @@ export const DesignerMaterialToolbarRenderer = defineComponent({
                 padding: '4px 10px',
                 cursor: 'pointer',
               },
-            }, '清空')
+            }, t.clear)
           : null,
       ]),
       h('div', {
@@ -119,7 +121,7 @@ export const DesignerMaterialToolbarRenderer = defineComponent({
             padding: '2px 8px',
             whiteSpace: 'nowrap',
           },
-        }, `全部 ${props.totalCount}`),
+        }, `${t.total} ${props.totalCount}`),
         h('span', {
           style: {
             display: 'inline-flex',
@@ -133,7 +135,7 @@ export const DesignerMaterialToolbarRenderer = defineComponent({
             padding: '2px 8px',
             whiteSpace: 'nowrap',
           },
-        }, `筛选 ${props.filteredCount}`),
+        }, `${t.filtered} ${props.filteredCount}`),
         h('span', {
           style: {
             marginLeft: 'auto',
@@ -143,7 +145,7 @@ export const DesignerMaterialToolbarRenderer = defineComponent({
             overflow: 'hidden',
             textOverflow: 'ellipsis',
           },
-        }, '拖拽后可在画布调整顺序'),
+        }, t.dragHint),
       ]),
     ])
   },

@@ -51,10 +51,8 @@ interface SceneFormProps {
   showErrors: (errors: unknown[]) => void
 }
 
-const devTools = devToolsPlugin()
-
 /**
- * DevTools 插件单例（所有场景共用，避免重复创建）
+ * DevTools 插件实例（每个 SceneForm 独立，避免切换 UI 时旧实例注销新表单）
  * Scene Form：负责编排该能力的主流程。
  * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
  * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
@@ -62,6 +60,8 @@ const devTools = devToolsPlugin()
  * 说明：该函数聚焦于 Scene Form 的单一职责，调用方可通过函数名快速理解输入输出语义。
  */
 function SceneForm({ config, schema, mode, extraPlugins, showResult, showErrors }: SceneFormProps): React.ReactElement {
+  const devTools = useMemo(() => devToolsPlugin(), [])
+
   useEffect(() => {
     showErrors([])
   }, [mode, showErrors])

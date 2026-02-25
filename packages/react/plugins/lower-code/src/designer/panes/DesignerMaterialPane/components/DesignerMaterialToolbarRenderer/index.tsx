@@ -1,5 +1,6 @@
 import type React from 'react'
 import type { DesignerMaterialToolbarRendererProps } from '../../types'
+import { LOW_CODE_DESIGNER_TEXT } from '@moluoxixi/plugin-lower-code-core'
 
 /**
  * Designer Material Toolbar Renderer：封装该模块的核心渲染与交互逻辑。
@@ -19,18 +20,19 @@ export function DesignerMaterialToolbarRenderer({
   totalCount,
   filteredCount,
 }: DesignerMaterialToolbarRendererProps): React.ReactElement {
+  const t = LOW_CODE_DESIGNER_TEXT.material
   return (
     <div className="cf-lc-material-toolbar">
       <div className="cf-lc-side-panel-header">
-        <div className="cf-lc-side-panel-title">物料</div>
-        <div className="cf-lc-side-panel-meta">拖拽到画布</div>
+        <div className="cf-lc-side-panel-title">{t.title}</div>
+        <div className="cf-lc-side-panel-meta">{t.hint}</div>
       </div>
       <div className="cf-lc-material-search-row">
         <input
           className="cf-lc-control-input cf-lc-material-search"
           value={keyword}
           onChange={event => onKeywordChange(event.target.value)}
-          placeholder="搜索组件或布局"
+          placeholder={t.searchPlaceholder}
         />
         {keyword
           ? (
@@ -39,23 +41,23 @@ export function DesignerMaterialToolbarRenderer({
                 className="cf-lc-btn"
                 onClick={() => onKeywordChange('')}
               >
-                清空
+                {t.clear}
               </button>
             )
           : null}
       </div>
       <div className="cf-lc-material-summary">
         <span className="cf-lc-side-pill">
-          全部
+          {t.total}
           {' '}
           {totalCount}
         </span>
         <span className="cf-lc-side-pill">
-          筛选
+          {t.filtered}
           {' '}
           {filteredCount}
         </span>
-        <span className="cf-lc-side-hint">拖拽后可在画布调整顺序</span>
+        <span className="cf-lc-side-hint">{t.dragHint}</span>
       </div>
     </div>
   )

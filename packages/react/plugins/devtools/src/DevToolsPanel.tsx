@@ -5,142 +5,47 @@
  * 可直接复用于 Chrome Extension（数据来源改为 postMessage 即可）。
  */
 import type { ISchema } from '@moluoxixi/core'
-import type { DevToolsPanelProps, DevToolsPluginAPI, EventLogEntry, FieldDetail, FieldTreeNode, FormOverview, ValueDiffEntry } from '@moluoxixi/plugin-devtools'
+import type {
+  DevToolsPanelProps,
+  DevToolsPluginAPI,
+  DevToolsFilter,
+  DevToolsTab,
+  DevToolsTheme,
+  EventLogEntry,
+  FieldDetail,
+  FieldTreeNode,
+  FormOverview,
+  ValueDiffEntry,
+} from '@moluoxixi/plugin-devtools'
+import {
+  DEVTOOLS_FILTER_LABELS,
+  DEVTOOLS_PANEL_HEIGHT,
+  DEVTOOLS_PANEL_WIDTH,
+  DEVTOOLS_TAB_LABELS,
+  DEVTOOLS_TREE_WIDTH,
+  DEVTOOLS_TYPE_CONFIG,
+  filterTree,
+  getDevToolsTheme,
+  getSystemDarkMode,
+  resolveEventColor,
+  subscribeSystemDarkMode,
+} from '@moluoxixi/plugin-devtools'
 import { FormProvider, SchemaField, useCreateForm } from '@moluoxixi/react'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
-/* ======================== 主题 ======================== */
-
-/**
- * Theme??????
- * ???`packages/plugin-devtools-react/src/DevToolsPanel.tsx:12`?
- * ??????????????????????????????
- */
-interface Theme {
-  bg: string
-  bgPanel: string
-  bgHover: string
-  bgActive: string
-  border: string
-  text: string
-  textSecondary: string
-  textDim: string
-  accent: string
-  green: string
-  red: string
-  yellow: string
-  purple: string
-  shadow: string
-  badgeBg: string
-  inputBg: string
+function useSystemTheme(): DevToolsTheme {
+  const [isDark, setIsDark] = useState(() => getSystemDarkMode())
+  useEffect(() => subscribeSystemDarkMode(setIsDark), [])
+  return getDevToolsTheme(isDark)
 }
 
-const lightTheme: Theme = {
-  bg: '#ffffff',
-  bgPanel: '#f7f8fa',
-  bgHover: '#f0f2f5',
-  bgActive: '#e8f4ff',
-  border: '#e5e7eb',
-  text: '#1f2937',
-  textSecondary: '#6b7280',
-  textDim: '#9ca3af',
-  accent: '#3b82f6',
-  green: '#10b981',
-  red: '#ef4444',
-  yellow: '#f59e0b',
-  purple: '#8b5cf6',
-  shadow: '0 8px 30px rgba(0,0,0,0.12)',
-  badgeBg: '#f3f4f6',
-  inputBg: '#f9fafb',
-}
-
-const darkTheme: Theme = {
-  bg: '#1a1b2e',
-  bgPanel: '#222338',
-  bgHover: '#2a2b45',
-  bgActive: '#1e3a5f',
-  border: '#333456',
-  text: '#e2e8f0',
-  textSecondary: '#94a3b8',
-  textDim: '#64748b',
-  accent: '#60a5fa',
-  green: '#34d399',
-  red: '#f87171',
-  yellow: '#fbbf24',
-  purple: '#a78bfa',
-  shadow: '0 8px 30px rgba(0,0,0,0.4)',
-  badgeBg: '#2a2b45',
-  inputBg: '#1e1f35',
-}
-
-/**
- * use System Theme：负责编排该能力的主流程。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 use System Theme 的单一职责，调用方可通过函数名快速理解输入输出语义。
- */
-function useSystemTheme(): Theme {
-  const [isDark, setIsDark] = useState(() =>
-    typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches,
-  )
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    /**
-     * h?????????????????
-     * ???`packages/plugin-devtools-react/src/DevToolsPanel.tsx:90`?
-     * ?????????????????????????????????
-     * ??????????????????????????
-     * @param e ?? e ????????????
-     * @returns ?????????????
-     */
-    const /**
-           * h：处理当前分支的交互与状态同步。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * @param e 参数 e 为事件对象，用于提供交互上下文。
-           * @returns 返回当前分支执行后的处理结果。
-           */
-      h = (e: MediaQueryListEvent): void => setIsDark(e.matches)
-    mq.addEventListener('change', h)
-    return () => mq.removeEventListener('change', h)
-  }, [])
-  return isDark ? darkTheme : lightTheme
-}
-
-/* ======================== 常量 ======================== */
-
-const PANEL_W = 720
-const PANEL_H = 520
-const TREE_W = 230
-
-const TYPE_CFG: Record<string, { ch: string, c: string, bg: string }> = {
-  field: { ch: 'F', c: '#3b82f6', bg: '#3b82f620' },
-  arrayField: { ch: 'A', c: '#10b981', bg: '#10b98120' },
-  objectField: { ch: 'O', c: '#8b5cf6', bg: '#8b5cf620' },
-  voidField: { ch: 'V', c: '#f59e0b', bg: '#f59e0b20' },
-}
-
-/**
- * Tab????????
- * ???`packages/plugin-devtools-react/src/DevToolsPanel.tsx:110`?
- * ??????????????????????????????
- */
-type Tab = 'tree' | 'events' | 'diff' | 'values'
-
-/* ======================== 主面板 ======================== */
-
-/**
- * DevToolsPanelView：处理当前分支的交互与状态同步。
- * 功能：处理参数消化、状态变更与调用链行为同步。
- * @returns 返回当前分支执行后的处理结果。
- */
 function DevToolsPanelView({ api }: DevToolsPanelProps): React.ReactElement {
   const t = useSystemTheme()
   const [visible, setVisible] = useState(false)
-  const [tab, setTab] = useState<Tab>('tree')
+  const [tab, setTab] = useState<DevToolsTab>('tree')
   const [selected, setSelected] = useState<string | null>(null)
   const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState<'all' | 'error' | 'required' | 'modified'>('all')
+  const [filter, setFilter] = useState<DevToolsFilter>('all')
   const [tick, setTick] = useState(0)
 
   useEffect(() => {
@@ -149,20 +54,10 @@ function DevToolsPanelView({ api }: DevToolsPanelProps): React.ReactElement {
       if (!active)
         return
 
-      /**
-       * flush?????????????????
-       * ???`packages/plugin-devtools-react/src/DevToolsPanel.tsx:142`?
-       * ?????????????????????????????????
-       * ??????????????????????????
-       */
-      const /**
-             * flush：处理当前分支的交互与状态同步。
-             * 功能：处理参数消化、状态变更与调用链行为同步。
-             */
-        flush = (): void => {
-          if (active)
-            setTick(n => n + 1)
-        }
+      const flush = (): void => {
+        if (active)
+          setTick(n => n + 1)
+      }
 
       if (typeof queueMicrotask === 'function') {
         queueMicrotask(flush)
@@ -241,8 +136,8 @@ function DevToolsPanelView({ api }: DevToolsPanelProps): React.ReactElement {
       bottom: 20,
       right: 20,
       zIndex: 99999,
-      width: PANEL_W,
-      height: PANEL_H,
+      width: DEVTOOLS_PANEL_WIDTH,
+      height: DEVTOOLS_PANEL_HEIGHT,
       background: t.bg,
       color: t.text,
       borderRadius: 12,
@@ -267,7 +162,7 @@ function DevToolsPanelView({ api }: DevToolsPanelProps): React.ReactElement {
 
       {/* Tab + 搜索 */}
       <div style={{ display: 'flex', borderBottom: `1px solid ${t.border}`, background: t.bgPanel, flexShrink: 0 }}>
-        {(['tree', 'events', 'diff', 'values'] as Tab[]).map(tb => (
+        {(['tree', 'events', 'diff', 'values'] as DevToolsTab[]).map(tb => (
           <TabBtn
             key={tb}
             t={t}
@@ -276,7 +171,7 @@ function DevToolsPanelView({ api }: DevToolsPanelProps): React.ReactElement {
               setTab(tb)
               setSelected(null)
             }}
-            label={{ tree: '字段', events: '事件', diff: 'Diff', values: '数据' }[tb]}
+            label={DEVTOOLS_TAB_LABELS[tb]}
             count={tb === 'events' ? events.length : tb === 'diff' ? diff.filter(d => d.changed).length : undefined}
           />
         ))}
@@ -302,13 +197,13 @@ function DevToolsPanelView({ api }: DevToolsPanelProps): React.ReactElement {
       {/* 过滤栏（仅字段 Tab） */}
       {tab === 'tree' && (
         <div style={{ display: 'flex', gap: 4, padding: '4px 8px', borderBottom: `1px solid ${t.border}`, background: t.bgPanel }}>
-          {(['all', 'error', 'required', 'modified'] as const).map(f => (
+          {(['all', 'error', 'required', 'modified'] as DevToolsFilter[]).map(f => (
             <FilterPill
               key={f}
               t={t}
               active={filter === f}
               onClick={() => setFilter(f)}
-              label={{ all: '全部', error: '错误', required: '必填', modified: '已修改' }[f]}
+              label={DEVTOOLS_FILTER_LABELS[f]}
             />
           ))}
         </div>
@@ -318,7 +213,7 @@ function DevToolsPanelView({ api }: DevToolsPanelProps): React.ReactElement {
       <div style={{ flex: 1, overflow: 'hidden', display: 'flex' }}>
         {tab === 'tree' && (
           <>
-            <div style={{ width: TREE_W, flexShrink: 0, overflow: 'auto', borderRight: `1px solid ${t.border}` }}>
+            <div style={{ width: DEVTOOLS_TREE_WIDTH, flexShrink: 0, overflow: 'auto', borderRight: `1px solid ${t.border}` }}>
               <TreeView
                 t={t}
                 nodes={filteredTree}
@@ -376,7 +271,7 @@ export function DevToolsPanel(props: DevToolsPanelProps): React.ReactElement {
  * @returns 返回当前分支执行后的处理结果。
  */
 function Header({ t, overview, onClose, onValidate, onReset, onSubmit }: {
-  t: Theme
+  t: DevToolsTheme
   overview: FormOverview
   onClose: () => void
   onValidate: () => void
@@ -417,7 +312,7 @@ function Header({ t, overview, onClose, onValidate, onReset, onSubmit }: {
  *
  * 说明：该函数聚焦于 Action Btn 的单一职责，调用方可通过函数名快速理解输入输出语义。
  */
-function ActionBtn({ t, label, onClick, color }: { t: Theme, label: string, onClick: () => void, color?: string }): React.ReactElement {
+function ActionBtn({ t, label, onClick, color }: { t: DevToolsTheme, label: string, onClick: () => void, color?: string }): React.ReactElement {
   return (
     <button
       onClick={onClick}
@@ -445,18 +340,11 @@ function ActionBtn({ t, label, onClick, color }: { t: Theme, label: string, onCl
  * 功能：处理参数消化、状态变更与调用链行为同步。
  * @returns 返回当前分支执行后的处理结果。
  */
-function Badge({ t, label, color }: { t: Theme, label: string, color: string }): React.ReactElement {
+function Badge({ t, label, color }: { t: DevToolsTheme, label: string, color: string }): React.ReactElement {
   return <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: t.badgeBg, color }}>{label}</span>
 }
 
-/**
- * Tab Btn：负责编排该能力的主流程。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 Tab Btn 的单一职责，调用方可通过函数名快速理解输入输出语义。
- */
-function TabBtn({ t, active, onClick, label, count }: { t: Theme, active: boolean, onClick: () => void, label: string, count?: number }): React.ReactElement {
+function TabBtn({ t, active, onClick, label, count }: { t: DevToolsTheme, active: boolean, onClick: () => void, label: string, count?: number }): React.ReactElement {
   return (
     <button
       onClick={onClick}
@@ -491,7 +379,7 @@ function TabBtn({ t, active, onClick, label, count }: { t: Theme, active: boolea
  *
  * 说明：该函数聚焦于 Filter Pill 的单一职责，调用方可通过函数名快速理解输入输出语义。
  */
-function FilterPill({ t, active, onClick, label }: { t: Theme, active: boolean, onClick: () => void, label: string }): React.ReactElement {
+function FilterPill({ t, active, onClick, label }: { t: DevToolsTheme, active: boolean, onClick: () => void, label: string }): React.ReactElement {
   return (
     <button
       onClick={onClick}
@@ -519,7 +407,7 @@ function FilterPill({ t, active, onClick, label }: { t: Theme, active: boolean, 
  *
  * 说明：该函数聚焦于 Empty 的单一职责，调用方可通过函数名快速理解输入输出语义。
  */
-function Empty({ t, text }: { t: Theme, text: string }): React.ReactElement {
+function Empty({ t, text }: { t: DevToolsTheme, text: string }): React.ReactElement {
   return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: t.textDim }}>{text}</div>
 }
 
@@ -531,7 +419,7 @@ function Empty({ t, text }: { t: Theme, text: string }): React.ReactElement {
  * @returns 返回当前分支执行后的处理结果。
  */
 function TreeView({ t, nodes, selected, onSelect, depth = 0 }: {
-  t: Theme
+  t: DevToolsTheme
   nodes: FieldTreeNode[]
   selected: string | null
   onSelect: (p: string) => void
@@ -586,7 +474,7 @@ function TreeView({ t, nodes, selected, onSelect, depth = 0 }: {
  * 说明：该函数聚焦于 Type Badge 的单一职责，调用方可通过函数名快速理解输入输出语义。
  */
 function TypeBadge({ type }: { type: string }): React.ReactElement {
-  const c = TYPE_CFG[type] ?? TYPE_CFG.field
+  const c = DEVTOOLS_TYPE_CONFIG[type] ?? DEVTOOLS_TYPE_CONFIG.field
   return <span style={{ fontSize: 9, fontWeight: 800, width: 16, height: 16, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 4, background: c.bg, color: c.c, flexShrink: 0 }}>{c.ch}</span>
 }
 
@@ -608,7 +496,7 @@ function Dot({ color }: { color: string }): React.ReactElement {
  * 功能：处理参数消化、状态变更与调用链行为同步。
  * @returns 返回当前分支执行后的处理结果。
  */
-function DetailView({ t, detail, api }: { t: Theme, detail: FieldDetail, api: DevToolsPluginAPI }): React.ReactElement {
+function DetailView({ t, detail, api }: { t: DevToolsTheme, detail: FieldDetail, api: DevToolsPluginAPI }): React.ReactElement {
   const [editValue, setEditValue] = useState('')
   const [editing, setEditing] = useState(false)
   const [copiedPath, setCopiedPath] = useState(false)
@@ -763,7 +651,7 @@ function DetailView({ t, detail, api }: { t: Theme, detail: FieldDetail, api: De
  *
  * 说明：该函数聚焦于 Sec 的单一职责，调用方可通过函数名快速理解输入输出语义。
  */
-function Sec({ t, title, children }: { t: Theme, title: string, children: React.ReactNode }): React.ReactElement {
+function Sec({ t, title, children }: { t: DevToolsTheme, title: string, children: React.ReactNode }): React.ReactElement {
   return (
     <div style={{ marginBottom: 12 }}>
       <div style={{ fontSize: 11, fontWeight: 700, color: t.textDim, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{title}</div>
@@ -779,7 +667,7 @@ function Sec({ t, title, children }: { t: Theme, title: string, children: React.
  *
  * 说明：该函数聚焦于 Row 的单一职责，调用方可通过函数名快速理解输入输出语义。
  */
-function Row({ t, label, value, mono }: { t: Theme, label: string, value: string, mono?: boolean }): React.ReactElement {
+function Row({ t, label, value, mono }: { t: DevToolsTheme, label: string, value: string, mono?: boolean }): React.ReactElement {
   return (
     <div style={{ display: 'flex', gap: 8, padding: '2px 0', fontSize: 12 }}>
       <span style={{ width: 50, flexShrink: 0, color: t.textSecondary }}>{label}</span>
@@ -795,7 +683,7 @@ function Row({ t, label, value, mono }: { t: Theme, label: string, value: string
  *
  * 说明：该函数聚焦于 State Pill 的单一职责，调用方可通过函数名快速理解输入输出语义。
  */
-function StatePill({ t, label, value, color }: { t: Theme, label: string, value: string | boolean, color: string }): React.ReactElement {
+function StatePill({ t, label, value, color }: { t: DevToolsTheme, label: string, value: string | boolean, color: string }): React.ReactElement {
   const display = typeof value === 'boolean' ? (value ? 'true' : 'false') : value
   return (
     <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 6, background: t.badgeBg, color: value === false || value === 'false' ? t.textDim : color }}>
@@ -808,7 +696,7 @@ function StatePill({ t, label, value, color }: { t: Theme, label: string, value:
 }
 
 /** 可点击切换的状态药丸 */
-function TogglePill({ t, label, value, onClick }: { t: Theme, label: string, value: boolean, onClick: () => void }): React.ReactElement {
+function TogglePill({ t, label, value, onClick }: { t: DevToolsTheme, label: string, value: boolean, onClick: () => void }): React.ReactElement {
   return (
     <button
       onClick={onClick}
@@ -839,7 +727,7 @@ function TogglePill({ t, label, value, onClick }: { t: Theme, label: string, val
  * 功能：处理参数消化、状态变更与调用链行为同步。
  * @returns 返回当前分支执行后的处理结果。
  */
-function EventsView({ t, events, onClear }: { t: Theme, events: EventLogEntry[], onClear: () => void }): React.ReactElement {
+function EventsView({ t, events, onClear }: { t: DevToolsTheme, events: EventLogEntry[], onClear: () => void }): React.ReactElement {
   const reversed = useMemo(() => [...events].reverse(), [events])
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
@@ -869,27 +757,6 @@ function EventsView({ t, events, onClear }: { t: Theme, events: EventLogEntry[],
   )
 }
 
-/**
- * resolve Event Color：负责“解析resolve Event Color”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 resolve Event Color 的主要职责边界，便于维护者快速理解函数在链路中的定位。
- */
-function resolveEventColor(type: string, theme: Theme): string {
-  const normalizedType = type.toLowerCase()
-  if (normalizedType.includes('failed')) {
-    return theme.red
-  }
-  if (normalizedType.includes('success')) {
-    return theme.green
-  }
-  if (normalizedType.includes('devtools:')) {
-    return theme.purple
-  }
-  return theme.text
-}
-
 /* ======================== Diff 视图 ======================== */
 
 /**
@@ -897,7 +764,7 @@ function resolveEventColor(type: string, theme: Theme): string {
  * 功能：处理参数消化、状态变更与调用链行为同步。
  * @returns 返回当前分支执行后的处理结果。
  */
-function DiffView({ t, diff }: { t: Theme, diff: ValueDiffEntry[] }): React.ReactElement {
+function DiffView({ t, diff }: { t: DevToolsTheme, diff: ValueDiffEntry[] }): React.ReactElement {
   const changed = useMemo(() => diff.filter(d => d.changed), [diff])
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
@@ -952,7 +819,7 @@ function DiffView({ t, diff }: { t: Theme, diff: ValueDiffEntry[] }): React.Reac
  * 功能：处理参数消化、状态变更与调用链行为同步。
  * @returns 返回当前分支执行后的处理结果。
  */
-function ValuesView({ t, values }: { t: Theme, values: Record<string, unknown> }): React.ReactElement {
+function ValuesView({ t, values }: { t: DevToolsTheme, values: Record<string, unknown> }): React.ReactElement {
   const json = useMemo(() => JSON.stringify(values, null, 2), [values])
   const [copied, setCopied] = useState(false)
   const handleCopy = useCallback(() => {
@@ -991,52 +858,4 @@ function ValuesView({ t, values }: { t: Theme, values: Record<string, unknown> }
   )
 }
 
-/* ======================== 工具 ======================== */
 
-/**
- * 过滤字段树
- *
- * 支持按关键词搜索（匹配 label/name/path）和按状态过滤（error/required/modified）。
- * 如果某节点的子节点匹配，即使该节点自身不匹配也会保留（保持树结构完整）。
- */
-function filterTree(
-  nodes: FieldTreeNode[],
-  search: string,
-  filter: 'all' | 'error' | 'required' | 'modified',
-  diff: ValueDiffEntry[],
-): FieldTreeNode[] {
-  const modifiedPaths = new Set(diff.filter(d => d.changed).map(d => d.path))
-
-  /**
-   * 判断单个节点是否匹配过滤条件。
-   * 先做关键词搜索，再做状态过滤，减少不必要的计算。
-   */
-  function match(node: FieldTreeNode): boolean {
-    if (search
-      && !(node.label || node.name).toLowerCase().includes(search.toLowerCase())
-      && !node.path.toLowerCase().includes(search.toLowerCase())) {
-      return false
-    }
-    if (filter === 'error' && node.errorCount === 0)
-      return false
-    if (filter === 'required' && !node.required)
-      return false
-    if (filter === 'modified' && !modifiedPaths.has(node.path))
-      return false
-    return true
-  }
-
-  /**
-   * 递归过滤节点与子节点。
-   * 只要自身或任一子节点命中条件，就保留当前节点。
-   */
-  function filterNode(node: FieldTreeNode): FieldTreeNode | null {
-    const filteredChildren = node.children.map(filterNode).filter(Boolean) as FieldTreeNode[]
-    if (match(node) || filteredChildren.length > 0) {
-      return { ...node, children: filteredChildren }
-    }
-    return null
-  }
-
-  return nodes.map(filterNode).filter(Boolean) as FieldTreeNode[]
-}

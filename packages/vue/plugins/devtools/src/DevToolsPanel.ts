@@ -7,120 +7,38 @@
  */
 import type { ISchema } from '@moluoxixi/core'
 import type {
+  DevToolsFilter,
   DevToolsPluginAPI,
+  DevToolsTab,
+  DevToolsTheme,
   EventLogEntry,
   FieldDetail,
   FieldTreeNode,
   FormOverview,
   ValueDiffEntry,
 } from '@moluoxixi/plugin-devtools'
+import {
+  DEVTOOLS_FILTER_LABELS,
+  DEVTOOLS_PANEL_HEIGHT,
+  DEVTOOLS_PANEL_WIDTH,
+  DEVTOOLS_TAB_LABELS,
+  DEVTOOLS_TREE_WIDTH,
+  DEVTOOLS_TYPE_CONFIG,
+  filterTree,
+  getDevToolsTheme,
+  getSystemDarkMode,
+  resolveEventColor,
+  subscribeSystemDarkMode,
+} from '@moluoxixi/plugin-devtools'
 import { FormProvider, SchemaField, useCreateForm } from '@moluoxixi/vue'
 import type { PropType, VNode } from 'vue'
 import { computed, defineComponent, h, onMounted, onUnmounted, ref } from 'vue'
-
-/* ======================== 主题 ======================== */
-
-/** 主题色彩定义 */
-interface Theme {
-  bg: string
-  bgPanel: string
-  bgHover: string
-  bgActive: string
-  border: string
-  text: string
-  textSecondary: string
-  textDim: string
-  accent: string
-  green: string
-  red: string
-  yellow: string
-  purple: string
-  shadow: string
-  badgeBg: string
-  inputBg: string
-}
-
-/** 亮色主题 */
-const lightTheme: Theme = {
-  bg: '#ffffff',
-  bgPanel: '#f7f8fa',
-  bgHover: '#f0f2f5',
-  bgActive: '#e8f4ff',
-  border: '#e5e7eb',
-  text: '#1f2937',
-  textSecondary: '#6b7280',
-  textDim: '#9ca3af',
-  accent: '#3b82f6',
-  green: '#10b981',
-  red: '#ef4444',
-  yellow: '#f59e0b',
-  purple: '#8b5cf6',
-  shadow: '0 8px 30px rgba(0,0,0,0.12)',
-  badgeBg: '#f3f4f6',
-  inputBg: '#f9fafb',
-}
-
-/** 暗色主题 */
-const darkTheme: Theme = {
-  bg: '#1a1b2e',
-  bgPanel: '#222338',
-  bgHover: '#2a2b45',
-  bgActive: '#1e3a5f',
-  border: '#333456',
-  text: '#e2e8f0',
-  textSecondary: '#94a3b8',
-  textDim: '#64748b',
-  accent: '#60a5fa',
-  green: '#34d399',
-  red: '#f87171',
-  yellow: '#fbbf24',
-  purple: '#a78bfa',
-  shadow: '0 8px 30px rgba(0,0,0,0.4)',
-  badgeBg: '#2a2b45',
-  inputBg: '#1e1f35',
-}
-
-/* ======================== 常量 ======================== */
-
-/** 面板宽度 */
-const PANEL_W = 720
-/** 面板高度 */
-const PANEL_H = 520
-/** 字段树宽度 */
-const TREE_W = 230
-
-/** 字段类型配置（徽章字符、颜色、背景色） */
-const TYPE_CFG: Record<string, { ch: string, c: string, bg: string }> = {
-  field: { ch: 'F', c: '#3b82f6', bg: '#3b82f620' },
-  arrayField: { ch: 'A', c: '#10b981', bg: '#10b98120' },
-  objectField: { ch: 'O', c: '#8b5cf6', bg: '#8b5cf620' },
-  voidField: { ch: 'V', c: '#f59e0b', bg: '#f59e0b20' },
-}
-
-/** Tab 标签页类型 */
-type Tab = 'tree' | 'events' | 'diff' | 'values'
-
-/** Tab 中文标签映射 */
-const TAB_LABELS: Record<Tab, string> = {
-  tree: '字段',
-  events: '事件',
-  diff: 'Diff',
-  values: '数据',
-}
-
-/** 过滤器中文标签映射 */
-const FILTER_LABELS: Record<string, string> = {
-  all: '全部',
-  error: '错误',
-  required: '必填',
-  modified: '已修改',
-}
 
 /* ======================== 纯渲染辅助函数 ======================== */
 
 /** 渲染字段类型徽章（F/A/O/V） */
 function renderTypeBadge(type: string): VNode {
-  const c = TYPE_CFG[type] ?? TYPE_CFG.field
+  const c = DEVTOOLS_TYPE_CONFIG[type] ?? DEVTOOLS_TYPE_CONFIG.field
   return h('span', {
     style: {
       fontSize: '9px',
@@ -152,7 +70,7 @@ function renderDot(color: string): VNode {
 }
 
 /** 渲染信息徽章 */
-function renderBadge(t: Theme, label: string, color: string): VNode {
+function renderBadge(t: DevToolsTheme, label: string, color: string): VNode {
   return h('span', {
     style: {
       fontSize: '11px',
@@ -167,7 +85,7 @@ function renderBadge(t: Theme, label: string, color: string): VNode {
 
 /** 渲染操作按钮（验证/重置/提交） */
 function renderActionBtn(
-  t: Theme,
+  t: DevToolsTheme,
   label: string,
   onClick: () => void,
   color?: string,
@@ -190,7 +108,7 @@ function renderActionBtn(
 
 /** 渲染 Tab 按钮 */
 function renderTabBtn(
-  t: Theme,
+  t: DevToolsTheme,
   active: boolean,
   onClick: () => void,
   label: string,
@@ -231,7 +149,7 @@ function renderTabBtn(
 
 /** 渲染过滤药丸按钮 */
 function renderFilterPill(
-  t: Theme,
+  t: DevToolsTheme,
   active: boolean,
   onClick: () => void,
   label: string,
@@ -253,7 +171,7 @@ function renderFilterPill(
 }
 
 /** 渲染空状态占位 */
-function renderEmpty(t: Theme, text: string): VNode {
+function renderEmpty(t: DevToolsTheme, text: string): VNode {
   return h('div', {
     style: {
       display: 'flex',
@@ -267,7 +185,7 @@ function renderEmpty(t: Theme, text: string): VNode {
 
 /** 渲染只读状态药丸（pattern/required） */
 function renderStatePill(
-  t: Theme,
+  t: DevToolsTheme,
   label: string,
   value: string | boolean,
   color: string,
@@ -286,7 +204,7 @@ function renderStatePill(
 
 /** 渲染可点击切换的状态药丸（visible/disabled/preview） */
 function renderTogglePill(
-  t: Theme,
+  t: DevToolsTheme,
   label: string,
   value: boolean,
   onClick: () => void,
@@ -309,7 +227,7 @@ function renderTogglePill(
 }
 
 /** 渲染分节标题 + 内容 */
-function renderSec(t: Theme, title: string, children: (VNode | null)[]): VNode {
+function renderSec(t: DevToolsTheme, title: string, children: (VNode | null)[]): VNode {
   return h('div', { style: { marginBottom: '12px' } }, [
     h('div', {
       style: {
@@ -327,7 +245,7 @@ function renderSec(t: Theme, title: string, children: (VNode | null)[]): VNode {
 
 /** 渲染键值行 */
 function renderRow(
-  t: Theme,
+  t: DevToolsTheme,
   label: string,
   value: string,
   mono?: boolean,
@@ -351,7 +269,7 @@ function renderRow(
 
 /** 渲染标题栏 */
 function renderHeader(
-  t: Theme,
+  t: DevToolsTheme,
   overview: FormOverview,
   onClose: () => void,
   onValidate: () => void,
@@ -404,7 +322,7 @@ function renderHeader(
 
 /** 渲染字段树视图 */
 function renderTreeView(
-  t: Theme,
+  t: DevToolsTheme,
   nodes: FieldTreeNode[],
   selected: string | null,
   onSelect: (path: string) => void,
@@ -491,7 +409,7 @@ function renderTreeView(
 const DetailViewComponent = defineComponent({
   name: 'DetailView',
   props: {
-    theme: { type: Object as PropType<Theme>, required: true },
+    DevToolsTheme: { type: Object as PropType<DevToolsTheme>, required: true },
     detail: { type: Object as PropType<FieldDetail>, required: true },
     api: { type: Object as PropType<DevToolsPluginAPI>, required: true },
   },
@@ -543,7 +461,7 @@ const DetailViewComponent = defineComponent({
     }
 
     return (): VNode => {
-      const t = props.theme
+      const t = props.DevToolsTheme
       const detail = props.detail
       const api = props.api
       const isCopied = copiedPath.value === detail.path
@@ -754,7 +672,7 @@ const DetailViewComponent = defineComponent({
 
 /** 渲染事件时间线列表 */
 function renderEventsView(
-  t: Theme,
+  t: DevToolsTheme,
   events: EventLogEntry[],
   onClear: () => void,
 ): VNode {
@@ -842,31 +760,10 @@ function renderEventsView(
   ])
 }
 
-/**
- * resolve Event Color：负责“解析resolve Event Color”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 resolve Event Color 的主要职责边界，便于维护者快速理解函数在链路中的定位。
- */
-function resolveEventColor(type: string, theme: Theme): string {
-  const normalizedType = type.toLowerCase()
-  if (normalizedType.includes('failed')) {
-    return theme.red
-  }
-  if (normalizedType.includes('success')) {
-    return theme.green
-  }
-  if (normalizedType.includes('devtools:')) {
-    return theme.purple
-  }
-  return theme.text
-}
-
 /* ======================== Diff 视图 ======================== */
 
 /** 渲染值 Diff 视图（当前值 vs 初始值） */
-function renderDiffView(t: Theme, diff: ValueDiffEntry[]): VNode {
+function renderDiffView(t: DevToolsTheme, diff: ValueDiffEntry[]): VNode {
   const changed = diff.filter(d => d.changed)
 
   return h('div', {
@@ -946,7 +843,7 @@ function renderDiffView(t: Theme, diff: ValueDiffEntry[]): VNode {
 const ValuesViewComponent = defineComponent({
   name: 'ValuesView',
   props: {
-    theme: { type: Object as PropType<Theme>, required: true },
+    DevToolsTheme: { type: Object as PropType<DevToolsTheme>, required: true },
     values: { type: Object as PropType<Record<string, unknown>>, required: true },
   },
   /**
@@ -975,7 +872,7 @@ const ValuesViewComponent = defineComponent({
     }
 
     return (): VNode => {
-      const t = props.theme
+      const t = props.DevToolsTheme
 
       return h('div', {
         style: {
@@ -1049,46 +946,28 @@ const DevToolsPanelView = defineComponent({
    */
   setup(props) {
     /* ---- 系统主题跟随 ---- */
-    const isDark = ref(
-      typeof window !== 'undefined'
-      && window.matchMedia?.('(prefers-color-scheme: dark)').matches,
-    )
+    const isDark = ref(getSystemDarkMode())
 
     onMounted(() => {
-      const mq = window.matchMedia('(prefers-color-scheme: dark)')
-      isDark.value = mq.matches
-      /**
-       * handler?????????????????
-       * ???`packages/plugin-devtools-vue/src/DevToolsPanel.ts:1094`?
-       * ?????????????????????????????????
-       * ??????????????????????????
-       * @param e ?? e ????????????
-       */
-      const /**
-             * handler：处理当前分支的交互与状态同步。
-             * 功能：处理参数消化、状态变更与调用链行为同步。
-             * @param e 参数 e 为事件对象，用于提供交互上下文。
-             */
-        handler = (e: MediaQueryListEvent): void => {
-          isDark.value = e.matches
-        }
-      mq.addEventListener('change', handler)
-      onUnmounted(() => mq.removeEventListener('change', handler))
+      const dispose = subscribeSystemDarkMode((value) => {
+        isDark.value = value
+      })
+      onUnmounted(dispose)
     })
 
-    const theme = computed<Theme>(() => isDark.value ? darkTheme : lightTheme)
+    const DevToolsTheme = computed<DevToolsTheme>(() => getDevToolsTheme(isDark.value))
 
     /* ---- 面板 UI 状态 ---- */
     /** 面板是否展开 */
     const visible = ref(false)
     /** 当前激活的 Tab */
-    const tab = ref<Tab>('tree')
+    const tab = ref<DevToolsTab>('tree')
     /** 当前选中的字段路径 */
     const selected = ref<string | null>(null)
     /** 搜索关键词 */
     const search = ref('')
     /** 过滤器类型 */
-    const filter = ref<'all' | 'error' | 'required' | 'modified'>('all')
+    const filter = ref<DevToolsFilter>('all')
     /** 数据版本号，API subscribe 回调时递增以触发 computed 重算 */
     const tick = ref(0)
 
@@ -1150,7 +1029,7 @@ const DevToolsPanelView = defineComponent({
 
     /* ---- 渲染 ---- */
     return (): VNode => {
-      const t = theme.value
+      const t = DevToolsTheme.value
       const ov = overview.value
 
       /* ===== 未展开时：浮动触发按钮 ===== */
@@ -1205,8 +1084,8 @@ const DevToolsPanelView = defineComponent({
           bottom: '20px',
           right: '20px',
           zIndex: 99999,
-          width: `${PANEL_W}px`,
-          height: `${PANEL_H}px`,
+          width: `${DEVTOOLS_PANEL_WIDTH}px`,
+          height: `${DEVTOOLS_PANEL_HEIGHT}px`,
           background: t.bg,
           color: t.text,
           borderRadius: '12px',
@@ -1238,7 +1117,7 @@ const DevToolsPanelView = defineComponent({
             flexShrink: 0,
           },
         }, [
-          ...(['tree', 'events', 'diff', 'values'] as Tab[]).map(tb =>
+          ...(['tree', 'events', 'diff', 'values'] as DevToolsTab[]).map(tb =>
             renderTabBtn(
               t,
               tab.value === tb,
@@ -1246,7 +1125,7 @@ const DevToolsPanelView = defineComponent({
                 tab.value = tb
                 selected.value = null
               },
-              TAB_LABELS[tb],
+              DEVTOOLS_TAB_LABELS[tb],
               tb === 'events'
                 ? events.value.length
                 : tb === 'diff'
@@ -1296,7 +1175,7 @@ const DevToolsPanelView = defineComponent({
                 t,
                 filter.value === f,
                 () => { filter.value = f },
-                FILTER_LABELS[f],
+                DEVTOOLS_FILTER_LABELS[f],
               ),
             ))
           : null,
@@ -1311,7 +1190,7 @@ const DevToolsPanelView = defineComponent({
                 /* 左侧：字段树 */
                 h('div', {
                   style: {
-                    width: `${TREE_W}px`,
+                    width: `${DEVTOOLS_TREE_WIDTH}px`,
                     flexShrink: 0,
                     overflow: 'auto',
                     borderRight: `1px solid ${t.border}`,
@@ -1331,7 +1210,7 @@ const DevToolsPanelView = defineComponent({
                 h('div', { style: { flex: 1, overflow: 'auto' } }, [
                   detail.value
                     ? h(DetailViewComponent, {
-                        theme: t,
+                        DevToolsTheme: t,
                         detail: detail.value,
                         api: props.api,
                       })
@@ -1352,7 +1231,7 @@ const DevToolsPanelView = defineComponent({
 
           /* 数据 Tab */
           tab.value === 'values'
-            ? h(ValuesViewComponent, { theme: t, values: ov.values })
+            ? h(ValuesViewComponent, { DevToolsTheme: t, values: ov.values })
             : null,
         ]),
       ])
@@ -1389,51 +1268,3 @@ export const DevToolsPanel = defineComponent({
     }, () => h(SchemaField, { schema: schema.value }))
   },
 })
-
-/* ======================== 工具函数 ======================== */
-
-/**
- * 过滤字段树
- *
- * 支持按关键词搜索（匹配 label/name/path）和按状态过滤（error/required/modified）。
- * 如果某节点的子节点匹配，即使该节点自身不匹配也会保留（保持树结构完整）。
- */
-function filterTree(
-  nodes: FieldTreeNode[],
-  search: string,
-  filter: string,
-  diff: ValueDiffEntry[],
-): FieldTreeNode[] {
-  const modifiedPaths = new Set(diff.filter(d => d.changed).map(d => d.path))
-
-  /** 判断单个节点是否匹配过滤条件 */
-  function match(node: FieldTreeNode): boolean {
-    /* 关键词搜索：匹配 label、name 或 path */
-    if (search
-      && !(node.label || node.name).toLowerCase().includes(search.toLowerCase())
-      && !node.path.toLowerCase().includes(search.toLowerCase())) {
-      return false
-    }
-    /* 状态过滤 */
-    if (filter === 'error' && node.errorCount === 0)
-      return false
-    if (filter === 'required' && !node.required)
-      return false
-    if (filter === 'modified' && !modifiedPaths.has(node.path))
-      return false
-    return true
-  }
-
-  /** 递归过滤节点及其子节点 */
-  function filterNode(node: FieldTreeNode): FieldTreeNode | null {
-    const filteredChildren = node.children
-      .map(filterNode)
-      .filter(Boolean) as FieldTreeNode[]
-    if (match(node) || filteredChildren.length > 0) {
-      return { ...node, children: filteredChildren }
-    }
-    return null
-  }
-
-  return nodes.map(filterNode).filter(Boolean) as FieldTreeNode[]
-}

@@ -93,6 +93,8 @@ export type {
   LowCodeDesignerRenderContext,
 } from './designer-shared/types'
 
+export { LOW_CODE_DESIGNER_TEXT, LOW_CODE_NODE_TOOLBAR_ICONS } from './designer-shared/ui'
+
 export {
   collectDropTargetKeys,
   collectPreviewFields,

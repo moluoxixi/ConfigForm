@@ -286,6 +286,7 @@ async function switchUI(lib: UILib): Promise<void> {
   const adapter = await adapters[lib]()
   adapter.setup()
   currentAdapter.value = adapter
+  await loadScene(currentDemo.value)
 }
 switchUI(currentUI.value)
 watch(currentUI, switchUI)

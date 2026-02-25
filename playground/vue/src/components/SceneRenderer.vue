@@ -55,7 +55,7 @@ import type { SceneConfig } from '@playground/shared'
 import { devToolsPlugin } from '@moluoxixi/plugin-devtools'
 import { resolveSceneSchema } from '@playground/shared'
 import type { Component } from 'vue'
-import { computed, ref, watch } from 'vue'
+import { computed, getCurrentInstance, ref, watch } from 'vue'
 
 const props = defineProps<{
   config: SceneConfig
@@ -65,7 +65,8 @@ const props = defineProps<{
   extraPlugins?: FormPlugin[]
 }>()
 
-const devTools = devToolsPlugin()
+const instanceId = getCurrentInstance()?.uid ?? Math.random().toString(36).slice(2)
+const devTools = devToolsPlugin({ formId: `vue-scene-${instanceId}` })
 const variants = props.config.schemaVariants
 const variantValue = ref(variants?.defaultValue ?? '')
 
