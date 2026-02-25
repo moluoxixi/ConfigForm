@@ -8,6 +8,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+const props = defineProps<{
+  modelValue?: string
+  value?: string
+}>()
+
+const displayValue = computed(() => props.modelValue ?? props.value ?? '—')
+const swatchColor = computed(() => {
+  const next = props.modelValue ?? props.value ?? ''
+  return next || '#000'
+})
+
 const wrapperStyle = {
   display: 'inline-flex',
   alignItems: 'center',

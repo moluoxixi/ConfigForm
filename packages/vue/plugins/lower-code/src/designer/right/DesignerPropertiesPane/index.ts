@@ -817,6 +817,7 @@ export const DesignerPropertiesPane = defineComponent({
             components: {
               DesignerPropertiesSlotRenderer,
             },
+            formTag: false,
           }),
         ]),
       ]),

@@ -22,9 +22,28 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+
+const props = defineProps<{
+  modelValue?: string
+  disabled?: boolean
+  preview?: boolean
+}>()
+
+const emit = defineEmits<{
+  (event: 'update:modelValue', value: string): void
+}>()
+
+const disabled = computed(() => Boolean(props.disabled))
+const preview = computed(() => Boolean(props.preview))
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
+const isDrawing = ref(false)
+const lastRenderedValue = ref<string | undefined>(undefined)
+
+function getContext(): CanvasRenderingContext2D | null {
+  return canvasRef.value?.getContext('2d') ?? null
+}
 
 /**
  * renderCanvas?????????????????
@@ -147,20 +166,20 @@ function handleClear(): void {
  * 所属模块：`playground/vue/src/components/custom/SignaturePad.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
-const canvasStyle = {
+const canvasStyle = computed(() => ({
   border: '1px solid #d9d9d9',
   borderRadius: '6px',
   cursor: props.disabled || props.preview ? 'not-allowed' : 'crosshair',
   display: 'block',
   background: '#fff',
-} as const
+} as const))
 
 /**
  * button Style：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/components/custom/SignaturePad.vue`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
-const buttonStyle = {
+const buttonStyle = computed(() => ({
   marginTop: '4px',
   padding: '2px 12px',
   fontSize: '12px',
@@ -168,5 +187,5 @@ const buttonStyle = {
   borderRadius: '4px',
   background: '#fff',
   cursor: props.disabled || props.preview ? 'not-allowed' : 'pointer',
-} as const
+} as const))
 </script>

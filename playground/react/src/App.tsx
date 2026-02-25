@@ -9,7 +9,7 @@ import type { SceneConfig } from '@playground/shared'
 import { DevToolsPanel } from '@moluoxixi/plugin-devtools-react'
 import { setupLowerCodeDesigner } from '@moluoxixi/plugin-lower-code-react'
 import { registerComponent, registerDecorator } from '@moluoxixi/react'
-import { setupAntd } from '@moluoxixi/ui-antd'
+import { setupAntd, StatusTabs } from '@moluoxixi/ui-antd'
 import { getSceneGroups, sceneRegistry } from '@playground/shared'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import {
@@ -170,6 +170,7 @@ export function App(): React.ReactElement {
                   extraPlugins={scenePlugins}
                   headerExtra={sceneHeaderExtra}
                   style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
+                  StatusTabs={StatusTabs}
                 />
               )
             : (

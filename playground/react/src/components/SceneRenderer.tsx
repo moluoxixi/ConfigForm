@@ -8,10 +8,19 @@ import type { FieldPattern, FormPlugin, ISchema } from '@moluoxixi/core'
 import type { SceneConfig } from '@playground/shared'
 import { devToolsPlugin } from '@moluoxixi/plugin-devtools'
 import { ConfigForm } from '@moluoxixi/ui-basic-react'
-import { StatusTabs } from '@moluoxixi/ui-antd'
 import { resolveSceneSchema } from '@playground/shared'
 import { observer } from 'mobx-react-lite'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+
+interface StatusTabsRenderContext {
+  mode: FieldPattern
+  showResult: (values: Record<string, unknown>) => void
+  showErrors: (errors: unknown[]) => void
+}
+
+type StatusTabsComponent = React.ComponentType<{
+  children: (ctx: StatusTabsRenderContext) => React.ReactNode
+}>
 
 /**
  * SceneRendererProps??????
@@ -25,6 +34,7 @@ interface SceneRendererProps {
   extraPlugins?: FormPlugin[]
   headerExtra?: React.ReactNode
   style?: React.CSSProperties
+  StatusTabs: StatusTabsComponent
 }
 
 /**
@@ -65,10 +75,8 @@ function SceneForm({ config, schema, mode, extraPlugins, showResult, showErrors 
       schema={schema}
       pattern={mode}
       initialValues={config.initialValues}
-      formConfig={{
-        effects: config.effects,
-        plugins: [...(config.plugins ?? []), ...(extraPlugins ?? []), devTools],
-      }}
+      effects={config.effects}
+      plugins={[...(config.plugins ?? []), ...(extraPlugins ?? []), devTools]}
       onSubmit={showResult}
       onSubmitFailed={errors => showErrors(errors)}
       onReset={handleReset}
@@ -77,7 +85,15 @@ function SceneForm({ config, schema, mode, extraPlugins, showResult, showErrors 
   )
 }
 
-export const SceneRenderer = observer(({ config, title, description, extraPlugins, headerExtra, style }: SceneRendererProps): React.ReactElement => {
+export const SceneRenderer = observer(({
+  config,
+  title,
+  description,
+  extraPlugins,
+  headerExtra,
+  style,
+  StatusTabs: StatusTabsComponent,
+}: SceneRendererProps): React.ReactElement => {
   const variants = config.schemaVariants
   const [variantValue, setVariantValue] = useState(variants?.defaultValue ?? '')
 
@@ -126,7 +142,7 @@ export const SceneRenderer = observer(({ config, title, description, extraPlugin
       )}
 
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-        <StatusTabs>
+        <StatusTabsComponent>
           {({ mode, showResult, showErrors }) => (
             <div data-configform-print-root="true" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
               <SceneForm
@@ -139,7 +155,7 @@ export const SceneRenderer = observer(({ config, title, description, extraPlugin
               />
             </div>
           )}
-        </StatusTabs>
+        </StatusTabsComponent>
       </div>
     </div>
   )

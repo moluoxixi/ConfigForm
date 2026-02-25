@@ -563,6 +563,7 @@ export const DesignerCanvasPane = defineComponent({
             key: paneRenderKey.value,
             schema: paneSchema.value,
             components: paneComponents,
+            formTag: false,
           }),
         ]),
       ]),

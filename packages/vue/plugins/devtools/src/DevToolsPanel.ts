@@ -5,6 +5,7 @@
  * 使用 defineComponent + h() 渲染函数实现，功能与 React 版完全对齐。
  * 可直接复用于 Chrome Extension（数据来源改为 postMessage 即可）。
  */
+import type { ISchema } from '@moluoxixi/core'
 import type {
   DevToolsPluginAPI,
   EventLogEntry,
@@ -13,17 +14,9 @@ import type {
   FormOverview,
   ValueDiffEntry,
 } from '@moluoxixi/plugin-devtools'
+import { FormProvider, SchemaField, useCreateForm } from '@moluoxixi/vue'
 import type { PropType, VNode } from 'vue'
-import {
-  computed,
-  defineComponent,
-  h,
-  onMounted,
-  onUnmounted,
-
-  ref,
-
-} from 'vue'
+import { computed, defineComponent, h, onMounted, onUnmounted, ref } from 'vue'
 
 /* ======================== 主题 ======================== */
 
@@ -1040,8 +1033,8 @@ const ValuesViewComponent = defineComponent({
 /* ======================== 主面板组件 ======================== */
 
 /** DevTools 浮动面板主组件 */
-export const DevToolsPanel = defineComponent({
-  name: 'DevToolsPanel',
+const DevToolsPanelView = defineComponent({
+  name: 'DevToolsPanelView',
   props: {
     api: {
       type: Object as PropType<DevToolsPluginAPI>,
@@ -1364,6 +1357,36 @@ export const DevToolsPanel = defineComponent({
         ]),
       ])
     }
+  },
+})
+
+/** DevTools 面板入口：通过 Schema 渲染注册组件 */
+export const DevToolsPanel = defineComponent({
+  name: 'DevToolsPanel',
+  props: {
+    api: {
+      type: Object as PropType<DevToolsPluginAPI>,
+      required: true,
+    },
+  },
+  setup(props) {
+    const form = useCreateForm()
+    const schema = computed<ISchema>(() => ({
+      type: 'object',
+      properties: {
+        panel: {
+          type: 'void',
+          component: 'DevToolsPanelView',
+          componentProps: { api: props.api },
+        },
+      },
+    }))
+    const components = { DevToolsPanelView }
+
+    return () => h(FormProvider, {
+      form,
+      components,
+    }, () => h(SchemaField, { schema: schema.value }))
   },
 })
 

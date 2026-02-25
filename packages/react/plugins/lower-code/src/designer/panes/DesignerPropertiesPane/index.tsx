@@ -50,6 +50,7 @@ export function DesignerPropertiesPane(props: DesignerPropertiesPaneProps): Reac
       components={{
         DesignerPropertiesRenderer,
       }}
+      formTag={false}
       className="cf-lc-pane-configform-shell"
     />
   )

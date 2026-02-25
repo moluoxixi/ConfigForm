@@ -50,6 +50,25 @@
 </template>
 
 <script setup lang="ts">
+import type { FieldPattern, FormPlugin, ISchema } from '@moluoxixi/core'
+import type { SceneConfig } from '@playground/shared'
+import { devToolsPlugin } from '@moluoxixi/plugin-devtools'
+import { resolveSceneSchema } from '@playground/shared'
+import type { Component } from 'vue'
+import { computed, ref, watch } from 'vue'
+
+const props = defineProps<{
+  config: SceneConfig
+  statusTabs: Component
+  title?: string
+  description?: string
+  extraPlugins?: FormPlugin[]
+}>()
+
+const devTools = devToolsPlugin()
+const variants = props.config.schemaVariants
+const variantValue = ref(variants?.defaultValue ?? '')
+
 const st = ref<{
   mode?: FieldPattern | { value?: FieldPattern }
   showErrors?: (error: unknown) => void
@@ -65,6 +84,10 @@ const resolvedPlugins = computed(() => [
 const currentSchema = computed<ISchema>(() => {
   return resolveSceneSchema(props.config, variantValue.value)
 })
+
+function clearStatus(): void {
+  st.value?.showErrors?.([])
+}
 
 /**
  * read Mode Value：封装该模块的核心渲染与交互逻辑。

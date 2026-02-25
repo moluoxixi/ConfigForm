@@ -15,6 +15,25 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+
+const props = defineProps<{
+  modelValue?: string
+  disabled?: boolean
+  preview?: boolean
+  language?: string
+}>()
+
+const emit = defineEmits<{
+  (event: 'update:modelValue', value: string): void
+}>()
+
+const modelValue = computed(() => props.modelValue ?? '')
+const disabled = computed(() => props.disabled ?? false)
+const preview = computed(() => props.preview ?? false)
+const language = computed(() => props.language ?? '')
+const lines = computed(() => modelValue.value.split('\n').length)
+
 const wrapperStyle = {
   position: 'relative',
   border: '1px solid #d9d9d9',

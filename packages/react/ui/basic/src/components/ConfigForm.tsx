@@ -63,6 +63,8 @@ export interface ConfigFormProps<Values extends Record<string, unknown> = Record
   registry?: RegistryState
   /** 表单模式（优先级高于 schema.decoratorProps.pattern） */
   pattern?: FieldPattern
+  /** 是否渲染为原生 form 标签（嵌套场景可设为 false） */
+  formTag?: boolean
   /** 自定义子节点 */
   children?: ReactNode
   /** HTML class */
@@ -103,6 +105,7 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
     scope,
     registry,
     pattern: patternProp,
+    formTag,
     children,
     className,
     style,
@@ -280,6 +283,10 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
     }
   }
 
+  const useFormTag = formTag !== false
+  const FormTag = (useFormTag ? 'form' : 'div') as 'form' | 'div'
+  const formProps = useFormTag ? { onSubmit: handleSubmit, noValidate: true } : { role: 'form' }
+
   return (
     <FormProvider
       form={form}
@@ -291,7 +298,7 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
       scope={scope}
       registry={registry}
     >
-      <form onSubmit={handleSubmit} className={className} style={style} noValidate>
+      <FormTag {...formProps} className={className} style={style}>
         {effectiveSchema && (
           <div style={fieldContainerStyle}>
             <SchemaField schema={effectiveSchema} />
@@ -312,7 +319,7 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
         )}
 
         {children}
-      </form>
+      </FormTag>
     </FormProvider>
   )
 }) as <Values extends Record<string, unknown> = Record<string, unknown>>(

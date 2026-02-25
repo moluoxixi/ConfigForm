@@ -4,7 +4,9 @@
  * 纯数据 props 驱动，不依赖 form 实例。
  * 可直接复用于 Chrome Extension（数据来源改为 postMessage 即可）。
  */
+import type { ISchema } from '@moluoxixi/core'
 import type { DevToolsPanelProps, DevToolsPluginAPI, EventLogEntry, FieldDetail, FieldTreeNode, FormOverview, ValueDiffEntry } from '@moluoxixi/plugin-devtools'
+import { FormProvider, SchemaField, useCreateForm } from '@moluoxixi/react'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
 /* ======================== 主题 ======================== */
@@ -128,11 +130,11 @@ type Tab = 'tree' | 'events' | 'diff' | 'values'
 /* ======================== 主面板 ======================== */
 
 /**
- * DevToolsPanel：处理当前分支的交互与状态同步。
+ * DevToolsPanelView：处理当前分支的交互与状态同步。
  * 功能：处理参数消化、状态变更与调用链行为同步。
  * @returns 返回当前分支执行后的处理结果。
  */
-export function DevToolsPanel({ api }: DevToolsPanelProps): React.ReactElement {
+function DevToolsPanelView({ api }: DevToolsPanelProps): React.ReactElement {
   const t = useSystemTheme()
   const [visible, setVisible] = useState(false)
   const [tab, setTab] = useState<Tab>('tree')
@@ -339,6 +341,30 @@ export function DevToolsPanel({ api }: DevToolsPanelProps): React.ReactElement {
         {tab === 'values' && <ValuesView t={t} values={overview.values} />}
       </div>
     </div>
+  )
+}
+
+/**
+ * DevToolsPanel：插件层 UI 必须通过 Schema 渲染的入口。
+ */
+export function DevToolsPanel(props: DevToolsPanelProps): React.ReactElement {
+  const form = useCreateForm()
+  const schema = useMemo<ISchema>(() => ({
+    type: 'object',
+    properties: {
+      panel: {
+        type: 'void',
+        component: 'DevToolsPanelView',
+        componentProps: { api: props.api },
+      },
+    },
+  }), [props.api])
+  const components = useMemo(() => ({ DevToolsPanelView }), [])
+
+  return (
+    <FormProvider form={form} components={components}>
+      <SchemaField schema={schema} />
+    </FormProvider>
   )
 }
 

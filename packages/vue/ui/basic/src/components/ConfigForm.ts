@@ -164,6 +164,10 @@ export const ConfigForm = defineComponent({
       type: String as PropType<FieldPattern>,
       default: undefined,
     },
+    formTag: {
+      type: Boolean as PropType<boolean>,
+      default: true,
+    },
   },
   emits: ['submit', 'submitFailed', 'valuesChange', 'reset'],
   /**
@@ -391,6 +395,11 @@ export const ConfigForm = defineComponent({
         ? actions.align
         : 'center'
 
+      const FormTag = props.formTag ? 'form' : 'div'
+      const formProps = props.formTag
+        ? { onSubmit: handleSubmit, novalidate: true }
+        : { role: 'form' }
+
       return h(FormProvider, {
         form,
         components: props.components,
@@ -401,10 +410,7 @@ export const ConfigForm = defineComponent({
         scope: props.scope,
         registry: props.registry,
       }, () =>
-        h('form', {
-          onSubmit: handleSubmit,
-          novalidate: true,
-        }, [
+        h(FormTag, formProps, [
           /* 字段容器（始终使用 div 包裹，避免布局切换时因 DOM 结构变化导致字段树重建） */
           effectiveSchema.value
             ? h('div', {

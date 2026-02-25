@@ -242,6 +242,7 @@ export const DesignerMaterialPane = defineComponent({
               DesignerMaterialToolbarRenderer,
               DesignerMaterialListRenderer,
             },
+            formTag: false,
           }),
         ]),
       ]),

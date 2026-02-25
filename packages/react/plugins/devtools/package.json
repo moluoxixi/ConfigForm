@@ -37,7 +37,9 @@
     "react": ">=18.0.0"
   },
   "dependencies": {
-    "@moluoxixi/plugin-devtools": "workspace:*"
+    "@moluoxixi/core": "workspace:*",
+    "@moluoxixi/plugin-devtools": "workspace:*",
+    "@moluoxixi/react": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "catalog:type",

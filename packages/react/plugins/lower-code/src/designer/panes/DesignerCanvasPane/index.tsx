@@ -60,6 +60,7 @@ export function DesignerCanvasPane(props: DesignerCanvasPaneProps): ReactElement
           DesignerCanvasHeaderRenderer,
           DesignerCanvasBodyRenderer,
         }}
+        formTag={false}
         className="cf-lc-pane-configform-shell"
       />
     </section>

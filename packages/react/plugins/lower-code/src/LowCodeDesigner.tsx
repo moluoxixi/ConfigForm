@@ -35,10 +35,9 @@ import {
   schemaToNodes,
   updateNodeById,
 } from '@moluoxixi/plugin-lower-code-core'
-import { ComponentRegistryContext } from '@moluoxixi/react'
-import { ConfigForm } from '@moluoxixi/ui-basic-react'
+import { ComponentRegistryContext, FormProvider, SchemaField, useCreateForm } from '@moluoxixi/react'
 import JSONEditor from 'jsoneditor'
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import Sortable from 'sortablejs'
 import { DesignerHeader } from './designer/Header'
 import { PreviewPanel } from './designer/panels/PreviewPanel'
@@ -206,6 +205,7 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
   const editorHostRef = useRef<HTMLDivElement>(null)
   const editorRef = useRef<JSONEditor | null>(null)
   const componentPropsByComponentRef = useRef(componentPropsByComponent)
+  const designerForm = useCreateForm({}, { resetKey: 'designer' })
 
   const builtSchema = useMemo(() => nodesToSchema(nodes), [nodes])
   const builtSignature = useMemo(() => schemaSignature(builtSchema), [builtSchema])
@@ -327,6 +327,10 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
     [
       canvasHostRef,
       componentPropsByComponent,
+      handleAddSection,
+      handleDuplicateNode,
+      handleRemoveNode,
+      handleRemoveSection,
       designerMaterials.componentMaterials,
       designerMaterials.fieldComponentOptions,
       designerMaterials.layoutMaterials,
@@ -348,14 +352,6 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
     ],
   )
 
-  const mainGridComponents = useMemo(
-    () => ({
-      DesignerMaterialPane,
-      DesignerCanvasPane,
-      DesignerPropertiesPane,
-    }),
-    [],
-  )
   const mainGridRenderKey = useMemo(
     () => `${builtSignature}:${selectedId ?? 'none'}`,
     [builtSignature, selectedId],
@@ -847,25 +843,158 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
     setNodes(prev => removeSectionFromContainer(prev, containerId, sectionId))
   }
 
-  return (
+  const DesignerRoot = useCallback(({ children }: { children?: React.ReactNode }) => (
     <div ref={designerRootRef} className="cf-lc-root">
       <style>{DESIGNER_CSS}</style>
-      <DesignerHeader />
-
-      <ConfigForm
-        key={mainGridRenderKey}
-        className="cf-lc-main-grid"
-        schema={mainGridSchema}
-        components={mainGridComponents}
-      />
-
-      <div className="cf-lc-bottom-grid">
-        <SchemaPanel editorHostRef={editorHostRef} />
-        <PreviewPanel
-          fields={previewFields}
-          renderFieldPreviewControl={resolvedRenderers.renderFieldPreviewControl}
-        />
-      </div>
+      {children}
     </div>
+  ), [])
+
+  const DesignerMainGrid = useCallback(() => (
+    <div className="cf-lc-main-grid">
+      <SchemaField key={mainGridRenderKey} schema={mainGridSchema} />
+    </div>
+  ), [mainGridRenderKey, mainGridSchema])
+
+  const DesignerBottomGrid = useCallback(({ children }: { children?: React.ReactNode }) => (
+    <div className="cf-lc-bottom-grid">
+      {children}
+    </div>
+  ), [])
+
+  const designerSchema = useMemo<ISchema>(() => ({
+    type: 'object',
+    properties: {
+      root: {
+        type: 'void',
+        component: 'DesignerRoot',
+        properties: {
+          header: {
+            type: 'void',
+            component: 'DesignerHeader',
+          },
+          main: {
+            type: 'void',
+            component: 'DesignerMainGrid',
+            properties: {
+              materials: {
+                type: 'void',
+                component: 'DesignerMaterialPane',
+                componentProps: {
+                  componentMaterials: designerMaterials.componentMaterials,
+                  layoutMaterials: designerMaterials.layoutMaterials,
+                  materialHostRef,
+                  renderMaterialPreview: resolvedRenderers.renderMaterialPreview,
+                },
+              },
+              canvas: {
+                type: 'void',
+                component: 'DesignerCanvasPane',
+                componentProps: {
+                  nodes,
+                  minCanvasHeight,
+                  selectedId,
+                  canvasHostRef,
+                  onSelect: setSelectedId,
+                  onDuplicateNode: handleDuplicateNode,
+                  onRemoveNode: handleRemoveNode,
+                  onAddSection: handleAddSection,
+                  onRemoveSection: handleRemoveSection,
+                  renderFieldPreviewControl: resolvedRenderers.renderFieldPreviewControl,
+                },
+              },
+              properties: {
+                type: 'void',
+                component: 'DesignerPropertiesPane',
+                componentProps: {
+                  nodes,
+                  selectedField,
+                  selectedContainer,
+                  selectedSection,
+                  enumDraft,
+                  setEnumDraft,
+                  onUpdateNodes: setNodes,
+                  updateField,
+                  updateContainer,
+                  fieldComponentOptions: designerMaterials.fieldComponentOptions,
+                  componentDefinitions: mergedComponentDefinitions,
+                  componentPropsByComponent,
+                  onUpdateComponentPropByComponentName: updateComponentPropByComponentName,
+                },
+              },
+            },
+          },
+          bottom: {
+            type: 'void',
+            component: 'DesignerBottomGrid',
+            properties: {
+              schema: {
+                type: 'void',
+                component: 'SchemaPanel',
+                componentProps: {
+                  editorHostRef,
+                },
+              },
+              preview: {
+                type: 'void',
+                component: 'PreviewPanel',
+                componentProps: {
+                  fields: previewFields,
+                  renderFieldPreviewControl: resolvedRenderers.renderFieldPreviewControl,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  }), [
+    componentPropsByComponent,
+    handleAddSection,
+    handleDuplicateNode,
+    handleRemoveNode,
+    handleRemoveSection,
+    designerMaterials.componentMaterials,
+    designerMaterials.fieldComponentOptions,
+    designerMaterials.layoutMaterials,
+    editorHostRef,
+    enumDraft,
+    mergedComponentDefinitions,
+    minCanvasHeight,
+    nodes,
+    previewFields,
+    resolvedRenderers.renderFieldPreviewControl,
+    resolvedRenderers.renderMaterialPreview,
+    selectedContainer,
+    selectedField,
+    selectedId,
+    selectedSection,
+    setEnumDraft,
+    setNodes,
+    updateComponentPropByComponentName,
+    updateContainer,
+    updateField,
+  ])
+
+  const designerComponents = useMemo(() => ({
+    DesignerRoot,
+    DesignerHeader,
+    DesignerMainGrid,
+    DesignerBottomGrid,
+    DesignerMaterialPane,
+    DesignerCanvasPane,
+    DesignerPropertiesPane,
+    SchemaPanel,
+    PreviewPanel,
+  }), [
+    DesignerRoot,
+    DesignerMainGrid,
+    DesignerBottomGrid,
+  ])
+
+  return (
+    <FormProvider form={designerForm} components={designerComponents}>
+      <SchemaField schema={designerSchema} />
+    </FormProvider>
   )
 }

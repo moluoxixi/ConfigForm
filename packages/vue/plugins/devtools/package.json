@@ -37,7 +37,9 @@
     "vue": ">=3.3.0"
   },
   "dependencies": {
-    "@moluoxixi/plugin-devtools": "workspace:*"
+    "@moluoxixi/core": "workspace:*",
+    "@moluoxixi/plugin-devtools": "workspace:*",
+    "@moluoxixi/vue": "workspace:*"
   },
   "devDependencies": {
     "tsup": "catalog:type",

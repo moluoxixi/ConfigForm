@@ -51,6 +51,7 @@ export function SchemaPreview({
         actions={actions}
         defaultDecorators={defaultDecorators}
         readPrettyComponents={readPrettyComponents}
+        formTag={false}
       />
     </div>
   )

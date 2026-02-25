@@ -10,6 +10,7 @@ import type {
   LowCodeDesignerComponentDefinition,
   LowCodeDesignerRenderers,
 } from './designer/types'
+import type { ISchema } from '@moluoxixi/core'
 import { cloneDeep } from '@moluoxixi/core'
 import {
   addSectionToContainer,
@@ -38,7 +39,7 @@ import {
   schemaToNodes,
   updateNodeById,
 } from '@moluoxixi/plugin-lower-code-core'
-import { ComponentRegistrySymbol } from '@moluoxixi/vue'
+import { ComponentRegistrySymbol, FormProvider, SchemaField, useCreateForm } from '@moluoxixi/vue'
 import JSONEditor from 'jsoneditor'
 import Sortable from 'sortablejs'
 import { computed, defineComponent, h, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
@@ -807,6 +808,7 @@ function renderFallbackContainerPreview(node: DesignerNode): VNodeChild {
 
 export const LowCodeDesigner = defineComponent({
   name: 'LowerCodeDesigner',
+  inheritAttrs: false,
   props: {
     modelValue: { type: Object as PropType<unknown>, default: undefined },
     disabled: { type: Boolean, default: false },
@@ -818,7 +820,7 @@ export const LowCodeDesigner = defineComponent({
       default: undefined,
     },
   },
-  emits: ['update:modelValue'],
+  emits: ['update:modelValue', 'focus', 'blur'],
   /**
    * 低代码设计器主 setup。
    *
@@ -861,6 +863,14 @@ export const LowCodeDesigner = defineComponent({
     const
       setCanvasHost = (element: HTMLElement | null): void => {
         canvasHost.value = element
+      }
+    const
+      setDesignerRoot = (element: HTMLElement | null): void => {
+        designerRoot.value = element
+      }
+    const
+      setEditorHost = (element: HTMLElement | null): void => {
+        editorHost.value = element
       }
 
     const registeredComponentNames = computed(() =>
@@ -1500,102 +1510,103 @@ export const LowCodeDesigner = defineComponent({
       return renderNodeByRegistry(node, phase)
     }
 
-    return () => h('div', {
-      ref: designerRoot,
-      style: {
-        border: '1px solid #d7e0ef',
-        borderRadius: '16px',
-        overflow: 'hidden',
-        background: '#f8fbff',
-        boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)',
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: 0,
-      },
-    }, [
-      h('style', undefined, DESIGNER_CSS),
-      h('div', {
-        style: {
-          padding: '14px 18px',
-          borderBottom: '1px solid #d5e2f3',
-          background: 'linear-gradient(112deg, #0f172a 0%, #1e3a8a 58%, #0d9488 120%)',
-          color: '#f8fafc',
-        },
-      }, [
-        h('div', { style: { fontSize: '15px', fontWeight: 700 } }, '低代码设计器'),
-        h('div', { style: { marginTop: '4px', fontSize: '12px', color: '#dbeafe' } }, '左侧物料、中间画布、右侧属性全部由 ConfigForm 组合渲染。'),
-      ]),
+    const designerForm = useCreateForm()
 
-      h('div', {
-        class: 'cf-lc-main-grid',
-        style: {
-          padding: '12px',
-          minHeight: 0,
+    const DesignerRoot = defineComponent({
+      name: 'DesignerRoot',
+      props: {
+        setRootRef: {
+          type: Function as PropType<(element: HTMLDivElement | null) => void>,
+          required: true,
         },
-      }, [
-        h('div', {
+      },
+      setup(rootProps, { slots }) {
+        return () => h('div', {
+          ref: (element: HTMLDivElement | null) => rootProps.setRootRef(element),
           style: {
-            display: 'flex',
-            alignItems: 'stretch',
-            gap: '12px',
-            width: '100%',
-            minWidth: 0,
-            minHeight: 0,
-            height: 'clamp(360px, 55vh, 640px)',
+            border: '1px solid #d7e0ef',
+            borderRadius: '16px',
             overflow: 'hidden',
+            background: '#f8fbff',
+            boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)',
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: 0,
           },
         }, [
-          h(DesignerMaterialPane, {
-            componentMaterials: designerMaterials.value.componentMaterials,
-            layoutMaterials: designerMaterials.value.layoutMaterials,
-            setMaterialHost,
-            readonly: readonly.value,
-            renderMaterialPreview,
-          }),
-          h(DesignerCanvasPane, {
-            nodes: nodes.value,
-            minCanvasHeight: props.minCanvasHeight,
-            selectedId: selectedId.value,
-            readonly: readonly.value,
-            setCanvasHost,
-            /** 画布节点/分组选中回调，驱动右侧属性面板切换。 */
-            onSelect: (id: string) => { selectedId.value = id },
-            onDuplicateNode: handleDuplicateNode,
-            onRemoveNode: handleRemoveNode,
-            onAddSection: handleAddSection,
-            onRemoveSection: handleRemoveSection,
-            /** 画布阶段字段预览渲染入口。 */
-            renderFieldPreviewControl: (node: DesignerFieldNode) => renderFieldPreviewControl(node, 'canvas'),
-          }),
-          h(DesignerPropertiesPane, {
-            nodes: nodes.value,
-            readonly: readonly.value,
-            selectedField: selectedField.value,
-            selectedContainer: selectedContainer.value,
-            selectedSection: selectedSection.value,
-            enumDraft: enumDraft.value,
-            /** 更新右侧“枚举草稿文本”，与 Select 字段选项双向同步。 */
-            setEnumDraft: (value: string) => { enumDraft.value = value },
-            onUpdateNodes: updateNodes,
-            updateField,
-            updateContainer,
-            fieldComponentOptions: designerMaterials.value.fieldComponentOptions,
-            componentDefinitions: resolvedComponentDefinitions.value,
-            componentPropsByComponent: componentPropsByComponent.value,
-            onUpdateComponentPropByComponentName: updateComponentPropByComponentName,
-          }),
-        ]),
-      ]),
+          h('style', undefined, DESIGNER_CSS),
+          slots.default?.(),
+        ])
+      },
+    })
 
-      h('div', {
-        style: {
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '12px',
-          padding: '0 12px 12px',
+    const DesignerHeader = defineComponent({
+      name: 'DesignerHeader',
+      setup() {
+        return () => h('div', {
+          style: {
+            padding: '14px 18px',
+            borderBottom: '1px solid #d5e2f3',
+            background: 'linear-gradient(112deg, #0f172a 0%, #1e3a8a 58%, #0d9488 120%)',
+            color: '#f8fafc',
+          },
+        }, [
+          h('div', { style: { fontSize: '15px', fontWeight: 700 } }, '低代码设计器'),
+          h('div', { style: { marginTop: '4px', fontSize: '12px', color: '#dbeafe' } }, '左侧物料、中间画布、右侧属性全部由 ConfigForm 组合渲染。'),
+        ])
+      },
+    })
+
+    const DesignerMainGrid = defineComponent({
+      name: 'DesignerMainGrid',
+      setup(_, { slots }) {
+        return () => h('div', {
+          class: 'cf-lc-main-grid',
+          style: {
+            padding: '12px',
+            minHeight: 0,
+          },
+        }, [
+          h('div', {
+            style: {
+              display: 'flex',
+              alignItems: 'stretch',
+              gap: '12px',
+              width: '100%',
+              minWidth: 0,
+              minHeight: 0,
+              height: 'clamp(360px, 55vh, 640px)',
+              overflow: 'hidden',
+            },
+          }, slots.default?.()),
+        ])
+      },
+    })
+
+    const DesignerBottomGrid = defineComponent({
+      name: 'DesignerBottomGrid',
+      setup(_, { slots }) {
+        return () => h('div', {
+          style: {
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '12px',
+            padding: '0 12px 12px',
+          },
+        }, slots.default?.())
+      },
+    })
+
+    const DesignerSchemaPanel = defineComponent({
+      name: 'DesignerSchemaPanel',
+      props: {
+        setEditorHost: {
+          type: Function as PropType<(element: HTMLDivElement | null) => void>,
+          required: true,
         },
-      }, [
-        h('section', {
+      },
+      setup(panelProps) {
+        return () => h('section', {
           style: {
             border: '1px solid #dbe4f0',
             borderRadius: '12px',
@@ -1613,9 +1624,25 @@ export const LowCodeDesigner = defineComponent({
               background: 'linear-gradient(180deg, #f8fbff 0%, #f6fafb 100%)',
             },
           }, 'Schema（JSONEditor）'),
-          h('div', { ref: editorHost, style: { minHeight: '280px' } }),
-        ]),
-        h('section', {
+          h('div', { ref: (element: HTMLDivElement | null) => panelProps.setEditorHost(element), style: { minHeight: '280px' } }),
+        ])
+      },
+    })
+
+    const DesignerPreviewPanel = defineComponent({
+      name: 'DesignerPreviewPanel',
+      props: {
+        fields: {
+          type: Array as PropType<DesignerFieldNode[]>,
+          required: true,
+        },
+        renderFieldPreviewControl: {
+          type: Function as PropType<(node: DesignerFieldNode) => VNodeChild>,
+          required: true,
+        },
+      },
+      setup(panelProps) {
+        return () => h('section', {
           style: {
             border: '1px solid #dbe4f0',
             borderRadius: '12px',
@@ -1641,7 +1668,7 @@ export const LowCodeDesigner = defineComponent({
               gap: '10px',
             },
           }, [
-            ...previewFields.value.map(item => h('div', {
+            ...panelProps.fields.map(item => h('div', {
               key: item.id,
               style: {
                 border: '1px solid #e2e8f0',
@@ -1654,14 +1681,123 @@ export const LowCodeDesigner = defineComponent({
                 `${item.required ? '* ' : ''}${item.title} `,
                 h('span', { style: { color: '#9ca3af', fontWeight: 400 } }, `(${item.name})`),
               ]),
-              renderFieldPreviewControl(item, 'preview'),
+              panelProps.renderFieldPreviewControl(item),
             ])),
-            previewFields.value.length === 0
+            panelProps.fields.length === 0
               ? h('div', { style: { color: '#9ca3af', fontSize: '12px' } }, '暂无字段，请从左侧物料区拖拽组件到画布。')
               : null,
           ]),
-        ]),
-      ]),
-    ])
+        ])
+      },
+    })
+
+    const designerSchema = computed<ISchema>(() => ({
+      type: 'object',
+      properties: {
+        root: {
+          type: 'void',
+          component: 'DesignerRoot',
+          componentProps: { setRootRef: setDesignerRoot },
+          properties: {
+            header: {
+              type: 'void',
+              component: 'DesignerHeader',
+            },
+            main: {
+              type: 'void',
+              component: 'DesignerMainGrid',
+              properties: {
+                materials: {
+                  type: 'void',
+                  component: 'DesignerMaterialPane',
+                  componentProps: {
+                    componentMaterials: designerMaterials.value.componentMaterials,
+                    layoutMaterials: designerMaterials.value.layoutMaterials,
+                    setMaterialHost,
+                    readonly: readonly.value,
+                    renderMaterialPreview,
+                  },
+                },
+                canvas: {
+                  type: 'void',
+                  component: 'DesignerCanvasPane',
+                  componentProps: {
+                    nodes: nodes.value,
+                    minCanvasHeight: props.minCanvasHeight,
+                    selectedId: selectedId.value,
+                    readonly: readonly.value,
+                    setCanvasHost,
+                    onSelect: (id: string) => { selectedId.value = id },
+                    onDuplicateNode: handleDuplicateNode,
+                    onRemoveNode: handleRemoveNode,
+                    onAddSection: handleAddSection,
+                    onRemoveSection: handleRemoveSection,
+                    renderFieldPreviewControl: (node: DesignerFieldNode) => renderFieldPreviewControl(node, 'canvas'),
+                  },
+                },
+                properties: {
+                  type: 'void',
+                  component: 'DesignerPropertiesPane',
+                  componentProps: {
+                    nodes: nodes.value,
+                    readonly: readonly.value,
+                    selectedField: selectedField.value,
+                    selectedContainer: selectedContainer.value,
+                    selectedSection: selectedSection.value,
+                    enumDraft: enumDraft.value,
+                    setEnumDraft: (value: string) => { enumDraft.value = value },
+                    onUpdateNodes: updateNodes,
+                    updateField,
+                    updateContainer,
+                    fieldComponentOptions: designerMaterials.value.fieldComponentOptions,
+                    componentDefinitions: resolvedComponentDefinitions.value,
+                    componentPropsByComponent: componentPropsByComponent.value,
+                    onUpdateComponentPropByComponentName: updateComponentPropByComponentName,
+                  },
+                },
+              },
+            },
+            bottom: {
+              type: 'void',
+              component: 'DesignerBottomGrid',
+              properties: {
+                schema: {
+                  type: 'void',
+                  component: 'DesignerSchemaPanel',
+                  componentProps: {
+                    setEditorHost,
+                  },
+                },
+                preview: {
+                  type: 'void',
+                  component: 'DesignerPreviewPanel',
+                  componentProps: {
+                    fields: previewFields.value,
+                    renderFieldPreviewControl: (node: DesignerFieldNode) => renderFieldPreviewControl(node, 'preview'),
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }))
+
+    const designerComponents = {
+      DesignerRoot,
+      DesignerHeader,
+      DesignerMainGrid,
+      DesignerBottomGrid,
+      DesignerSchemaPanel,
+      DesignerPreviewPanel,
+      DesignerMaterialPane,
+      DesignerCanvasPane,
+      DesignerPropertiesPane,
+    }
+
+    return () => h(FormProvider, {
+      form: designerForm,
+      components: designerComponents,
+    }, () => h(SchemaField, { schema: designerSchema.value }))
   },
 })

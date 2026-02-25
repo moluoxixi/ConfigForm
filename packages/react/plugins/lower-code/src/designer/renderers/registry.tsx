@@ -231,6 +231,9 @@ export function createRegistryRenderers(
      */
 
     renderMaterialPreview: (item, context) => {
+      if (context.phase === 'material') {
+        return fallback.renderMaterialPreview(item, context)
+      }
       // 容器预览统一走轻量 mock，规避 LayoutTabs/LayoutCollapse 在设计态引起的渲染副作用。
       if (item.kind === 'container')
         return fallback.renderMaterialPreview(item, context)

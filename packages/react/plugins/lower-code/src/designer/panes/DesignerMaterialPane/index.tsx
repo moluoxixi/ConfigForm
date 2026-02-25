@@ -134,6 +134,7 @@ export function DesignerMaterialPane({
             DesignerMaterialToolbarRenderer,
             DesignerMaterialListRenderer,
           }}
+          formTag={false}
           className="cf-lc-material-pane-form cf-lc-pane-configform-shell"
         />
       </div>
