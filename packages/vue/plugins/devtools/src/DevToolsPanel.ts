@@ -17,6 +17,7 @@ import type {
   FormOverview,
   ValueDiffEntry,
 } from '@moluoxixi/plugin-devtools'
+import type { PropType, VNode } from 'vue'
 import {
   DEVTOOLS_FILTER_LABELS,
   DEVTOOLS_PANEL_HEIGHT,
@@ -31,7 +32,6 @@ import {
   subscribeSystemDarkMode,
 } from '@moluoxixi/plugin-devtools'
 import { FormProvider, SchemaField, useCreateForm } from '@moluoxixi/vue'
-import type { PropType, VNode } from 'vue'
 import { computed, defineComponent, h, onMounted, onUnmounted, ref } from 'vue'
 
 /* ======================== 纯渲染辅助函数 ======================== */

@@ -1,5 +1,5 @@
-import { nextTick } from 'vue'
 import { describe, expect, it, vi } from 'vitest'
+import { nextTick } from 'vue'
 import { createVueMessageI18nRuntime } from '../src/index.ts'
 
 describe('plugin-i18n-vue runtime', () => {

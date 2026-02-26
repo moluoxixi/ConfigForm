@@ -39,8 +39,8 @@
   "dependencies": {
     "@moluoxixi/core": "workspace:*",
     "@moluoxixi/plugin-lower-code-core": "workspace:*",
-    "@moluoxixi/vue": "workspace:*",
     "@moluoxixi/ui-basic-vue": "workspace:*",
+    "@moluoxixi/vue": "workspace:*",
     "sortablejs": "catalog:build",
     "vue": "catalog:build"
   },

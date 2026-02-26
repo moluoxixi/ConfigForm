@@ -18,7 +18,7 @@ describe('plugin-i18n-core', () => {
     }
 
     const translated = translateSchema(schema, {
-      t: key => 'translated:' + key,
+      t: key => `translated:${key}`,
     })
 
     expect(translated.title).toBe('translated:form.title')

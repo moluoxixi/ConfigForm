@@ -1,6 +1,8 @@
 <template>
   <div style="height: 100%; min-height: 0; display: flex; flex-direction: column;">
-    <h2 v-if="showHeader">{{ props.title ?? props.config.title }}</h2>
+    <h2 v-if="showHeader">
+      {{ props.title ?? props.config.title }}
+    </h2>
     <p v-if="showDescription" style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       {{ props.description ?? props.config.description }}
     </p>
@@ -31,7 +33,7 @@
     </div>
 
     <div style="flex: 1; min-height: 0; display: flex; flex-direction: column;">
-      <component v-if="showStatusTabs" :is="props.statusTabs" ref="st" v-slot="{ mode, showResult }">
+      <component :is="props.statusTabs" v-if="showStatusTabs" ref="st" v-slot="{ mode, showResult }">
         <div data-configform-print-root="true" style="flex: 1; min-height: 0; display: flex; flex-direction: column;">
           <ConfigForm
             :schema="currentSchema"
@@ -68,9 +70,9 @@
 <script setup lang="ts">
 import type { FieldPattern, FormPlugin, ISchema } from '@moluoxixi/core'
 import type { SceneConfig } from '@playground/shared'
+import type { Component } from 'vue'
 import { devToolsPlugin } from '@moluoxixi/plugin-devtools'
 import { resolveSceneSchema } from '@playground/shared'
-import type { Component } from 'vue'
 import { computed, getCurrentInstance, ref, watch } from 'vue'
 
 const props = defineProps<{

@@ -46,7 +46,7 @@ async function resolvePrintJS(): Promise<PrintJSFn> {
   const mod = await import('print-js')
   const candidate = (mod as { default?: unknown }).default ?? mod
   if (typeof candidate !== 'function') {
-    throw new Error('[ConfigForm][print] Failed to load print-js runtime.')
+    throw new TypeError('[ConfigForm][print] Failed to load print-js runtime.')
   }
   return candidate as PrintJSFn
 }
@@ -97,7 +97,7 @@ function escapeHtml(content: string): string {
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;')
+    .replaceAll('\'', '&#39;')
 }
 
 function renderFallbackHtml(payload: FormPrintPayload): string {

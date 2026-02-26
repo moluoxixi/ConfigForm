@@ -1,7 +1,7 @@
 import type { ISchema } from '@moluoxixi/core'
 import { FormPath } from '@moluoxixi/core'
-import { RecursionField, useField, useForm, useSchemaItems } from '@moluoxixi/vue'
 import { scrollToFirstError } from '@moluoxixi/ui-basic-vue'
+import { RecursionField, useField, useForm, useSchemaItems } from '@moluoxixi/vue'
 import { Button as AButton, Step as AStep, Steps as ASteps } from 'ant-design-vue'
 import { defineComponent, h, ref, watch } from 'vue'
 
@@ -232,9 +232,9 @@ export const LayoutSteps = defineComponent({
            */
       handleSubmit = async (): Promise<void> => {
         const result = await form.submit()
-      if (result.errors.length > 0) {
-        scrollToFirstError(result.errors)
-      }
+        if (result.errors.length > 0) {
+          scrollToFirstError(result.errors)
+        }
       }
 
     /**

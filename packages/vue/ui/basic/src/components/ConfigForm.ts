@@ -1,12 +1,9 @@
 import type { ComponentType, FieldPattern, FormConfig, FormInstance, FormPlugin, ISchema } from '@moluoxixi/core'
-import type { Component, PropType } from 'vue'
 import type { ComponentScope, RegistryState } from '@moluoxixi/vue'
+import type { Component, PropType } from 'vue'
 import { FormLifeCycle } from '@moluoxixi/core'
+import { ComponentRegistrySymbol, FormProvider, SchemaField, useCreateForm } from '@moluoxixi/vue'
 import { computed, defineComponent, h, inject, onMounted, onUnmounted, ref, watch } from 'vue'
-import { useCreateForm } from '@moluoxixi/vue'
-import { ComponentRegistrySymbol } from '@moluoxixi/vue'
-import { FormProvider } from '@moluoxixi/vue'
-import { SchemaField } from '@moluoxixi/vue'
 import { scrollToFirstError } from '../utils/scrollToFirstError'
 
 /**

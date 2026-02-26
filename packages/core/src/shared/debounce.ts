@@ -31,12 +31,12 @@ export function debounce<T extends AnyFunction>(
   delay: number,
 ): DebouncedFunction<T> {
   let timer: ReturnType<typeof setTimeout> | null = null
-  let lastArgs: Parameters<T> | null = null
-  let lastThis: unknown
+  let lastCall: (() => void) | null = null
 
   const debounced = function (this: unknown, ...args: Parameters<T>) {
-    lastArgs = args
-    lastThis = this
+    lastCall = () => {
+      fn.apply(this, args)
+    }
 
     if (timer !== null) {
       clearTimeout(timer)
@@ -44,9 +44,9 @@ export function debounce<T extends AnyFunction>(
 
     timer = setTimeout(() => {
       timer = null
-      if (lastArgs) {
-        fn.apply(lastThis, lastArgs)
-        lastArgs = null
+      if (lastCall) {
+        lastCall()
+        lastCall = null
       }
     }, delay)
   } as DebouncedFunction<T>
@@ -56,7 +56,7 @@ export function debounce<T extends AnyFunction>(
       clearTimeout(timer)
       timer = null
     }
-    lastArgs = null
+    lastCall = null
   }
 
   return debounced

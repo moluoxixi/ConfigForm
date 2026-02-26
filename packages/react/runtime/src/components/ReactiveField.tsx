@@ -11,7 +11,6 @@ import { observer } from '../reactive'
 
 type ComponentProps = Record<string, unknown> | undefined
 
-
 /**
  * 把 CSS 短横线风格键名转成 React style 所需的驼峰键名。
  * @param key 原始样式键名。

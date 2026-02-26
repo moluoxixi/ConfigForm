@@ -1,7 +1,7 @@
 import type { ArrayFieldInstance } from '@moluoxixi/core'
 import type { InjectionKey, PropType, Ref } from 'vue'
-import { defineComponent, h, inject, provide, ref, toRefs } from 'vue'
 import { useField } from '@moluoxixi/vue'
+import { defineComponent, h, inject, provide, ref, toRefs } from 'vue'
 
 /**
  * 数组上下文结构。

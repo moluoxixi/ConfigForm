@@ -637,7 +637,6 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
               toggleDragging(true)
               const origin = event?.originalEvent?.target
               const originEl = origin instanceof HTMLElement ? origin : null
-              const dragNode = originEl?.closest<HTMLElement>('[data-node-id]') ?? null
               dragMetaRef.current.allowCrossTarget = Boolean(
                 originEl?.closest('.cf-lc-node-tool--move'),
               )
@@ -665,14 +664,14 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
                   return null
                 return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
               })()
-                const pointerTargetKey = resolveDesignerSortablePointerTargetKeyByPoint(pointerSnapshot)
-                  ?? resolveDesignerSortablePointerTargetKey(event)
-                const toTargetKey = pointerTargetKey ?? (event.to as HTMLElement).dataset.targetKey
-                const pointerIndex = resolveDesignerSortablePointerIndexByTargetKeyAndPoint(
-                  toTargetKey,
-                  pointerSnapshot,
-                  item,
-                )
+              const pointerTargetKey = resolveDesignerSortablePointerTargetKeyByPoint(pointerSnapshot)
+                ?? resolveDesignerSortablePointerTargetKey(event)
+              const toTargetKey = pointerTargetKey ?? (event.to as HTMLElement).dataset.targetKey
+              const pointerIndex = resolveDesignerSortablePointerIndexByTargetKeyAndPoint(
+                toTargetKey,
+                pointerSnapshot,
+                item,
+              )
               const materialId = item.dataset.materialId
               if (!materialId) {
                 const nodeId = item.dataset.nodeId
@@ -729,14 +728,14 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
                 delete item.dataset.cfDragHandled
                 return
               }
-                const fromTargetKey = (event.from as HTMLElement).dataset.targetKey
-                const eventTargetKey = (event.to as HTMLElement).dataset.targetKey
-                const pointerTargetKey = resolveDesignerSortablePointerTargetKeyByPoint(pointerSnapshot)
-                  ?? resolveDesignerSortablePointerTargetKey(event)
-                const toTargetKey = pointerTargetKey ?? eventTargetKey
-                const parentList = item.parentElement?.closest<HTMLElement>('[data-cf-drop-list="true"]')
-                if (parentList && parentList !== event.to && parentList !== event.from)
-                  return
+              const fromTargetKey = (event.from as HTMLElement).dataset.targetKey
+              const eventTargetKey = (event.to as HTMLElement).dataset.targetKey
+              const pointerTargetKey = resolveDesignerSortablePointerTargetKeyByPoint(pointerSnapshot)
+                ?? resolveDesignerSortablePointerTargetKey(event)
+              const toTargetKey = pointerTargetKey ?? eventTargetKey
+              const parentList = item.parentElement?.closest<HTMLElement>('[data-cf-drop-list="true"]')
+              if (parentList && parentList !== event.to && parentList !== event.from)
+                return
               // 嵌套 Sortable 会把结束事件冒泡到祖先列表。
               // 仅处理真实来源列表事件，避免重复/错误移动。
               if (item.dataset.parentTargetKey && fromTargetKey !== item.dataset.parentTargetKey)
@@ -767,9 +766,9 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
               }
 
               const actualList = item.parentElement?.closest<HTMLElement>('[data-cf-drop-list="true"]')
-                const actualTargetKey = actualList?.dataset?.targetKey
-                const preferPointerTarget = Boolean(pointerTargetKey) && pointerTargetKey !== actualTargetKey
-                if (actualTargetKey && actualTargetKey !== fromTargetKey && !preferPointerTarget) {
+              const actualTargetKey = actualList?.dataset?.targetKey
+              const preferPointerTarget = Boolean(pointerTargetKey) && pointerTargetKey !== actualTargetKey
+              if (actualTargetKey && actualTargetKey !== fromTargetKey && !preferPointerTarget) {
                 if (!allowCrossTarget) {
                   reorderWithinTarget(fromTargetKey)
                   return

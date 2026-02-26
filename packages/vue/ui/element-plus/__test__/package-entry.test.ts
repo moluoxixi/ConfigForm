@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { setupElementPlus } from '../src/index.ts'
+
 const {
   FormLayout,
   registerActions,
@@ -83,8 +85,6 @@ vi.mock('@moluoxixi/vue', () => ({
 vi.mock('../src/components', () => componentsMock)
 vi.mock('../src/components/PreviewText', () => previewMock)
 vi.mock('element-plus/dist/index.css', () => ({}))
-
-import { setupElementPlus } from '../src/index.ts'
 
 describe('ui-element-plus setup', () => {
   beforeEach(() => {

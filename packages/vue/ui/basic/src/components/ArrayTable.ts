@@ -1,7 +1,7 @@
 import type { ArrayFieldInstance, ISchema } from '@moluoxixi/core'
 import type { PropType, VNode } from 'vue'
-import { defineComponent, h } from 'vue'
 import { RecursionField, useField } from '@moluoxixi/vue'
+import { defineComponent, h } from 'vue'
 import { ArrayBase } from './ArrayBase'
 
 /**

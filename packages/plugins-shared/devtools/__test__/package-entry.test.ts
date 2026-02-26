@@ -1,9 +1,9 @@
 import { FormLifeCycle } from '@moluoxixi/core'
 import { describe, expect, it, vi } from 'vitest'
 import {
+  buildDevToolsFieldEventSummary,
   DEVTOOLS_ACTION_EVENT_LABELS,
   DEVTOOLS_FIELD_EVENT_DEFINITIONS,
-  buildDevToolsFieldEventSummary,
   devToolsPlugin,
 } from '../src/index.ts'
 

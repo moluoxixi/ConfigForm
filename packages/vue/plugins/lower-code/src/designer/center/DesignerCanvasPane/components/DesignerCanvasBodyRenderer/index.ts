@@ -1,7 +1,7 @@
 import type { DesignerNode } from '@moluoxixi/plugin-lower-code-core'
-import { LOW_CODE_DESIGNER_TEXT } from '@moluoxixi/plugin-lower-code-core'
 import type { PropType } from 'vue'
 import type { RenderDropList } from '../../types'
+import { LOW_CODE_DESIGNER_TEXT } from '@moluoxixi/plugin-lower-code-core'
 import { defineComponent, h } from 'vue'
 
 /**

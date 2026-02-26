@@ -1,4 +1,4 @@
-﻿import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   test: {
@@ -7,4 +7,3 @@ export default defineConfig({
     include: ['__test__/**/*.test.ts', 'src/**/*.spec.ts'],
   },
 })
-

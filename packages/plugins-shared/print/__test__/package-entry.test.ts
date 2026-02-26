@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import { printPlugin } from '../src/plugin.ts'
+
 vi.mock('../src/browser', () => ({
   browserPrint: vi.fn(async () => {}),
 }))
-
-import { printPlugin } from '../src/plugin.ts'
 
 describe('plugin-print', () => {
   it('formats printable payload and restores pattern', async () => {

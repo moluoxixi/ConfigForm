@@ -1,7 +1,7 @@
 import type { ArrayFieldInstance, ISchema } from '@moluoxixi/core'
 import type { ReactElement } from 'react'
-import React from 'react'
 import { observer, RecursionField, useField } from '@moluoxixi/react'
+import React from 'react'
 import { ArrayBase } from './ArrayBase'
 
 /**

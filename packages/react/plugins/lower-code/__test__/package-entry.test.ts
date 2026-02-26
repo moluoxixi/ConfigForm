@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { setupLowerCodeDesigner } from '../src/setup.ts'
+
 const { registerComponent, LowCodeDesigner } = vi.hoisted(() => ({
   registerComponent: vi.fn(),
   LowCodeDesigner: vi.fn(() => null),
@@ -12,8 +14,6 @@ vi.mock('@moluoxixi/react', () => ({
 vi.mock('../src/LowCodeDesigner', () => ({
   LowCodeDesigner,
 }))
-
-import { setupLowerCodeDesigner } from '../src/setup.ts'
 
 describe('plugin-lower-code-react setup', () => {
   beforeEach(() => {

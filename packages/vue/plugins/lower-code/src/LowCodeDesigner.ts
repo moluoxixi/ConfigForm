@@ -1,3 +1,4 @@
+import type { ISchema } from '@moluoxixi/core'
 import type {
   DesignerContainerNode,
   DesignerFieldNode,
@@ -9,8 +10,6 @@ import type {
   LowCodeDesignerComponentDefinition,
   LowCodeDesignerRenderers,
 } from './designer/types'
-import type { ISchema } from '@moluoxixi/core'
-import { cloneDeep } from '@moluoxixi/core'
 import {
   addSectionToContainer,
   collectDropTargetKeys,
@@ -1196,7 +1195,6 @@ export const LowCodeDesigner = defineComponent({
             toggleDraggingCursor(true)
             const origin = event?.originalEvent?.target
             const originEl = origin instanceof HTMLElement ? origin : null
-            const dragNode = originEl?.closest<HTMLElement>('[data-node-id]') ?? null
             dragMeta.allowCrossTarget = Boolean(
               originEl?.closest('.cf-lc-node-tool--move'),
             )
@@ -1215,14 +1213,14 @@ export const LowCodeDesigner = defineComponent({
            *
            * @param event Sortable 事件对象。
            */
-        onAdd: (event) => {
-          const item = event.item as HTMLElement
-          const pointerSnapshot = pointerTracker.getLastPoint() ?? (() => {
-            const rect = item.getBoundingClientRect()
-            if (!rect || rect.width <= 0 || rect.height <= 0)
-              return null
-            return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
-          })()
+          onAdd: (event) => {
+            const item = event.item as HTMLElement
+            const pointerSnapshot = pointerTracker.getLastPoint() ?? (() => {
+              const rect = item.getBoundingClientRect()
+              if (!rect || rect.width <= 0 || rect.height <= 0)
+                return null
+              return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+            })()
             const pointerTargetKey = resolveDesignerSortablePointerTargetKeyByPoint(pointerSnapshot)
               ?? resolveDesignerSortablePointerTargetKey(event)
             const toTargetKey = pointerTargetKey ?? (event.to as HTMLElement).dataset.targetKey
@@ -1231,21 +1229,21 @@ export const LowCodeDesigner = defineComponent({
               pointerSnapshot,
               item,
             )
-          const materialId = item.dataset.materialId
-          if (!materialId) {
-            const nodeId = item.dataset.nodeId
-            if (!nodeId)
+            const materialId = item.dataset.materialId
+            if (!materialId) {
+              const nodeId = item.dataset.nodeId
+              if (!nodeId)
+                return
+              const toTarget = keyToTarget(toTargetKey)
+              if (!toTarget)
+                return
+              const insertIndex = pointerIndex ?? resolveDesignerSortableInsertIndex(event, Number.MAX_SAFE_INTEGER)
+              item.dataset.cfDragHandled = 'true'
+              restoreDraggedDomPosition(event)
+              nodes.value = moveNodeByIdToTarget(nodes.value, nodeId, toTarget, insertIndex)
+              selectedId.value = nodeId
               return
-            const toTarget = keyToTarget(toTargetKey)
-            if (!toTarget)
-              return
-            const insertIndex = pointerIndex ?? resolveDesignerSortableInsertIndex(event, Number.MAX_SAFE_INTEGER)
-            item.dataset.cfDragHandled = 'true'
-            restoreDraggedDomPosition(event)
-            nodes.value = moveNodeByIdToTarget(nodes.value, nodeId, toTarget, insertIndex)
-            selectedId.value = nodeId
-            return
-          }
+            }
 
             item.remove()
             const target = keyToTarget(toTargetKey)
@@ -1275,23 +1273,23 @@ export const LowCodeDesigner = defineComponent({
            *
            * @param event Sortable 事件对象。
            */
-        onEnd: (event) => {
-          toggleDraggingCursor(false)
-          const item = event.item as HTMLElement
-          const pointerSnapshot = pointerTracker.getLastPoint() ?? (() => {
-            const rect = item.getBoundingClientRect()
-            if (!rect || rect.width <= 0 || rect.height <= 0)
-              return null
-            return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
-          })()
-          const allowCrossTarget = dragMeta.allowCrossTarget
-          dragMeta.allowCrossTarget = false
-          if (item.dataset.materialId)
-            return
-          if (item.dataset.cfDragHandled) {
-            delete item.dataset.cfDragHandled
-            return
-          }
+          onEnd: (event) => {
+            toggleDraggingCursor(false)
+            const item = event.item as HTMLElement
+            const pointerSnapshot = pointerTracker.getLastPoint() ?? (() => {
+              const rect = item.getBoundingClientRect()
+              if (!rect || rect.width <= 0 || rect.height <= 0)
+                return null
+              return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+            })()
+            const allowCrossTarget = dragMeta.allowCrossTarget
+            dragMeta.allowCrossTarget = false
+            if (item.dataset.materialId)
+              return
+            if (item.dataset.cfDragHandled) {
+              delete item.dataset.cfDragHandled
+              return
+            }
             const fromTargetKey = (event.from as HTMLElement).dataset.targetKey
             const eventTargetKey = (event.to as HTMLElement).dataset.targetKey
             const pointerTargetKey = resolveDesignerSortablePointerTargetKeyByPoint(pointerSnapshot)
@@ -1300,96 +1298,96 @@ export const LowCodeDesigner = defineComponent({
             const parentList = item.parentElement?.closest<HTMLElement>('[data-cf-drop-list="true"]')
             if (parentList && parentList !== event.to && parentList !== event.from)
               return
-          // 嵌套拖拽时会触发祖先列表的 onEnd，跳过非真实来源列表事件。
-          if (item.dataset.parentTargetKey && fromTargetKey !== item.dataset.parentTargetKey)
-            return
-
-          const toTarget = keyToTarget(toTargetKey)
-          const nodeId = item.dataset.nodeId
-          if (!toTarget || !nodeId)
-            return
-
-          const reorderWithinTarget = (targetKey: string | undefined): void => {
-            if (!targetKey)
+            // 嵌套拖拽时会触发祖先列表的 onEnd，跳过非真实来源列表事件。
+            if (item.dataset.parentTargetKey && fromTargetKey !== item.dataset.parentTargetKey)
               return
-            const target = keyToTarget(targetKey)
-            if (!target)
-              return
-            const { oldIndex } = resolveDesignerSortableMoveIndices(event)
-            const pointerIndex = resolveDesignerSortablePointerIndexByTargetKey(
-              event,
-              targetKey,
-            ) ?? resolveDesignerSortablePointerIndexByTargetKeyAndPoint(targetKey, pointerSnapshot, item)
-            let newIndex = pointerIndex ?? (oldIndex >= 0 ? oldIndex : Number.MAX_SAFE_INTEGER)
-            if (pointerIndex !== null && pointerIndex !== oldIndex)
-              newIndex = pointerIndex
-            restoreDraggedDomPosition(event)
-            nodes.value = moveNodeByIdToTarget(nodes.value, nodeId, target, newIndex)
-            selectedId.value = nodeId
-          }
 
-          const actualList = item.parentElement?.closest<HTMLElement>('[data-cf-drop-list="true"]')
+            const toTarget = keyToTarget(toTargetKey)
+            const nodeId = item.dataset.nodeId
+            if (!toTarget || !nodeId)
+              return
+
+            const reorderWithinTarget = (targetKey: string | undefined): void => {
+              if (!targetKey)
+                return
+              const target = keyToTarget(targetKey)
+              if (!target)
+                return
+              const { oldIndex } = resolveDesignerSortableMoveIndices(event)
+              const pointerIndex = resolveDesignerSortablePointerIndexByTargetKey(
+                event,
+                targetKey,
+              ) ?? resolveDesignerSortablePointerIndexByTargetKeyAndPoint(targetKey, pointerSnapshot, item)
+              let newIndex = pointerIndex ?? (oldIndex >= 0 ? oldIndex : Number.MAX_SAFE_INTEGER)
+              if (pointerIndex !== null && pointerIndex !== oldIndex)
+                newIndex = pointerIndex
+              restoreDraggedDomPosition(event)
+              nodes.value = moveNodeByIdToTarget(nodes.value, nodeId, target, newIndex)
+              selectedId.value = nodeId
+            }
+
+            const actualList = item.parentElement?.closest<HTMLElement>('[data-cf-drop-list="true"]')
             const actualTargetKey = actualList?.dataset?.targetKey
             const preferPointerTarget = Boolean(pointerTargetKey) && pointerTargetKey !== actualTargetKey
             if (actualTargetKey && actualTargetKey !== fromTargetKey && !preferPointerTarget) {
-            if (!allowCrossTarget) {
-              reorderWithinTarget(fromTargetKey)
+              if (!allowCrossTarget) {
+                reorderWithinTarget(fromTargetKey)
+                return
+              }
+              const actualTarget = keyToTarget(actualTargetKey)
+              if (!actualTarget)
+                return
+              const actualIndex = Array.from(actualList.children)
+                .filter((child) => {
+                  if (!(child instanceof HTMLElement))
+                    return false
+                  return child.hasAttribute('data-node-id') || child.hasAttribute('data-material-id')
+                })
+                .indexOf(item)
+              restoreDraggedDomPosition(event)
+              nodes.value = moveNodeByIdToTarget(
+                nodes.value,
+                nodeId,
+                actualTarget,
+                actualIndex >= 0 ? actualIndex : Number.MAX_SAFE_INTEGER,
+              )
+              selectedId.value = nodeId
               return
             }
-            const actualTarget = keyToTarget(actualTargetKey)
-            if (!actualTarget)
-              return
-            const actualIndex = Array.from(actualList.children)
-              .filter((child) => {
-                if (!(child instanceof HTMLElement))
-                  return false
-                return child.hasAttribute('data-node-id') || child.hasAttribute('data-material-id')
-              })
-              .indexOf(item)
-            restoreDraggedDomPosition(event)
-            nodes.value = moveNodeByIdToTarget(
-              nodes.value,
-              nodeId,
-              actualTarget,
-              actualIndex >= 0 ? actualIndex : Number.MAX_SAFE_INTEGER,
-            )
-            selectedId.value = nodeId
-            return
-          }
 
-          if (event.from !== event.to) {
-            if (fromTargetKey !== toTargetKey && !allowCrossTarget) {
-              reorderWithinTarget(fromTargetKey)
+            if (event.from !== event.to) {
+              if (fromTargetKey !== toTargetKey && !allowCrossTarget) {
+                reorderWithinTarget(fromTargetKey)
+                return
+              }
+              const crossTarget = keyToTarget(toTargetKey)
+              if (!crossTarget)
+                return
+              const pointerIndex = resolveDesignerSortablePointerIndexByTargetKeyAndPoint(
+                toTargetKey,
+                pointerSnapshot,
+                item,
+              )
+              const insertIndex = pointerIndex ?? resolveDesignerSortableInsertIndex(event, Number.MAX_SAFE_INTEGER)
+              restoreDraggedDomPosition(event)
+              nodes.value = moveNodeByIdToTarget(nodes.value, nodeId, crossTarget, insertIndex)
+              selectedId.value = nodeId
               return
             }
-            const crossTarget = keyToTarget(toTargetKey)
-            if (!crossTarget)
-              return
+
+            const { oldIndex } = resolveDesignerSortableMoveIndices(event)
             const pointerIndex = resolveDesignerSortablePointerIndexByTargetKeyAndPoint(
               toTargetKey,
               pointerSnapshot,
               item,
             )
-            const insertIndex = pointerIndex ?? resolveDesignerSortableInsertIndex(event, Number.MAX_SAFE_INTEGER)
+            let newIndex = resolveDesignerSortableInsertIndex(event, Number.MAX_SAFE_INTEGER)
+            if (pointerIndex !== null && pointerIndex !== oldIndex)
+              newIndex = pointerIndex
             restoreDraggedDomPosition(event)
-            nodes.value = moveNodeByIdToTarget(nodes.value, nodeId, crossTarget, insertIndex)
+            nodes.value = moveNodeByIdToTarget(nodes.value, nodeId, toTarget, newIndex)
             selectedId.value = nodeId
-            return
-          }
-
-          const { oldIndex } = resolveDesignerSortableMoveIndices(event)
-          const pointerIndex = resolveDesignerSortablePointerIndexByTargetKeyAndPoint(
-            toTargetKey,
-            pointerSnapshot,
-            item,
-          )
-          let newIndex = resolveDesignerSortableInsertIndex(event, Number.MAX_SAFE_INTEGER)
-          if (pointerIndex !== null && pointerIndex !== oldIndex)
-            newIndex = pointerIndex
-          restoreDraggedDomPosition(event)
-          nodes.value = moveNodeByIdToTarget(nodes.value, nodeId, toTarget, newIndex)
-          selectedId.value = nodeId
-        },
+          },
         }) as Sortable.Options)
         sortables.value.push(canvasSortable)
         ;(list as HTMLElement & { __cfSortable?: Sortable }).__cfSortable = canvasSortable
@@ -1721,7 +1719,6 @@ export const LowCodeDesigner = defineComponent({
         ])
       },
     })
-
 
     const designerSchema = computed<ISchema>(() => ({
       type: 'object',

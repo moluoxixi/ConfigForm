@@ -6,9 +6,9 @@
  */
 import type { ISchema } from '@moluoxixi/core'
 import type {
+  DevToolsFilter,
   DevToolsPanelProps,
   DevToolsPluginAPI,
-  DevToolsFilter,
   DevToolsTab,
   DevToolsTheme,
   EventLogEntry,
@@ -857,5 +857,3 @@ function ValuesView({ t, values }: { t: DevToolsTheme, values: Record<string, un
     </div>
   )
 }
-
-

@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
-  MATERIALS,
   containerTarget,
   defaultNodeFromMaterial,
   defaultNodes,
   insertNodeByTarget,
   keyToTarget,
+  MATERIALS,
   moveNodeByIdToTarget,
   nodesToSchema,
   rootTarget,

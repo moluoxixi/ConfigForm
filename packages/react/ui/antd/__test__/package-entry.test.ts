@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { setupAntd } from '../src/index.ts'
+
 const {
   FormLayout,
   registerActions,
@@ -86,8 +88,6 @@ vi.mock('@moluoxixi/react', () => ({
 
 vi.mock('../src/components', () => componentsMock)
 vi.mock('../src/components/PreviewText', () => previewMock)
-
-import { setupAntd } from '../src/index.ts'
 
 describe('ui-antd setup', () => {
   beforeEach(() => {

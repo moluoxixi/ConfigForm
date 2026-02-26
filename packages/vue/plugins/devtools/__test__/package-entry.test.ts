@@ -1,5 +1,5 @@
-import { h, isVNode } from 'vue'
 import { describe, expect, it } from 'vitest'
+import { h, isVNode } from 'vue'
 import { DevToolsPanel } from '../src/index.ts'
 
 function createMockApi() {

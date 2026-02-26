@@ -8,8 +8,6 @@ import eslintConfig from '@moluoxixi/eslint-config'
 export default eslintConfig({
   ignores: [
     'formily',
-    'playground-vue',
-    'playground-react',
   ],
   rules: {
     // 不允许使用console
