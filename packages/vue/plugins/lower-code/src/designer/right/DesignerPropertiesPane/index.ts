@@ -21,7 +21,7 @@ import {
   updateSectionById,
 } from '@moluoxixi/plugin-lower-code-core'
 import { ConfigForm } from '@moluoxixi/ui-basic-vue'
-import { computed, defineComponent, h } from 'vue'
+import { computed, defineComponent, h, ref, watch } from 'vue'
 import { DesignerPropertiesSlotRenderer } from './components/DesignerPropertiesSlotRenderer'
 
 export const DesignerPropertiesPane = defineComponent({
@@ -101,6 +101,73 @@ export const DesignerPropertiesPane = defineComponent({
 
     const componentEditableProps = computed<LowCodeDesignerEditableProp[]>(() =>
       selectedFieldDefinition.value?.editableProps ?? [])
+
+    const defaultDraft = ref('')
+    const rulesDraft = ref('')
+    const reactionsDraft = ref('')
+    const dataSourceDraft = ref('')
+    const componentPropsDraft = ref('')
+    const decoratorPropsDraft = ref('')
+    const validateTriggerDraft = ref('')
+
+    const formatJson = (value: unknown): string => {
+      if (value === undefined)
+        return ''
+      try {
+        return JSON.stringify(value, null, 2)
+      }
+      catch {
+        return ''
+      }
+    }
+
+    const parseJsonDraft = (draft: string): { ok: boolean, value?: unknown } => {
+      const trimmed = draft.trim()
+      if (!trimmed)
+        return { ok: true, value: undefined }
+      try {
+        return { ok: true, value: JSON.parse(trimmed) }
+      }
+      catch {
+        return { ok: false }
+      }
+    }
+
+    const normalizeValidateTrigger = (draft: string): DesignerFieldNode['validateTrigger'] => {
+      const trimmed = draft.trim()
+      if (!trimmed)
+        return undefined
+      const parts = trimmed.split(',').map(item => item.trim()).filter(Boolean)
+      if (parts.length <= 1)
+        return parts[0] as DesignerFieldNode['validateTrigger']
+      return parts as DesignerFieldNode['validateTrigger']
+    }
+
+    watch(
+      () => props.selectedField?.id,
+      () => {
+        const selectedField = props.selectedField
+        if (!selectedField) {
+          defaultDraft.value = ''
+          rulesDraft.value = ''
+          reactionsDraft.value = ''
+          dataSourceDraft.value = ''
+          componentPropsDraft.value = ''
+          decoratorPropsDraft.value = ''
+          validateTriggerDraft.value = ''
+          return
+        }
+        defaultDraft.value = formatJson(selectedField.defaultValue)
+        rulesDraft.value = formatJson(selectedField.rules ?? [])
+        reactionsDraft.value = formatJson(selectedField.reactions ?? [])
+        dataSourceDraft.value = formatJson(selectedField.dataSource)
+        componentPropsDraft.value = formatJson(selectedField.componentProps ?? {})
+        decoratorPropsDraft.value = formatJson(selectedField.decoratorProps ?? {})
+        const trigger = selectedField.validateTrigger
+        validateTriggerDraft.value = Array.isArray(trigger) ? trigger.join(',') : (trigger ?? '')
+      },
+      { immediate: true },
+    )
 
     /**
      * resolve Meta：负责“解析resolve Meta”的核心实现与调用衔接。
@@ -406,6 +473,24 @@ export const DesignerPropertiesPane = defineComponent({
                     },
                   }),
                 ]),
+                h('label', { style: labelStyle }, [
+                  '字段描述',
+                  h('textarea', {
+                    value: props.selectedField.description ?? '',
+                    disabled: props.readonly,
+                    style: { ...inputStyle, minHeight: '70px', resize: 'vertical' },
+                    /**
+                     * onInput：处理当前分支的交互与状态同步。
+                     * 功能：处理参数消化、状态变更与调用链行为同步。
+                     * @param event 参数 event 为事件对象，用于提供交互上下文。
+                     */
+                    onInput: (event: Event) => {
+                      const target = event.target as HTMLTextAreaElement | null
+                      const next = target?.value ?? ''
+                      props.updateField(props.selectedField!.id, field => ({ ...field, description: next || undefined }))
+                    },
+                  }),
+                ]),
               ]),
               h('div', { style: panelSectionStyle }, [
                 h('div', { style: { fontSize: '12px', fontWeight: 700, marginBottom: '8px' } }, '渲染设置'),
@@ -490,6 +575,156 @@ export const DesignerPropertiesPane = defineComponent({
                   '必填字段',
                 ]),
               ]),
+              h('div', { style: panelSectionStyle }, [
+                h('div', { style: { fontSize: '12px', fontWeight: 700, marginBottom: '8px' } }, '显示与状态'),
+                h('label', {
+                  style: { display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, marginBottom: '6px' },
+                }, [
+                  h('input', {
+                    type: 'checkbox',
+                    checked: props.selectedField.visible !== false,
+                    disabled: props.readonly,
+                    onChange: (event: Event) => {
+                      const target = event.target as HTMLInputElement | null
+                      props.updateField(props.selectedField!.id, field => ({ ...field, visible: Boolean(target?.checked) }))
+                    },
+                  }),
+                  '可见',
+                ]),
+                h('label', {
+                  style: { display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, marginBottom: '6px', marginLeft: '10px' },
+                }, [
+                  h('input', {
+                    type: 'checkbox',
+                    checked: Boolean(props.selectedField.disabled),
+                    disabled: props.readonly,
+                    onChange: (event: Event) => {
+                      const target = event.target as HTMLInputElement | null
+                      props.updateField(props.selectedField!.id, field => ({ ...field, disabled: Boolean(target?.checked) }))
+                    },
+                  }),
+                  '禁用',
+                ]),
+                h('label', {
+                  style: { display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, marginBottom: '6px', marginLeft: '10px' },
+                }, [
+                  h('input', {
+                    type: 'checkbox',
+                    checked: Boolean(props.selectedField.preview),
+                    disabled: props.readonly,
+                    onChange: (event: Event) => {
+                      const target = event.target as HTMLInputElement | null
+                      props.updateField(props.selectedField!.id, field => ({ ...field, preview: Boolean(target?.checked) }))
+                    },
+                  }),
+                  '预览态',
+                ]),
+                h('label', { style: labelStyle }, [
+                  '字段模式',
+                  h('select', {
+                    value: props.selectedField.pattern ?? '',
+                    disabled: props.readonly,
+                    style: inputStyle,
+                    onChange: (event: Event) => {
+                      const target = event.target as HTMLSelectElement | null
+                      const value = target?.value ?? ''
+                      props.updateField(props.selectedField!.id, field => ({ ...field, pattern: value ? (value as DesignerFieldNode['pattern']) : undefined }))
+                    },
+                  }, [
+                    h('option', { value: '' }, '默认（可编辑）'),
+                    h('option', { value: 'editable' }, '可编辑'),
+                    h('option', { value: 'disabled' }, '禁用'),
+                    h('option', { value: 'preview' }, '预览'),
+                  ]),
+                ]),
+              ]),
+              h('div', { style: panelSectionStyle }, [
+                h('div', { style: { fontSize: '12px', fontWeight: 700, marginBottom: '8px' } }, '默认值与提交'),
+                h('label', { style: labelStyle }, [
+                  '默认值（JSON）',
+                  h('textarea', {
+                    value: defaultDraft.value,
+                    disabled: props.readonly,
+                    style: { ...inputStyle, minHeight: '96px', resize: 'vertical', fontFamily: 'Consolas, monospace' },
+                    onInput: (event: Event) => {
+                      const target = event.target as HTMLTextAreaElement | null
+                      defaultDraft.value = target?.value ?? ''
+                    },
+                    onBlur: () => {
+                      const parsed = parseJsonDraft(defaultDraft.value)
+                      if (!parsed.ok)
+                        return
+                      props.updateField(props.selectedField!.id, field => ({ ...field, defaultValue: parsed.value }))
+                    },
+                  }),
+                ]),
+                h('label', { style: labelStyle }, [
+                  '提交路径',
+                  h('input', {
+                    value: props.selectedField.submitPath ?? '',
+                    disabled: props.readonly,
+                    style: inputStyle,
+                    onInput: (event: Event) => {
+                      const target = event.target as HTMLInputElement | null
+                      const next = target?.value ?? ''
+                      props.updateField(props.selectedField!.id, field => ({ ...field, submitPath: next || undefined }))
+                    },
+                  }),
+                ]),
+                h('label', {
+                  style: { display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, marginBottom: '6px' },
+                }, [
+                  h('input', {
+                    type: 'checkbox',
+                    checked: Boolean(props.selectedField.excludeWhenHidden),
+                    disabled: props.readonly,
+                    onChange: (event: Event) => {
+                      const target = event.target as HTMLInputElement | null
+                      props.updateField(props.selectedField!.id, field => ({ ...field, excludeWhenHidden: Boolean(target?.checked) }))
+                    },
+                  }),
+                  '隐藏时不提交',
+                ]),
+                h('label', { style: labelStyle }, [
+                  '显示格式化（表达式）',
+                  h('input', {
+                    value: props.selectedField.displayFormat ?? '',
+                    disabled: props.readonly,
+                    style: inputStyle,
+                    onInput: (event: Event) => {
+                      const target = event.target as HTMLInputElement | null
+                      const next = target?.value ?? ''
+                      props.updateField(props.selectedField!.id, field => ({ ...field, displayFormat: next || undefined }))
+                    },
+                  }),
+                ]),
+                h('label', { style: labelStyle }, [
+                  '输入解析（表达式）',
+                  h('input', {
+                    value: props.selectedField.inputParse ?? '',
+                    disabled: props.readonly,
+                    style: inputStyle,
+                    onInput: (event: Event) => {
+                      const target = event.target as HTMLInputElement | null
+                      const next = target?.value ?? ''
+                      props.updateField(props.selectedField!.id, field => ({ ...field, inputParse: next || undefined }))
+                    },
+                  }),
+                ]),
+                h('label', { style: labelStyle }, [
+                  '提交转换（表达式）',
+                  h('input', {
+                    value: props.selectedField.submitTransform ?? '',
+                    disabled: props.readonly,
+                    style: inputStyle,
+                    onInput: (event: Event) => {
+                      const target = event.target as HTMLInputElement | null
+                      const next = target?.value ?? ''
+                      props.updateField(props.selectedField!.id, field => ({ ...field, submitTransform: next || undefined }))
+                    },
+                  }),
+                ]),
+              ]),
               selectedFieldDefinition.value?.description
                 ? h('div', { style: panelSectionStyle }, [
                     h('div', { style: { fontSize: '12px', fontWeight: 700, marginBottom: '8px' } }, `组件说明（${props.selectedField.component}）`),
@@ -528,12 +763,193 @@ export const DesignerPropertiesPane = defineComponent({
                     ]),
                   ])
                 : null,
+              h('div', { style: panelSectionStyle }, [
+                h('div', { style: { fontSize: '12px', fontWeight: 700, marginBottom: '8px' } }, '数据源'),
+                h('label', { style: labelStyle }, [
+                  'dataSource（JSON）',
+                  h('textarea', {
+                    value: dataSourceDraft.value,
+                    disabled: props.readonly,
+                    style: { ...inputStyle, minHeight: '96px', resize: 'vertical', fontFamily: 'Consolas, monospace' },
+                    onInput: (event: Event) => {
+                      const target = event.target as HTMLTextAreaElement | null
+                      dataSourceDraft.value = target?.value ?? ''
+                    },
+                    onBlur: () => {
+                      const parsed = parseJsonDraft(dataSourceDraft.value)
+                      if (!parsed.ok)
+                        return
+                      props.updateField(props.selectedField!.id, field => ({ ...field, dataSource: parsed.value }))
+                    },
+                  }),
+                ]),
+              ]),
+              h('div', { style: panelSectionStyle }, [
+                h('div', { style: { fontSize: '12px', fontWeight: 700, marginBottom: '8px' } }, '校验规则'),
+                h('label', { style: labelStyle }, [
+                  'validateTrigger（逗号分隔）',
+                  h('input', {
+                    value: validateTriggerDraft.value,
+                    disabled: props.readonly,
+                    style: inputStyle,
+                    onInput: (event: Event) => {
+                      const target = event.target as HTMLInputElement | null
+                      validateTriggerDraft.value = target?.value ?? ''
+                    },
+                    onBlur: () => {
+                      props.updateField(props.selectedField!.id, field => ({ ...field, validateTrigger: normalizeValidateTrigger(validateTriggerDraft.value) }))
+                    },
+                  }),
+                ]),
+                h('label', { style: labelStyle }, [
+                  'rules（JSON 数组）',
+                  h('textarea', {
+                    value: rulesDraft.value,
+                    disabled: props.readonly,
+                    style: { ...inputStyle, minHeight: '110px', resize: 'vertical', fontFamily: 'Consolas, monospace' },
+                    onInput: (event: Event) => {
+                      const target = event.target as HTMLTextAreaElement | null
+                      rulesDraft.value = target?.value ?? ''
+                    },
+                    onBlur: () => {
+                      const parsed = parseJsonDraft(rulesDraft.value)
+                      if (!parsed.ok)
+                        return
+                      if (parsed.value === undefined) {
+                        props.updateField(props.selectedField!.id, field => ({ ...field, rules: undefined }))
+                        return
+                      }
+                      if (Array.isArray(parsed.value))
+                        props.updateField(props.selectedField!.id, field => ({ ...field, rules: parsed.value }))
+                    },
+                  }),
+                ]),
+              ]),
+              h('div', { style: panelSectionStyle }, [
+                h('div', { style: { fontSize: '12px', fontWeight: 700, marginBottom: '8px' } }, '联动规则'),
+                h('label', { style: labelStyle }, [
+                  'reactions（JSON 数组）',
+                  h('textarea', {
+                    value: reactionsDraft.value,
+                    disabled: props.readonly,
+                    style: { ...inputStyle, minHeight: '110px', resize: 'vertical', fontFamily: 'Consolas, monospace' },
+                    onInput: (event: Event) => {
+                      const target = event.target as HTMLTextAreaElement | null
+                      reactionsDraft.value = target?.value ?? ''
+                    },
+                    onBlur: () => {
+                      const parsed = parseJsonDraft(reactionsDraft.value)
+                      if (!parsed.ok)
+                        return
+                      if (parsed.value === undefined) {
+                        props.updateField(props.selectedField!.id, field => ({ ...field, reactions: undefined }))
+                        return
+                      }
+                      if (Array.isArray(parsed.value))
+                        props.updateField(props.selectedField!.id, field => ({ ...field, reactions: parsed.value }))
+                    },
+                  }),
+                ]),
+              ]),
+              h('div', { style: panelSectionStyle }, [
+                h('div', { style: { fontSize: '12px', fontWeight: 700, marginBottom: '8px' } }, '布局与装饰'),
+                h('label', { style: labelStyle }, [
+                  '栅格占比',
+                  h('input', {
+                    type: 'number',
+                    value: typeof props.selectedField.span === 'number' ? String(props.selectedField.span) : '',
+                    disabled: props.readonly,
+                    style: inputStyle,
+                    onInput: (event: Event) => {
+                      const target = event.target as HTMLInputElement | null
+                      const draft = (target?.value ?? '').trim()
+                      props.updateField(props.selectedField!.id, field => ({ ...field, span: draft ? Number(draft) : undefined }))
+                    },
+                  }),
+                ]),
+                h('label', { style: labelStyle }, [
+                  '排序权重',
+                  h('input', {
+                    type: 'number',
+                    value: typeof props.selectedField.order === 'number' ? String(props.selectedField.order) : '',
+                    disabled: props.readonly,
+                    style: inputStyle,
+                    onInput: (event: Event) => {
+                      const target = event.target as HTMLInputElement | null
+                      const draft = (target?.value ?? '').trim()
+                      props.updateField(props.selectedField!.id, field => ({ ...field, order: draft ? Number(draft) : undefined }))
+                    },
+                  }),
+                ]),
+                h('label', { style: labelStyle }, [
+                  '装饰器',
+                  h('input', {
+                    value: props.selectedField.decorator ?? '',
+                    disabled: props.readonly,
+                    style: inputStyle,
+                    onInput: (event: Event) => {
+                      const target = event.target as HTMLInputElement | null
+                      const next = target?.value ?? ''
+                      props.updateField(props.selectedField!.id, field => ({ ...field, decorator: next || undefined }))
+                    },
+                  }),
+                ]),
+                h('label', { style: labelStyle }, [
+                  'decoratorProps（JSON）',
+                  h('textarea', {
+                    value: decoratorPropsDraft.value,
+                    disabled: props.readonly,
+                    style: { ...inputStyle, minHeight: '96px', resize: 'vertical', fontFamily: 'Consolas, monospace' },
+                    onInput: (event: Event) => {
+                      const target = event.target as HTMLTextAreaElement | null
+                      decoratorPropsDraft.value = target?.value ?? ''
+                    },
+                    onBlur: () => {
+                      const parsed = parseJsonDraft(decoratorPropsDraft.value)
+                      if (!parsed.ok)
+                        return
+                      if (parsed.value && typeof parsed.value === 'object' && !Array.isArray(parsed.value)) {
+                        props.updateField(props.selectedField!.id, field => ({ ...field, decoratorProps: parsed.value as Record<string, unknown> }))
+                        return
+                      }
+                      if (parsed.value === undefined)
+                        props.updateField(props.selectedField!.id, field => ({ ...field, decoratorProps: undefined }))
+                    },
+                  }),
+                ]),
+              ]),
               componentEditableProps.value.length > 0
                 ? h('div', { style: panelSectionStyle }, [
                     h('div', { style: { fontSize: '12px', fontWeight: 700, marginBottom: '8px' } }, `组件属性（${props.selectedField.component}）`),
                     ...componentEditableProps.value.map(renderEditablePropEditor),
                   ])
                 : null,
+              h('div', { style: panelSectionStyle }, [
+                h('div', { style: { fontSize: '12px', fontWeight: 700, marginBottom: '8px' } }, '组件参数（高级）'),
+                h('label', { style: labelStyle }, [
+                  'componentProps（JSON）',
+                  h('textarea', {
+                    value: componentPropsDraft.value,
+                    disabled: props.readonly,
+                    style: { ...inputStyle, minHeight: '96px', resize: 'vertical', fontFamily: 'Consolas, monospace' },
+                    onInput: (event: Event) => {
+                      const target = event.target as HTMLTextAreaElement | null
+                      componentPropsDraft.value = target?.value ?? ''
+                    },
+                    onBlur: () => {
+                      const parsed = parseJsonDraft(componentPropsDraft.value)
+                      if (!parsed.ok)
+                        return
+                      if (parsed.value && typeof parsed.value === 'object' && !Array.isArray(parsed.value)) {
+                        props.updateField(props.selectedField!.id, field => ({ ...field, componentProps: parsed.value as Record<string, unknown> }))
+                        return
+                      }
+                      if (parsed.value === undefined)
+                        props.updateField(props.selectedField!.id, field => ({ ...field, componentProps: {} }))
+                    },
+                  }),
+                ]),
+              ]),
             ])
           : null,
 

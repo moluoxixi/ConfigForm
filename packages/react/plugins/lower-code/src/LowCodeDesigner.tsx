@@ -43,6 +43,7 @@ import { ComponentRegistryContext, FormProvider, SchemaField, useCreateForm } fr
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import Sortable from 'sortablejs'
 import { DesignerHeader } from './designer/Header'
+import { mergeDesignerComponentDefinitions } from './designer/panels/component-definitions'
 import { DesignerCanvasPane } from './designer/panes/DesignerCanvasPane'
 import { DesignerMaterialPane } from './designer/panes/DesignerMaterialPane'
 import { DesignerPropertiesPane } from './designer/panes/DesignerPropertiesPane'
@@ -195,8 +196,12 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
   const [nodes, setNodes] = useState<DesignerNode[]>(() => schemaToNodes(value))
   const [selectedId, setSelectedId] = useState<string | null>(nodes[0]?.id ?? null)
   const [enumDraft, setEnumDraft] = useState('')
+  const baseComponentDefinitions = useMemo(
+    () => mergeDesignerComponentDefinitions(componentDefinitions),
+    [componentDefinitions],
+  )
   const [componentPropsByComponent, setComponentPropsByComponent] = useState<Record<string, Record<string, unknown>>>(
-    () => createComponentPropsByComponent(componentDefinitions),
+    () => createComponentPropsByComponent(baseComponentDefinitions),
   )
 
   const materialHostRef = useRef<HTMLDivElement>(null)
@@ -225,7 +230,7 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
 
   const mergedComponentDefinitions = useMemo(
     () => {
-      const definitions: Record<string, LowCodeDesignerComponentDefinition> = { ...(componentDefinitions ?? {}) }
+      const definitions: Record<string, LowCodeDesignerComponentDefinition> = { ...baseComponentDefinitions }
       for (const [componentName, presetProps] of Object.entries(componentPropsByComponent)) {
         const current = definitions[componentName]
         definitions[componentName] = {
@@ -238,7 +243,7 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
       }
       return definitions
     },
-    [componentDefinitions, componentPropsByComponent],
+    [baseComponentDefinitions, componentPropsByComponent],
   )
   const designerMaterials = useMemo(
     () => resolveDesignerMaterials(
@@ -367,7 +372,7 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
       const next = { ...prev }
       let changed = false
 
-      for (const [componentName, definition] of Object.entries(componentDefinitions ?? {})) {
+      for (const [componentName, definition] of Object.entries(baseComponentDefinitions)) {
         if (!definition.defaultProps)
           continue
 
@@ -387,7 +392,7 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
 
       return changed ? next : prev
     })
-  }, [componentDefinitions])
+  }, [baseComponentDefinitions])
 
   // 从现有节点反向补齐预设，避免已有自定义属性丢失。
   useEffect(() => {

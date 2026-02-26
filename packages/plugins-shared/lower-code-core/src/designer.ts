@@ -1,4 +1,13 @@
-import type { ISchema } from '@moluoxixi/core'
+import type {
+  DataSourceConfig,
+  DataSourceItem,
+  FieldPattern,
+  ISchema,
+  ReactionRule,
+  SchemaDecoratorName,
+  ValidationRule,
+  ValidationTrigger,
+} from '@moluoxixi/core'
 import { cloneDeep } from '@moluoxixi/core'
 
 import {
@@ -30,6 +39,25 @@ export interface DesignerFieldNode extends DesignerNodeBase {
   required: boolean
   enumOptions: EnumOption[]
   componentProps: Record<string, unknown>
+  description?: string
+  defaultValue?: unknown
+  dataSource?: DataSourceItem[] | DataSourceConfig
+  rules?: ValidationRule[]
+  validateTrigger?: ValidationTrigger | ValidationTrigger[]
+  reactions?: ReactionRule[]
+  visible?: boolean
+  disabled?: boolean
+  preview?: boolean
+  pattern?: FieldPattern
+  displayFormat?: string
+  inputParse?: string
+  submitTransform?: string
+  submitPath?: string
+  excludeWhenHidden?: boolean
+  decorator?: SchemaDecoratorName
+  decoratorProps?: Record<string, unknown>
+  span?: number
+  order?: number
 }
 
 export interface DesignerSectionNode extends DesignerNodeBase {
@@ -401,6 +429,7 @@ function normalizeField(field: DesignerFieldNode, usedNames: Set<string>): Desig
   const enumOptions = component === 'Select'
     ? normalizeEnumOptions(field.enumOptions)
     : []
+  const decoratorProps = normalizeComponentProps(field.decoratorProps)
   return {
     ...field,
     name,
@@ -411,6 +440,25 @@ function normalizeField(field: DesignerFieldNode, usedNames: Set<string>): Desig
       ? (enumOptions.length > 0 ? enumOptions : [...DEFAULT_SELECT_OPTIONS])
       : [],
     componentProps: normalizeComponentProps(field.componentProps),
+    decoratorProps: Object.keys(decoratorProps).length > 0 ? decoratorProps : undefined,
+    description: typeof field.description === 'string' ? field.description : undefined,
+    defaultValue: field.defaultValue,
+    dataSource: field.dataSource,
+    rules: Array.isArray(field.rules) ? field.rules : undefined,
+    validateTrigger: field.validateTrigger,
+    reactions: Array.isArray(field.reactions) ? field.reactions : undefined,
+    visible: typeof field.visible === 'boolean' ? field.visible : undefined,
+    disabled: typeof field.disabled === 'boolean' ? field.disabled : undefined,
+    preview: typeof field.preview === 'boolean' ? field.preview : undefined,
+    pattern: field.pattern,
+    displayFormat: typeof field.displayFormat === 'string' ? field.displayFormat : undefined,
+    inputParse: typeof field.inputParse === 'string' ? field.inputParse : undefined,
+    submitTransform: typeof field.submitTransform === 'string' ? field.submitTransform : undefined,
+    submitPath: typeof field.submitPath === 'string' ? field.submitPath : undefined,
+    excludeWhenHidden: typeof field.excludeWhenHidden === 'boolean' ? field.excludeWhenHidden : undefined,
+    decorator: field.decorator,
+    span: typeof field.span === 'number' ? field.span : undefined,
+    order: typeof field.order === 'number' ? field.order : undefined,
   }
 }
 
@@ -466,6 +514,7 @@ function createFieldNode(material: MaterialFieldItem): DesignerFieldNode {
     required: false,
     enumOptions: material.component === 'Select' ? [...DEFAULT_SELECT_OPTIONS] : [],
     componentProps: normalizeComponentProps(material.componentProps),
+    description: material.description,
   }
 }
 
@@ -706,6 +755,27 @@ function parseSchemaNode(name: string, schema: Record<string, unknown>, required
     required: typeof schema.required === 'boolean' ? schema.required : requiredHint,
     enumOptions: component === 'Select' ? parseEnumOptions(schema) : [],
     componentProps: normalizeComponentProps(schema.componentProps),
+    description: typeof schema.description === 'string' ? schema.description : undefined,
+    defaultValue: schema.default,
+    dataSource: Array.isArray(schema.dataSource) || isRecord(schema.dataSource)
+      ? (schema.dataSource as DataSourceItem[] | DataSourceConfig)
+      : undefined,
+    rules: Array.isArray(schema.rules) ? (schema.rules as ValidationRule[]) : undefined,
+    validateTrigger: schema.validateTrigger as ValidationTrigger | ValidationTrigger[] | undefined,
+    reactions: Array.isArray(schema.reactions) ? (schema.reactions as ReactionRule[]) : undefined,
+    visible: typeof schema.visible === 'boolean' ? schema.visible : undefined,
+    disabled: typeof schema.disabled === 'boolean' ? schema.disabled : undefined,
+    preview: typeof schema.preview === 'boolean' ? schema.preview : undefined,
+    pattern: schema.pattern as FieldPattern | undefined,
+    displayFormat: typeof schema.displayFormat === 'string' ? schema.displayFormat : undefined,
+    inputParse: typeof schema.inputParse === 'string' ? schema.inputParse : undefined,
+    submitTransform: typeof schema.submitTransform === 'string' ? schema.submitTransform : undefined,
+    submitPath: typeof schema.submitPath === 'string' ? schema.submitPath : undefined,
+    excludeWhenHidden: typeof schema.excludeWhenHidden === 'boolean' ? schema.excludeWhenHidden : undefined,
+    decorator: schema.decorator as SchemaDecoratorName | undefined,
+    decoratorProps: normalizeComponentProps(schema.decoratorProps),
+    span: typeof schema.span === 'number' ? schema.span : undefined,
+    order: typeof schema.order === 'number' ? schema.order : undefined,
   }
 }
 
@@ -746,6 +816,10 @@ function buildFieldSchema(node: DesignerFieldNode): ISchema {
     required: node.required,
     component: node.component,
   }
+  if (node.description)
+    schema.description = node.description
+  if (node.defaultValue !== undefined)
+    schema.default = node.defaultValue
   const componentProps = normalizeComponentProps(node.componentProps)
   if (node.component === 'Input') {
     if (typeof componentProps.placeholder !== 'string')
@@ -763,6 +837,40 @@ function buildFieldSchema(node: DesignerFieldNode): ISchema {
       value: option.value,
     }))
   }
+  if (node.dataSource)
+    schema.dataSource = node.dataSource
+  if (node.rules && node.rules.length > 0)
+    schema.rules = node.rules
+  if (node.validateTrigger)
+    schema.validateTrigger = node.validateTrigger
+  if (node.reactions && node.reactions.length > 0)
+    schema.reactions = node.reactions
+  if (typeof node.visible === 'boolean')
+    schema.visible = node.visible
+  if (typeof node.disabled === 'boolean')
+    schema.disabled = node.disabled
+  if (typeof node.preview === 'boolean')
+    schema.preview = node.preview
+  if (node.pattern)
+    schema.pattern = node.pattern
+  if (node.displayFormat)
+    schema.displayFormat = node.displayFormat
+  if (node.inputParse)
+    schema.inputParse = node.inputParse
+  if (node.submitTransform)
+    schema.submitTransform = node.submitTransform
+  if (node.submitPath)
+    schema.submitPath = node.submitPath
+  if (typeof node.excludeWhenHidden === 'boolean')
+    schema.excludeWhenHidden = node.excludeWhenHidden
+  if (typeof node.span === 'number')
+    schema.span = node.span
+  if (typeof node.order === 'number')
+    schema.order = node.order
+  if (node.decorator)
+    schema.decorator = node.decorator
+  if (node.decoratorProps && Object.keys(node.decoratorProps).length > 0)
+    schema.decoratorProps = node.decoratorProps
   if (Object.keys(componentProps).length > 0)
     schema.componentProps = componentProps
   return schema
