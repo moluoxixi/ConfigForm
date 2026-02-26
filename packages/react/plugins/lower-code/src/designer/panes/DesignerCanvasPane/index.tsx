@@ -28,7 +28,9 @@ export function DesignerCanvasPane(props: DesignerCanvasPaneProps): ReactElement
    * 当 schema 结构或只读态变化时，强制重建渲染树与投放列表 DOM，避免状态错位。
    */
   const paneRenderKey = useMemo(
-    () => schemaSignature(nodesToSchema(props.nodes)),
+    () => [
+      schemaSignature(nodesToSchema(props.nodes)),
+    ].join(':'),
     [props.nodes],
   )
 

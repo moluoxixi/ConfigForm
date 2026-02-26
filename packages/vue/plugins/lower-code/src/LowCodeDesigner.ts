@@ -1,4 +1,3 @@
-/// <reference path="./jsoneditor.d.ts" />
 import type {
   DesignerContainerNode,
   DesignerFieldNode,
@@ -15,10 +14,10 @@ import { cloneDeep } from '@moluoxixi/core'
 import {
   addSectionToContainer,
   collectDropTargetKeys,
-  collectPreviewFields,
   createDesignerCanvasPutHandler,
   createDesignerCanvasSortableOptions,
   createDesignerMaterialSortableOptions,
+  createDesignerPointerTracker,
   defaultNodeFromMaterial,
   duplicateNodeById,
   findNodeById,
@@ -33,6 +32,11 @@ import {
   removeSectionFromContainer,
   resolveDesignerMaterials,
   resolveDesignerSortableInsertIndex,
+  resolveDesignerSortableMoveIndices,
+  resolveDesignerSortablePointerIndexByTargetKey,
+  resolveDesignerSortablePointerIndexByTargetKeyAndPoint,
+  resolveDesignerSortablePointerTargetKey,
+  resolveDesignerSortablePointerTargetKeyByPoint,
   restoreDraggedDomPosition,
   rootTarget,
   schemaSignature,
@@ -40,14 +44,12 @@ import {
   updateNodeById,
 } from '@moluoxixi/plugin-lower-code-core'
 import { ComponentRegistrySymbol, FormProvider, SchemaField, useCreateForm } from '@moluoxixi/vue'
-import JSONEditor from 'jsoneditor'
 import Sortable from 'sortablejs'
 import { computed, defineComponent, h, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { DesignerCanvasPane } from './designer/center/DesignerCanvasPane'
 import { DesignerMaterialPane } from './designer/left/DesignerMaterialPane'
 import { mergeDesignerComponentDefinitions } from './designer/right/component-definitions'
 import { DesignerPropertiesPane } from './designer/right/DesignerPropertiesPane'
-import 'jsoneditor/dist/jsoneditor.css'
 
 export type {
   LowCodeDesignerComponentDefinition,
@@ -114,7 +116,7 @@ const DESIGNER_CSS = `
   right: 4px;
   transform: translate(0, calc(-100% + 12px));
   z-index: 40;
-  pointer-events: none;
+  pointer-events: auto;
   display: flex;
   align-items: flex-start;
   justify-content: flex-end;
@@ -126,7 +128,8 @@ const DESIGNER_CSS = `
 
 .cf-lc-pane-configform-shell,
 .cf-lc-pane-configform-shell > form,
-.cf-lc-pane-configform-shell > form > div {
+.cf-lc-pane-configform-shell > form > div,
+.cf-lc-pane-configform-shell > div:first-child {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
@@ -136,6 +139,16 @@ const DESIGNER_CSS = `
 
 .cf-lc-pane-configform-shell > form {
   margin: 0;
+}
+
+.cf-lc-side-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+  overflow: auto;
+  padding-right: 2px;
+  scrollbar-gutter: stable;
 }
 
 .cf-lc-material-pane .ant-tabs,
@@ -161,9 +174,11 @@ const DESIGNER_CSS = `
 }
 
 .cf-lc-material-pane .ant-tabs-tabpane:not(.ant-tabs-tabpane-hidden),
-.cf-lc-material-pane .el-tab-pane.is-active {
+.cf-lc-material-pane .el-tab-pane.is-active,
+.cf-lc-material-pane .el-tab-pane[aria-hidden="false"] {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .cf-lc-ghost {
@@ -299,10 +314,13 @@ const DESIGNER_CSS = `
 
 .cf-lc-canvas-wrap {
   padding: 12px;
+  flex: 1 1 auto;
   height: 100%;
   min-height: 0;
+  max-height: 100%;
   overflow: auto;
   box-sizing: border-box;
+  scrollbar-gutter: stable;
 }
 
 .cf-lc-drop-list {
@@ -495,6 +513,7 @@ const DESIGNER_CSS = `
   background: #ffffff;
   padding: 8px;
   overflow: visible;
+  transition: border-color .16s ease, box-shadow .16s ease, background-color .16s ease, transform .18s ease;
 }
 
 .cf-lc-section::after {
@@ -844,8 +863,8 @@ export const LowCodeDesigner = defineComponent({
     const designerRoot = ref<HTMLElement | null>(null)
     const materialHost = ref<HTMLElement | null>(null)
     const canvasHost = ref<HTMLElement | null>(null)
-    const editorHost = ref<HTMLElement | null>(null)
-    const editor = ref<JSONEditor | null>(null)
+    const pointerTracker = createDesignerPointerTracker()
+    const dragMeta = { allowCrossTarget: false }
     const sortables = ref<Sortable[]>([])
     let remountTimer: ReturnType<typeof setTimeout> | null = null
     let remountAttempts = 0
@@ -867,10 +886,6 @@ export const LowCodeDesigner = defineComponent({
     const
       setDesignerRoot = (element: HTMLElement | null): void => {
         designerRoot.value = element
-      }
-    const
-      setEditorHost = (element: HTMLElement | null): void => {
-        editorHost.value = element
       }
 
     const registeredComponentNames = computed(() =>
@@ -900,7 +915,6 @@ export const LowCodeDesigner = defineComponent({
     const selectedContainer = computed(() =>
       (selectedNode.value?.kind === 'container' ? selectedNode.value : null))
 
-    const previewFields = computed(() => collectPreviewFields(nodes.value))
     const dropTargetSignature = computed(() => collectDropTargetKeys(nodes.value).sort().join('|'))
     const materialSignature = computed(() => designerMaterials.value.allMaterials.map(item => item.id).join('|'))
 
@@ -1026,7 +1040,19 @@ export const LowCodeDesigner = defineComponent({
      * 否则会出现重复监听、事件触发多次和拖拽异常。
      */
     function destroySortables(): void {
-      sortables.value.forEach(sortable => sortable.destroy())
+      for (const sortable of sortables.value) {
+        const el = (sortable as Sortable & { el?: HTMLElement | null }).el
+        if (!el)
+          continue
+        try {
+          sortable.destroy()
+        }
+        catch {
+          // Swallow destroy errors when the element is already detached.
+        }
+        delete (el as HTMLElement & { __cfSortable?: Sortable }).__cfSortable
+        el.removeAttribute('data-cf-sortable-mounted')
+      }
       sortables.value = []
     }
     /**
@@ -1056,14 +1082,14 @@ export const LowCodeDesigner = defineComponent({
         return
       if (element.closest('[data-cf-toolbar-interactive="true"]'))
         return
-      const sectionId = element.closest('[data-section-id]')?.getAttribute('data-section-id')
-      if (sectionId) {
-        selectedId.value = sectionId
+      const nodeId = element.closest('[data-node-id]')?.getAttribute('data-node-id')
+      if (nodeId) {
+        selectedId.value = nodeId
         return
       }
-      const nodeId = element.closest('[data-node-id]')?.getAttribute('data-node-id')
-      if (nodeId)
-        selectedId.value = nodeId
+      const sectionId = element.closest('[data-section-id]')?.getAttribute('data-section-id')
+      if (sectionId)
+        selectedId.value = sectionId
     }
     /**
      * 解除画布捕获监听。
@@ -1099,6 +1125,10 @@ export const LowCodeDesigner = defineComponent({
      * @param dragging 是否处于拖拽中。
      */
     function toggleDraggingCursor(dragging: boolean): void {
+      if (dragging)
+        pointerTracker.start()
+      else
+        pointerTracker.stop()
       if (typeof document === 'undefined')
         return
       document.body.classList.toggle('cf-lc-body-dragging', dragging)
@@ -1118,11 +1148,13 @@ export const LowCodeDesigner = defineComponent({
       let materialMounted = 0
       let canvasMounted = 0
 
-      const materialSortableRoot = materialHost.value ?? designerRoot.value
+      const fallbackRoot = designerRoot.value
+        ?? (typeof document !== 'undefined' ? document.querySelector<HTMLElement>('.cf-lc-root') : null)
+      const materialSortableRoot = materialHost.value ?? fallbackRoot
       if (materialSortableRoot) {
         const materialLists = Array.from(materialSortableRoot.querySelectorAll<HTMLElement>('[data-cf-material-list="true"]'))
         for (const materialList of materialLists) {
-          sortables.value.push(Sortable.create(materialList, createDesignerMaterialSortableOptions({
+          const materialSortable = Sortable.create(materialList, createDesignerMaterialSortableOptions({
             disabled: readonly.value,
             /** 物料开始拖拽时启用全局拖拽光标。 */
             onStart: () => toggleDraggingCursor(true),
@@ -1137,12 +1169,15 @@ export const LowCodeDesigner = defineComponent({
             setData: (dataTransfer, dragElement) => {
               dataTransfer.setData('text/plain', dragElement.getAttribute('data-material-id') ?? '')
             },
-          }) as Sortable.Options))
+          }) as Sortable.Options)
+          sortables.value.push(materialSortable)
+          ;(materialList as HTMLElement & { __cfSortable?: Sortable }).__cfSortable = materialSortable
+          materialList.dataset.cfSortableMounted = 'true'
           materialMounted += 1
         }
       }
 
-      const canvasSortableRoot = canvasHost.value ?? designerRoot.value
+      const canvasSortableRoot = canvasHost.value ?? fallbackRoot
       if (!canvasSortableRoot) {
         detachCanvasSelection()
         return { materialMounted, canvasMounted }
@@ -1152,12 +1187,20 @@ export const LowCodeDesigner = defineComponent({
 
       const dropLists = Array.from(canvasSortableRoot.querySelectorAll<HTMLElement>('[data-cf-drop-list="true"]'))
       for (const list of dropLists) {
-        sortables.value.push(Sortable.create(list, createDesignerCanvasSortableOptions({
+        const canvasSortable = Sortable.create(list, createDesignerCanvasSortableOptions({
           disabled: readonly.value,
           targetKey: list.dataset.targetKey,
           put: canvasPutHandler,
           /** 画布拖拽开始时启用全局拖拽光标。 */
-          onStart: () => toggleDraggingCursor(true),
+          onStart: (event) => {
+            toggleDraggingCursor(true)
+            const origin = event?.originalEvent?.target
+            const originEl = origin instanceof HTMLElement ? origin : null
+            const dragNode = originEl?.closest<HTMLElement>('[data-node-id]') ?? null
+            dragMeta.allowCrossTarget = Boolean(
+              originEl?.closest('.cf-lc-node-tool--move'),
+            )
+          },
           /**
            * 写入画布节点拖拽 payload。
            *
@@ -1172,14 +1215,40 @@ export const LowCodeDesigner = defineComponent({
            *
            * @param event Sortable 事件对象。
            */
-          onAdd: (event) => {
-            const item = event.item as HTMLElement
-            const materialId = item.dataset.materialId
-            if (!materialId)
+        onAdd: (event) => {
+          const item = event.item as HTMLElement
+          const pointerSnapshot = pointerTracker.getLastPoint() ?? (() => {
+            const rect = item.getBoundingClientRect()
+            if (!rect || rect.width <= 0 || rect.height <= 0)
+              return null
+            return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+          })()
+            const pointerTargetKey = resolveDesignerSortablePointerTargetKeyByPoint(pointerSnapshot)
+              ?? resolveDesignerSortablePointerTargetKey(event)
+            const toTargetKey = pointerTargetKey ?? (event.to as HTMLElement).dataset.targetKey
+            const pointerIndex = resolveDesignerSortablePointerIndexByTargetKeyAndPoint(
+              toTargetKey,
+              pointerSnapshot,
+              item,
+            )
+          const materialId = item.dataset.materialId
+          if (!materialId) {
+            const nodeId = item.dataset.nodeId
+            if (!nodeId)
               return
+            const toTarget = keyToTarget(toTargetKey)
+            if (!toTarget)
+              return
+            const insertIndex = pointerIndex ?? resolveDesignerSortableInsertIndex(event, Number.MAX_SAFE_INTEGER)
+            item.dataset.cfDragHandled = 'true'
+            restoreDraggedDomPosition(event)
+            nodes.value = moveNodeByIdToTarget(nodes.value, nodeId, toTarget, insertIndex)
+            selectedId.value = nodeId
+            return
+          }
 
             item.remove()
-            const target = keyToTarget((event.to as HTMLElement).dataset.targetKey)
+            const target = keyToTarget(toTargetKey)
             const materialByPayload = parseMaterialPayload(item.dataset.materialPayload)
             const material = materialsById.value.get(materialId)
               ?? materialByPayload
@@ -1187,7 +1256,7 @@ export const LowCodeDesigner = defineComponent({
             if (!target || !material)
               return
 
-            const insertIndex = resolveDesignerSortableInsertIndex(event)
+            const insertIndex = pointerIndex ?? resolveDesignerSortableInsertIndex(event)
             const baseNode = defaultNodeFromMaterial(material, [])
             const nextNode = mergeFieldNodeWithComponentPreset(baseNode, componentPropsByComponent.value)
             const previousNodes = nodes.value
@@ -1206,31 +1275,125 @@ export const LowCodeDesigner = defineComponent({
            *
            * @param event Sortable 事件对象。
            */
-          onEnd: (event) => {
-            toggleDraggingCursor(false)
-            const item = event.item as HTMLElement
-            if (item.dataset.materialId)
-              return
-            if (item.parentElement && item.parentElement !== event.to)
-              return
-
+        onEnd: (event) => {
+          toggleDraggingCursor(false)
+          const item = event.item as HTMLElement
+          const pointerSnapshot = pointerTracker.getLastPoint() ?? (() => {
+            const rect = item.getBoundingClientRect()
+            if (!rect || rect.width <= 0 || rect.height <= 0)
+              return null
+            return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+          })()
+          const allowCrossTarget = dragMeta.allowCrossTarget
+          dragMeta.allowCrossTarget = false
+          if (item.dataset.materialId)
+            return
+          if (item.dataset.cfDragHandled) {
+            delete item.dataset.cfDragHandled
+            return
+          }
             const fromTargetKey = (event.from as HTMLElement).dataset.targetKey
-            const toTargetKey = (event.to as HTMLElement).dataset.targetKey
-            // 嵌套拖拽时会触发祖先列表的 onEnd，跳过非真实来源列表事件。
-            if (item.dataset.parentTargetKey && fromTargetKey !== item.dataset.parentTargetKey)
+            const eventTargetKey = (event.to as HTMLElement).dataset.targetKey
+            const pointerTargetKey = resolveDesignerSortablePointerTargetKeyByPoint(pointerSnapshot)
+              ?? resolveDesignerSortablePointerTargetKey(event)
+            const toTargetKey = pointerTargetKey ?? eventTargetKey
+            const parentList = item.parentElement?.closest<HTMLElement>('[data-cf-drop-list="true"]')
+            if (parentList && parentList !== event.to && parentList !== event.from)
               return
+          // 嵌套拖拽时会触发祖先列表的 onEnd，跳过非真实来源列表事件。
+          if (item.dataset.parentTargetKey && fromTargetKey !== item.dataset.parentTargetKey)
+            return
 
-            const toTarget = keyToTarget(toTargetKey)
-            const nodeId = item.dataset.nodeId
-            if (!toTarget || !nodeId)
+          const toTarget = keyToTarget(toTargetKey)
+          const nodeId = item.dataset.nodeId
+          if (!toTarget || !nodeId)
+            return
+
+          const reorderWithinTarget = (targetKey: string | undefined): void => {
+            if (!targetKey)
               return
-
-            const newIndex = resolveDesignerSortableInsertIndex(event, Number.MAX_SAFE_INTEGER)
+            const target = keyToTarget(targetKey)
+            if (!target)
+              return
+            const { oldIndex } = resolveDesignerSortableMoveIndices(event)
+            const pointerIndex = resolveDesignerSortablePointerIndexByTargetKey(
+              event,
+              targetKey,
+            ) ?? resolveDesignerSortablePointerIndexByTargetKeyAndPoint(targetKey, pointerSnapshot, item)
+            let newIndex = pointerIndex ?? (oldIndex >= 0 ? oldIndex : Number.MAX_SAFE_INTEGER)
+            if (pointerIndex !== null && pointerIndex !== oldIndex)
+              newIndex = pointerIndex
             restoreDraggedDomPosition(event)
-            nodes.value = moveNodeByIdToTarget(nodes.value, nodeId, toTarget, newIndex)
+            nodes.value = moveNodeByIdToTarget(nodes.value, nodeId, target, newIndex)
             selectedId.value = nodeId
-          },
-        }) as Sortable.Options))
+          }
+
+          const actualList = item.parentElement?.closest<HTMLElement>('[data-cf-drop-list="true"]')
+            const actualTargetKey = actualList?.dataset?.targetKey
+            const preferPointerTarget = Boolean(pointerTargetKey) && pointerTargetKey !== actualTargetKey
+            if (actualTargetKey && actualTargetKey !== fromTargetKey && !preferPointerTarget) {
+            if (!allowCrossTarget) {
+              reorderWithinTarget(fromTargetKey)
+              return
+            }
+            const actualTarget = keyToTarget(actualTargetKey)
+            if (!actualTarget)
+              return
+            const actualIndex = Array.from(actualList.children)
+              .filter((child) => {
+                if (!(child instanceof HTMLElement))
+                  return false
+                return child.hasAttribute('data-node-id') || child.hasAttribute('data-material-id')
+              })
+              .indexOf(item)
+            restoreDraggedDomPosition(event)
+            nodes.value = moveNodeByIdToTarget(
+              nodes.value,
+              nodeId,
+              actualTarget,
+              actualIndex >= 0 ? actualIndex : Number.MAX_SAFE_INTEGER,
+            )
+            selectedId.value = nodeId
+            return
+          }
+
+          if (event.from !== event.to) {
+            if (fromTargetKey !== toTargetKey && !allowCrossTarget) {
+              reorderWithinTarget(fromTargetKey)
+              return
+            }
+            const crossTarget = keyToTarget(toTargetKey)
+            if (!crossTarget)
+              return
+            const pointerIndex = resolveDesignerSortablePointerIndexByTargetKeyAndPoint(
+              toTargetKey,
+              pointerSnapshot,
+              item,
+            )
+            const insertIndex = pointerIndex ?? resolveDesignerSortableInsertIndex(event, Number.MAX_SAFE_INTEGER)
+            restoreDraggedDomPosition(event)
+            nodes.value = moveNodeByIdToTarget(nodes.value, nodeId, crossTarget, insertIndex)
+            selectedId.value = nodeId
+            return
+          }
+
+          const { oldIndex } = resolveDesignerSortableMoveIndices(event)
+          const pointerIndex = resolveDesignerSortablePointerIndexByTargetKeyAndPoint(
+            toTargetKey,
+            pointerSnapshot,
+            item,
+          )
+          let newIndex = resolveDesignerSortableInsertIndex(event, Number.MAX_SAFE_INTEGER)
+          if (pointerIndex !== null && pointerIndex !== oldIndex)
+            newIndex = pointerIndex
+          restoreDraggedDomPosition(event)
+          nodes.value = moveNodeByIdToTarget(nodes.value, nodeId, toTarget, newIndex)
+          selectedId.value = nodeId
+        },
+        }) as Sortable.Options)
+        sortables.value.push(canvasSortable)
+        ;(list as HTMLElement & { __cfSortable?: Sortable }).__cfSortable = canvasSortable
+        list.dataset.cfSortableMounted = 'true'
         canvasMounted += 1
       }
 
@@ -1267,37 +1430,8 @@ export const LowCodeDesigner = defineComponent({
     }, { immediate: true })
 
     onMounted(async () => {
-      if (editorHost.value) {
-        editor.value = new JSONEditor(editorHost.value, {
-          mode: 'view',
-          modes: ['view', 'tree', 'code'],
-          mainMenuBar: true,
-          navigationBar: true,
-          statusBar: true,
-          search: true,
-          /** JSONEditor 仅用于查看导出 schema，不允许直接编辑。 */
-          onEditable: () => false,
-        })
-        try {
-          editor.value.set(cloneDeep(builtSchema.value))
-        }
-        catch {
-          editor.value.set({})
-        }
-      }
       scheduleMountSortables()
     })
-
-    watch(builtSchema, (schema) => {
-      if (!editor.value)
-        return
-      try {
-        editor.value.set(cloneDeep(schema))
-      }
-      catch {
-        editor.value.set({})
-      }
-    }, { immediate: true, deep: true })
 
     onBeforeUnmount(() => {
       if (remountTimer)
@@ -1305,8 +1439,6 @@ export const LowCodeDesigner = defineComponent({
       toggleDraggingCursor(false)
       detachCanvasSelection()
       destroySortables()
-      editor.value?.destroy()
-      editor.value = null
     })
 
     /**
@@ -1523,7 +1655,11 @@ export const LowCodeDesigner = defineComponent({
       setup(rootProps, { slots }) {
         return () => h('div', {
           ref: (element: HTMLDivElement | null) => rootProps.setRootRef(element),
+          class: 'cf-lc-root',
           style: {
+            width: '100%',
+            height: '100%',
+            minWidth: 0,
             border: '1px solid #d7e0ef',
             borderRadius: '16px',
             overflow: 'hidden',
@@ -1565,131 +1701,27 @@ export const LowCodeDesigner = defineComponent({
           style: {
             padding: '12px',
             minHeight: 0,
+            minWidth: 0,
+            flex: '1 1 auto',
+            overflow: 'hidden',
           },
         }, [
           h('div', {
             style: {
-              display: 'flex',
-              alignItems: 'stretch',
+              display: 'grid',
+              gridTemplateColumns: '260px minmax(520px, 1fr) 340px',
               gap: '12px',
+              alignItems: 'stretch',
               width: '100%',
               minWidth: 0,
               minHeight: 0,
-              height: 'clamp(360px, 55vh, 640px)',
-              overflow: 'hidden',
+              height: '100%',
             },
           }, slots.default?.()),
         ])
       },
     })
 
-    const DesignerBottomGrid = defineComponent({
-      name: 'DesignerBottomGrid',
-      setup(_, { slots }) {
-        return () => h('div', {
-          style: {
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '12px',
-            padding: '0 12px 12px',
-          },
-        }, slots.default?.())
-      },
-    })
-
-    const DesignerSchemaPanel = defineComponent({
-      name: 'DesignerSchemaPanel',
-      props: {
-        setEditorHost: {
-          type: Function as PropType<(element: HTMLDivElement | null) => void>,
-          required: true,
-        },
-      },
-      setup(panelProps) {
-        return () => h('section', {
-          style: {
-            border: '1px solid #dbe4f0',
-            borderRadius: '12px',
-            background: '#fff',
-            overflow: 'hidden',
-          },
-        }, [
-          h('div', {
-            style: {
-              margin: 0,
-              padding: '12px 16px',
-              fontSize: '13px',
-              fontWeight: 700,
-              borderBottom: '1px solid #edf2f8',
-              background: 'linear-gradient(180deg, #f8fbff 0%, #f6fafb 100%)',
-            },
-          }, 'Schema（JSONEditor）'),
-          h('div', { ref: (element: HTMLDivElement | null) => panelProps.setEditorHost(element), style: { minHeight: '280px' } }),
-        ])
-      },
-    })
-
-    const DesignerPreviewPanel = defineComponent({
-      name: 'DesignerPreviewPanel',
-      props: {
-        fields: {
-          type: Array as PropType<DesignerFieldNode[]>,
-          required: true,
-        },
-        renderFieldPreviewControl: {
-          type: Function as PropType<(node: DesignerFieldNode) => VNodeChild>,
-          required: true,
-        },
-      },
-      setup(panelProps) {
-        return () => h('section', {
-          style: {
-            border: '1px solid #dbe4f0',
-            borderRadius: '12px',
-            background: '#fff',
-            overflow: 'hidden',
-          },
-        }, [
-          h('div', {
-            style: {
-              margin: 0,
-              padding: '12px 16px',
-              fontSize: '13px',
-              fontWeight: 700,
-              borderBottom: '1px solid #edf2f8',
-              background: 'linear-gradient(180deg, #f8fbff 0%, #f6fafb 100%)',
-            },
-          }, '实时预览'),
-          h('div', {
-            style: {
-              borderTop: '1px solid #f0f0f0',
-              padding: '12px',
-              display: 'grid',
-              gap: '10px',
-            },
-          }, [
-            ...panelProps.fields.map(item => h('div', {
-              key: item.id,
-              style: {
-                border: '1px solid #e2e8f0',
-                borderRadius: '10px',
-                padding: '10px',
-                background: '#fff',
-              },
-            }, [
-              h('div', { style: { fontSize: '12px', color: '#666', marginBottom: '6px', fontWeight: 600 } }, [
-                `${item.required ? '* ' : ''}${item.title} `,
-                h('span', { style: { color: '#9ca3af', fontWeight: 400 } }, `(${item.name})`),
-              ]),
-              panelProps.renderFieldPreviewControl(item),
-            ])),
-            panelProps.fields.length === 0
-              ? h('div', { style: { color: '#9ca3af', fontSize: '12px' } }, '暂无字段，请从左侧物料区拖拽组件到画布。')
-              : null,
-          ]),
-        ])
-      },
-    })
 
     const designerSchema = computed<ISchema>(() => ({
       type: 'object',
@@ -1757,27 +1789,6 @@ export const LowCodeDesigner = defineComponent({
                 },
               },
             },
-            bottom: {
-              type: 'void',
-              component: 'DesignerBottomGrid',
-              properties: {
-                schema: {
-                  type: 'void',
-                  component: 'DesignerSchemaPanel',
-                  componentProps: {
-                    setEditorHost,
-                  },
-                },
-                preview: {
-                  type: 'void',
-                  component: 'DesignerPreviewPanel',
-                  componentProps: {
-                    fields: previewFields.value,
-                    renderFieldPreviewControl: (node: DesignerFieldNode) => renderFieldPreviewControl(node, 'preview'),
-                  },
-                },
-              },
-            },
           },
         },
       },
@@ -1787,9 +1798,6 @@ export const LowCodeDesigner = defineComponent({
       DesignerRoot,
       DesignerHeader,
       DesignerMainGrid,
-      DesignerBottomGrid,
-      DesignerSchemaPanel,
-      DesignerPreviewPanel,
       DesignerMaterialPane,
       DesignerCanvasPane,
       DesignerPropertiesPane,

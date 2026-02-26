@@ -339,6 +339,15 @@ export const DesignerCanvasPane = defineComponent({
         'key': section.id,
         'data-section-id': section.id,
         'class': `cf-lc-section cf-lc-section--${mode} ${selected ? 'cf-lc-section--selected' : ''}`,
+        /** 分组区域指针按下命中自身则选中该分组。 */
+        'onPointerdownCapture': (event: Event) => {
+          if (isToolbarInteraction(event.target))
+            return
+          if (closestNodeId(event.target))
+            return
+          event.stopPropagation()
+          props.onSelect(section.id)
+        },
         /** 分组区域按下时命中自身则选中该分组。 */
         'onMousedownCapture': (event: Event) => {
           if (isToolbarInteraction(event.target))
@@ -420,6 +429,12 @@ export const DesignerCanvasPane = defineComponent({
         'class': `cf-lc-node cf-lc-node--field ${selected ? 'cf-lc-node--selected' : ''}`,
         'data-node-id': node.id,
         'data-parent-target-key': parentTargetKey,
+        /** 字段卡片指针按下时更新选中项。 */
+        'onPointerdownCapture': (event: Event) => {
+          if (isToolbarInteraction(event.target))
+            return
+          props.onSelect(node.id)
+        },
         /** 字段卡片按下时更新选中项。 */
         'onMousedownCapture': (event: Event) => {
           if (isToolbarInteraction(event.target))
@@ -455,6 +470,14 @@ export const DesignerCanvasPane = defineComponent({
         'class': `cf-lc-node cf-lc-node--container ${selected ? 'cf-lc-node--selected' : ''}`,
         'data-node-id': node.id,
         'data-parent-target-key': parentTargetKey,
+        /** 容器外框指针按下命中自身时更新选中项。 */
+        'onPointerdownCapture': (event: Event) => {
+          if (isToolbarInteraction(event.target))
+            return
+          if (!isNodeSelfEvent(event.target, node.id))
+            return
+          props.onSelect(node.id)
+        },
         /** 容器外框按下命中自身时更新选中项。 */
         'onMousedownCapture': (event: Event) => {
           if (isToolbarInteraction(event.target))
@@ -552,7 +575,8 @@ export const DesignerCanvasPane = defineComponent({
           gridTemplateRows: 'auto 1fr',
         },
       }, [
-        h('div', {
+        h(ConfigForm, {
+          key: paneRenderKey.value,
           class: 'cf-lc-pane-configform-shell',
           style: {
             flex: '1 1 auto',
@@ -561,14 +585,10 @@ export const DesignerCanvasPane = defineComponent({
             display: 'flex',
             flexDirection: 'column',
           },
-        }, [
-          h(ConfigForm, {
-            key: paneRenderKey.value,
-            schema: paneSchema.value,
-            components: paneComponents,
-            formTag: false,
-          }),
-        ]),
+          schema: paneSchema.value,
+          components: paneComponents,
+          formTag: false,
+        }),
       ]),
     ])
   },

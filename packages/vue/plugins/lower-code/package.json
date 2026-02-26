@@ -2,7 +2,7 @@
   "name": "@moluoxixi/plugin-lower-code-vue",
   "type": "module",
   "version": "0.0.1",
-  "description": "ConfigForm 低代码设计器 Vue 适配（SortableJS + JSONEditor）",
+  "description": "ConfigForm 低代码设计器 Vue 适配（SortableJS）",
   "exports": {
     ".": {
       "types": "./src/index.ts",
@@ -41,7 +41,6 @@
     "@moluoxixi/plugin-lower-code-core": "workspace:*",
     "@moluoxixi/vue": "workspace:*",
     "@moluoxixi/ui-basic-vue": "workspace:*",
-    "jsoneditor": "catalog:build",
     "sortablejs": "catalog:build",
     "vue": "catalog:build"
   },

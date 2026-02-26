@@ -1,6 +1,6 @@
 import type { VoidFieldProps } from '@moluoxixi/core'
 import type { PropType } from 'vue'
-import { defineComponent, h, inject, onBeforeUnmount, onMounted, provide } from 'vue'
+import { defineComponent, h, inject, onBeforeUnmount, onMounted, provide, watch } from 'vue'
 import { FieldSymbol, FormSymbol } from '../context'
 import { ReactiveField } from './ReactiveField'
 
@@ -54,6 +54,29 @@ export const FormVoidField = defineComponent({
     }
 
     /* pattern 无需手动继承，field.pattern getter 已自动回退到 form.pattern */
+    watch(
+      () => props.fieldProps,
+      (nextProps) => {
+        if (!nextProps || !field)
+          return
+        if (nextProps.label !== undefined)
+          field.label = nextProps.label ?? ''
+        if (nextProps.visible !== undefined)
+          field.visible = nextProps.visible ?? true
+        if (nextProps.disabled !== undefined)
+          field.disabled = nextProps.disabled ?? false
+        if (nextProps.preview !== undefined)
+          field.preview = nextProps.preview ?? false
+        if (nextProps.pattern !== undefined)
+          field.pattern = nextProps.pattern
+        if (nextProps.component !== undefined)
+          field.component = nextProps.component ?? ''
+        if (nextProps.componentProps) {
+          field.componentProps = { ...field.componentProps, ...nextProps.componentProps }
+        }
+      },
+      { deep: true },
+    )
 
     provide(FieldSymbol, field as any)
 

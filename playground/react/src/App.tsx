@@ -119,6 +119,8 @@ export function App(): React.ReactElement {
     )
   }, [i18nFeature.headerExtra])
 
+  const isFullScreenScene = sceneConfig?.layout?.mode === 'fullscreen'
+
   return (
     <div style={{ width: '100vw', margin: 0, padding: 16, fontFamily: 'system-ui, sans-serif', height: '100vh', minHeight: 0, minWidth: 0, flex: '1 1 auto', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <h1 style={{ marginBottom: 4 }}>ConfigForm - React Playground</h1>
@@ -159,7 +161,7 @@ export function App(): React.ReactElement {
         </div>
 
         {/* 右侧内容区 */}
-        <div style={{ flex: 1, minWidth: 0, minHeight: 0, border: '1px solid #eee', borderRadius: 8, padding: 24, background: '#fff', display: 'flex', flexDirection: 'column', overflowY: 'auto', overflowX: 'hidden' }}>
+        <div style={{ flex: 1, minWidth: 0, minHeight: 0, border: '1px solid #eee', borderRadius: 8, padding: isFullScreenScene ? 0 : 24, background: '#fff', display: 'flex', flexDirection: 'column', overflow: isFullScreenScene ? 'hidden' : 'auto' }}>
           {sceneConfig
             ? (
                 <SceneRenderer

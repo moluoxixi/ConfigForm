@@ -107,6 +107,7 @@ const FormActionsRenderer = defineComponent({
  */
 export const ConfigForm = defineComponent({
   name: 'ConfigForm',
+  inheritAttrs: false,
   props: {
     form: {
       type: Object as PropType<FormInstance>,
@@ -179,7 +180,8 @@ export const ConfigForm = defineComponent({
    * @returns 返回渲染函数。
    */
   setup(props, context) {
-    const { slots, emit } = context
+    const { slots, emit, attrs } = context
+    const { class: className, style: styleValue, ...restAttrs } = attrs
     /** 从根 schema 的 decoratorProps 提取表单级配置（用于创建表单） */
     const rawDecoratorProps = computed(() =>
       (props.schema?.decoratorProps ?? {}) as Record<string, unknown>,
@@ -410,7 +412,12 @@ export const ConfigForm = defineComponent({
         scope: props.scope,
         registry: props.registry,
       }, () =>
-        h(FormTag, formProps, [
+        h(FormTag, {
+          ...formProps,
+          ...restAttrs,
+          class: className,
+          style: styleValue,
+        }, [
           /* 字段容器（始终使用 div 包裹，避免布局切换时因 DOM 结构变化导致字段树重建） */
           effectiveSchema.value
             ? h('div', {

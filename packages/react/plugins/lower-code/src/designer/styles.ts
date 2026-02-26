@@ -11,6 +11,12 @@ export const DESIGNER_CSS = `
   --cf-lc-muted: #64748b;
   --cf-lc-border: #dbe4f0;
   --cf-lc-panel-bg: #ffffff;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   border: 1px solid #d7e0ef;
   border-radius: 20px;
   overflow: hidden;
@@ -46,16 +52,14 @@ export const DESIGNER_CSS = `
 .cf-lc-main-grid {
   margin: 0;
   min-height: 0;
-}
-
-.cf-lc-main-grid > div {
+  min-width: 0;
+  flex: 1 1 auto;
   display: grid;
-  grid-template-columns: 250px minmax(560px, 1fr) 340px;
+  grid-template-columns: 260px minmax(520px, 1fr) 340px;
   gap: 14px;
   padding: 14px;
   align-items: stretch;
-  height: clamp(360px, 55vh, 640px);
-  min-height: 0;
+  overflow: hidden;
 }
 
 .cf-lc-bottom-grid {
@@ -63,6 +67,8 @@ export const DESIGNER_CSS = `
   grid-template-columns: 1fr 1fr;
   gap: 14px;
   padding: 0 14px 14px;
+  min-width: 0;
+  min-height: 0;
 }
 
 .cf-lc-panel {
@@ -72,6 +78,8 @@ export const DESIGNER_CSS = `
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
   overflow: hidden;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .cf-lc-panel-title {
@@ -86,11 +94,15 @@ export const DESIGNER_CSS = `
 .cf-lc-panel-body {
   padding: 12px;
   min-height: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .cf-lc-pane-configform-shell,
 .cf-lc-pane-configform-shell > form,
-.cf-lc-pane-configform-shell > form > div {
+.cf-lc-pane-configform-shell > form > div,
+.cf-lc-pane-configform-shell > div:first-child {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
@@ -122,8 +134,11 @@ export const DESIGNER_CSS = `
 .cf-lc-side-scroll {
   flex: 1 1 auto;
   min-height: 0;
+  height: 100%;
+  max-height: 100%;
   overflow: auto;
   padding-right: 2px;
+  scrollbar-gutter: stable;
 }
 
 .cf-lc-side-panel-header {
@@ -429,7 +444,7 @@ export const DESIGNER_CSS = `
   right: 4px;
   transform: translate(0, calc(-100% + 12px));
   z-index: 40;
-  pointer-events: none;
+  pointer-events: auto;
   display: flex;
   align-items: flex-start;
   justify-content: flex-end;
@@ -659,10 +674,13 @@ export const DESIGNER_CSS = `
 
 .cf-lc-canvas-wrap {
   padding: 12px;
+  flex: 1 1 auto;
   height: 100%;
   min-height: 0;
+  max-height: 100%;
   overflow: auto;
   box-sizing: border-box;
+  scrollbar-gutter: stable;
 }
 
 .cf-lc-drop-list {
@@ -932,6 +950,7 @@ export const DESIGNER_CSS = `
   background: #ffffff;
   padding: 8px;
   overflow: visible;
+  transition: border-color .16s ease, box-shadow .16s ease, background-color .16s ease, transform .18s ease;
 }
 
 .cf-lc-section::after {
@@ -1230,18 +1249,21 @@ export const DESIGNER_CSS = `
 }
 
 @media (max-width: 1500px) {
-  .cf-lc-main-grid > div {
-    grid-template-columns: 230px minmax(480px, 1fr) 320px;
+  .cf-lc-main-grid {
+    grid-template-columns: 240px minmax(500px, 1fr) 320px;
   }
 }
 
-@media (max-width: 1240px) {
-  .cf-lc-main-grid > div {
-    grid-template-columns: 1fr;
+@media (max-width: 1100px) {
+  .cf-lc-main-grid {
+    grid-template-columns: 220px minmax(460px, 1fr) 300px;
   }
+}
 
+@media (max-width: 900px) {
   .cf-lc-material-list-wrap {
     max-height: none;
   }
 }
+ 
 `

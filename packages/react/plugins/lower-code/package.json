@@ -2,7 +2,7 @@
   "name": "@moluoxixi/plugin-lower-code-react",
   "type": "module",
   "version": "0.0.1",
-  "description": "ConfigForm 低代码设计器 React 适配（SortableJS + JSONEditor）",
+  "description": "ConfigForm 低代码设计器 React 适配（SortableJS）",
   "exports": {
     ".": {
       "types": "./src/index.ts",
@@ -41,7 +41,6 @@
     "@moluoxixi/plugin-lower-code-core": "workspace:*",
     "@moluoxixi/react": "workspace:*",
     "@moluoxixi/ui-basic-react": "workspace:*",
-    "jsoneditor": "catalog:build",
     "sortablejs": "catalog:build"
   },
   "devDependencies": {

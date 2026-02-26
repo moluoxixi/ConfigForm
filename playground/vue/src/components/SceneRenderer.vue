@@ -1,14 +1,14 @@
 <template>
   <div style="height: 100%; min-height: 0; display: flex; flex-direction: column;">
-    <h2>{{ props.title ?? props.config.title }}</h2>
-    <p style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
+    <h2 v-if="showHeader">{{ props.title ?? props.config.title }}</h2>
+    <p v-if="showDescription" style="color: rgba(0,0,0,0.45); margin-bottom: 16px; font-size: 14px;">
       {{ props.description ?? props.config.description }}
     </p>
 
-    <slot name="header-extra" />
+    <slot v-if="showHeaderExtra" name="header-extra" />
 
     <!-- Schema 变体切换器（如布局切换） -->
-    <div v-if="props.config.schemaVariants" style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+    <div v-if="showVariants" style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
       <span style="font-size: 13px; font-weight: 600; color: #555;">{{ props.config.schemaVariants.label }}：</span>
       <div style="display: flex; gap: 4px;">
         <button
@@ -31,7 +31,7 @@
     </div>
 
     <div style="flex: 1; min-height: 0; display: flex; flex-direction: column;">
-      <component :is="props.statusTabs" ref="st" v-slot="{ mode, showResult }">
+      <component v-if="showStatusTabs" :is="props.statusTabs" ref="st" v-slot="{ mode, showResult }">
         <div data-configform-print-root="true" style="flex: 1; min-height: 0; display: flex; flex-direction: column;">
           <ConfigForm
             :schema="currentSchema"
@@ -39,12 +39,28 @@
             :initial-values="props.config.initialValues"
             :effects="props.config.effects"
             :plugins="resolvedPlugins"
+            :class="formClass"
+            :style="formStyle"
             @submit="showResult"
             @submit-failed="(e: any) => st?.showErrors(e)"
             @reset="() => clearStatus()"
           />
         </div>
       </component>
+      <div v-else data-configform-print-root="true" style="flex: 1; min-height: 0; display: flex; flex-direction: column;">
+        <ConfigForm
+          :schema="currentSchema"
+          pattern="edit"
+          :initial-values="props.config.initialValues"
+          :effects="props.config.effects"
+          :plugins="resolvedPlugins"
+          :class="formClass"
+          :style="formStyle"
+          @submit="() => {}"
+          @submit-failed="() => {}"
+          @reset="() => {}"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -68,6 +84,17 @@ const props = defineProps<{
 const instanceId = getCurrentInstance()?.uid ?? Math.random().toString(36).slice(2)
 const devTools = devToolsPlugin({ formId: `vue-scene-${instanceId}` })
 const variants = props.config.schemaVariants
+const layout = computed(() => props.config.layout ?? {})
+const isFullscreenScene = computed(() => layout.value.mode === 'fullscreen')
+const showHeader = computed(() => !layout.value.hideHeader)
+const showDescription = computed(() => !layout.value.hideDescription)
+const showHeaderExtra = computed(() => !layout.value.hideHeaderExtra)
+const showVariants = computed(() => !layout.value.hideVariants && Boolean(variants))
+const showStatusTabs = computed(() => !layout.value.hideStatusTabs)
+const formClass = computed(() => (isFullscreenScene.value ? 'cf-playground-fullscreen-form' : ''))
+const formStyle = computed(() => (isFullscreenScene.value
+  ? { flex: 1, minHeight: 0, height: '100%', display: 'flex', flexDirection: 'column' }
+  : undefined))
 const variantValue = ref(variants?.defaultValue ?? '')
 
 const st = ref<{

@@ -290,11 +290,6 @@ export function CanvasPanel({
         data-node-id={node.id}
         data-parent-target-key={parentTargetKey}
         className={`cf-lc-node cf-lc-node--field ${selected ? 'cf-lc-node--selected' : ''}`}
-        onMouseDownCapture={(event) => {
-          if (isToolbarInteraction(event.target))
-            return
-          onSelect(node.id)
-        }}
         onClick={(event) => {
           if (isToolbarInteraction(event.target))
             return
@@ -362,6 +357,14 @@ export function CanvasPanel({
         key={section.id}
         data-section-id={section.id}
         className={`cf-lc-section cf-lc-section--${mode} ${selected ? 'cf-lc-section--selected' : ''}`}
+        onPointerDownCapture={(event) => {
+          if (isToolbarInteraction(event.target))
+            return
+          if (closestNodeId(event.target))
+            return
+          event.stopPropagation()
+          onSelect(section.id)
+        }}
         onMouseDownCapture={(event) => {
           if (isToolbarInteraction(event.target))
             return
@@ -460,6 +463,13 @@ export function CanvasPanel({
         data-node-id={node.id}
         data-parent-target-key={parentTargetKey}
         className={`cf-lc-node cf-lc-node--container ${selected ? 'cf-lc-node--selected' : ''}`}
+        onPointerDownCapture={(event) => {
+          if (isToolbarInteraction(event.target))
+            return
+          if (!isNodeSelfEvent(event.target, node.id))
+            return
+          onSelect(node.id)
+        }}
         onMouseDownCapture={(event) => {
           if (isToolbarInteraction(event.target))
             return

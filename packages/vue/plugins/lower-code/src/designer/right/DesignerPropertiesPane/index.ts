@@ -367,7 +367,7 @@ export const DesignerPropertiesPane = defineComponent({
            * 功能：处理参数消化、状态变更与调用链行为同步。
            * @returns 返回当前分支执行后的处理结果。
            */
-      renderBody = (): VNodeChild => h('div', { style: { flex: '1 1 auto', minHeight: 0, padding: '12px', overflow: 'auto' } }, [
+      renderBody = (): VNodeChild => h('div', { class: 'cf-lc-side-scroll', style: { flex: '1 1 auto', minHeight: 0, padding: '12px' } }, [
         props.selectedField
           ? h('div', [
               h('div', { style: panelSectionStyle }, [
@@ -801,7 +801,8 @@ export const DesignerPropertiesPane = defineComponent({
           gridTemplateRows: 'auto 1fr auto',
         },
       }, [
-        h('div', {
+        h(ConfigForm, {
+          key: paneRenderKey.value,
           class: 'cf-lc-pane-configform-shell',
           style: {
             flex: '1 1 auto',
@@ -810,16 +811,12 @@ export const DesignerPropertiesPane = defineComponent({
             display: 'flex',
             flexDirection: 'column',
           },
-        }, [
-          h(ConfigForm, {
-            key: paneRenderKey.value,
-            schema: paneSchema.value,
-            components: {
-              DesignerPropertiesSlotRenderer,
-            },
-            formTag: false,
-          }),
-        ]),
+          schema: paneSchema.value,
+          components: {
+            DesignerPropertiesSlotRenderer,
+          },
+          formTag: false,
+        }),
       ]),
     ])
   },

@@ -226,7 +226,7 @@ export const DesignerMaterialPane = defineComponent({
           overflow: 'hidden',
         },
       }, [
-        h('div', {
+        h(ConfigForm, {
           class: 'cf-lc-pane-configform-shell',
           style: {
             flex: '1 1 auto',
@@ -235,16 +235,13 @@ export const DesignerMaterialPane = defineComponent({
             flexDirection: 'column',
             overflow: 'hidden',
           },
-        }, [
-          h(ConfigForm, {
-            schema: paneSchema.value,
-            components: {
-              DesignerMaterialToolbarRenderer,
-              DesignerMaterialListRenderer,
-            },
-            formTag: false,
-          }),
-        ]),
+          schema: paneSchema.value,
+          components: {
+            DesignerMaterialToolbarRenderer,
+            DesignerMaterialListRenderer,
+          },
+          formTag: false,
+        }),
       ]),
     ])
   },

@@ -43,7 +43,7 @@
       </div>
 
       <!-- 右侧内容区 -->
-      <div style="flex: 1; min-width: 0; min-height: 0; border: 1px solid #eee; border-radius: 8px; padding: 24px; background: #fff; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden;">
+      <div :style="contentStyle">
         <SceneRenderer
           v-if="sceneConfig && currentAdapter"
           :key="`${currentDemo}-${currentUI}`"
@@ -359,6 +359,19 @@ const sceneTitle = computed(() => i18nFeature.sceneTitle.value || sceneConfig.va
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 const sceneDescription = computed(() => i18nFeature.sceneDescription.value || sceneConfig.value?.description || '')
+const isFullScreenScene = computed(() => sceneConfig.value?.layout?.mode === 'fullscreen')
+const contentStyle = computed(() => ({
+  flex: 1,
+  minWidth: 0,
+  minHeight: 0,
+  border: '1px solid #eee',
+  borderRadius: '8px',
+  padding: isFullScreenScene.value ? '0' : '24px',
+  background: '#fff',
+  display: 'flex',
+  flexDirection: 'column',
+  overflow: isFullScreenScene.value ? 'hidden' : 'auto',
+}))
 /**
  * i18n Runtime：定义该模块复用的常量配置。
  * 所属模块：`playground/vue/src/App.vue`。
@@ -441,6 +454,21 @@ body {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
+}
+
+.cf-playground-fullscreen-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+.cf-playground-fullscreen-form > div {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
   min-height: 0;
 }
 </style>

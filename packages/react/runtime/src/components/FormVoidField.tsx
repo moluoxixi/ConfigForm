@@ -41,6 +41,27 @@ export const FormVoidField = observer<FormVoidFieldProps>(({ name, fieldProps, c
   }
   const field = fieldRef.current
 
+  useEffect(() => {
+    if (!fieldProps || !fieldRef.current)
+      return
+    const current = fieldRef.current
+    if (fieldProps.label !== undefined)
+      current.label = fieldProps.label ?? ''
+    if (fieldProps.visible !== undefined)
+      current.visible = fieldProps.visible ?? true
+    if (fieldProps.disabled !== undefined)
+      current.disabled = fieldProps.disabled ?? false
+    if (fieldProps.preview !== undefined)
+      current.preview = fieldProps.preview ?? false
+    if (fieldProps.pattern !== undefined)
+      current.pattern = fieldProps.pattern
+    if (fieldProps.component !== undefined)
+      current.component = fieldProps.component ?? ''
+    if (fieldProps.componentProps) {
+      current.componentProps = { ...current.componentProps, ...fieldProps.componentProps }
+    }
+  }, [fieldProps])
+
   /**
    * 管理字段生命周期：
    * 1. 挂载时调用 `mount`。

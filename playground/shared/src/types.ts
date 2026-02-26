@@ -55,4 +55,13 @@ export interface SceneConfig {
   plugins?: FormPlugin[]
   /** 可选：字段配置（兼容旧场景/扩展场景） */
   fields?: Array<Record<string, unknown>>
+  /** 可选：场景布局控制（仅影响 Playground 展示层） */
+  layout?: {
+    mode?: 'default' | 'fullscreen'
+    hideHeader?: boolean
+    hideDescription?: boolean
+    hideVariants?: boolean
+    hideStatusTabs?: boolean
+    hideHeaderExtra?: boolean
+  }
 }

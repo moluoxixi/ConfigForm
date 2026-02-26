@@ -101,6 +101,82 @@ const INITIAL_GENERATED_SCHEMA: ISchema = {
         },
       },
     },
+    deepLayoutCard: {
+      type: 'void',
+      title: '多级容器',
+      component: 'LayoutCard',
+      componentProps: { title: '多级容器' },
+      properties: {
+        deepTabs: {
+          type: 'void',
+          title: '嵌套标签',
+          component: 'LayoutTabs',
+          componentProps: { title: '嵌套标签' },
+          properties: {
+            overview: {
+              type: 'void',
+              componentProps: { title: '概览' },
+              properties: {
+                deepCollapse: {
+                  type: 'void',
+                  title: '嵌套折叠',
+                  component: 'LayoutCollapse',
+                  componentProps: { title: '嵌套折叠' },
+                  properties: {
+                    basePanel: {
+                      type: 'void',
+                      componentProps: { title: '基础组' },
+                      properties: {
+                        owner: {
+                          type: 'string',
+                          title: '负责人',
+                          component: 'Input',
+                          componentProps: { placeholder: '请输入负责人' },
+                        },
+                      },
+                    },
+                    extraPanel: {
+                      type: 'void',
+                      componentProps: { title: '扩展组' },
+                      properties: {
+                        nestedCard: {
+                          type: 'void',
+                          title: '再套一层',
+                          component: 'LayoutCard',
+                          componentProps: { title: '再套一层' },
+                          properties: {
+                            remark: {
+                              type: 'string',
+                              title: '内部备注',
+                              component: 'Textarea',
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            options: {
+              type: 'void',
+              componentProps: { title: '配置' },
+              properties: {
+                mode: {
+                  type: 'string',
+                  title: '模式',
+                  component: 'Select',
+                  enum: [
+                    { label: '自动', value: 'auto' },
+                    { label: '手动', value: 'manual' },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
 }
 
@@ -112,6 +188,12 @@ const INITIAL_GENERATED_SCHEMA: ISchema = {
 const config: SceneConfig = {
   title: '低代码可视化设计器',
   description: '拖拽搭建字段与布局容器（Card/Tabs/Collapse），通过框架侧低代码包注册的 LowCodeDesigner 组件实时设计 Schema',
+  layout: {
+    mode: 'fullscreen',
+    hideHeader: true,
+    hideDescription: true,
+    hideStatusTabs: true,
+  },
 
   initialValues: {
     designerSchema: INITIAL_GENERATED_SCHEMA,
@@ -121,10 +203,6 @@ const config: SceneConfig = {
     type: 'object',
     decoratorProps: {
       labelPosition: 'top',
-      actions: {
-        submit: '保存方案',
-        reset: '重置设计',
-      },
     },
     properties: {
       designerSchema: {

@@ -64,13 +64,20 @@ export {
   createDesignerCanvasPutHandler,
   createDesignerCanvasSortableOptions,
   createDesignerMaterialSortableOptions,
+  createDesignerPointerTracker,
   hasMountedDesignerSortables,
   resolveDesignerSortableIndex,
   resolveDesignerSortableInsertIndex,
   resolveDesignerSortableMoveIndices,
+  resolveDesignerSortablePointerIndexByTargetKey,
+  resolveDesignerSortablePointerIndexByTargetKeyAndPoint,
+  resolveDesignerSortablePointerTargetKey,
+  resolveDesignerSortablePointerTargetKeyByPoint,
 } from './designer-shared/drag'
 
 export type {
+  DesignerPointerSnapshot,
+  DesignerPointerTracker,
   DesignerSortableEventLike,
   DesignerSortableMountResult,
   DesignerSortablePutHandler,

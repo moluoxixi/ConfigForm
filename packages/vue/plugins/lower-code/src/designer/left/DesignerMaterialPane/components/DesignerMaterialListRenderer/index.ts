@@ -35,10 +35,10 @@ export const DesignerMaterialListRenderer = defineComponent({
       },
     }, [
       h('div', {
+        class: 'cf-lc-side-scroll',
         style: {
           flex: '1 1 auto',
           minHeight: 0,
-          overflowY: 'auto',
           overflowX: 'hidden',
           paddingRight: '2px',
         },

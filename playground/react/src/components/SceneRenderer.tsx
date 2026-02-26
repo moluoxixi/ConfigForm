@@ -49,6 +49,8 @@ interface SceneFormProps {
   extraPlugins?: FormPlugin[]
   showResult: (values: Record<string, unknown>) => void
   showErrors: (errors: unknown[]) => void
+  formClassName?: string
+  formStyle?: React.CSSProperties
 }
 
 /**
@@ -59,7 +61,16 @@ interface SceneFormProps {
  *
  * 说明：该函数聚焦于 Scene Form 的单一职责，调用方可通过函数名快速理解输入输出语义。
  */
-function SceneForm({ config, schema, mode, extraPlugins, showResult, showErrors }: SceneFormProps): React.ReactElement {
+function SceneForm({
+  config,
+  schema,
+  mode,
+  extraPlugins,
+  showResult,
+  showErrors,
+  formClassName,
+  formStyle,
+}: SceneFormProps): React.ReactElement {
   const devTools = useMemo(() => devToolsPlugin(), [])
 
   useEffect(() => {
@@ -77,6 +88,8 @@ function SceneForm({ config, schema, mode, extraPlugins, showResult, showErrors 
       initialValues={config.initialValues}
       effects={config.effects}
       plugins={[...(config.plugins ?? []), ...(extraPlugins ?? []), devTools]}
+      className={formClassName}
+      style={formStyle}
       onSubmit={showResult}
       onSubmitFailed={errors => showErrors(errors)}
       onReset={handleReset}
@@ -95,6 +108,13 @@ export const SceneRenderer = observer(({
   StatusTabs: StatusTabsComponent,
 }: SceneRendererProps): React.ReactElement => {
   const variants = config.schemaVariants
+  const layout = config.layout ?? {}
+  const isFullscreenScene = layout.mode === 'fullscreen'
+  const showHeader = !layout.hideHeader
+  const showDescription = !layout.hideDescription
+  const showHeaderExtra = !layout.hideHeaderExtra
+  const showVariants = !layout.hideVariants && Boolean(variants)
+  const showStatusTabs = !layout.hideStatusTabs
   const [variantValue, setVariantValue] = useState(variants?.defaultValue ?? '')
 
   /** 当前使用的 schema（有变体时动态生成，否则使用静态 schema） */
@@ -102,17 +122,26 @@ export const SceneRenderer = observer(({
     return resolveSceneSchema(config, variantValue)
   }, [config, variantValue])
 
+  const handleResult = useCallback(() => {}, [])
+  const handleErrors = useCallback(() => {}, [])
+  const formClassName = isFullscreenScene ? 'cf-playground-fullscreen-form' : undefined
+  const formStyle = isFullscreenScene
+    ? { flex: 1, minHeight: 0, height: '100%', display: 'flex', flexDirection: 'column' }
+    : undefined
+
   return (
     <div style={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column', ...style }}>
-      <h2>{title ?? config.title}</h2>
-      <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
-        {description ?? config.description}
-      </p>
+      {showHeader && <h2>{title ?? config.title}</h2>}
+      {showDescription && (
+        <p style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16, fontSize: 14 }}>
+          {description ?? config.description}
+        </p>
+      )}
 
-      {headerExtra}
+      {showHeaderExtra ? headerExtra : null}
 
       {/* Schema 变体切换器（如布局切换） */}
-      {variants && (
+      {showVariants && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
           <span style={{ fontSize: 13, fontWeight: 600, color: '#555' }}>
             {variants.label}
@@ -142,20 +171,39 @@ export const SceneRenderer = observer(({
       )}
 
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-        <StatusTabsComponent>
-          {({ mode, showResult, showErrors }) => (
-            <div data-configform-print-root="true" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-              <SceneForm
-                config={config}
-                schema={currentSchema}
-                mode={mode}
-                extraPlugins={extraPlugins}
-                showResult={showResult}
-                showErrors={showErrors}
-              />
-            </div>
-          )}
-        </StatusTabsComponent>
+        {showStatusTabs
+          ? (
+              <StatusTabsComponent>
+                {({ mode, showResult, showErrors }) => (
+                  <div data-configform-print-root="true" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                    <SceneForm
+                      config={config}
+                      schema={currentSchema}
+                      mode={mode}
+                      extraPlugins={extraPlugins}
+                      showResult={showResult}
+                      showErrors={showErrors}
+                      formClassName={formClassName}
+                      formStyle={formStyle}
+                    />
+                  </div>
+                )}
+              </StatusTabsComponent>
+            )
+          : (
+              <div data-configform-print-root="true" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                <SceneForm
+                  config={config}
+                  schema={currentSchema}
+                  mode="edit"
+                  extraPlugins={extraPlugins}
+                  showResult={handleResult}
+                  showErrors={handleErrors}
+                  formClassName={formClassName}
+                  formStyle={formStyle}
+                />
+              </div>
+            )}
       </div>
     </div>
   )
