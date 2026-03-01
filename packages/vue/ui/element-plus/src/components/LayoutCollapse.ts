@@ -1,4 +1,4 @@
-import { RecursionField, useField, useForm, useSchemaItems } from '@moluoxixi/vue'
+﻿import { RecursionField, useField, useForm, useSchemaItems } from '@moluoxixi/vue'
 import { ElCollapse, ElCollapseItem } from 'element-plus'
 import { defineComponent, h, ref } from 'vue'
 
@@ -41,14 +41,7 @@ export const LayoutCollapse = defineComponent({
      * @param path 参数 `path`用于提供当前函数执行所需的输入信息。
      * @returns 返回字符串结果，通常用于文本展示或下游拼接。
      */
-    const /**
-           * getDataPath：执行当前功能逻辑。
-           *
-           * @param path 参数 path 的输入说明。
-           *
-           * @returns 返回当前功能的处理结果。
-           */
-      getDataPath = (path: string): string => {
+    const getDataPath = (path: string): string => {
         if (!path)
           return ''
         const segments = path.split('.')
@@ -90,3 +83,4 @@ export const LayoutCollapse = defineComponent({
     ))
   },
 })
+

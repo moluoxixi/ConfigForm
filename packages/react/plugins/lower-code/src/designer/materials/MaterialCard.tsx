@@ -12,6 +12,7 @@ import { MaterialPreview } from './MaterialPreview'
 interface MaterialCardProps {
   item: MaterialItem
   renderMaterialPreview: (item: MaterialItem, context: LowCodeDesignerRenderContext) => React.ReactElement
+  readonly?: boolean
 }
 
 /**
@@ -27,6 +28,7 @@ interface MaterialCardProps {
 export function MaterialCard({
   item,
   renderMaterialPreview,
+  readonly = false,
 }: MaterialCardProps): React.ReactElement {
   return (
     <div data-material-id={item.id} className="cf-lc-material-item">
@@ -41,6 +43,7 @@ export function MaterialCard({
         item={item}
         phase="material"
         renderMaterialPreview={renderMaterialPreview}
+        readonly={readonly}
       />
     </div>
   )

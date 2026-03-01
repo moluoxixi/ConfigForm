@@ -1,4 +1,4 @@
-import type { DataSourceConfig, DataSourceItem, ISchema } from '@moluoxixi/core'
+﻿import type { DataSourceConfig, DataSourceItem, ISchema } from '@moluoxixi/core'
 import type { PropType, VNode } from 'vue'
 import { DEFAULT_COMPONENT_MAPPING, isStructuralArrayComponent, resolveComponent } from '@moluoxixi/core'
 import { defineComponent, h, provide } from 'vue'
@@ -165,9 +165,6 @@ export const RecursionField = defineComponent({
       /* void 字段 — 通过 FormVoidField 渲染，注入 SchemaSymbol */
       if (schema.type === 'void') {
         return h(SchemaProviderLocal, { key: address, schema }, {
-          /**
-           * default：处理当前分支的交互与状态同步。
-           */
           default: () => h(FormVoidField, {
             name: address,
             fieldProps: {
@@ -181,9 +178,6 @@ export const RecursionField = defineComponent({
               reactions: schema.reactions,
             },
           }, {
-            /**
-             * default：处理当前分支的交互与状态同步。
-             */
             default: () => renderProperties(schema, dataPath),
           }),
         })
@@ -227,9 +221,6 @@ export const RecursionField = defineComponent({
             decoratorProps: schema.decoratorProps,
           },
         }, {
-          /**
-           * default：处理当前分支的交互与状态同步。
-           */
           default: () => renderProperties(schema, dataPath),
         })
       }
@@ -271,9 +262,6 @@ export const RecursionField = defineComponent({
               decoratorProps: schema.decoratorProps,
             },
           }, {
-            /**
-             * default：处理当前分支的交互与状态同步。
-             */
             default: () => renderProperties(schema, path),
           })
         }

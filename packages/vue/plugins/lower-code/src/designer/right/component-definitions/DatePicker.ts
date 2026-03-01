@@ -21,10 +21,26 @@ export const DatePickerDefinition: LowCodeDesignerComponentDefinition = {
       defaultValue: '请选择日期',
     },
     {
+      key: 'size',
+      label: '尺寸',
+      editor: 'select',
+      options: [
+        { label: '默认', value: '' },
+        { label: '小', value: 'small' },
+        { label: '中', value: 'middle' },
+        { label: '大', value: 'large' },
+      ],
+    },
+    {
       key: 'format',
       label: '日期格式',
       editor: 'text',
       defaultValue: 'YYYY-MM-DD',
+    },
+    {
+      key: 'showTime',
+      label: '显示时间',
+      editor: 'switch',
     },
   ],
 }

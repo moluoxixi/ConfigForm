@@ -1,4 +1,4 @@
-import type { PropType } from 'vue'
+﻿import type { PropType } from 'vue'
 import { Input as AInput } from 'ant-design-vue'
 import { defineComponent, h } from 'vue'
 
@@ -14,7 +14,6 @@ export const Input = defineComponent({
   },
   emits: ['update:modelValue', 'focus', 'blur'],
   /**
-   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
@@ -27,20 +26,17 @@ export const Input = defineComponent({
         'disabled': props.disabled,
         'style': { width: '100%', ...(props.style ?? {}) },
         /**
-         * onUpdate:value：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          * @param v 参数 v 为当前功能所需的输入信息。
          * @returns 返回当前分支执行后的处理结果。
          */
         'onUpdate:value': (v: string) => emit('update:modelValue', v),
         /**
-         * onFocus：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          * @returns 返回当前分支执行后的处理结果。
          */
         'onFocus': () => emit('focus'),
         /**
-         * onBlur：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          * @returns 返回当前分支执行后的处理结果。
          */

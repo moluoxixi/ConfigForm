@@ -1,4 +1,4 @@
-/**
+﻿/**
  * DevTools 浮动面板（Vue 版）
  *
  * 纯数据 props 驱动，不依赖 form 实例。
@@ -333,7 +333,6 @@ function renderTreeView(
       /* 节点行 */
       h('div', {
         /**
-         * onClick：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          * @returns 返回当前分支执行后的处理结果。
          */
@@ -352,7 +351,6 @@ function renderTreeView(
             : '3px solid transparent',
         },
         /**
-         * onMouseenter：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          * @param e 参数 e 为事件对象，用于提供交互上下文。
          */
@@ -362,7 +360,6 @@ function renderTreeView(
           }
         },
         /**
-         * onMouseleave：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          * @param e 参数 e 为事件对象，用于提供交互上下文。
          */
@@ -414,7 +411,6 @@ const DetailViewComponent = defineComponent({
     api: { type: Object as PropType<DevToolsPluginAPI>, required: true },
   },
   /**
-   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
@@ -483,7 +479,6 @@ const DetailViewComponent = defineComponent({
             }, detail.label || detail.name),
             h('button', {
               /**
-               * onClick：处理当前分支的交互与状态同步。
                * 功能：处理参数消化、状态变更与调用链行为同步。
                * @returns 返回当前分支执行后的处理结果。
                */
@@ -558,7 +553,6 @@ const DetailViewComponent = defineComponent({
                   h('input', {
                     value: editValue.value,
                     /**
-                     * onInput：处理当前分支的交互与状态同步。
                      * 功能：处理参数消化、状态变更与调用链行为同步。
                      * @param e 参数 e 为事件对象，用于提供交互上下文。
                      */
@@ -566,7 +560,6 @@ const DetailViewComponent = defineComponent({
                       editValue.value = (e.target as HTMLInputElement).value
                     },
                     /**
-                     * onKeydown：处理当前分支的交互与状态同步。
                      * 功能：处理参数消化、状态变更与调用链行为同步。
                      * @param e 参数 e 为事件对象，用于提供交互上下文。
                      */
@@ -601,7 +594,6 @@ const DetailViewComponent = defineComponent({
                   }, '确定'),
                   h('button', {
                     /**
-                     * onClick：处理当前分支的交互与状态同步。
                      * 功能：处理参数消化、状态变更与调用链行为同步。
                      */
                     onClick: (): void => { editing.value = false },
@@ -847,7 +839,6 @@ const ValuesViewComponent = defineComponent({
     values: { type: Object as PropType<Record<string, unknown>>, required: true },
   },
   /**
-   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
@@ -939,7 +930,6 @@ const DevToolsPanelView = defineComponent({
     },
   },
   /**
-   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
@@ -1036,7 +1026,6 @@ const DevToolsPanelView = defineComponent({
       if (!visible.value) {
         return h('button', {
           /**
-           * onClick：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
            */
           onClick: (): void => { visible.value = true },
@@ -1138,7 +1127,6 @@ const DevToolsPanelView = defineComponent({
             ? h('input', {
                 value: search.value,
                 /**
-                 * onInput：处理当前分支的交互与状态同步。
                  * 功能：处理参数消化、状态变更与调用链行为同步。
                  * @param e 参数 e 为事件对象，用于提供交互上下文。
                  */

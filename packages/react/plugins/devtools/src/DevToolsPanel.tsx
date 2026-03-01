@@ -1,4 +1,4 @@
-/**
+﻿/**
  * DevTools 浮动面板（React 版）
  *
  * 纯数据 props 驱动，不依赖 form 实例。
@@ -266,7 +266,6 @@ export function DevToolsPanel(props: DevToolsPanelProps): React.ReactElement {
 /* ======================== 标题栏 ======================== */
 
 /**
- * Header：处理当前分支的交互与状态同步。
  * 功能：处理参数消化、状态变更与调用链行为同步。
  * @returns 返回当前分支执行后的处理结果。
  */
@@ -336,7 +335,6 @@ function ActionBtn({ t, label, onClick, color }: { t: DevToolsTheme, label: stri
 /* ======================== 基础组件 ======================== */
 
 /**
- * Badge：处理当前分支的交互与状态同步。
  * 功能：处理参数消化、状态变更与调用链行为同步。
  * @returns 返回当前分支执行后的处理结果。
  */
@@ -414,7 +412,6 @@ function Empty({ t, text }: { t: DevToolsTheme, text: string }): React.ReactElem
 /* ======================== 字段树 ======================== */
 
 /**
- * TreeView：处理当前分支的交互与状态同步。
  * 功能：处理参数消化、状态变更与调用链行为同步。
  * @returns 返回当前分支执行后的处理结果。
  */
@@ -492,7 +489,6 @@ function Dot({ color }: { color: string }): React.ReactElement {
 /* ======================== 字段详情（含编辑能力） ======================== */
 
 /**
- * DetailView：处理当前分支的交互与状态同步。
  * 功能：处理参数消化、状态变更与调用链行为同步。
  * @returns 返回当前分支执行后的处理结果。
  */
@@ -723,7 +719,6 @@ function TogglePill({ t, label, value, onClick }: { t: DevToolsTheme, label: str
 /* ======================== 事件视图 ======================== */
 
 /**
- * EventsView：处理当前分支的交互与状态同步。
  * 功能：处理参数消化、状态变更与调用链行为同步。
  * @returns 返回当前分支执行后的处理结果。
  */
@@ -760,7 +755,6 @@ function EventsView({ t, events, onClear }: { t: DevToolsTheme, events: EventLog
 /* ======================== Diff 视图 ======================== */
 
 /**
- * DiffView：处理当前分支的交互与状态同步。
  * 功能：处理参数消化、状态变更与调用链行为同步。
  * @returns 返回当前分支执行后的处理结果。
  */
@@ -815,7 +809,6 @@ function DiffView({ t, diff }: { t: DevToolsTheme, diff: ValueDiffEntry[] }): Re
 /* ======================== 值视图 ======================== */
 
 /**
- * ValuesView：处理当前分支的交互与状态同步。
  * 功能：处理参数消化、状态变更与调用链行为同步。
  * @returns 返回当前分支执行后的处理结果。
  */

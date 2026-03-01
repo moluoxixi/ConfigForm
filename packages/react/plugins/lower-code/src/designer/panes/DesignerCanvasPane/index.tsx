@@ -30,8 +30,9 @@ export function DesignerCanvasPane(props: DesignerCanvasPaneProps): ReactElement
   const paneRenderKey = useMemo(
     () => [
       schemaSignature(nodesToSchema(props.nodes)),
+      props.readonly ? 'readonly' : 'editable',
     ].join(':'),
-    [props.nodes],
+    [props.nodes, props.readonly],
   )
 
   /**

@@ -85,22 +85,10 @@ const config: SceneConfig = {
 
   effects: (form) => {
     const logs: string[] = []
-    /**
-     * push Log：封装该模块的核心渲染与交互逻辑。
-     * 所属模块：`playground/shared/src/09-state/LifecycleForm.ts`。
-     * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
-     * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
-     * @param msg 参数 `msg`用于提供当前函数执行所需的输入信息。
-     */
-    const /**
-           * pushLog：执行当前功能逻辑。
-           *
-           * @param msg 参数 msg 的输入说明。
-           */
-      pushLog = (msg: string): void => {
-        logs.unshift(`[${new Date().toLocaleTimeString()}] ${msg}`)
-        form.setFieldState('eventLog', { value: logs.slice(0, 30).join('\n') })
-      }
+    const pushLog = (msg: string): void => {
+      logs.unshift(`[${new Date().toLocaleTimeString()}] ${msg}`)
+      form.setFieldState('eventLog', { value: logs.slice(0, 30).join('\n') })
+    }
 
     /* 表单级生命周期 */
     form.on(FormLifeCycle.ON_FORM_MOUNT, () => {

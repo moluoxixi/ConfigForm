@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 阅读态纯文本展示组件集（readPretty）
  *
  * 参考 Formily PreviewText 设计，每个组件对应一个编辑组件的阅读态替代。
@@ -17,7 +17,6 @@ export const PreviewInput = defineComponent({
   name: 'CfPreviewInput',
   props: { modelValue: { type: [String, Number], default: '' } },
   /**
-   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
@@ -32,7 +31,6 @@ export const PreviewPassword = defineComponent({
   name: 'CfPreviewPassword',
   props: { modelValue: { type: String, default: '' } },
   /**
-   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
@@ -47,7 +45,6 @@ export const PreviewTextarea = defineComponent({
   name: 'CfPreviewTextarea',
   props: { modelValue: { type: String, default: '' } },
   /**
-   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
@@ -67,7 +64,6 @@ export const PreviewInputNumber = defineComponent({
     suffix: { type: String, default: '' },
   },
   /**
-   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
@@ -88,19 +84,16 @@ export const PreviewSelect = defineComponent({
   props: {
     modelValue: { type: [String, Number, Array], default: undefined },
     dataSource: { type: Array as PropType<DataSourceItem[]>, /**
-                                                              * default：处理当前分支的交互与状态同步。
                                                               * 功能：处理参数消化、状态变更与调用链行为同步。
                                                               * @returns 返回当前分支执行后的处理结果。
                                                               */
       /**
-       * default：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
        * @returns 返回当前分支执行后的处理结果。
        */
       default: () => [] },
   },
   /**
-   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
@@ -130,19 +123,16 @@ export const PreviewRadioGroup = defineComponent({
   props: {
     modelValue: { type: [String, Number], default: undefined },
     dataSource: { type: Array as PropType<DataSourceItem[]>, /**
-                                                              * default：处理当前分支的交互与状态同步。
                                                               * 功能：处理参数消化、状态变更与调用链行为同步。
                                                               * @returns 返回当前分支执行后的处理结果。
                                                               */
       /**
-       * default：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
        * @returns 返回当前分支执行后的处理结果。
        */
       default: () => [] },
   },
   /**
-   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
@@ -160,30 +150,25 @@ export const PreviewCheckboxGroup = defineComponent({
   name: 'CfPreviewCheckboxGroup',
   props: {
     modelValue: { type: Array as PropType<unknown[]>, /**
-                                                       * default：处理当前分支的交互与状态同步。
                                                        * 功能：处理参数消化、状态变更与调用链行为同步。
                                                        * @returns 返回当前分支执行后的处理结果。
                                                        */
       /**
-       * default：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
        * @returns 返回当前分支执行后的处理结果。
        */
       default: () => [] },
     dataSource: { type: Array as PropType<DataSourceItem[]>, /**
-                                                              * default：处理当前分支的交互与状态同步。
                                                               * 功能：处理参数消化、状态变更与调用链行为同步。
                                                               * @returns 返回当前分支执行后的处理结果。
                                                               */
       /**
-       * default：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
        * @returns 返回当前分支执行后的处理结果。
        */
       default: () => [] },
   },
   /**
-   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
@@ -203,7 +188,6 @@ export const PreviewSwitch = defineComponent({
   name: 'CfPreviewSwitch',
   props: { modelValue: { type: Boolean, default: false } },
   /**
-   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
@@ -218,7 +202,6 @@ export const PreviewDatePicker = defineComponent({
   name: 'CfPreviewDatePicker',
   props: { modelValue: { type: String, default: '' } },
   /**
-   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。

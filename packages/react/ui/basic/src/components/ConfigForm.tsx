@@ -1,4 +1,4 @@
-import type { FieldPattern, FormConfig, FormInstance, FormPlugin, FormSchema, ValidationFeedback } from '@moluoxixi/core'
+import type { FieldPattern, FormConfig, FormInstance, FormPlugin, FormSchema, ValidationFeedback, ValidationTrigger } from '@moluoxixi/core'
 import type { ComponentScope, RegistryState } from '@moluoxixi/react'
 
 import type { ComponentType, CSSProperties, FormEvent, ReactElement, ReactNode } from 'react'
@@ -112,6 +112,7 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
 
   /** pattern 优先级：props.pattern > schema.decoratorProps.pattern > 'editable' */
   const initialPattern = (patternProp ?? schema?.pattern ?? rawDecoratorProps.pattern ?? 'editable') as FieldPattern
+  const initialValidateTrigger = (schema?.validateTrigger ?? rawDecoratorProps.validateTrigger ?? formConfig?.validateTrigger) as ValidationTrigger | ValidationTrigger[] | undefined
 
   const resolvedEffects = effects ?? formConfig?.effects
   const resolvedPlugins = plugins ?? formConfig?.plugins
@@ -126,6 +127,7 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
     labelWidth: rawDecoratorProps.labelWidth as string | number,
     pattern: initialPattern,
     ...formConfig,
+    validateTrigger: initialValidateTrigger ?? 'change',
     initialValues: initialValues ?? formConfig?.initialValues,
     effects: resolvedEffects,
     plugins: resolvedPlugins,
@@ -173,6 +175,7 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
 
   /** pattern 优先级：props.pattern > schema.decoratorProps.pattern > 'editable' */
   const effectivePattern = (patternProp ?? effectiveSchema?.pattern ?? rootDecoratorProps.pattern ?? 'editable') as FieldPattern
+  const effectiveValidateTrigger = (effectiveSchema?.validateTrigger ?? rootDecoratorProps.validateTrigger ?? formConfig?.validateTrigger) as ValidationTrigger | ValidationTrigger[] | undefined
 
   /** schema/props 变化时同步更新表单级配置（通过 form.batch 走适配器批处理） */
   useEffect(() => {
@@ -184,8 +187,9 @@ export const ConfigForm = observer(<Values extends Record<string, unknown> = Rec
         form.labelWidth = rootDecoratorProps.labelWidth as string | number
       }
       form.pattern = effectivePattern
+      form.validateTrigger = effectiveValidateTrigger ?? 'change'
     })
-  }, [form, effectivePattern, rootDecoratorProps.labelPosition, rootDecoratorProps.labelWidth])
+  }, [form, effectivePattern, effectiveValidateTrigger, rootDecoratorProps.labelPosition, rootDecoratorProps.labelWidth])
 
   /* 注册值变化监听 */
   useEffect(() => {

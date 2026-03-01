@@ -1,4 +1,4 @@
-import type { FieldInstance, ObjectFieldInstance, ObjectFieldProps } from '@moluoxixi/core'
+﻿import type { FieldInstance, ObjectFieldInstance, ObjectFieldProps } from '@moluoxixi/core'
 import type { PropType } from 'vue'
 import { defineComponent, h, inject, onBeforeUnmount, onMounted, provide } from 'vue'
 import { FieldSymbol, FormSymbol } from '../context'
@@ -75,9 +75,6 @@ export const FormObjectField = defineComponent({
         isVoid: false,
       }, {
         /* 对象字段的 children 是其 properties 子字段 */
-        /**
-         * children：处理当前分支的交互与状态同步。
-         */
         children: () => slots.default?.(),
         default: slots.default,
       })

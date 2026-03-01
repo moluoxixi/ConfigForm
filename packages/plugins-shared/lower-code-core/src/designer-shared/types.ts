@@ -55,8 +55,27 @@ export interface LowCodeDesignerComponentDefinition {
 }
 
 /**
+ * Low Code Designer Decorator Definition：。
+ * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/types.ts`。
+ * 该声明用于描述装饰器在右侧属性面板中的配置定义。
+ */
+export interface LowCodeDesignerDecoratorDefinition {
+  label?: string
+  description?: string
+  defaultProps?: Record<string, unknown>
+  editableProps?: LowCodeDesignerEditableProp[]
+}
+
+/**
  * Low Code Designer Component Definitions：。
  * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/types.ts`。
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 export type LowCodeDesignerComponentDefinitions = Record<string, LowCodeDesignerComponentDefinition>
+
+/**
+ * Low Code Designer Decorator Definitions：。
+ * 所属模块：`packages/plugin-lower-code-core/src/designer-shared/types.ts`。
+ * 该声明用于描述模块的对外契约或内部结构边界。
+ */
+export type LowCodeDesignerDecoratorDefinitions = Record<string, LowCodeDesignerDecoratorDefinition>

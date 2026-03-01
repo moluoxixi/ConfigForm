@@ -1,4 +1,4 @@
-import type { SceneConfig } from '../types'
+﻿import type { SceneConfig } from '../types'
 
 /**
  * 场景：数据转换
@@ -37,7 +37,6 @@ const config: SceneConfig = {
           precision: 2,
           prefix: '¥',
           /**
-           * formatter：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
            * @param value 参数 value 为输入值，用于驱动后续逻辑。
            * @returns 返回当前分支执行后的处理结果。
@@ -47,7 +46,6 @@ const config: SceneConfig = {
             return str ? `¥${str}` : ''
           },
           /**
-           * parser：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
            * @param display 参数 display 为当前功能所需的输入信息。
            * @returns 返回当前分支执行后的处理结果。
@@ -57,7 +55,6 @@ const config: SceneConfig = {
           },
         },
         /**
-         * displayFormat：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          * @param value 参数 value 为输入值，用于驱动后续逻辑。
          * @returns 返回当前分支执行后的处理结果。
@@ -69,7 +66,6 @@ const config: SceneConfig = {
           return Number((num / 100).toFixed(2))
         },
         /**
-         * inputParse：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          * @param inputValue 参数 inputValue 为当前功能所需的输入信息。
          * @returns 返回当前分支执行后的处理结果。
@@ -81,7 +77,6 @@ const config: SceneConfig = {
           return Math.round(num * 100)
         },
         /**
-         * submitTransform：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          * @param value 参数 value 为输入值，用于驱动后续逻辑。
          * @returns 返回当前分支执行后的处理结果。
@@ -96,7 +91,6 @@ const config: SceneConfig = {
         description: '显示 138****0000，提交原始号码',
         componentProps: { style: { width: '300px' }, placeholder: '请输入手机号' },
         /**
-         * displayFormat：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          * @param value 参数 value 为输入值，用于驱动后续逻辑。
          * @returns 返回当前分支执行后的处理结果。
@@ -115,7 +109,6 @@ const config: SceneConfig = {
         description: '输入时自动去除首尾空格',
         componentProps: { style: { width: '300px' } },
         /**
-         * inputParse：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          * @param inputValue 参数 inputValue 为当前功能所需的输入信息。
          * @returns 返回当前分支执行后的处理结果。
@@ -130,7 +123,6 @@ const config: SceneConfig = {
         description: '输入逗号分隔字符串，提交时自动转为 string[]',
         componentProps: { style: { width: '300px' }, placeholder: '如: react,vue,typescript' },
         /**
-         * submitTransform：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          * @param value 参数 value 为输入值，用于驱动后续逻辑。
          * @returns 返回当前分支执行后的处理结果。

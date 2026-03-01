@@ -1,4 +1,4 @@
-import type { SceneConfig } from '../types'
+﻿import type { SceneConfig } from '../types'
 
 /**
  * 场景：值联动
@@ -102,7 +102,6 @@ const config: SceneConfig = {
         reactions: [{
           watch: 'country',
           fulfill: { /**
-                      * value：处理当前分支的交互与状态同步。
                       * 功能：处理参数消化、状态变更与调用链行为同步。
                       * @param _field 参数 _field 为当前功能所需的输入信息。
                       * @param ctx 参数 ctx 为上下文对象，用于传递场景数据。
@@ -110,7 +109,6 @@ const config: SceneConfig = {
                       * @returns 返回当前分支执行后的处理结果。
                       */
             /**
-             * value：处理当前分支的交互与状态同步。
              * 功能：处理参数消化、状态变更与调用链行为同步。
              * @param _field 参数 _field 为当前功能所需的输入信息。
              * @param ctx 参数 ctx 为上下文对象，用于传递环境数据。
@@ -128,7 +126,6 @@ const config: SceneConfig = {
         reactions: [{
           watch: 'country',
           fulfill: { /**
-                      * value：处理当前分支的交互与状态同步。
                       * 功能：处理参数消化、状态变更与调用链行为同步。
                       * @param _field 参数 _field 为当前功能所需的输入信息。
                       * @param ctx 参数 ctx 为上下文对象，用于传递场景数据。
@@ -136,7 +133,6 @@ const config: SceneConfig = {
                       * @returns 返回当前分支执行后的处理结果。
                       */
             /**
-             * value：处理当前分支的交互与状态同步。
              * 功能：处理参数消化、状态变更与调用链行为同步。
              * @param _field 参数 _field 为当前功能所需的输入信息。
              * @param ctx 参数 ctx 为上下文对象，用于传递环境数据。

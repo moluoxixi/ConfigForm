@@ -1,4 +1,4 @@
-import type { FormInstance, FormPlugin } from '@moluoxixi/core'
+﻿import type { FormInstance, FormPlugin } from '@moluoxixi/core'
 import type {
   FormExportDataOptions,
   FormExportPluginAPI,
@@ -75,7 +75,6 @@ function createExportPreview(
 }
 
 /**
- * resolveFileNameBase：处理当前分支的交互与状态同步。
  * 功能：完成参数消化、业务分支处理及上下游结果传递。
  * @param config 参数 config 为当前逻辑所需的输入信息。
  * @returns 返回当前分支执行后的结果。
@@ -86,7 +85,6 @@ function resolveFileNameBase(config: FormExportPluginOptions): string {
 }
 
 /**
- * exportPlugin：处理当前分支的交互与状态同步。
  * 功能：完成参数消化、业务分支处理及上下游结果传递。
  * @param config 参数 config 为当前逻辑所需的输入信息。
  * @returns 返回当前分支执行后的结果。
@@ -96,7 +94,6 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
     name: PLUGIN_NAME,
 
     /**
-     * install：处理当前分支的交互与状态同步。
      * 功能：完成参数消化、业务分支处理及上下游结果传递。
      * @param form 参数 form 为业务实体对象，用于读写状态或属性。
      * @returns 返回当前分支执行后的结果。
@@ -115,7 +112,6 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
       const api: FormExportPluginAPI = {
 
         /**
-         * getExportData：处理当前分支的交互与状态同步。
          * 功能：完成参数消化、业务分支处理及上下游结果传递。
          * @param options 参数 options 为当前逻辑所需的输入信息。
          * @returns 返回当前分支执行后的结果。
@@ -126,7 +122,6 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
         },
 
         /**
-         * getExportPreview：处理当前分支的交互与状态同步。
          * 功能：完成参数消化、业务分支处理及上下游结果传递。
          * @param options 参数 options 为当前逻辑所需的输入信息。
          * @returns 返回当前分支执行后的结果。
@@ -136,7 +131,6 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
         },
 
         /**
-         * subscribeExportPreview：处理当前分支的交互与状态同步。
          * 功能：完成参数消化、业务分支处理及上下游结果传递。
          * @param listener 参数 listener 为当前逻辑所需的输入信息。
          * @param options 参数 options 为当前逻辑所需的输入信息。
@@ -151,7 +145,6 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
         },
 
         /**
-         * exportJSON：处理当前分支的交互与状态同步。
          * 功能：完成参数消化、业务分支处理及上下游结果传递。
          * @param options 参数 options 为当前逻辑所需的输入信息。
          * @returns 返回当前分支执行后的结果。
@@ -163,7 +156,6 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
         },
 
         /**
-         * downloadJSON：处理当前分支的交互与状态同步。
          * 功能：完成参数消化、业务分支处理及上下游结果传递。
          * @param options 参数 options 为当前逻辑所需的输入信息。
          */
@@ -180,51 +172,29 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
       }
 
       /**
-       * notifyExportPreviewSubscribers?????????????????
-       * ???`packages/plugin-export/src/plugin.ts:145`?
-       * ?????????????????????????????????
-       * ??????????????????????????
-       */
-      const
-        /**
-         * notifyExportPreviewSubscribers：处理当前分支的交互与状态同步。
          * 功能：完成参数消化、业务分支处理及上下游结果传递。
          */
-        notifyExportPreviewSubscribers = (): void => {
+      const notifyExportPreviewSubscribers = (): void => {
           for (const [listener, options] of previewSubscribers.entries()) {
             listener(api.getExportPreview(options))
           }
         }
 
       /**
-       * scheduleNotifyExportPreviewSubscribers?????????????????
-       * ???`packages/plugin-export/src/plugin.ts:158`?
-       * ?????????????????????????????????
-       * ??????????????????????????
-       */
-      const
-        /**
-         * scheduleNotifyExportPreviewSubscribers：处理当前分支的交互与状态同步。
          * 功能：完成参数消化、业务分支处理及上下游结果传递。
          */
+      const
+        
         scheduleNotifyExportPreviewSubscribers = (): void => {
           if (previewNotifyScheduled) {
             return
           }
           previewNotifyScheduled = true
 
-          /**
-           * flush?????????????????
-           * ???`packages/plugin-export/src/plugin.ts:171`?
-           * ?????????????????????????????????
-           * ??????????????????????????
-           */
-          const
-            /**
-             * flush：处理当前分支的交互与状态同步。
+         /**
              * 功能：完成参数消化、业务分支处理及上下游结果传递。
              */
-            flush = (): void => {
+          const   flush = (): void => {
               previewNotifyScheduled = false
               notifyExportPreviewSubscribers()
             }
@@ -257,7 +227,6 @@ export function exportPlugin(config: FormExportPluginOptions = {}): FormPlugin<F
         api,
 
         /**
-         * dispose：处理当前分支的交互与状态同步。
          * 功能：完成参数消化、业务分支处理及上下游结果传递。
          */
         dispose() {

@@ -20,5 +20,14 @@ export const SwitchDefinition: LowCodeDesignerComponentDefinition = {
       label: '关闭文案',
       editor: 'text',
     },
+    {
+      key: 'size',
+      label: '尺寸',
+      editor: 'select',
+      options: [
+        { label: '默认', value: '' },
+        { label: '小', value: 'small' },
+      ],
+    },
   ],
 }

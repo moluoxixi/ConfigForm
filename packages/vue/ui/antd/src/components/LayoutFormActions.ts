@@ -3,13 +3,6 @@ import { ComponentRegistrySymbol, FormSymbol } from '@moluoxixi/vue'
 import { Button as AButton } from 'ant-design-vue'
 import { defineComponent, h, inject } from 'vue'
 
-/**
- * 表单操作按钮（提交 + 重置）
- *
- * 参考 Formily Submit/Reset 组件。
- * 自动从上下文获取 form 实例，直接调用 form.submit() / form.reset()。
- * 无需外层包裹 <form> 标签。
- */
 export const LayoutFormActions = defineComponent({
   name: 'CfLayoutFormActions',
   props: {
@@ -17,68 +10,36 @@ export const LayoutFormActions = defineComponent({
     showReset: { type: Boolean, default: true },
     submitLabel: { type: String, default: '提交' },
     resetLabel: { type: String, default: '重置' },
-    align: { type: String, default: 'center' },
-    extraActions: { type: Object as PropType<Record<string, unknown>>, /**
-                                                                        * default：处理当前分支的交互与状态同步。
-                                                                        * 功能：处理参数消化、状态变更与调用链行为同步。
-                                                                        * @returns 返回当前分支执行后的处理结果。
-                                                                        */
-      /**
-       * default：处理当前分支的交互与状态同步。
-       * 功能：处理参数消化、状态变更与调用链行为同步。
-       * @returns 返回当前分支执行后的处理结果。
-       */
-      default: () => ({}) },
+    align: { type: String as PropType<'left' | 'center' | 'right'>, default: 'center' },
+    extraActions: {
+      type: Object as PropType<Record<string, unknown>>,
+      default: () => ({}),
+    },
   },
   emits: ['submit', 'submitFailed', 'reset'],
-  /**
-   * setup：处理当前分支的交互与状态同步。
-   * 功能：处理参数消化、状态变更与调用链行为同步。
-   * @param props 参数 props 为当前功能所需的输入信息。
-   * @returns 返回当前分支执行后的处理结果。
-   */
   setup(props, { emit }) {
     const form = inject(FormSymbol, null)
     const registryRef = inject(ComponentRegistrySymbol)
 
-    /**
-     * handleSubmit?????????????????
-     * ???`packages/ui-antd-vue/src/components/LayoutFormActions.ts:56`?
-     * ?????????????????????????????????
-     * ??????????????????????????
-     */
-    const /**
-           * handleSubmit：处理当前分支的交互与状态同步。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           */
-      handleSubmit = async (): Promise<void> => {
-        if (!form)
-          return
-        const result = await form.submit()
-        if (result.errors.length > 0) {
-          emit('submitFailed', result.errors)
-        }
-        else {
-          emit('submit', result.values)
-        }
+    const handleSubmit = async (): Promise<void> => {
+      if (!form) {
+        return
       }
+      const result = await form.submit()
+      if (result.errors.length > 0) {
+        emit('submitFailed', result.errors)
+      }
+      else {
+        emit('submit', result.values)
+      }
+    }
 
-    /**
-     * handleReset?????????????????
-     * ???`packages/ui-antd-vue/src/components/LayoutFormActions.ts:74`?
-     * ?????????????????????????????????
-     * ??????????????????????????
-     */
-    const /**
-           * handleReset：处理当前分支的交互与状态同步。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           */
-      handleReset = (): void => {
-        if (form) {
-          form.reset()
-        }
-        emit('reset')
+    const handleReset = (): void => {
+      if (form) {
+        form.reset()
       }
+      emit('reset')
+    }
 
     return () => {
       /** preview/disabled 模式下自动隐藏操作按钮 */

@@ -1,4 +1,4 @@
-import { ElButton } from 'element-plus'
+﻿import { ElButton } from 'element-plus'
 import { defineComponent, h } from 'vue'
 
 const ButtonComponent = ElButton as any
@@ -13,7 +13,6 @@ export const LayoutStepActions = defineComponent({
   },
   emits: ['prev', 'next'],
   /**
-   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
@@ -22,12 +21,10 @@ export const LayoutStepActions = defineComponent({
     return () => h('div', { style: 'display: flex; justify-content: space-between; margin-top: 16px' }, [
       h('div', {}, props.current > 0
         ? h(ButtonComponent, { /**
-                                * onClick：处理当前分支的交互与状态同步。
                                 * 功能：处理参数消化、状态变更与调用链行为同步。
                                 * @returns 返回当前分支执行后的处理结果。
                                 */
             /**
-             * onClick：处理当前分支的交互与状态同步。
              * 功能：处理参数消化、状态变更与调用链行为同步。
              * @returns 返回当前分支执行后的处理结果。
              */
@@ -36,12 +33,10 @@ export const LayoutStepActions = defineComponent({
         : undefined),
       props.current < props.total - 1
         ? h(ButtonComponent, { type: 'primary', loading: props.loading, /**
-                                                                         * onClick：处理当前分支的交互与状态同步。
                                                                          * 功能：处理参数消化、状态变更与调用链行为同步。
                                                                          * @returns 返回当前分支执行后的处理结果。
                                                                          */
             /**
-             * onClick：处理当前分支的交互与状态同步。
              * 功能：处理参数消化、状态变更与调用链行为同步。
              * @returns 返回当前分支执行后的处理结果。
              */

@@ -1,4 +1,4 @@
-import { isString } from './is'
+﻿import { isString } from './is'
 import { logger } from './logger'
 
 /**
@@ -48,8 +48,6 @@ const SCOPE_PARAMS = [
   '$index',
   '$deps',
 ] as const
-
-/** $ref 解析深度上限，防止循环引用导致无限递归 */
 const MAX_CACHE_SIZE = 1000
 
 /* ======================== 缓存 ======================== */
@@ -271,3 +269,4 @@ export function evaluateExpression<T = unknown>(
 export function clearExpressionCache(): void {
   compilationCache.clear()
 }
+

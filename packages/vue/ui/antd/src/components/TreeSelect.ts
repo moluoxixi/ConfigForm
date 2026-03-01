@@ -1,4 +1,4 @@
-import type { DataSourceItem } from '@moluoxixi/core'
+﻿import type { DataSourceItem } from '@moluoxixi/core'
 import type { PropType } from 'vue'
 import { TreeSelect as ATreeSelect } from 'ant-design-vue'
 import { computed, defineComponent, h } from 'vue'
@@ -25,12 +25,10 @@ export const TreeSelect = defineComponent({
   props: {
     modelValue: { type: [String, Number, Array] as PropType<string | number | (string | number)[]>, default: undefined },
     dataSource: { type: Array as PropType<DataSourceItem[]>, /**
-                                                              * default：处理当前分支的交互与状态同步。
                                                               * 功能：处理参数消化、状态变更与调用链行为同步。
                                                               * @returns 返回当前分支执行后的处理结果。
                                                               */
       /**
-       * default：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
        * @returns 返回当前分支执行后的处理结果。
        */
@@ -42,7 +40,6 @@ export const TreeSelect = defineComponent({
   },
   emits: ['update:modelValue', 'focus', 'blur'],
   /**
-   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
@@ -56,20 +53,17 @@ export const TreeSelect = defineComponent({
       'disabled': props.disabled,
       'multiple': props.multiple,
       /**
-       * onUpdate:value：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
        * @param v 参数 v 为当前功能所需的输入信息。
        * @returns 返回当前分支执行后的处理结果。
        */
       'onUpdate:value': (v: unknown) => emit('update:modelValue', v as string | number | (string | number)[]),
       /**
-       * onFocus：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
        * @returns 返回当前分支执行后的处理结果。
        */
       'onFocus': () => emit('focus'),
       /**
-       * onBlur：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
        * @returns 返回当前分支执行后的处理结果。
        */

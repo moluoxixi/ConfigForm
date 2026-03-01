@@ -1,4 +1,4 @@
-import type { DesignerFieldNode, DesignerNode } from '../designer'
+﻿import type { DesignerFieldNode, DesignerNode } from '../designer'
 import {
   containerTarget,
   containerUsesSections,
@@ -35,12 +35,7 @@ export function collectPreviewFields(nodes: DesignerNode[]): DesignerFieldNode[]
    * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
    * @param items 参数 `items`用于提供集合数据，支撑批量遍历与扩展处理。
    */
-  const /**
-         * walk：执行当前功能逻辑。
-         *
-         * @param items 参数 items 的输入说明。
-         */
-    walk = (items: DesignerNode[]): void => {
+  const walk = (items: DesignerNode[]): void => {
       for (const item of items) {
         if (item.kind === 'field') {
           fields.push(item)
@@ -75,12 +70,7 @@ export function collectDropTargetKeys(nodes: DesignerNode[]): string[] {
    * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
    * @param items 参数 `items`用于提供集合数据，支撑批量遍历与扩展处理。
    */
-  const /**
-         * walk：执行当前功能逻辑。
-         *
-         * @param items 参数 items 的输入说明。
-         */
-    walk = (items: DesignerNode[]): void => {
+  const walk = (items: DesignerNode[]): void => {
       for (const item of items) {
         if (item.kind !== 'container')
           continue
@@ -128,3 +118,4 @@ export function restoreDraggedDomPosition(event: DragRestoreEventLike): void {
   else
     from.appendChild(item)
 }
+

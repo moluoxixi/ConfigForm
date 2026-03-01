@@ -2,6 +2,7 @@ import type { ISchema } from '@moluoxixi/core'
 import type {
   DesignerContainerNode,
   DesignerFieldNode,
+  DesignerFormConfig,
   DesignerNode,
 } from '@moluoxixi/plugin-lower-code-core'
 import type {
@@ -10,6 +11,7 @@ import type {
 } from './designer/types'
 import {
   addSectionToContainer,
+  applyDesignerFormConfig,
   collectDropTargetKeys,
   createDesignerCanvasPutHandler,
   createDesignerCanvasSortableOptions,
@@ -17,6 +19,7 @@ import {
   createDesignerPointerTracker,
   defaultNodeFromMaterial,
   duplicateNodeById,
+  extractDesignerFormConfig,
   findNodeById,
   findSectionById,
   hasMountedDesignerSortables,
@@ -39,11 +42,13 @@ import {
   schemaToNodes,
   updateNodeById,
 } from '@moluoxixi/plugin-lower-code-core'
-import { ComponentRegistryContext, FormProvider, SchemaField, useCreateForm } from '@moluoxixi/react'
+import { ComponentRegistryContext, useCreateForm } from '@moluoxixi/react'
+import { ConfigForm } from '@moluoxixi/ui-basic-react'
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import Sortable from 'sortablejs'
 import { DesignerHeader } from './designer/Header'
 import { mergeDesignerComponentDefinitions } from './designer/panels/component-definitions'
+import { mergeDesignerDecoratorDefinitions } from './designer/panels/decorator-definitions'
 import { DesignerCanvasPane } from './designer/panes/DesignerCanvasPane'
 import { DesignerMaterialPane } from './designer/panes/DesignerMaterialPane'
 import { DesignerPropertiesPane } from './designer/panes/DesignerPropertiesPane'
@@ -57,6 +62,8 @@ import { DESIGNER_CSS } from './designer/styles'
 
 export type {
   LowCodeDesignerComponentDefinition,
+  LowCodeDesignerDecoratorDefinition,
+  LowCodeDesignerDecoratorDefinitions,
   LowCodeDesignerEditableProp,
   LowCodeDesignerEditablePropEditor,
   LowCodeDesignerEditablePropOption,
@@ -187,18 +194,27 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
     value,
     onChange,
     minCanvasHeight = 420,
+    disabled = false,
+    preview = false,
     previewRenderMode = 'auto',
     renderers: customRenderers,
     componentDefinitions,
+    decoratorDefinitions,
   } = props
   // Registry 用于在可用时自动启用真实组件预览渲染器。
   const componentRegistry = useContext(ComponentRegistryContext)
   const [nodes, setNodes] = useState<DesignerNode[]>(() => schemaToNodes(value))
   const [selectedId, setSelectedId] = useState<string | null>(nodes[0]?.id ?? null)
   const [enumDraft, setEnumDraft] = useState('')
+  const [formConfig, setFormConfig] = useState<DesignerFormConfig>(() => extractDesignerFormConfig(value))
+  const readonly = Boolean(disabled || preview)
   const baseComponentDefinitions = useMemo(
     () => mergeDesignerComponentDefinitions(componentDefinitions),
     [componentDefinitions],
+  )
+  const mergedDecoratorDefinitions = useMemo(
+    () => mergeDesignerDecoratorDefinitions(decoratorDefinitions),
+    [decoratorDefinitions],
   )
   const [componentPropsByComponent, setComponentPropsByComponent] = useState<Record<string, Record<string, unknown>>>(
     () => createComponentPropsByComponent(baseComponentDefinitions),
@@ -212,7 +228,10 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
   const dragMetaRef = useRef({ allowCrossTarget: false })
   const designerForm = useCreateForm({}, { resetKey: 'designer' })
 
-  const builtSchema = useMemo(() => nodesToSchema(nodes), [nodes])
+  const builtSchema = useMemo(
+    () => applyDesignerFormConfig(nodesToSchema(nodes), formConfig),
+    [nodes, formConfig],
+  )
   const builtSignature = useMemo(() => schemaSignature(builtSchema), [builtSchema])
   const valueSignature = useMemo(() => schemaSignature(value), [value])
   const lastSeenValueSignature = useRef(valueSignature)
@@ -245,6 +264,16 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
     },
     [baseComponentDefinitions, componentPropsByComponent],
   )
+  const decoratorOptions = useMemo(
+    () => Array.from(componentRegistry.decorators.keys()),
+    [componentRegistry],
+  )
+  const defaultDecoratorsByComponent = useMemo(() => {
+    const record: Record<string, string> = {}
+    for (const [componentName, decoratorName] of componentRegistry.defaultDecorators.entries())
+      record[componentName] = decoratorName
+    return record
+  }, [componentRegistry, decoratorOptions])
   const designerMaterials = useMemo(
     () => resolveDesignerMaterials(
       componentRegistry.components.keys(),
@@ -277,89 +306,14 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
     })
   }, [componentRegistry, customRenderers, previewRenderMode])
 
-  const mainGridSchema = useMemo<ISchema>(
-    () => ({
-      type: 'object',
-      properties: {
-        materials: {
-          type: 'void',
-          component: 'DesignerMaterialPane',
-          componentProps: {
-            componentMaterials: designerMaterials.componentMaterials,
-            layoutMaterials: designerMaterials.layoutMaterials,
-            materialHostRef,
-            renderMaterialPreview: resolvedRenderers.renderMaterialPreview,
-          },
-        },
-        canvas: {
-          type: 'void',
-          component: 'DesignerCanvasPane',
-          componentProps: {
-            nodes,
-            minCanvasHeight,
-            selectedId,
-            canvasHostRef,
-            onSelect: setSelectedId,
-            onDuplicateNode: handleDuplicateNode,
-            onRemoveNode: handleRemoveNode,
-            onAddSection: handleAddSection,
-            onRemoveSection: handleRemoveSection,
-            renderFieldPreviewControl: resolvedRenderers.renderFieldPreviewControl,
-          },
-        },
-        properties: {
-          type: 'void',
-          component: 'DesignerPropertiesPane',
-          componentProps: {
-            nodes,
-            selectedField,
-            selectedContainer,
-            selectedSection,
-            enumDraft,
-            setEnumDraft,
-            onUpdateNodes: setNodes,
-            updateField,
-            updateContainer,
-            fieldComponentOptions: designerMaterials.fieldComponentOptions,
-            componentDefinitions: mergedComponentDefinitions,
-            componentPropsByComponent,
-            onUpdateComponentPropByComponentName: updateComponentPropByComponentName,
-          },
-        },
-      },
-    }),
-    [
-      canvasHostRef,
-      componentPropsByComponent,
-      handleAddSection,
-      handleDuplicateNode,
-      handleRemoveNode,
-      handleRemoveSection,
-      designerMaterials.componentMaterials,
-      designerMaterials.fieldComponentOptions,
-      designerMaterials.layoutMaterials,
-      enumDraft,
-      mergedComponentDefinitions,
-      minCanvasHeight,
-      nodes,
-      selectedContainer,
-      selectedField,
-      selectedId,
-      selectedSection,
-      setEnumDraft,
-      setNodes,
-      updateComponentPropByComponentName,
-      updateContainer,
-      updateField,
-      resolvedRenderers.renderFieldPreviewControl,
-      resolvedRenderers.renderMaterialPreview,
-    ],
+  const updateFormConfig = useCallback(
+    (updater: (prev: DesignerFormConfig) => DesignerFormConfig) => {
+      setFormConfig(prev => updater(prev))
+    },
+    [],
   )
 
-  const mainGridRenderKey = useMemo(
-    () => builtSignature,
-    [builtSignature],
-  )
+  // mainGrid 直接渲染 schema 子节点，避免二次 SchemaField 与强制重挂载。
 
   // 保持 ref 与状态同步，确保 Sortable 回调拿到最新预设。
   useEffect(() => {
@@ -469,6 +423,7 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
       return
     const nextNodes = schemaToNodes(value)
     setNodes(nextNodes)
+    setFormConfig(extractDesignerFormConfig(value))
     setSelectedId(nextNodes[0]?.id ?? null)
   }, [builtSignature, value, valueSignature])
 
@@ -606,7 +561,7 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
         const materialLists = Array.from(materialSortableRoot.querySelectorAll<HTMLElement>('[data-cf-material-list="true"]'))
         for (const materialList of materialLists) {
           const materialSortable = Sortable.create(materialList, createDesignerMaterialSortableOptions({
-            disabled: false,
+            disabled: readonly,
             /** 物料拖拽开始，启用拖拽中样式。 */
             onStart: () => toggleDragging(true),
             /** 物料拖拽结束，恢复样式。 */
@@ -634,7 +589,7 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
         const dropLists = Array.from(canvasSortableRoot.querySelectorAll<HTMLElement>('[data-cf-drop-list="true"]'))
         for (const list of dropLists) {
           const canvasSortable = Sortable.create(list, createDesignerCanvasSortableOptions({
-            disabled: false,
+            disabled: readonly,
             targetKey: list.dataset.targetKey,
             put: canvasPutHandler,
             /** 画布拖拽开始，启用拖拽中样式。 */
@@ -914,7 +869,7 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
       destroySortables()
       pointerTrackerRef.current.stop()
     }
-  }, [builtSignature, dropTargetSignature, materialsById])
+  }, [builtSignature, dropTargetSignature, materialsById, readonly])
 
   /**
    * 字段节点更新助手（仅作用于 field）。
@@ -1023,11 +978,11 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
     </div>
   ), [])
 
-  const DesignerMainGrid = useCallback(() => (
+  const DesignerMainGrid = useCallback(({ children }: { children?: React.ReactNode }) => (
     <div className="cf-lc-main-grid">
-      <SchemaField key={mainGridRenderKey} schema={mainGridSchema} />
+      {children}
     </div>
-  ), [mainGridRenderKey, mainGridSchema])
+  ), [])
 
   const designerSchema = useMemo<ISchema>(() => ({
     type: 'object',
@@ -1052,6 +1007,7 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
                   layoutMaterials: designerMaterials.layoutMaterials,
                   materialHostRef,
                   renderMaterialPreview: resolvedRenderers.renderMaterialPreview,
+                  readonly,
                 },
               },
               canvas: {
@@ -1061,6 +1017,7 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
                   nodes,
                   minCanvasHeight,
                   selectedId,
+                  readonly,
                   canvasHostRef,
                   onSelect: setSelectedId,
                   onDuplicateNode: handleDuplicateNode,
@@ -1073,25 +1030,31 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
               properties: {
                 type: 'void',
                 component: 'DesignerPropertiesPane',
-                componentProps: {
-                  nodes,
-                  selectedField,
-                  selectedContainer,
-                  selectedSection,
-                  enumDraft,
-                  setEnumDraft,
-                  onUpdateNodes: setNodes,
-                  updateField,
-                  updateContainer,
-                  fieldComponentOptions: designerMaterials.fieldComponentOptions,
-                  componentDefinitions: mergedComponentDefinitions,
-                  componentPropsByComponent,
-                  onUpdateComponentPropByComponentName: updateComponentPropByComponentName,
-                },
-              },
+              componentProps: {
+              nodes,
+              selectedField,
+              selectedContainer,
+              selectedSection,
+              enumDraft,
+              setEnumDraft,
+              onUpdateNodes: setNodes,
+              updateField,
+              updateContainer,
+              fieldComponentOptions: designerMaterials.fieldComponentOptions,
+              componentDefinitions: mergedComponentDefinitions,
+              decoratorDefinitions: mergedDecoratorDefinitions,
+              componentPropsByComponent,
+              onUpdateComponentPropByComponentName: updateComponentPropByComponentName,
+              decoratorOptions,
+              defaultDecoratorsByComponent,
+              formConfig,
+              onUpdateFormConfig: updateFormConfig,
+              readonly,
             },
           },
         },
+      },
+      },
       },
     },
   }), [
@@ -1103,19 +1066,25 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
     designerMaterials.componentMaterials,
     designerMaterials.fieldComponentOptions,
     designerMaterials.layoutMaterials,
-    enumDraft,
-    mergedComponentDefinitions,
-    minCanvasHeight,
-    nodes,
+      enumDraft,
+      decoratorOptions,
+      formConfig,
+      mergedComponentDefinitions,
+      mergedDecoratorDefinitions,
+      minCanvasHeight,
+      nodes,
     resolvedRenderers.renderFieldPreviewControl,
     resolvedRenderers.renderMaterialPreview,
     selectedContainer,
     selectedField,
     selectedId,
     selectedSection,
+    readonly,
     setEnumDraft,
     setNodes,
-    updateComponentPropByComponentName,
+    updateFormConfig,
+      updateComponentPropByComponentName,
+      defaultDecoratorsByComponent,
     updateContainer,
     updateField,
   ])
@@ -1133,8 +1102,11 @@ export function LowCodeDesigner(props: LowCodeDesignerProps): React.ReactElement
   ])
 
   return (
-    <FormProvider form={designerForm} components={designerComponents}>
-      <SchemaField schema={designerSchema} />
-    </FormProvider>
+    <ConfigForm
+      form={designerForm}
+      schema={designerSchema}
+      components={designerComponents}
+      formTag={false}
+    />
   )
 }

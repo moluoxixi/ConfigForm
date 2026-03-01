@@ -1,4 +1,4 @@
-import type { FormPlugin } from '@moluoxixi/core'
+﻿import type { FormPlugin } from '@moluoxixi/core'
 import type { I18nPluginAPI } from '@moluoxixi/plugin-i18n-core'
 import type { i18n as I18nextInstance } from 'i18next'
 import type { ReactI18nPluginOptions } from './types'
@@ -41,7 +41,6 @@ export function reactI18nPlugin(options: ReactI18nPluginOptions): FormPlugin<I18
     ...rest,
     locale: locale ?? resolveLocale(i18n),
     /**
-     * t：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @param key 参数 key 为当前功能所需的输入信息。
      * @param params 参数 params 为当前功能所需的输入信息。
@@ -49,7 +48,6 @@ export function reactI18nPlugin(options: ReactI18nPluginOptions): FormPlugin<I18
      */
     t: (key, params) => translate(i18n, key, params),
     /**
-     * changeLocale：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @param nextLocale 参数 nextLocale 为当前功能所需的输入信息。
      */
@@ -57,25 +55,16 @@ export function reactI18nPlugin(options: ReactI18nPluginOptions): FormPlugin<I18
       await i18n.changeLanguage(nextLocale)
     },
     /**
-     * onLocaleChange：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @param listener 参数 listener 为当前功能所需的输入信息。
      * @returns 返回当前分支执行后的处理结果。
      */
     onLocaleChange: (listener) => {
       /**
-       * handler?????????????????
-       * ???`packages/plugin-i18n-react/src/plugin.ts:79`?
-       * ?????????????????????????????????
-       * ??????????????????????????
-       * @param nextLocale ?? nextLocale ????????????
-       */
-      const /**
-             * handler：处理当前分支的交互与状态同步。
              * 功能：处理参数消化、状态变更与调用链行为同步。
              * @param nextLocale 参数 nextLocale 为当前功能所需的输入信息。
              */
-        handler = (nextLocale: string): void => {
+      const   handler = (nextLocale: string): void => {
           listener(nextLocale)
         }
       i18n.on('languageChanged', handler)

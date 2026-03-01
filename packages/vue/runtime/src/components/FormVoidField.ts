@@ -1,4 +1,4 @@
-import type { VoidFieldProps } from '@moluoxixi/core'
+﻿import type { VoidFieldProps } from '@moluoxixi/core'
 import type { PropType } from 'vue'
 import { defineComponent, h, inject, onBeforeUnmount, onMounted, provide, watch } from 'vue'
 import { FieldSymbol, FormSymbol } from '../context'
@@ -97,9 +97,6 @@ export const FormVoidField = defineComponent({
         isVoid: true,
       }, {
         /* children 插槽：传递给 ReactiveField 作为容器组件的子内容 */
-        /**
-         * children：处理当前分支的交互与状态同步。
-         */
         children: () => slots.default?.(),
       })
     }

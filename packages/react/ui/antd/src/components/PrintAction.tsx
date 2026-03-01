@@ -1,4 +1,4 @@
-import type { FormPrintOptions } from '@moluoxixi/plugin-print'
+﻿import type { FormPrintOptions } from '@moluoxixi/plugin-print'
 import type { CSSProperties, ReactElement } from 'react'
 import { useForm } from '@moluoxixi/react'
 import { Button, message } from 'antd'
@@ -46,10 +46,7 @@ export function PrintAction({
    * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
    * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
    */
-  const /**
-         * handlePrint：执行当前功能逻辑。
-         */
-    handlePrint = (): void => {
+  const handlePrint = (): void => {
       const print = form.print
       if (!print) {
         message.error('printPlugin is not installed.')
@@ -73,3 +70,4 @@ export function PrintAction({
     </div>
   )
 }
+

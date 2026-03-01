@@ -1,13 +1,8 @@
-import type { ValidationFeedback } from '@moluoxixi/core'
+﻿import type { ValidationFeedback } from '@moluoxixi/core'
 import { useField, useFormLayout } from '@moluoxixi/react'
 import { Form as AForm } from 'antd'
 import React from 'react'
 
-/**
- * CfFormItemProps??????
- * ???`packages/ui-antd/src/components/FormItem.tsx:6`?
- * ??????????????????????????????
- */
 export interface CfFormItemProps {
   label?: string
   required?: boolean
@@ -118,3 +113,4 @@ export function FormItem({
     </div>
   )
 }
+

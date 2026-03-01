@@ -16,6 +16,7 @@ export interface DesignerMaterialPaneProps {
   layoutMaterials: MaterialContainerItem[]
   materialHostRef: React.RefObject<HTMLDivElement>
   renderMaterialPreview: (item: MaterialItem, context: LowCodeDesignerRenderContext) => React.ReactElement
+  readonly?: boolean
 }
 
 /**
@@ -28,6 +29,7 @@ export interface DesignerMaterialToolbarRendererProps {
   onKeywordChange: (nextKeyword: string) => void
   totalCount: number
   filteredCount: number
+  readonly?: boolean
 }
 
 /**
@@ -38,4 +40,5 @@ export interface DesignerMaterialToolbarRendererProps {
 export interface DesignerMaterialListRendererProps {
   items: MaterialItem[]
   renderMaterialPreview: (item: MaterialItem, context: LowCodeDesignerRenderContext) => React.ReactElement
+  readonly?: boolean
 }

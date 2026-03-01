@@ -1,4 +1,4 @@
-import type { Disposer, ReactionOptions, ReactiveAdapter } from '@moluoxixi/core'
+﻿import type { Disposer, ReactionOptions, ReactiveAdapter } from '@moluoxixi/core'
 import { debounce as createDebounce } from '@moluoxixi/core'
 import {
   computed,
@@ -124,13 +124,7 @@ export const vueAdapter: ReactiveAdapter = {
      * @param newValue 参数 `newValue`用于提供待处理的值并参与结果计算。
      * @param prev 参数 `prev`用于提供当前函数执行所需的输入信息。
      */
-    const /**
-           * callEffect：执行当前功能逻辑。
-           *
-           * @param newValue 参数 newValue 的输入说明。
-           * @param prev 参数 prev 的输入说明。
-           */
-      callEffect = (newValue: T, prev: T): void => {
+    const callEffect = (newValue: T, prev: T): void => {
         if (wrappedEffect) {
           wrappedEffect(newValue, prev)
         }
@@ -208,3 +202,4 @@ export const vueAdapter: ReactiveAdapter = {
     return reactive(target) as T
   },
 }
+

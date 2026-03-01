@@ -6,13 +6,6 @@ import { Button, Drawer, Space } from 'antd'
 import { useCallback, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 
-/* ======================== 类型定义 ======================== */
-
-/**
- * FormDrawerProps??????
- * ???`packages/ui-antd/src/components/FormDrawer.tsx:11`?
- * ??????????????????????????????
- */
 export interface FormDrawerProps<Values extends Record<string, unknown> = Record<string, unknown>> {
   /** 抽屉标题 */
   title?: ReactNode
@@ -50,38 +43,18 @@ export interface FormDrawerProps<Values extends Record<string, unknown> = Record
   children?: ReactNode
 }
 
-/** 命令式 open() 的配置项 */
 export interface FormDrawerOpenOptions<Values extends Record<string, unknown> = Record<string, unknown>> {
-  /** 抽屉标题 */
   title?: ReactNode
-  /** 表单 Schema */
   schema: ISchema
-  /** 初始值 */
   initialValues?: Partial<Values>
-  /** 表单配置 */
   formConfig?: FormConfig<Values>
-  /** 抽屉宽度 */
   width?: number | string
-  /** 抽屉弹出方向 */
   placement?: 'left' | 'right' | 'top' | 'bottom'
-  /** 确认按钮文字 */
   okText?: string
-  /** 取消按钮文字 */
   cancelText?: string
-  /** 提交回调 */
   onSubmit?: (values: Values) => void | Promise<void>
 }
 
-/* ======================== 声明式组件 ======================== */
-
-/**
- * FormDrawer — 抽屉表单组件
- *
- * 在 Ant Design Drawer 内创建独立的 Form 实例并渲染 Schema 表单。
- * 底部操作栏包含确认/取消按钮，确认时自动触发验证和提交。
- *
- * 支持声明式和命令式两种用法，API 设计与 FormDialog 对齐。
- */
 const FormDrawerInner = observer(<Values extends Record<string, unknown> = Record<string, unknown>>(
   props: FormDrawerProps<Values>,
 ): ReactElement => {
@@ -131,7 +104,6 @@ const FormDrawerInner = observer(<Values extends Record<string, unknown> = Recor
     }
   }, [form, onSubmit, onSubmitFailed])
 
-  /** 底部操作按钮 */
   const footer = (
     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
       <Space>
@@ -162,14 +134,6 @@ const FormDrawerInner = observer(<Values extends Record<string, unknown> = Recor
   props: FormDrawerProps<Values>,
 ) => ReactElement | null
 
-/* ======================== 命令式 API ======================== */
-
-/**
- * openFormDrawer：处理当前分支的交互与状态同步。
- * 功能：处理参数消化、状态变更与调用链行为同步。
- * @param options 参数 options 为当前功能所需的输入信息。
- * @returns 返回当前分支执行后的处理结果。
- */
 function openFormDrawer<Values extends Record<string, unknown> = Record<string, unknown>>(
   options: FormDrawerOpenOptions<Values>,
 ): Promise<Values> {
@@ -178,107 +142,56 @@ function openFormDrawer<Values extends Record<string, unknown> = Record<string, 
     document.body.appendChild(container)
     const root = createRoot(container)
 
-    /**
-     * destroy?????????????????
-     * ???`packages/ui-antd/src/components/FormDrawer.tsx:184`?
-     * ?????????????????????????????????
-     * ??????????????????????????
-     */
-    const /**
-           * destroy：处理当前分支的交互与状态同步。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           */
-      destroy = (): void => {
-        setTimeout(() => {
-          root.unmount()
-          if (document.body.contains(container)) {
-            document.body.removeChild(container)
-          }
-        }, 300)
-      }
+    const destroy = (): void => {
+      setTimeout(() => {
+        root.unmount()
+        if (document.body.contains(container)) {
+          document.body.removeChild(container)
+        }
+      }, 300)
+    }
 
     const form = createForm<Values>({
       ...options.formConfig,
       initialValues: options.initialValues ?? options.formConfig?.initialValues,
     })
 
-    /**
-     * DrawerWrapper?????????????????
-     * ???`packages/ui-antd/src/components/FormDrawer.tsx:205`?
-     * ?????????????????????????????????
-     * ??????????????????????????
-     * @returns ?????????????
-     */
-    const /**
-           * DrawerWrapper：处理当前分支的交互与状态同步。
-           * 功能：处理参数消化、状态变更与调用链行为同步。
-           * @returns 返回当前分支执行后的处理结果。
-           */
-      DrawerWrapper = (): ReactElement => {
-        const [open, setOpen] = useState(true)
+    const DrawerWrapper = (): ReactElement => {
+      const [open, setOpen] = useState(true)
 
-        /**
-         * handleSubmit?????????????????
-         * ???`packages/ui-antd/src/components/FormDrawer.tsx:215`?
-         * ?????????????????????????????????
-         * ??????????????????????????
-         * @param values ?? values ????????????
-         */
-        const /**
-               * handleSubmit：处理当前分支的交互与状态同步。
-               * 功能：处理参数消化、状态变更与调用链行为同步。
-               * @param values 参数 values 为当前功能所需的输入信息。
-               */
-          handleSubmit = async (values: Values): Promise<void> => {
-            await options.onSubmit?.(values)
-            setOpen(false)
-            resolve(values)
-            destroy()
-          }
-
-        /**
-         * handleCancel?????????????????
-         * ???`packages/ui-antd/src/components/FormDrawer.tsx:228`?
-         * ?????????????????????????????????
-         * ??????????????????????????
-         */
-        const /**
-               * handleCancel：处理当前分支的交互与状态同步。
-               * 功能：处理参数消化、状态变更与调用链行为同步。
-               */
-          handleCancel = (): void => {
-            setOpen(false)
-            reject(new Error('FormDrawer cancelled'))
-            destroy()
-          }
-
-        return (
-          <FormDrawerInner<Values>
-            title={options.title}
-            open={open}
-            schema={options.schema}
-            form={form}
-            width={options.width}
-            placement={options.placement}
-            okText={options.okText}
-            cancelText={options.cancelText}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-          />
-        )
+      const handleSubmit = async (values: Values): Promise<void> => {
+        await options.onSubmit?.(values)
+        setOpen(false)
+        resolve(values)
+        destroy()
       }
+
+      const handleCancel = (): void => {
+        setOpen(false)
+        reject(new Error('FormDrawer cancelled'))
+        destroy()
+      }
+
+      return (
+        <FormDrawerInner<Values>
+          title={options.title}
+          open={open}
+          schema={options.schema}
+          form={form}
+          width={options.width}
+          placement={options.placement}
+          okText={options.okText}
+          cancelText={options.cancelText}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+        />
+      )
+    }
 
     root.render(<DrawerWrapper />)
   })
 }
 
-/* ======================== 组合导出 ======================== */
-
-/**
- * FormDrawerType????????
- * ???`packages/ui-antd/src/components/FormDrawer.tsx:256`?
- * ??????????????????????????????
- */
 type FormDrawerType = typeof FormDrawerInner & {
   open: typeof openFormDrawer
 }

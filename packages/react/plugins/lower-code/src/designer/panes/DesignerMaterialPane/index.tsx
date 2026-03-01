@@ -1,4 +1,4 @@
-import type { ISchema } from '@moluoxixi/core'
+﻿import type { ISchema } from '@moluoxixi/core'
 import type { MaterialItem } from '@moluoxixi/plugin-lower-code-core'
 import type { DesignerMaterialPaneProps } from './types'
 import { ConfigForm } from '@moluoxixi/ui-basic-react'
@@ -25,6 +25,7 @@ export function DesignerMaterialPane({
   layoutMaterials,
   materialHostRef,
   renderMaterialPreview,
+  readonly = false,
 }: DesignerMaterialPaneProps): React.ReactElement {
   const [keyword, setKeyword] = useState('')
 
@@ -37,14 +38,7 @@ export function DesignerMaterialPane({
    * @param item 参数 `item`用于提供当前函数执行所需的输入信息。
    * @returns 返回布尔值，用于表示条件是否成立或操作是否成功。
    */
-  const /**
-         * filterByKeyword：执行当前功能逻辑。
-         *
-         * @param item 参数 item 的输入说明。
-         *
-         * @returns 返回当前功能的处理结果。
-         */
-    filterByKeyword = (item: MaterialItem): boolean => {
+  const filterByKeyword = (item: MaterialItem): boolean => {
       if (!normalizedKeyword)
         return true
       const text = `${item.label} ${item.description ?? ''}`.toLowerCase()
@@ -74,6 +68,7 @@ export function DesignerMaterialPane({
           onKeywordChange: setKeyword,
           totalCount,
           filteredCount,
+          readonly,
         },
       },
       tabs: {
@@ -90,6 +85,7 @@ export function DesignerMaterialPane({
                 componentProps: {
                   items: filteredComponentMaterials,
                   renderMaterialPreview,
+                  readonly,
                 },
               },
             },
@@ -104,6 +100,7 @@ export function DesignerMaterialPane({
                 componentProps: {
                   items: filteredLayoutMaterials,
                   renderMaterialPreview,
+                  readonly,
                 },
               },
             },
@@ -120,6 +117,7 @@ export function DesignerMaterialPane({
     layoutMaterials.length,
     renderMaterialPreview,
     totalCount,
+    readonly,
   ])
 
   return (
@@ -141,3 +139,4 @@ export function DesignerMaterialPane({
     </section>
   )
 }
+

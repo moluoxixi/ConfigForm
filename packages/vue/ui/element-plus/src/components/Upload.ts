@@ -1,4 +1,4 @@
-import type { UploadFile, UploadUserFile } from 'element-plus'
+﻿import type { UploadFile, UploadUserFile } from 'element-plus'
 import type { PropType } from 'vue'
 import { ElButton, ElUpload } from 'element-plus'
 import { defineComponent, h } from 'vue'
@@ -33,12 +33,10 @@ export const Upload = defineComponent({
   name: 'CfUpload',
   props: {
     modelValue: { type: Array as PropType<FileInfo[]>, /**
-                                                        * default：处理当前分支的交互与状态同步。
                                                         * 功能：处理参数消化、状态变更与调用链行为同步。
                                                         * @returns 返回当前分支执行后的处理结果。
                                                         */
       /**
-       * default：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
        * @returns 返回当前分支执行后的处理结果。
        */
@@ -61,12 +59,10 @@ export const Upload = defineComponent({
     readonly: Boolean,
     /** 请求头 */
     headers: { type: Object as PropType<Record<string, string>>, /**
-                                                                  * default：处理当前分支的交互与状态同步。
                                                                   * 功能：处理参数消化、状态变更与调用链行为同步。
                                                                   * @returns 返回当前分支执行后的处理结果。
                                                                   */
       /**
-       * default：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
        * @returns 返回当前分支执行后的处理结果。
        */
@@ -80,7 +76,6 @@ export const Upload = defineComponent({
   },
   emits: ['update:modelValue'],
   /**
-   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。

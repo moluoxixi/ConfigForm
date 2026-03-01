@@ -6,13 +6,6 @@ import { Modal } from 'antd'
 import { useCallback, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 
-/* ======================== 类型定义 ======================== */
-
-/**
- * FormDialogProps??????
- * ???`packages/ui-antd/src/components/FormDialog.tsx:11`?
- * ??????????????????????????????
- */
 export interface FormDialogProps<Values extends Record<string, unknown> = Record<string, unknown>> {
   /** 弹窗标题 */
   title?: ReactNode
@@ -48,59 +41,17 @@ export interface FormDialogProps<Values extends Record<string, unknown> = Record
   children?: ReactNode
 }
 
-/** 命令式 open() 的配置项 */
 export interface FormDialogOpenOptions<Values extends Record<string, unknown> = Record<string, unknown>> {
-  /** 弹窗标题 */
   title?: ReactNode
-  /** 表单 Schema */
   schema: ISchema
-  /** 初始值 */
   initialValues?: Partial<Values>
-  /** 表单配置 */
   formConfig?: FormConfig<Values>
-  /** 弹窗宽度 */
   width?: number | string
-  /** 确认按钮文字 */
   okText?: string
-  /** 取消按钮文字 */
   cancelText?: string
-  /** 提交回调（可异步） */
   onSubmit?: (values: Values) => void | Promise<void>
 }
 
-/* ======================== 声明式组件 ======================== */
-
-/**
- * FormDialog — 弹窗表单组件
- *
- * 在 Ant Design Modal 内创建独立的 Form 实例并渲染 Schema 表单。
- * 点击确认按钮时自动触发验证和提交。
- *
- * 支持两种用法：
- * 1. 声明式：`<FormDialog open={open} schema={schema} onSubmit={handleSubmit} />`
- * 2. 命令式：`const values = await FormDialog.open({ schema, onSubmit })`
- *
- * @example
- * ```tsx
- * // 声明式
- * <FormDialog
- *   open={open}
- *   title="新增用户"
- *   schema={userSchema}
- *   initialValues={{ name: '' }}
- *   onSubmit={async (values) => { await api.createUser(values); setOpen(false); }}
- *   onCancel={() => setOpen(false)}
- * />
- *
- * // 命令式
- * const values = await FormDialog.open({
- *   title: '编辑用户',
- *   schema: userSchema,
- *   initialValues: { name: '张三' },
- *   onSubmit: async (values) => await api.updateUser(values),
- * })
- * ```
- */
 const FormDialogInner = observer(<Values extends Record<string, unknown> = Record<string, unknown>>(
   props: FormDialogProps<Values>,
 ): ReactElement => {
@@ -123,17 +74,14 @@ const FormDialogInner = observer(<Values extends Record<string, unknown> = Recor
     children,
   } = props
 
-  /** 内部创建 form 实例（当外部未提供时） */
   const internalForm = useCreateForm<Values>({
     ...formConfig,
     initialValues: initialValues ?? formConfig?.initialValues,
   })
   const form = externalForm ?? internalForm
 
-  /** 提交中状态 */
   const [submitting, setSubmitting] = useState(false)
 
-  /** 点击确认 → 验证 + 提交 */
   const handleOk = useCallback(async (): Promise<void> => {
     setSubmitting(true)
     try {
@@ -175,16 +123,6 @@ const FormDialogInner = observer(<Values extends Record<string, unknown> = Recor
   props: FormDialogProps<Values>,
 ) => ReactElement | null
 
-/* ======================== 命令式 API ======================== */
-
-/**
- * 命令式打开弹窗表单
- *
- * 创建一个临时 DOM 容器，挂载 FormDialog 组件，
- * 提交成功后自动关闭并返回表单值。
- *
- * @returns 提交成功时 resolve 表单值，取消时 reject
- */
 function openFormDialog<Values extends Record<string, unknown> = Record<string, unknown>>(
   options: FormDialogOpenOptions<Values>,
 ): Promise<Values> {
@@ -193,9 +131,7 @@ function openFormDialog<Values extends Record<string, unknown> = Record<string, 
     document.body.appendChild(container)
     const root = createRoot(container)
 
-    /** 卸载清理 */
     const destroy = (): void => {
-      /* 延迟卸载，等关闭动画完成 */
       setTimeout(() => {
         root.unmount()
         if (document.body.contains(container)) {
@@ -204,50 +140,26 @@ function openFormDialog<Values extends Record<string, unknown> = Record<string, 
       }, 300)
     }
 
-    /** 内部创建 form 实例 */
     const form = createForm<Values>({
       ...options.formConfig,
       initialValues: options.initialValues ?? options.formConfig?.initialValues,
     })
 
-    /** 渲染受控组件 */
     const DialogWrapper = (): ReactElement => {
       const [open, setOpen] = useState(true)
 
-      /**
-       * handleSubmit?????????????????
-       * ???`packages/ui-antd/src/components/FormDialog.tsx:219`?
-       * ?????????????????????????????????
-       * ??????????????????????????
-       * @param values ?? values ????????????
-       */
-      const /**
-             * handleSubmit：处理当前分支的交互与状态同步。
-             * 功能：处理参数消化、状态变更与调用链行为同步。
-             * @param values 参数 values 为当前功能所需的输入信息。
-             */
-        handleSubmit = async (values: Values): Promise<void> => {
-          await options.onSubmit?.(values)
-          setOpen(false)
-          resolve(values)
-          destroy()
-        }
+      const handleSubmit = async (values: Values): Promise<void> => {
+        await options.onSubmit?.(values)
+        setOpen(false)
+        resolve(values)
+        destroy()
+      }
 
-      /**
-       * handleCancel?????????????????
-       * ???`packages/ui-antd/src/components/FormDialog.tsx:232`?
-       * ?????????????????????????????????
-       * ??????????????????????????
-       */
-      const /**
-             * handleCancel：处理当前分支的交互与状态同步。
-             * 功能：处理参数消化、状态变更与调用链行为同步。
-             */
-        handleCancel = (): void => {
-          setOpen(false)
-          reject(new Error('FormDialog cancelled'))
-          destroy()
-        }
+      const handleCancel = (): void => {
+        setOpen(false)
+        reject(new Error('FormDialog cancelled'))
+        destroy()
+      }
 
       return (
         <FormDialogInner<Values>
@@ -268,13 +180,6 @@ function openFormDialog<Values extends Record<string, unknown> = Record<string, 
   })
 }
 
-/* ======================== 组合导出 ======================== */
-
-/**
- * FormDialogType????????
- * ???`packages/ui-antd/src/components/FormDialog.tsx:259`?
- * ??????????????????????????????
- */
 type FormDialogType = typeof FormDialogInner & {
   open: typeof openFormDialog
 }

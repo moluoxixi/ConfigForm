@@ -1,9 +1,7 @@
 import type { ISchema } from '@moluoxixi/core'
 import type { ReactElement } from 'react'
 import type { DesignerPropertiesPaneProps } from './types'
-import { nodesToSchema, schemaSignature } from '@moluoxixi/plugin-lower-code-core'
 import { ConfigForm } from '@moluoxixi/ui-basic-react'
-import { useMemo } from 'react'
 import { DesignerPropertiesRenderer } from './components/DesignerPropertiesRenderer'
 
 export type { DesignerPropertiesPaneProps } from './types'
@@ -17,41 +15,66 @@ export type { DesignerPropertiesPaneProps } from './types'
  * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
  */
 export function DesignerPropertiesPane(props: DesignerPropertiesPaneProps): ReactElement {
-  const paneRenderKey = useMemo(
-    () => [
-      schemaSignature(nodesToSchema(props.nodes)),
-      props.selectedField?.id ?? '',
-      props.selectedContainer?.id ?? '',
-      props.selectedSection?.id ?? '',
-    ].join(':'),
-    [
-      props.nodes,
-      props.selectedContainer?.id,
-      props.selectedField?.id,
-      props.selectedSection?.id,
-    ],
-  )
-
-  const paneSchema = useMemo<ISchema>(() => ({
-    type: 'object',
+  const hasSelection = Boolean(props.selectedField || props.selectedContainer || props.selectedSection)
+  const componentTab: ISchema = {
+    type: 'void',
+    componentProps: { title: '组件' },
     properties: {
       content: {
         type: 'void',
         component: 'DesignerPropertiesRenderer',
-        componentProps: { ...props },
+        componentProps: { ...props, tab: 'component' },
       },
     },
-  }), [props])
+  }
+  const formTab: ISchema = {
+    type: 'void',
+    componentProps: { title: '表单' },
+    properties: {
+      content: {
+        type: 'void',
+        component: 'DesignerPropertiesRenderer',
+        componentProps: { ...props, tab: 'form' },
+      },
+    },
+  }
+  const paneSchema: ISchema = ({
+    type: 'object',
+    properties: {
+      tabs: {
+        type: 'void',
+        component: 'LayoutTabs',
+        properties: hasSelection
+          ? { component: componentTab, form: formTab }
+          : { form: formTab, component: componentTab },
+      },
+    },
+  })
 
   return (
-    <ConfigForm
-      key={paneRenderKey}
-      schema={paneSchema}
-      components={{
-        DesignerPropertiesRenderer,
-      }}
-      formTag={false}
-      className="cf-lc-pane-configform-shell"
-    />
+    <section className="cf-lc-panel cf-lc-panel--side">
+      <div className="cf-lc-panel-body cf-lc-side-panel-body cf-lc-side-panel-shell">
+        <div className="cf-lc-side-panel-header">
+          <div className="cf-lc-side-panel-title">属性</div>
+          <div className="cf-lc-side-panel-meta">
+            {props.selectedField
+              ? `字段 · ${props.selectedField.name}`
+              : props.selectedContainer
+                ? `容器 · ${props.selectedContainer.component}`
+                : props.selectedSection
+                  ? `分组 · ${props.selectedSection.name}`
+                  : '未选择节点'}
+          </div>
+        </div>
+        <ConfigForm
+          schema={paneSchema}
+          components={{
+            DesignerPropertiesRenderer,
+          }}
+          formTag={false}
+          className="cf-lc-pane-configform-shell cf-lc-properties-pane-form"
+        />
+      </div>
+    </section>
   )
 }

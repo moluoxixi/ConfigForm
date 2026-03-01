@@ -21,6 +21,17 @@ export const TextareaDefinition: LowCodeDesignerComponentDefinition = {
       defaultValue: '请输入',
     },
     {
+      key: 'size',
+      label: '尺寸',
+      editor: 'select',
+      options: [
+        { label: '默认', value: '' },
+        { label: '小', value: 'small' },
+        { label: '中', value: 'middle' },
+        { label: '大', value: 'large' },
+      ],
+    },
+    {
       key: 'rows',
       label: '默认行数',
       editor: 'number',
@@ -30,6 +41,22 @@ export const TextareaDefinition: LowCodeDesignerComponentDefinition = {
       key: 'maxLength',
       label: '最大长度',
       editor: 'number',
+    },
+    {
+      key: 'showCount',
+      label: '显示字数',
+      editor: 'switch',
+    },
+    {
+      key: 'autoSize',
+      label: '自适应高度',
+      editor: 'switch',
+    },
+    {
+      key: 'allowClear',
+      label: '允许清空',
+      editor: 'switch',
+      defaultValue: true,
     },
   ],
 }

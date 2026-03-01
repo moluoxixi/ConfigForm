@@ -25,6 +25,17 @@ export const InputNumberDefinition: LowCodeDesignerComponentDefinition = {
       editor: 'number',
     },
     {
+      key: 'size',
+      label: '尺寸',
+      editor: 'select',
+      options: [
+        { label: '默认', value: '' },
+        { label: '小', value: 'small' },
+        { label: '中', value: 'middle' },
+        { label: '大', value: 'large' },
+      ],
+    },
+    {
       key: 'step',
       label: '步长',
       editor: 'number',
@@ -35,6 +46,12 @@ export const InputNumberDefinition: LowCodeDesignerComponentDefinition = {
       label: '小数位',
       editor: 'number',
       defaultValue: 0,
+    },
+    {
+      key: 'controls',
+      label: '显示步进按钮',
+      editor: 'switch',
+      defaultValue: true,
     },
   ],
 }

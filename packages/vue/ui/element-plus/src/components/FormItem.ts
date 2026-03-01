@@ -1,4 +1,4 @@
-import type { ValidationFeedback } from '@moluoxixi/core'
+﻿import type { ValidationFeedback } from '@moluoxixi/core'
 import type { PropType } from 'vue'
 import { useField, useFormLayout } from '@moluoxixi/vue'
 import { ElFormItem } from 'element-plus'
@@ -18,23 +18,19 @@ export const FormItem = defineComponent({
     label: String,
     required: Boolean,
     errors: { type: Array as PropType<ValidationFeedback[]>, /**
-                                                              * default：处理当前分支的交互与状态同步。
                                                               * 功能：处理参数消化、状态变更与调用链行为同步。
                                                               * @returns 返回当前分支执行后的处理结果。
                                                               */
       /**
-       * default：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
        * @returns 返回当前分支执行后的处理结果。
        */
       default: () => [] },
     warnings: { type: Array as PropType<ValidationFeedback[]>, /**
-                                                                * default：处理当前分支的交互与状态同步。
                                                                 * 功能：处理参数消化、状态变更与调用链行为同步。
                                                                 * @returns 返回当前分支执行后的处理结果。
                                                                 */
       /**
-       * default：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
        * @returns 返回当前分支执行后的处理结果。
        */
@@ -50,7 +46,6 @@ export const FormItem = defineComponent({
     pattern: { type: String as PropType<'editable' | 'preview' | 'disabled'>, default: 'editable' },
   },
   /**
-   * setup：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
    * @param props 参数 props 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
@@ -115,7 +110,6 @@ export const FormItem = defineComponent({
           class: !isVertical ? 'cf-form-item--right' : undefined,
         }, {
           /**
-           * default：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
            * @returns 返回当前分支执行后的处理结果。
            */

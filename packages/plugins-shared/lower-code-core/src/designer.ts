@@ -74,6 +74,36 @@ export interface DesignerContainerNode extends DesignerNodeBase {
 
 export type DesignerNode = DesignerFieldNode | DesignerContainerNode
 
+export interface DesignerFormConfig {
+  labelPosition: 'top' | 'left' | 'right'
+  labelWidth?: number | string
+  pattern: 'default' | FieldPattern
+  validateTrigger: 'default' | ValidationTrigger
+  layoutType: 'default' | 'grid' | 'inline'
+  layoutColumns?: number
+  layoutGutter?: number
+  layoutGap?: number
+  actionsAlign: 'left' | 'center' | 'right'
+  showSubmit: boolean
+  showReset: boolean
+  submitText?: string
+  resetText?: string
+}
+
+export function createDefaultDesignerFormConfig(): DesignerFormConfig {
+  return {
+    labelPosition: 'top',
+    pattern: 'default',
+    validateTrigger: 'default',
+    layoutType: 'default',
+    actionsAlign: 'center',
+    showSubmit: false,
+    showReset: false,
+    submitText: '',
+    resetText: '',
+  }
+}
+
 export interface MaterialFieldItem {
   id: string
   kind: 'field'
@@ -934,6 +964,149 @@ export function nodesToSchema(nodes: DesignerNode[]): ISchema {
     decoratorProps: { labelPosition: 'top' },
     properties: buildProperties(nodes),
   }
+}
+
+export function extractDesignerFormConfig(schemaLike: unknown): DesignerFormConfig {
+  const config = createDefaultDesignerFormConfig()
+  if (!isRecord(schemaLike))
+    return config
+
+  const decoratorProps = isRecord(schemaLike.decoratorProps) ? schemaLike.decoratorProps : {}
+  const labelPosition = decoratorProps.labelPosition
+  if (labelPosition === 'top' || labelPosition === 'left' || labelPosition === 'right')
+    config.labelPosition = labelPosition
+
+  if (typeof decoratorProps.labelWidth === 'string' || typeof decoratorProps.labelWidth === 'number')
+    config.labelWidth = decoratorProps.labelWidth
+
+  const rawPattern = schemaLike.pattern ?? decoratorProps.pattern
+  if (rawPattern === 'editable' || rawPattern === 'preview' || rawPattern === 'disabled')
+    config.pattern = rawPattern
+
+  const rawTrigger = schemaLike.validateTrigger ?? decoratorProps.validateTrigger
+  if (rawTrigger === 'change' || rawTrigger === 'blur' || rawTrigger === 'submit')
+    config.validateTrigger = rawTrigger
+
+  const rawLayout = isRecord(schemaLike.layout) ? schemaLike.layout : {}
+  if (rawLayout.type === 'grid') {
+    config.layoutType = 'grid'
+    if (typeof rawLayout.columns === 'number')
+      config.layoutColumns = rawLayout.columns
+    if (typeof rawLayout.gutter === 'number')
+      config.layoutGutter = rawLayout.gutter
+  }
+  else if (rawLayout.type === 'inline' || decoratorProps.direction === 'inline') {
+    config.layoutType = 'inline'
+    if (typeof rawLayout.gap === 'number')
+      config.layoutGap = rawLayout.gap
+  }
+
+  const actions = isRecord(decoratorProps.actions) ? decoratorProps.actions : null
+  if (actions) {
+    config.showSubmit = actions.submit !== false
+    config.showReset = actions.reset !== false
+    if (typeof actions.submit === 'string')
+      config.submitText = actions.submit
+    if (typeof actions.reset === 'string')
+      config.resetText = actions.reset
+    if (actions.align === 'left' || actions.align === 'center' || actions.align === 'right')
+      config.actionsAlign = actions.align
+  }
+
+  return config
+}
+
+export function applyDesignerFormConfig(schema: ISchema, formConfig: DesignerFormConfig): ISchema {
+  const nextSchema: ISchema = { ...schema }
+  const decoratorProps = isRecord(schema.decoratorProps) ? { ...schema.decoratorProps } : {}
+
+  decoratorProps.labelPosition = formConfig.labelPosition
+  if (formConfig.labelWidth === undefined || formConfig.labelWidth === '') {
+    delete decoratorProps.labelWidth
+  }
+  else {
+    decoratorProps.labelWidth = formConfig.labelWidth
+  }
+
+  if (formConfig.layoutType === 'inline') {
+    decoratorProps.direction = 'inline'
+  }
+  else if (decoratorProps.direction === 'inline') {
+    delete decoratorProps.direction
+  }
+
+  const actions = isRecord(decoratorProps.actions) ? { ...decoratorProps.actions } : {}
+  if (formConfig.showSubmit) {
+    if (formConfig.submitText && formConfig.submitText.trim())
+      actions.submit = formConfig.submitText.trim()
+    else
+      delete actions.submit
+  }
+  else {
+    actions.submit = false
+  }
+
+  if (formConfig.showReset) {
+    if (formConfig.resetText && formConfig.resetText.trim())
+      actions.reset = formConfig.resetText.trim()
+    else
+      delete actions.reset
+  }
+  else {
+    actions.reset = false
+  }
+
+  if (formConfig.actionsAlign && formConfig.actionsAlign !== 'center') {
+    actions.align = formConfig.actionsAlign
+  }
+  else {
+    delete actions.align
+  }
+
+  const hasActionOverrides = formConfig.showSubmit || formConfig.showReset
+    || formConfig.actionsAlign !== 'center'
+  const hasExtraActions = Object.keys(actions).some(key => !['submit', 'reset', 'align'].includes(key))
+
+  if (hasActionOverrides || hasExtraActions) {
+    decoratorProps.actions = actions
+  }
+  else {
+    delete decoratorProps.actions
+  }
+
+  if (Object.keys(decoratorProps).length > 0)
+    nextSchema.decoratorProps = decoratorProps
+  else
+    delete nextSchema.decoratorProps
+
+  if (formConfig.layoutType === 'grid') {
+    nextSchema.layout = {
+      type: 'grid',
+      columns: formConfig.layoutColumns ?? 1,
+      gutter: formConfig.layoutGutter ?? 16,
+    }
+  }
+  else if (formConfig.layoutType === 'inline') {
+    nextSchema.layout = {
+      type: 'inline',
+      gap: formConfig.layoutGap ?? 16,
+    }
+  }
+  else {
+    delete nextSchema.layout
+  }
+
+  if (formConfig.pattern === 'default')
+    delete nextSchema.pattern
+  else
+    nextSchema.pattern = formConfig.pattern
+
+  if (formConfig.validateTrigger === 'default')
+    delete nextSchema.validateTrigger
+  else
+    nextSchema.validateTrigger = formConfig.validateTrigger
+
+  return nextSchema
 }
 
 /**

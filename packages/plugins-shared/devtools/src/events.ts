@@ -1,4 +1,4 @@
-import type { DevToolsActionEventType } from './types'
+﻿import type { DevToolsActionEventType } from './types'
 import { FormLifeCycle } from '@moluoxixi/core'
 
 /** 生命周期事件定义（表单级） */
@@ -45,8 +45,6 @@ export const DEVTOOLS_FORM_EVENT_DEFINITIONS: readonly DevToolsFormEventDefiniti
   { type: FormLifeCycle.ON_FORM_VALIDATE_SUCCESS, label: '验证通过' },
   { type: FormLifeCycle.ON_FORM_VALIDATE_FAILED, label: '验证失败' },
 ] as const
-
-/** 插件监听的字段生命周期事件 */
 export const DEVTOOLS_FIELD_EVENT_DEFINITIONS: readonly DevToolsFieldEventDefinition[] = [
   { type: FormLifeCycle.ON_FIELD_INIT, label: '字段创建' },
   { type: FormLifeCycle.ON_FIELD_MOUNT, label: '字段挂载' },
@@ -54,15 +52,6 @@ export const DEVTOOLS_FIELD_EVENT_DEFINITIONS: readonly DevToolsFieldEventDefini
   { type: FormLifeCycle.ON_FIELD_VALUE_CHANGE, label: '值变化' },
   { type: FormLifeCycle.ON_FIELD_INPUT_VALUE_CHANGE, label: '用户输入' },
 ] as const
-
-/**
- * 构建字段事件摘要文本
- * @param event 参数 `event`用于传递事件上下文，使逻辑能基于交互状态进行处理。
- * @param field 参数 `field`用于提供当前函数执行所需的输入信息。
- * @param field.path 字段路径，用于输出事件定位信息。
- * @param field.value 字段当前值，用于输出变更摘要。
- * @returns 返回字符串结果，通常用于文本展示或下游拼接。
- */
 export function buildDevToolsFieldEventSummary(
   event: DevToolsFieldEventDefinition['type'],
   field: { path: string, value: unknown },
@@ -81,3 +70,4 @@ export function buildDevToolsFieldEventSummary(
       return `值变化: ${field.path} = ${JSON.stringify(field.value)?.slice(0, 50)}`
   }
 }
+

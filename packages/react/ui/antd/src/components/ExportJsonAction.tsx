@@ -1,4 +1,4 @@
-import type { FormExportDownloadJSONOptions, FormExportPreviewOptions } from '@moluoxixi/plugin-export'
+﻿import type { FormExportDownloadJSONOptions, FormExportPreviewOptions } from '@moluoxixi/plugin-export'
 import type { CSSProperties, ReactElement } from 'react'
 import { useForm } from '@moluoxixi/react'
 import { Button, message } from 'antd'
@@ -80,12 +80,7 @@ export function ExportJsonAction({
    * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
    * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
    */
-  const /**
-         * handleDownload：执行当前功能逻辑。
-         *
-         * @returns 返回当前功能的处理结果。
-         */
-    handleDownload = async (): Promise<void> => {
+  const handleDownload = async (): Promise<void> => {
       try {
         const downloadJSON = form.downloadJSON
         if (!downloadJSON) {
@@ -122,3 +117,4 @@ export function ExportJsonAction({
     </div>
   )
 }
+

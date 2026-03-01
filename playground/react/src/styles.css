@@ -38,3 +38,12 @@ body {
   flex: 1 1 auto;
   min-height: 0;
 }
+
+.cf-playground-fullscreen-form > div > div,
+.cf-playground-fullscreen-form > div > div > div {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}

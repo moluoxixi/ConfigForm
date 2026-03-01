@@ -1,4 +1,4 @@
-import type { ComponentType, FieldPattern, FormConfig, FormInstance, FormPlugin, ISchema } from '@moluoxixi/core'
+import type { ComponentType, FieldPattern, FormConfig, FormInstance, FormPlugin, ISchema, ValidationTrigger } from '@moluoxixi/core'
 import type { ComponentScope, RegistryState } from '@moluoxixi/vue'
 import type { Component, PropType } from 'vue'
 import { FormLifeCycle } from '@moluoxixi/core'
@@ -187,6 +187,9 @@ export const ConfigForm = defineComponent({
     const initialPattern = computed<FieldPattern>(() =>
       (props.pattern ?? props.schema?.pattern ?? rawDecoratorProps.value.pattern ?? 'editable') as FieldPattern,
     )
+    const initialValidateTrigger = computed<ValidationTrigger | ValidationTrigger[] | undefined>(() =>
+      (props.schema?.validateTrigger ?? rawDecoratorProps.value.validateTrigger ?? props.formConfig?.validateTrigger) as ValidationTrigger | ValidationTrigger[] | undefined,
+    )
 
     const resolvedEffects = props.effects ?? props.formConfig?.effects
     const resolvedPlugins = props.plugins ?? props.formConfig?.plugins
@@ -196,6 +199,7 @@ export const ConfigForm = defineComponent({
       labelWidth: rawDecoratorProps.value.labelWidth as string | number,
       pattern: initialPattern.value,
       ...props.formConfig,
+      validateTrigger: initialValidateTrigger.value ?? 'change',
       initialValues: props.initialValues ?? props.formConfig?.initialValues,
       effects: resolvedEffects,
       plugins: resolvedPlugins,
@@ -247,9 +251,12 @@ export const ConfigForm = defineComponent({
     const effectivePattern = computed<FieldPattern>(() =>
       (props.pattern ?? effectiveSchema.value?.pattern ?? rootDecoratorProps.value.pattern ?? 'editable') as FieldPattern,
     )
+    const effectiveValidateTrigger = computed<ValidationTrigger | ValidationTrigger[] | undefined>(() =>
+      (effectiveSchema.value?.validateTrigger ?? rootDecoratorProps.value.validateTrigger ?? props.formConfig?.validateTrigger) as ValidationTrigger | ValidationTrigger[] | undefined,
+    )
 
     /** schema 变化时同步更新表单级配置 */
-    watch([rootDecoratorProps, effectivePattern], ([newProps, pattern]) => {
+    watch([rootDecoratorProps, effectivePattern, effectiveValidateTrigger], ([newProps, pattern, trigger]) => {
       form.batch(() => {
         if (newProps.labelPosition !== undefined) {
           form.labelPosition = newProps.labelPosition as 'top' | 'left' | 'right'
@@ -258,6 +265,7 @@ export const ConfigForm = defineComponent({
           form.labelWidth = newProps.labelWidth as string | number
         }
         form.pattern = pattern
+        form.validateTrigger = trigger ?? 'change'
       })
     }, { immediate: true })
 

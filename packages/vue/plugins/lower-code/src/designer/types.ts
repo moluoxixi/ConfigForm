@@ -8,6 +8,8 @@ import type { VNodeChild } from 'vue'
 export type {
   LowCodeDesignerComponentDefinition,
   LowCodeDesignerComponentDefinitions,
+  LowCodeDesignerDecoratorDefinition,
+  LowCodeDesignerDecoratorDefinitions,
   LowCodeDesignerEditableProp,
   LowCodeDesignerEditablePropEditor,
   LowCodeDesignerEditablePropOption,

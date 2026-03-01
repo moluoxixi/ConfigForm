@@ -1,4 +1,4 @@
-import type { FormPlugin } from '@moluoxixi/core'
+﻿import type { FormPlugin } from '@moluoxixi/core'
 import type { I18nPluginAPI } from '@moluoxixi/plugin-i18n-core'
 import type { I18n } from 'vue-i18n'
 import type { VueComposerLike, VueI18nLike, VueI18nPluginOptions } from './types'
@@ -85,7 +85,6 @@ export function vueI18nPlugin(options: VueI18nPluginOptions): FormPlugin<I18nPlu
     ...rest,
     locale: locale ?? readLocale(composer),
     /**
-     * t：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @param key 参数 key 为当前功能所需的输入信息。
      * @param params 参数 params 为当前功能所需的输入信息。
@@ -93,7 +92,6 @@ export function vueI18nPlugin(options: VueI18nPluginOptions): FormPlugin<I18nPlu
      */
     t: (key, params) => String(composer.t(key, params)),
     /**
-     * changeLocale：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @param nextLocale 参数 nextLocale 为当前功能所需的输入信息。
      */
@@ -101,7 +99,6 @@ export function vueI18nPlugin(options: VueI18nPluginOptions): FormPlugin<I18nPlu
       writeLocale(composer, nextLocale)
     },
     /**
-     * onLocaleChange：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @param listener 参数 listener 为当前功能所需的输入信息。
      * @returns 返回当前分支执行后的处理结果。

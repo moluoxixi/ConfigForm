@@ -19,6 +19,7 @@ export function DesignerMaterialToolbarRenderer({
   onKeywordChange,
   totalCount,
   filteredCount,
+  readonly = false,
 }: DesignerMaterialToolbarRendererProps): React.ReactElement {
   const t = LOW_CODE_DESIGNER_TEXT.material
   return (
@@ -31,6 +32,7 @@ export function DesignerMaterialToolbarRenderer({
         <input
           className="cf-lc-control-input cf-lc-material-search"
           value={keyword}
+          disabled={readonly}
           onChange={event => onKeywordChange(event.target.value)}
           placeholder={t.searchPlaceholder}
         />
@@ -39,6 +41,7 @@ export function DesignerMaterialToolbarRenderer({
               <button
                 type="button"
                 className="cf-lc-btn"
+                disabled={readonly}
                 onClick={() => onKeywordChange('')}
               >
                 {t.clear}

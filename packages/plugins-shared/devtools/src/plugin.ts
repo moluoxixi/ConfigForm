@@ -1,4 +1,4 @@
-import type { FieldInstance, FormEvent, FormInstance, FormPlugin, VoidFieldInstance } from '@moluoxixi/core'
+﻿import type { FieldInstance, FormEvent, FormInstance, FormPlugin, VoidFieldInstance } from '@moluoxixi/core'
 import type {
   DevToolsEventType,
   DevToolsGlobalHook,
@@ -62,7 +62,6 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
     name: 'devtools',
 
     /**
-     * install：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @param form 参数 form 为业务对象，用于读写状态与属性。
      * @returns 返回当前分支执行后的处理结果。
@@ -260,7 +259,6 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
       /* ======================== 字段详情 ======================== */
 
       /**
-       * getFieldDetailImpl：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
        * @param path 参数 path 为当前功能所需的输入信息。
        * @returns 返回当前分支执行后的处理结果。
@@ -329,7 +327,6 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
       const api: DevToolsPluginAPI = {
         /* ---- 只读查询 ---- */
         /**
-         * getFieldTree：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          * @returns 返回当前分支执行后的处理结果。
          */
@@ -342,7 +339,6 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
         },
         getFieldDetail: getFieldDetailImpl,
         /**
-         * getFormOverview：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          * @returns 返回当前分支执行后的处理结果。
          */
@@ -368,13 +364,11 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           return formOverviewCache
         },
         /**
-         * getEventLog：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          * @returns 返回当前分支执行后的处理结果。
          */
         getEventLog: () => [...eventLog],
         /**
-         * getValueDiff：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          * @returns 返回当前分支执行后的处理结果。
          */
@@ -395,7 +389,6 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           return valueDiffCache
         },
         /**
-         * subscribe：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          * @param listener 参数 listener 为当前功能所需的输入信息。
          * @returns 返回当前分支执行后的处理结果。
@@ -407,7 +400,6 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
 
         /* ---- 调试操作 ---- */
         /**
-         * clearEventLog：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          */
         clearEventLog(): void {
@@ -416,7 +408,6 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           notify()
         },
         /**
-         * highlightField：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          * @param path 参数 path 为当前功能所需的输入信息。
          */
@@ -430,7 +421,6 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           addEvent('devtools:locate', `定位字段: ${path}`, path)
         },
         /**
-         * setFieldValue：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          * @param path 参数 path 为当前功能所需的输入信息。
          * @param value 参数 value 为输入值，用于驱动后续逻辑。
@@ -443,7 +433,6 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           }
         },
         /**
-         * setFieldState：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          * @param path 参数 path 为当前功能所需的输入信息。
          * @param state 参数 state 为当前功能所需的输入信息。
@@ -463,7 +452,6 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           addEvent('devtools:setState', `修改状态: ${path} → ${JSON.stringify(state)}`, path)
         },
         /**
-         * validateAll：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          * @returns 返回当前分支执行后的处理结果。
          */
@@ -474,7 +462,6 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           return errors
         },
         /**
-         * resetForm：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          */
         resetForm(): void {
@@ -482,7 +469,6 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
           addEvent('devtools:reset', '手动重置表单')
         },
         /**
-         * submitForm：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          * @returns 返回当前分支执行后的处理结果。
          */
@@ -508,7 +494,6 @@ export function devToolsPlugin(config: DevToolsPluginConfig = {}): FormPlugin<De
       return {
         api,
         /**
-         * dispose：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          */
         dispose: () => {
@@ -660,7 +645,6 @@ function ensureGlobalHook(): DevToolsGlobalHook {
     const hook: DevToolsGlobalHook = {
       forms: new Map(),
       /**
-       * register：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
        * @param id 参数 id 为当前功能所需的输入信息。
        * @param api 参数 api 为当前功能所需的输入信息。
@@ -670,7 +654,6 @@ function ensureGlobalHook(): DevToolsGlobalHook {
         for (const fn of listeners) fn(hook.forms)
       },
       /**
-       * unregister：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
        * @param id 参数 id 为当前功能所需的输入信息。
        */
@@ -679,7 +662,6 @@ function ensureGlobalHook(): DevToolsGlobalHook {
         for (const fn of listeners) fn(hook.forms)
       },
       /**
-       * onChange：处理当前分支的交互与状态同步。
        * 功能：处理参数消化、状态变更与调用链行为同步。
        * @param listener 参数 listener 为当前功能所需的输入信息。
        * @returns 返回当前分支执行后的处理结果。

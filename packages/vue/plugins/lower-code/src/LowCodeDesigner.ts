@@ -2,16 +2,19 @@ import type { ISchema } from '@moluoxixi/core'
 import type {
   DesignerContainerNode,
   DesignerFieldNode,
+  DesignerFormConfig,
   DesignerNode,
   MaterialItem,
 } from '@moluoxixi/plugin-lower-code-core'
 import type { Component, PropType, VNodeChild } from 'vue'
 import type {
   LowCodeDesignerComponentDefinition,
+  LowCodeDesignerDecoratorDefinition,
   LowCodeDesignerRenderers,
 } from './designer/types'
 import {
   addSectionToContainer,
+  applyDesignerFormConfig,
   collectDropTargetKeys,
   createDesignerCanvasPutHandler,
   createDesignerCanvasSortableOptions,
@@ -19,6 +22,7 @@ import {
   createDesignerPointerTracker,
   defaultNodeFromMaterial,
   duplicateNodeById,
+  extractDesignerFormConfig,
   findNodeById,
   findSectionById,
   hasMountedDesignerSortables,
@@ -42,16 +46,20 @@ import {
   schemaToNodes,
   updateNodeById,
 } from '@moluoxixi/plugin-lower-code-core'
-import { ComponentRegistrySymbol, FormProvider, SchemaField, useCreateForm } from '@moluoxixi/vue'
+import { ComponentRegistrySymbol, useCreateForm } from '@moluoxixi/vue'
+import { ConfigForm } from '@moluoxixi/ui-basic-vue'
 import Sortable from 'sortablejs'
 import { computed, defineComponent, h, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { DesignerCanvasPane } from './designer/center/DesignerCanvasPane'
 import { DesignerMaterialPane } from './designer/left/DesignerMaterialPane'
 import { mergeDesignerComponentDefinitions } from './designer/right/component-definitions'
+import { mergeDesignerDecoratorDefinitions } from './designer/right/decorator-definitions'
 import { DesignerPropertiesPane } from './designer/right/DesignerPropertiesPane'
 
 export type {
   LowCodeDesignerComponentDefinition,
+  LowCodeDesignerDecoratorDefinition,
+  LowCodeDesignerDecoratorDefinitions,
   LowCodeDesignerEditableProp,
   LowCodeDesignerEditablePropEditor,
   LowCodeDesignerEditablePropOption,
@@ -68,6 +76,7 @@ export interface LowCodeDesignerProps {
   minCanvasHeight?: number
   renderers?: LowCodeDesignerRenderers
   componentDefinitions?: Record<string, LowCodeDesignerComponentDefinition>
+  decoratorDefinitions?: Record<string, LowCodeDesignerDecoratorDefinition>
 }
 
 const DESIGNER_CSS = `
@@ -148,6 +157,92 @@ const DESIGNER_CSS = `
   overflow: auto;
   padding-right: 2px;
   scrollbar-gutter: stable;
+}
+
+.cf-lc-properties-pane-form .ant-tabs,
+.cf-lc-properties-pane-form .el-tabs {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.cf-lc-properties-pane-form .ant-tabs-content-holder,
+.cf-lc-properties-pane-form .ant-tabs-content,
+.cf-lc-properties-pane-form .ant-tabs-tabpane,
+.cf-lc-properties-pane-form .el-tabs__content,
+.cf-lc-properties-pane-form .el-tab-pane {
+  min-height: 0;
+  height: 100%;
+}
+
+.cf-lc-properties-pane-form .ant-tabs-tabpane:not(.ant-tabs-tabpane-hidden),
+.cf-lc-properties-pane-form .el-tab-pane.is-active,
+.cf-lc-properties-pane-form .el-tab-pane[aria-hidden="false"] {
+  display: flex;
+  flex-direction: column;
+}
+
+.cf-lc-side-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.cf-lc-side-tab {
+  border: 1px solid #d5e2f3;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #f8fbff;
+  color: #64748b;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+
+.cf-lc-side-tab.is-active {
+  border-color: #93c5fd;
+  color: #1d4ed8;
+  background: #eff6ff;
+  box-shadow: 0 6px 12px rgba(37, 99, 235, 0.12);
+}
+
+.cf-lc-segment {
+  margin-top: 6px;
+  display: inline-flex;
+  border: 1px solid #d3deeb;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.cf-lc-segment-button {
+  border: 0;
+  background: transparent;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: #64748b;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+
+.cf-lc-segment-button.is-active {
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+.cf-lc-control-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.cf-lc-control-label--compact {
+  margin-bottom: 6px;
 }
 
 .cf-lc-material-pane .ant-tabs,
@@ -853,11 +948,17 @@ export const LowCodeDesigner = defineComponent({
     const nodes = ref<DesignerNode[]>(schemaToNodes(props.modelValue))
     const selectedId = ref<string | null>(nodes.value[0]?.id ?? null)
     const enumDraft = ref('')
+    const formConfig = ref<DesignerFormConfig>(extractDesignerFormConfig(props.modelValue))
     const resolvedComponentDefinitions = computed(() =>
       mergeDesignerComponentDefinitions(props.componentDefinitions))
+    const resolvedDecoratorDefinitions = computed(() =>
+      mergeDesignerDecoratorDefinitions(props.decoratorDefinitions))
     const componentPropsByComponent = ref<Record<string, Record<string, unknown>>>(
       createComponentPropsByComponent(resolvedComponentDefinitions.value),
     )
+    const updateFormConfig = (updater: (prev: DesignerFormConfig) => DesignerFormConfig): void => {
+      formConfig.value = updater(formConfig.value)
+    }
 
     const designerRoot = ref<HTMLElement | null>(null)
     const materialHost = ref<HTMLElement | null>(null)
@@ -872,6 +973,10 @@ export const LowCodeDesigner = defineComponent({
     const injectedRegistry = inject(ComponentRegistrySymbol, null)
     const previewComponents = computed<Record<string, Component>>(() =>
       mapToRecord(injectedRegistry?.value?.components as Map<string, Component> | undefined))
+    const decoratorOptions = computed(() =>
+      Array.from(injectedRegistry?.value?.decorators.keys() ?? []))
+    const defaultDecoratorsByComponent = computed(() =>
+      mapToRecord(injectedRegistry?.value?.defaultDecorators as Map<string, string> | undefined))
     /** 记录物料区真实 DOM 根节点，供 Sortable 挂载扫描。 */
     const
       setMaterialHost = (element: HTMLElement | null): void => {
@@ -898,7 +1003,7 @@ export const LowCodeDesigner = defineComponent({
     const materialsById = computed(() =>
       new Map(designerMaterials.value.allMaterials.map(item => [item.id, item] as const)))
 
-    const builtSchema = computed(() => nodesToSchema(nodes.value))
+    const builtSchema = computed(() => applyDesignerFormConfig(nodesToSchema(nodes.value), formConfig.value))
     const builtSignature = computed(() => schemaSignature(builtSchema.value))
     const valueSignature = computed(() => schemaSignature(props.modelValue))
     const lastSeenValueSignature = ref(valueSignature.value)
@@ -1007,6 +1112,7 @@ export const LowCodeDesigner = defineComponent({
         return
       const nextNodes = schemaToNodes(props.modelValue)
       nodes.value = nextNodes
+      formConfig.value = extractDesignerFormConfig(props.modelValue)
       selectedId.value = nextNodes[0]?.id ?? null
     })
 
@@ -1595,10 +1701,31 @@ export const LowCodeDesigner = defineComponent({
       if (!registeredComponent)
         return renderFallbackFieldPreview(node)
 
+      const decoratorName = phase !== 'material'
+        ? (node.decorator || defaultDecoratorsByComponent.value?.[node.component])
+        : undefined
+      const decoratorComponent = decoratorName
+        ? injectedRegistry?.value?.decorators.get(decoratorName)
+        : undefined
+      const decoratorDefaults = decoratorName
+        ? (resolvedDecoratorDefinitions.value?.[decoratorName]?.defaultProps ?? {})
+        : {}
+      const mergedDecoratorProps = {
+        ...decoratorDefaults,
+        ...(node.decoratorProps ?? {}),
+        label: node.title,
+        required: node.required,
+        description: node.description,
+      }
+
       return h('div', {
         class: `cf-lc-real-preview-wrap cf-lc-real-preview-wrap--${phase}`,
       }, [
-        h(registeredComponent, buildPreviewComponentProps(node)),
+        decoratorComponent
+          ? h(decoratorComponent, mergedDecoratorProps, () =>
+              h(registeredComponent, buildPreviewComponentProps(node)),
+            )
+          : h(registeredComponent, buildPreviewComponentProps(node)),
       ])
     }
 
@@ -1780,8 +1907,13 @@ export const LowCodeDesigner = defineComponent({
                     updateContainer,
                     fieldComponentOptions: designerMaterials.value.fieldComponentOptions,
                     componentDefinitions: resolvedComponentDefinitions.value,
+                    decoratorDefinitions: resolvedDecoratorDefinitions.value,
                     componentPropsByComponent: componentPropsByComponent.value,
                     onUpdateComponentPropByComponentName: updateComponentPropByComponentName,
+                    decoratorOptions: decoratorOptions.value,
+                    defaultDecoratorsByComponent: defaultDecoratorsByComponent.value,
+                    formConfig: formConfig.value,
+                    onUpdateFormConfig: updateFormConfig,
                   },
                 },
               },
@@ -1800,9 +1932,11 @@ export const LowCodeDesigner = defineComponent({
       DesignerPropertiesPane,
     }
 
-    return () => h(FormProvider, {
+    return () => h(ConfigForm, {
       form: designerForm,
+      schema: designerSchema.value,
       components: designerComponents,
-    }, () => h(SchemaField, { schema: designerSchema.value }))
+      formTag: false,
+    })
   },
 })

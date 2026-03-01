@@ -1,4 +1,4 @@
-import type { FormInstance, FormPlugin } from '@moluoxixi/core'
+﻿import type { FormInstance, FormPlugin } from '@moluoxixi/core'
 import type { I18nPluginAPI, I18nPluginConfig } from './types'
 import { translateSchema } from './schema-i18n'
 
@@ -52,10 +52,7 @@ export function i18nPlugin(config: I18nPluginConfig): FormPlugin<I18nPluginAPI> 
        * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
        * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
        */
-      const /**
-             * refresh：执行当前功能逻辑。
-             */
-        refresh = (): void => {
+      const refresh = (): void => {
           version += 1
           for (const listener of listeners) {
             listener(version)
@@ -69,14 +66,7 @@ export function i18nPlugin(config: I18nPluginConfig): FormPlugin<I18nPluginAPI> 
        * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
        * @param next 参数 `next`用于提供当前函数执行所需的输入信息。
        */
-      const /**
-             * setLocale：执行当前功能逻辑。
-             *
-             * @param next 参数 next 的输入说明。
-             *
-             * @returns 返回当前功能的处理结果。
-             */
-        setLocale = async (next: string): Promise<void> => {
+      const setLocale = async (next: string): Promise<void> => {
           if (next === currentLocale)
             return
           currentLocale = next
@@ -101,14 +91,7 @@ export function i18nPlugin(config: I18nPluginConfig): FormPlugin<I18nPluginAPI> 
        * @param listener 参数 `listener`用于提供集合数据，支撑批量遍历与扩展处理。
        * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
        */
-      const /**
-             * subscribe：执行当前功能逻辑。
-             *
-             * @param listener 参数 listener 的输入说明。
-             *
-             * @returns 返回当前功能的处理结果。
-             */
-        subscribe = (listener: (nextVersion: number) => void): (() => void) => {
+      const subscribe = (listener: (nextVersion: number) => void): (() => void) => {
           listeners.add(listener)
           return () => {
             listeners.delete(listener)
@@ -118,11 +101,9 @@ export function i18nPlugin(config: I18nPluginConfig): FormPlugin<I18nPluginAPI> 
       const api: I18nPluginAPI = {
         t,
         /**
-         * version?????????????????
-         * ???`packages/plugin-i18n-core/src/plugin.ts:120`?
-         * ?????????????????????????????????
-         * ??????????????????????????
-         * @returns ?????????????
+         * version：执行当前功能逻辑。
+         *
+         * @returns 返回当前功能的处理结果。
          */
         get version() {
           return version
@@ -164,3 +145,4 @@ export function i18nPlugin(config: I18nPluginConfig): FormPlugin<I18nPluginAPI> 
     },
   }
 }
+

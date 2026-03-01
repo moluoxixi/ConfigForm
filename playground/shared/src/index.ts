@@ -1,4 +1,4 @@
-export { resolveSceneSchema } from './scene-schema'
+﻿export { resolveSceneSchema } from './scene-schema'
 export type { SceneConfig } from './types'
 
 /** 场景分组标签 */
@@ -25,45 +25,37 @@ export const GROUP_LABELS: Record<string, string> = {
 export const sceneRegistry: Record<string, { group: string, loader: () => Promise<{ default: import('./types').SceneConfig }> }> = {
   /* 01-basic — 基础场景（4 个） */
   BasicForm: { group: '01-basic', /**
-                                   * loader：处理当前分支的交互与状态同步。
                                    * 功能：处理参数消化、状态变更与调用链行为同步。
                                    * @returns 返回当前分支执行后的处理结果。
                                    */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./01-basic/BasicForm') },
   LayoutForm: { group: '01-basic', /**
-                                    * loader：处理当前分支的交互与状态同步。
                                     * 功能：处理参数消化、状态变更与调用链行为同步。
                                     * @returns 返回当前分支执行后的处理结果。
                                     */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./01-basic/LayoutForm') },
   BasicValidationForm: { group: '01-basic', /**
-                                             * loader：处理当前分支的交互与状态同步。
                                              * 功能：处理参数消化、状态变更与调用链行为同步。
                                              * @returns 返回当前分支执行后的处理结果。
                                              */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./01-basic/BasicValidationForm') },
   DefaultValueForm: { group: '01-basic', /**
-                                          * loader：处理当前分支的交互与状态同步。
                                           * 功能：处理参数消化、状态变更与调用链行为同步。
                                           * @returns 返回当前分支执行后的处理结果。
                                           */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
@@ -71,78 +63,64 @@ export const sceneRegistry: Record<string, { group: string, loader: () => Promis
 
   /* 02-linkage — 联动场景（7 个） */
   VisibilityLinkageForm: { group: '02-linkage', /**
-                                                 * loader：处理当前分支的交互与状态同步。
                                                  * 功能：处理参数消化、状态变更与调用链行为同步。
                                                  * @returns 返回当前分支执行后的处理结果。
                                                  */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./02-linkage/VisibilityLinkageForm') },
   ValueLinkageForm: { group: '02-linkage', /**
-                                            * loader：处理当前分支的交互与状态同步。
                                             * 功能：处理参数消化、状态变更与调用链行为同步。
                                             * @returns 返回当前分支执行后的处理结果。
                                             */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./02-linkage/ValueLinkageForm') },
   PropertyLinkageForm: { group: '02-linkage', /**
-                                               * loader：处理当前分支的交互与状态同步。
                                                * 功能：处理参数消化、状态变更与调用链行为同步。
                                                * @returns 返回当前分支执行后的处理结果。
                                                */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./02-linkage/PropertyLinkageForm') },
   CascadeSelectForm: { group: '02-linkage', /**
-                                             * loader：处理当前分支的交互与状态同步。
                                              * 功能：处理参数消化、状态变更与调用链行为同步。
                                              * @returns 返回当前分支执行后的处理结果。
                                              */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./02-linkage/CascadeSelectForm') },
   ComputedFieldForm: { group: '02-linkage', /**
-                                             * loader：处理当前分支的交互与状态同步。
                                              * 功能：处理参数消化、状态变更与调用链行为同步。
                                              * @returns 返回当前分支执行后的处理结果。
                                              */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./02-linkage/ComputedFieldForm') },
   ConditionalRequiredForm: { group: '02-linkage', /**
-                                                   * loader：处理当前分支的交互与状态同步。
                                                    * 功能：处理参数消化、状态变更与调用链行为同步。
                                                    * @returns 返回当前分支执行后的处理结果。
                                                    */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./02-linkage/ConditionalRequiredForm') },
   ComponentSwitchForm: { group: '02-linkage', /**
-                                               * loader：处理当前分支的交互与状态同步。
                                                * 功能：处理参数消化、状态变更与调用链行为同步。
                                                * @returns 返回当前分支执行后的处理结果。
                                                */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
@@ -150,45 +128,37 @@ export const sceneRegistry: Record<string, { group: string, loader: () => Promis
 
   /* 03-validation — 验证场景（4 个） */
   AsyncValidationForm: { group: '03-validation', /**
-                                                  * loader：处理当前分支的交互与状态同步。
                                                   * 功能：处理参数消化、状态变更与调用链行为同步。
                                                   * @returns 返回当前分支执行后的处理结果。
                                                   */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./03-validation/AsyncValidationForm') },
   CrossFieldValidationForm: { group: '03-validation', /**
-                                                       * loader：处理当前分支的交互与状态同步。
                                                        * 功能：处理参数消化、状态变更与调用链行为同步。
                                                        * @returns 返回当前分支执行后的处理结果。
                                                        */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./03-validation/CrossFieldValidationForm') },
   CustomValidationForm: { group: '03-validation', /**
-                                                   * loader：处理当前分支的交互与状态同步。
                                                    * 功能：处理参数消化、状态变更与调用链行为同步。
                                                    * @returns 返回当前分支执行后的处理结果。
                                                    */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./03-validation/CustomValidationForm') },
   SectionValidationForm: { group: '03-validation', /**
-                                                    * loader：处理当前分支的交互与状态同步。
                                                     * 功能：处理参数消化、状态变更与调用链行为同步。
                                                     * @returns 返回当前分支执行后的处理结果。
                                                     */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
@@ -196,56 +166,46 @@ export const sceneRegistry: Record<string, { group: string, loader: () => Promis
 
   /* 04-complex-data — 复杂数据（5 个） */
   ArrayFieldForm: { group: '04-complex-data', /**
-                                               * loader：处理当前分支的交互与状态同步。
                                                * 功能：处理参数消化、状态变更与调用链行为同步。
                                                * @returns 返回当前分支执行后的处理结果。
                                                */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./04-complex-data/ArrayFieldForm') },
   EditableTableForm: { group: '04-complex-data', /**
-                                                  * loader：处理当前分支的交互与状态同步。
                                                   * 功能：处理参数消化、状态变更与调用链行为同步。
                                                   * @returns 返回当前分支执行后的处理结果。
                                                   */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./04-complex-data/EditableTableForm') },
   NestedObjectForm: { group: '04-complex-data', /**
-                                                 * loader：处理当前分支的交互与状态同步。
                                                  * 功能：处理参数消化、状态变更与调用链行为同步。
                                                  * @returns 返回当前分支执行后的处理结果。
                                                  */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./04-complex-data/NestedObjectForm') },
   ObjectArrayNestedForm: { group: '04-complex-data', /**
-                                                      * loader：处理当前分支的交互与状态同步。
                                                       * 功能：处理参数消化、状态变更与调用链行为同步。
                                                       * @returns 返回当前分支执行后的处理结果。
                                                       */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./04-complex-data/ObjectArrayNestedForm') },
   ObjectFieldDynamicForm: { group: '04-complex-data', /**
-                                                       * loader：处理当前分支的交互与状态同步。
                                                        * 功能：处理参数消化、状态变更与调用链行为同步。
                                                        * @returns 返回当前分支执行后的处理结果。
                                                        */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
@@ -253,45 +213,37 @@ export const sceneRegistry: Record<string, { group: string, loader: () => Promis
 
   /* 05-datasource — 数据源（4 个） */
   AsyncOptionsForm: { group: '05-datasource', /**
-                                               * loader：处理当前分支的交互与状态同步。
                                                * 功能：处理参数消化、状态变更与调用链行为同步。
                                                * @returns 返回当前分支执行后的处理结果。
                                                */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./05-datasource/AsyncOptionsForm') },
   DependentDataSourceForm: { group: '05-datasource', /**
-                                                      * loader：处理当前分支的交互与状态同步。
                                                       * 功能：处理参数消化、状态变更与调用链行为同步。
                                                       * @returns 返回当前分支执行后的处理结果。
                                                       */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./05-datasource/DependentDataSourceForm') },
   PaginatedSearchForm: { group: '05-datasource', /**
-                                                  * loader：处理当前分支的交互与状态同步。
                                                   * 功能：处理参数消化、状态变更与调用链行为同步。
                                                   * @returns 返回当前分支执行后的处理结果。
                                                   */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./05-datasource/PaginatedSearchForm') },
   RemoteDataSourceForm: { group: '05-datasource', /**
-                                                   * loader：处理当前分支的交互与状态同步。
                                                    * 功能：处理参数消化、状态变更与调用链行为同步。
                                                    * @returns 返回当前分支执行后的处理结果。
                                                    */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
@@ -299,45 +251,37 @@ export const sceneRegistry: Record<string, { group: string, loader: () => Promis
 
   /* 06-layout — 布局分组（4 个） */
   CardGroupForm: { group: '06-layout', /**
-                                        * loader：处理当前分支的交互与状态同步。
                                         * 功能：处理参数消化、状态变更与调用链行为同步。
                                         * @returns 返回当前分支执行后的处理结果。
                                         */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./06-layout/CardGroupForm') },
   CollapseGroupForm: { group: '06-layout', /**
-                                            * loader：处理当前分支的交互与状态同步。
                                             * 功能：处理参数消化、状态变更与调用链行为同步。
                                             * @returns 返回当前分支执行后的处理结果。
                                             */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./06-layout/CollapseGroupForm') },
   StepForm: { group: '06-layout', /**
-                                   * loader：处理当前分支的交互与状态同步。
                                    * 功能：处理参数消化、状态变更与调用链行为同步。
                                    * @returns 返回当前分支执行后的处理结果。
                                    */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./06-layout/StepForm') },
   TabGroupForm: { group: '06-layout', /**
-                                       * loader：处理当前分支的交互与状态同步。
                                        * 功能：处理参数消化、状态变更与调用链行为同步。
                                        * @returns 返回当前分支执行后的处理结果。
                                        */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
@@ -345,34 +289,28 @@ export const sceneRegistry: Record<string, { group: string, loader: () => Promis
 
   /* 07-dynamic — 动态表单（3 个） */
   DynamicFieldForm: { group: '07-dynamic', /**
-                                            * loader：处理当前分支的交互与状态同步。
                                             * 功能：处理参数消化、状态变更与调用链行为同步。
                                             * @returns 返回当前分支执行后的处理结果。
                                             */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./07-dynamic/DynamicFieldForm') },
   DynamicSchemaForm: { group: '07-dynamic', /**
-                                             * loader：处理当前分支的交互与状态同步。
                                              * 功能：处理参数消化、状态变更与调用链行为同步。
                                              * @returns 返回当前分支执行后的处理结果。
                                              */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./07-dynamic/DynamicSchemaForm') },
   TemplateReuseForm: { group: '07-dynamic', /**
-                                             * loader：处理当前分支的交互与状态同步。
                                              * 功能：处理参数消化、状态变更与调用链行为同步。
                                              * @returns 返回当前分支执行后的处理结果。
                                              */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
@@ -387,45 +325,37 @@ export const sceneRegistry: Record<string, { group: string, loader: () => Promis
    * - 无 defaultDecorator（CodeEditor / SignaturePad 裸渲染）
    */
   ColorPickerForm: { group: '08-components', /**
-                                              * loader：处理当前分支的交互与状态同步。
                                               * 功能：处理参数消化、状态变更与调用链行为同步。
                                               * @returns 返回当前分支执行后的处理结果。
                                               */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./08-components/ColorPickerForm') },
   CronEditorForm: { group: '08-components', /**
-                                             * loader：处理当前分支的交互与状态同步。
                                              * 功能：处理参数消化、状态变更与调用链行为同步。
                                              * @returns 返回当前分支执行后的处理结果。
                                              */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./08-components/CronEditorForm') },
   RawComponentForm: { group: '08-components', /**
-                                               * loader：处理当前分支的交互与状态同步。
                                                * 功能：处理参数消化、状态变更与调用链行为同步。
                                                * @returns 返回当前分支执行后的处理结果。
                                                */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./08-components/RawComponentForm') },
   ReadPrettyComponentForm: { group: '08-components', /**
-                                                      * loader：处理当前分支的交互与状态同步。
                                                       * 功能：处理参数消化、状态变更与调用链行为同步。
                                                       * @returns 返回当前分支执行后的处理结果。
                                                       */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
@@ -433,122 +363,100 @@ export const sceneRegistry: Record<string, { group: string, loader: () => Promis
 
   /* 09-advanced — 进阶能力（11 个） */
   SchemaExpressionForm: { group: '09-advanced', /**
-                                                 * loader：处理当前分支的交互与状态同步。
                                                  * 功能：处理参数消化、状态变更与调用链行为同步。
                                                  * @returns 返回当前分支执行后的处理结果。
                                                  */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./11-advanced/SchemaExpressionForm') },
   ExpressionEngineForm: { group: '09-advanced', /**
-                                                 * loader：处理当前分支的交互与状态同步。
                                                  * 功能：处理参数消化、状态变更与调用链行为同步。
                                                  * @returns 返回当前分支执行后的处理结果。
                                                  */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./11-advanced/ExpressionEngineForm') },
   SchemaRefForm: { group: '09-advanced', /**
-                                          * loader：处理当前分支的交互与状态同步。
                                           * 功能：处理参数消化、状态变更与调用链行为同步。
                                           * @returns 返回当前分支执行后的处理结果。
                                           */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./11-advanced/SchemaRefForm') },
   EffectsForm: { group: '09-advanced', /**
-                                        * loader：处理当前分支的交互与状态同步。
                                         * 功能：处理参数消化、状态变更与调用链行为同步。
                                         * @returns 返回当前分支执行后的处理结果。
                                         */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./11-advanced/EffectsForm') },
   CustomDecoratorForm: { group: '09-advanced', /**
-                                                * loader：处理当前分支的交互与状态同步。
                                                 * 功能：处理参数消化、状态变更与调用链行为同步。
                                                 * @returns 返回当前分支执行后的处理结果。
                                                 */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./11-advanced/CustomDecoratorForm') },
   OneOfSchemaForm: { group: '09-advanced', /**
-                                            * loader：处理当前分支的交互与状态同步。
                                             * 功能：处理参数消化、状态变更与调用链行为同步。
                                             * @returns 返回当前分支执行后的处理结果。
                                             */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./11-advanced/OneOfSchemaForm') },
   EffectsAPIForm: { group: '09-advanced', /**
-                                           * loader：处理当前分支的交互与状态同步。
                                            * 功能：处理参数消化、状态变更与调用链行为同步。
                                            * @returns 返回当前分支执行后的处理结果。
                                            */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./11-advanced/EffectsAPIForm') },
   GridLayoutForm: { group: '09-advanced', /**
-                                           * loader：处理当前分支的交互与状态同步。
                                            * 功能：处理参数消化、状态变更与调用链行为同步。
                                            * @returns 返回当前分支执行后的处理结果。
                                            */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./11-advanced/GridLayoutForm') },
   LargeFormPerf: { group: '09-advanced', /**
-                                          * loader：处理当前分支的交互与状态同步。
                                           * 功能：处理参数消化、状态变更与调用链行为同步。
                                           * @returns 返回当前分支执行后的处理结果。
                                           */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./11-advanced/LargeFormPerf') },
   SSRCompatForm: { group: '09-advanced', /**
-                                          * loader：处理当前分支的交互与状态同步。
                                           * 功能：处理参数消化、状态变更与调用链行为同步。
                                           * @returns 返回当前分支执行后的处理结果。
                                           */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./11-advanced/SSRCompatForm') },
   VirtualScrollForm: { group: '09-advanced', /**
-                                              * loader：处理当前分支的交互与状态同步。
                                               * 功能：处理参数消化、状态变更与调用链行为同步。
                                               * @returns 返回当前分支执行后的处理结果。
                                               */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
@@ -556,56 +464,46 @@ export const sceneRegistry: Record<string, { group: string, loader: () => Promis
 
   /* 10-state — 状态管理（5 个） */
   LifecycleForm: { group: '10-state', /**
-                                       * loader：处理当前分支的交互与状态同步。
                                        * 功能：处理参数消化、状态变更与调用链行为同步。
                                        * @returns 返回当前分支执行后的处理结果。
                                        */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./09-state/LifecycleForm') },
   DataTransformForm: { group: '10-state', /**
-                                           * loader：处理当前分支的交互与状态同步。
                                            * 功能：处理参数消化、状态变更与调用链行为同步。
                                            * @returns 返回当前分支执行后的处理结果。
                                            */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./09-state/DataTransformForm') },
   PatternSwitchForm: { group: '10-state', /**
-                                           * loader：处理当前分支的交互与状态同步。
                                            * 功能：处理参数消化、状态变更与调用链行为同步。
                                            * @returns 返回当前分支执行后的处理结果。
                                            */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./09-state/PatternSwitchForm') },
   DisplayTriStateForm: { group: '10-state', /**
-                                             * loader：处理当前分支的交互与状态同步。
                                              * 功能：处理参数消化、状态变更与调用链行为同步。
                                              * @returns 返回当前分支执行后的处理结果。
                                              */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./09-state/DisplayTriStateForm') },
   FormGraphForm: { group: '10-state', /**
-                                       * loader：处理当前分支的交互与状态同步。
                                        * 功能：处理参数消化、状态变更与调用链行为同步。
                                        * @returns 返回当前分支执行后的处理结果。
                                        */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
@@ -613,23 +511,19 @@ export const sceneRegistry: Record<string, { group: string, loader: () => Promis
 
   /* 11-misc — 其他能力（2 个） */
   I18nForm: { group: '11-misc', /**
-                                 * loader：处理当前分支的交互与状态同步。
                                  * 功能：处理参数消化、状态变更与调用链行为同步。
                                  * @returns 返回当前分支执行后的处理结果。
                                  */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./10-misc/I18nForm') },
   PrintExportForm: { group: '11-misc', /**
-                                        * loader：处理当前分支的交互与状态同步。
                                         * 功能：处理参数消化、状态变更与调用链行为同步。
                                         * @returns 返回当前分支执行后的处理结果。
                                         */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
@@ -637,23 +531,19 @@ export const sceneRegistry: Record<string, { group: string, loader: () => Promis
 
   /* 12-plugin — 插件能力（2 个） */
   JsonSchemaAdapterForm: { group: '12-plugin', /**
-                                                * loader：处理当前分支的交互与状态同步。
                                                 * 功能：处理参数消化、状态变更与调用链行为同步。
                                                 * @returns 返回当前分支执行后的处理结果。
                                                 */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./11-advanced/JsonSchemaAdapterForm') },
   LowCodeDesignerForm: { group: '12-plugin', /**
-                                              * loader：处理当前分支的交互与状态同步。
                                               * 功能：处理参数消化、状态变更与调用链行为同步。
                                               * @returns 返回当前分支执行后的处理结果。
                                               */
     /**
-     * loader：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @returns 返回当前分支执行后的处理结果。
      */

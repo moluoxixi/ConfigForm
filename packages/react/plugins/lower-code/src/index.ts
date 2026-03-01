@@ -6,6 +6,8 @@
 export { LowCodeDesigner } from './LowCodeDesigner'
 export type {
   LowCodeDesignerComponentDefinition,
+  LowCodeDesignerDecoratorDefinition,
+  LowCodeDesignerDecoratorDefinitions,
   LowCodeDesignerEditableProp,
   LowCodeDesignerEditablePropEditor,
   LowCodeDesignerEditablePropOption,

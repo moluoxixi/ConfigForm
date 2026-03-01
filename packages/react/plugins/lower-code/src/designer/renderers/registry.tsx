@@ -1,4 +1,4 @@
-import type { ISchema } from '@moluoxixi/core'
+﻿import type { ISchema } from '@moluoxixi/core'
 import type {
   DesignerFieldComponent,
   DesignerFieldNode,
@@ -69,7 +69,6 @@ function splitPreviewProps(
 }
 
 /**
- * buildPreviewSchema：处理当前分支的交互与状态同步。
  * 功能：完成参数消化、业务分支处理及上下游结果传递。
  * @param type 参数 type 为当前逻辑所需的输入信息。
  * @param component 参数 component 为当前逻辑所需的输入信息。
@@ -84,15 +83,20 @@ function buildPreviewSchema(
   title: string,
   componentProps: Record<string, unknown>,
   options: Array<{ label: string, value: string }>,
+  decorator?: string,
+  decoratorProps?: Record<string, unknown>,
 ): ISchema {
   // 构建最小单字段 schema，用于独立组件预览。
   const fieldSchema: ISchema = {
     type,
     title,
     component,
-    decorator: '',
     componentProps,
   }
+  if (decorator)
+    fieldSchema.decorator = decorator
+  if (decoratorProps && Object.keys(decoratorProps).length > 0)
+    fieldSchema.decoratorProps = decoratorProps
 
   if (component === 'Select') {
     fieldSchema.enum = options.map(option => ({
@@ -144,6 +148,8 @@ function renderMaterialFieldPreview(
     item.label,
     componentProps,
     DEFAULT_SELECT_OPTIONS,
+    undefined,
+    undefined,
   )
 
   return (
@@ -184,6 +190,8 @@ function renderNodeFieldPreview(
     node.title,
     componentProps,
     options,
+    node.decorator ?? registry.defaultDecorators.get(node.component),
+    node.decoratorProps,
   )
   return (
     <SchemaPreview

@@ -21,8 +21,25 @@ export const SelectDefinition: LowCodeDesignerComponentDefinition = {
       defaultValue: '请选择',
     },
     {
+      key: 'size',
+      label: '尺寸',
+      editor: 'select',
+      options: [
+        { label: '默认', value: '' },
+        { label: '小', value: 'small' },
+        { label: '中', value: 'middle' },
+        { label: '大', value: 'large' },
+      ],
+    },
+    {
       key: 'allowClear',
       label: '允许清空',
+      editor: 'switch',
+      defaultValue: true,
+    },
+    {
+      key: 'showSearch',
+      label: '允许搜索',
       editor: 'switch',
       defaultValue: true,
     },

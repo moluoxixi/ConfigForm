@@ -15,6 +15,7 @@ import { MaterialCard } from '../../../../materials/MaterialCard'
 export function DesignerMaterialListRenderer({
   items,
   renderMaterialPreview,
+  readonly = false,
 }: DesignerMaterialListRendererProps): React.ReactElement {
   return (
     <div className="cf-lc-side-scroll">
@@ -24,6 +25,7 @@ export function DesignerMaterialListRenderer({
             key={item.id}
             item={item}
             renderMaterialPreview={renderMaterialPreview}
+            readonly={readonly}
           />
         ))}
       </div>

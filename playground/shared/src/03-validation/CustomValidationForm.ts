@@ -1,4 +1,4 @@
-import type { ValidationRule } from '@moluoxixi/core'
+﻿import type { ValidationRule } from '@moluoxixi/core'
 import type { SceneConfig } from '../types'
 
 /**
@@ -23,7 +23,6 @@ const licensePlateRules: ValidationRule[] = [{ pattern: /^[\u4E00-\u9FA5][A-Z][A
 /** 手机号规则：中国大陆 11 位 */
 const phoneRules: ValidationRule[] = [{
   /**
-   * validator：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
    * @param v 参数 v 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
@@ -44,13 +43,11 @@ const passwordRules: ValidationRule[] = [
   { pattern: /[A-Z]/, message: '需含大写' },
   { pattern: /\d/, message: '需含数字' },
   { /**
-     * validator：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @param v 参数 v 为当前功能所需的输入信息。
      * @returns 返回当前分支执行后的处理结果。
      */
     /**
-     * validator：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @param v 参数 v 为当前功能所需的输入信息。
      * @returns 返回当前分支执行后的处理结果。
@@ -65,7 +62,6 @@ const ageRules: ValidationRule[] = [
   {
     level: 'warning',
     /**
-     * validator：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @param v 参数 v 为当前功能所需的输入信息。
      * @returns 返回当前分支执行后的处理结果。
@@ -84,7 +80,6 @@ const ageRules: ValidationRule[] = [
 /** IP 地址规则：IPv4 格式验证 */
 const ipAddressRules: ValidationRule[] = [{
   /**
-   * validator：处理当前分支的交互与状态同步。
    * 功能：处理参数消化、状态变更与调用链行为同步。
    * @param v 参数 v 为当前功能所需的输入信息。
    * @returns 返回当前分支执行后的处理结果。
@@ -132,13 +127,11 @@ const config: SceneConfig = {
         title: '证件号码',
         required: true,
         reactions: [{ watch: 'idType', fulfill: { /**
-                                                   * run：处理当前分支的交互与状态同步。
                                                    * 功能：处理参数消化、状态变更与调用链行为同步。
                                                    * @param f 参数 f 为当前功能所需的输入信息。
                                                    * @param ctx 参数 ctx 为上下文对象，用于传递场景数据。
                                                    */
           /**
-           * run：处理当前分支的交互与状态同步。
            * 功能：处理参数消化、状态变更与调用链行为同步。
            * @param f 参数 f 为当前功能所需的输入信息。
            * @param ctx 参数 ctx 为上下文对象，用于传递环境数据。

@@ -1,14 +1,16 @@
-import type {
+﻿import type {
   DesignerContainerNode,
   DesignerFieldComponent,
   DesignerFieldNode,
   DesignerFieldType,
+  DesignerFormConfig,
   DesignerNode,
   DesignerSectionNode,
 } from '@moluoxixi/plugin-lower-code-core'
 import type React from 'react'
 import type {
   LowCodeDesignerComponentDefinition,
+  LowCodeDesignerDecoratorDefinition,
   LowCodeDesignerEditableProp,
 } from '../types'
 import {
@@ -20,18 +22,15 @@ import {
   removeSectionFromContainer,
   updateSectionById,
 } from '@moluoxixi/plugin-lower-code-core'
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
-/**
- * PropertiesPanelProps??????
- * ???`packages/plugin-lower-code-react/src/designer/panels/PropertiesPanel.tsx:24`?
- * ??????????????????????????????
- */
 interface PropertiesPanelProps {
   nodes: DesignerNode[]
   selectedField: DesignerFieldNode | null
   selectedContainer: DesignerContainerNode | null
   selectedSection: DesignerSectionNode | null
+  tab?: 'component' | 'form'
+  readonly?: boolean
   enumDraft: string
   setEnumDraft: (value: string) => void
   onUpdateNodes: (updater: (prev: DesignerNode[]) => DesignerNode[]) => void
@@ -39,68 +38,39 @@ interface PropertiesPanelProps {
   updateContainer: (nodeId: string, updater: (container: DesignerContainerNode) => DesignerContainerNode) => void
   fieldComponentOptions: string[]
   componentDefinitions?: Record<string, LowCodeDesignerComponentDefinition>
+  decoratorDefinitions?: Record<string, LowCodeDesignerDecoratorDefinition>
   componentPropsByComponent: Record<string, Record<string, unknown>>
   onUpdateComponentPropByComponentName: (componentName: string, propKey: string, value: unknown) => void
+  decoratorOptions: string[]
+  defaultDecoratorsByComponent?: Record<string, string>
+  formConfig: DesignerFormConfig
+  onUpdateFormConfig: (updater: (prev: DesignerFormConfig) => DesignerFormConfig) => void
 }
 
-/**
- * render Empty Hint：负责“渲染render Empty Hint”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 render Empty Hint 的主要职责边界，便于维护者快速理解函数在链路中的定位。
- */
-function renderEmptyHint(): React.ReactElement {
-  return (
-    <div className="cf-lc-empty-hint">
-      选择画布中的字段、容器或分组后，在这里编辑属性。
-    </div>
-  )
-}
+export function PropertiesPanel(props: PropertiesPanelProps): React.ReactElement {
+  const {
+    nodes,
+    selectedField,
+    selectedContainer,
+    selectedSection,
+    tab,
+    readonly = false,
+    enumDraft,
+    setEnumDraft,
+    onUpdateNodes,
+    updateField,
+    updateContainer,
+    fieldComponentOptions,
+    componentDefinitions,
+    decoratorDefinitions,
+    componentPropsByComponent,
+    onUpdateComponentPropByComponentName,
+    decoratorOptions,
+    defaultDecoratorsByComponent,
+    formConfig,
+    onUpdateFormConfig,
+  } = props
 
-/**
- * resolve Meta：负责“解析resolve Meta”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 resolve Meta 的主要职责边界，便于维护者快速理解函数在链路中的定位。
- */
-function resolveMeta(
-  selectedField: DesignerFieldNode | null,
-  selectedContainer: DesignerContainerNode | null,
-  selectedSection: DesignerSectionNode | null,
-): string {
-  if (selectedField)
-    return `字段 · ${selectedField.name}`
-  if (selectedContainer)
-    return `容器 · ${selectedContainer.component}`
-  if (selectedSection)
-    return `分组 · ${selectedSection.name}`
-  return '未选择节点'
-}
-
-/**
- * Properties Panel：负责编排该能力的主流程。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 Properties Panel 的单一职责，调用方可通过函数名快速理解输入输出语义。
- */
-export function PropertiesPanel({
-  nodes,
-  selectedField,
-  selectedContainer,
-  selectedSection,
-  enumDraft,
-  setEnumDraft,
-  onUpdateNodes,
-  updateField,
-  updateContainer,
-  fieldComponentOptions,
-  componentDefinitions,
-  componentPropsByComponent,
-  onUpdateComponentPropByComponentName,
-}: PropertiesPanelProps): React.ReactElement {
   const [defaultDraft, setDefaultDraft] = useState('')
   const [rulesDraft, setRulesDraft] = useState('')
   const [reactionsDraft, setReactionsDraft] = useState('')
@@ -108,6 +78,20 @@ export function PropertiesPanel({
   const [componentPropsDraft, setComponentPropsDraft] = useState('')
   const [decoratorPropsDraft, setDecoratorPropsDraft] = useState('')
   const [validateTriggerDraft, setValidateTriggerDraft] = useState('')
+  const [showAdvanced, setShowAdvanced] = useState(false)
+
+  const scrollHostRef = useRef<HTMLDivElement | null>(null)
+  const lastScrollTopRef = useRef(0)
+  const restoringScrollRef = useRef(false)
+
+  const resolvedTab = tab ?? 'component'
+  const hasSelection = Boolean(selectedField || selectedContainer || selectedSection)
+
+  const renderEmptyHint = (): React.ReactElement => (
+    <div className="cf-lc-empty-hint">
+      选择画布中的字段、容器或分组后，在这里编辑属性。
+    </div>
+  )
 
   const formatJson = (value: unknown): string => {
     if (value === undefined)
@@ -142,6 +126,53 @@ export function PropertiesPanel({
     return parts as DesignerFieldNode['validateTrigger']
   }
 
+  const resolveTypeByComponent = (
+    component: DesignerFieldComponent,
+    fallback: DesignerFieldType,
+  ): DesignerFieldType => {
+    const definition = componentDefinitions?.[component]
+    return definition?.fieldType ?? fallback
+  }
+
+  const selectableComponents = selectedField
+    ? Array.from(new Set([selectedField.component, ...fieldComponentOptions]))
+    : fieldComponentOptions
+
+  const selectedFieldDefinition = selectedField
+    ? componentDefinitions?.[selectedField.component] ?? null
+    : null
+  const componentEditableProps = selectedFieldDefinition?.editableProps ?? []
+
+  const resolvedDecoratorName = selectedField
+    ? (selectedField.decorator || defaultDecoratorsByComponent?.[selectedField.component] || '')
+    : ''
+  const selectedDecoratorDefinition = resolvedDecoratorName
+    ? decoratorDefinitions?.[resolvedDecoratorName] ?? null
+    : null
+  const decoratorEditableProps = selectedDecoratorDefinition?.editableProps ?? []
+
+  const readEditablePropValue = (
+    field: DesignerFieldNode,
+    editableProp: LowCodeDesignerEditableProp,
+  ): unknown => {
+    const preset = componentPropsByComponent[field.component] ?? {}
+    if (editableProp.key in preset)
+      return preset[editableProp.key]
+    return selectedFieldDefinition?.defaultProps?.[editableProp.key]
+  }
+
+  const readDecoratorPropValue = (
+    field: DesignerFieldNode,
+    editableProp: LowCodeDesignerEditableProp,
+  ): unknown => {
+    const propValue = field.decoratorProps?.[editableProp.key]
+    if (propValue !== undefined)
+      return propValue
+    const decoratorName = field.decorator || defaultDecoratorsByComponent?.[field.component] || ''
+    const definition = decoratorName ? decoratorDefinitions?.[decoratorName] : undefined
+    return definition?.defaultProps?.[editableProp.key]
+  }
+
   useEffect(() => {
     if (!selectedField) {
       setDefaultDraft('')
@@ -162,94 +193,385 @@ export function PropertiesPanel({
     const trigger = selectedField.validateTrigger
     setValidateTriggerDraft(Array.isArray(trigger) ? trigger.join(',') : (trigger ?? ''))
   }, [selectedField?.id])
-  const hasSelection = Boolean(selectedField || selectedContainer || selectedSection)
-  const selectableComponents = selectedField
-    ? Array.from(new Set([selectedField.component, ...fieldComponentOptions]))
-    : fieldComponentOptions
-  const activeComponentDefinition = selectedField
-    ? componentDefinitions?.[selectedField.component]
-    : undefined
-  const componentEditableProps = activeComponentDefinition?.editableProps ?? []
-  /**
-   * resolveComponentPreset?????????????????
-   * ???`packages/plugin-lower-code-react/src/designer/panels/PropertiesPanel.tsx:114`?
-   * ?????????????????????????????????
-   * ??????????????????????????
-   * @param componentName ?? componentName ????????????
-   * @returns ?????????????
-   */
-  const /**
-         * resolveComponentPreset：处理当前分支的交互与状态同步。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * @param componentName 参数 componentName 为当前功能所需的输入信息。
-         * @returns 返回当前分支执行后的处理结果。
-         */
-    resolveComponentPreset = (componentName: string): Record<string, unknown> => ({ ...(componentPropsByComponent[componentName] ?? {}) })
 
-  /**
-   * readEditablePropValue?????????????????
-   * ???`packages/plugin-lower-code-react/src/designer/panels/PropertiesPanel.tsx:125`?
-   * ?????????????????????????????????
-   * ??????????????????????????
-   * @param field ?? field ????????????
-   * @param editableProp ?? editableProp ????????????
-   * @returns ?????????????
-   */
-  const /**
-         * readEditablePropValue：处理当前分支的交互与状态同步。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * @param field 参数 field 为业务对象，用于读写状态与属性。
-         * @param editableProp 参数 editableProp 为当前功能所需的输入信息。
-         * @returns 返回当前分支执行后的处理结果。
-         */
-    readEditablePropValue = (
-      field: DesignerFieldNode,
-      editableProp: LowCodeDesignerEditableProp,
-    ): unknown => {
-      const presetValue = componentPropsByComponent[field.component]?.[editableProp.key]
-      if (presetValue !== undefined)
-        return presetValue
-      const currentValue = field.componentProps?.[editableProp.key]
-      if (currentValue === undefined)
-        return editableProp.defaultValue
-      return currentValue
-    }
+  useLayoutEffect(() => {
+    const host = scrollHostRef.current
+    if (!host)
+      return
+    restoringScrollRef.current = true
+    host.scrollTop = lastScrollTopRef.current
+    const frame = requestAnimationFrame(() => {
+      restoringScrollRef.current = false
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [resolvedTab, selectedField?.id, selectedContainer?.id, selectedSection?.id])
 
-  /**
-   * updateFieldComponentProp?????????????????
-   * ???`packages/plugin-lower-code-react/src/designer/panels/PropertiesPanel.tsx:146`?
-   * ?????????????????????????????????
-   * ??????????????????????????
-   * @param propKey ?? propKey ????????????
-   * @param value ?? value ????????????
-   */
-  const /**
-         * updateFieldComponentProp：处理当前分支的交互与状态同步。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * @param propKey 参数 propKey 为当前功能所需的输入信息。
-         * @param value 参数 value 为输入值，用于驱动后续逻辑。
-         */
-    updateFieldComponentProp = (propKey: string, value: unknown): void => {
+  const updateFieldComponentProp = (propKey: string, value: unknown): void => {
       if (!selectedField)
         return
       onUpdateComponentPropByComponentName(selectedField.component, propKey, value)
     }
 
-  return (
-    <section className="cf-lc-panel cf-lc-panel--side">
-      <div className="cf-lc-panel-body cf-lc-side-panel-body cf-lc-side-panel-shell">
-        <div className="cf-lc-side-panel-header">
-          <div className="cf-lc-side-panel-title">属性</div>
-          <div className="cf-lc-side-panel-meta">{resolveMeta(selectedField, selectedContainer, selectedSection)}</div>
-        </div>
+  const updateFieldDecoratorProp = (propKey: string, value: unknown): void => {
+    if (!selectedField)
+      return
+    updateField(selectedField.id, (field) => {
+      const nextProps = { ...(field.decoratorProps ?? {}) }
+      if (value === undefined || value === '')
+        delete nextProps[propKey]
+      else
+        nextProps[propKey] = value
+      return {
+        ...field,
+        decoratorProps: Object.keys(nextProps).length > 0 ? nextProps : undefined,
+      }
+    })
+  }
 
-        <div className="cf-lc-side-scroll">
-          {selectedField && (
-            <div className="cf-lc-property-form">
+  const updateFormConfigState = (patch: Partial<DesignerFormConfig>): void => {
+    onUpdateFormConfig(prev => ({ ...prev, ...patch }))
+  }
+
+  const parseNumberish = (value: string): number | string | undefined => {
+    const trimmed = value.trim()
+    if (!trimmed)
+      return undefined
+    const numeric = Number(trimmed)
+    if (!Number.isNaN(numeric))
+      return numeric
+    return trimmed
+  }
+
+  const parseNumber = (value: string): number | undefined => {
+    const trimmed = value.trim()
+    if (!trimmed)
+      return undefined
+    const numeric = Number(trimmed)
+    return Number.isNaN(numeric) ? undefined : numeric
+  }
+
+  const updateLocalComponentProp = (propKey: string, value: unknown): void => {
+    if (!selectedField)
+      return
+    updateField(selectedField.id, (field) => {
+      const nextProps = { ...(field.componentProps ?? {}) }
+      if (value === undefined || value === '')
+        delete nextProps[propKey]
+      else
+        nextProps[propKey] = value
+      return {
+        ...field,
+        componentProps: nextProps,
+      }
+    })
+  }
+
+  const readStyleValue = (key: string): string => {
+    if (!selectedField)
+      return ''
+    const style = selectedField.componentProps?.style
+    if (!style || typeof style !== 'object' || Array.isArray(style))
+      return ''
+    const value = (style as Record<string, unknown>)[key]
+    if (value === undefined || value === null)
+      return ''
+    return String(value)
+  }
+
+  const updateStyleValue = (key: string, value: string): void => {
+    if (!selectedField)
+      return
+    updateField(selectedField.id, (field) => {
+      const style = field.componentProps?.style
+      const nextStyle: Record<string, unknown> = (!style || typeof style !== 'object' || Array.isArray(style))
+        ? {}
+        : { ...(style as Record<string, unknown>) }
+      const trimmed = value.trim()
+      if (!trimmed)
+        delete nextStyle[key]
+      else
+        nextStyle[key] = trimmed
+
+      const nextProps = { ...(field.componentProps ?? {}) }
+      if (Object.keys(nextStyle).length === 0)
+        delete nextProps.style
+      else
+        nextProps.style = nextStyle
+
+      return {
+        ...field,
+        componentProps: nextProps,
+      }
+    })
+  }
+
+  const renderDefaultValueEditor = (): React.ReactElement | null => {
+    if (!selectedField)
+      return null
+    const resolvedType = resolveTypeByComponent(selectedField.component, selectedField.type)
+    const currentDefault = selectedField.defaultValue
+
+    if (resolvedType === 'number') {
+      return (
+        <label className="cf-lc-control-label">
+          默认值
+          <input
+            className="cf-lc-control-input"
+            type="number"
+            value={typeof currentDefault === 'number' ? String(currentDefault) : ''}
+            onChange={(event) => {
+              const draft = event.target.value.trim()
+              updateField(selectedField.id, field => ({
+                ...field,
+                defaultValue: draft ? Number(draft) : undefined,
+              }))
+            }}
+          />
+        </label>
+      )
+    }
+
+    if (resolvedType === 'boolean') {
+      return (
+        <label className="cf-lc-inline-checkbox">
+          <input
+            type="checkbox"
+            checked={Boolean(currentDefault)}
+            onChange={event => updateField(selectedField.id, field => ({ ...field, defaultValue: event.target.checked }))} />
+          默认值
+        </label>
+      )
+    }
+
+    if (resolvedType === 'date') {
+      return (
+        <label className="cf-lc-control-label">
+          默认值
+          <input
+            className="cf-lc-control-input"
+            type="date"
+            value={typeof currentDefault === 'string' ? currentDefault : ''}
+            onChange={event => updateField(selectedField.id, field => ({ ...field, defaultValue: event.target.value || undefined }))}
+          />
+        </label>
+      )
+    }
+
+    if (selectedField.component === 'Select' && selectedField.enumOptions.length > 0) {
+      return (
+        <label className="cf-lc-control-label">
+          默认值
+          <select
+            className="cf-lc-control-select"
+            value={typeof currentDefault === 'string' ? currentDefault : ''}
+            onChange={event => updateField(selectedField.id, field => ({ ...field, defaultValue: event.target.value || undefined }))}
+          >
+            <option value="">请选择</option>
+            {selectedField.enumOptions.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      )
+    }
+
+    return (
+      <label className="cf-lc-control-label">
+        默认值
+        <input
+          className="cf-lc-control-input"
+          value={typeof currentDefault === 'string' ? currentDefault : ''}
+          onChange={event => updateField(selectedField.id, field => ({ ...field, defaultValue: event.target.value || undefined }))}
+        />
+      </label>
+    )
+  }
+
+  const renderFormConfig = (): React.ReactElement => (
+    <div className="cf-lc-property-form">
+      <div className="cf-lc-property-section">
+        <div className="cf-lc-property-section-title">表单基础</div>
+        <label className="cf-lc-control-label">
+          表单模式
+          <select
+            className="cf-lc-control-select"
+            value={formConfig.pattern}
+            onChange={event => updateFormConfigState({ pattern: event.target.value as DesignerFormConfig['pattern'] })}
+          >
+            <option value="default">默认（可编辑）</option>
+            <option value="editable">可编辑</option>
+            <option value="preview">预览</option>
+            <option value="disabled">禁用</option>
+          </select>
+        </label>
+
+        <label className="cf-lc-control-label">
+          标签位置
+          <div className="cf-lc-segment">
+            {(['top', 'left', 'right'] as const).map(option => (
+              <button
+                key={option}
+                type="button"
+                className={`cf-lc-segment-button${formConfig.labelPosition === option ? ' is-active' : ''}`}
+                onClick={() => updateFormConfigState({ labelPosition: option })}
+              >
+                {option === 'top' ? '上' : option === 'left' ? '左' : '右'}
+              </button>
+            ))}
+          </div>
+        </label>
+
+        <label className="cf-lc-control-label">
+          标签宽度
+          <input
+            className="cf-lc-control-input"
+            value={formConfig.labelWidth ?? ''}
+            placeholder="例如 96 或 96px"
+            onChange={event => updateFormConfigState({ labelWidth: parseNumberish(event.target.value) })}
+          />
+        </label>
+
+        <label className="cf-lc-control-label">
+          校验触发
+          <select
+            className="cf-lc-control-select"
+            value={formConfig.validateTrigger}
+            onChange={event => updateFormConfigState({ validateTrigger: event.target.value as DesignerFormConfig['validateTrigger'] })}
+          >
+            <option value="default">默认</option>
+            <option value="change">change</option>
+            <option value="blur">blur</option>
+            <option value="submit">submit</option>
+          </select>
+        </label>
+      </div>
+
+      <div className="cf-lc-property-section">
+        <div className="cf-lc-property-section-title">布局设置</div>
+        <label className="cf-lc-control-label">
+          布局模式
+          <select
+            className="cf-lc-control-select"
+            value={formConfig.layoutType}
+            onChange={event => updateFormConfigState({ layoutType: event.target.value as DesignerFormConfig['layoutType'] })}
+          >
+            <option value="default">默认</option>
+            <option value="grid">网格</option>
+            <option value="inline">行内</option>
+          </select>
+        </label>
+
+        {formConfig.layoutType === 'grid' && (
+          <div className="cf-lc-control-grid">
+            <label className="cf-lc-control-label cf-lc-control-label--compact">
+              列数
+              <input
+                className="cf-lc-control-input"
+                type="number"
+                value={formConfig.layoutColumns ?? ''}
+                onChange={event => updateFormConfigState({ layoutColumns: parseNumber(event.target.value) })}
+              />
+            </label>
+            <label className="cf-lc-control-label cf-lc-control-label--compact">
+              列间距
+              <input
+                className="cf-lc-control-input"
+                type="number"
+                value={formConfig.layoutGutter ?? ''}
+                onChange={event => updateFormConfigState({ layoutGutter: parseNumber(event.target.value) })}
+              />
+            </label>
+          </div>
+        )}
+
+        {formConfig.layoutType === 'inline' && (
+          <label className="cf-lc-control-label">
+            行内间距
+            <input
+              className="cf-lc-control-input"
+              type="number"
+              value={formConfig.layoutGap ?? ''}
+              onChange={event => updateFormConfigState({ layoutGap: parseNumber(event.target.value) })}
+            />
+          </label>
+        )}
+      </div>
+
+      <div className="cf-lc-property-section">
+        <div className="cf-lc-property-section-title">操作区</div>
+        <label className="cf-lc-inline-checkbox">
+          <input
+            type="checkbox"
+            checked={formConfig.showSubmit}
+            onChange={event => updateFormConfigState({ showSubmit: event.target.checked })}
+          />
+          显示提交按钮
+        </label>
+        <label className="cf-lc-inline-checkbox">
+          <input
+            type="checkbox"
+            checked={formConfig.showReset}
+            onChange={event => updateFormConfigState({ showReset: event.target.checked })}
+          />
+          显示重置按钮
+        </label>
+        <label className="cf-lc-control-label">
+          提交文案
+          <input
+            className="cf-lc-control-input"
+            value={formConfig.submitText ?? ''}
+            onChange={event => updateFormConfigState({ submitText: event.target.value })}
+            disabled={!formConfig.showSubmit}
+          />
+        </label>
+        <label className="cf-lc-control-label">
+          重置文案
+          <input
+            className="cf-lc-control-input"
+            value={formConfig.resetText ?? ''}
+            onChange={event => updateFormConfigState({ resetText: event.target.value })}
+            disabled={!formConfig.showReset}
+          />
+        </label>
+        <label className="cf-lc-control-label">
+          对齐方式
+          <select
+            className="cf-lc-control-select"
+            value={formConfig.actionsAlign}
+            onChange={event => updateFormConfigState({ actionsAlign: event.target.value as DesignerFormConfig['actionsAlign'] })}
+          >
+            <option value="left">居左</option>
+            <option value="center">居中</option>
+            <option value="right">居右</option>
+          </select>
+        </label>
+      </div>
+    </div>
+  )
+
+  return (
+    <div
+      className="cf-lc-side-scroll"
+      ref={scrollHostRef}
+      onScroll={(event) => {
+        if (restoringScrollRef.current)
+          return
+        const target = event.currentTarget
+        lastScrollTopRef.current = target.scrollTop
+      }}
+    >
+      <fieldset className="cf-lc-property-fieldset" disabled={readonly}>
+      {resolvedTab === 'form' && renderFormConfig()}
+      {resolvedTab === 'component' && (
+            <>
+              {selectedField && (
+                <div className="cf-lc-property-form">
               <div className="cf-lc-property-section">
                 <div className="cf-lc-property-section-title">基础信息</div>
                 <label className="cf-lc-control-label">
-                  字段标题
+                  字段标题（Label）
                   <input
                     className="cf-lc-control-input"
                     value={selectedField.title}
@@ -258,7 +580,7 @@ export function PropertiesPanel({
                 </label>
 
                 <label className="cf-lc-control-label">
-                  字段标识
+                  字段标识（Name）
                   <input
                     className="cf-lc-control-input"
                     value={selectedField.name}
@@ -266,46 +588,15 @@ export function PropertiesPanel({
                   />
                 </label>
 
-                <label className="cf-lc-control-label">
-                  字段描述
-                  <textarea
-                    className="cf-lc-control-textarea"
-                    value={selectedField.description ?? ''}
-                    onChange={event => updateField(selectedField.id, field => ({ ...field, description: event.target.value || undefined }))}
-                  />
-                </label>
               </div>
 
               <div className="cf-lc-property-section">
                 <div className="cf-lc-property-section-title">渲染设置</div>
-                <label className="cf-lc-control-label">
-                  数据类型
-                  <select
-                    className="cf-lc-control-select"
-                    value={selectedField.type}
-                    onChange={(event) => {
-                      const type = event.target.value as DesignerFieldType
-                      const preferredComponent = defaultComponentForType(type)
-                      const resolvedComponent = selectableComponents.includes(preferredComponent)
-                        ? preferredComponent
-                        : (selectableComponents[0] ?? selectedField.component)
-                      const nextComponentProps = resolvedComponent === selectedField.component
-                        ? selectedField.componentProps
-                        : resolveComponentPreset(resolvedComponent)
-                      updateField(selectedField.id, field => normalizeNode({
-                        ...field,
-                        type,
-                        component: resolvedComponent,
-                        componentProps: nextComponentProps,
-                      }, nodes) as DesignerFieldNode)
-                    }}
-                  >
-                    <option value="string">string</option>
-                    <option value="number">number</option>
-                    <option value="boolean">boolean</option>
-                    <option value="date">date</option>
-                  </select>
-                </label>
+                <div className="cf-lc-property-readonly">
+                  数据类型：
+                  {' '}
+                  <code>{resolveTypeByComponent(selectedField.component, selectedField.type)}</code>
+                </div>
 
                 <label className="cf-lc-control-label">
                   渲染组件
@@ -314,12 +605,14 @@ export function PropertiesPanel({
                     value={selectedField.component}
                     onChange={(event) => {
                       const component = event.target.value as DesignerFieldComponent
+                      const nextType = resolveTypeByComponent(component, selectedField.type)
                       const nextComponentProps = component === selectedField.component
                         ? selectedField.componentProps
                         : resolveComponentPreset(component)
                       updateField(selectedField.id, field => normalizeNode({
                         ...field,
                         component,
+                        type: nextType,
                         componentProps: nextComponentProps,
                       }, nodes) as DesignerFieldNode)
                     }}
@@ -388,22 +681,7 @@ export function PropertiesPanel({
 
               <div className="cf-lc-property-section">
                 <div className="cf-lc-property-section-title">默认值与提交</div>
-                <label className="cf-lc-control-label">
-                  默认值（JSON）
-                  <textarea
-                    className="cf-lc-control-textarea cf-lc-control-textarea--code"
-                    value={defaultDraft}
-                    onChange={event => setDefaultDraft(event.target.value)}
-                    onBlur={() => {
-                      if (!selectedField)
-                        return
-                      const parsed = parseJsonDraft(defaultDraft)
-                      if (!parsed.ok)
-                        return
-                      updateField(selectedField.id, field => ({ ...field, defaultValue: parsed.value }))
-                    }}
-                  />
-                </label>
+                {renderDefaultValueEditor()}
                 <label className="cf-lc-control-label">
                   提交路径
                   <input
@@ -468,89 +746,150 @@ export function PropertiesPanel({
               )}
 
               <div className="cf-lc-property-section">
-                <div className="cf-lc-property-section-title">数据源</div>
-                <label className="cf-lc-control-label">
-                  dataSource（JSON）
-                  <textarea
-                    className="cf-lc-control-textarea cf-lc-control-textarea--code"
-                    value={dataSourceDraft}
-                    onChange={event => setDataSourceDraft(event.target.value)}
-                    onBlur={() => {
-                      if (!selectedField)
-                        return
-                      const parsed = parseJsonDraft(dataSourceDraft)
-                      if (!parsed.ok)
-                        return
-                      updateField(selectedField.id, field => ({ ...field, dataSource: parsed.value }))
-                    }}
-                  />
-                </label>
+                <div className="cf-lc-property-section-title">高级配置</div>
+                <button
+                  type="button"
+                  className="cf-lc-btn"
+                  onClick={() => setShowAdvanced(prev => !prev)}
+                >
+                  {showAdvanced ? '收起高级配置' : '展开高级配置'}
+                </button>
               </div>
 
-              <div className="cf-lc-property-section">
-                <div className="cf-lc-property-section-title">校验规则</div>
-                <label className="cf-lc-control-label">
-                  validateTrigger（逗号分隔）
-                  <input
-                    className="cf-lc-control-input"
-                    value={validateTriggerDraft}
-                    onChange={event => setValidateTriggerDraft(event.target.value)}
-                    onBlur={() => {
-                      if (!selectedField)
-                        return
-                      updateField(selectedField.id, field => ({ ...field, validateTrigger: normalizeValidateTrigger(validateTriggerDraft) }))
-                    }}
-                  />
-                </label>
-                <label className="cf-lc-control-label">
-                  rules（JSON 数组）
-                  <textarea
-                    className="cf-lc-control-textarea cf-lc-control-textarea--code"
-                    value={rulesDraft}
-                    onChange={event => setRulesDraft(event.target.value)}
-                    onBlur={() => {
-                      if (!selectedField)
-                        return
-                      const parsed = parseJsonDraft(rulesDraft)
-                      if (!parsed.ok)
-                        return
-                      if (parsed.value === undefined) {
-                        updateField(selectedField.id, field => ({ ...field, rules: undefined }))
-                        return
-                      }
-                      if (Array.isArray(parsed.value)) {
-                        updateField(selectedField.id, field => ({ ...field, rules: parsed.value }))
-                      }
-                    }}
-                  />
-                </label>
-              </div>
+              {showAdvanced && (
+                <>
+                  <div className="cf-lc-property-section">
+                    <div className="cf-lc-property-section-title">高级默认值</div>
+                    <label className="cf-lc-control-label">
+                      默认值（JSON）
+                      <textarea
+                        className="cf-lc-control-textarea cf-lc-control-textarea--code"
+                        value={defaultDraft}
+                        onChange={event => setDefaultDraft(event.target.value)}
+                        onBlur={() => {
+                          if (!selectedField)
+                            return
+                          const parsed = parseJsonDraft(defaultDraft)
+                          if (!parsed.ok)
+                            return
+                          updateField(selectedField.id, field => ({ ...field, defaultValue: parsed.value }))
+                        }}
+                      />
+                    </label>
+                  </div>
 
-              <div className="cf-lc-property-section">
-                <div className="cf-lc-property-section-title">联动规则</div>
-                <label className="cf-lc-control-label">
-                  reactions（JSON 数组）
-                  <textarea
-                    className="cf-lc-control-textarea cf-lc-control-textarea--code"
-                    value={reactionsDraft}
-                    onChange={event => setReactionsDraft(event.target.value)}
-                    onBlur={() => {
-                      if (!selectedField)
-                        return
-                      const parsed = parseJsonDraft(reactionsDraft)
-                      if (!parsed.ok)
-                        return
-                      if (parsed.value === undefined) {
-                        updateField(selectedField.id, field => ({ ...field, reactions: undefined }))
-                        return
-                      }
-                      if (Array.isArray(parsed.value)) {
-                        updateField(selectedField.id, field => ({ ...field, reactions: parsed.value }))
-                      }
-                    }}
-                  />
-                </label>
-              </div>
+                  <div className="cf-lc-property-section">
+                    <div className="cf-lc-property-section-title">数据源</div>
+                    <label className="cf-lc-control-label">
+                      dataSource（JSON）
+                      <textarea
+                        className="cf-lc-control-textarea cf-lc-control-textarea--code"
+                        value={dataSourceDraft}
+                        onChange={event => setDataSourceDraft(event.target.value)}
+                        onBlur={() => {
+                          if (!selectedField)
+                            return
+                          const parsed = parseJsonDraft(dataSourceDraft)
+                          if (!parsed.ok)
+                            return
+                          updateField(selectedField.id, field => ({ ...field, dataSource: parsed.value }))
+                        }}
+                      />
+                    </label>
+                  </div>
+
+                  <div className="cf-lc-property-section">
+                    <div className="cf-lc-property-section-title">校验规则</div>
+                    <label className="cf-lc-control-label">
+                      validateTrigger（逗号分隔）
+                      <input
+                        className="cf-lc-control-input"
+                        value={validateTriggerDraft}
+                        onChange={event => setValidateTriggerDraft(event.target.value)}
+                        onBlur={() => {
+                          if (!selectedField)
+                            return
+                          updateField(selectedField.id, field => ({ ...field, validateTrigger: normalizeValidateTrigger(validateTriggerDraft) }))
+                        }}
+                      />
+                    </label>
+                    <label className="cf-lc-control-label">
+                      rules（JSON 数组）
+                      <textarea
+                        className="cf-lc-control-textarea cf-lc-control-textarea--code"
+                        value={rulesDraft}
+                        onChange={event => setRulesDraft(event.target.value)}
+                        onBlur={() => {
+                          if (!selectedField)
+                            return
+                          const parsed = parseJsonDraft(rulesDraft)
+                          if (!parsed.ok)
+                            return
+                          if (parsed.value === undefined) {
+                            updateField(selectedField.id, field => ({ ...field, rules: undefined }))
+                            return
+                          }
+                          if (Array.isArray(parsed.value)) {
+                            updateField(selectedField.id, field => ({ ...field, rules: parsed.value }))
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+
+                  <div className="cf-lc-property-section">
+                    <div className="cf-lc-property-section-title">联动规则</div>
+                    <label className="cf-lc-control-label">
+                      reactions（JSON 数组）
+                      <textarea
+                        className="cf-lc-control-textarea cf-lc-control-textarea--code"
+                        value={reactionsDraft}
+                        onChange={event => setReactionsDraft(event.target.value)}
+                        onBlur={() => {
+                          if (!selectedField)
+                            return
+                          const parsed = parseJsonDraft(reactionsDraft)
+                          if (!parsed.ok)
+                            return
+                          if (parsed.value === undefined) {
+                            updateField(selectedField.id, field => ({ ...field, reactions: undefined }))
+                            return
+                          }
+                          if (Array.isArray(parsed.value)) {
+                            updateField(selectedField.id, field => ({ ...field, reactions: parsed.value }))
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+
+                  <div className="cf-lc-property-section">
+                    <div className="cf-lc-property-section-title">装饰器参数</div>
+                    <label className="cf-lc-control-label">
+                      decoratorProps（JSON）
+                      <textarea
+                        className="cf-lc-control-textarea cf-lc-control-textarea--code"
+                        value={decoratorPropsDraft}
+                        onChange={event => setDecoratorPropsDraft(event.target.value)}
+                        onBlur={() => {
+                          if (!selectedField)
+                            return
+                          const parsed = parseJsonDraft(decoratorPropsDraft)
+                          if (!parsed.ok)
+                            return
+                          if (parsed.value && typeof parsed.value === 'object' && !Array.isArray(parsed.value)) {
+                            updateField(selectedField.id, field => ({ ...field, decoratorProps: parsed.value as Record<string, unknown> }))
+                            return
+                          }
+                          if (parsed.value === undefined) {
+                            updateField(selectedField.id, field => ({ ...field, decoratorProps: undefined }))
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                </>
+              )}
 
               <div className="cf-lc-property-section">
                 <div className="cf-lc-property-section-title">布局与装饰</div>
@@ -586,34 +925,299 @@ export function PropertiesPanel({
                 </label>
                 <label className="cf-lc-control-label">
                   装饰器
+                  <select
+                    className="cf-lc-control-select"
+                    value={selectedField.decorator ?? ''}
+                    onChange={(event) => {
+                      const nextDecorator = event.target.value || undefined
+                      const nextDefaults = nextDecorator
+                        ? (decoratorDefinitions?.[nextDecorator]?.defaultProps ?? {})
+                        : {}
+                      updateField(selectedField.id, field => ({
+                        ...field,
+                        decorator: nextDecorator,
+                        decoratorProps: nextDecorator && Object.keys(nextDefaults).length > 0
+                          ? { ...nextDefaults }
+                          : undefined,
+                      }))
+                      setDecoratorPropsDraft(formatJson(nextDefaults))
+                    }}
+                  >
+                    <option value="">默认</option>
+                    {decoratorOptions.map(option => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              {decoratorEditableProps.length > 0 && (
+                <div className="cf-lc-property-section">
+                  <div className="cf-lc-property-section-title">
+                    装饰器配置（
+                    {resolvedDecoratorName || '默认'}
+                    ）
+                  </div>
+                  {decoratorEditableProps.map((editableProp) => {
+                    const editor = editableProp.editor ?? 'text'
+                    const propValue = readDecoratorPropValue(selectedField, editableProp)
+
+                    if (editor === 'switch') {
+                      return (
+                        <label key={editableProp.key} className="cf-lc-inline-checkbox">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(propValue)}
+                            onChange={event => updateFieldDecoratorProp(editableProp.key, event.target.checked)}
+                          />
+                          {editableProp.label}
+                        </label>
+                      )
+                    }
+
+                    if (editor === 'textarea') {
+                      return (
+                        <label key={editableProp.key} className="cf-lc-control-label">
+                          {editableProp.label}
+                          <textarea
+                            className="cf-lc-control-textarea"
+                            value={typeof propValue === 'string' ? propValue : ''}
+                            onChange={(event) => {
+                              const nextValue = event.target.value
+                              updateFieldDecoratorProp(editableProp.key, nextValue || undefined)
+                            }}
+                          />
+                          {editableProp.description && (
+                            <span className="cf-lc-property-readonly">{editableProp.description}</span>
+                          )}
+                        </label>
+                      )
+                    }
+
+                    if (editor === 'number') {
+                      return (
+                        <label key={editableProp.key} className="cf-lc-control-label">
+                          {editableProp.label}
+                          <input
+                            className="cf-lc-control-input"
+                            type="number"
+                            value={typeof propValue === 'number' ? String(propValue) : ''}
+                            onChange={(event) => {
+                              const draft = event.target.value.trim()
+                              if (!draft) {
+                                updateFieldDecoratorProp(editableProp.key, undefined)
+                                return
+                              }
+                              const parsed = Number(draft)
+                              updateFieldDecoratorProp(editableProp.key, Number.isNaN(parsed) ? undefined : parsed)
+                            }}
+                          />
+                          {editableProp.description && (
+                            <span className="cf-lc-property-readonly">{editableProp.description}</span>
+                          )}
+                        </label>
+                      )
+                    }
+
+                    if (editor === 'select') {
+                      return (
+                        <label key={editableProp.key} className="cf-lc-control-label">
+                          {editableProp.label}
+                          <select
+                            className="cf-lc-control-select"
+                            value={typeof propValue === 'string' ? propValue : ''}
+                            onChange={(event) => {
+                              const nextValue = event.target.value
+                              updateFieldDecoratorProp(editableProp.key, nextValue || undefined)
+                            }}
+                          >
+                            <option value="">请选择</option>
+                            {(editableProp.options ?? []).map(option => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                          {editableProp.description && (
+                            <span className="cf-lc-property-readonly">{editableProp.description}</span>
+                          )}
+                        </label>
+                      )
+                    }
+
+                    return (
+                      <label key={editableProp.key} className="cf-lc-control-label">
+                        {editableProp.label}
+                        <input
+                          className="cf-lc-control-input"
+                          value={typeof propValue === 'string' ? propValue : ''}
+                          onChange={(event) => {
+                            const nextValue = event.target.value
+                            updateFieldDecoratorProp(editableProp.key, nextValue || undefined)
+                          }}
+                        />
+                        {editableProp.description && (
+                          <span className="cf-lc-property-readonly">{editableProp.description}</span>
+                        )}
+                      </label>
+                    )
+                  })}
+                </div>
+              )}
+
+              <div className="cf-lc-property-section">
+                <div className="cf-lc-property-section-title">外观样式</div>
+                <label className="cf-lc-control-label">
+                  元素 ID
                   <input
                     className="cf-lc-control-input"
-                    value={selectedField.decorator ?? ''}
-                    onChange={event => updateField(selectedField.id, field => ({ ...field, decorator: event.target.value || undefined }))}
+                    value={typeof selectedField.componentProps?.id === 'string' ? selectedField.componentProps.id : ''}
+                    onChange={event => updateLocalComponentProp('id', event.target.value || undefined)}
                   />
                 </label>
                 <label className="cf-lc-control-label">
-                  decoratorProps（JSON）
-                  <textarea
-                    className="cf-lc-control-textarea cf-lc-control-textarea--code"
-                    value={decoratorPropsDraft}
-                    onChange={event => setDecoratorPropsDraft(event.target.value)}
-                    onBlur={() => {
-                      if (!selectedField)
-                        return
-                      const parsed = parseJsonDraft(decoratorPropsDraft)
-                      if (!parsed.ok)
-                        return
-                      if (parsed.value && typeof parsed.value === 'object' && !Array.isArray(parsed.value)) {
-                        updateField(selectedField.id, field => ({ ...field, decoratorProps: parsed.value as Record<string, unknown> }))
-                        return
-                      }
-                      if (parsed.value === undefined) {
-                        updateField(selectedField.id, field => ({ ...field, decoratorProps: undefined }))
-                      }
-                    }}
+                  CSS 类名
+                  <input
+                    className="cf-lc-control-input"
+                    value={typeof selectedField.componentProps?.className === 'string' ? selectedField.componentProps.className : ''}
+                    onChange={event => updateLocalComponentProp('className', event.target.value || undefined)}
                   />
                 </label>
+
+                <div className="cf-lc-control-grid">
+                  <label className="cf-lc-control-label cf-lc-control-label--compact">
+                    宽度
+                    <input
+                      className="cf-lc-control-input"
+                      value={readStyleValue('width')}
+                      placeholder="auto / 100%"
+                      onChange={event => updateStyleValue('width', event.target.value)}
+                    />
+                  </label>
+                  <label className="cf-lc-control-label cf-lc-control-label--compact">
+                    高度
+                    <input
+                      className="cf-lc-control-input"
+                      value={readStyleValue('height')}
+                      placeholder="auto / 32px"
+                      onChange={event => updateStyleValue('height', event.target.value)}
+                    />
+                  </label>
+                  <label className="cf-lc-control-label cf-lc-control-label--compact">
+                    最小宽度
+                    <input
+                      className="cf-lc-control-input"
+                      value={readStyleValue('minWidth')}
+                      placeholder="例如 120px"
+                      onChange={event => updateStyleValue('minWidth', event.target.value)}
+                    />
+                  </label>
+                  <label className="cf-lc-control-label cf-lc-control-label--compact">
+                    最小高度
+                    <input
+                      className="cf-lc-control-input"
+                      value={readStyleValue('minHeight')}
+                      placeholder="例如 32px"
+                      onChange={event => updateStyleValue('minHeight', event.target.value)}
+                    />
+                  </label>
+                  <label className="cf-lc-control-label cf-lc-control-label--compact">
+                    最大宽度
+                    <input
+                      className="cf-lc-control-input"
+                      value={readStyleValue('maxWidth')}
+                      placeholder="例如 480px"
+                      onChange={event => updateStyleValue('maxWidth', event.target.value)}
+                    />
+                  </label>
+                  <label className="cf-lc-control-label cf-lc-control-label--compact">
+                    最大高度
+                    <input
+                      className="cf-lc-control-input"
+                      value={readStyleValue('maxHeight')}
+                      placeholder="例如 320px"
+                      onChange={event => updateStyleValue('maxHeight', event.target.value)}
+                    />
+                  </label>
+                </div>
+
+                <div className="cf-lc-control-grid">
+                  <label className="cf-lc-control-label cf-lc-control-label--compact">
+                    上外边距
+                    <input
+                      className="cf-lc-control-input"
+                      value={readStyleValue('marginTop')}
+                      placeholder="例如 8px"
+                      onChange={event => updateStyleValue('marginTop', event.target.value)}
+                    />
+                  </label>
+                  <label className="cf-lc-control-label cf-lc-control-label--compact">
+                    右外边距
+                    <input
+                      className="cf-lc-control-input"
+                      value={readStyleValue('marginRight')}
+                      placeholder="例如 8px"
+                      onChange={event => updateStyleValue('marginRight', event.target.value)}
+                    />
+                  </label>
+                  <label className="cf-lc-control-label cf-lc-control-label--compact">
+                    下外边距
+                    <input
+                      className="cf-lc-control-input"
+                      value={readStyleValue('marginBottom')}
+                      placeholder="例如 8px"
+                      onChange={event => updateStyleValue('marginBottom', event.target.value)}
+                    />
+                  </label>
+                  <label className="cf-lc-control-label cf-lc-control-label--compact">
+                    左外边距
+                    <input
+                      className="cf-lc-control-input"
+                      value={readStyleValue('marginLeft')}
+                      placeholder="例如 8px"
+                      onChange={event => updateStyleValue('marginLeft', event.target.value)}
+                    />
+                  </label>
+                </div>
+
+                <div className="cf-lc-control-grid">
+                  <label className="cf-lc-control-label cf-lc-control-label--compact">
+                    上内边距
+                    <input
+                      className="cf-lc-control-input"
+                      value={readStyleValue('paddingTop')}
+                      placeholder="例如 8px"
+                      onChange={event => updateStyleValue('paddingTop', event.target.value)}
+                    />
+                  </label>
+                  <label className="cf-lc-control-label cf-lc-control-label--compact">
+                    右内边距
+                    <input
+                      className="cf-lc-control-input"
+                      value={readStyleValue('paddingRight')}
+                      placeholder="例如 8px"
+                      onChange={event => updateStyleValue('paddingRight', event.target.value)}
+                    />
+                  </label>
+                  <label className="cf-lc-control-label cf-lc-control-label--compact">
+                    下内边距
+                    <input
+                      className="cf-lc-control-input"
+                      value={readStyleValue('paddingBottom')}
+                      placeholder="例如 8px"
+                      onChange={event => updateStyleValue('paddingBottom', event.target.value)}
+                    />
+                  </label>
+                  <label className="cf-lc-control-label cf-lc-control-label--compact">
+                    左内边距
+                    <input
+                      className="cf-lc-control-input"
+                      value={readStyleValue('paddingLeft')}
+                      placeholder="例如 8px"
+                      onChange={event => updateStyleValue('paddingLeft', event.target.value)}
+                    />
+                  </label>
+                </div>
               </div>
 
               {componentEditableProps.length > 0 && (
@@ -841,40 +1445,41 @@ export function PropertiesPanel({
             </div>
           )}
 
-          {!selectedField && !selectedContainer && selectedSection && (
-            <div className="cf-lc-property-form">
-              <div className="cf-lc-property-section">
-                <div className="cf-lc-property-section-title">分组信息</div>
-                <label className="cf-lc-control-label">
-                  分组标题
-                  <input
-                    className="cf-lc-control-input"
-                    value={selectedSection.title}
-                    onChange={event => onUpdateNodes(prev => updateSectionById(prev, selectedSection.id, old => ({ ...old, title: event.target.value || old.title })))}
-                  />
-                </label>
+              {!selectedField && !selectedContainer && selectedSection && (
+                <div className="cf-lc-property-form">
+                  <div className="cf-lc-property-section">
+                    <div className="cf-lc-property-section-title">分组信息</div>
+                    <label className="cf-lc-control-label">
+                      分组标题
+                      <input
+                        className="cf-lc-control-input"
+                        value={selectedSection.title}
+                        onChange={event => onUpdateNodes(prev => updateSectionById(prev, selectedSection.id, old => ({ ...old, title: event.target.value || old.title })))}
+                      />
+                    </label>
 
-                <label className="cf-lc-control-label">
-                  分组标识
-                  <input
-                    className="cf-lc-control-input"
-                    value={selectedSection.name}
-                    onChange={event => onUpdateNodes(prev => updateSectionById(prev, selectedSection.id, old => ({ ...old, name: event.target.value || old.name })))}
-                  />
-                </label>
-              </div>
-            </div>
-          )}
+                    <label className="cf-lc-control-label">
+                      分组标识
+                      <input
+                        className="cf-lc-control-input"
+                        value={selectedSection.name}
+                        onChange={event => onUpdateNodes(prev => updateSectionById(prev, selectedSection.id, old => ({ ...old, name: event.target.value || old.name })))}
+                      />
+                    </label>
+                  </div>
+                </div>
+              )}
 
-          {!selectedField && !selectedContainer && !selectedSection && renderEmptyHint()}
-        </div>
-
-        {hasSelection && (
-          <div className="cf-lc-side-note">
-            选中节点后，修改会实时更新画布与 Schema 预览。
-          </div>
-        )}
-      </div>
-    </section>
+              {!selectedField && !selectedContainer && !selectedSection && renderEmptyHint()}
+              {hasSelection && (
+                <div className="cf-lc-side-note">
+                  选中节点后，修改会实时更新画布与 Schema 预览。
+                </div>
+              )}
+            </>
+      )}
+      </fieldset>
+    </div>
   )
 }
+

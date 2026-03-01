@@ -14,6 +14,7 @@ interface MaterialPreviewProps {
   item: MaterialItem
   phase: LowCodeDesignerRenderContext['phase']
   renderMaterialPreview: (item: MaterialItem, context: LowCodeDesignerRenderContext) => React.ReactElement
+  readonly?: boolean
 }
 
 /**
@@ -31,11 +32,12 @@ export function MaterialPreview({
   item,
   phase,
   renderMaterialPreview,
+  readonly = false,
 }: MaterialPreviewProps): React.ReactElement {
   return (
     <div className={`cf-lc-material-preview cf-lc-material-preview--material cf-lc-material-preview--${item.id}`}>
       <MaterialMaskLayer>
-        {renderMaterialPreview(item, { phase, readonly: false })}
+        {renderMaterialPreview(item, { phase, readonly })}
       </MaterialMaskLayer>
     </div>
   )

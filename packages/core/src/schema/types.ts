@@ -1,4 +1,4 @@
-import type { ComponentType, DataSourceItem, FieldPattern } from '../shared'
+﻿import type { ComponentType, DataSourceItem, FieldPattern } from '../shared'
 import type { DataSourceConfig, ReactionRule } from '../types'
 import type { ValidationRule, ValidationTrigger } from '../validator'
 
@@ -15,10 +15,6 @@ export const BUILTIN_FIELD_COMPONENTS = [
   'DatePicker',
   'Select',
 ] as const
-/**
- * 内置字段组件联合类型。
- * 由 `BUILTIN_FIELD_COMPONENTS` 推导，确保常量与类型始终同步。
- */
 export type BuiltinFieldComponent = (typeof BUILTIN_FIELD_COMPONENTS)[number]
 
 /** 内置结构化数组组件名 */
@@ -29,18 +25,10 @@ export const BUILTIN_STRUCTURAL_ARRAY_COMPONENTS = [
   'ArrayCards',
   'ArrayCollapse',
 ] as const
-/**
- * 内置结构化数组组件联合类型。
- * 用于限制数组布局组件可选值并提供智能提示。
- */
 export type BuiltinStructuralArrayComponent = (typeof BUILTIN_STRUCTURAL_ARRAY_COMPONENTS)[number]
 
 /** 内置装饰器名 */
 export const BUILTIN_DECORATORS = ['FormItem'] as const
-/**
- * 内置装饰器名称联合类型。
- * 由常量自动推导，避免字符串字面量与实现脱节。
- */
 export type BuiltinDecoratorName = (typeof BUILTIN_DECORATORS)[number]
 
 /** Schema 字符串组件名（内置 + 自定义字符串） */
@@ -395,3 +383,4 @@ export interface CompileOptions {
   /** 默认装饰器组件（默认 'FormItem'） */
   defaultDecorator?: SchemaDecoratorName
 }
+

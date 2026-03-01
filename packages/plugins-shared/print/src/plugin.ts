@@ -1,4 +1,4 @@
-import type { FieldPattern, FormPlugin } from '@moluoxixi/core'
+﻿import type { FieldPattern, FormPlugin } from '@moluoxixi/core'
 import type { FormPrintPluginAPI, FormPrintPluginConfig, FormPrintTarget } from './types'
 import { cloneWithoutKeyPrefixes, isPlainObject } from '@moluoxixi/core'
 import { browserPrint } from './browser'
@@ -39,7 +39,6 @@ function resolvePrintTarget(target: FormPrintTarget | undefined): string | Eleme
 }
 
 /**
- * waitForPreviewRender：处理当前分支的交互与状态同步。
  * 功能：处理参数消化、状态变更与调用链行为同步。
  */
 async function waitForPreviewRender(): Promise<void> {
@@ -90,7 +89,6 @@ export function printPlugin(config: FormPrintPluginConfig = {}): FormPlugin<Form
   return {
     name: PLUGIN_NAME,
     /**
-     * install：处理当前分支的交互与状态同步。
      * 功能：处理参数消化、状态变更与调用链行为同步。
      * @param form 参数 form 为业务对象，用于读写状态与属性。
      * @returns 返回当前分支执行后的处理结果。
@@ -102,7 +100,6 @@ export function printPlugin(config: FormPrintPluginConfig = {}): FormPlugin<Form
 
       const api: FormPrintPluginAPI = {
         /**
-         * print：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          * @param options 参数 options 为当前功能所需的输入信息。
          */
@@ -150,7 +147,6 @@ export function printPlugin(config: FormPrintPluginConfig = {}): FormPlugin<Form
       return {
         api,
         /**
-         * dispose：处理当前分支的交互与状态同步。
          * 功能：处理参数消化、状态变更与调用链行为同步。
          */
         dispose() {

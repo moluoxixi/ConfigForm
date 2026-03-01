@@ -251,24 +251,12 @@ function DevToolsFloating(): React.ReactElement | null {
   useEffect(() => {
     const hook = getOrCreateHook()
     let disposed = false
-    /**
-     * update：封装该模块的核心渲染与交互逻辑。
-     * 所属模块：`playground/react/src/App.tsx`。
-     * 本函数会对输入参数进行边界处理与状态推演，并在内部收敛必要的分支和副作用。
-     * 为了保证可维护性，调用方应仅依赖本注释声明的入参与返回契约。
-     * @param forms 参数 `forms`用于提供表单上下文或实例，支撑状态读写与生命周期调用。
-     */
-    const /**
-           * update：执行当前功能逻辑。
-           *
-           * @param forms 参数 forms 的输入说明。
-           */
-      update = (forms: Map<string, DevToolsPluginAPI>): void => {
-        const nextApi = forms.size > 0 ? forms.values().next().value! : null
-        Promise.resolve().then(() => {
-          if (!disposed)
-            setApi(nextApi)
-        })
+    const update = (forms: Map<string, DevToolsPluginAPI>): void => {
+      const nextApi = forms.size > 0 ? forms.values().next().value! : null
+      Promise.resolve().then(() => {
+        if (!disposed)
+          setApi(nextApi)
+      })
       }
     update(hook.forms)
     const unsubscribe = hook.onChange(update)

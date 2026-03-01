@@ -33,14 +33,7 @@ const hexPattern = /^#[0-9a-f]{6}$/i
  * @param next 参数 `next`用于提供当前函数执行所需的输入信息。
  * @returns 返回布尔值，用于表示条件是否成立或操作是否成功。
  */
-const /**
-       * isHexColor：执行当前功能逻辑。
-       *
-       * @param next 参数 next 的输入说明。
-       *
-       * @returns 返回当前功能的处理结果。
-       */
-  isHexColor = (next: string): boolean => hexPattern.test(next)
+const isHexColor = (next: string): boolean => hexPattern.test(next)
 
 /**
  * Color Picker：封装该模块的核心渲染与交互逻辑。

@@ -2,6 +2,7 @@ import type { ISchema } from '@moluoxixi/core'
 import type {
   DesignerFieldNode,
   LowCodeDesignerComponentDefinitions,
+  LowCodeDesignerDecoratorDefinitions,
   LowCodeDesignerRenderContext,
   MaterialItem,
 } from '@moluoxixi/plugin-lower-code-core'
@@ -10,6 +11,8 @@ import type { ReactNode } from 'react'
 export type {
   LowCodeDesignerComponentDefinition,
   LowCodeDesignerComponentDefinitions,
+  LowCodeDesignerDecoratorDefinition,
+  LowCodeDesignerDecoratorDefinitions,
   LowCodeDesignerEditableProp,
   LowCodeDesignerEditablePropEditor,
   LowCodeDesignerEditablePropOption,
@@ -42,7 +45,10 @@ export interface LowCodeDesignerProps {
   value?: unknown
   onChange?: (value: ISchema) => void
   minCanvasHeight?: number
+  disabled?: boolean
+  preview?: boolean
   previewRenderMode?: LowCodePreviewRenderMode
   renderers?: LowCodeDesignerRenderers
   componentDefinitions?: LowCodeDesignerComponentDefinitions
+  decoratorDefinitions?: LowCodeDesignerDecoratorDefinitions
 }

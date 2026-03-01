@@ -1,4 +1,4 @@
-import type { FieldPattern } from '@moluoxixi/core'
+﻿import type { FieldPattern } from '@moluoxixi/core'
 import { Alert as AAlert, Segmented as ASegmented } from 'ant-design-vue'
 import { defineComponent, h, ref } from 'vue'
 
@@ -96,14 +96,7 @@ export const StatusTabs = defineComponent({
      * @param value 参数 `value`用于提供待处理的值并参与结果计算。
      * @returns 返回当前功能模块约定的处理结果，供上层流程继续组合使用。
      */
-    const /**
-           * normalizeMode：执行当前功能逻辑。
-           *
-           * @param value 参数 value 的输入说明。
-           *
-           * @returns 返回当前功能的处理结果。
-           */
-      normalizeMode = (value: unknown): FieldPattern => {
+    const normalizeMode = (value: unknown): FieldPattern => {
         if (value === 'preview' || value === 'disabled')
           return value
         return 'editable'
@@ -174,3 +167,4 @@ export const StatusTabs = defineComponent({
     }
   },
 })
+

@@ -141,6 +141,14 @@ export const DESIGNER_CSS = `
   scrollbar-gutter: stable;
 }
 
+.cf-lc-property-fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+}
+
 .cf-lc-side-panel-header {
   display: flex;
   align-items: center;
@@ -168,6 +176,57 @@ export const DESIGNER_CSS = `
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.cf-lc-side-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.cf-lc-side-tab {
+  border: 1px solid #d5e2f3;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #f8fbff;
+  color: #64748b;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+
+.cf-lc-side-tab.is-active {
+  border-color: #93c5fd;
+  color: #1d4ed8;
+  background: #eff6ff;
+  box-shadow: 0 6px 12px rgba(37, 99, 235, 0.12);
+}
+
+.cf-lc-segment {
+  margin-top: 6px;
+  display: inline-flex;
+  border: 1px solid #d3deeb;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.cf-lc-segment-button {
+  border: 0;
+  background: transparent;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: #64748b;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+
+.cf-lc-segment-button.is-active {
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 600;
 }
 
 .cf-lc-card-head {
@@ -241,6 +300,25 @@ export const DESIGNER_CSS = `
 }
 
 .cf-lc-material-pane-form .ant-tabs-tabpane:not(.ant-tabs-tabpane-hidden) {
+  display: flex;
+  flex-direction: column;
+}
+
+.cf-lc-properties-pane-form .ant-tabs {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.cf-lc-properties-pane-form .ant-tabs-content-holder,
+.cf-lc-properties-pane-form .ant-tabs-content,
+.cf-lc-properties-pane-form .ant-tabs-tabpane {
+  min-height: 0;
+  height: 100%;
+}
+
+.cf-lc-properties-pane-form .ant-tabs-tabpane:not(.ant-tabs-tabpane-hidden) {
   display: flex;
   flex-direction: column;
 }
@@ -1089,6 +1167,17 @@ export const DESIGNER_CSS = `
   margin-bottom: 6px;
 }
 
+.cf-lc-control-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.cf-lc-control-label--compact {
+  margin-bottom: 6px;
+}
+
 .cf-lc-property-form {
   display: grid;
   gap: 8px;
@@ -1099,6 +1188,7 @@ export const DESIGNER_CSS = `
   border-radius: 10px;
   padding: 10px;
   background: #fbfdff;
+  box-shadow: 0 6px 12px rgba(15, 23, 42, 0.04);
 }
 
 .cf-lc-property-section-title {

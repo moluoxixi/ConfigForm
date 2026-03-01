@@ -8,11 +8,6 @@ import { JsonEditorModal } from './JsonEditorModal'
 const DEFAULT_STRATEGY: ImportSetValueStrategy = 'merge'
 const STRATEGY_OPTIONS: ImportSetValueStrategy[] = ['merge', 'shallow', 'replace']
 
-/**
- * ImportJsonActionProps??????
- * ???`packages/ui-antd/src/components/ImportJsonAction.tsx:11`?
- * ??????????????????????????????
- */
 export interface ImportJsonActionProps {
   buttonText?: string
   sourceTitle?: string
@@ -28,13 +23,6 @@ export interface ImportJsonActionProps {
   style?: CSSProperties
 }
 
-/**
- * merge Apply Options：负责“合并merge Apply Options”的核心实现与调用衔接。
- * 该实现会处理入参规范化、状态迁移和必要的副作用触发，确保各调用点行为一致。
- * 返回值会保持与模块契约一致的结构，便于在上层流程中进行组合、测试与问题定位。
- *
- * 说明：该注释描述 merge Apply Options 的主要职责边界，便于维护者快速理解函数在链路中的定位。
- */
 function mergeApplyOptions(
   strategy: ImportSetValueStrategy,
   importOptions: ImportJsonActionProps['importOptions'],
@@ -46,13 +34,6 @@ function mergeApplyOptions(
   }
 }
 
-/**
- * Import Json Action：负责编排该能力的主流程。
- * 该实现会统一处理参数边界、状态同步与必要副作用，避免调用方重复拼装流程。
- * 返回值遵循模块约定的数据结构，便于在复杂交互中稳定复用与排障。
- *
- * 说明：该函数聚焦于 Import Json Action 的单一职责，调用方可通过函数名快速理解输入输出语义。
- */
 export function ImportJsonAction({
   buttonText = '导入 JSON',
   sourceTitle = '选择导入 JSON 文件',
@@ -73,69 +54,46 @@ export function ImportJsonAction({
   const [previewData, setPreviewData] = useState<Record<string, unknown> | null>(null)
   const [internalStrategy, setInternalStrategy] = useState<ImportSetValueStrategy>(defaultStrategy)
   const activeStrategy = strategy ?? internalStrategy
+
   const parseOptions = useMemo(() => ({
     ...importOptions,
     strategy: activeStrategy,
   }), [activeStrategy, importOptions])
 
-  /**
-   * handleParseFile?????????????????
-   * ???`packages/ui-antd/src/components/ImportJsonAction.tsx:83`?
-   * ?????????????????????????????????
-   * ??????????????????????????
-   * @param file ?? file ????????????
-   */
-  const /**
-         * handleParseFile：处理当前分支的交互与状态同步。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * @param file 参数 file 为当前功能所需的输入信息。
-         */
-    handleParseFile = async (file: File): Promise<void> => {
-      try {
-        const parseImportJSONFile = form.parseImportJSONFile
-        if (!parseImportJSONFile) {
-          throw new Error('importPlugin is not installed.')
-        }
-        const parsed = await parseImportJSONFile(file, parseOptions)
-        setPreviewData(parsed.data)
-        setPreviewOpen(true)
-        setSourceOpen(false)
-        message.info(`JSON 解析完成：可导入 ${parsed.appliedKeys.length} 个字段`)
+  const handleParseFile = async (file: File): Promise<void> => {
+    try {
+      const parseImportJSONFile = form.parseImportJSONFile
+      if (!parseImportJSONFile) {
+        throw new Error('importPlugin is not installed.')
       }
-      catch (error) {
-        const text = error instanceof Error ? error.message : String(error)
-        message.error(`导入失败：${text}`)
-      }
+      const parsed = await parseImportJSONFile(file, parseOptions)
+      setPreviewData(parsed.data)
+      setPreviewOpen(true)
+      setSourceOpen(false)
+      message.info(`JSON 解析完成：可导入 ${parsed.appliedKeys.length} 个字段`)
     }
+    catch (error) {
+      const text = error instanceof Error ? error.message : String(error)
+      message.error(`导入失败：${text}`)
+    }
+  }
 
-  /**
-   * handleApply?????????????????
-   * ???`packages/ui-antd/src/components/ImportJsonAction.tsx:108`?
-   * ?????????????????????????????????
-   * ??????????????????????????
-   * @param nextData ?? nextData ????????????
-   */
-  const /**
-         * handleApply：处理当前分支的交互与状态同步。
-         * 功能：处理参数消化、状态变更与调用链行为同步。
-         * @param nextData 参数 nextData 为当前功能所需的输入信息。
-         */
-    handleApply = async (nextData: Record<string, unknown>): Promise<void> => {
-      try {
-        const applyImport = form.applyImport
-        if (!applyImport) {
-          throw new Error('importPlugin is not installed.')
-        }
-        const applied = applyImport(nextData, mergeApplyOptions(activeStrategy, importOptions))
-        setPreviewData(nextData)
-        setPreviewOpen(false)
-        message.success(`JSON 导入成功：已更新 ${applied.appliedKeys.length} 个字段`)
+  const handleApply = async (nextData: Record<string, unknown>): Promise<void> => {
+    try {
+      const applyImport = form.applyImport
+      if (!applyImport) {
+        throw new Error('importPlugin is not installed.')
       }
-      catch (error) {
-        const text = error instanceof Error ? error.message : String(error)
-        message.error(`导入失败：${text}`)
-      }
+      const applied = applyImport(nextData, mergeApplyOptions(activeStrategy, importOptions))
+      setPreviewData(nextData)
+      setPreviewOpen(false)
+      message.success(`JSON 导入成功：已更新 ${applied.appliedKeys.length} 个字段`)
     }
+    catch (error) {
+      const text = error instanceof Error ? error.message : String(error)
+      message.error(`导入失败：${text}`)
+    }
+  }
 
   return (
     <div className={className} style={style}>
