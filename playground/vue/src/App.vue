@@ -105,6 +105,7 @@ import { getSceneGroups, sceneRegistry } from '@playground/shared'
 import { computed, defineComponent, h, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
 import { CodeEditor, ColorPicker, CronEditor, PreviewColorPicker, SignaturePad } from './components/custom'
 import SceneRenderer from './components/SceneRenderer.vue'
+import { useHistoryFeature } from './examples/11-misc/useHistoryFeature'
 import { useI18nFeature } from './examples/11-misc/useI18nFeature'
 import { usePrintExportFeature } from './examples/11-misc/usePrintExportFeature'
 import { adapters } from './ui'
@@ -331,6 +332,7 @@ const i18nFeature = useI18nFeature(sceneConfig)
  * 该声明用于描述模块的对外契约或内部结构边界。
  */
 const printExportFeature = usePrintExportFeature(currentDemo)
+const historyFeature = useHistoryFeature(currentDemo)
 
 /**
  * scene Plugins：定义该模块复用的常量配置。
@@ -344,6 +346,8 @@ const scenePlugins = computed<FormPlugin[]>(() => {
     plugins.push(i18nPlugin)
   if (printExportFeature.plugins.value.length)
     plugins.push(...printExportFeature.plugins.value)
+  if (historyFeature.plugins.value.length)
+    plugins.push(...historyFeature.plugins.value)
   return plugins
 })
 

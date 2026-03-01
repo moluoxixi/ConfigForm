@@ -462,7 +462,7 @@ export const sceneRegistry: Record<string, { group: string, loader: () => Promis
      */
     loader: () => import('./11-advanced/VirtualScrollForm') },
 
-  /* 10-state — 状态管理（5 个） */
+  /* 10-state — 状态管理（6 个） */
   LifecycleForm: { group: '10-state', /**
                                        * 功能：处理参数消化、状态变更与调用链行为同步。
                                        * @returns 返回当前分支执行后的处理结果。
@@ -508,6 +508,10 @@ export const sceneRegistry: Record<string, { group: string, loader: () => Promis
      * @returns 返回当前分支执行后的处理结果。
      */
     loader: () => import('./09-state/FormGraphForm') },
+  UndoRedoForm: {
+    group: '10-state',
+    loader: () => import('./09-state/UndoRedoForm'),
+  },
 
   /* 11-misc — 其他能力（2 个） */
   I18nForm: { group: '11-misc', /**

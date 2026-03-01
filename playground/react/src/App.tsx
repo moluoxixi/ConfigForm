@@ -22,6 +22,7 @@ import {
   SignaturePad,
 } from './components/custom'
 import { SceneRenderer } from './components/SceneRenderer'
+import { useHistoryFeature } from './examples/11-misc/useHistoryFeature'
 import { useI18nFeature } from './examples/11-misc/useI18nFeature'
 import { usePrintExportFeature } from './examples/11-misc/usePrintExportFeature'
 
@@ -99,6 +100,7 @@ export function App(): React.ReactElement {
 
   const i18nFeature = useI18nFeature(sceneConfig)
   const printExportFeature = usePrintExportFeature(currentDemo)
+  const historyFeature = useHistoryFeature(currentDemo)
 
   const scenePlugins = useMemo<FormPlugin[]>(() => {
     const plugins: FormPlugin[] = []
@@ -106,8 +108,10 @@ export function App(): React.ReactElement {
       plugins.push(i18nFeature.plugin)
     if (printExportFeature.plugins?.length)
       plugins.push(...printExportFeature.plugins)
+    if (historyFeature.plugins?.length)
+      plugins.push(...historyFeature.plugins)
     return plugins
-  }, [i18nFeature.plugin, printExportFeature.plugins])
+  }, [historyFeature.plugins, i18nFeature.plugin, printExportFeature.plugins])
 
   const sceneHeaderExtra = useMemo(() => {
     if (!i18nFeature.headerExtra)

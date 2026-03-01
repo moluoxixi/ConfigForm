@@ -16,6 +16,7 @@
     "@moluoxixi/plugin-devtools": "workspace:*",
     "@moluoxixi/plugin-devtools-react": "workspace:*",
     "@moluoxixi/plugin-export": "workspace:*",
+    "@moluoxixi/plugin-history": "workspace:*",
     "@moluoxixi/plugin-i18n-react": "workspace:*",
     "@moluoxixi/plugin-import": "workspace:*",
     "@moluoxixi/plugin-lower-code-react": "workspace:*",
