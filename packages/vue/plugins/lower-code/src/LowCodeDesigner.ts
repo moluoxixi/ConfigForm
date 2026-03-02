@@ -6,7 +6,7 @@ import type {
   DesignerNode,
   MaterialItem,
 } from '@moluoxixi/plugin-lower-code-core'
-import type { Component, PropType, VNodeChild } from 'vue'
+import type { Component, PropType, VNodeChild, VNodeRef } from 'vue'
 import type {
   LowCodeDesignerComponentDefinition,
   LowCodeDesignerDecoratorDefinition,
@@ -932,6 +932,10 @@ export const LowCodeDesigner = defineComponent({
       type: Object as PropType<Record<string, LowCodeDesignerComponentDefinition> | undefined>,
       default: undefined,
     },
+    decoratorDefinitions: {
+      type: Object as PropType<Record<string, LowCodeDesignerDecoratorDefinition> | undefined>,
+      default: undefined,
+    },
   },
   emits: ['update:modelValue', 'focus', 'blur'],
   /**
@@ -1778,8 +1782,11 @@ export const LowCodeDesigner = defineComponent({
         },
       },
       setup(rootProps, { slots }) {
+        const rootRef: VNodeRef = (element) => {
+          rootProps.setRootRef(element as HTMLDivElement | null)
+        }
         return () => h('div', {
-          ref: (element: HTMLDivElement | null) => rootProps.setRootRef(element),
+          ref: rootRef,
           class: 'cf-lc-root',
           style: {
             width: '100%',

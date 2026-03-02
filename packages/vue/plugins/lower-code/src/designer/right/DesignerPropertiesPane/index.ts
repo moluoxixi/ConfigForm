@@ -8,12 +8,11 @@ import type {
   DesignerNode,
   DesignerSectionNode,
 } from '@moluoxixi/plugin-lower-code-core'
-import type { PropType, VNodeChild } from 'vue'
+import type { PropType, VNodeChild, VNodeRef } from 'vue'
 import type { LowCodeDesignerComponentDefinition, LowCodeDesignerDecoratorDefinition, LowCodeDesignerEditableProp } from '../../types'
 import {
   addSectionToContainer,
   containerUsesSections,
-  defaultComponentForType,
   normalizeNode,
   parseEnumDraft,
   removeSectionFromContainer,
@@ -142,6 +141,9 @@ export const DesignerPropertiesPane = defineComponent({
     const scrollHost = ref<Record<'component' | 'form', HTMLElement | null>>({ component: null, form: null })
     const lastScrollTop = ref<Record<'component' | 'form', number>>({ component: 0, form: 0 })
     const restoringScroll = ref<Record<'component' | 'form', boolean>>({ component: false, form: false })
+    const setScrollHostRef = (tab: 'component' | 'form'): VNodeRef => (element) => {
+      scrollHost.value[tab] = element as HTMLElement | null
+    }
 
     const formatJson = (value: unknown): string => {
       if (value === undefined)
@@ -311,6 +313,16 @@ export const DesignerPropertiesPane = defineComponent({
       catch {
         return { ok: false }
       }
+    }
+
+    const resolveDataSourceDraft = (value: unknown): DesignerFieldNode['dataSource'] => {
+      if (value === undefined)
+        return undefined
+      if (Array.isArray(value))
+        return value as DesignerFieldNode['dataSource']
+      if (value && typeof value === 'object')
+        return value as DesignerFieldNode['dataSource']
+      return undefined
     }
 
     const normalizeValidateTrigger = (draft: string): DesignerFieldNode['validateTrigger'] => {
@@ -1004,7 +1016,7 @@ export const DesignerPropertiesPane = defineComponent({
     const renderBody = (tab: 'component' | 'form'): VNodeChild => h('div', {
         class: 'cf-lc-side-scroll',
         style: { flex: '1 1 auto', minHeight: 0, padding: '12px' },
-        ref: (element: HTMLElement | null) => { scrollHost.value[tab] = element },
+        ref: setScrollHostRef(tab),
         onScroll: (event: Event) => {
           if (restoringScroll.value[tab])
             return
@@ -1339,7 +1351,7 @@ export const DesignerPropertiesPane = defineComponent({
                             const parsed = parseJsonDraft(dataSourceDraft.value)
                             if (!parsed.ok)
                               return
-                            props.updateField(props.selectedField!.id, field => ({ ...field, dataSource: parsed.value }))
+                            props.updateField(props.selectedField!.id, field => ({ ...field, dataSource: resolveDataSourceDraft(parsed.value) }))
                           },
                         }),
                       ]),
@@ -1380,7 +1392,7 @@ export const DesignerPropertiesPane = defineComponent({
                               return
                             }
                             if (Array.isArray(parsed.value))
-                              props.updateField(props.selectedField!.id, field => ({ ...field, rules: parsed.value }))
+                              props.updateField(props.selectedField!.id, field => ({ ...field, rules: parsed.value as DesignerFieldNode['rules'] }))
                           },
                         }),
                       ]),
@@ -1406,7 +1418,7 @@ export const DesignerPropertiesPane = defineComponent({
                               return
                             }
                             if (Array.isArray(parsed.value))
-                              props.updateField(props.selectedField!.id, field => ({ ...field, reactions: parsed.value }))
+                              props.updateField(props.selectedField!.id, field => ({ ...field, reactions: parsed.value as DesignerFieldNode['reactions'] }))
                           },
                         }),
                       ]),
@@ -1961,7 +1973,7 @@ export const DesignerPropertiesPane = defineComponent({
         : null
 
     const paneSchema = computed<ISchema>(() => {
-      const componentTab = {
+      const componentTab: ISchema = {
         type: 'void',
         componentProps: { title: '组件' },
         properties: {
@@ -1972,7 +1984,7 @@ export const DesignerPropertiesPane = defineComponent({
           },
         },
       }
-      const formTab = {
+      const formTab: ISchema = {
         type: 'void',
         componentProps: { title: '表单' },
         properties: {

@@ -68,7 +68,7 @@ export const FormDrawer = defineComponent({
       ]),
     })
   },
-}) as Component & {
+}) as unknown as Component & {
   open: (options: FormDrawerOpenOptions) => Promise<Record<string, unknown>>
 }
 

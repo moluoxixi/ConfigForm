@@ -66,7 +66,7 @@ export const FormDialog = defineComponent({
         h(SchemaField, { schema: props.schema })),
     })
   },
-}) as Component & {
+}) as unknown as Component & {
   open: (options: FormDialogOpenOptions) => Promise<Record<string, unknown>>
 }
 

@@ -66,7 +66,7 @@ export const FormDialog = defineComponent({
       ],
     })
   },
-}) as Component & {
+}) as unknown as Component & {
   open: (options: FormDialogOpenOptions) => Promise<Record<string, unknown>>
 }
 

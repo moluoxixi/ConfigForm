@@ -16,7 +16,6 @@ import type {
 import {
   addSectionToContainer,
   containerUsesSections,
-  defaultComponentForType,
   normalizeNode,
   parseEnumDraft,
   removeSectionFromContainer,
@@ -114,6 +113,31 @@ export function PropertiesPanel(props: PropertiesPanelProps): React.ReactElement
     catch {
       return { ok: false }
     }
+  }
+
+  const resolveComponentPreset = (component: DesignerFieldComponent): Record<string, unknown> => {
+    const preset = componentPropsByComponent[component]
+    if (preset && typeof preset === 'object' && !Array.isArray(preset)) {
+      return { ...preset }
+    }
+    const definitionPreset = componentDefinitions?.[component]?.defaultProps
+    if (definitionPreset && typeof definitionPreset === 'object' && !Array.isArray(definitionPreset)) {
+      return { ...definitionPreset }
+    }
+    return {}
+  }
+
+  const resolveDataSourceDraft = (value: unknown): DesignerFieldNode['dataSource'] => {
+    if (value === undefined) {
+      return undefined
+    }
+    if (Array.isArray(value)) {
+      return value as DesignerFieldNode['dataSource']
+    }
+    if (value && typeof value === 'object') {
+      return value as DesignerFieldNode['dataSource']
+    }
+    return undefined
   }
 
   const normalizeValidateTrigger = (draft: string): DesignerFieldNode['validateTrigger'] => {
@@ -792,7 +816,7 @@ export function PropertiesPanel(props: PropertiesPanelProps): React.ReactElement
                           const parsed = parseJsonDraft(dataSourceDraft)
                           if (!parsed.ok)
                             return
-                          updateField(selectedField.id, field => ({ ...field, dataSource: parsed.value }))
+                          updateField(selectedField.id, field => ({ ...field, dataSource: resolveDataSourceDraft(parsed.value) }))
                         }}
                       />
                     </label>
@@ -830,7 +854,7 @@ export function PropertiesPanel(props: PropertiesPanelProps): React.ReactElement
                             return
                           }
                           if (Array.isArray(parsed.value)) {
-                            updateField(selectedField.id, field => ({ ...field, rules: parsed.value }))
+                            updateField(selectedField.id, field => ({ ...field, rules: parsed.value as DesignerFieldNode['rules'] }))
                           }
                         }}
                       />
@@ -856,7 +880,7 @@ export function PropertiesPanel(props: PropertiesPanelProps): React.ReactElement
                             return
                           }
                           if (Array.isArray(parsed.value)) {
-                            updateField(selectedField.id, field => ({ ...field, reactions: parsed.value }))
+                            updateField(selectedField.id, field => ({ ...field, reactions: parsed.value as DesignerFieldNode['reactions'] }))
                           }
                         }}
                       />
