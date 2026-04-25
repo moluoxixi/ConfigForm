@@ -1,5 +1,5 @@
 {
-  "name": "@config-form/core",
+  "name": "@moluoxixi/config-form",
   "version": "0.1.0",
   "type": "module",
   "files": ["dist", "src/styles"],
