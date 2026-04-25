@@ -1,3 +1,5 @@
 // 外部覆盖样式入口
 // 使用方式：@use '@config-form/core/styles' with ($namespace: 'my');
 @forward './variables';
+@use './configForm.scss';
+@use './formField.scss'

@@ -1,3 +1,14 @@
 packages:
   - 'packages/*'
   - 'playgrounds/*'
+
+catalogs:
+  dev:
+    vite: "^6.2.0"
+    "@vitejs/plugin-vue": "^5.2.3"
+    sass: "^1.85.0"
+    "zod": "^3.24.2"
+  build:
+    vue: "^3.5.13"
+  type:
+    '@types/node':  "^25.6.0"

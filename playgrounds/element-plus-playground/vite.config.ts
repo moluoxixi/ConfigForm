@@ -14,11 +14,4 @@ export default defineConfig({
     AutoImport({ resolvers: [ElementPlusResolver()] }),
     Components({ resolvers: [ElementPlusResolver()] }),
   ],
-  css: {
-    preprocessorOptions: {
-      scss: {
-        additionalData: `@import "${resolve(__dirname, '../../packages/core/src/styles/variables').replace(/\\/g, '/')}";\n`,
-      },
-    },
-  },
 })

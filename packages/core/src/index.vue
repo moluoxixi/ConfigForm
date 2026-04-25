@@ -71,17 +71,3 @@ function resolveLabelWidth(): string | undefined {
     </template>
   </form>
 </template>
-
-<style lang="scss">
-.#{$namespace}-form {
-  display: grid;
-  grid-template-columns: repeat(24, 1fr);
-  gap: $--form-gap;
-
-  &--inline {
-    display: flex;
-    flex-wrap: wrap;
-    gap: $--form-inline-gap;
-  }
-}
-</style>
