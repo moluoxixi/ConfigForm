@@ -2,13 +2,14 @@
   "name": "@moluoxixi/config-form",
   "version": "0.1.0",
   "type": "module",
-  "files": ["dist", "src/styles"],
-  "main": "./dist/config-form-core.js",
-  "module": "./dist/config-form-core.js",
+  "files": ["dist", "styles", "src/styles"],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/config-form-core.js",
+      "source": "./index.ts",
+      "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
     "./styles": "./src/styles/index.scss",

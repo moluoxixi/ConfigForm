@@ -1,0 +1,3 @@
+// 转发所有可配置的 scss 变量和样式
+// 使用方：@use '@moluoxixi/config-form/styles' with ($namespace: 'your-ns')
+@forward '../src/styles';

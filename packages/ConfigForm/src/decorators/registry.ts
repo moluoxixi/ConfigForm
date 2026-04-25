@@ -1,4 +1,4 @@
-import type { FieldDef } from '../types'
+import type { FieldConfig } from '../types'
 
 /**
  * 装饰器元数据注册表。
@@ -8,7 +8,7 @@ import type { FieldDef } from '../types'
  *
  * 使用 WeakMap，不持有类引用，GC 友好，无需 reflect-metadata。
  */
-const _registry = new WeakMap<Function, FieldDef[]>()
+const _registry = new WeakMap<Function, FieldConfig[]>()
 
 /**
  * 向指定构造函数注册一个字段元数据。
@@ -17,7 +17,7 @@ const _registry = new WeakMap<Function, FieldDef[]>()
  * @param ctor   类的构造函数（`target.constructor`）
  * @param meta   完整的 FieldDef（field 已被注入为属性名）
  */
-export function _registerField(ctor: Function, meta: FieldDef): void {
+export function _registerField(ctor: Function, meta: FieldConfig): void {
   if (!_registry.has(ctor)) {
     _registry.set(ctor, [])
   }
@@ -32,8 +32,8 @@ export function _registerField(ctor: Function, meta: FieldDef): void {
  *
  * @param ctor 目标构造函数
  */
-export function _getFields(ctor: Function): FieldDef[] {
-  const chain: FieldDef[][] = []
+export function _getFields(ctor: Function): FieldConfig[] {
+  const chain: FieldConfig[][] = []
 
   let current: Function | null = ctor
   while (current && current !== Function.prototype && current !== Object.prototype) {
@@ -45,7 +45,7 @@ export function _getFields(ctor: Function): FieldDef[] {
   }
 
   // 展平并按 field 去重（子类靠后，覆盖父类同名字段）
-  const merged = new Map<string, FieldDef>()
+  const merged = new Map<string, FieldConfig>()
   for (const layer of chain) {
     for (const def of layer) {
       merged.set(def.field, def)

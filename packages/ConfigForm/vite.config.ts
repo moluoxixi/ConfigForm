@@ -16,7 +16,7 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, 'index.ts'),
       name: 'ConfigForm',
-      fileName: 'config-form',
+      fileName: 'index',
     },
     rollupOptions: {
       external: ['vue', 'zod'],

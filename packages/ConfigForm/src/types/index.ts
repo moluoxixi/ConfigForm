@@ -19,9 +19,9 @@ export type FunctionalFieldComponent = (
 export type FormValues = Record<string, any>
 export type ValidateTrigger = 'submit' | 'blur' | 'change'
 
-// ===== FieldInput：FieldDef 构造参数（内部类型，不对外暴露）=====
+// ===== FieldConfig：FieldDef 构造参数（输入协议）=====
 
-interface FieldInput {
+export interface FieldConfig {
   field: string
   label?: string
   type?: ZodTypeAny
@@ -60,7 +60,7 @@ export class FieldDef {
   readonly disabled?: (values: FormValues) => boolean
   readonly transform?: (value: any, allValues: FormValues) => any
 
-  constructor(input: FieldInput) {
+  constructor(input: FieldConfig) {
     this.field = input.field
     this.label = input.label
     this.type = input.type
@@ -114,7 +114,7 @@ export function defineField<C extends Component | FunctionalFieldComponent>(conf
   disabled?: (values: FormValues) => boolean
   transform?: (value: any, allValues: FormValues) => any
 }): FieldDef {
-  return new FieldDef(config as FieldInput)
+  return new FieldDef(config as FieldConfig)
 }
 
 // ===== 表单组件类型 =====

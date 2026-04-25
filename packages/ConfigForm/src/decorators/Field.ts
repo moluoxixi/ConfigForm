@@ -1,4 +1,4 @@
-import type { FieldDef } from '@/types'
+import type { FieldDef, FieldConfig } from '@/types'
 import { _registerField } from './registry'
 
 /**
@@ -28,9 +28,9 @@ import { _registerField } from './registry'
  * }
  * ```
  *
- * @param config  除 `field` 外的所有 FieldDef 字段（field 由属性名自动注入）
+ * @param config  除 `field` 外的所有 FieldConfig 字段（field 由属性名自动注入）
  */
-export function Field(config: Omit<FieldDef, 'field'>): PropertyDecorator {
+export function Field(config: Omit<FieldConfig, 'field'>): PropertyDecorator {
   return function (target: object, propertyKey: string | symbol): void {
     // target 是类的原型（prototype），不是实例
     const ctor = (target as any).constructor as Function
@@ -39,6 +39,6 @@ export function Field(config: Omit<FieldDef, 'field'>): PropertyDecorator {
     _registerField(ctor, {
       ...config,
       field: fieldName,
-    } as FieldDef)
+    } as FieldConfig)
   }
 }
