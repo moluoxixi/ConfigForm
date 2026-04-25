@@ -1,5 +1,5 @@
 import type { ZodTypeAny } from 'zod'
-import type { FieldDef, FormErrors } from './types'
+import type { FieldDef, FormErrors } from '../types'
 
 /**
  * 校验单个字段

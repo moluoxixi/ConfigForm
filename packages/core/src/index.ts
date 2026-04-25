@@ -1,9 +1,8 @@
-export { default as ConfigForm } from './ConfigForm.vue'
-export { default as FormField } from './FormField.vue'
-export { useForm } from './useForm'
-export { useNamespace, useBem, provideNamespace } from './useNamespace'
+export { default as ConfigForm } from './index.vue'
+export { useForm } from './composables/useForm'
+export type { UseFormOptions } from './composables/useForm'
+export { provideNamespace, useBem, useNamespace } from './composables/useNamespace'
 export { defineField } from './types'
-
 export type {
   ConfigFormEmits,
   ConfigFormExpose,
@@ -12,5 +11,3 @@ export type {
   FormErrors,
   FunctionalFieldComponent,
 } from './types'
-
-export type { UseFormOptions } from './useForm'

@@ -11,6 +11,7 @@
       "import": "./dist/config-form-core.js",
       "types": "./dist/index.d.ts"
     },
+    "./styles": "./src/styles/index.scss",
     "./styles/*": "./src/styles/*"
   },
   "sideEffects": ["**/*.scss", "**/*.css"],

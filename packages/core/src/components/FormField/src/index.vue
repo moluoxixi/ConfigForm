@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { FieldDef } from './types'
-import { useBem, useNamespace } from './useNamespace'
+import type { FieldDef } from '../../../types'
+import { useBem, useNamespace } from '../../../composables/useNamespace'
 
 const props = defineProps<{
   field: FieldDef

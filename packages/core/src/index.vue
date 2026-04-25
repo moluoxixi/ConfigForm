@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { toRef } from 'vue'
 import type { ConfigFormEmits, ConfigFormExpose, ConfigFormProps } from './types'
-import FormField from './FormField.vue'
-import { useForm } from './useForm'
-import { provideNamespace, useBem, useNamespace } from './useNamespace'
+import FormField from './components/FormField'
+import { useForm } from './composables/useForm'
+import { provideNamespace, useBem, useNamespace } from './composables/useNamespace'
 
 const props = withDefaults(defineProps<ConfigFormProps>(), {
   namespace: 'cf',

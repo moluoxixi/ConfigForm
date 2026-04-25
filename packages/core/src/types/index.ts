@@ -44,7 +44,6 @@ export function defineField<C extends Component | FunctionalFieldComponent>(conf
   span?: number
   component: C
   props?: ExtractComponentProps<C>
-  label?: string
 }): FieldDef {
   return config as FieldDef
 }
