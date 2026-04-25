@@ -7,7 +7,7 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@config-form/core": "workspace:*",
+    "@moluoxixi/config-form": "workspace:*",
     "element-plus": "^2.9.1",
     "vue": "catalog:build",
     "zod": "catalog:dev"

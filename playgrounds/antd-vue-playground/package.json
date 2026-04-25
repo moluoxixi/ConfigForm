@@ -7,7 +7,7 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@config-form/core": "workspace:*",
+    "@moluoxixi/config-form": "workspace:*",
     "ant-design-vue": "^4.2.6",
     "vue": "catalog:build",
     "zod": "catalog:dev"

@@ -1,7 +1,7 @@
 import type { Ref } from 'vue'
-import { reactive, ref, watch } from 'vue'
-import type { FieldDef, FormErrors } from '../types'
-import { validateForm } from '../utils/validate'
+import { computed, reactive, ref, watch } from 'vue'
+import type { FieldDef, FormErrors, FormValues, ValidateTrigger } from '@/types'
+import { validateField, validateForm } from '@/utils/validate'
 
 export interface UseFormOptions {
   fields: Ref<FieldDef[]>
@@ -13,83 +13,113 @@ export interface UseFormOptions {
 export function useForm(options: UseFormOptions) {
   const { fields, initialValues, onSubmit, onError } = options
 
-  // 响应式表单值
-  const values = reactive<Record<string, any>>({})
-
-  // 响应式错误
+  const values = reactive<FormValues>({})
   const errors = ref<FormErrors>({})
 
-  // 初始化 values
+  // ── 初始化 ───────────────────────────────────────────────────
+
   function initValues() {
-    // 清空旧值
     for (const key of Object.keys(values))
       delete values[key]
-
-    // 从 fields 初始化默认值
     for (const field of fields.value)
-      values[field.field] = undefined
-
-    // 覆盖初始值
+      values[field.field] = field.defaultValue !== undefined ? field.defaultValue : undefined
     if (initialValues) {
       for (const [key, val] of Object.entries(initialValues))
         values[key] = val
     }
   }
 
-  // 字段变化时重新初始化
-  watch(fields, initValues, { immediate: true, deep: true })
+  watch(fields, initValues, { immediate: true, deep: false })
 
-  /** 设置指定字段值 */
+  // ── 动态状态 ─────────────────────────────────────────────────
+
+  const visibilityMap = computed<Record<string, boolean>>(() => {
+    const snap = { ...values }
+    return Object.fromEntries(fields.value.map(f => [f.field, f.isVisible(snap)]))
+  })
+
+  const disabledMap = computed<Record<string, boolean>>(() => {
+    const snap = { ...values }
+    return Object.fromEntries(fields.value.map(f => [f.field, f.isDisabled(snap)]))
+  })
+
+  // ── 值操作 ───────────────────────────────────────────────────
+
   function setValue(field: string, value: any) {
     values[field] = value
-    // 清除该字段的错误
     if (errors.value[field]) {
-      const newErrors = { ...errors.value }
-      delete newErrors[field]
-      errors.value = newErrors
+      const next = { ...errors.value }
+      delete next[field]
+      errors.value = next
     }
   }
 
-  /** 获取指定字段值 */
   function getValue(field: string): any {
     return values[field]
   }
 
-  /** 校验所有字段，返回是否通过 */
-  async function validate(): Promise<boolean> {
-    const formErrors = validateForm({ ...values }, fields.value)
-    errors.value = formErrors
+  // ── 校验 ─────────────────────────────────────────────────────
 
+  async function validateSingleField(fieldName: string, trigger: ValidateTrigger): Promise<boolean> {
+    const field = fields.value.find(f => f.field === fieldName)
+    if (!field?.type)
+      return true
+
+    const snap = { ...values }
+
+    if (!field.isVisible(snap) || field.isDisabled(snap)) {
+      if (errors.value[fieldName]) {
+        const next = { ...errors.value }
+        delete next[fieldName]
+        errors.value = next
+      }
+      return true
+    }
+
+    if (!field.shouldValidateOn(trigger))
+      return true
+
+    const fieldErrors = validateField(snap[fieldName], field.type, snap)
+    errors.value = fieldErrors.length > 0
+      ? { ...errors.value, [fieldName]: fieldErrors }
+      : (({ [fieldName]: _, ...rest }) => rest)(errors.value)
+
+    return fieldErrors.length === 0
+  }
+
+  async function validate(): Promise<boolean> {
+    const formErrors = validateForm({ ...values }, fields.value, 'submit')
+    errors.value = formErrors
     if (Object.keys(formErrors).length > 0) {
       onError?.(formErrors)
       return false
     }
-
     return true
   }
 
-  /** 提交：先校验，通过触发 onSubmit，失败触发 onError */
+  // ── 提交 ─────────────────────────────────────────────────────
+
   async function submit(): Promise<boolean> {
-    const isValid = await validate()
-    if (isValid) {
-      onSubmit?.({ ...values })
+    if (!await validate())
+      return false
+
+    const snap = { ...values }
+    const submitValues: FormValues = {}
+    for (const field of fields.value) {
+      if (!field.isVisible(snap) || field.isDisabled(snap))
+        continue
+      submitValues[field.field] = field.applyTransform(snap[field.field], snap)
     }
-    return isValid
+    onSubmit?.(submitValues)
+    return true
   }
 
-  /** 重置表单值和错误 */
+  // ── 重置 ─────────────────────────────────────────────────────
+
   function reset() {
     initValues()
     errors.value = {}
   }
 
-  return {
-    values,
-    errors,
-    validate,
-    submit,
-    reset,
-    setValue,
-    getValue,
-  }
+  return { values, errors, visibilityMap, disabledMap, validate, validateSingleField, submit, reset, setValue, getValue }
 }

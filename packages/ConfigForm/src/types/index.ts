@@ -1,42 +1,106 @@
 import type { ZodTypeAny } from 'zod'
 import type { Component, SetupContext, VNode } from 'vue'
 
-// ===== Props 提取工具类型 =====
+// ===== 工具类型（内部）=====
 
-/** 从 Vue 组件类型中提取 $props */
 type ExtractComponentProps<C> = C extends new (...args: any[]) => { $props: infer P }
   ? P
   : C extends (props: infer P, context: any) => any
     ? P
     : Record<string, any>
 
-// ===== 函数式组件类型 =====
+// ===== 公共类型 =====
 
-/** 函数式字段组件：接收 props（含 modelValue）和 context，返回 VNode */
 export type FunctionalFieldComponent = (
   props: { modelValue?: any; [key: string]: any },
   context: SetupContext
 ) => VNode
 
-// ===== 字段定义 =====
+export type FormValues = Record<string, any>
+export type ValidateTrigger = 'submit' | 'blur' | 'change'
 
-/** 运行时字段定义 */
-export interface FieldDef {
-  /** 字段标识，作为表单值的 key 和校验错误的索引 */
+// ===== FieldInput：FieldDef 构造参数（内部类型，不对外暴露）=====
+
+interface FieldInput {
   field: string
-  /** 字段标签文本 */
   label?: string
-  /** Zod schema，用于校验 */
   type?: ZodTypeAny
-  /** 栅格占比（仅非 inline 模式），默认 24 */
   span?: number
-  /** 渲染组件：Vue 组件对象 / 函数式组件 / 全局注册组件名 */
   component: Component | FunctionalFieldComponent | string
-  /** 传递给 component 的 props */
   props?: Record<string, any>
+  defaultValue?: any
+  validateOn?: ValidateTrigger | ValidateTrigger[]
+  visible?: (values: FormValues) => boolean
+  disabled?: (values: FormValues) => boolean
+  transform?: (value: any, allValues: FormValues) => any
 }
 
-/** 泛型 defineField 辅助函数 —— 纯类型推导工具，运行时零开销 */
+// ===== FieldDef：内部字段协议，唯一的 field 表示 =====
+
+/**
+ * 字段定义。这是系统中字段的唯一表示形式。
+ *
+ * 通过两种方式创建，结果等价：
+ * - `defineField({ field, component, ... })`
+ * - `@Field({ component, ... }) fieldName` + `toFields(MyClass)`
+ *
+ * 构造时自动规范化 validateOn 为含 'submit' 的数组。
+ */
+export class FieldDef {
+  readonly field: string
+  readonly label?: string
+  readonly type?: ZodTypeAny
+  readonly span?: number
+  readonly component: Component | FunctionalFieldComponent | string
+  readonly props?: Record<string, any>
+  readonly defaultValue?: any
+  /** 规范化后的校验时机，始终包含 'submit' */
+  readonly validateOn: ValidateTrigger[]
+  readonly visible?: (values: FormValues) => boolean
+  readonly disabled?: (values: FormValues) => boolean
+  readonly transform?: (value: any, allValues: FormValues) => any
+
+  constructor(input: FieldInput) {
+    this.field = input.field
+    this.label = input.label
+    this.type = input.type
+    this.span = input.span
+    this.component = input.component
+    this.props = input.props
+    this.defaultValue = input.defaultValue
+    this.visible = input.visible
+    this.disabled = input.disabled
+    this.transform = input.transform
+
+    const on = input.validateOn
+    if (!on) {
+      this.validateOn = ['submit']
+    }
+    else {
+      const arr = Array.isArray(on) ? on : [on]
+      this.validateOn = arr.includes('submit') ? arr : [...arr, 'submit']
+    }
+  }
+
+  shouldValidateOn(trigger: ValidateTrigger): boolean {
+    return this.validateOn.includes(trigger)
+  }
+
+  isVisible(values: FormValues): boolean {
+    return this.visible ? this.visible(values) : true
+  }
+
+  isDisabled(values: FormValues): boolean {
+    return this.disabled ? this.disabled(values) : false
+  }
+
+  applyTransform(value: any, allValues: FormValues): any {
+    return this.transform ? this.transform(value, allValues) : value
+  }
+}
+
+// ===== defineField：带组件 props 类型推导的工厂函数 =====
+
 export function defineField<C extends Component | FunctionalFieldComponent>(config: {
   field: string
   label?: string
@@ -44,43 +108,37 @@ export function defineField<C extends Component | FunctionalFieldComponent>(conf
   span?: number
   component: C
   props?: ExtractComponentProps<C>
+  defaultValue?: any
+  validateOn?: ValidateTrigger | ValidateTrigger[]
+  visible?: (values: FormValues) => boolean
+  disabled?: (values: FormValues) => boolean
+  transform?: (value: any, allValues: FormValues) => any
 }): FieldDef {
-  return config as FieldDef
+  return new FieldDef(config as FieldInput)
 }
 
 // ===== 表单组件类型 =====
 
-/** ConfigForm 组件 Props */
 export interface ConfigFormProps {
-  /** 命名空间前缀，影响 CSS 类名，默认 'cf' */
   namespace?: string
-  /** 行内布局模式 */
   inline?: boolean
-  /** 字段配置数组 */
+  /** 必须为 FieldDef 实例数组，通过 defineField() 或 toFields() 创建 */
   fields: FieldDef[]
-  /** 标签统一宽度，支持 string（如 '100px'）或 number（自动加 px） */
   labelWidth?: string | number
-  /** 表单初始值 */
   initialValues?: Record<string, any>
 }
 
-/** ConfigForm 组件 Emits */
 export interface ConfigFormEmits {
   (e: 'submit', values: Record<string, any>): void
   (e: 'error', errors: FormErrors): void
 }
 
-/** ConfigForm 组件 Expose */
 export interface ConfigFormExpose {
-  /** 提交：先校验，通过 emit submit，失败 emit error */
   submit: () => Promise<boolean>
-  /** 校验：失败 emit error */
   validate: () => Promise<boolean>
-  /** 重置表单值和错误 */
   reset: () => void
 }
 
-/** 校验错误映射：field → 错误消息数组 */
 export interface FormErrors {
   [field: string]: string[]
 }

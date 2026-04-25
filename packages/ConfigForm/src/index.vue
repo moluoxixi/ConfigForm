@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { toRef, computed } from 'vue'
-import type { ConfigFormEmits, ConfigFormExpose, ConfigFormProps } from './types'
-import FormField from './components/FormField'
-import { useForm } from './composables/useForm'
-import { useBem, provideNamespace } from './composables/useNamespace'
+import type { ConfigFormEmits, ConfigFormExpose, ConfigFormProps } from '@/types'
+import FormField from '@/components/FormField'
+import { useForm } from '@/composables/useForm'
+import { useBem, provideNamespace } from '@/composables/useNamespace'
 
 const props = withDefaults(defineProps<ConfigFormProps>(), {
   namespace: 'cf',
@@ -11,39 +11,19 @@ const props = withDefaults(defineProps<ConfigFormProps>(), {
 
 const emit = defineEmits<ConfigFormEmits>()
 
-// 提供响应式命名空间给子组件
 const namespaceRef = computed(() => props.namespace)
 provideNamespace(namespaceRef)
-
-// ConfigForm 本身直接使用 props.namespace，不从 inject 获取
 const { b, m } = useBem(namespaceRef)
 
-const fieldsRef = toRef(props, 'fields')
-
-const { values, errors, validate, submit, reset, setValue } = useForm({
-  fields: fieldsRef,
+const { values, errors, visibilityMap, disabledMap, validate, validateSingleField, submit, reset, setValue } = useForm({
+  fields: toRef(props, 'fields'),
   initialValues: props.initialValues,
-  onSubmit: (vals) => {
-    emit('submit', vals)
-  },
-  onError: (errs) => {
-    emit('error', errs)
-  },
+  onSubmit: vals => emit('submit', vals),
+  onError: errs => emit('error', errs),
 })
 
-defineExpose<ConfigFormExpose>({
-  submit,
-  validate,
-  reset,
-})
+defineExpose<ConfigFormExpose>({ submit, validate, reset })
 
-/** 原生 form 提交拦截 */
-function onFormSubmit(e: Event) {
-  e.preventDefault()
-  submit()
-}
-
-/** 解析 labelWidth 为 CSS 值 */
 function resolveLabelWidth(): string | undefined {
   if (!props.labelWidth)
     return undefined
@@ -54,7 +34,7 @@ function resolveLabelWidth(): string | undefined {
 <template>
   <form
     :class="[b('form'), { [m('form', 'inline')]: inline }]"
-    @submit="onFormSubmit"
+    @submit.prevent="submit()"
   >
     <template v-for="field in fields" :key="field.field">
       <FormField
@@ -63,7 +43,11 @@ function resolveLabelWidth(): string | undefined {
         :error="errors[field.field]"
         :inline="inline"
         :label-width="resolveLabelWidth()"
+        :visible="visibilityMap[field.field]"
+        :disabled="disabledMap[field.field]"
         @update:model-value="(val: any) => setValue(field.field, val)"
+        @blur="(name: string) => validateSingleField(name, 'blur')"
+        @change="(name: string) => validateSingleField(name, 'change')"
       >
         <template #error="slotProps">
           <slot name="field-error" v-bind="slotProps" />

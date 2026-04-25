@@ -1,41 +1,44 @@
 import type { ZodTypeAny } from 'zod'
-import type { FieldDef, FormErrors } from '../types'
+import type { FieldDef, FormErrors, FormValues, ValidateTrigger } from '@/types'
 
 /**
- * 校验单个字段
- * @returns 错误消息数组，空数组表示通过
+ * 校验单个字段值（纯 Zod 调用）。
+ * @param allValues 当前表单全量值，供跨字段 Zod superRefine 使用（预留）
  */
 export function validateField(
   value: any,
   schema: ZodTypeAny,
+  _allValues?: FormValues,
 ): string[] {
   const result = schema.safeParse(value)
   if (result.success)
     return []
-
-  return result.error.issues.map(issue =>
-    issue.message || `Validation failed for path: ${issue.path.join('.')}`,
-  )
+  return result.error.issues.map(i => i.message || `Validation failed: ${i.path.join('.')}`)
 }
 
 /**
- * 校验整个表单
- * 逐字段执行 Zod safeParse，收集所有错误
+ * 校验整个表单（按触发时机过滤）。
+ * 跳过逻辑已内聚于 FieldDef 方法，此处只做遍历。
  */
 export function validateForm(
-  values: Record<string, any>,
+  values: FormValues,
   fields: FieldDef[],
+  trigger: ValidateTrigger = 'submit',
 ): FormErrors {
   const errors: FormErrors = {}
-
   for (const field of fields) {
     if (!field.type)
       continue
+    if (!field.isVisible(values))
+      continue
+    if (field.isDisabled(values))
+      continue
+    if (!field.shouldValidateOn(trigger))
+      continue
 
-    const fieldErrors = validateField(values[field.field], field.type)
-    if (fieldErrors.length > 0)
-      errors[field.field] = fieldErrors
+    const errs = validateField(values[field.field], field.type, values)
+    if (errs.length > 0)
+      errors[field.field] = errs
   }
-
   return errors
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { FieldDef } from '../../../types'
-import { useBem, useNamespace } from '../../../composables/useNamespace'
+import type { FieldDef } from '@/types'
+import { useBem, useNamespace } from '@/composables/useNamespace'
 
 const props = defineProps<{
   field: FieldDef
@@ -8,10 +8,16 @@ const props = defineProps<{
   error?: string[]
   inline?: boolean
   labelWidth?: string | number
+  /** 由父层 visibilityMap 计算传入 */
+  visible?: boolean
+  /** 由父层 disabledMap 计算传入 */
+  disabled?: boolean
 }>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: any]
+  'blur': [field: string]
+  'change': [field: string]
 }>()
 
 const ns = useNamespace()
@@ -19,9 +25,13 @@ const { b, e, m } = useBem(ns)
 
 function onInput(value: any) {
   emit('update:modelValue', value)
+  emit('change', props.field.field)
 }
 
-/** 解析 labelWidth 为 CSS 值 */
+function onBlur() {
+  emit('blur', props.field.field)
+}
+
 function resolveLabelWidth(): string | undefined {
   if (!props.labelWidth)
     return undefined
@@ -31,10 +41,10 @@ function resolveLabelWidth(): string | undefined {
 
 <template>
   <div
+    v-if="visible !== false"
     :class="[b('field'), { [m('field', 'inline')]: inline }]"
     :style="!inline && field.span ? { gridColumn: `span ${field.span}` } : undefined"
   >
-    <!-- Label -->
     <label
       v-if="field.label"
       :class="e('field', 'label')"
@@ -43,16 +53,16 @@ function resolveLabelWidth(): string | undefined {
       {{ field.label }}
     </label>
 
-    <!-- 控件区域 -->
     <div :class="e('field', 'control')">
       <component
         :is="field.component"
         v-bind="field.props"
         :model-value="modelValue"
+        :disabled="disabled || undefined"
         @update:model-value="onInput"
+        @blur="onBlur"
       />
 
-      <!-- 错误信息 slot -->
       <slot name="error" :error="error" :field="field">
         <div v-if="error?.length" :class="e('field', 'error')">
           <span v-for="(msg, i) in error" :key="i">{{ msg }}</span>

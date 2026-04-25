@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { z } from 'zod'
-import { ConfigForm, defineField } from '@config-form/core'
+import { ConfigForm, defineField } from '@moluoxixi/config-form'
 
 const formRef = ref()
 
