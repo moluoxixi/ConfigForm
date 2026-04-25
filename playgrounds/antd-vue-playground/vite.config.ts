@@ -10,8 +10,7 @@ export default defineConfig({
   css: {
     preprocessorOptions: {
       scss: {
-        // 注入 core 包的 SCSS 变量，playground 中可覆盖 $namespace
-        additionalData: `@import "${resolve(__dirname, '../packages/core/src/styles/variables').replace(/\\/g, '/')}";\n`,
+        additionalData: `@import "${resolve(__dirname, '../../packages/core/src/styles/variables').replace(/\\/g, '/')}";\n`,
       },
     },
   },
