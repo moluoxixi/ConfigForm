@@ -1,0 +1,4 @@
+// 自定义命名空间配置
+@use '@config-form/core/styles' with (
+  $namespace: 'moluoxixi'
+);

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { toRef } from 'vue'
+import { toRef, computed } from 'vue'
 import type { ConfigFormEmits, ConfigFormExpose, ConfigFormProps } from './types'
 import FormField from './components/FormField'
 import { useForm } from './composables/useForm'
-import { provideNamespace, useBem, useNamespace } from './composables/useNamespace'
+import { useBem, provideNamespace } from './composables/useNamespace'
 
 const props = withDefaults(defineProps<ConfigFormProps>(), {
   namespace: 'cf',
@@ -11,11 +11,12 @@ const props = withDefaults(defineProps<ConfigFormProps>(), {
 
 const emit = defineEmits<ConfigFormEmits>()
 
-// 提供命名空间给子组件
-provideNamespace(props.namespace)
+// 提供响应式命名空间给子组件
+const namespaceRef = computed(() => props.namespace)
+provideNamespace(namespaceRef)
 
-const ns = useNamespace()
-const { b, m } = useBem(ns)
+// ConfigForm 本身直接使用 props.namespace，不从 inject 获取
+const { b, m } = useBem(namespaceRef)
 
 const fieldsRef = toRef(props, 'fields')
 

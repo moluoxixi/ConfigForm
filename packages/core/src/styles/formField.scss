@@ -1,9 +1,9 @@
-@use './variables.scss';
+@use './variables' as *;
 
 .#{$namespace}-field {
   display: flex;
   align-items: flex-start;
-  gap: $--field-gap;
+  gap: $field-gap;
 
   &--inline {
     display: inline-flex;
@@ -13,8 +13,8 @@
 
   &__label {
     flex-shrink: 0;
-    font-size: $--label-font-size;
-    line-height: $--label-line-height;
+    font-size: $label-font-size;
+    line-height: $label-line-height;
     text-align: right;
     white-space: nowrap;
   }
@@ -29,10 +29,10 @@
   }
 
   &__error {
-    margin-top: $--error-margin-top;
-    font-size: $--error-font-size;
-    color: $--error-color;
-    line-height: $--error-line-height;
+    margin-top: $error-margin-top;
+    font-size: $error-font-size;
+    color: $error-color;
+    line-height: $error-line-height;
 
     span {
       display: block;

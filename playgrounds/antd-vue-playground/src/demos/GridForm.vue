@@ -60,6 +60,7 @@ function onError(errors: Record<string, string[]>) {
   <div>
     <ConfigForm
       ref="formRef"
+      namespace="moluoxixi"
       :fields="fields"
       label-width="80px"
       @submit="onSubmit"

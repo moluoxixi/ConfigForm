@@ -1,14 +1,14 @@
-import { computed, inject, provide, type ComputedRef } from 'vue'
+import { computed, inject, provide, toValue, type ComputedRef, type Ref } from 'vue'
 
 const NAMESPACE_KEY = Symbol('config-form-namespace')
 
 /** 默认命名空间 */
 const DEFAULT_NAMESPACE = 'cf'
 
-/** 提供命名空间（ConfigForm 调用） */
-export function provideNamespace(ns: string | undefined) {
-  const namespace = computed(() => ns || DEFAULT_NAMESPACE)
-  provide(NAMESPACE_KEY, namespace)
+/** 提供命名空间（父组件调用） */
+export function provideNamespace(namespace: string | Ref<string> | ComputedRef<string>) {
+  const ns = computed(() => toValue(namespace) || DEFAULT_NAMESPACE)
+  provide(NAMESPACE_KEY, ns)
 }
 
 /** 注入命名空间（FormField 调用） */

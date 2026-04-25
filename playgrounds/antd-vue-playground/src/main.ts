@@ -3,7 +3,7 @@ import Antd from 'ant-design-vue'
 import 'ant-design-vue/dist/reset.css'
 import App from './App.vue'
 
-import '@config-form/core/styles'
+import './styles/config-form.scss'
 
 const app = createApp(App)
 app.use(Antd)

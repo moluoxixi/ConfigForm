@@ -2,16 +2,16 @@
 $namespace: 'cf' !default;
 
 // 间距
-$--form-gap: 16px 8px !default;
-$--form-inline-gap: 8px 16px !default;
-$--field-gap: 8px !default;
+$form-gap: 16px 8px !default;
+$form-inline-gap: 8px 16px !default;
+$field-gap: 8px !default;
 
 // Label
-$--label-font-size: 14px !default;
-$--label-line-height: 32px !default;
+$label-font-size: 14px !default;
+$label-line-height: 32px !default;
 
 // Error
-$--error-font-size: 12px !default;
-$--error-color: #f56c6c !default;
-$--error-line-height: 1.4 !default;
-$--error-margin-top: 4px !default;
+$error-font-size: 12px !default;
+$error-color: #f56c6c !default;
+$error-line-height: 1.4 !default;
+$error-margin-top: 4px !default;
