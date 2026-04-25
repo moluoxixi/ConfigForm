@@ -1,0 +1,19 @@
+{
+  "name": "@config-form/playground",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@config-form/core": "workspace:*",
+    "vue": "^3.5.13",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.3",
+    "sass": "^1.85.0",
+    "vite": "^6.2.0"
+  }
+}
