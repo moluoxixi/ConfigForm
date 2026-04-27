@@ -1,5 +1,6 @@
 import type { ZodTypeAny } from 'zod'
-import type { FieldDef, FormErrors, FormValues, ValidateTrigger } from '@/types'
+import type { FormErrors, FormValues, ValidateTrigger } from '@/types'
+import type { FieldDef } from '@/models/FieldDef'
 
 /**
  * 校验单个字段值（纯 Zod 调用）。

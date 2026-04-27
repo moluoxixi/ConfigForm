@@ -1,6 +1,7 @@
 import type { Ref } from 'vue'
 import { computed, reactive, ref, watch } from 'vue'
-import type { FieldDef, FormErrors, FormValues, ValidateTrigger } from '@/types'
+import type { FormErrors, FormValues, ValidateTrigger } from '@/types'
+import type { FieldDef } from '@/models/FieldDef'
 import { validateField, validateForm } from '@/utils/validate'
 
 export interface UseFormOptions {

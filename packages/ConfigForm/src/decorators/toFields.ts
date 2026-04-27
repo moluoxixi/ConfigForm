@@ -1,4 +1,4 @@
-import { FieldDef } from '@/types'
+import { FieldDef } from '@/models/FieldDef'
 import type { FieldConfig } from '@/types'
 import { _getFields } from './registry'
 

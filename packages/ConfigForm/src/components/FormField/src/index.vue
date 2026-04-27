@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FieldDef } from '@/types'
+import type { FieldDef } from '@/models/FieldDef'
 import { useBem, useNamespace } from '@/composables/useNamespace'
 
 const props = defineProps<{
@@ -57,10 +57,10 @@ function resolveLabelWidth(): string | undefined {
       <component
         :is="field.component"
         v-bind="field.props"
-        :model-value="modelValue"
-        :disabled="disabled || undefined"
-        @update:model-value="onInput"
+        :[field.valueProp]="modelValue"
+        @[field.trigger]="onInput"
         @blur="onBlur"
+        :disabled="disabled || undefined"
       />
 
       <slot name="error" :error="error" :field="field">

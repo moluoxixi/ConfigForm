@@ -5,7 +5,7 @@
   "scripts": {
     "dev:ep": "pnpm -C playgrounds/element-plus-playground dev",
     "dev:antd": "pnpm -C playgrounds/antd-vue-playground dev",
-    "build": "pnpm -C packages/core build",
+    "build": "pnpm -C packages/ConfigForm build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },

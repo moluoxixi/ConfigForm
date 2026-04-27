@@ -1,4 +1,4 @@
-import type { FieldDef, FieldConfig } from '@/types'
+import type { FieldConfig } from '@/types'
 import { _registerField } from './registry'
 
 /**

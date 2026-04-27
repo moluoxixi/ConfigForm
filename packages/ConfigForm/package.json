@@ -2,7 +2,11 @@
   "name": "@moluoxixi/config-form",
   "version": "0.1.0",
   "type": "module",
-  "files": ["dist", "styles", "src/styles"],
+  "files": [
+    "dist",
+    "styles",
+    "src/styles"
+  ],
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -15,7 +19,10 @@
     "./styles": "./src/styles/index.scss",
     "./styles/*": "./src/styles/*"
   },
-  "sideEffects": ["**/*.scss", "**/*.css"],
+  "sideEffects": [
+    "**/*.scss",
+    "**/*.css"
+  ],
   "scripts": {
     "build": "vite build && vue-tsc --declaration --emitDeclarationOnly --outDir dist",
     "dev": "vite build --watch"

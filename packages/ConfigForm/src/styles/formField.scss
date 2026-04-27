@@ -26,6 +26,18 @@
   &__control {
     flex: 1;
     min-width: 0;
+
+    /* 非内联模式下，默认让内部组件撑满控制区（解决 Select 等组件在 Grid 模式下宽度不足的问题） */
+    > :first-child {
+      width: 100%;
+    }
+  }
+
+  &--inline &__control {
+    /* 内联模式恢复自动宽度 */
+    > :first-child {
+      width: auto;
+    }
   }
 
   &__error {
