@@ -4,6 +4,7 @@ import type { ConfigFormEmits, ConfigFormExpose, ConfigFormProps } from '@/types
 import FormField from '@/components/FormField'
 import { useForm } from '@/composables/useForm'
 import { useBem, provideNamespace } from '@/composables/useNamespace'
+import { resolveLabelWidth } from '@/utils/style'
 import { toFields } from '@/decorators'
 
 const props = withDefaults(defineProps<ConfigFormProps<T>>(), {
@@ -29,11 +30,7 @@ const { values, errors, visibilityMap, disabledMap, validate, validateSingleFiel
 
 defineExpose<ConfigFormExpose<T>>({ submit, validate, reset })
 
-function resolveLabelWidth(): string | undefined {
-  if (!props.labelWidth)
-    return undefined
-  return typeof props.labelWidth === 'number' ? `${props.labelWidth}px` : props.labelWidth
-}
+
 </script>
 
 <template>
@@ -47,7 +44,7 @@ function resolveLabelWidth(): string | undefined {
         :model-value="values[field.field]"
         :error="errors[field.field]"
         :inline="inline"
-        :label-width="resolveLabelWidth()"
+        :label-width="resolveLabelWidth(labelWidth)"
         :visible="visibilityMap[field.field]"
         :disabled="disabledMap[field.field]"
         @update:model-value="(val: any) => setValue(field.field, val)"

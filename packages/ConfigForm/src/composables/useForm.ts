@@ -14,11 +14,19 @@ export interface UseFormOptions<T extends object = Record<string, any>> {
 export function useForm<T extends object = Record<string, any>>(options: UseFormOptions<T>) {
   const { fields, initialValues, onSubmit, onError } = options
 
-  // 原因说明 1：T 作为泛型，可能包含必填属性。我们使用 reactive 初始化空对象，因此需要类型断言。
-  // 同时，我们将 T 交叉上 Record<string, any>，这是因为在后续遍历与取值逻辑中，字段的 key 是动态生成的 string（如 values[field.field]），
-  // TypeScript 无法保证这些动态字符串严格属于 keyof T。这样做直接消灭了下方所有针对 values 的 as any 断言。
+  // T & Record<string, any>：T 提供外部类型安全，Record 允许内部动态 key 访问
   const values = reactive<T & Record<string, any>>({} as (T & Record<string, any>))
   const errors = ref<FormErrors>({})
+
+  // ── 工具 ─────────────────────────────────────────────────────
+
+  /** 从 errors 中移除指定字段的错误 */
+  function clearFieldError(fieldName: string) {
+    if (errors.value[fieldName]) {
+      const { [fieldName]: _, ...rest } = errors.value
+      errors.value = rest
+    }
+  }
 
   // ── 初始化 ───────────────────────────────────────────────────
 
@@ -51,11 +59,7 @@ export function useForm<T extends object = Record<string, any>>(options: UseForm
 
   function setValue(field: string, value: any) {
     values[field] = value
-    if (errors.value[field]) {
-      const next = { ...errors.value }
-      delete next[field]
-      errors.value = next
-    }
+    clearFieldError(field)
   }
 
   function getValue(field: string): any {
@@ -72,11 +76,7 @@ export function useForm<T extends object = Record<string, any>>(options: UseForm
     const snap = { ...values }
 
     if (!field.isVisible(snap) || field.isDisabled(snap)) {
-      if (errors.value[fieldName]) {
-        const next = { ...errors.value }
-        delete next[fieldName]
-        errors.value = next
-      }
+      clearFieldError(fieldName)
       return true
     }
 
@@ -84,9 +84,11 @@ export function useForm<T extends object = Record<string, any>>(options: UseForm
       return true
 
     const fieldErrors = validateField(snap[fieldName], field.type, snap)
-    errors.value = fieldErrors.length > 0
-      ? { ...errors.value, [fieldName]: fieldErrors }
-      : (({ [fieldName]: _, ...rest }) => rest)(errors.value)
+    if (fieldErrors.length > 0) {
+      errors.value = { ...errors.value, [fieldName]: fieldErrors }
+    } else {
+      clearFieldError(fieldName)
+    }
 
     return fieldErrors.length === 0
   }
@@ -114,9 +116,6 @@ export function useForm<T extends object = Record<string, any>>(options: UseForm
         continue
       submitValues[field.field] = field.applyTransform(snap[field.field], snap)
     }
-    // 原因说明 2：submitValues 是根据动态的 fields 数组，在运行时挑选并执行 transform 后组装的纯净数据。
-    // 在静态分析层面，TypeScript 无法确认它包含了 T 的所有必填属性，但对于外部使用者而言，
-    // 这些被提取并转换后的最终数据就是 T。
     onSubmit?.(submitValues as T)
     return true
   }

@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { z } from 'zod'
 import { ConfigForm, defineField } from '@moluoxixi/config-form'
-import { ElInput } from 'element-plus'
+import { ElInput, ElSelect } from 'element-plus'
 
 const formRef = ref()
 
@@ -13,7 +13,7 @@ const fields = [
     type: z.string().min(2, '用户名至少 2 个字符').max(20, '用户名最多 20 个字符'),
     span: 12,
     component: ElInput,
-    props: { placeholder: '请输入用户名', type: 'text' },
+    props: { placeholder: '请输入用户名' },
   }),
   defineField({
     field: 'email',
@@ -21,13 +21,13 @@ const fields = [
     type: z.string().email('请输入有效的邮箱地址'),
     span: 12,
     component: ElInput,
-    props: { placeholder: '请输入邮箱', type: 'text',size: 'default' },
+    props: { placeholder: '请输入邮箱' },
   }),
   defineField({
     field: 'role',
     label: '角色',
     span: 12,
-    component: 'ElSelect',
+    component: ElSelect,
     props: {
       placeholder: '请选择角色',
     },
@@ -37,7 +37,7 @@ const fields = [
     label: '简介',
     type: z.string().max(200, '简介最多 200 个字符').optional(),
     span: 24,
-    component: 'ElInput',
+    component: ElInput,
     props: { type: 'textarea', placeholder: '请输入简介', rows: 3 },
   }),
 ]

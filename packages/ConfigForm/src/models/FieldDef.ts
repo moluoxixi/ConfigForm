@@ -1,34 +1,42 @@
-import type { Component } from 'vue'
-import type { ZodTypeAny } from 'zod'
-import type { FieldConfig, FormValues, ValidateTrigger, FunctionalFieldComponent } from '@/types'
+import type { FieldConfig, FormValues, ValidateTrigger } from '@/types'
 
-// 工具类型（内部使用）
+// ===== 工具类型 =====
+
+/** 从 Vue 组件中提取 props 类型（支持 class / functional 组件） */
 export type ExtractComponentProps<C> = C extends abstract new (...args: any) => any
   ? InstanceType<C>['$props']
   : C extends (props: infer P, ...args: any) => any
   ? P
   : Record<string, any>
 
+// ===== 内部工具函数 =====
+
+/** 规范化 validateOn，确保始终包含 'submit' */
+function normalizeValidateOn(on?: ValidateTrigger | ValidateTrigger[]): ValidateTrigger[] {
+  if (!on) return ['submit']
+  const arr = Array.isArray(on) ? on : [on]
+  return arr.includes('submit') ? arr : [...arr, 'submit']
+}
+
+// ===== FieldDef =====
+
 /**
- * 字段定义模型。这是系统中字段的唯一运行时代价表示形式。
+ * 字段定义模型。系统中字段的唯一运行时表示。
  *
  * 通过两种方式创建，结果等价：
  * - `defineField({ field, component, ... })`
  * - `@Field({ component, ... }) fieldName` + `toFields(MyClass)`
- *
- * 构造时自动规范化 validateOn 为含 'submit' 的数组，并处理其他默认值。
  */
 export class FieldDef {
   readonly field: string
   readonly label?: string
-  readonly type?: ZodTypeAny
+  readonly type?: FieldConfig['type']
   readonly span?: number
-  readonly component: Component | FunctionalFieldComponent | string
+  readonly component: FieldConfig['component']
   readonly props?: Record<string, any>
   readonly defaultValue?: any
   readonly valueProp: string
   readonly trigger: string
-  /** 规范化后的校验时机，始终包含 'submit' */
   readonly validateOn: ValidateTrigger[]
   readonly visible?: (values: FormValues) => boolean
   readonly disabled?: (values: FormValues) => boolean
@@ -42,20 +50,12 @@ export class FieldDef {
     this.component = input.component
     this.props = input.props
     this.defaultValue = input.defaultValue
-    this.valueProp = input.valueProp || 'modelValue'
-    this.trigger = input.trigger || 'update:modelValue'
     this.visible = input.visible
     this.disabled = input.disabled
     this.transform = input.transform
-
-    const on = input.validateOn
-    if (!on) {
-      this.validateOn = ['submit']
-    }
-    else {
-      const arr = Array.isArray(on) ? on : [on]
-      this.validateOn = arr.includes('submit') ? arr : [...arr, 'submit']
-    }
+    this.valueProp = input.valueProp || 'modelValue'
+    this.trigger = input.trigger || 'update:modelValue'
+    this.validateOn = normalizeValidateOn(input.validateOn)
   }
 
   shouldValidateOn(trigger: ValidateTrigger): boolean {
@@ -75,25 +75,19 @@ export class FieldDef {
   }
 }
 
+// ===== defineField =====
+
 /**
- * 带组件 props 类型推导的工厂函数。
- * 返回一个标准的 FieldDef 实例。
+ * 带组件 props 类型推导的工厂函数，返回 FieldDef 实例。
+ *
+ * 泛型 C 由 component 属性自动推导，无需手动传入。
  */
-export function defineField<C>(config: {
-  field: string
-  label?: string
-  type?: ZodTypeAny
-  span?: number
-  component: C
-  // 交叉 {} 阻断反向推导，强制使用 component 推导出的 C
-  props?: ExtractComponentProps<C> & {}
-  defaultValue?: any
-  valueProp?: string
-  trigger?: string
-  validateOn?: ValidateTrigger | ValidateTrigger[]
-  visible?: (values: FormValues) => boolean
-  disabled?: (values: FormValues) => boolean
-  transform?: (value: any, allValues: FormValues) => any
-}): FieldDef {
+export function defineField<C>(
+  config: Omit<FieldConfig, 'component' | 'props'> & {
+    component: C
+    /** 交叉 {} 阻断反向推导，强制 TS 从 component 单向推导 C */
+    props?: ExtractComponentProps<C> & {}
+  },
+): FieldDef {
   return new FieldDef(config as FieldConfig)
 }

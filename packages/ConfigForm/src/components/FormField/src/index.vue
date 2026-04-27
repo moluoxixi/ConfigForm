@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { FieldDef } from '@/models/FieldDef'
 import { useBem, useNamespace } from '@/composables/useNamespace'
+import { resolveLabelWidth } from '@/utils/style'
 
 const props = defineProps<{
   field: FieldDef
@@ -32,11 +33,7 @@ function onBlur() {
   emit('blur', props.field.field)
 }
 
-function resolveLabelWidth(): string | undefined {
-  if (!props.labelWidth)
-    return undefined
-  return typeof props.labelWidth === 'number' ? `${props.labelWidth}px` : props.labelWidth
-}
+
 </script>
 
 <template>
@@ -48,7 +45,7 @@ function resolveLabelWidth(): string | undefined {
     <label
       v-if="field.label"
       :class="e('field', 'label')"
-      :style="{ width: resolveLabelWidth() }"
+      :style="{ width: resolveLabelWidth(labelWidth) }"
     >
       {{ field.label }}
     </label>
