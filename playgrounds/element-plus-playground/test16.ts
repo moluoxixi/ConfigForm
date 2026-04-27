@@ -1,0 +1,1 @@
+export type P<C> = C extends { $props: infer X } ? X : { default: string }; function df<C>(config: { component: C, props: P<C> }) {}; const Comp = { $props: { myProp: 1 } }; df({ component: Comp, props: { myProp: 1 } });

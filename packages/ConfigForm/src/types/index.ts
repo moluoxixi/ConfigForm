@@ -35,21 +35,26 @@ import type { FieldDef } from '@/models/FieldDef'
 
 // ===== 表单组件类型 =====
 
-export interface ConfigFormProps {
+export interface ConfigFormProps<T extends object = Record<string, any>> {
   namespace?: string
   inline?: boolean
-  /** 必须为 FieldDef 实例数组，通过 defineField() 或 toFields() 创建 */
-  fields: FieldDef[]
+  /**
+   * 表单字段配置。支持传入：
+   * 1. 传统的 `FieldDef[]` 数组
+   * 2. 被 `@Field` 装饰的类（构造函数）
+   * 3. 被 `@Field` 装饰的类的实例
+   */
+  fields: FieldDef[] | (new (...args: any[]) => T) | T
   labelWidth?: string | number
-  initialValues?: Record<string, any>
+  initialValues?: Partial<T>
 }
 
-export interface ConfigFormEmits {
-  (e: 'submit', values: Record<string, any>): void
+export interface ConfigFormEmits<T extends object = Record<string, any>> {
+  (e: 'submit', values: T): void
   (e: 'error', errors: FormErrors): void
 }
 
-export interface ConfigFormExpose {
+export interface ConfigFormExpose<T extends object = Record<string, any>> {
   submit: () => Promise<boolean>
   validate: () => Promise<boolean>
   reset: () => void

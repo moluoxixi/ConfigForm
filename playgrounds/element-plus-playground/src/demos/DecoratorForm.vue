@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { z } from 'zod'
-import { ConfigForm, Field, toFields } from '@moluoxixi/config-form'
+import { ConfigForm, Field } from '@moluoxixi/config-form'
+
+import { ElInput, ElSelect, ElSwitch } from 'element-plus'
 
 // ── 装饰器定义表单模型 ──────────────────────────────────────────
 class RegistrationForm {
   @Field({
     label: '账号类型',
-    component: 'ElSelect',
+    component: ElSelect,
     defaultValue: 'user',
     props: { placeholder: '请选择账号类型' },
   })
@@ -15,7 +17,7 @@ class RegistrationForm {
 
   @Field({
     label: '用户名',
-    component: 'ElInput',
+    component: ElInput,
     type: z.string().min(2, '用户名至少2个字符').max(20, '用户名最多20个字符'),
     span: 12,
     validateOn: 'blur',
@@ -27,7 +29,7 @@ class RegistrationForm {
 
   @Field({
     label: '邮箱',
-    component: 'ElInput',
+    component: ElInput,
     type: z.string().email('请输入有效邮箱'),
     span: 12,
     validateOn: ['blur', 'change'],
@@ -38,7 +40,7 @@ class RegistrationForm {
 
   @Field({
     label: '管理员密钥',
-    component: 'ElInput',
+    component: ElInput,
     type: z.string().min(8, '密钥至少8位'),
     validateOn: 'blur',
     visible: (vals) => vals.accountType === 'admin',
@@ -48,14 +50,14 @@ class RegistrationForm {
 
   @Field({
     label: '是否禁用演示',
-    component: 'ElSwitch',
+    component: ElSwitch,
     defaultValue: false,
   })
   disableDemo = false
 
   @Field({
     label: '备注',
-    component: 'ElInput',
+    component: ElInput,
     span: 24,
     disabled: (vals) => vals.disableDemo === true,
     props: { type: 'textarea', placeholder: '禁用演示后此字段不可编辑，提交时也不含此字段', rows: 3 },
@@ -63,9 +65,7 @@ class RegistrationForm {
   remark = ''
 }
 
-// ── 将装饰器类转换为 FieldDef[] ──────────────────────────────────
-const fields = toFields(RegistrationForm)
-
+// 直接将 Class 传给 ConfigForm，无需手动 toFields
 const formRef = ref()
 
 function onSubmit(values: Record<string, any>) {
@@ -89,7 +89,7 @@ function onError(errors: Record<string, string[]>) {
     <ConfigForm
       ref="formRef"
       namespace="moluoxixi"
-      :fields="fields"
+      :fields="RegistrationForm"
       label-width="100px"
       @submit="onSubmit"
       @error="onError"

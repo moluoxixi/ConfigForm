@@ -24,7 +24,7 @@
     "**/*.css"
   ],
   "scripts": {
-    "build": "vite build && vue-tsc --declaration --emitDeclarationOnly --outDir dist",
+    "build": "vite build && vue-tsc -p tsconfig.app.json --declaration --emitDeclarationOnly --outDir dist",
     "dev": "vite build --watch"
   },
   "peerDependencies": {

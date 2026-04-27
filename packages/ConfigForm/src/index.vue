@@ -1,28 +1,33 @@
-<script setup lang="ts">
-import { toRef, computed } from 'vue'
+<script setup lang="ts" generic="T extends object = Record<string, any>">
+import { computed } from 'vue'
 import type { ConfigFormEmits, ConfigFormExpose, ConfigFormProps } from '@/types'
 import FormField from '@/components/FormField'
 import { useForm } from '@/composables/useForm'
 import { useBem, provideNamespace } from '@/composables/useNamespace'
+import { toFields } from '@/decorators'
 
-const props = withDefaults(defineProps<ConfigFormProps>(), {
+const props = withDefaults(defineProps<ConfigFormProps<T>>(), {
   namespace: 'cf',
 })
 
-const emit = defineEmits<ConfigFormEmits>()
+const emit = defineEmits<ConfigFormEmits<T>>()
 
 const namespaceRef = computed(() => props.namespace)
 provideNamespace(namespaceRef)
 const { b, m } = useBem(namespaceRef)
 
+const resolvedFields = computed(() => {
+  return Array.isArray(props.fields) ? props.fields : toFields(props.fields)
+})
+
 const { values, errors, visibilityMap, disabledMap, validate, validateSingleField, submit, reset, setValue } = useForm({
-  fields: toRef(props, 'fields'),
+  fields: resolvedFields,
   initialValues: props.initialValues,
   onSubmit: vals => emit('submit', vals),
   onError: errs => emit('error', errs),
 })
 
-defineExpose<ConfigFormExpose>({ submit, validate, reset })
+defineExpose<ConfigFormExpose<T>>({ submit, validate, reset })
 
 function resolveLabelWidth(): string | undefined {
   if (!props.labelWidth)
@@ -36,7 +41,7 @@ function resolveLabelWidth(): string | undefined {
     :class="[b('form'), { [m('form', 'inline')]: inline }]"
     @submit.prevent="submit()"
   >
-    <template v-for="field in fields" :key="field.field">
+    <template v-for="field in resolvedFields" :key="field.field">
       <FormField
         :field="field"
         :model-value="values[field.field]"

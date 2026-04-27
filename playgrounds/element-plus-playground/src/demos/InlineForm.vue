@@ -3,6 +3,8 @@ import { ref } from 'vue'
 import { z } from 'zod'
 import { ConfigForm, defineField } from '@moluoxixi/config-form'
 
+import { ElInput, ElSelect } from 'element-plus'
+
 const formRef = ref()
 
 const fields = [
@@ -10,13 +12,13 @@ const fields = [
     field: 'keyword',
     label: '关键词',
     type: z.string().min(1, '请输入关键词'),
-    component: 'ElInput',
+    component: ElInput,
     props: { placeholder: '搜索...', clearable: true },
   }),
   defineField({
     field: 'status',
     label: '状态',
-    component: 'ElSelect',
+    component: ElSelect,
     props: { placeholder: '状态筛选', clearable: true },
   }),
 ]

@@ -4,17 +4,20 @@ import type { FormErrors, FormValues, ValidateTrigger } from '@/types'
 import type { FieldDef } from '@/models/FieldDef'
 import { validateField, validateForm } from '@/utils/validate'
 
-export interface UseFormOptions {
+export interface UseFormOptions<T extends object = Record<string, any>> {
   fields: Ref<FieldDef[]>
-  initialValues?: Record<string, any>
-  onSubmit?: (values: Record<string, any>) => void
+  initialValues?: Partial<T>
+  onSubmit?: (values: T) => void
   onError?: (errors: FormErrors) => void
 }
 
-export function useForm(options: UseFormOptions) {
+export function useForm<T extends object = Record<string, any>>(options: UseFormOptions<T>) {
   const { fields, initialValues, onSubmit, onError } = options
 
-  const values = reactive<FormValues>({})
+  // 原因说明 1：T 作为泛型，可能包含必填属性。我们使用 reactive 初始化空对象，因此需要类型断言。
+  // 同时，我们将 T 交叉上 Record<string, any>，这是因为在后续遍历与取值逻辑中，字段的 key 是动态生成的 string（如 values[field.field]），
+  // TypeScript 无法保证这些动态字符串严格属于 keyof T。这样做直接消灭了下方所有针对 values 的 as any 断言。
+  const values = reactive<T & Record<string, any>>({} as (T & Record<string, any>))
   const errors = ref<FormErrors>({})
 
   // ── 初始化 ───────────────────────────────────────────────────
@@ -111,7 +114,10 @@ export function useForm(options: UseFormOptions) {
         continue
       submitValues[field.field] = field.applyTransform(snap[field.field], snap)
     }
-    onSubmit?.(submitValues)
+    // 原因说明 2：submitValues 是根据动态的 fields 数组，在运行时挑选并执行 transform 后组装的纯净数据。
+    // 在静态分析层面，TypeScript 无法确认它包含了 T 的所有必填属性，但对于外部使用者而言，
+    // 这些被提取并转换后的最终数据就是 T。
+    onSubmit?.(submitValues as T)
     return true
   }
 

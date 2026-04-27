@@ -3,6 +3,8 @@ import { ref } from 'vue'
 import { z } from 'zod'
 import { ConfigForm, defineField } from '@moluoxixi/config-form'
 
+import { Input, Select } from 'ant-design-vue'
+
 const formRef = ref()
 
 const fields = [
@@ -10,13 +12,13 @@ const fields = [
     field: 'keyword',
     label: '关键词',
     type: z.string().min(1, '请输入关键词'),
-    component: 'AInput',
+    component: Input,
     props: { placeholder: '搜索...', allowClear: true },
   }),
   defineField({
     field: 'status',
     label: '状态',
-    component: 'ASelect',
+    component: Select,
     props: {
       placeholder: '状态筛选',
       allowClear: true,

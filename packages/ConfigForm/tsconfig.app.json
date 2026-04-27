@@ -6,13 +6,8 @@
     "types": ["vite/client"]
   },
   "vueCompilerOptions": {
-    "plugins": [
-      "@vue-macros/volar/define-models",
-      "@vue-macros/volar/define-slots",
-      "@vue-macros/volar/define-props",
-      "@vue-macros/volar/define-emit"
-    ]
+    "plugins": []
   },
-  "include": ["src"],
+  "include": ["src", "index.ts"],
   "exclude": ["vite.config.ts"]
 }

@@ -1,13 +1,13 @@
-import type { Component, VNode } from 'vue'
+import type { Component } from 'vue'
 import type { ZodTypeAny } from 'zod'
 import type { FieldConfig, FormValues, ValidateTrigger, FunctionalFieldComponent } from '@/types'
 
 // 工具类型（内部使用）
-type ExtractComponentProps<C> = C extends new (...args: any[]) => { $props: infer P }
+export type ExtractComponentProps<C> = C extends abstract new (...args: any) => any
+  ? InstanceType<C>['$props']
+  : C extends (props: infer P, ...args: any) => any
   ? P
-  : C extends (props: infer P, context: any) => any
-    ? P
-    : Record<string, any>
+  : Record<string, any>
 
 /**
  * 字段定义模型。这是系统中字段的唯一运行时代价表示形式。
@@ -79,13 +79,14 @@ export class FieldDef {
  * 带组件 props 类型推导的工厂函数。
  * 返回一个标准的 FieldDef 实例。
  */
-export function defineField<C extends Component | FunctionalFieldComponent>(config: {
+export function defineField<C>(config: {
   field: string
   label?: string
   type?: ZodTypeAny
   span?: number
   component: C
-  props?: ExtractComponentProps<C>
+  // 交叉 {} 阻断反向推导，强制使用 component 推导出的 C
+  props?: ExtractComponentProps<C> & {}
   defaultValue?: any
   valueProp?: string
   trigger?: string
