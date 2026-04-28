@@ -1,17 +1,23 @@
 <script setup lang="ts">
-
+import { ref } from 'vue'
 import GridForm from './demos/GridForm.vue'
 import InlineForm from './demos/InlineForm.vue'
+
+const activeTab = ref('grid')
 </script>
 
 <template>
   <div class="playground-root">
     <h1>ConfigForm + Ant Design Vue</h1>
 
-    <h2>Grid Mode</h2>
-    <GridForm />
-    <h2>Inline Mode</h2>
-    <InlineForm />
+    <a-tabs v-model:activeKey="activeTab">
+      <a-tab-pane key="grid" tab="Grid 模式">
+        <GridForm />
+      </a-tab-pane>
+      <a-tab-pane key="inline" tab="Inline 模式">
+        <InlineForm />
+      </a-tab-pane>
+    </a-tabs>
   </div>
 </template>
 

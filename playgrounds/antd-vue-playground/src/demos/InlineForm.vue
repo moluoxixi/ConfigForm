@@ -1,11 +1,68 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import type { FormValues } from '@moluoxixi/config-form'
+import { defineComponent, h, ref } from 'vue'
 import { z } from 'zod'
 import { ConfigForm, defineField } from '@moluoxixi/config-form'
+import {
+  AutoComplete,
+  Cascader,
+  Checkbox,
+  CheckboxGroup,
+  DatePicker,
+  Input,
+  InputNumber,
+  Radio,
+  RadioGroup,
+  Rate,
+  Select,
+  Slider,
+  Switch,
+  TimePicker,
+  TreeSelect,
+} from 'ant-design-vue'
 
-import { Input, Select } from 'ant-design-vue'
+// ===== 包装组件：RadioGroup / CheckboxGroup（支持 options 配置）=====
+
+const ARadioGroupWithOptions = defineComponent({
+  name: 'ARadioGroupWithOptions',
+  props: {
+    value: { type: [String, Number], default: undefined },
+    options: { type: Array, default: () => [] },
+    disabled: { type: Boolean, default: false },
+  },
+  emits: ['update:value'],
+  setup(props, { emit }) {
+    return () => h(RadioGroup as any, {
+      value: props.value,
+      disabled: props.disabled || undefined,
+      'onUpdate:value': (val: any) => emit('update:value', val),
+    }, () => props.options.map((opt: any) => h(Radio, { value: opt.value, key: opt.value }, () => opt.label)))
+  },
+})
+
+const ACheckboxGroupWithOptions = defineComponent({
+  name: 'ACheckboxGroupWithOptions',
+  props: {
+    value: { type: Array as () => (string | number)[], default: () => [] },
+    options: { type: Array, default: () => [] },
+    disabled: { type: Boolean, default: false },
+  },
+  emits: ['update:value'],
+  setup(props, { emit }) {
+    return () => h(CheckboxGroup as any, {
+      value: props.value,
+      disabled: props.disabled || undefined,
+      'onUpdate:value': (val: any) => emit('update:value', val),
+    }, () => props.options.map((opt: any) => h(Checkbox as any, { value: opt.value, key: opt.value }, () => opt.label)))
+  },
+})
+
+// ===== 字段配置 =====
 
 const formRef = ref()
+
+// Ant Design Vue 通用 value/trigger 配置
+const v = { valueProp: 'value', trigger: 'update:value' } as const
 
 const fields = [
   defineField({
@@ -13,12 +70,21 @@ const fields = [
     label: '关键词',
     schema: z.string().min(1, '请输入关键词'),
     component: Input,
+    ...v,
     props: { placeholder: '搜索...', allowClear: true },
+  }),
+  defineField({
+    field: 'password',
+    label: '密码',
+    component: Input.Password,
+    ...v,
+    props: { placeholder: '密码' },
   }),
   defineField({
     field: 'status',
     label: '状态',
     component: Select,
+    ...v,
     props: {
       placeholder: '状态筛选',
       allowClear: true,
@@ -27,6 +93,176 @@ const fields = [
         { label: '禁用', value: 'inactive' },
       ],
     },
+  }),
+  defineField({
+    field: 'role',
+    label: '角色',
+    component: Select,
+    ...v,
+    props: {
+      placeholder: '角色筛选',
+      allowClear: true,
+      options: [
+        { label: '管理员', value: 'admin' },
+        { label: '用户', value: 'user' },
+        { label: '访客', value: 'guest' },
+      ],
+    },
+  }),
+  defineField({
+    field: 'tags',
+    label: '标签',
+    component: Select,
+    ...v,
+    props: {
+      mode: 'multiple',
+      placeholder: '多选标签',
+      allowClear: true,
+      options: [
+        { label: 'Vue', value: 'vue' },
+        { label: 'React', value: 'react' },
+        { label: 'Angular', value: 'angular' },
+      ],
+    },
+    defaultValue: [],
+  }),
+  defineField({
+    field: 'age',
+    label: '年龄',
+    component: InputNumber,
+    ...v,
+    props: { min: 1, max: 150, placeholder: '年龄' },
+  }),
+  defineField({
+    field: 'department',
+    label: '部门',
+    component: Cascader,
+    ...v,
+    props: {
+      placeholder: '部门',
+      allowClear: true,
+      options: [
+        { value: 'tech', label: '技术部', children: [{ value: 'frontend', label: '前端组' }, { value: 'backend', label: '后端组' }] },
+        { value: 'product', label: '产品部', children: [{ value: 'design', label: '设计组' }, { value: 'pm', label: '产品组' }] },
+      ],
+    },
+  }),
+  defineField({
+    field: 'manager',
+    label: '上级',
+    component: TreeSelect,
+    ...v,
+    props: {
+      placeholder: '上级',
+      allowClear: true,
+      treeData: [
+        { value: 'ceo', title: 'CEO', children: [{ value: 'cto', title: 'CTO' }, { value: 'cpo', title: 'CPO' }] },
+      ],
+    },
+  }),
+  defineField({
+    field: 'gender',
+    label: '性别',
+    component: ARadioGroupWithOptions,
+    ...v,
+    props: {
+      options: [
+        { label: '男', value: 'male' },
+        { label: '女', value: 'female' },
+        { label: '其他', value: 'other' },
+      ],
+    },
+  }),
+  defineField({
+    field: 'hobbies',
+    label: '爱好',
+    component: ACheckboxGroupWithOptions,
+    ...v,
+    props: {
+      options: [
+        { label: '阅读', value: 'reading' },
+        { label: '运动', value: 'sports' },
+        { label: '音乐', value: 'music' },
+      ],
+    },
+    defaultValue: [],
+  }),
+  defineField({
+    field: 'date',
+    label: '日期',
+    component: DatePicker,
+    ...v,
+    props: { placeholder: '选择日期', allowClear: true },
+    transform: (val: any) => val?.format?.('YYYY-MM-DD') ?? val,
+  }),
+  defineField({
+    field: 'dateRange',
+    label: '有效期',
+    component: DatePicker.RangePicker,
+    ...v,
+    props: { placeholder: ['开始', '结束'], allowClear: true },
+    transform: (val: any) => Array.isArray(val) ? val.map((v: any) => v?.format?.('YYYY-MM-DD')) : val,
+  }),
+  defineField({
+    field: 'time',
+    label: '时间',
+    component: TimePicker,
+    ...v,
+    props: { placeholder: '选择时间', allowClear: true, format: 'HH:mm' },
+    transform: (val: any) => val?.format?.('HH:mm') ?? val,
+  }),
+  defineField({
+    field: 'priority',
+    label: '优先级',
+    component: Rate,
+    ...v,
+    props: { allowHalf: true },
+    defaultValue: 0,
+  }),
+  defineField({
+    field: 'active',
+    label: '启用',
+    component: Switch,
+    valueProp: 'checked',
+    trigger: 'update:checked',
+    defaultValue: true,
+  }),
+  defineField({
+    field: 'progress',
+    label: '进度',
+    component: Slider,
+    ...v,
+    defaultValue: 0,
+  }),
+  defineField({
+    field: 'city',
+    label: '城市',
+    component: AutoComplete,
+    ...v,
+    props: {
+      placeholder: '城市',
+      allowClear: true,
+      options: ['北京', '上海', '广州', '深圳', '杭州', '成都'].map(c => ({ value: c })),
+      filterOption: (input: string, option: any) => option.value.includes(input),
+    },
+  }),
+  // 条件显隐
+  defineField({
+    field: 'genderOther',
+    label: '说明',
+    component: Input,
+    ...v,
+    props: { placeholder: '请说明', allowClear: true },
+    visible: (values: FormValues) => values.gender === 'other',
+  }),
+  // 条件禁用
+  defineField({
+    field: 'remark',
+    label: '备注',
+    component: Input,
+    ...v,
+    props: { placeholder: '访客不可编辑', allowClear: true },
+    disabled: (values: FormValues) => values.role === 'guest',
   }),
 ]
 
