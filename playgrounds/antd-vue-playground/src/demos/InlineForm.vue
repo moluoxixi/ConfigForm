@@ -11,7 +11,7 @@ const fields = [
   defineField({
     field: 'keyword',
     label: '关键词',
-    type: z.string().min(1, '请输入关键词'),
+    schema: z.string().min(1, '请输入关键词'),
     component: Input,
     props: { placeholder: '搜索...', allowClear: true },
   }),

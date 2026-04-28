@@ -13,7 +13,7 @@ const fields = [
     label: '用户名',
     // 默认只在 submit 时校验，可以手动配置触发时机
     validateOn: ['blur', 'change'],
-    type: z.string()
+    schema: z.string()
       .min(2, '用户名至少 2 个字符')
       .max(20, '用户名最多 20 个字符')
       .regex(/^[a-zA-Z0-9_]+$/, '用户名只能包含字母、数字和下划线'),
@@ -26,7 +26,7 @@ const fields = [
     label: '邮箱',
     // 配置为失焦时校验
     validateOn: 'blur',
-    type: z.string().email('请输入有效的邮箱地址'),
+    schema: z.string().email('请输入有效的邮箱地址'),
     span: 12,
     component: Input,
     props: { placeholder: '请输入邮箱', allowClear: true },
@@ -34,7 +34,7 @@ const fields = [
   defineField({
     field: 'role',
     label: '角色',
-    type: z.string({ required_error: '请选择角色' }).min(1, '请选择角色'),
+    schema: z.string({ required_error: '请选择角色' }).min(1, '请选择角色'),
     span: 12,
     component: Select,
     props: {
@@ -50,7 +50,7 @@ const fields = [
   defineField({
     field: 'bio',
     label: '简介',
-    type: z.string().max(200, '简介最多 200 个字符').optional(),
+    schema: z.string().max(200, '简介最多 200 个字符').optional(),
     span: 24,
     component: Textarea,
     props: { placeholder: '请输入简介', rows: 3, allowClear: true },

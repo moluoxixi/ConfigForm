@@ -16,7 +16,7 @@ export type ValidateTrigger = 'submit' | 'blur' | 'change'
 export interface FieldConfig {
   field: string
   label?: string
-  type?: ZodTypeAny
+  schema?: ZodTypeAny
   span?: number
   component: Component | FunctionalFieldComponent | string
   props?: Record<string, any>

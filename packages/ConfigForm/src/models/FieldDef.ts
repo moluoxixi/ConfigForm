@@ -26,7 +26,7 @@ function normalizeValidateOn(on?: ValidateTrigger | ValidateTrigger[]): Validate
 export class FieldDef {
   readonly field: string
   readonly label?: string
-  readonly type?: FieldConfig['type']
+  readonly schema?: FieldConfig['schema']
   readonly span?: number
   readonly component: FieldConfig['component']
   readonly props?: Record<string, any>
@@ -41,7 +41,7 @@ export class FieldDef {
   constructor(input: FieldConfig) {
     this.field = input.field
     this.label = input.label
-    this.type = input.type
+    this.schema = input.schema
     this.span = input.span || 24
     this.component = input.component
     this.props = input.props

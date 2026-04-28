@@ -14,7 +14,7 @@ const fields = [
   defineField({
     field: 'username',
     label: '用户名',
-    type: z.string().min(2, '至少 2 个字符'),
+    schema: z.string().min(2, '至少 2 个字符'),
     span: 12,
     component: MyInput,
     props: { placeholder: '请输入' },

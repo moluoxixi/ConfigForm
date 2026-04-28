@@ -70,7 +70,7 @@ export function useForm<T extends object = Record<string, any>>(options: UseForm
 
   async function validateSingleField(fieldName: string, trigger: ValidateTrigger): Promise<boolean> {
     const field = fields.value.find(f => f.field === fieldName)
-    if (!field?.type)
+    if (!field?.schema)
       return true
 
     const snap = { ...values }
@@ -83,7 +83,7 @@ export function useForm<T extends object = Record<string, any>>(options: UseForm
     if (!field.shouldValidateOn(trigger))
       return true
 
-    const fieldErrors = validateField(snap[fieldName], field.type, snap)
+    const fieldErrors = validateField(snap[fieldName], field.schema, snap)
     if (fieldErrors.length > 0) {
       errors.value = { ...errors.value, [fieldName]: fieldErrors }
     } else {

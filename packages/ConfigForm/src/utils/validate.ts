@@ -28,7 +28,7 @@ export function validateForm(
 ): FormErrors {
   const errors: FormErrors = {}
   for (const field of fields) {
-    if (!field.type)
+    if (!field.schema)
       continue
     if (!field.isVisible(values))
       continue
@@ -37,7 +37,7 @@ export function validateForm(
     if (!field.shouldValidateOn(trigger))
       continue
 
-    const errs = validateField(values[field.field], field.type, values)
+    const errs = validateField(values[field.field], field.schema, values)
     if (errs.length > 0)
       errors[field.field] = errs
   }
