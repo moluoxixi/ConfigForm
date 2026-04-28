@@ -42,7 +42,7 @@ export class FieldDef {
     this.field = input.field
     this.label = input.label
     this.type = input.type
-    this.span = input.span
+    this.span = input.span || 24
     this.component = input.component
     this.props = input.props
     this.defaultValue = input.defaultValue
