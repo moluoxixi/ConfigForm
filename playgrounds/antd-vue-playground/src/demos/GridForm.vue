@@ -19,6 +19,8 @@ const fields = [
       .regex(/^[a-zA-Z0-9_]+$/, '用户名只能包含字母、数字和下划线'),
     span: 12,
     component: Input,
+    valueProp: 'value',
+    trigger: 'update:value',
     props: { placeholder: '请输入用户名', allowClear: true },
   }),
   defineField({
@@ -29,6 +31,8 @@ const fields = [
     schema: z.string().email('请输入有效的邮箱地址'),
     span: 12,
     component: Input,
+    valueProp: 'value',
+    trigger: 'update:value',
     props: { placeholder: '请输入邮箱', allowClear: true },
   }),
   defineField({
@@ -37,6 +41,8 @@ const fields = [
     schema: z.string({ required_error: '请选择角色' }).min(1, '请选择角色'),
     span: 12,
     component: Select,
+    valueProp: 'value',
+    trigger: 'update:value',
     props: {
       placeholder: '请选择角色',
       allowClear: true,
@@ -53,6 +59,8 @@ const fields = [
     schema: z.string().max(200, '简介最多 200 个字符').optional(),
     span: 24,
     component: Textarea,
+    valueProp: 'value',
+    trigger: 'update:value',
     props: { placeholder: '请输入简介', rows: 3, allowClear: true },
   }),
 ]

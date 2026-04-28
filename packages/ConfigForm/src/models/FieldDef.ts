@@ -33,6 +33,7 @@ export class FieldDef {
   readonly defaultValue?: any
   readonly valueProp: string
   readonly trigger: string
+  readonly blurTrigger: string
   readonly validateOn: ValidateTrigger[]
   readonly visible?: (values: FormValues) => boolean
   readonly disabled?: (values: FormValues) => boolean
@@ -51,6 +52,7 @@ export class FieldDef {
     this.transform = input.transform
     this.valueProp = input.valueProp || 'modelValue'
     this.trigger = input.trigger || 'update:modelValue'
+    this.blurTrigger = input.blurTrigger || 'blur'
     this.validateOn = normalizeValidateOn(input.validateOn)
   }
 

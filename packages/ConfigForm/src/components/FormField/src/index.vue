@@ -24,7 +24,7 @@ const emit = defineEmits<{
 const ns = useNamespace()
 const { b, e, m } = useBem(ns)
 
-function onInput(value: any) {
+function onChange(value: any) {
   emit('update:modelValue', value)
   emit('change', props.field.field)
 }
@@ -55,8 +55,8 @@ function onBlur() {
         :is="field.component"
         v-bind="field.props"
         :[field.valueProp]="modelValue"
-        @[field.trigger]="onInput"
-        @blur="onBlur"
+        @[field.trigger]="onChange"
+        @[field.blurTrigger]="onBlur"
         :disabled="disabled || undefined"
       />
 

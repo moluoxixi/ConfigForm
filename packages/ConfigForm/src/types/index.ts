@@ -23,8 +23,10 @@ export interface FieldConfig {
   defaultValue?: any
   /** 注入到组件的值的属性名，默认 'modelValue' */
   valueProp?: string
-  /** 接收组件值的事件名，默认 'update:modelValue' */
+  /** 接收组件值的事件名，同时也作为 change 校验的触发事件，默认 'update:modelValue' */
   trigger?: string
+  /** 触发 blur 校验的事件名，默认 'blur' */
+  blurTrigger?: string
   validateOn?: ValidateTrigger | ValidateTrigger[]
   visible?: (values: FormValues) => boolean
   disabled?: (values: FormValues) => boolean
