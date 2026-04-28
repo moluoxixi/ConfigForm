@@ -11,7 +11,12 @@ const fields = [
   defineField({
     field: 'username',
     label: '用户名',
-    type: z.string().min(2, '用户名至少 2 个字符').max(20, '用户名最多 20 个字符'),
+    // 默认只在 submit 时校验，可以手动配置触发时机
+    validateOn: ['blur', 'change'],
+    type: z.string()
+      .min(2, '用户名至少 2 个字符')
+      .max(20, '用户名最多 20 个字符')
+      .regex(/^[a-zA-Z0-9_]+$/, '用户名只能包含字母、数字和下划线'),
     span: 12,
     component: Input,
     props: { placeholder: '请输入用户名', allowClear: true },
@@ -19,6 +24,8 @@ const fields = [
   defineField({
     field: 'email',
     label: '邮箱',
+    // 配置为失焦时校验
+    validateOn: 'blur',
     type: z.string().email('请输入有效的邮箱地址'),
     span: 12,
     component: Input,
@@ -27,6 +34,7 @@ const fields = [
   defineField({
     field: 'role',
     label: '角色',
+    type: z.string({ required_error: '请选择角色' }).min(1, '请选择角色'),
     span: 12,
     component: Select,
     props: {
@@ -68,6 +76,7 @@ function onError(errors: Record<string, string[]>) {
       @submit="onSubmit"
       @error="onError"
     />
+
     <div class="demo-actions">
       <a-button type="primary" @click="formRef?.submit()">
         提交
