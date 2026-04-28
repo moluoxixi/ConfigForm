@@ -1,1 +1,0 @@
-export type ExtractComponentProps<C> = C extends { $props: infer P } ? P : { fallback: boolean }; function defineField<C>(config: { component: C, props?: ExtractComponentProps<C> }) {}; const ElInput = { $props: { myProp: 1 } }; defineField({ component: ElInput, props: { missing: 1 } });

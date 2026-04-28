@@ -1,1 +1,0 @@
-import { ElInput } from 'element-plus'; import { defineField } from '../../packages/ConfigForm/src/models/FieldDef'; const a = defineField({ field: 'a', component: ElInput, props: { size: 'large' } });
