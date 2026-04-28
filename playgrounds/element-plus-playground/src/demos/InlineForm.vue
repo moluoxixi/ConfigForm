@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { z } from 'zod'
 import { ConfigForm, defineField } from '@moluoxixi/config-form'
 
-import { ElInput, ElSelect } from 'element-plus'
+import { ElInput, ElSelectV2 } from 'element-plus'
 
 const formRef = ref()
 
@@ -18,8 +18,15 @@ const fields = [
   defineField({
     field: 'status',
     label: '状态',
-    component: ElSelect,
-    props: { placeholder: '状态筛选', clearable: true },
+    component: ElSelectV2,
+    props: {
+      placeholder: '状态筛选',
+      clearable: true,
+      options: [
+        { label: '启用', value: 'active' },
+        { label: '禁用', value: 'inactive' },
+      ],
+    },
   }),
 ]
 

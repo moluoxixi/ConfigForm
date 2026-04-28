@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { z } from 'zod'
 import { ConfigForm, defineField } from '@moluoxixi/config-form'
-import { ElInput, ElSelect } from 'element-plus'
+import { ElInput, ElSelectV2 } from 'element-plus'
 
 const formRef = ref()
 
@@ -27,9 +27,14 @@ const fields = [
     field: 'role',
     label: '角色',
     span: 12,
-    component: ElSelect,
+    component: ElSelectV2,
     props: {
       placeholder: '请选择角色',
+      options: [
+        { label: '管理员', value: 'admin' },
+        { label: '用户', value: 'user' },
+        { label: '访客', value: 'guest' },
+      ],
     },
   }),
   defineField({

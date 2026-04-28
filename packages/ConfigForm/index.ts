@@ -12,4 +12,3 @@ export type {
   FunctionalFieldComponent,
   ValidateTrigger,
 } from './src/types'
-export { Field, toFields } from './src/decorators'

@@ -39,12 +39,9 @@ export interface ConfigFormProps<T extends object = Record<string, any>> {
   namespace?: string
   inline?: boolean
   /**
-   * 表单字段配置。支持传入：
-   * 1. 传统的 `FieldDef[]` 数组
-   * 2. 被 `@Field` 装饰的类（构造函数）
-   * 3. 被 `@Field` 装饰的类的实例
+   * 表单字段配置
    */
-  fields: FieldDef[] | (new (...args: any[]) => T) | T
+  fields: FieldDef[]
   labelWidth?: string | number
   initialValues?: Partial<T>
 }

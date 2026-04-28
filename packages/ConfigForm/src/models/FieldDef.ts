@@ -22,10 +22,6 @@ function normalizeValidateOn(on?: ValidateTrigger | ValidateTrigger[]): Validate
 
 /**
  * 字段定义模型。系统中字段的唯一运行时表示。
- *
- * 通过两种方式创建，结果等价：
- * - `defineField({ field, component, ... })`
- * - `@Field({ component, ... }) fieldName` + `toFields(MyClass)`
  */
 export class FieldDef {
   readonly field: string

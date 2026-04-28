@@ -5,7 +5,7 @@ import FormField from '@/components/FormField'
 import { useForm } from '@/composables/useForm'
 import { useBem, provideNamespace } from '@/composables/useNamespace'
 import { resolveLabelWidth } from '@/utils/style'
-import { toFields } from '@/decorators'
+
 
 const props = withDefaults(defineProps<ConfigFormProps<T>>(), {
   namespace: 'cf',
@@ -17,9 +17,7 @@ const namespaceRef = computed(() => props.namespace)
 provideNamespace(namespaceRef)
 const { b, m } = useBem(namespaceRef)
 
-const resolvedFields = computed(() => {
-  return Array.isArray(props.fields) ? props.fields : toFields(props.fields)
-})
+const resolvedFields = computed(() => props.fields)
 
 const { values, errors, visibilityMap, disabledMap, validate, validateSingleField, submit, reset, setValue } = useForm({
   fields: resolvedFields,
