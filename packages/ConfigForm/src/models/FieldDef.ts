@@ -77,15 +77,59 @@ export class FieldDef {
 
 // ===== defineField =====
 
+/** 从 FieldConfig / TypedFieldConfig 中提取除 component/props 外的字段类型（内联展开，避免 Omit 破坏上下文推导） */
+type FieldConfigCore<T extends Record<string, any> = Record<string, any>> = {
+  field: string
+  label?: string
+  schema?: FieldConfig['schema']
+  span?: number
+  defaultValue?: any
+  valueProp?: string
+  trigger?: string
+  blurTrigger?: string
+  validateOn?: ValidateTrigger | ValidateTrigger[]
+  visible?: (values: T) => boolean
+  disabled?: (values: T) => boolean
+  transform?: (value: any, allValues: T) => any
+  slots?: Record<string, SlotRenderFn>
+}
+
 /**
- * 根据component自动推导props类型
+ * 根据component自动推导props类型。
+ * 传入泛型 T 时，回调参数（visible/disabled/transform）自动推导为 T。
+ *
+ * @example
+ * ```ts
+ * // 不传泛型：回调参数为 FormValues
+ * defineField({ field: 'name', component: Input })
+ *
+ * // 传泛型：回调参数自动推导
+ * interface MyForm { name: string; age: number }
+ * defineField<MyForm, typeof SomeComponent>({
+ *   field: 'name',
+ *   component: SomeComponent,
+ *   disabled: (values) => !values.age, // values → MyForm
+ * })
+ * ```
  */
-export function defineField<C>(
-  config: Omit<FieldConfig, 'component' | 'props'> & {
+
+// 重载 1：传了泛型 T，回调参数类型为 T
+export function defineField<T extends Record<string, any>, C = unknown>(
+  config: FieldConfigCore<T> & {
     component: C
-    /** 交叉 {} 阻断反向推导，强制 TS 从 component 单向推导 C */
     props?: ExtractComponentProps<C> & {}
   },
-): FieldDef {
-  return new FieldDef(config as FieldConfig)
+): FieldDef
+
+// 重载 2：不传泛型，回调参数类型为 Record<string, any>
+export function defineField<C = unknown>(
+  config: FieldConfigCore<Record<string, any>> & {
+    component: C
+    props?: ExtractComponentProps<C> & {}
+  },
+): FieldDef
+
+// 实现
+export function defineField(config: FieldConfig): FieldDef {
+  return new FieldDef(config)
 }

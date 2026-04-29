@@ -1,6 +1,5 @@
 <script setup lang="tsx">
-import type { FormValues } from '@moluoxixi/config-form'
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { z } from 'zod'
 import { ConfigForm, defineField } from '@moluoxixi/config-form'
 import {
@@ -25,6 +24,7 @@ import {
 // ===== 字段配置 =====
 
 const formRef = ref()
+const formValues = reactive<Record<string, any>>({})
 
 // Ant Design Vue 通用 value/trigger 配置
 const v = { valueProp: 'value', trigger: 'update:value' } as const
@@ -329,7 +329,20 @@ const fields = [
     component: Input,
     ...v,
     props: { placeholder: '请说明您的性别', allowClear: true },
-    visible: (values: FormValues) => values.gender === 'other',
+    visible: (values) => values.gender === 'other',
+  }),
+
+  // ── 条件显隐：启用状态下显示生效日期 ─────────────────────────────
+  defineField({
+    field: 'effectiveDate',
+    label: '生效日期',
+    schema: z.any().optional(),
+    span: 12,
+    component: DatePicker,
+    ...v,
+    props: { placeholder: '选择生效日期', allowClear: true, style: { width: '100%' } },
+    transform: (val: any) => val?.format?.('YYYY-MM-DD') ?? val,
+    visible: (values) => values.active === true,
   }),
 
   // ── 条件禁用：角色为"访客"时禁用 ─────────────────────────────
@@ -341,7 +354,19 @@ const fields = [
     component: Input,
     ...v,
     props: { placeholder: '访客不可编辑备注', allowClear: true },
-    disabled: (values: FormValues) => values.role === 'guest',
+    disabled: (values) => values.role === 'guest',
+  }),
+
+  // ── 条件禁用：评分低于3时禁用提交建议 ─────────────────────────────
+  defineField({
+    field: 'suggestion',
+    label: '建议',
+    schema: z.string().max(200, '建议最多 200 个字符').optional(),
+    span: 24,
+    component: Textarea,
+    ...v,
+    props: { placeholder: '评分达到 3 分后可填写建议', rows: 2, allowClear: true },
+    disabled: (values) => !values.rating || values.rating < 3,
   }),
 
   // ── 文本域 ─────────────────────────────
@@ -369,11 +394,13 @@ function onError(errors: Record<string, string[]>) {
   <div>
     <ConfigForm
       ref="formRef"
+      :model-value="formValues"
       namespace="moluoxixi"
       :fields="fields"
       label-width="80px"
       @submit="onSubmit"
       @error="onError"
+      @update:model-value="(vals: any) => Object.assign(formValues, vals)"
     />
 
     <div class="demo-actions">
@@ -387,6 +414,9 @@ function onError(errors: Record<string, string[]>) {
         重置
       </a-button>
     </div>
+
+    <a-divider>实时值（v-model）</a-divider>
+    <pre class="value-preview">{{ JSON.stringify(formValues, null, 2) }}</pre>
   </div>
 </template>
 
@@ -395,5 +425,16 @@ function onError(errors: Record<string, string[]>) {
   margin-top: 16px;
   display: flex;
   gap: 8px;
+}
+
+.value-preview {
+  background: #fafafa;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-size: 12px;
+  line-height: 1.6;
+  max-height: 300px;
+  overflow: auto;
 }
 </style>

@@ -8,13 +8,11 @@ const activeTab = ref('grid')
 
 <template>
   <div class="playground-root">
-    <h1>ConfigForm + Ant Design Vue</h1>
-
     <a-tabs v-model:activeKey="activeTab">
-      <a-tab-pane key="grid" tab="Grid 模式">
+      <a-tab-pane key="grid" tab="antd Grid 模式">
         <GridForm />
       </a-tab-pane>
-      <a-tab-pane key="inline" tab="Inline 模式">
+      <a-tab-pane key="inline" tab="antd Inline 模式">
         <InlineForm />
       </a-tab-pane>
     </a-tabs>

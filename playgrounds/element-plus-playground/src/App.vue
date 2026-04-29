@@ -8,13 +8,11 @@ const activeTab = ref('grid')
 
 <template>
   <div class="playground-root">
-    <h1>ConfigForm + Element Plus</h1>
-
     <el-tabs v-model="activeTab">
-      <el-tab-pane label="Grid 模式" name="grid">
+      <el-tab-pane label="element Grid 模式" name="grid">
         <GridForm />
       </el-tab-pane>
-      <el-tab-pane label="Inline 模式" name="inline">
+      <el-tab-pane label="element Inline 模式" name="inline">
         <InlineForm />
       </el-tab-pane>
     </el-tabs>

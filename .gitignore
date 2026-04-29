@@ -10,6 +10,7 @@ typings
 *-lock.yaml
 
 # 测试产物
+.snapshot
 .playwright-mcp
 
 # Sentry配置

@@ -38,6 +38,25 @@ export interface FieldConfig {
   slots?: Record<string, SlotRenderFn>
 }
 
+/** 泛型版 FieldConfig，用于 defineField<T> 回调参数类型推导 */
+export interface TypedFieldConfig<T extends object> {
+  field: string
+  label?: string
+  schema?: ZodTypeAny
+  span?: number
+  component: Component | FunctionalFieldComponent | string
+  props?: Record<string, any>
+  defaultValue?: any
+  valueProp?: string
+  trigger?: string
+  blurTrigger?: string
+  validateOn?: ValidateTrigger | ValidateTrigger[]
+  visible?: (values: T) => boolean
+  disabled?: (values: T) => boolean
+  transform?: (value: any, allValues: T) => any
+  slots?: Record<string, SlotRenderFn>
+}
+
 import type { FieldDef } from '@/models/FieldDef'
 
 // ===== 表单组件类型 =====
@@ -50,18 +69,24 @@ export interface ConfigFormProps<T extends object = Record<string, any>> {
    */
   fields: FieldDef[]
   labelWidth?: string | number
-  initialValues?: Partial<T>
+  /** v-model 双向绑定表单值 */
+  modelValue?: T
 }
 
 export interface ConfigFormEmits<T extends object = Record<string, any>> {
   (e: 'submit', values: T): void
   (e: 'error', errors: FormErrors): void
+  (e: 'update:modelValue', values: T): void
 }
 
 export interface ConfigFormExpose<T extends object = Record<string, any>> {
   submit: () => Promise<boolean>
   validate: () => Promise<boolean>
   reset: () => void
+  /** 获取表单值的快照（浅拷贝，只读） */
+  getValues: () => T
+  /** 清除指定字段的校验错误 */
+  clearValidate: (field: string) => void
 }
 
 export interface FormErrors {

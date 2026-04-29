@@ -1,6 +1,5 @@
 <script setup lang="tsx">
-import type { FormValues } from '@moluoxixi/config-form'
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { z } from 'zod'
 import { ConfigForm, defineField } from '@moluoxixi/config-form'
 import {
@@ -24,6 +23,7 @@ import {
 // ===== 字段配置 =====
 
 const formRef = ref()
+const formValues = reactive<Record<string, any>>({})
 
 // Ant Design Vue 通用 value/trigger 配置
 const v = { valueProp: 'value', trigger: 'update:value' } as const
@@ -217,7 +217,7 @@ const fields = [
     component: Input,
     ...v,
     props: { placeholder: '请说明', allowClear: true },
-    visible: (values: FormValues) => values.gender === 'other',
+    visible: (values) => values.gender === 'other',
   }),
   // 条件禁用
   defineField({
@@ -226,7 +226,7 @@ const fields = [
     component: Input,
     ...v,
     props: { placeholder: '访客不可编辑', allowClear: true },
-    disabled: (values: FormValues) => values.role === 'guest',
+    disabled: (values) => values.role === 'guest',
   }),
 ]
 
@@ -243,11 +243,13 @@ function onError(errors: Record<string, string[]>) {
   <div>
     <ConfigForm
       ref="formRef"
+      :model-value="formValues"
       namespace="moluoxixi"
       :fields="fields"
       :inline="true"
       @submit="onSubmit"
       @error="onError"
+      @update:model-value="(vals: any) => Object.assign(formValues, vals)"
     />
     <div class="demo-actions">
       <a-button type="primary" @click="formRef?.submit()">
@@ -257,6 +259,8 @@ function onError(errors: Record<string, string[]>) {
         重置
       </a-button>
     </div>
+    <a-divider>实时值（v-model）</a-divider>
+    <pre class="value-preview">{{ JSON.stringify(formValues, null, 2) }}</pre>
   </div>
 </template>
 
@@ -265,5 +269,16 @@ function onError(errors: Record<string, string[]>) {
   margin-top: 12px;
   display: flex;
   gap: 8px;
+}
+
+.value-preview {
+  background: #fafafa;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-size: 12px;
+  line-height: 1.6;
+  max-height: 300px;
+  overflow: auto;
 }
 </style>

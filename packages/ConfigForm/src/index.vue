@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T extends object = Record<string, any>">
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import type { ConfigFormEmits, ConfigFormExpose, ConfigFormProps } from '@/types'
 import FormField from '@/components/FormField'
 import { useForm } from '@/composables/useForm'
@@ -19,14 +19,28 @@ const { b, m } = useBem(namespaceRef)
 
 const resolvedFields = computed(() => props.fields)
 
-const { values, errors, visibilityMap, disabledMap, validate, validateSingleField, submit, reset, setValue } = useForm({
+const { values, errors, visibilityMap, disabledMap, validate, validateSingleField, submit, reset, setValue, getValues, clearFieldError } = useForm({
   fields: resolvedFields,
-  initialValues: props.initialValues,
-  onSubmit: vals => emit('submit', vals),
+  onSubmit: vals => emit('submit', vals as T),
   onError: errs => emit('error', errs),
 })
 
-defineExpose<ConfigFormExpose<T>>({ submit, validate, reset })
+// ── v-model：值变化时向上发出 ──────────────────────────────────
+watch(values, (newVals) => {
+  emit('update:modelValue', { ...newVals } as T)
+}, { deep: true })
+
+// ── v-model：外部 modelValue 变化时同步进来 ──────────────────────
+watch(() => props.modelValue, (newModel) => {
+  if (newModel == null) return
+  for (const [key, val] of Object.entries(newModel)) {
+    if (values[key] !== val) {
+      values[key] = val
+    }
+  }
+}, { deep: true })
+
+defineExpose<ConfigFormExpose<T>>({ submit, validate, reset, getValues: getValues as () => T, clearValidate: clearFieldError })
 
 
 </script>

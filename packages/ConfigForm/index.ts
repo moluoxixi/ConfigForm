@@ -11,5 +11,6 @@ export type {
   FormValues,
   FunctionalFieldComponent,
   SlotRenderFn,
+  TypedFieldConfig,
   ValidateTrigger,
 } from './src/types'

@@ -1,6 +1,5 @@
 <script setup lang="tsx">
-import type { FormValues } from '@moluoxixi/config-form'
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { z } from 'zod'
 import { ConfigForm, defineField } from '@moluoxixi/config-form'
 import {
@@ -26,6 +25,7 @@ import {
 // ===== 字段配置 =====
 
 const formRef = ref()
+const formValues = reactive<Record<string, any>>({})
 
 const fields = [
   // ── 文本输入 ─────────────────────────────
@@ -352,7 +352,18 @@ const fields = [
     span: 12,
     component: ElInput,
     props: { placeholder: '请说明您的性别', clearable: true },
-    visible: (values: FormValues) => values.gender === 'other',
+    visible: (values) => values.gender === 'other',
+  }),
+
+  // ── 条件显隐：启用状态下显示生效日期 ─────────────────────────────
+  defineField({
+    field: 'effectiveDate',
+    label: '生效日期',
+    schema: z.string().optional(),
+    span: 12,
+    component: ElDatePicker,
+    props: { type: 'date', placeholder: '选择生效日期', valueFormat: 'YYYY-MM-DD', clearable: true },
+    visible: (values) => values.active === true,
   }),
 
   // ── 条件禁用：角色为"访客"时禁用 ─────────────────────────────
@@ -363,7 +374,18 @@ const fields = [
     span: 24,
     component: ElInput,
     props: { placeholder: '访客不可编辑备注', clearable: true },
-    disabled: (values: FormValues) => values.role === 'guest',
+    disabled: (values) => values.role === 'guest',
+  }),
+
+  // ── 条件禁用：评分低于3时禁用提交建议 ─────────────────────────────
+  defineField({
+    field: 'suggestion',
+    label: '建议',
+    schema: z.string().max(200, '建议最多 200 个字符').optional(),
+    span: 24,
+    component: ElInput,
+    props: { type: 'textarea', placeholder: '评分达到 3 分后可填写建议', rows: 2, clearable: true },
+    disabled: (values) => !values.rating || values.rating < 3,
   }),
 
   // ── 文本域 ─────────────────────────────
@@ -384,17 +406,23 @@ function onSubmit(values: Record<string, any>) {
 function onError(errors: Record<string, string[]>) {
   console.error('校验失败：', errors)
 }
+
+function onModelUpdate(vals: Record<string, any>) {
+  Object.assign(formValues, vals)
+}
 </script>
 
 <template>
   <div>
     <ConfigForm
       ref="formRef"
+      :model-value="formValues"
       namespace="moluoxixi"
       :fields="fields"
       label-width="80px"
       @submit="onSubmit"
       @error="onError"
+      @update:model-value="onModelUpdate"
     />
 
     <div class="demo-actions">
@@ -408,6 +436,9 @@ function onError(errors: Record<string, string[]>) {
         重置
       </el-button>
     </div>
+
+    <el-divider>实时值（v-model）</el-divider>
+    <pre class="value-preview">{{ JSON.stringify(formValues, null, 2) }}</pre>
   </div>
 </template>
 
@@ -416,5 +447,16 @@ function onError(errors: Record<string, string[]>) {
   margin-top: 16px;
   display: flex;
   gap: 8px;
+}
+
+.value-preview {
+  background: #f5f7fa;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
+  padding: 12px 16px;
+  font-size: 12px;
+  line-height: 1.6;
+  max-height: 300px;
+  overflow: auto;
 }
 </style>
