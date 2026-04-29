@@ -1,7 +1,20 @@
 <script setup lang="ts">
 import type { FieldDef } from '@/models/FieldDef'
+import { defineComponent } from 'vue'
 import { useBem, useNamespace } from '@/composables/useNamespace'
 import { resolveLabelWidth } from '@/utils/style'
+
+/** 辅助组件：执行插槽渲染函数 */
+const SlotRender = defineComponent({
+  name: 'SlotRender',
+  props: {
+    fn: { type: Function, required: true },
+    scope: { type: Object, default: undefined },
+  },
+  setup(props: { fn: (scope?: Record<string, any>) => any; scope?: Record<string, any> }) {
+    return () => props.fn(props.scope)
+  },
+})
 
 const props = defineProps<{
   field: FieldDef
@@ -58,7 +71,11 @@ function onBlur() {
         @[field.trigger]="onChange"
         @[field.blurTrigger]="onBlur"
         :disabled="disabled || undefined"
-      />
+      >
+        <template v-for="(slotFn, slotName) in field.slots" :key="slotName" #[slotName]="scope">
+          <SlotRender :fn="slotFn" :scope="scope" />
+        </template>
+      </component>
 
       <slot name="error" :error="error" :field="field">
         <div v-if="error?.length" :class="e('field', 'error')">

@@ -1,6 +1,6 @@
-<script setup lang="ts">
+<script setup lang="tsx">
 import type { FormValues } from '@moluoxixi/config-form'
-import { defineComponent, h, ref } from 'vue'
+import { ref } from 'vue'
 import { z } from 'zod'
 import { ConfigForm, defineField } from '@moluoxixi/config-form'
 import {
@@ -22,42 +22,6 @@ import {
   ElTimeSelect,
   ElTreeSelect,
 } from 'element-plus'
-
-// ===== 包装组件：RadioGroup / CheckboxGroup（支持 options 配置）=====
-
-const RadioGroupWithOptions = defineComponent({
-  name: 'RadioGroupWithOptions',
-  props: {
-    modelValue: { type: [String, Number], default: '' },
-    options: { type: Array, default: () => [] },
-    disabled: { type: Boolean, default: false },
-  },
-  emits: ['update:modelValue'],
-  setup(props, { emit }) {
-    return () => h(ElRadioGroup, {
-      modelValue: props.modelValue,
-      disabled: props.disabled || undefined,
-      'onUpdate:modelValue': (val: any) => emit('update:modelValue', val),
-    } as any, () => props.options.map((opt: any) => h(ElRadio, { value: opt.value, key: opt.value, disabled: props.disabled || undefined } as any, () => opt.label)))
-  },
-})
-
-const CheckboxGroupWithOptions = defineComponent({
-  name: 'CheckboxGroupWithOptions',
-  props: {
-    modelValue: { type: Array as () => (string | number)[], default: () => [] },
-    options: { type: Array, default: () => [] },
-    disabled: { type: Boolean, default: false },
-  },
-  emits: ['update:modelValue'],
-  setup(props, { emit }) {
-    return () => h(ElCheckboxGroup, {
-      modelValue: props.modelValue,
-      disabled: props.disabled || undefined,
-      'onUpdate:modelValue': (val: any) => emit('update:modelValue', val),
-    } as any, () => props.options.map((opt: any) => h(ElCheckbox, { value: opt.value, key: opt.value, label: opt.label, disabled: props.disabled || undefined } as any)))
-  },
-})
 
 // ===== 字段配置 =====
 
@@ -171,27 +135,27 @@ const fields = [
   defineField({
     field: 'gender',
     label: '性别',
-    component: RadioGroupWithOptions,
-    props: {
-      options: [
-        { label: '男', value: 'male' },
-        { label: '女', value: 'female' },
-        { label: '其他', value: 'other' },
+    component: ElRadioGroup,
+    slots: {
+      default: () => [
+        <ElRadio value="male">男</ElRadio>,
+        <ElRadio value="female">女</ElRadio>,
+        <ElRadio value="other">其他</ElRadio>,
       ],
     },
   }),
   defineField({
     field: 'hobbies',
     label: '爱好',
-    component: CheckboxGroupWithOptions,
-    props: {
-      options: [
-        { label: '阅读', value: 'reading' },
-        { label: '运动', value: 'sports' },
-        { label: '音乐', value: 'music' },
+    component: ElCheckboxGroup,
+    defaultValue: [],
+    slots: {
+      default: () => [
+        <ElCheckbox value="reading" label="阅读" />,
+        <ElCheckbox value="sports" label="运动" />,
+        <ElCheckbox value="music" label="音乐" />,
       ],
     },
-    defaultValue: [],
   }),
   defineField({
     field: 'date',

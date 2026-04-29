@@ -1,6 +1,6 @@
-<script setup lang="ts">
+<script setup lang="tsx">
 import type { FormValues } from '@moluoxixi/config-form'
-import { defineComponent, h, ref } from 'vue'
+import { ref } from 'vue'
 import { z } from 'zod'
 import { ConfigForm, defineField } from '@moluoxixi/config-form'
 import {
@@ -21,42 +21,6 @@ import {
   TimePicker,
   TreeSelect,
 } from 'ant-design-vue'
-
-// ===== 包装组件：RadioGroup / CheckboxGroup（支持 options 配置）=====
-
-const ARadioGroupWithOptions = defineComponent({
-  name: 'ARadioGroupWithOptions',
-  props: {
-    value: { type: [String, Number], default: undefined },
-    options: { type: Array, default: () => [] },
-    disabled: { type: Boolean, default: false },
-  },
-  emits: ['update:value'],
-  setup(props, { emit }) {
-    return () => h(RadioGroup, {
-      value: props.value,
-      disabled: props.disabled || undefined,
-      'onUpdate:value': (val: any) => emit('update:value', val),
-    } as any, () => props.options.map((opt: any) => h(Radio, { value: opt.value, key: opt.value }, () => opt.label)))
-  },
-})
-
-const ACheckboxGroupWithOptions = defineComponent({
-  name: 'ACheckboxGroupWithOptions',
-  props: {
-    value: { type: Array as () => (string | number)[], default: () => [] },
-    options: { type: Array, default: () => [] },
-    disabled: { type: Boolean, default: false },
-  },
-  emits: ['update:value'],
-  setup(props, { emit }) {
-    return () => h(CheckboxGroup as any, {
-      value: props.value,
-      disabled: props.disabled || undefined,
-      'onUpdate:value': (val: any) => emit('update:value', val),
-    }, () => props.options.map((opt: any) => h(Checkbox as any, { value: opt.value, key: opt.value }, () => opt.label)))
-  },
-})
 
 // ===== 字段配置 =====
 
@@ -241,19 +205,19 @@ const fields = [
     },
   }),
 
-  // ── 单选 / 多选 ─────────────────────────────
+  // ── 单选 / 多选（通过 slots 传递子组件）─────────────────────────
   defineField({
     field: 'gender',
     label: '性别',
     schema: z.string().optional(),
     span: 12,
-    component: ARadioGroupWithOptions,
+    component: RadioGroup,
     ...v,
-    props: {
-      options: [
-        { label: '男', value: 'male' },
-        { label: '女', value: 'female' },
-        { label: '其他', value: 'other' },
+    slots: {
+      default: () => [
+        <Radio value="male">男</Radio>,
+        <Radio value="female">女</Radio>,
+        <Radio value="other">其他</Radio>,
       ],
     },
   }),
@@ -262,17 +226,17 @@ const fields = [
     label: '爱好',
     schema: z.array(z.string()).min(1, '请至少选择一项').optional(),
     span: 12,
-    component: ACheckboxGroupWithOptions,
+    component: CheckboxGroup,
     ...v,
-    props: {
-      options: [
-        { label: '阅读', value: 'reading' },
-        { label: '运动', value: 'sports' },
-        { label: '音乐', value: 'music' },
-        { label: '旅行', value: 'travel' },
+    defaultValue: [],
+    slots: {
+      default: () => [
+        <Checkbox value="reading">阅读</Checkbox>,
+        <Checkbox value="sports">运动</Checkbox>,
+        <Checkbox value="music">音乐</Checkbox>,
+        <Checkbox value="travel">旅行</Checkbox>,
       ],
     },
-    defaultValue: [],
   }),
 
   // ── 日期时间 ─────────────────────────────

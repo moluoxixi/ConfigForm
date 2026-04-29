@@ -6,6 +6,7 @@ catalogs:
   dev:
     vite: "^6.2.0"
     "@vitejs/plugin-vue": "^5.2.3"
+    "@vitejs/plugin-vue-jsx": "^4.2.0"
     sass: "^1.85.0"
     "zod": "^3.24.2"
   build:

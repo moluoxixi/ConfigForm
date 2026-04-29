@@ -1,4 +1,4 @@
-import type { FieldConfig, FormValues, ValidateTrigger } from '@/types'
+import type { FieldConfig, FormValues, SlotRenderFn, ValidateTrigger } from '@/types'
 
 // ===== 工具类型 =====
 
@@ -38,6 +38,7 @@ export class FieldDef {
   readonly visible?: (values: FormValues) => boolean
   readonly disabled?: (values: FormValues) => boolean
   readonly transform?: (value: any, allValues: FormValues) => any
+  readonly slots?: Record<string, SlotRenderFn>
 
   constructor(input: FieldConfig) {
     this.field = input.field
@@ -50,6 +51,7 @@ export class FieldDef {
     this.visible = input.visible
     this.disabled = input.disabled
     this.transform = input.transform
+    this.slots = input.slots
     this.valueProp = input.valueProp || 'modelValue'
     this.trigger = input.trigger || 'update:modelValue'
     this.blurTrigger = input.blurTrigger || 'blur'
@@ -76,9 +78,7 @@ export class FieldDef {
 // ===== defineField =====
 
 /**
- * 带组件 props 类型推导的工厂函数，返回 FieldDef 实例。
- *
- * 泛型 C 由 component 属性自动推导，无需手动传入。
+ * 根据component自动推导props类型
  */
 export function defineField<C>(
   config: Omit<FieldConfig, 'component' | 'props'> & {

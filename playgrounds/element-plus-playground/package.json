@@ -14,6 +14,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "catalog:dev",
+    "@vitejs/plugin-vue-jsx": "catalog:dev",
     "sass": "catalog:dev",
     "unplugin-auto-import": "^19.1.2",
     "unplugin-vue-components": "^28.4.1",

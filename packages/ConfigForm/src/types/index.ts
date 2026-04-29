@@ -11,6 +11,9 @@ export type FunctionalFieldComponent = (
 export type FormValues = Record<string, any>
 export type ValidateTrigger = 'submit' | 'blur' | 'change'
 
+/** 插槽渲染函数，接收作用域参数，返回 VNode(s) */
+export type SlotRenderFn = (scope?: Record<string, any>) => VNode | VNode[]
+
 // ===== FieldConfig：FieldDef 构造参数（输入协议）=====
 
 export interface FieldConfig {
@@ -31,6 +34,8 @@ export interface FieldConfig {
   visible?: (values: FormValues) => boolean
   disabled?: (values: FormValues) => boolean
   transform?: (value: any, allValues: FormValues) => any
+  /** 传递给组件的插槽，值为渲染函数 */
+  slots?: Record<string, SlotRenderFn>
 }
 
 import type { FieldDef } from '@/models/FieldDef'

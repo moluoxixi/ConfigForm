@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import Vue from '@vitejs/plugin-vue'
+import VueJsx from '@vitejs/plugin-vue-jsx'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
@@ -11,6 +12,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 export default defineConfig({
   plugins: [
     Vue(),
+    VueJsx(),
     AutoImport({ resolvers: [ElementPlusResolver()] }),
     Components({ resolvers: [ElementPlusResolver()] }),
   ],

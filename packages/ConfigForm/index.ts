@@ -10,5 +10,6 @@ export type {
   FormErrors,
   FormValues,
   FunctionalFieldComponent,
+  SlotRenderFn,
   ValidateTrigger,
 } from './src/types'
