@@ -1,4 +1,4 @@
-<script setup lang="tsx">
+<script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { z } from 'zod'
 import { ConfigForm, defineField } from '@moluoxixi/config-form'
@@ -137,10 +137,10 @@ const fields = [
     label: '性别',
     component: ElRadioGroup,
     slots: {
-      default: () => [
-        <ElRadio value="male">男</ElRadio>,
-        <ElRadio value="female">女</ElRadio>,
-        <ElRadio value="other">其他</ElRadio>,
+      default: [
+        { component: ElRadio, props: { value: 'male' }, slots: { default: '男' } },
+        { component: ElRadio, props: { value: 'female' }, slots: { default: '女' } },
+        { component: ElRadio, props: { value: 'other' }, slots: { default: '其他' } },
       ],
     },
   }),
@@ -150,10 +150,10 @@ const fields = [
     component: ElCheckboxGroup,
     defaultValue: [],
     slots: {
-      default: () => [
-        <ElCheckbox value="reading" label="阅读" />,
-        <ElCheckbox value="sports" label="运动" />,
-        <ElCheckbox value="music" label="音乐" />,
+      default: [
+        { component: ElCheckbox, props: { value: 'reading', label: '阅读' } },
+        { component: ElCheckbox, props: { value: 'sports', label: '运动' } },
+        { component: ElCheckbox, props: { value: 'music', label: '音乐' } },
       ],
     },
   }),

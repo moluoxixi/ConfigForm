@@ -1,8 +1,8 @@
 import type { Ref } from 'vue'
-import type { FieldDef } from '../models/FieldDef'
-import type { FormErrors, FormValues, ValidateTrigger } from '../types'
+import type { FieldDef } from '@/models/FieldDef'
+import type { FormErrors, FormValues, ValidateTrigger } from '@/types'
 import { computed, reactive, ref, toRaw, watch } from 'vue'
-import { validateFieldRules, validateForm } from '../utils/validate'
+import { validateFieldRules, validateForm } from '@/utils/validate'
 
 export interface UseFormOptions<T extends object = Record<string, any>> {
   fields: Ref<FieldDef[]>

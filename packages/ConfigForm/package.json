@@ -24,7 +24,7 @@
     "styles"
   ],
   "scripts": {
-    "build": "vite build && vue-tsc -p tsconfig.app.json --declaration --emitDeclarationOnly --outDir dist",
+    "build": "vite build && vue-tsc -p tsconfig.app.json --declaration --emitDeclarationOnly --outDir dist && node scripts/rewrite-dts-aliases.mjs",
     "dev": "vite build --watch",
     "test": "vitest run"
   },

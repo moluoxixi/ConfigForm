@@ -1,6 +1,6 @@
 import type { Component, SetupContext, VNode } from 'vue'
 import type { ZodTypeAny } from 'zod'
-import type { FieldDef } from '../models/FieldDef'
+import type { FieldDef } from '@/models/FieldDef'
 
 // ===== 公共类型 =====
 
@@ -17,8 +17,26 @@ export type FieldValidator<T extends object = FormValues> = (
   allValues: T,
 ) => FieldValidatorResult | Promise<FieldValidatorResult>
 
-/** 插槽渲染函数，接收作用域参数，返回 VNode(s) */
-export type SlotRenderFn = (scope?: Record<string, any>) => VNode | VNode[]
+export type SlotPrimitive = string | number | boolean | null | undefined
+
+export interface SlotFieldConfig {
+  field?: string
+  label?: string
+  span?: number
+  component: Component | FunctionalFieldComponent | string
+  props?: Record<string, any>
+  defaultValue?: any
+  valueProp?: string
+  trigger?: string
+  blurTrigger?: string
+  slots?: Record<string, SlotContent>
+}
+
+export type SlotRenderable = VNode | VNode[] | SlotPrimitive
+export type SlotContent = SlotRenderFn | SlotFieldConfig | SlotFieldConfig[] | SlotRenderable
+
+/** 插槽渲染函数，接收作用域参数，返回 VNode(s) 或递归字段配置 */
+export type SlotRenderFn = (scope?: Record<string, any>) => SlotContent
 
 // ===== FieldConfig：FieldDef 构造参数（输入协议）=====
 
@@ -45,8 +63,8 @@ export interface FieldConfig {
   submitWhenHidden?: boolean
   /** 禁用时仍参与 submit 输出，默认 false */
   submitWhenDisabled?: boolean
-  /** 传递给组件的插槽，值为渲染函数 */
-  slots?: Record<string, SlotRenderFn>
+  /** 传递给组件的插槽，可为渲染函数、文本、递归字段配置或配置数组 */
+  slots?: Record<string, SlotContent>
 }
 
 /** 泛型版 FieldConfig，用于 defineField<T> 回调参数类型推导 */
@@ -68,7 +86,7 @@ export interface TypedFieldConfig<T extends object> {
   transform?: (value: any, allValues: T) => any
   submitWhenHidden?: boolean
   submitWhenDisabled?: boolean
-  slots?: Record<string, SlotRenderFn>
+  slots?: Record<string, SlotContent>
 }
 
 // ===== 表单组件类型 =====

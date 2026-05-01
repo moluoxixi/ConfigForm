@@ -1,4 +1,4 @@
-import type { FieldConfig, FieldValidator, FormValues, SlotRenderFn, ValidateTrigger } from '../types'
+import type { FieldConfig, FieldValidator, FormValues, SlotContent, ValidateTrigger } from '@/types'
 
 // ===== 工具类型 =====
 
@@ -42,7 +42,7 @@ export class FieldDef {
   readonly transform?: (value: any, allValues: FormValues) => any
   readonly submitWhenHidden: boolean
   readonly submitWhenDisabled: boolean
-  readonly slots?: Record<string, SlotRenderFn>
+  readonly slots?: Record<string, SlotContent>
 
   constructor(input: FieldConfig) {
     this.field = input.field
@@ -101,7 +101,7 @@ interface FieldConfigCore<T extends Record<string, any> = Record<string, any>> {
   transform?: (value: any, allValues: T) => any
   submitWhenHidden?: boolean
   submitWhenDisabled?: boolean
-  slots?: Record<string, SlotRenderFn>
+  slots?: Record<string, SlotContent>
 }
 
 /**

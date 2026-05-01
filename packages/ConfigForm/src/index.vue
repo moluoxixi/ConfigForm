@@ -1,10 +1,10 @@
 <script setup lang="ts" generic="T extends object = Record<string, any>">
 import { computed, watch } from 'vue'
-import type { ConfigFormEmits, ConfigFormExpose, ConfigFormProps } from './types'
-import FormField from './components/FormField'
-import { useForm } from './composables/useForm'
-import { provideNamespace, useBem } from './composables/useNamespace'
-import { resolveLabelWidth } from './utils/style'
+import type { ConfigFormEmits, ConfigFormExpose, ConfigFormProps } from '@/types'
+import FormField from '@/components/FormField'
+import { useForm } from '@/composables/useForm'
+import { provideNamespace, useBem } from '@/composables/useNamespace'
+import { resolveLabelWidth } from '@/utils/style'
 
 
 const props = withDefaults(defineProps<ConfigFormProps<T>>(), {

@@ -11,7 +11,9 @@ typings
 
 # 测试产物
 .snapshot
+.agent
 .playwright-mcp
+.playwright-cli
 
 # Sentry配置
 .env.sentry-build-plugin

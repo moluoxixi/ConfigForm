@@ -1,6 +1,6 @@
 import type { ZodTypeAny } from 'zod'
-import type { FieldDef } from '../models/FieldDef'
-import type { FieldValidator, FormErrors, FormValues, ValidateTrigger } from '../types'
+import type { FieldDef } from '@/models/FieldDef'
+import type { FieldValidator, FormErrors, FormValues, ValidateTrigger } from '@/types'
 
 /** 校验单个字段值（纯 Zod 调用）。 */
 export function validateField(

@@ -1,4 +1,4 @@
-<script setup lang="tsx">
+<script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { z } from 'zod'
 import { ConfigForm, defineField } from '@moluoxixi/config-form'
@@ -214,10 +214,10 @@ const fields = [
     component: RadioGroup,
     ...v,
     slots: {
-      default: () => [
-        <Radio value="male">男</Radio>,
-        <Radio value="female">女</Radio>,
-        <Radio value="other">其他</Radio>,
+      default: [
+        { component: Radio, props: { value: 'male' }, slots: { default: '男' } },
+        { component: Radio, props: { value: 'female' }, slots: { default: '女' } },
+        { component: Radio, props: { value: 'other' }, slots: { default: '其他' } },
       ],
     },
   }),
@@ -230,11 +230,11 @@ const fields = [
     ...v,
     defaultValue: [],
     slots: {
-      default: () => [
-        <Checkbox value="reading">阅读</Checkbox>,
-        <Checkbox value="sports">运动</Checkbox>,
-        <Checkbox value="music">音乐</Checkbox>,
-        <Checkbox value="travel">旅行</Checkbox>,
+      default: [
+        { component: Checkbox, props: { value: 'reading' }, slots: { default: '阅读' } },
+        { component: Checkbox, props: { value: 'sports' }, slots: { default: '运动' } },
+        { component: Checkbox, props: { value: 'music' }, slots: { default: '音乐' } },
+        { component: Checkbox, props: { value: 'travel' }, slots: { default: '旅行' } },
       ],
     },
   }),
