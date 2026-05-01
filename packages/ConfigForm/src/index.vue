@@ -4,6 +4,7 @@ import type { ConfigFormEmits, ConfigFormExpose, ConfigFormProps } from '@/types
 import FormField from '@/components/FormField'
 import { useForm } from '@/composables/useForm'
 import { provideNamespace, useBem } from '@/composables/useNamespace'
+import { normalizeFormRuntime, provideRuntime } from '@/composables/useRuntime'
 import { resolveLabelWidth } from '@/utils/style'
 
 
@@ -17,8 +18,10 @@ const namespaceRef = computed(() => props.namespace)
 provideNamespace(namespaceRef)
 const { b, m } = useBem(namespaceRef)
 
-const resolvedFields = computed(() => props.fields)
+const rawFields = computed(() => props.fields)
 const initialValues = computed(() => props.modelValue)
+const runtimeRef = computed(() => normalizeFormRuntime(props.runtime))
+provideRuntime(runtimeRef)
 
 const {
   values,
@@ -35,11 +38,21 @@ const {
   getValues,
   clearFieldError,
 } = useForm({
-  fields: resolvedFields,
+  fields: rawFields,
   initialValues,
+  runtime: runtimeRef,
   onSubmit: vals => emit('submit', vals as T),
   onError: errs => emit('error', errs),
 })
+
+const runtimeContext = computed(() => runtimeRef.value.createContext({
+  errors: errors.value,
+  values: { ...values },
+}))
+
+const resolvedFields = computed(() =>
+  rawFields.value.map(field => runtimeRef.value.resolveField(field, runtimeContext.value)),
+)
 
 // ── v-model：值变化时向上发出 ──────────────────────────────────
 watch(values, (newVals) => {
@@ -73,6 +86,7 @@ defineExpose<ConfigFormExpose<T>>({
         :error="errors[field.field]"
         :inline="inline"
         :label-width="resolveLabelWidth(labelWidth)"
+        :runtime-context="runtimeContext"
         :visible="visibilityMap[field.field]"
         :disabled="disabledMap[field.field]"
         @update:model-value="(val: unknown) => setValue(field.field, val)"

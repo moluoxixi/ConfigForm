@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
 import { z } from 'zod'
 import { useForm } from '../src/composables/useForm'
-import { defineField } from '../src/models/FieldDef'
+import { defineField } from '../src/models/field'
+import { createFormRuntime, expr } from '../src/runtime'
 
 describe('useForm', () => {
   it('initializes from model values and reacts to external replacements', async () => {
@@ -226,5 +227,49 @@ describe('useForm', () => {
       missingValue: undefined,
     })
     expect(form.errors.value).toEqual({})
+  })
+
+  it('uses runtime expressions for visibility, disabled, validation skips, and submit output', async () => {
+    const runtime = ref(createFormRuntime())
+    const fields = ref([
+      defineField({
+        field: 'role',
+        component: 'input',
+        defaultValue: 'guest',
+      }),
+      defineField({
+        field: 'adminNote',
+        component: 'input',
+        defaultValue: 'visible for admins',
+        submitWhenHidden: false,
+        visible: expr({ left: { path: 'values.role' }, op: 'eq', right: 'admin' }, false),
+        validator: () => '隐藏时不应校验',
+      }),
+      defineField({
+        field: 'guestNote',
+        component: 'input',
+        defaultValue: 'disabled for guests',
+        disabled: expr({ left: { path: 'values.role' }, op: 'eq', right: 'guest' }, false),
+        validator: () => '禁用时不应校验',
+      }),
+    ])
+    const onSubmit = vi.fn()
+
+    const form = useForm({ fields, onSubmit, runtime })
+
+    expect(form.visibilityMap.value.adminNote).toBe(false)
+    expect(form.disabledMap.value.guestNote).toBe(true)
+
+    await expect(form.submit()).resolves.toBe(true)
+    expect(onSubmit).toHaveBeenCalledWith({ role: 'guest' })
+
+    form.setValue('role', 'admin')
+
+    expect(form.visibilityMap.value.adminNote).toBe(true)
+    expect(form.disabledMap.value.guestNote).toBe(false)
+
+    await expect(form.submit()).resolves.toBe(false)
+    expect(form.errors.value.adminNote).toEqual(['隐藏时不应校验'])
+    expect(form.errors.value.guestNote).toEqual(['禁用时不应校验'])
   })
 })

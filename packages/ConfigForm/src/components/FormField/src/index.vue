@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { FieldConfig, SlotContent, SlotFieldConfig } from '@/types'
+import type { FieldConfig, ResolvedField, SlotContent, SlotFieldConfig } from '@/types'
+import type { FormRuntimeContext } from '@/runtime'
 import { computed, defineComponent } from 'vue'
-import { FieldDef } from '@/models/FieldDef'
 import { useBem, useNamespace } from '@/composables/useNamespace'
+import { useRuntime } from '@/composables/useRuntime'
 import { resolveLabelWidth } from '@/utils/style'
 
 defineOptions({ name: 'FormField' })
@@ -20,7 +21,7 @@ const SlotRender = defineComponent({
 })
 
 const props = defineProps<{
-  field: FieldDef
+  field: ResolvedField
   modelValue: unknown
   error?: string[]
   inline?: boolean
@@ -29,6 +30,8 @@ const props = defineProps<{
   visible?: boolean
   /** 由父层 disabledMap 计算传入 */
   disabled?: boolean
+  /** 当前表单运行时上下文，递归插槽字段会沿用它 */
+  runtimeContext?: FormRuntimeContext
   /** 作为父组件插槽内容递归渲染时，只输出实际组件，不输出表单项外壳 */
   embedded?: boolean
 }>()
@@ -41,6 +44,15 @@ const emit = defineEmits<{
 
 const ns = useNamespace()
 const { b, e, m } = useBem(ns)
+const runtimeRef = useRuntime()
+
+const currentRuntimeContext = computed<FormRuntimeContext>(() => {
+  const base = props.runtimeContext ?? runtimeRef.value.createContext()
+  return {
+    ...base,
+    field: props.field,
+  }
+})
 
 const fieldId = computed(() => {
   const safeFieldName = props.field.field.replace(/[^\w-]/g, '-')
@@ -78,7 +90,7 @@ const componentAttrs = computed(() => ({
 }))
 
 type NormalizedSlotNode =
-  | { field: FieldDef, key: string, kind: 'field' }
+  | { field: ResolvedField, key: string, kind: 'field' }
   | { fn: () => unknown, key: string, kind: 'render' }
 
 function isSlotFieldConfig(value: unknown): value is SlotFieldConfig {
@@ -90,14 +102,12 @@ function isSlotFieldConfig(value: unknown): value is SlotFieldConfig {
   )
 }
 
-function toSlotFieldDef(config: FieldDef | SlotFieldConfig, slotName: string, path: string): FieldDef {
-  if (config instanceof FieldDef)
-    return config
-
-  return new FieldDef({
+function toSlotField(config: SlotFieldConfig, slotName: string, path: string): ResolvedField {
+  const field = {
     ...config,
     field: config.field ?? `${props.field.field}-${slotName}-${path}`,
-  } as FieldConfig)
+  } as FieldConfig
+  return runtimeRef.value.resolveField(field, currentRuntimeContext.value)
 }
 
 function normalizeResolvedSlotValue(value: SlotContent, slotName: string, path = '0'): NormalizedSlotNode[] {
@@ -110,9 +120,9 @@ function normalizeResolvedSlotValue(value: SlotContent, slotName: string, path =
     )
   }
 
-  if (value instanceof FieldDef || isSlotFieldConfig(value)) {
+  if (isSlotFieldConfig(value)) {
     return [{
-      field: toSlotFieldDef(value, slotName, path),
+      field: toSlotField(value, slotName, path),
       key: `field-${slotName}-${path}`,
       kind: 'field',
     }]
@@ -126,10 +136,20 @@ function normalizeResolvedSlotValue(value: SlotContent, slotName: string, path =
 }
 
 function normalizeSlotValue(slotValue: SlotContent, scope: Record<string, unknown> | undefined, slotName: string): NormalizedSlotNode[] {
-  if (typeof slotValue === 'function')
-    return normalizeResolvedSlotValue(slotValue(scope), slotName)
+  const context = {
+    ...currentRuntimeContext.value,
+    meta: {
+      ...currentRuntimeContext.value.meta,
+      slotScope: scope,
+    },
+  }
 
-  return normalizeResolvedSlotValue(slotValue, slotName)
+  const resolvedSlot = runtimeRef.value.resolveSlot(slotValue, context, `${props.field.field}.slots.${slotName}`)
+
+  if (typeof resolvedSlot === 'function')
+    return normalizeResolvedSlotValue(resolvedSlot(scope), slotName)
+
+  return normalizeResolvedSlotValue(resolvedSlot, slotName)
 }
 
 function onChange(value: unknown) {
@@ -161,6 +181,7 @@ function onBlur() {
           v-if="slotNode.kind === 'field'"
           :field="slotNode.field"
           :model-value="undefined"
+          :runtime-context="currentRuntimeContext"
           embedded
         />
         <SlotRender v-else :fn="slotNode.fn" />
@@ -198,6 +219,7 @@ function onBlur() {
               v-if="slotNode.kind === 'field'"
               :field="slotNode.field"
               :model-value="undefined"
+              :runtime-context="currentRuntimeContext"
               embedded
             />
             <SlotRender v-else :fn="slotNode.fn" />

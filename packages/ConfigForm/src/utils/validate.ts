@@ -1,6 +1,8 @@
 import type { ZodTypeAny } from 'zod'
-import type { FieldDef } from '@/models/FieldDef'
-import type { FieldValidator, FormErrors, FormValues, ValidateTrigger } from '@/types'
+import type { FormRuntime } from '@/runtime'
+import type { FieldConfig, FieldValidator, FormErrors, FormValues, ValidateTrigger } from '@/types'
+import { normalizeField, shouldValidateOn } from '@/models/field'
+import { createFormRuntime } from '@/runtime'
 
 /** 校验单个字段值（纯 Zod 调用）。 */
 export function validateField(
@@ -38,25 +40,28 @@ export async function validateFieldRules(
 
 /**
  * 校验整个表单（按触发时机过滤）。
- * 跳过逻辑已内聚于 FieldDef 方法，此处只做遍历。
+ * 跳过逻辑由 runtime 统一判断，此处只做遍历。
  */
 export async function validateForm(
   values: FormValues,
-  fields: FieldDef[],
+  fields: FieldConfig[],
   trigger: ValidateTrigger = 'submit',
+  runtime: FormRuntime = createFormRuntime(),
 ): Promise<FormErrors> {
   const errors: FormErrors = {}
-  for (const field of fields) {
+  const context = runtime.createContext({ errors, values })
+  for (const config of fields) {
+    const field = normalizeField(config)
     if (!field.schema && !field.validator)
       continue
     const shouldValidateHidden = trigger === 'submit' && field.submitWhenHidden
     const shouldValidateDisabled = trigger === 'submit' && field.submitWhenDisabled
 
-    if (!field.isVisible(values) && !shouldValidateHidden)
+    if (!runtime.resolveVisible(field, context) && !shouldValidateHidden)
       continue
-    if (field.isDisabled(values) && !shouldValidateDisabled)
+    if (runtime.resolveDisabled(field, context) && !shouldValidateDisabled)
       continue
-    if (!field.shouldValidateOn(trigger))
+    if (!shouldValidateOn(field, trigger))
       continue
 
     const errs = await validateFieldRules(values[field.field], field.schema, values, field.validator)

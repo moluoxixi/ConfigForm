@@ -1,6 +1,6 @@
 import type { Component, SetupContext, VNode } from 'vue'
 import type { ZodType, ZodTypeAny, ZodTypeDef } from 'zod'
-import type { FieldDef } from '@/models/FieldDef'
+import type { FormRuntimeInput } from '@/runtime/types'
 
 // ===== 公共类型 =====
 
@@ -18,11 +18,40 @@ export type FieldValidator<T extends object = FormValues, TValue = unknown> = (
   allValues: T,
 ) => FieldValidatorResult | Promise<FieldValidatorResult>
 
+export interface I18nToken {
+  readonly __configFormToken: 'i18n'
+  key: string
+  fallback?: string
+  params?: Record<string, unknown>
+}
+
+export type ExpressionInput
+  = | string
+    | number
+    | boolean
+    | null
+    | { path: string, fallback?: unknown }
+    | { op: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte', left: ExpressionInput, right: ExpressionInput }
+    | { op: 'and' | 'or', items: ExpressionInput[] }
+    | { op: 'not', value: ExpressionInput }
+    | { op: 'includes', source: ExpressionInput, value: ExpressionInput }
+
+export interface ExpressionToken<TValue = unknown> {
+  readonly __configFormToken: 'expr'
+  expression: ExpressionInput
+  fallback?: TValue
+}
+
+export type RuntimeToken<TValue = unknown> = I18nToken | ExpressionToken<TValue>
+export type RuntimeText = string | I18nToken | ExpressionToken<string>
+export type FieldCondition<T extends object = FormValues> = boolean | ExpressionToken<boolean> | ((values: T) => boolean)
+
 export type SlotPrimitive = string | number | boolean | null | undefined
 
 export interface SlotFieldConfig {
   field?: string
-  label?: string
+  label?: RuntimeText
+  schema?: ZodTypeAny
   span?: number
   component: Component | FunctionalFieldComponent | string
   props?: Record<string, unknown>
@@ -30,20 +59,27 @@ export interface SlotFieldConfig {
   valueProp?: string
   trigger?: string
   blurTrigger?: string
+  validateOn?: ValidateTrigger | ValidateTrigger[]
+  validator?: FieldValidator<FormValues, unknown>
+  visible?: FieldCondition<FormValues>
+  disabled?: FieldCondition<FormValues>
+  transform?: (value: unknown, allValues: FormValues) => unknown
+  submitWhenHidden?: boolean
+  submitWhenDisabled?: boolean
   slots?: Record<string, SlotContent>
 }
 
-export type SlotRenderable = VNode | VNode[] | SlotPrimitive
+export type SlotRenderable = VNode | VNode[] | SlotPrimitive | RuntimeToken
 export type SlotContent = SlotRenderFn | SlotFieldConfig | SlotFieldConfig[] | SlotRenderable
 
 /** 插槽渲染函数，接收作用域参数，返回 VNode(s) 或递归字段配置 */
 export type SlotRenderFn = (scope?: Record<string, unknown>) => SlotContent
 
-// ===== FieldConfig：FieldDef 构造参数（输入协议）=====
+// ===== FieldConfig：公开字段输入协议 =====
 
 export interface FieldConfig {
   field: string
-  label?: string
+  label?: RuntimeText
   schema?: ZodTypeAny
   span?: number
   component: Component | FunctionalFieldComponent | string
@@ -57,8 +93,8 @@ export interface FieldConfig {
   blurTrigger?: string
   validateOn?: ValidateTrigger | ValidateTrigger[]
   validator?: FieldValidator<FormValues, unknown>
-  visible?: (values: FormValues) => boolean
-  disabled?: (values: FormValues) => boolean
+  visible?: FieldCondition<FormValues>
+  disabled?: FieldCondition<FormValues>
   transform?: (value: unknown, allValues: FormValues) => unknown
   /** 隐藏时仍参与 submit 输出，默认 false */
   submitWhenHidden?: boolean
@@ -66,6 +102,24 @@ export interface FieldConfig {
   submitWhenDisabled?: boolean
   /** 传递给组件的插槽，可为渲染函数、文本、递归字段配置或配置数组 */
   slots?: Record<string, SlotContent>
+}
+
+export interface NormalizedFieldConfig extends Omit<
+  FieldConfig,
+  'blurTrigger' | 'props' | 'span' | 'submitWhenDisabled' | 'submitWhenHidden' | 'trigger' | 'validateOn' | 'valueProp'
+> {
+  span: number
+  props: Record<string, unknown>
+  valueProp: string
+  trigger: string
+  blurTrigger: string
+  validateOn: ValidateTrigger[]
+  submitWhenHidden: boolean
+  submitWhenDisabled: boolean
+}
+
+export interface ResolvedField extends Omit<NormalizedFieldConfig, 'label'> {
+  label?: string
 }
 
 export type FieldKey<T extends object> = Extract<keyof T, string>
@@ -76,7 +130,7 @@ export interface TypedFieldConfig<
   K extends FieldKey<T> = FieldKey<T>,
 > {
   field: K
-  label?: string
+  label?: RuntimeText
   schema?: FieldSchema<T[K]>
   span?: number
   component: Component | FunctionalFieldComponent | string
@@ -87,8 +141,8 @@ export interface TypedFieldConfig<
   blurTrigger?: string
   validateOn?: ValidateTrigger | ValidateTrigger[]
   validator?: FieldValidator<T, T[K]>
-  visible?: (values: T) => boolean
-  disabled?: (values: T) => boolean
+  visible?: FieldCondition<T>
+  disabled?: FieldCondition<T>
   transform?: (value: T[K], allValues: T) => unknown
   submitWhenHidden?: boolean
   submitWhenDisabled?: boolean
@@ -103,10 +157,12 @@ export interface ConfigFormProps<T extends object = FormValues> {
   /**
    * 表单字段配置
    */
-  fields: FieldDef[]
+  fields: FieldConfig[]
   labelWidth?: string | number
   /** v-model 双向绑定表单值 */
   modelValue?: T
+  /** 表单运行时，用于组件注册、i18n、表达式、插件扩展和调试事件 */
+  runtime?: FormRuntimeInput
 }
 
 export interface ConfigFormEmits<T extends object = FormValues> {

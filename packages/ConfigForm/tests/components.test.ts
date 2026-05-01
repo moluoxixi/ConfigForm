@@ -5,7 +5,8 @@ import { defineComponent, h, markRaw, nextTick } from 'vue'
 import { z } from 'zod'
 import FormField from '../src/components/FormField/src/index.vue'
 import ConfigForm from '../src/index.vue'
-import { defineField, FieldDef } from '../src/models/FieldDef'
+import { defineField } from '../src/models/field'
+import { createFormRuntime, expr, i18n } from '../src/runtime'
 
 const TextInput = markRaw(defineComponent({
   name: 'TextInput',
@@ -14,16 +15,21 @@ const TextInput = markRaw(defineComponent({
     modelValue: { type: String, default: '' },
   },
   emits: ['update:modelValue', 'blur'],
-  setup(props, { attrs, emit }) {
-    return () => h('input', {
-      ...attrs,
-      disabled: props.disabled,
-      value: props.modelValue,
-      onBlur: () => emit('blur'),
-      onInput: (event: Event) => {
-        emit('update:modelValue', (event.target as HTMLInputElement).value)
-      },
-    })
+  setup(props, { attrs, emit, slots }) {
+    return () => h('div', [
+      slots.prefix?.(),
+      h('input', {
+        ...attrs,
+        disabled: props.disabled,
+        value: props.modelValue,
+        onBlur: () => emit('blur'),
+        onInput: (event: Event) => {
+          emit('update:modelValue', (event.target as HTMLInputElement).value)
+        },
+      }),
+      slots.default?.(),
+      slots.suffix?.(),
+    ])
   },
 }))
 
@@ -62,6 +68,11 @@ const SlotLeaf = markRaw(defineComponent({
     return () => h('span', attrs, slots.default?.())
   },
 }))
+
+function resolveTestField(field: ReturnType<typeof defineField>) {
+  const runtime = createFormRuntime()
+  return runtime.resolveField(field, runtime.createContext({ errors: {}, values: {} }))
+}
 
 describe('config form component', () => {
   it('updates model values and renders blur validation errors', async () => {
@@ -199,11 +210,77 @@ describe('config form component', () => {
     await nextTick()
     expect(api.getValues()).toEqual({ name: '' })
   })
+
+  it('resolves runtime registry, i18n, expressions, and nested slot configs', async () => {
+    const events: string[] = []
+    const runtime = createFormRuntime({
+      components: {
+        SlotLeaf,
+        TextInput,
+      },
+      debug: {
+        emit: event => events.push(event.type),
+      },
+      i18n: {
+        t: (key, _params, fallback) => {
+          const messages: Record<string, string> = {
+            'field.nickname': '昵称',
+            'field.nickname.placeholder': '请输入昵称',
+            'slot.prefix': '前缀',
+          }
+          return messages[key] ?? fallback ?? key
+        },
+      },
+    })
+
+    const fields = [
+      defineField({
+        field: 'role',
+        component: TextInput,
+        defaultValue: 'admin',
+      }),
+      defineField({
+        field: 'nickname',
+        label: i18n('field.nickname', 'Nickname'),
+        component: 'TextInput',
+        props: {
+          placeholder: i18n('field.nickname.placeholder', 'Nickname placeholder'),
+        },
+        visible: expr({ left: { path: 'values.role' }, op: 'eq', right: 'admin' }, false),
+        slots: {
+          prefix: {
+            component: 'SlotLeaf',
+            props: { 'data-role': 'runtime-prefix' },
+            slots: { default: i18n('slot.prefix', 'Prefix') },
+          },
+        },
+      }),
+    ]
+
+    const wrapper = mount(ConfigForm, {
+      props: {
+        fields,
+        modelValue: { role: 'admin' },
+        runtime,
+      },
+    })
+
+    expect(wrapper.text()).toContain('昵称')
+    expect(wrapper.find('input[placeholder="请输入昵称"]').exists()).toBe(true)
+    expect(wrapper.find('[data-role="runtime-prefix"]').text()).toBe('前缀')
+    expect(events).toContain('field:resolved')
+
+    const api = wrapper.vm as unknown as ConfigFormExpose<Record<string, unknown>>
+    api.setValue('role', 'guest')
+    await nextTick()
+
+    expect(wrapper.text()).not.toContain('昵称')
+  })
 })
 
 describe('form field component', () => {
   it('emits custom value and blur triggers through the public field contract', async () => {
-    const field = new FieldDef({
+    const field = defineField({
       blurTrigger: 'focusout',
       component: CustomControl,
       field: 'status',
@@ -213,7 +290,7 @@ describe('form field component', () => {
 
     const wrapper = mount(FormField, {
       props: {
-        field,
+        field: resolveTestField(field),
         modelValue: 'ready',
         visible: true,
       },
@@ -230,7 +307,7 @@ describe('form field component', () => {
   })
 
   it('renders object slot configs recursively including scoped slot functions', () => {
-    const field = new FieldDef({
+    const field = defineField({
       component: SlotHost,
       field: 'choice',
       slots: {
@@ -249,7 +326,7 @@ describe('form field component', () => {
 
     const wrapper = mount(FormField, {
       props: {
-        field,
+        field: resolveTestField(field),
         modelValue: undefined,
         visible: true,
       },
@@ -264,7 +341,7 @@ describe('form field component', () => {
   })
 
   it('renders recursive slot fields while embedded', () => {
-    const field = new FieldDef({
+    const field = defineField({
       component: SlotHost,
       field: 'embedded-choice',
       slots: {
@@ -277,7 +354,7 @@ describe('form field component', () => {
     const wrapper = mount(FormField, {
       props: {
         embedded: true,
-        field,
+        field: resolveTestField(field),
         modelValue: undefined,
       },
     })

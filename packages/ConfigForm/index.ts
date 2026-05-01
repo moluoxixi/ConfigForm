@@ -1,12 +1,46 @@
 export { useForm } from './src/composables/useForm'
 export type { UseFormOptions } from './src/composables/useForm'
 export { useBem, useNamespace } from './src/composables/useNamespace'
+export { normalizeFormRuntime, provideRuntime, useRuntime } from './src/composables/useRuntime'
 export { default as ConfigForm } from './src/index.vue'
-export { defineField, defineFieldFor, FieldDef } from './src/models/FieldDef'
+export {
+  applyFieldTransform,
+  defineField,
+  defineFieldFor,
+  normalizeField,
+  normalizeValidateOn,
+  shouldValidateOn,
+} from './src/models/field'
+export {
+  createFormRuntime,
+  expr,
+  i18n,
+  isExpressionToken,
+  isFormRuntime,
+  isI18nToken,
+} from './src/runtime'
+export type {
+  ComponentRegistry,
+  CreateRuntimeContextInput,
+  FormExpressionAdapter,
+  FormI18nAdapter,
+  FormRuntime,
+  FormRuntimeConflict,
+  FormRuntimeConflictStrategy,
+  FormRuntimeContext,
+  FormRuntimeDebugEvent,
+  FormRuntimeDebugEventType,
+  FormRuntimeExtension,
+  FormRuntimeInput,
+  FormRuntimeOptions,
+} from './src/runtime'
 export type {
   ConfigFormEmits,
   ConfigFormExpose,
   ConfigFormProps,
+  ExpressionInput,
+  ExpressionToken,
+  FieldCondition,
   FieldConfig,
   FieldKey,
   FieldSchema,
@@ -15,6 +49,11 @@ export type {
   FormErrors,
   FormValues,
   FunctionalFieldComponent,
+  I18nToken,
+  NormalizedFieldConfig,
+  ResolvedField,
+  RuntimeText,
+  RuntimeToken,
   SlotContent,
   SlotFieldConfig,
   SlotPrimitive,

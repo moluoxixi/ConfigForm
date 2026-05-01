@@ -1,9 +1,12 @@
 import type { output, ZodTypeAny } from 'zod'
 import type {
+  FieldCondition,
   FieldConfig,
   FieldKey,
   FieldValidator,
   FormValues,
+  NormalizedFieldConfig,
+  RuntimeText,
   SlotContent,
   TypedFieldConfig,
   ValidateTrigger,
@@ -23,80 +26,43 @@ interface ComponentFieldPart<C> {
   props?: ExtractComponentProps<C> & {}
 }
 
-// ===== 内部工具函数 =====
+// ===== 字段规范化 =====
 
 /** 规范化 validateOn，确保始终包含 'submit' */
-function normalizeValidateOn(on?: ValidateTrigger | ValidateTrigger[]): ValidateTrigger[] {
+export function normalizeValidateOn(on?: ValidateTrigger | ValidateTrigger[]): ValidateTrigger[] {
   if (!on)
     return ['submit']
   const arr = Array.isArray(on) ? on : [on]
   return arr.includes('submit') ? arr : [...arr, 'submit']
 }
 
-// ===== FieldDef =====
-
-/**
- * 字段定义模型。系统中字段的唯一运行时表示。
- */
-export class FieldDef {
-  readonly field: string
-  readonly label?: string
-  readonly schema?: FieldConfig['schema']
-  readonly span?: number
-  readonly component: FieldConfig['component']
-  readonly props?: Record<string, unknown>
-  readonly defaultValue?: unknown
-  readonly valueProp: string
-  readonly trigger: string
-  readonly blurTrigger: string
-  readonly validateOn: ValidateTrigger[]
-  readonly validator?: FieldValidator<FormValues, unknown>
-  readonly visible?: (values: FormValues) => boolean
-  readonly disabled?: (values: FormValues) => boolean
-  readonly transform?: (value: unknown, allValues: FormValues) => unknown
-  readonly submitWhenHidden: boolean
-  readonly submitWhenDisabled: boolean
-  readonly slots?: Record<string, SlotContent>
-
-  constructor(input: FieldConfig) {
-    this.field = input.field
-    this.label = input.label
-    this.schema = input.schema
-    this.span = input.span || 24
-    this.component = input.component
-    this.props = input.props
-    this.defaultValue = input.defaultValue
-    this.visible = input.visible
-    this.disabled = input.disabled
-    this.transform = input.transform
-    this.slots = input.slots
-    this.valueProp = input.valueProp || 'modelValue'
-    this.trigger = input.trigger || 'update:modelValue'
-    this.blurTrigger = input.blurTrigger || 'blur'
-    this.validateOn = normalizeValidateOn(input.validateOn)
-    this.validator = input.validator
-    this.submitWhenHidden = input.submitWhenHidden ?? false
-    this.submitWhenDisabled = input.submitWhenDisabled ?? false
-  }
-
-  shouldValidateOn(trigger: ValidateTrigger): boolean {
-    return this.validateOn.includes(trigger)
-  }
-
-  isVisible(values: FormValues): boolean {
-    return this.visible ? this.visible(values) : true
-  }
-
-  isDisabled(values: FormValues): boolean {
-    return this.disabled ? this.disabled(values) : false
-  }
-
-  applyTransform(value: unknown, allValues: FormValues): unknown {
-    return this.transform ? this.transform(value, allValues) : value
+export function normalizeField(input: FieldConfig): NormalizedFieldConfig {
+  return {
+    ...input,
+    blurTrigger: input.blurTrigger || 'blur',
+    props: input.props ?? {},
+    span: input.span ?? 24,
+    submitWhenDisabled: input.submitWhenDisabled ?? false,
+    submitWhenHidden: input.submitWhenHidden ?? false,
+    trigger: input.trigger || 'update:modelValue',
+    validateOn: normalizeValidateOn(input.validateOn),
+    valueProp: input.valueProp || 'modelValue',
   }
 }
 
-// ===== defineField =====
+export function shouldValidateOn(field: Pick<NormalizedFieldConfig, 'validateOn'>, trigger: ValidateTrigger): boolean {
+  return field.validateOn.includes(trigger)
+}
+
+export function applyFieldTransform(
+  field: Pick<NormalizedFieldConfig, 'transform'>,
+  value: unknown,
+  allValues: FormValues,
+): unknown {
+  return field.transform ? field.transform(value, allValues) : value
+}
+
+// ===== defineField：纯配置工厂 =====
 
 interface FieldConfigBase<
   TValues extends object = FormValues,
@@ -104,15 +70,15 @@ interface FieldConfigBase<
   TField extends string = string,
 > {
   field: TField
-  label?: string
+  label?: RuntimeText
   span?: number
   valueProp?: string
   trigger?: string
   blurTrigger?: string
   validateOn?: ValidateTrigger | ValidateTrigger[]
   validator?: FieldValidator<TValues, TValue>
-  visible?: (values: TValues) => boolean
-  disabled?: (values: TValues) => boolean
+  visible?: FieldCondition<TValues>
+  disabled?: FieldCondition<TValues>
   transform?: (value: TValue, allValues: TValues) => unknown
   submitWhenHidden?: boolean
   submitWhenDisabled?: boolean
@@ -173,8 +139,8 @@ export function defineFieldFor<TValues extends object>() {
     C = unknown,
   >(
     config: TypedFieldConfig<TValues, K> & ComponentFieldPart<C>,
-  ): FieldDef {
-    return new FieldDef(config as FieldConfig)
+  ): FieldConfig {
+    return { ...(config as FieldConfig) }
   }
 }
 
@@ -185,7 +151,7 @@ export function defineField<
   TField extends string = string,
 >(
   config: SchemaFieldConfigCore<FormValues, TSchema, TField> & ComponentFieldPart<C>,
-): FieldDef
+): FieldConfig
 
 // 重载 2：没有 schema 时，按 defaultValue 推导 value
 export function defineField<
@@ -194,7 +160,7 @@ export function defineField<
   TField extends string = string,
 >(
   config: DefaultValueFieldConfigCore<FormValues, TValue, TField> & ComponentFieldPart<C>,
-): FieldDef
+): FieldConfig
 
 // 重载 3：没有 schema/defaultValue 时，value 使用默认 unknown
 export function defineField<
@@ -202,7 +168,7 @@ export function defineField<
   TField extends string = string,
 >(
   config: UnknownValueFieldConfigCore<FormValues, TField> & ComponentFieldPart<C>,
-): FieldDef
+): FieldConfig
 
 // 重载 4：兼容显式表单泛型；若只传 TValues，字段值会是 TValues[keyof TValues]，精确字段值请使用 defineFieldFor<TValues>()
 export function defineField<
@@ -211,9 +177,9 @@ export function defineField<
   C = unknown,
 >(
   config: TypedFieldConfig<TValues, K> & ComponentFieldPart<C>,
-): FieldDef
+): FieldConfig
 
 // 实现
-export function defineField(config: FieldConfig): FieldDef {
-  return new FieldDef(config)
+export function defineField(config: FieldConfig): FieldConfig {
+  return { ...config }
 }

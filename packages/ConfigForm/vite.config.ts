@@ -23,6 +23,7 @@ export default defineConfig({
       exclude: [
         'src/styles/**',
         'src/types/**',
+        'src/runtime/types.ts',
         'src/**/index.ts',
       ],
       thresholds: {

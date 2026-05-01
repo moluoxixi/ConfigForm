@@ -1,6 +1,6 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { z } from 'zod'
-import { defineField, defineFieldFor } from '../src/models/FieldDef'
+import { defineField, defineFieldFor } from '../src/models/field'
 
 describe('defineField typing', () => {
   it('infers field value from schema', () => {
@@ -93,5 +93,27 @@ describe('defineField typing', () => {
     })
 
     expect(field.validateOn).toEqual(['submit', 'blur'])
+  })
+
+  it('returns plain field configs and leaves runtime behavior outside the model', () => {
+    const visible = (values: Record<string, unknown>) => values.role === 'admin'
+    const field = defineField({
+      disabled: false,
+      field: 'mode',
+      component: 'input',
+      validateOn: ['submit', 'blur'],
+      visible,
+    })
+
+    expect(field).toMatchObject({
+      component: 'input',
+      disabled: false,
+      field: 'mode',
+      validateOn: ['submit', 'blur'],
+      visible,
+    })
+    expect('isVisible' in field).toBe(false)
+    expect('isDisabled' in field).toBe(false)
+    expect('applyTransform' in field).toBe(false)
   })
 })
