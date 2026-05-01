@@ -29,6 +29,18 @@ describe('form runtime', () => {
       },
       extensions: [
         {
+          i18n: {
+            locale: 'zh-CN',
+            translate: (key, params, fallback) => {
+              if (key === 'fields.name')
+                return `用户名-${String(params?.name)}`
+              return fallback ?? key
+            },
+          },
+          name: 'test-i18n',
+          priority: -100,
+        },
+        {
           name: 'late-props',
           priority: 20,
           resolveField: field => ({
@@ -51,14 +63,6 @@ describe('form runtime', () => {
           }),
         },
       ],
-      i18n: {
-        locale: 'zh-CN',
-        t: (key, params, fallback) => {
-          if (key === 'fields.name')
-            return `用户名-${String(params?.name)}`
-          return fallback ?? key
-        },
-      },
     })
 
     const field = defineField({
@@ -103,6 +107,18 @@ describe('form runtime', () => {
     const ctx = runtime.createContext({ errors: {}, values: { canEdit: true } })
 
     expect(runtime.resolveValue(expr('canEdit', false), ctx)).toBe(true)
+  })
+
+  it('throws when i18n tokens are used without an i18n adapter', () => {
+    const runtime = createFormRuntime()
+    const field = defineField({
+      component: 'input',
+      field: 'name',
+      label: i18n('field.name', 'Name'),
+    })
+
+    expect(() => runtime.resolveField(field, runtime.createContext({ errors: {}, values: {} })))
+      .toThrow(/No i18n plugin registered/)
   })
 
   it('enforces duplicate extension and component conflicts in strict mode', () => {

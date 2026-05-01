@@ -1,6 +1,7 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { z } from 'zod'
 import { defineField, defineFieldFor } from '../src/models/field'
+import { i18n } from '../src/runtime'
 
 describe('defineField typing', () => {
   it('infers field value from schema', () => {
@@ -58,6 +59,66 @@ describe('defineField typing', () => {
         return undefined
       },
     })
+  })
+
+  it('preserves inferred config types on returned fields', () => {
+    const nameField = defineField({
+      field: 'name',
+      component: 'input',
+      schema: z.string(),
+    })
+
+    expectTypeOf(nameField.field).toEqualTypeOf<'name'>()
+    expectTypeOf(nameField.schema).toMatchTypeOf<z.ZodString>()
+    expectTypeOf(nameField.defaultValue).toEqualTypeOf<string | undefined>()
+
+    const ageField = defineField({
+      field: 'age',
+      component: 'input',
+      defaultValue: 18,
+    })
+
+    expectTypeOf(ageField.field).toEqualTypeOf<'age'>()
+    expectTypeOf(ageField.defaultValue).toEqualTypeOf<number>()
+
+    interface UserForm {
+      age: number
+      name: string
+    }
+
+    const defineUserField = defineFieldFor<UserForm>()
+    const userAgeField = defineUserField({
+      field: 'age',
+      component: 'input',
+      defaultValue: 18,
+    })
+
+    expectTypeOf(userAgeField.field).toEqualTypeOf<'age'>()
+    expectTypeOf(userAgeField.defaultValue).toEqualTypeOf<number | undefined>()
+  })
+
+  it('allows runtime tokens inside inferred component props', () => {
+    const selectComponent = (
+      _props: {
+        options?: Array<{ label: string, value: string }>
+        placeholder?: string
+      },
+    ) => null
+
+    const roleField = defineField({
+      field: 'role',
+      component: selectComponent,
+      defaultValue: 'admin',
+      props: {
+        placeholder: i18n('role.placeholder', '请选择角色'),
+        options: [
+          { label: i18n('role.admin', '管理员'), value: 'admin' },
+          { label: i18n('role.user', '用户'), value: 'user' },
+        ],
+      },
+    })
+
+    expectTypeOf(roleField.defaultValue).toEqualTypeOf<string>()
   })
 
   it('binds field value and all values for typed forms', () => {

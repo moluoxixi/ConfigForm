@@ -414,7 +414,10 @@ const fields = [
     span: 24,
     component: ElInput,
     props: { type: 'textarea', placeholder: '评分达到 3 分后可填写建议', rows: 2, clearable: true },
-    disabled: (values) => !values.rating || values.rating < 3,
+    disabled: (values) => {
+      const rating = typeof values.rating === 'number' ? values.rating : 0
+      return rating < 3
+    },
   }),
 
   // ── 文本域 ─────────────────────────────

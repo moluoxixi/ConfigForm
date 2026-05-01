@@ -1,0 +1,36 @@
+{
+  "name": "@moluoxixi/config-form-plugin-i18n",
+  "type": "module",
+  "version": "0.1.0",
+  "exports": {
+    ".": {
+      "source": "./index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build && vue-tsc -p tsconfig.app.json --declaration --emitDeclarationOnly --outDir dist",
+    "dev": "vite build --watch",
+    "test": "vitest run",
+    "typecheck": "vue-tsc -p tsconfig.test.json --noEmit"
+  },
+  "peerDependencies": {
+    "@moluoxixi/config-form": "^0.1.0"
+  },
+  "devDependencies": {
+    "@moluoxixi/config-form": "workspace:*",
+    "vite": "catalog:dev",
+    "vitest": "catalog:dev",
+    "vue-tsc": "catalog:dev"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

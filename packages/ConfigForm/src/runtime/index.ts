@@ -19,5 +19,6 @@ export type {
   FormRuntimeDebugEventType,
   FormRuntimeExtension,
   FormRuntimeInput,
+  FormRuntimeLocale,
   FormRuntimeOptions,
 } from './types'

@@ -221,16 +221,22 @@ describe('config form component', () => {
       debug: {
         emit: event => events.push(event.type),
       },
-      i18n: {
-        t: (key, _params, fallback) => {
-          const messages: Record<string, string> = {
-            'field.nickname': '昵称',
-            'field.nickname.placeholder': '请输入昵称',
-            'slot.prefix': '前缀',
-          }
-          return messages[key] ?? fallback ?? key
+      extensions: [
+        {
+          i18n: {
+            locale: 'zh-CN',
+            translate: (key, _params, fallback) => {
+              const messages: Record<string, string> = {
+                'field.nickname': '昵称',
+                'field.nickname.placeholder': '请输入昵称',
+                'slot.prefix': '前缀',
+              }
+              return messages[key] ?? fallback ?? key
+            },
+          },
+          name: 'test-i18n',
         },
-      },
+      ],
     })
 
     const fields = [

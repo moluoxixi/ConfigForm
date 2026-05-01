@@ -7,6 +7,7 @@ import type {
   FormValues,
   NormalizedFieldConfig,
   RuntimeText,
+  RuntimeToken,
   SlotContent,
   TypedFieldConfig,
   ValidateTrigger,
@@ -21,10 +22,24 @@ export type ExtractComponentProps<C> = C extends abstract new (...args: unknown[
     ? P
     : Record<string, unknown>
 
+type RuntimeResolvable<T> = T extends (...args: infer TArgs) => infer TReturn
+  ? (...args: TArgs) => TReturn
+  : T extends string
+    ? RuntimeText
+    : T extends number | boolean | bigint | symbol | null | undefined
+      ? T | RuntimeToken<T>
+      : T extends readonly (infer TItem)[]
+        ? RuntimeResolvable<TItem>[]
+        : T extends object
+          ? { [K in keyof T]: RuntimeResolvable<T[K]> }
+          : T | RuntimeToken<T>
+
 interface ComponentFieldPart<C> {
   component: C
-  props?: ExtractComponentProps<C> & {}
+  props?: (RuntimeResolvable<ExtractComponentProps<NoInfer<C>>> & {}) | Record<string, unknown>
 }
+
+type DefinedFieldConfig<TConfig> = TConfig & FieldConfig
 
 // ===== 字段规范化 =====
 
@@ -139,8 +154,8 @@ export function defineFieldFor<TValues extends object>() {
     C = unknown,
   >(
     config: TypedFieldConfig<TValues, K> & ComponentFieldPart<C>,
-  ): FieldConfig {
-    return { ...(config as FieldConfig) }
+  ): DefinedFieldConfig<TypedFieldConfig<TValues, K> & ComponentFieldPart<C>> {
+    return { ...config } as DefinedFieldConfig<TypedFieldConfig<TValues, K> & ComponentFieldPart<C>>
   }
 }
 
@@ -151,7 +166,7 @@ export function defineField<
   TField extends string = string,
 >(
   config: SchemaFieldConfigCore<FormValues, TSchema, TField> & ComponentFieldPart<C>,
-): FieldConfig
+): DefinedFieldConfig<SchemaFieldConfigCore<FormValues, TSchema, TField> & ComponentFieldPart<C>>
 
 // 重载 2：没有 schema 时，按 defaultValue 推导 value
 export function defineField<
@@ -160,7 +175,7 @@ export function defineField<
   TField extends string = string,
 >(
   config: DefaultValueFieldConfigCore<FormValues, TValue, TField> & ComponentFieldPart<C>,
-): FieldConfig
+): DefinedFieldConfig<DefaultValueFieldConfigCore<FormValues, TValue, TField> & ComponentFieldPart<C>>
 
 // 重载 3：没有 schema/defaultValue 时，value 使用默认 unknown
 export function defineField<
@@ -168,16 +183,7 @@ export function defineField<
   TField extends string = string,
 >(
   config: UnknownValueFieldConfigCore<FormValues, TField> & ComponentFieldPart<C>,
-): FieldConfig
-
-// 重载 4：兼容显式表单泛型；若只传 TValues，字段值会是 TValues[keyof TValues]，精确字段值请使用 defineFieldFor<TValues>()
-export function defineField<
-  TValues extends object,
-  K extends FieldKey<TValues> = FieldKey<TValues>,
-  C = unknown,
->(
-  config: TypedFieldConfig<TValues, K> & ComponentFieldPart<C>,
-): FieldConfig
+): DefinedFieldConfig<UnknownValueFieldConfigCore<FormValues, TField> & ComponentFieldPart<C>>
 
 // 实现
 export function defineField(config: FieldConfig): FieldConfig {

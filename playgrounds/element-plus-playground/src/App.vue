@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import GridForm from './demos/GridForm.vue'
+import I18nPluginForm from './demos/I18nPluginForm.vue'
 import InlineForm from './demos/InlineForm.vue'
 
 const activeTab = ref('grid')
@@ -14,6 +15,9 @@ const activeTab = ref('grid')
       </el-tab-pane>
       <el-tab-pane label="element Inline 模式" name="inline">
         <InlineForm />
+      </el-tab-pane>
+      <el-tab-pane label="i18n 插件" name="i18n-plugin">
+        <I18nPluginForm />
       </el-tab-pane>
     </el-tabs>
   </div>

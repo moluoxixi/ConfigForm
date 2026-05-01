@@ -6,6 +6,7 @@ import type {
   FormRuntimeConflictStrategy,
   FormRuntimeContext,
   FormRuntimeExtension,
+  FormRuntimeLocale,
   FormRuntimeOptions,
 } from './types'
 import type {
@@ -171,10 +172,15 @@ function normalizeExtensions(extensions: FormRuntimeExtension[] = []): FormRunti
   return [...extensions].sort((a, b) => (a.priority ?? 100) - (b.priority ?? 100))
 }
 
+function resolveLocale(locale?: FormRuntimeLocale): string | undefined {
+  return typeof locale === 'function' ? locale() : locale
+}
+
 export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime {
   const conflictStrategy: FormRuntimeConflictStrategy = options.conflictStrategy ?? 'error'
   const extensions = normalizeExtensions(options.extensions)
   const components: ComponentRegistry = { ...(options.components ?? {}) }
+  let i18nAdapter: FormRuntimeExtension['i18n']
 
   function emitDebug(event: Parameters<FormRuntime['emitDebug']>[0]) {
     options.debug?.emit?.(event)
@@ -221,6 +227,30 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
       }
       components[key] = component
     }
+
+    if (extension.i18n) {
+      if (i18nAdapter) {
+        handleConflict({
+          existing: i18nAdapter,
+          incoming: extension.i18n,
+          key: 'i18n',
+          message: 'Multiple i18n plugins registered',
+          type: 'extension',
+        })
+      }
+      i18nAdapter = extension.i18n
+    }
+  }
+
+  function currentLocale(): string | undefined {
+    return resolveLocale(i18nAdapter?.locale)
+  }
+
+  function withCurrentLocale(context: FormRuntimeContext): FormRuntimeContext {
+    return {
+      ...context,
+      locale: currentLocale(),
+    }
   }
 
   function createContext<TValues extends FormValues = FormValues>(
@@ -229,7 +259,7 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
     return {
       errors: input.errors ?? {},
       field: input.field,
-      locale: options.i18n?.locale,
+      locale: currentLocale(),
       meta: input.meta,
       values: input.values ?? ({} as TValues),
     }
@@ -245,10 +275,14 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
 
   function resolveToken(value: I18nToken | ExpressionToken, context: FormRuntimeContext): unknown {
     if (isI18nToken(value)) {
+      if (!i18nAdapter)
+        throw new Error(`No i18n plugin registered for token: ${value.key}`)
+
+      const i18nContext = withCurrentLocale(context)
       const params = value.params
-        ? resolveRecord(value.params, context, `${value.key}.params`)
+        ? resolveRecord(value.params, i18nContext, `${value.key}.params`)
         : undefined
-      return options.i18n?.t(value.key, params, value.fallback, context) ?? value.fallback ?? value.key
+      return i18nAdapter.translate(value.key, params, value.fallback, i18nContext)
     }
 
     const customResult = options.expression?.evaluate?.(value.expression, context)
@@ -496,7 +530,7 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
     createContext,
     emitDebug,
     extensions,
-    locale: options.i18n?.locale,
+    locale: currentLocale(),
     resolveDisabled,
     resolveField,
     resolveSlot,

@@ -32,6 +32,7 @@ export type {
   FormRuntimeDebugEventType,
   FormRuntimeExtension,
   FormRuntimeInput,
+  FormRuntimeLocale,
   FormRuntimeOptions,
 } from './src/runtime'
 export type {

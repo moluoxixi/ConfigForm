@@ -172,26 +172,27 @@ defineField({
 
 ## DIY Runtime
 
-`runtime` 是表单的开放扩展边界。字段始终是纯配置，runtime 在渲染、校验和提交前规范化字段，并解析组件、文案、表达式、插槽和插件扩展。
+`runtime` 是表单的开放扩展边界。字段始终是纯配置，runtime 在渲染、校验和提交前规范化字段，并解析组件、表达式、插槽和插件扩展。国际化等官方插件以独立包接入，例如 `@moluoxixi/config-form-plugin-i18n`。
 
 ```vue
 <script setup lang="ts">
 import { ConfigForm, createFormRuntime, defineField, expr, i18n } from '@moluoxixi/config-form'
+import { createI18nPlugin } from '@moluoxixi/config-form-plugin-i18n'
 import MyInput from './MyInput.vue'
 
 const runtime = createFormRuntime({
   components: {
     MyInput,
   },
-  i18n: {
-    locale: 'zh-CN',
-    t: (key, params, fallback) => {
-      if (key === 'field.username')
-        return `用户名${params?.required ? ' *' : ''}`
-      return fallback ?? key
-    },
-  },
   extensions: [
+    createI18nPlugin({
+      locale: 'zh-CN',
+      messages: {
+        'zh-CN': {
+          'field.username': '用户名{required}',
+        },
+      },
+    }),
     {
       name: 'audit',
       priority: 10,
@@ -212,7 +213,7 @@ const runtime = createFormRuntime({
 const fields = [
   defineField({
     field: 'username',
-    label: i18n('field.username', '用户名', { required: true }),
+    label: i18n('field.username', '用户名', { required: ' *' }),
     component: 'MyInput',
     visible: expr({ left: { path: 'values.role' }, op: 'neq', right: 'guest' }, true),
   }),
@@ -226,13 +227,14 @@ const fields = [
 
 内置 token：
 
-- `i18n(key, fallback?, params?)`：用于 `label`、`props`、`slots` 等位置的文案解析。
+- `i18n(key, fallback?, params?)`：用于 `label`、`props`、`slots` 等位置的文案 token；需要配合 `@moluoxixi/config-form-plugin-i18n` 使用，未注册 i18n adapter 时会抛错。
 - `expr(expression, fallback?)`：用于 `visible`、`disabled`、`props` 等位置的安全表达式解析，不执行字符串代码。
 
 扩展点：
 
 - `components`：注册字符串组件 key，字段中可直接写 `component: 'MyInput'`；大写 key 未注册会抛错，原生标签如 `'input'` 可直接使用。
 - `extensions`：按 `priority` 从小到大执行，可实现 `prepareField`、`resolveValue`、`resolveField`、`resolveSlot`、`resolveVisible`、`resolveDisabled` 和 `onDebugEvent`。
+- 官方插件包：例如 `@moluoxixi/config-form-plugin-i18n`，支持 `locale`、`fallbackLocale`、`messages`、`translate`、`missing`，并支持字符串模板 `{name}` 插值。
 - `conflictStrategy`：组件名或插件名冲突时可选 `'error'`、`'warn'`、`'last-write-wins'`，默认 `'error'`；需要宽松覆盖时必须显式声明。
 - `expression.evaluate`：接入自定义表达式引擎；返回 `undefined` 时回退到内置表达式解析。
 

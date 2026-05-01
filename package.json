@@ -5,12 +5,12 @@
   "scripts": {
     "dev:ep": "pnpm -C playgrounds/element-plus-playground dev",
     "dev:antd": "pnpm -C playgrounds/antd-vue-playground dev",
-    "build": "pnpm -C packages/ConfigForm build",
+    "build": "pnpm -r --filter \"./packages/*\" build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "pnpm -C packages/ConfigForm test",
+    "test": "pnpm -r --filter \"./packages/*\" test",
     "test:coverage": "pnpm -C packages/ConfigForm test:coverage",
-    "typecheck": "pnpm -C packages/ConfigForm typecheck"
+    "typecheck": "pnpm -r --filter \"./packages/*\" typecheck"
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:dev",

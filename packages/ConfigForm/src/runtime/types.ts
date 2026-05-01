@@ -28,6 +28,7 @@ export interface FormRuntimeConflict {
 }
 
 export type FormRuntimeConflictStrategy = 'warn' | 'error' | 'last-write-wins'
+export type FormRuntimeLocale = string | (() => string | undefined)
 
 export interface FormRuntimeContext<TValues extends FormValues = FormValues> {
   values: TValues
@@ -41,6 +42,7 @@ export interface FormRuntimeExtension {
   name: string
   priority?: number
   components?: ComponentRegistry
+  i18n?: FormI18nAdapter
   prepareField?: (field: NormalizedFieldConfig, context: FormRuntimeContext) => NormalizedFieldConfig | void
   resolveValue?: (value: unknown, context: FormRuntimeContext, path: string) => unknown
   resolveField?: (field: ResolvedField, context: FormRuntimeContext) => ResolvedField | void
@@ -51,8 +53,8 @@ export interface FormRuntimeExtension {
 }
 
 export interface FormI18nAdapter {
-  locale?: string
-  t: (
+  locale?: FormRuntimeLocale
+  translate: (
     key: string,
     params: Record<string, unknown> | undefined,
     fallback: string | undefined,
@@ -67,7 +69,6 @@ export interface FormExpressionAdapter {
 export interface FormRuntimeOptions {
   components?: ComponentRegistry
   extensions?: FormRuntimeExtension[]
-  i18n?: FormI18nAdapter
   expression?: FormExpressionAdapter
   debug?: {
     emit?: (event: FormRuntimeDebugEvent) => void
