@@ -1,147 +1,151 @@
-# @config-form/core
+# @moluoxixi/config-form
 
-一个极其轻量的 Vue 3 配置化表单组件库，使用 Zod 校验。
+一个轻量的 Vue 3 配置化表单组件库，使用 Zod 和字段级配置完成渲染、校验、显隐、禁用和提交转换。
 
 ## 特性
 
-- **配置驱动**：通过 `fields` 数组声明式定义表单字段
-- **Zod 校验**：基于 Zod schema 的类型安全校验
-- **布局灵活**：支持 Grid（24栅格）和 Inline 两种布局模式
-- **组件无关**：支持任意 Vue 组件、函数式组件、全局注册组件
-- **SCSS 命名空间**：`cf-` 前缀 BEM 命名，无 scoped，便于样式覆盖
-- **TypeScript**：完整的类型推导，`defineField` 辅助函数自动推导组件 props 类型
-- **轻量**：零 UI 框架依赖，仅 peerDependencies: vue + zod
+- 配置驱动：通过 `fields` 数组声明表单字段。
+- UI 框架无关：支持 Vue 组件、函数式组件和全局组件名。
+- Zod + 自定义校验：字段支持 `schema`，也支持读取全量 values 的 `validator`。
+- 双向绑定：支持 `modelValue` / `v-model` 初始化和外部更新。
+- 灵活布局：内置 24 栅格和 inline 模式，并包含基础移动端适配。
+- 可发布样式：SCSS 使用命名空间变量，便于在业务侧覆盖。
 
 ## 安装
 
 ```bash
-pnpm add @config-form/core zod
+pnpm add @moluoxixi/config-form zod
 ```
 
 ## 快速开始
 
 ```vue
 <script setup lang="ts">
+import { ref } from 'vue'
 import { z } from 'zod'
-import { ConfigForm, defineField } from '@config-form/core'
+import { ConfigForm, defineField } from '@moluoxixi/config-form'
 import MyInput from './MyInput.vue'
+
+const formRef = ref()
+const model = ref({ username: 'Ada' })
 
 const fields = [
   defineField({
     field: 'username',
     label: '用户名',
-    type: z.string().min(2, '至少 2 个字符'),
+    schema: z.string().min(2, '至少 2 个字符'),
     span: 12,
     component: MyInput,
     props: { placeholder: '请输入' },
+    validateOn: ['blur', 'change'],
   }),
   defineField({
-    field: 'email',
-    label: '邮箱',
-    type: z.string().email('请输入有效邮箱'),
+    field: 'password',
+    label: '密码',
+    schema: z.string().min(6, '至少 6 个字符'),
     span: 12,
     component: MyInput,
-    props: { placeholder: '请输入邮箱' },
+    props: { type: 'password' },
+  }),
+  defineField({
+    field: 'confirm',
+    label: '确认密码',
+    component: MyInput,
+    span: 12,
+    validator: (value, values) =>
+      value === values.password ? undefined : '两次密码不一致',
   }),
 ]
 
 function onSubmit(values: Record<string, any>) {
   console.log('提交', values)
 }
-
-function onError(errors: Record<string, string[]>) {
-  console.error('校验失败', errors)
-}
 </script>
 
 <template>
   <ConfigForm
+    ref="formRef"
+    v-model="model"
     :fields="fields"
     label-width="80px"
     @submit="onSubmit"
-    @error="onError"
   />
 </template>
 ```
 
-## API
-
-### ConfigForm Props
+## ConfigForm Props
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `fields` | `FieldDef[]` | — | 字段配置数组（必填） |
+| `namespace` | `string` | `'cf'` | 运行时 CSS 类名前缀 |
 | `inline` | `boolean` | `false` | 行内布局模式 |
-| `labelWidth` | `string \| number` | — | 标签宽度，number 自动加 px |
-| `initialValues` | `Record<string, any>` | — | 初始值 |
+| `fields` | `FieldDef[]` | - | 字段配置数组 |
+| `labelWidth` | `string \| number` | - | 标签宽度，number 自动转 px |
+| `modelValue` | `Record<string, any>` | - | 表单值，支持 `v-model` |
 
-### ConfigForm Events
+## Events
 
 | Event | Payload | Description |
 |-------|---------|-------------|
-| `submit` | `Record<string, any>` | 校验通过后提交，返回表单值 |
-| `error` | `FormErrors` | 校验失败，返回错误信息 |
+| `submit` | `Record<string, any>` | 校验通过后提交的字段值 |
+| `error` | `FormErrors` | 校验失败时的错误信息 |
+| `update:modelValue` | `Record<string, any>` | 内部值变化时触发 |
 
-### ConfigForm Expose
+## Expose
 
 | Method | Returns | Description |
 |--------|---------|-------------|
-| `submit()` | `Promise<boolean>` | 先校验再提交，通过 emit submit，失败 emit error |
-| `validate()` | `Promise<boolean>` | 仅校验，失败 emit error |
-| `reset()` | `void` | 重置表单值和错误信息 |
+| `submit()` | `Promise<boolean>` | 校验通过后触发 `submit` |
+| `validate()` | `Promise<boolean>` | 校验整个表单 |
+| `validateField(field, trigger?)` | `Promise<boolean>` | 校验指定字段 |
+| `reset()` | `void` | 重置为字段默认值并清空错误 |
+| `setValue(field, value)` | `void` | 设置单个字段值 |
+| `setValues(values, replace?)` | `void` | 批量设置字段值 |
+| `getValue(field)` | `any` | 获取单个字段值 |
+| `getValues()` | `Record<string, any>` | 获取浅拷贝快照 |
+| `clearValidate(field?)` | `void` | 清除指定字段错误；不传则清除全部 |
 
-### FieldDef
+## Field 配置
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `field` | `string` | — | 字段标识（必填，作为值的 key） |
-| `label` | `string` | — | 字段标签 |
-| `type` | `ZodTypeAny` | — | Zod schema，不传则不校验 |
-| `span` | `number` | `24` | 栅格占位，仅非 inline 模式 |
-| `component` | `Component \| FunctionalFieldComponent \| string` | — | 渲染组件（必填） |
-| `props` | `Record<string, any>` | — | 传递给 component 的 props |
+| `field` | `string` | - | 字段名，作为 values 的 key |
+| `label` | `string` | - | 字段标签 |
+| `schema` | `ZodTypeAny` | - | 字段 Zod 校验 |
+| `validator` | `(value, values) => string \| string[] \| void \| Promise` | - | 自定义校验，可访问全量 values |
+| `span` | `number` | `24` | 非 inline 模式下的 24 栅格跨度 |
+| `component` | `Component \| Function \| string` | - | 实际渲染组件 |
+| `props` | `Record<string, any>` | - | 传给组件的 props |
+| `defaultValue` | `any` | `undefined` | 默认值 |
+| `valueProp` | `string` | `'modelValue'` | 注入组件的值 prop |
+| `trigger` | `string` | `'update:modelValue'` | 接收组件值变化的事件名 |
+| `blurTrigger` | `string` | `'blur'` | blur 校验事件名 |
+| `validateOn` | `'submit' \| 'blur' \| 'change' \| array` | `'submit'` | 校验触发时机，始终包含 submit |
+| `visible` | `(values) => boolean` | - | 动态显隐 |
+| `disabled` | `(values) => boolean` | - | 动态禁用 |
+| `transform` | `(value, values) => any` | - | submit 前转换值 |
+| `submitWhenHidden` | `boolean` | `false` | 隐藏字段是否仍提交 |
+| `submitWhenDisabled` | `boolean` | `false` | 禁用字段是否仍提交 |
+| `slots` | `Record<string, SlotRenderFn>` | - | 传给组件的插槽渲染函数 |
 
-### component 三种形态
+## 样式
 
-1. **Vue 组件对象**：直接传入组件定义
-2. **函数式组件 / JSX**：签名为 `(props: { modelValue, ... }, context: SetupContext) => VNode`
-3. **字符串**：全局注册的组件名称
-
-### defineField
-
-类型辅助函数，自动推导 `component` 对应的 `props` 类型：
+默认命名空间是 `cf`。如果只使用默认样式：
 
 ```ts
-defineField({
-  field: 'name',
-  component: MyInput,
-  props: { placeholder: '输入' },  // 自动推导 MyInput 的 props
-})
+import '@moluoxixi/config-form/styles'
 ```
 
-## SCSS 命名空间
-
-所有类名使用 `cf-` 前缀的 BEM 命名：
-
-| 类名 | 说明 |
-|------|------|
-| `.cf-form` | 表单容器 |
-| `.cf-form--inline` | 行内布局 |
-| `.cf-field` | 字段容器 |
-| `.cf-field--inline` | 行内字段 |
-| `.cf-field__label` | 字段标签 |
-| `.cf-field__control` | 控件区域 |
-| `.cf-field__error` | 错误信息 |
-
-### 自定义命名空间
-
-覆盖 SCSS 变量：
+自定义命名空间时，运行时 prop 和 SCSS 变量需要保持一致：
 
 ```scss
-// 在你的全局样式中
-$namespace: 'my';
+@use '@moluoxixi/config-form/styles' with (
+  $namespace: 'my-form'
+);
+```
 
-@import '@config-form/core/styles/variables';
+```vue
+<ConfigForm namespace="my-form" />
 ```
 
 ## License

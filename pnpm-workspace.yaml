@@ -1,15 +1,31 @@
+shellEmulator: true
+
+trustPolicy: no-downgrade
+
 packages:
   - 'packages/*'
   - 'playgrounds/*'
 
 catalogs:
-  dev:
-    vite: "^6.2.0"
-    "@vitejs/plugin-vue": "^5.2.3"
-    "@vitejs/plugin-vue-jsx": "^4.2.0"
-    sass: "^1.85.0"
-    "zod": "^3.24.2"
   build:
-    vue: "^3.5.13"
+    vue: ^3.5.13
+  dev:
+    '@antfu/eslint-config': ^8.2.0
+    '@vitejs/plugin-vue': ^5.2.3
+    '@vitejs/plugin-vue-jsx': ^4.2.0
+    eslint: ^9.5.0
+    eslint-plugin-format: ^2.0.1
+    jiti: ^2.6.1
+    sass: ^1.85.0
+    typescript: ^5.8.2
+    unplugin-auto-import: ^19.1.2
+    unplugin-vue-components: ^28.4.1
+    vite: ^6.2.0
+    vitest: ^3.1.1
+    vue-tsc: ^2.2.8
+    zod: ^3.24.2
   type:
-    '@types/node':  "^25.6.0"
+    '@types/node': ^25.6.0
+  ui:
+    ant-design-vue: ^4.2.6
+    element-plus: ^2.9.1

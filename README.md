@@ -1,4 +1,4 @@
-# configForm
+# ConfigForm
 
 基于 Vue 3 + Zod 的轻量配置化表单组件库，Monorepo 结构。
 
@@ -6,7 +6,9 @@
 
 | 包 | 说明 |
 |---|---|
-| [`@config-form/core`](./packages/core/) | 核心表单组件 |
+| [`@moluoxixi/config-form`](./packages/ConfigForm/) | 核心表单组件 |
+| [`element-plus-playground`](./playgrounds/element-plus-playground/) | Element Plus 示例 |
+| [`antd-vue-playground`](./playgrounds/antd-vue-playground/) | Ant Design Vue 示例 |
 
 ## 开发
 
@@ -14,11 +16,17 @@
 # 安装依赖
 pnpm install
 
-# 启动 playground
-pnpm -C playground dev
+# 启动 Element Plus playground
+pnpm dev:ep
 
-# 构建 core
-pnpm -C packages/core build
+# 启动 Ant Design Vue playground
+pnpm dev:antd
+
+# 构建核心包
+pnpm build
+
+# 运行测试
+pnpm test
 ```
 
 ## License

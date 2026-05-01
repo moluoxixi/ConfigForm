@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { FieldDef } from '@/models/FieldDef'
-import { defineComponent } from 'vue'
-import { useBem, useNamespace } from '@/composables/useNamespace'
-import { resolveLabelWidth } from '@/utils/style'
+import type { FieldDef } from '../../../models/FieldDef'
+import { computed, defineComponent } from 'vue'
+import { useBem, useNamespace } from '../../../composables/useNamespace'
+import { resolveLabelWidth } from '../../../utils/style'
 
 /** 辅助组件：执行插槽渲染函数 */
 const SlotRender = defineComponent({
@@ -37,6 +37,30 @@ const emit = defineEmits<{
 const ns = useNamespace()
 const { b, e, m } = useBem(ns)
 
+const fieldId = computed(() => {
+  const safeFieldName = props.field.field.replace(/[^\w-]/g, '-')
+  return `${ns.value}-${safeFieldName}-field`
+})
+
+const errorId = computed(() => `${fieldId.value}-error`)
+
+const componentProps = computed(() => {
+  const next = { ...(props.field.props ?? {}) }
+
+  if (next.id == null)
+    next.id = fieldId.value
+
+  if (props.error?.length) {
+    next['aria-invalid'] = true
+    next['aria-describedby'] = errorId.value
+  }
+
+  if (props.disabled)
+    next.disabled = true
+
+  return next
+})
+
 function onChange(value: any) {
   emit('update:modelValue', value)
   emit('change', props.field.field)
@@ -58,6 +82,7 @@ function onBlur() {
     <label
       v-if="field.label"
       :class="e('field', 'label')"
+      :for="fieldId"
       :style="{ width: resolveLabelWidth(labelWidth) }"
     >
       {{ field.label }}
@@ -66,11 +91,10 @@ function onBlur() {
     <div :class="e('field', 'control')">
       <component
         :is="field.component"
-        v-bind="field.props"
+        v-bind="componentProps"
         :[field.valueProp]="modelValue"
         @[field.trigger]="onChange"
         @[field.blurTrigger]="onBlur"
-        :disabled="disabled || undefined"
       >
         <template v-for="(slotFn, slotName) in field.slots" :key="slotName" #[slotName]="scope">
           <SlotRender :fn="slotFn" :scope="scope" />
@@ -78,7 +102,7 @@ function onBlur() {
       </component>
 
       <slot name="error" :error="error" :field="field">
-        <div v-if="error?.length" :class="e('field', 'error')">
+        <div v-if="error?.length" :id="errorId" :class="e('field', 'error')">
           <span v-for="(msg, i) in error" :key="i">{{ msg }}</span>
         </div>
       </slot>

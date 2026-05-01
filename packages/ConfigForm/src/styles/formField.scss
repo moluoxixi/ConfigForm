@@ -7,7 +7,6 @@
 
   &--inline {
     display: inline-flex;
-    margin-right: 16px;
     align-items: center;
   }
 
@@ -48,6 +47,35 @@
 
     span {
       display: block;
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .#{$namespace}-field {
+    grid-column: 1 / -1 !important;
+    flex-direction: column;
+    gap: 4px;
+
+    &--inline {
+      display: flex;
+      width: 100%;
+      align-items: stretch;
+    }
+
+    &__label {
+      width: auto !important;
+      line-height: 1.4;
+      text-align: left;
+      white-space: normal;
+    }
+
+    &__control {
+      width: 100%;
+
+      > :first-child {
+        width: 100%;
+      }
     }
   }
 }

@@ -12,5 +12,5 @@
       "@vue-macros/volar/define-props",
       "@vue-macros/volar/define-emit"
     ]
-  },
+  }
 }

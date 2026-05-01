@@ -1,20 +1,22 @@
 {
   "name": "config-form",
-  "private": true,
   "type": "module",
+  "private": true,
   "scripts": {
     "dev:ep": "pnpm -C playgrounds/element-plus-playground dev",
     "dev:antd": "pnpm -C playgrounds/antd-vue-playground dev",
     "build": "pnpm -C packages/ConfigForm build",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "test": "pnpm -C packages/ConfigForm test"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^8.2.0",
+    "@antfu/eslint-config": "catalog:dev",
     "@types/node": "catalog:type",
-    "eslint": "^9.5.0",
-    "eslint-plugin-format": "^2.0.1",
-    "jiti": "^2.6.1",
-    "typescript": "^5.8.2"
+    "eslint": "catalog:dev",
+    "eslint-plugin-format": "catalog:dev",
+    "jiti": "catalog:dev",
+    "typescript": "catalog:dev",
+    "vitest": "catalog:dev"
   }
 }

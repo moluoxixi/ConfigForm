@@ -11,3 +11,14 @@
     gap: $form-inline-gap;
   }
 }
+
+@media (max-width: 640px) {
+  .#{$namespace}-form {
+    grid-template-columns: 1fr;
+
+    &--inline {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+}

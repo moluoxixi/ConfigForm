@@ -1,4 +1,4 @@
-import type { FieldConfig, FormValues, SlotRenderFn, ValidateTrigger } from '@/types'
+import type { FieldConfig, FieldValidator, FormValues, SlotRenderFn, ValidateTrigger } from '../types'
 
 // ===== 工具类型 =====
 
@@ -6,14 +6,15 @@ import type { FieldConfig, FormValues, SlotRenderFn, ValidateTrigger } from '@/t
 export type ExtractComponentProps<C> = C extends abstract new (...args: any) => any
   ? InstanceType<C>['$props']
   : C extends (props: infer P, ...args: any) => any
-  ? P
-  : Record<string, any>
+    ? P
+    : Record<string, any>
 
 // ===== 内部工具函数 =====
 
 /** 规范化 validateOn，确保始终包含 'submit' */
 function normalizeValidateOn(on?: ValidateTrigger | ValidateTrigger[]): ValidateTrigger[] {
-  if (!on) return ['submit']
+  if (!on)
+    return ['submit']
   const arr = Array.isArray(on) ? on : [on]
   return arr.includes('submit') ? arr : [...arr, 'submit']
 }
@@ -35,9 +36,12 @@ export class FieldDef {
   readonly trigger: string
   readonly blurTrigger: string
   readonly validateOn: ValidateTrigger[]
+  readonly validator?: FieldValidator<FormValues>
   readonly visible?: (values: FormValues) => boolean
   readonly disabled?: (values: FormValues) => boolean
   readonly transform?: (value: any, allValues: FormValues) => any
+  readonly submitWhenHidden: boolean
+  readonly submitWhenDisabled: boolean
   readonly slots?: Record<string, SlotRenderFn>
 
   constructor(input: FieldConfig) {
@@ -56,6 +60,9 @@ export class FieldDef {
     this.trigger = input.trigger || 'update:modelValue'
     this.blurTrigger = input.blurTrigger || 'blur'
     this.validateOn = normalizeValidateOn(input.validateOn)
+    this.validator = input.validator
+    this.submitWhenHidden = input.submitWhenHidden ?? false
+    this.submitWhenDisabled = input.submitWhenDisabled ?? false
   }
 
   shouldValidateOn(trigger: ValidateTrigger): boolean {
@@ -78,7 +85,7 @@ export class FieldDef {
 // ===== defineField =====
 
 /** 从 FieldConfig / TypedFieldConfig 中提取除 component/props 外的字段类型（内联展开，避免 Omit 破坏上下文推导） */
-type FieldConfigCore<T extends Record<string, any> = Record<string, any>> = {
+interface FieldConfigCore<T extends Record<string, any> = Record<string, any>> {
   field: string
   label?: string
   schema?: FieldConfig['schema']
@@ -88,9 +95,12 @@ type FieldConfigCore<T extends Record<string, any> = Record<string, any>> = {
   trigger?: string
   blurTrigger?: string
   validateOn?: ValidateTrigger | ValidateTrigger[]
+  validator?: FieldValidator<T>
   visible?: (values: T) => boolean
   disabled?: (values: T) => boolean
   transform?: (value: any, allValues: T) => any
+  submitWhenHidden?: boolean
+  submitWhenDisabled?: boolean
   slots?: Record<string, SlotRenderFn>
 }
 

@@ -3,6 +3,8 @@
     "composite": true,
     "target": "ESNext",
     "jsx": "preserve",
+    "useDefineForClassFields": false,
+    "experimentalDecorators": true,
     "baseUrl": ".",
     "module": "ESNext",
     "moduleResolution": "Bundler",
@@ -17,8 +19,6 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
-    "skipLibCheck": true,
-    "experimentalDecorators": true,
-    "useDefineForClassFields": false
+    "skipLibCheck": true
   }
 }

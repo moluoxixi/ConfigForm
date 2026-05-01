@@ -1,14 +1,14 @@
 {
   "name": "@config-form/element-plus-playground",
-  "private": true,
   "type": "module",
+  "private": true,
   "scripts": {
     "dev": "vite",
     "build": "vite build"
   },
   "dependencies": {
     "@moluoxixi/config-form": "workspace:*",
-    "element-plus": "^2.9.1",
+    "element-plus": "catalog:ui",
     "vue": "catalog:build",
     "zod": "catalog:dev"
   },
@@ -16,8 +16,8 @@
     "@vitejs/plugin-vue": "catalog:dev",
     "@vitejs/plugin-vue-jsx": "catalog:dev",
     "sass": "catalog:dev",
-    "unplugin-auto-import": "^19.1.2",
-    "unplugin-vue-components": "^28.4.1",
+    "unplugin-auto-import": "catalog:dev",
+    "unplugin-vue-components": "catalog:dev",
     "vite": "catalog:dev"
   }
 }

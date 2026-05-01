@@ -1,4 +1,5 @@
-import { computed, inject, provide, toValue, type ComputedRef, type Ref } from 'vue'
+import type { ComputedRef, Ref } from 'vue'
+import { computed, inject, provide, toValue } from 'vue'
 
 const NAMESPACE_KEY = Symbol('config-form-namespace')
 

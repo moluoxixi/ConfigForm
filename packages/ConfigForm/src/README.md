@@ -1,72 +1,15 @@
 # ConfigForm
 
-基于 Vue 3 + Zod 的轻量配置化表单组件。
+`src` 目录是 `@moluoxixi/config-form` 的源码实现。完整使用文档见包根目录的 `README.md`。
 
-## 快速开始
+## 核心约定
 
-```vue
-<script setup lang="ts">
-import { z } from 'zod'
-import { ConfigForm, defineField } from '@config-form/core'
-import MyInput from './MyInput.vue'
+- 字段通过 `defineField({ field, component, schema, ... })` 创建。
+- 表单值通过 `modelValue` / `v-model` 同步。
+- 默认值来自字段 `defaultValue`，外部 `modelValue` 会覆盖默认值。
+- `validator(value, values)` 可用于跨字段或异步校验。
+- 隐藏和禁用字段默认不进入 submit 输出，可用 `submitWhenHidden` / `submitWhenDisabled` 开启。
 
-const fields = [
-  defineField({
-    field: 'username',
-    label: '用户名',
-    schema: z.string().min(2, '至少 2 个字符'),
-    span: 12,
-    component: MyInput,
-    props: { placeholder: '请输入' },
-  }),
-]
+## 样式命名空间
 
-function onSubmit(values: Record<string, any>) {
-  console.log('提交', values)
-}
-
-function onError(errors: Record<string, string[]>) {
-  console.error('校验失败', errors)
-}
-</script>
-
-<template>
-  <ConfigForm
-    :fields="fields"
-    label-width="80px"
-    @submit="onSubmit"
-    @error="onError"
-  />
-</template>
-```
-
-## Props
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `namespace` | `string` | `'cf'` | 命名空间前缀，影响 CSS 类名 |
-| `inline` | `boolean` | `false` | 行内布局模式 |
-| `fields` | `FieldDef[]` | — | 字段配置数组（必填） |
-| `labelWidth` | `string \| number` | — | 标签统一宽度 |
-| `initialValues` | `Record<string, any>` | — | 初始值 |
-
-## Events
-
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `submit` | `Record<string, any>` | 校验通过后提交 |
-| `error` | `FormErrors` | 校验失败 |
-
-## Expose
-
-| Method | Returns | Description |
-|--------|---------|-------------|
-| `submit()` | `Promise<boolean>` | 先校验再提交 |
-| `validate()` | `Promise<boolean>` | 仅校验 |
-| `reset()` | `void` | 重置 |
-
-## Slots
-
-| Slot | Scope | Description |
-|------|-------|-------------|
-| `field-error` | `{ error, field }` | 自定义错误展示 |
+默认类名前缀是 `cf`。如果运行时传入 `namespace`，业务侧引入 SCSS 时也需要使用相同 `$namespace`。

@@ -1,10 +1,10 @@
 <script setup lang="ts" generic="T extends object = Record<string, any>">
 import { computed, watch } from 'vue'
-import type { ConfigFormEmits, ConfigFormExpose, ConfigFormProps } from '@/types'
-import FormField from '@/components/FormField'
-import { useForm } from '@/composables/useForm'
-import { useBem, provideNamespace } from '@/composables/useNamespace'
-import { resolveLabelWidth } from '@/utils/style'
+import type { ConfigFormEmits, ConfigFormExpose, ConfigFormProps } from './types'
+import FormField from './components/FormField'
+import { useForm } from './composables/useForm'
+import { provideNamespace, useBem } from './composables/useNamespace'
+import { resolveLabelWidth } from './utils/style'
 
 
 const props = withDefaults(defineProps<ConfigFormProps<T>>(), {
@@ -18,9 +18,25 @@ provideNamespace(namespaceRef)
 const { b, m } = useBem(namespaceRef)
 
 const resolvedFields = computed(() => props.fields)
+const initialValues = computed(() => props.modelValue)
 
-const { values, errors, visibilityMap, disabledMap, validate, validateSingleField, submit, reset, setValue, getValues, clearFieldError } = useForm({
+const {
+  values,
+  errors,
+  visibilityMap,
+  disabledMap,
+  validate,
+  validateSingleField,
+  submit,
+  reset,
+  setValue,
+  setValues,
+  getValue,
+  getValues,
+  clearFieldError,
+} = useForm({
   fields: resolvedFields,
+  initialValues,
   onSubmit: vals => emit('submit', vals as T),
   onError: errs => emit('error', errs),
 })
@@ -30,17 +46,17 @@ watch(values, (newVals) => {
   emit('update:modelValue', { ...newVals } as T)
 }, { deep: true })
 
-// ── v-model：外部 modelValue 变化时同步进来 ──────────────────────
-watch(() => props.modelValue, (newModel) => {
-  if (newModel == null) return
-  for (const [key, val] of Object.entries(newModel)) {
-    if (values[key] !== val) {
-      values[key] = val
-    }
-  }
-}, { deep: true })
-
-defineExpose<ConfigFormExpose<T>>({ submit, validate, reset, getValues: getValues as () => T, clearValidate: clearFieldError })
+defineExpose<ConfigFormExpose<T>>({
+  submit,
+  validate,
+  validateField: (field, trigger = 'submit') => validateSingleField(field, trigger),
+  reset,
+  setValue,
+  setValues,
+  getValue,
+  getValues: getValues as () => T,
+  clearValidate: clearFieldError,
+})
 
 
 </script>

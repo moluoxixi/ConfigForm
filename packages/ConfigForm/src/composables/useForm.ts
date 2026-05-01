@@ -1,17 +1,18 @@
 import type { Ref } from 'vue'
+import type { FieldDef } from '../models/FieldDef'
+import type { FormErrors, FormValues, ValidateTrigger } from '../types'
 import { computed, reactive, ref, toRaw, watch } from 'vue'
-import type { FormErrors, FormValues, ValidateTrigger } from '@/types'
-import type { FieldDef } from '@/models/FieldDef'
-import { validateField, validateForm } from '@/utils/validate'
+import { validateFieldRules, validateForm } from '../utils/validate'
 
 export interface UseFormOptions<T extends object = Record<string, any>> {
   fields: Ref<FieldDef[]>
+  initialValues?: Ref<Partial<T> | undefined>
   onSubmit?: (values: T) => void
   onError?: (errors: FormErrors) => void
 }
 
 export function useForm<T extends object = Record<string, any>>(options: UseFormOptions<T>) {
-  const { fields, onSubmit, onError } = options
+  const { fields, initialValues, onSubmit, onError } = options
 
   // T & Record<string, any>：T 提供外部类型安全，Record 允许内部动态 key 访问
   const values = reactive<T & Record<string, any>>({} as (T & Record<string, any>))
@@ -19,8 +20,12 @@ export function useForm<T extends object = Record<string, any>>(options: UseForm
 
   // ── 工具 ─────────────────────────────────────────────────────
 
-  /** 从 errors 中移除指定字段的错误 */
-  function clearFieldError(fieldName: string) {
+  /** 从 errors 中移除指定字段的错误；不传字段名时清空全部错误 */
+  function clearFieldError(fieldName?: string) {
+    if (!fieldName) {
+      errors.value = {}
+      return
+    }
     if (errors.value[fieldName]) {
       const { [fieldName]: _, ...rest } = errors.value
       errors.value = rest
@@ -29,14 +34,32 @@ export function useForm<T extends object = Record<string, any>>(options: UseForm
 
   // ── 初始化 ───────────────────────────────────────────────────
 
-  function initValues() {
-    for (const key of Object.keys(values))
-      delete values[key]
-    for (const field of fields.value)
-      values[field.field] = field.defaultValue !== undefined ? field.defaultValue : undefined
+  function syncValues(next: FormValues) {
+    for (const key of Object.keys(values)) {
+      if (!Object.hasOwn(next, key))
+        delete values[key]
+    }
+
+    for (const [key, val] of Object.entries(next)) {
+      if (values[key] !== val)
+        values[key] = val
+    }
   }
 
-  watch(fields, initValues, { immediate: true, deep: false })
+  function initValues(source: FormValues = (initialValues?.value ?? {}) as FormValues) {
+    const next: FormValues = { ...source }
+    for (const field of fields.value) {
+      if (!Object.hasOwn(next, field.field))
+        next[field.field] = field.defaultValue !== undefined ? field.defaultValue : undefined
+    }
+    syncValues(next)
+  }
+
+  watch(
+    [fields, () => initialValues?.value],
+    () => initValues(),
+    { immediate: true, deep: true },
+  )
 
   // ── 动态状态 ─────────────────────────────────────────────────
 
@@ -57,25 +80,40 @@ export function useForm<T extends object = Record<string, any>>(options: UseForm
     clearFieldError(field)
   }
 
+  function setValues(nextValues: Partial<T>, replace = false) {
+    if (replace) {
+      initValues(nextValues as FormValues)
+    }
+    else {
+      for (const [key, val] of Object.entries(nextValues)) {
+        values[key] = val
+        clearFieldError(key)
+      }
+    }
+  }
+
   function getValue(field: string): any {
     return values[field]
   }
 
-  /** 获取表单值的深拷贝快照，供外部只读访问 */
+  /** 获取表单值的浅拷贝快照，保留 Date/Dayjs 等实例 */
   function getValues(): T & Record<string, any> {
-    return structuredClone(toRaw(values)) as T & Record<string, any>
+    return { ...toRaw(values) } as T & Record<string, any>
   }
 
   // ── 校验 ─────────────────────────────────────────────────────
 
   async function validateSingleField(fieldName: string, trigger: ValidateTrigger): Promise<boolean> {
     const field = fields.value.find(f => f.field === fieldName)
-    if (!field?.schema)
+    if (!field?.schema && !field?.validator)
       return true
 
     const snap = { ...values }
 
-    if (!field.isVisible(snap) || field.isDisabled(snap)) {
+    const shouldValidateHidden = trigger === 'submit' && field.submitWhenHidden
+    const shouldValidateDisabled = trigger === 'submit' && field.submitWhenDisabled
+
+    if ((!field.isVisible(snap) && !shouldValidateHidden) || (field.isDisabled(snap) && !shouldValidateDisabled)) {
       clearFieldError(fieldName)
       return true
     }
@@ -83,10 +121,11 @@ export function useForm<T extends object = Record<string, any>>(options: UseForm
     if (!field.shouldValidateOn(trigger))
       return true
 
-    const fieldErrors = validateField(snap[fieldName], field.schema, snap)
+    const fieldErrors = await validateFieldRules(snap[fieldName], field.schema, snap, field.validator)
     if (fieldErrors.length > 0) {
       errors.value = { ...errors.value, [fieldName]: fieldErrors }
-    } else {
+    }
+    else {
       clearFieldError(fieldName)
     }
 
@@ -94,7 +133,7 @@ export function useForm<T extends object = Record<string, any>>(options: UseForm
   }
 
   async function validate(): Promise<boolean> {
-    const formErrors = validateForm({ ...values }, fields.value, 'submit')
+    const formErrors = await validateForm({ ...values }, fields.value, 'submit')
     errors.value = formErrors
     if (Object.keys(formErrors).length > 0) {
       onError?.(formErrors)
@@ -112,7 +151,9 @@ export function useForm<T extends object = Record<string, any>>(options: UseForm
     const snap = { ...values }
     const submitValues: FormValues = {}
     for (const field of fields.value) {
-      if (!field.isVisible(snap) || field.isDisabled(snap))
+      if (!field.isVisible(snap) && !field.submitWhenHidden)
+        continue
+      if (field.isDisabled(snap) && !field.submitWhenDisabled)
         continue
       submitValues[field.field] = field.applyTransform(snap[field.field], snap)
     }
@@ -123,9 +164,23 @@ export function useForm<T extends object = Record<string, any>>(options: UseForm
   // ── 重置 ─────────────────────────────────────────────────────
 
   function reset() {
-    initValues()
+    initValues({})
     errors.value = {}
   }
 
-  return { values, errors, visibilityMap, disabledMap, validate, validateSingleField, submit, reset, setValue, getValue, getValues, clearFieldError }
+  return {
+    values,
+    errors,
+    visibilityMap,
+    disabledMap,
+    validate,
+    validateSingleField,
+    submit,
+    reset,
+    setValue,
+    setValues,
+    getValue,
+    getValues,
+    clearFieldError,
+  }
 }
