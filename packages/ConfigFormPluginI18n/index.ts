@@ -8,6 +8,7 @@ export type {
   I18nMessage,
   I18nMessageResolver,
   I18nMessages,
+  I18nMissingHandler,
   I18nPluginOptions,
   I18nToken,
   I18nTranslate,

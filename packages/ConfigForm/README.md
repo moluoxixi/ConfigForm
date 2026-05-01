@@ -227,14 +227,14 @@ const fields = [
 
 Token：
 
-- `expr(expression, fallback?)`：核心内置表达式 token，用于 `visible`、`disabled`、`props` 等位置的安全表达式解析，不执行字符串代码。
-- `i18n(key, fallback?, params?)`：由 `@moluoxixi/config-form-plugin-i18n` 提供，用于 `label`、`props`、`slots` 等位置的文案 token。
+- `expr(expression, fallback?)`：核心内置表达式 token，用于 `visible`、`disabled`、`props` 等位置的安全表达式解析，不执行字符串代码；非法表达式配置会直接抛错。
+- `i18n(key, defaultMessage?, params?)`：由 `@moluoxixi/config-form-plugin-i18n` 提供，用于 `label`、`props`、`slots` 等位置的文案 token。
 
 扩展点：
 
 - `components`：注册字符串组件 key，字段中可直接写 `component: 'MyInput'`；大写 key 未注册会抛错，原生标签如 `'input'` 可直接使用。
 - `extensions`：按 `priority` 从小到大执行，可实现 `tokens`、`prepareField`、`resolveValue`、`resolveField`、`resolveSlot`、`resolveVisible`、`resolveDisabled` 和 `onDebugEvent`。
-- 官方插件包：例如 `@moluoxixi/config-form-plugin-i18n`，支持 `locale`、`fallbackLocale`、`messages`、`translate`、`missing`，并支持字符串模板 `{name}` 插值。
+- 官方插件包：例如 `@moluoxixi/config-form-plugin-i18n`，支持 `locale`、`messages`、`translate`、`missing`，并支持字符串模板 `{name}` 插值；没有命中当前语言文案或默认文案时会抛错，`missing` 仅用于通知/诊断。
 - `conflictStrategy`：组件名或插件名冲突时可选 `'error'`、`'warn'`、`'last-write-wins'`，默认 `'error'`；需要宽松覆盖时必须显式声明。
 - `expression.evaluate`：接入自定义表达式引擎；返回 `undefined` 时回退到内置表达式解析。
 

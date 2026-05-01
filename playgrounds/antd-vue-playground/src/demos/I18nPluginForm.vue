@@ -12,17 +12,19 @@ import {
   type I18nMessages,
 } from '@moluoxixi/config-form-plugin-i18n'
 import {
-  ElInput,
-  ElRadio,
-  ElRadioGroup,
-  ElSelectV2,
-} from 'element-plus'
+  Input,
+  Radio,
+  RadioGroup,
+  Select,
+} from 'ant-design-vue'
 
 type Locale = 'zh-CN' | 'en-US'
 
 const formRef = ref()
 const formValues = reactive<Record<string, unknown>>({})
 const locale = ref<Locale>('zh-CN')
+
+const v = { valueProp: 'value', trigger: 'update:value' } as const
 
 const messages: I18nMessages = {
   'zh-CN': {
@@ -147,8 +149,9 @@ const fields = computed(() => [
       .min(2, t('i18n.username.min', { min: 2 }))
       .max(20, t('i18n.username.max', { max: 20 })),
     span: 12,
-    component: ElInput,
-    props: { clearable: true, placeholder: i18n('i18n.username.placeholder', '请输入用户名') },
+    component: Input,
+    ...v,
+    props: { allowClear: true, placeholder: i18n('i18n.username.placeholder', '请输入用户名') },
     validator: (value, values) => {
       if (values.role === 'guest' && value.length < 4)
         return t('i18n.username.guestMin', { min: 4 })
@@ -163,8 +166,9 @@ const fields = computed(() => [
     validateOn: 'blur',
     schema: z.string().email(t('i18n.email.invalid')).optional(),
     span: 12,
-    component: ElInput,
-    props: { clearable: true, placeholder: i18n('i18n.email.placeholder', '请输入邮箱') },
+    component: Input,
+    ...v,
+    props: { allowClear: true, placeholder: i18n('i18n.email.placeholder', '请输入邮箱') },
     transform: value => value?.trim(),
   }),
   defineField({
@@ -172,9 +176,10 @@ const fields = computed(() => [
     label: i18n('i18n.role.label', '角色'),
     schema: z.string().min(1, t('i18n.role.required')).optional(),
     span: 12,
-    component: ElSelectV2,
+    component: Select,
+    ...v,
     props: {
-      clearable: true,
+      allowClear: true,
       options: [
         { label: i18n('i18n.role.admin', '管理员'), value: 'admin' },
         { label: i18n('i18n.role.user', '用户'), value: 'user' },
@@ -188,20 +193,22 @@ const fields = computed(() => [
     label: i18n('i18n.phone.label', '手机号'),
     schema: z.string().optional(),
     span: 12,
-    component: ElInput,
-    props: { clearable: true, placeholder: i18n('i18n.phone.placeholder', '请输入手机号') },
+    component: Input,
+    ...v,
+    props: { allowClear: true, placeholder: i18n('i18n.phone.placeholder', '请输入手机号') },
   }),
   defineField({
     field: 'gender',
     label: i18n('i18n.gender.label', '性别'),
     schema: z.string().optional(),
     span: 12,
-    component: ElRadioGroup,
+    component: RadioGroup,
+    ...v,
     slots: {
       default: [
-        { component: ElRadio, props: { value: 'male' }, slots: { default: i18n('i18n.gender.male', '男') } },
-        { component: ElRadio, props: { value: 'female' }, slots: { default: i18n('i18n.gender.female', '女') } },
-        { component: ElRadio, props: { value: 'other' }, slots: { default: () => i18n('i18n.gender.other', '其他') } },
+        { component: Radio, props: { value: 'male' }, slots: { default: i18n('i18n.gender.male', '男') } },
+        { component: Radio, props: { value: 'female' }, slots: { default: i18n('i18n.gender.female', '女') } },
+        { component: Radio, props: { value: 'other' }, slots: { default: () => i18n('i18n.gender.other', '其他') } },
       ],
     },
   }),
@@ -210,16 +217,18 @@ const fields = computed(() => [
     label: i18n('i18n.suggestion.label', '建议'),
     schema: z.string().optional(),
     span: 12,
-    component: ElInput,
-    props: { clearable: true, placeholder: i18n('i18n.suggestion.placeholder', '请输入建议') },
+    component: Input,
+    ...v,
+    props: { allowClear: true, placeholder: i18n('i18n.suggestion.placeholder', '请输入建议') },
   }),
   defineField({
     field: 'custom',
     label: i18n('i18n.custom.label', '自定义字段', { field: 'custom' }),
     schema: z.string().optional(),
     span: 12,
-    component: ElInput,
-    props: { clearable: true, placeholder: i18n('i18n.custom.placeholder', '自定义 translate') },
+    component: Input,
+    ...v,
+    props: { allowClear: true, placeholder: i18n('i18n.custom.placeholder', '自定义 translate') },
   }),
 ])
 
@@ -255,21 +264,21 @@ function onModelUpdate(vals: Record<string, unknown>) {
     />
 
     <div class="demo-actions">
-      <el-button @click="toggleLocale">
+      <a-button @click="toggleLocale">
         {{ t('i18n.action.switchLocale', { locale: nextLocaleLabel }) }}
-      </el-button>
-      <el-button type="primary" @click="formRef?.submit()">
+      </a-button>
+      <a-button type="primary" @click="formRef?.submit()">
         {{ t('i18n.action.submit') }}
-      </el-button>
-      <el-button @click="formRef?.validate()">
+      </a-button>
+      <a-button @click="formRef?.validate()">
         {{ t('i18n.action.validate') }}
-      </el-button>
-      <el-button @click="formRef?.reset()">
+      </a-button>
+      <a-button @click="formRef?.reset()">
         {{ t('i18n.action.reset') }}
-      </el-button>
+      </a-button>
     </div>
 
-    <el-divider>{{ t('i18n.preview.title') }}</el-divider>
+    <a-divider>{{ t('i18n.preview.title') }}</a-divider>
     <pre class="value-preview">{{ JSON.stringify(formValues, null, 2) }}</pre>
   </div>
 </template>
@@ -282,9 +291,9 @@ function onModelUpdate(vals: Record<string, unknown>) {
 }
 
 .value-preview {
-  background: #f5f7fa;
-  border: 1px solid #e4e7ed;
-  border-radius: 4px;
+  background: #fafafa;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
   padding: 12px 16px;
   font-size: 12px;
   line-height: 1.6;

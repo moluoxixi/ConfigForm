@@ -3,8 +3,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev:ep": "pnpm -C playgrounds/element-plus-playground dev",
-    "dev:antd": "pnpm -C playgrounds/antd-vue-playground dev",
+    "dev:ep": "pnpm build && pnpm -C playgrounds/element-plus-playground dev",
+    "dev:antd": "pnpm build && pnpm -C playgrounds/antd-vue-playground dev",
     "build": "pnpm -r --filter \"./packages/*\" build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

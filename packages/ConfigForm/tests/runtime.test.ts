@@ -208,7 +208,8 @@ describe('form runtime', () => {
     expect(runtime.resolveValue(expr({ op: 'includes', source: { path: 'tags' }, value: 'admin' }), ctx)).toBe(true)
     expect(runtime.resolveValue(expr({ op: 'includes', source: { path: 'name' }, value: 'Love' }), ctx)).toBe(true)
     expect(runtime.resolveValue(expr({ op: 'includes', source: 3, value: '3' }), ctx)).toBe(false)
-    expect(runtime.resolveValue(expr({} as never, 'unsupported'), ctx)).toBe('unsupported')
+    expect(() => runtime.resolveValue(expr({} as never, 'unsupported'), ctx))
+      .toThrow(/Unsupported expression/)
   })
 
   it('lets value, slot, and condition extensions compose in priority order', () => {

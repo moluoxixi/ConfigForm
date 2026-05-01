@@ -175,7 +175,7 @@ function defaultEvaluateExpression(input: ExpressionInput, context: FormRuntimeC
     }
   }
 
-  return undefined
+  throw new Error(`Unsupported expression: ${JSON.stringify(input)}`)
 }
 
 function normalizeExtensions(extensions: FormRuntimeExtension[] = []): FormRuntimeExtension[] {
