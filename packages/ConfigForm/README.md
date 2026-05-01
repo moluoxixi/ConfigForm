@@ -23,14 +23,21 @@ pnpm add @moluoxixi/config-form zod
 <script setup lang="ts">
 import { ref } from 'vue'
 import { z } from 'zod'
-import { ConfigForm, defineField } from '@moluoxixi/config-form'
+import { ConfigForm, defineFieldFor } from '@moluoxixi/config-form'
 import MyInput from './MyInput.vue'
 
+interface LoginForm {
+  username: string
+  password: string
+  confirm: string
+}
+
 const formRef = ref()
-const model = ref({ username: 'Ada' })
+const model = ref<LoginForm>({ username: 'Ada', password: '', confirm: '' })
+const defineLoginField = defineFieldFor<LoginForm>()
 
 const fields = [
-  defineField({
+  defineLoginField({
     field: 'username',
     label: '用户名',
     schema: z.string().min(2, '至少 2 个字符'),
@@ -39,7 +46,7 @@ const fields = [
     props: { placeholder: '请输入' },
     validateOn: ['blur', 'change'],
   }),
-  defineField({
+  defineLoginField({
     field: 'password',
     label: '密码',
     schema: z.string().min(6, '至少 6 个字符'),
@@ -47,7 +54,7 @@ const fields = [
     component: MyInput,
     props: { type: 'password' },
   }),
-  defineField({
+  defineLoginField({
     field: 'confirm',
     label: '确认密码',
     component: MyInput,
@@ -57,7 +64,7 @@ const fields = [
   }),
 ]
 
-function onSubmit(values: Record<string, any>) {
+function onSubmit(values: LoginForm) {
   console.log('提交', values)
 }
 </script>
@@ -81,15 +88,15 @@ function onSubmit(values: Record<string, any>) {
 | `inline` | `boolean` | `false` | 行内布局模式 |
 | `fields` | `FieldDef[]` | - | 字段配置数组 |
 | `labelWidth` | `string \| number` | - | 标签宽度，number 自动转 px |
-| `modelValue` | `Record<string, any>` | - | 表单值，支持 `v-model` |
+| `modelValue` | `Record<string, unknown>` | - | 表单值，支持 `v-model`；传泛型后为对应表单类型 |
 
 ## Events
 
 | Event | Payload | Description |
 |-------|---------|-------------|
-| `submit` | `Record<string, any>` | 校验通过后提交的字段值 |
+| `submit` | `Record<string, unknown>` | 校验通过后提交的字段值；传泛型后为对应表单类型 |
 | `error` | `FormErrors` | 校验失败时的错误信息 |
-| `update:modelValue` | `Record<string, any>` | 内部值变化时触发 |
+| `update:modelValue` | `Record<string, unknown>` | 内部值变化时触发；传泛型后为对应表单类型 |
 
 ## Expose
 
@@ -101,11 +108,29 @@ function onSubmit(values: Record<string, any>) {
 | `reset()` | `void` | 重置为字段默认值并清空错误 |
 | `setValue(field, value)` | `void` | 设置单个字段值 |
 | `setValues(values, replace?)` | `void` | 批量设置字段值 |
-| `getValue(field)` | `any` | 获取单个字段值 |
-| `getValues()` | `Record<string, any>` | 获取浅拷贝快照 |
+| `getValue(field)` | `unknown` | 获取单个字段值；传泛型后可按字段 key 推导 |
+| `getValues()` | `Record<string, unknown>` | 获取浅拷贝快照；传泛型后为对应表单类型 |
 | `clearValidate(field?)` | `void` | 清除指定字段错误；不传则清除全部 |
 
 ## Field 配置
+
+`defineField` 会优先从 `schema` 和 `defaultValue` 推导字段值类型；没有可推导来源时，字段值默认为 `unknown`。需要让 `values` 和 `field` 精确关联表单类型时，推荐先创建 typed helper：
+
+```ts
+interface UserForm {
+  name: string
+  age: number
+}
+
+const defineUserField = defineFieldFor<UserForm>()
+
+defineUserField({
+  field: 'age',
+  component: InputNumber,
+  defaultValue: 18,
+  validator: (value, values) => value > values.name.length ? undefined : '年龄太小',
+})
+```
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
@@ -115,15 +140,15 @@ function onSubmit(values: Record<string, any>) {
 | `validator` | `(value, values) => string \| string[] \| void \| Promise` | - | 自定义校验，可访问全量 values |
 | `span` | `number` | `24` | 非 inline 模式下的 24 栅格跨度 |
 | `component` | `Component \| Function \| string` | - | 实际渲染组件 |
-| `props` | `Record<string, any>` | - | 传给组件的 props |
-| `defaultValue` | `any` | `undefined` | 默认值 |
+| `props` | `Record<string, unknown>` | - | 传给组件的 props |
+| `defaultValue` | `unknown` | `undefined` | 默认值；会参与 `defineField` 字段值推导 |
 | `valueProp` | `string` | `'modelValue'` | 注入组件的值 prop |
 | `trigger` | `string` | `'update:modelValue'` | 接收组件值变化的事件名 |
 | `blurTrigger` | `string` | `'blur'` | blur 校验事件名 |
 | `validateOn` | `'submit' \| 'blur' \| 'change' \| array` | `'submit'` | 校验触发时机，始终包含 submit |
 | `visible` | `(values) => boolean` | - | 动态显隐 |
 | `disabled` | `(values) => boolean` | - | 动态禁用 |
-| `transform` | `(value, values) => any` | - | submit 前转换值 |
+| `transform` | `(value, values) => unknown` | - | submit 前转换值 |
 | `submitWhenHidden` | `boolean` | `false` | 隐藏字段是否仍提交 |
 | `submitWhenDisabled` | `boolean` | `false` | 禁用字段是否仍提交 |
 | `slots` | `Record<string, SlotContent>` | - | 传给组件的插槽；支持文本、渲染函数、递归字段配置或配置数组 |

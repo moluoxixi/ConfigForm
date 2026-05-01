@@ -23,10 +23,31 @@ import {
 // ===== 字段配置 =====
 
 const formRef = ref()
-const formValues = reactive<Record<string, any>>({})
+const formValues = reactive<Record<string, unknown>>({})
 
 // Ant Design Vue 通用 value/trigger 配置
 const v = { valueProp: 'value', trigger: 'update:value' } as const
+
+interface DayjsLike {
+  format: (template: string) => string
+}
+
+function isDayjsLike(value: unknown): value is DayjsLike {
+  return Boolean(value && typeof value === 'object' && typeof (value as Partial<DayjsLike>).format === 'function')
+}
+
+function formatDateValue(value: unknown, template: string): unknown {
+  return isDayjsLike(value) ? value.format(template) : value
+}
+
+function formatDateRange(value: unknown, template: string): unknown {
+  return Array.isArray(value) ? value.map(item => formatDateValue(item, template)) : value
+}
+
+function optionIncludes(input: string, option: unknown): boolean {
+  const value = option && typeof option === 'object' ? (option as { value?: unknown }).value : undefined
+  return typeof value === 'string' && value.includes(input)
+}
 
 const fields = [
   defineField({
@@ -157,7 +178,7 @@ const fields = [
     component: DatePicker,
     ...v,
     props: { placeholder: '选择日期', allowClear: true },
-    transform: (val: any) => val?.format?.('YYYY-MM-DD') ?? val,
+    transform: val => formatDateValue(val, 'YYYY-MM-DD'),
   }),
   defineField({
     field: 'dateRange',
@@ -165,7 +186,7 @@ const fields = [
     component: DatePicker.RangePicker,
     ...v,
     props: { placeholder: ['开始', '结束'], allowClear: true },
-    transform: (val: any) => Array.isArray(val) ? val.map((v: any) => v?.format?.('YYYY-MM-DD')) : val,
+    transform: val => formatDateRange(val, 'YYYY-MM-DD'),
   }),
   defineField({
     field: 'time',
@@ -173,7 +194,7 @@ const fields = [
     component: TimePicker,
     ...v,
     props: { placeholder: '选择时间', allowClear: true, format: 'HH:mm' },
-    transform: (val: any) => val?.format?.('HH:mm') ?? val,
+    transform: val => formatDateValue(val, 'HH:mm'),
   }),
   defineField({
     field: 'priority',
@@ -207,7 +228,7 @@ const fields = [
       placeholder: '城市',
       allowClear: true,
       options: ['北京', '上海', '广州', '深圳', '杭州', '成都'].map(c => ({ value: c })),
-      filterOption: (input: string, option: any) => option.value.includes(input),
+      filterOption: optionIncludes,
     },
   }),
   // 条件显隐
@@ -230,7 +251,7 @@ const fields = [
   }),
 ]
 
-function onSubmit(values: Record<string, any>) {
+function onSubmit(values: Record<string, unknown>) {
   alert(`搜索提交！\n${JSON.stringify(values, null, 2)}`)
 }
 
@@ -249,7 +270,7 @@ function onError(errors: Record<string, string[]>) {
       :inline="true"
       @submit="onSubmit"
       @error="onError"
-      @update:model-value="(vals: any) => Object.assign(formValues, vals)"
+      @update:model-value="(vals: Record<string, unknown>) => Object.assign(formValues, vals)"
     />
     <div class="demo-actions">
       <a-button type="primary" @click="formRef?.submit()">

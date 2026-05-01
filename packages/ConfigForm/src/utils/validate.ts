@@ -4,7 +4,7 @@ import type { FieldValidator, FormErrors, FormValues, ValidateTrigger } from '@/
 
 /** 校验单个字段值（纯 Zod 调用）。 */
 export function validateField(
-  value: any,
+  value: unknown,
   schema: ZodTypeAny,
   _allValues?: FormValues,
 ): string[] {
@@ -24,7 +24,7 @@ function normalizeValidatorResult(result: Awaited<ReturnType<FieldValidator>>): 
  * 校验单个字段，包含 Zod schema 和可访问全量 values 的自定义 validator。
  */
 export async function validateFieldRules(
-  value: any,
+  value: unknown,
   schema: ZodTypeAny | undefined,
   allValues: FormValues,
   validator?: FieldValidator,

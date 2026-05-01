@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="T extends object = Record<string, any>">
+<script setup lang="ts" generic="T extends object = Record<string, unknown>">
 import { computed, watch } from 'vue'
 import type { ConfigFormEmits, ConfigFormExpose, ConfigFormProps } from '@/types'
 import FormField from '@/components/FormField'
@@ -75,7 +75,7 @@ defineExpose<ConfigFormExpose<T>>({
         :label-width="resolveLabelWidth(labelWidth)"
         :visible="visibilityMap[field.field]"
         :disabled="disabledMap[field.field]"
-        @update:model-value="(val: any) => setValue(field.field, val)"
+        @update:model-value="(val: unknown) => setValue(field.field, val)"
         @blur="(name: string) => validateSingleField(name, 'blur')"
         @change="(name: string) => validateSingleField(name, 'change')"
       >

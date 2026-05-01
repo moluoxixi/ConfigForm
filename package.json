@@ -8,7 +8,9 @@
     "build": "pnpm -C packages/ConfigForm build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "pnpm -C packages/ConfigForm test"
+    "test": "pnpm -C packages/ConfigForm test",
+    "test:coverage": "pnpm -C packages/ConfigForm test:coverage",
+    "typecheck": "pnpm -C packages/ConfigForm typecheck"
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:dev",

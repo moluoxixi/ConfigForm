@@ -25,7 +25,7 @@ import {
 // ===== 字段配置 =====
 
 const formRef = ref()
-const formValues = reactive<Record<string, any>>({})
+const formValues = reactive<Record<string, unknown>>({})
 
 const fields = [
   // ── 文本输入 ─────────────────────────────
@@ -37,6 +37,15 @@ const fields = [
     span: 12,
     component: ElInput,
     props: { placeholder: '请输入用户名', clearable: true },
+    validator: (value, values) => {
+      if (values.role === 'guest' && value.length < 4)
+        return '访客用户名至少 4 个字符'
+
+      return value.includes(' ') ? '用户名不能包含空格' : undefined
+    },
+    transform: value => value.trim(),
+    visible: values => values.active !== false,
+    disabled: values => values.role === 'guest',
   }),
   defineField({
     field: 'password',
@@ -46,6 +55,14 @@ const fields = [
     span: 12,
     component: ElInput,
     props: { type: 'password', placeholder: '请输入密码', showPassword: true },
+    validator: (value, values) => {
+      const username = typeof values.username === 'string' ? values.username.trim() : ''
+
+      return username && value.includes(username) ? '密码不能包含用户名' : undefined
+    },
+    transform: value => value.trim(),
+    visible: values => values.active !== false,
+    disabled: values => values.role === 'guest',
   }),
   defineField({
     field: 'email',
@@ -55,6 +72,12 @@ const fields = [
     span: 12,
     component: ElInput,
     props: { placeholder: '请输入邮箱', clearable: true },
+    validator: (value, values) => {
+      return values.role === 'admin' && !value ? '管理员需要填写邮箱' : undefined
+    },
+    transform: value => value?.trim(),
+    visible: values => values.active !== false,
+    disabled: values => values.role === 'guest',
   }),
   defineField({
     field: 'phone',
@@ -63,6 +86,12 @@ const fields = [
     span: 12,
     component: ElInput,
     props: { placeholder: '请输入手机号', clearable: true },
+    validator: (value, values) => {
+      return values.role === 'user' && !value ? '用户需要填写手机号' : undefined
+    },
+    transform: value => value?.trim(),
+    visible: values => values.active !== false,
+    disabled: values => values.role === 'guest',
   }),
 
   // ── 数字输入 ─────────────────────────────
@@ -334,7 +363,7 @@ const fields = [
     props: {
       placeholder: '输入城市名',
       clearable: true,
-      fetchSuggestions: (queryString: string, cb: any) => {
+      fetchSuggestions: (queryString: string, cb: (items: Array<{ value: string }>) => void) => {
         const cities = ['北京', '上海', '广州', '深圳', '杭州', '成都', '武汉', '南京', '西安', '重庆']
         const results = queryString
           ? cities.filter(c => c.includes(queryString)).map(c => ({ value: c }))
@@ -399,7 +428,7 @@ const fields = [
   }),
 ]
 
-function onSubmit(values: Record<string, any>) {
+function onSubmit(values: Record<string, unknown>) {
   alert(`提交成功！\n${JSON.stringify(values, null, 2)}`)
 }
 
@@ -407,7 +436,7 @@ function onError(errors: Record<string, string[]>) {
   console.error('校验失败：', errors)
 }
 
-function onModelUpdate(vals: Record<string, any>) {
+function onModelUpdate(vals: Record<string, unknown>) {
   Object.assign(formValues, vals)
 }
 </script>

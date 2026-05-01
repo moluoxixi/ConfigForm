@@ -24,10 +24,31 @@ import {
 // ===== 字段配置 =====
 
 const formRef = ref()
-const formValues = reactive<Record<string, any>>({})
+const formValues = reactive<Record<string, unknown>>({})
 
 // Ant Design Vue 通用 value/trigger 配置
 const v = { valueProp: 'value', trigger: 'update:value' } as const
+
+interface DayjsLike {
+  format: (template: string) => string
+}
+
+function isDayjsLike(value: unknown): value is DayjsLike {
+  return Boolean(value && typeof value === 'object' && typeof (value as Partial<DayjsLike>).format === 'function')
+}
+
+function formatDateValue(value: unknown, template: string): unknown {
+  return isDayjsLike(value) ? value.format(template) : value
+}
+
+function formatDateRange(value: unknown, template: string): unknown {
+  return Array.isArray(value) ? value.map(item => formatDateValue(item, template)) : value
+}
+
+function optionIncludes(input: string, option: unknown): boolean {
+  const value = option && typeof option === 'object' ? (option as { value?: unknown }).value : undefined
+  return typeof value === 'string' && value.includes(input)
+}
 
 const fields = [
   // ── 文本输入 ─────────────────────────────
@@ -40,6 +61,15 @@ const fields = [
     component: Input,
     ...v,
     props: { placeholder: '请输入用户名', allowClear: true },
+    validator: (value, values) => {
+      if (values.role === 'guest' && value.length < 4)
+        return '访客用户名至少 4 个字符'
+
+      return value.includes(' ') ? '用户名不能包含空格' : undefined
+    },
+    transform: value => value.trim(),
+    visible: values => values.active !== false,
+    disabled: values => values.role === 'guest',
   }),
   defineField({
     field: 'password',
@@ -50,6 +80,14 @@ const fields = [
     component: Input.Password,
     ...v,
     props: { placeholder: '请输入密码' },
+    validator: (value, values) => {
+      const username = typeof values.username === 'string' ? values.username.trim() : ''
+
+      return username && value.includes(username) ? '密码不能包含用户名' : undefined
+    },
+    transform: value => value.trim(),
+    visible: values => values.active !== false,
+    disabled: values => values.role === 'guest',
   }),
   defineField({
     field: 'search',
@@ -59,6 +97,12 @@ const fields = [
     component: Input.Search,
     ...v,
     props: { placeholder: '输入关键词搜索', allowClear: true },
+    validator: (value) => {
+      return value && value.length > 30 ? '搜索关键词最多 30 个字符' : undefined
+    },
+    transform: value => value?.trim(),
+    visible: values => values.active !== false,
+    disabled: values => values.role === 'guest',
   }),
   defineField({
     field: 'email',
@@ -69,6 +113,12 @@ const fields = [
     component: Input,
     ...v,
     props: { placeholder: '请输入邮箱', allowClear: true },
+    validator: (value, values) => {
+      return values.role === 'admin' && !value ? '管理员需要填写邮箱' : undefined
+    },
+    transform: value => value?.trim(),
+    visible: values => values.active !== false,
+    disabled: values => values.role === 'guest',
   }),
   defineField({
     field: 'phone',
@@ -78,6 +128,12 @@ const fields = [
     component: Input,
     ...v,
     props: { placeholder: '请输入手机号', allowClear: true },
+    validator: (value, values) => {
+      return values.role === 'user' && !value ? '用户需要填写手机号' : undefined
+    },
+    transform: value => value?.trim(),
+    visible: values => values.active !== false,
+    disabled: values => values.role === 'guest',
   }),
 
   // ── 数字输入 ─────────────────────────────
@@ -243,32 +299,32 @@ const fields = [
   defineField({
     field: 'birthday',
     label: '出生日期',
-    schema: z.any().optional(),
+    schema: z.unknown().optional(),
     span: 8,
     component: DatePicker,
     ...v,
     props: { placeholder: '选择日期', allowClear: true, style: { width: '100%' } },
-    transform: (val: any) => val?.format?.('YYYY-MM-DD') ?? val,
+    transform: val => formatDateValue(val, 'YYYY-MM-DD'),
   }),
   defineField({
     field: 'entryTime',
     label: '入职时间',
-    schema: z.any().optional(),
+    schema: z.unknown().optional(),
     span: 8,
     component: TimePicker,
     ...v,
     props: { placeholder: '选择时间', allowClear: true, format: 'HH:mm', style: { width: '100%' } },
-    transform: (val: any) => val?.format?.('HH:mm') ?? val,
+    transform: val => formatDateValue(val, 'HH:mm'),
   }),
   defineField({
     field: 'dateRange',
     label: '有效期',
-    schema: z.any().optional(),
+    schema: z.unknown().optional(),
     span: 8,
     component: DatePicker.RangePicker,
     ...v,
     props: { placeholder: ['开始日期', '结束日期'], allowClear: true, style: { width: '100%' } },
-    transform: (val: any) => Array.isArray(val) ? val.map((v: any) => v?.format?.('YYYY-MM-DD')) : val,
+    transform: val => formatDateRange(val, 'YYYY-MM-DD'),
   }),
 
   // ── 开关 ─────────────────────────────
@@ -316,7 +372,7 @@ const fields = [
       placeholder: '输入城市名',
       allowClear: true,
       options: ['北京', '上海', '广州', '深圳', '杭州', '成都', '武汉', '南京', '西安', '重庆'].map(c => ({ value: c })),
-      filterOption: (input: string, option: any) => option.value.includes(input),
+      filterOption: optionIncludes,
     },
   }),
 
@@ -336,12 +392,12 @@ const fields = [
   defineField({
     field: 'effectiveDate',
     label: '生效日期',
-    schema: z.any().optional(),
+    schema: z.unknown().optional(),
     span: 12,
     component: DatePicker,
     ...v,
     props: { placeholder: '选择生效日期', allowClear: true, style: { width: '100%' } },
-    transform: (val: any) => val?.format?.('YYYY-MM-DD') ?? val,
+    transform: val => formatDateValue(val, 'YYYY-MM-DD'),
     visible: (values) => values.active === true,
   }),
 
@@ -381,7 +437,7 @@ const fields = [
   }),
 ]
 
-function onSubmit(values: Record<string, any>) {
+function onSubmit(values: Record<string, unknown>) {
   alert(`提交成功！\n${JSON.stringify(values, null, 2)}`)
 }
 
@@ -400,7 +456,7 @@ function onError(errors: Record<string, string[]>) {
       label-width="80px"
       @submit="onSubmit"
       @error="onError"
-      @update:model-value="(vals: any) => Object.assign(formValues, vals)"
+      @update:model-value="(vals: Record<string, unknown>) => Object.assign(formValues, vals)"
     />
 
     <div class="demo-actions">

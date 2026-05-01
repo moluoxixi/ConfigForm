@@ -27,6 +27,9 @@ pnpm build
 
 # 运行测试
 pnpm test
+
+# 类型检查（含 defineField 推导测试）
+pnpm typecheck
 ```
 
 ## License

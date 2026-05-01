@@ -25,7 +25,7 @@ import {
 // ===== 字段配置 =====
 
 const formRef = ref()
-const formValues = reactive<Record<string, any>>({})
+const formValues = reactive<Record<string, unknown>>({})
 
 const fields = [
   defineField({
@@ -214,7 +214,7 @@ const fields = [
     props: {
       placeholder: '输入城市名',
       clearable: true,
-      fetchSuggestions: (qs: string, cb: any) => {
+      fetchSuggestions: (qs: string, cb: (items: Array<{ value: string }>) => void) => {
         const cities = ['北京', '上海', '广州', '深圳', '杭州', '成都']
         const results = qs ? cities.filter(c => c.includes(qs)).map(c => ({ value: c })) : cities.map(c => ({ value: c }))
         cb(results)
@@ -239,7 +239,7 @@ const fields = [
   }),
 ]
 
-function onSubmit(values: Record<string, any>) {
+function onSubmit(values: Record<string, unknown>) {
   alert(`搜索提交！\n${JSON.stringify(values, null, 2)}`)
 }
 
@@ -258,7 +258,7 @@ function onError(errors: Record<string, string[]>) {
       :inline="true"
       @submit="onSubmit"
       @error="onError"
-      @update:model-value="(vals: any) => Object.assign(formValues, vals)"
+      @update:model-value="(vals: Record<string, unknown>) => Object.assign(formValues, vals)"
     />
     <div class="demo-actions">
       <el-button type="primary" @click="formRef?.submit()">

@@ -14,14 +14,14 @@ const SlotRender = defineComponent({
     fn: { type: Function, required: true },
     scope: { type: Object, default: undefined },
   },
-  setup(props: { fn: (scope?: Record<string, any>) => any; scope?: Record<string, any> }) {
+  setup(props: { fn: (scope?: Record<string, unknown>) => unknown; scope?: Record<string, unknown> }) {
     return () => props.fn(props.scope)
   },
 })
 
 const props = defineProps<{
   field: FieldDef
-  modelValue: any
+  modelValue: unknown
   error?: string[]
   inline?: boolean
   labelWidth?: string | number
@@ -34,7 +34,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'update:modelValue': [value: any]
+  'update:modelValue': [value: unknown]
   'blur': [field: string]
   'change': [field: string]
 }>()
@@ -79,7 +79,7 @@ const componentAttrs = computed(() => ({
 
 type NormalizedSlotNode =
   | { field: FieldDef, key: string, kind: 'field' }
-  | { fn: () => any, key: string, kind: 'render' }
+  | { fn: () => unknown, key: string, kind: 'render' }
 
 function isSlotFieldConfig(value: unknown): value is SlotFieldConfig {
   return Boolean(
@@ -125,14 +125,14 @@ function normalizeResolvedSlotValue(value: SlotContent, slotName: string, path =
   }]
 }
 
-function normalizeSlotValue(slotValue: SlotContent, scope: Record<string, any> | undefined, slotName: string): NormalizedSlotNode[] {
+function normalizeSlotValue(slotValue: SlotContent, scope: Record<string, unknown> | undefined, slotName: string): NormalizedSlotNode[] {
   if (typeof slotValue === 'function')
     return normalizeResolvedSlotValue(slotValue(scope), slotName)
 
   return normalizeResolvedSlotValue(slotValue, slotName)
 }
 
-function onChange(value: any) {
+function onChange(value: unknown) {
   emit('update:modelValue', value)
   emit('change', props.field.field)
 }

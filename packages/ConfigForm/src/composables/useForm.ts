@@ -1,21 +1,22 @@
 import type { Ref } from 'vue'
 import type { FieldDef } from '@/models/FieldDef'
-import type { FormErrors, FormValues, ValidateTrigger } from '@/types'
+import type { FieldKey, FormErrors, FormValues, ValidateTrigger } from '@/types'
 import { computed, reactive, ref, toRaw, watch } from 'vue'
 import { validateFieldRules, validateForm } from '@/utils/validate'
 
-export interface UseFormOptions<T extends object = Record<string, any>> {
+export interface UseFormOptions<T extends object = FormValues> {
   fields: Ref<FieldDef[]>
   initialValues?: Ref<Partial<T> | undefined>
   onSubmit?: (values: T) => void
   onError?: (errors: FormErrors) => void
 }
 
-export function useForm<T extends object = Record<string, any>>(options: UseFormOptions<T>) {
+export function useForm<T extends object = FormValues>(options: UseFormOptions<T>) {
   const { fields, initialValues, onSubmit, onError } = options
 
-  // T & Record<string, any>：T 提供外部类型安全，Record 允许内部动态 key 访问
-  const values = reactive<T & Record<string, any>>({} as (T & Record<string, any>))
+  // T 提供外部类型安全，Record 允许内部动态 key 访问。
+  const values = reactive<T & FormValues>({} as T & FormValues)
+  const valueStore = values as FormValues
   const errors = ref<FormErrors>({})
 
   // ── 工具 ─────────────────────────────────────────────────────
@@ -37,12 +38,12 @@ export function useForm<T extends object = Record<string, any>>(options: UseForm
   function syncValues(next: FormValues) {
     for (const key of Object.keys(values)) {
       if (!Object.hasOwn(next, key))
-        delete values[key]
+        delete valueStore[key]
     }
 
     for (const [key, val] of Object.entries(next)) {
-      if (values[key] !== val)
-        values[key] = val
+      if (valueStore[key] !== val)
+        valueStore[key] = val
     }
   }
 
@@ -75,8 +76,10 @@ export function useForm<T extends object = Record<string, any>>(options: UseForm
 
   // ── 值操作 ───────────────────────────────────────────────────
 
-  function setValue(field: string, value: any) {
-    values[field] = value
+  function setValue<K extends FieldKey<T>>(field: K, value: T[K]): void
+  function setValue(field: string, value: unknown): void
+  function setValue(field: string, value: unknown) {
+    valueStore[field] = value
     clearFieldError(field)
   }
 
@@ -86,19 +89,21 @@ export function useForm<T extends object = Record<string, any>>(options: UseForm
     }
     else {
       for (const [key, val] of Object.entries(nextValues)) {
-        values[key] = val
+        valueStore[key] = val
         clearFieldError(key)
       }
     }
   }
 
-  function getValue(field: string): any {
-    return values[field]
+  function getValue<K extends FieldKey<T>>(field: K): T[K]
+  function getValue(field: string): unknown
+  function getValue(field: string): unknown {
+    return valueStore[field]
   }
 
   /** 获取表单值的浅拷贝快照，保留 Date/Dayjs 等实例 */
-  function getValues(): T & Record<string, any> {
-    return { ...toRaw(values) } as T & Record<string, any>
+  function getValues(): T & FormValues {
+    return { ...toRaw(values) } as T & FormValues
   }
 
   // ── 校验 ─────────────────────────────────────────────────────

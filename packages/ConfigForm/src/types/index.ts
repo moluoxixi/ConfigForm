@@ -1,19 +1,20 @@
 import type { Component, SetupContext, VNode } from 'vue'
-import type { ZodTypeAny } from 'zod'
+import type { ZodType, ZodTypeAny, ZodTypeDef } from 'zod'
 import type { FieldDef } from '@/models/FieldDef'
 
 // ===== 公共类型 =====
 
 export type FunctionalFieldComponent = (
-  props: { modelValue?: any, [key: string]: any },
+  props: { modelValue?: unknown, [key: string]: unknown },
   context: SetupContext,
 ) => VNode
 
-export type FormValues = Record<string, any>
+export type FormValues = Record<string, unknown>
 export type ValidateTrigger = 'submit' | 'blur' | 'change'
 export type FieldValidatorResult = string | string[] | void | null | undefined
-export type FieldValidator<T extends object = FormValues> = (
-  value: any,
+export type FieldSchema<TValue = unknown> = ZodType<TValue, ZodTypeDef, unknown>
+export type FieldValidator<T extends object = FormValues, TValue = unknown> = (
+  value: TValue,
   allValues: T,
 ) => FieldValidatorResult | Promise<FieldValidatorResult>
 
@@ -24,8 +25,8 @@ export interface SlotFieldConfig {
   label?: string
   span?: number
   component: Component | FunctionalFieldComponent | string
-  props?: Record<string, any>
-  defaultValue?: any
+  props?: Record<string, unknown>
+  defaultValue?: unknown
   valueProp?: string
   trigger?: string
   blurTrigger?: string
@@ -36,7 +37,7 @@ export type SlotRenderable = VNode | VNode[] | SlotPrimitive
 export type SlotContent = SlotRenderFn | SlotFieldConfig | SlotFieldConfig[] | SlotRenderable
 
 /** 插槽渲染函数，接收作用域参数，返回 VNode(s) 或递归字段配置 */
-export type SlotRenderFn = (scope?: Record<string, any>) => SlotContent
+export type SlotRenderFn = (scope?: Record<string, unknown>) => SlotContent
 
 // ===== FieldConfig：FieldDef 构造参数（输入协议）=====
 
@@ -46,8 +47,8 @@ export interface FieldConfig {
   schema?: ZodTypeAny
   span?: number
   component: Component | FunctionalFieldComponent | string
-  props?: Record<string, any>
-  defaultValue?: any
+  props?: Record<string, unknown>
+  defaultValue?: unknown
   /** 注入到组件的值的属性名，默认 'modelValue' */
   valueProp?: string
   /** 接收组件值的事件名，同时也作为 change 校验的触发事件，默认 'update:modelValue' */
@@ -55,10 +56,10 @@ export interface FieldConfig {
   /** 触发 blur 校验的事件名，默认 'blur' */
   blurTrigger?: string
   validateOn?: ValidateTrigger | ValidateTrigger[]
-  validator?: FieldValidator<FormValues>
+  validator?: FieldValidator<FormValues, unknown>
   visible?: (values: FormValues) => boolean
   disabled?: (values: FormValues) => boolean
-  transform?: (value: any, allValues: FormValues) => any
+  transform?: (value: unknown, allValues: FormValues) => unknown
   /** 隐藏时仍参与 submit 输出，默认 false */
   submitWhenHidden?: boolean
   /** 禁用时仍参与 submit 输出，默认 false */
@@ -67,23 +68,28 @@ export interface FieldConfig {
   slots?: Record<string, SlotContent>
 }
 
-/** 泛型版 FieldConfig，用于 defineField<T> 回调参数类型推导 */
-export interface TypedFieldConfig<T extends object> {
-  field: string
+export type FieldKey<T extends object> = Extract<keyof T, string>
+
+/** 泛型版 FieldConfig，用于 defineFieldFor<T>() 回调参数类型推导 */
+export interface TypedFieldConfig<
+  T extends object,
+  K extends FieldKey<T> = FieldKey<T>,
+> {
+  field: K
   label?: string
-  schema?: ZodTypeAny
+  schema?: FieldSchema<T[K]>
   span?: number
   component: Component | FunctionalFieldComponent | string
-  props?: Record<string, any>
-  defaultValue?: any
+  props?: Record<string, unknown>
+  defaultValue?: T[K]
   valueProp?: string
   trigger?: string
   blurTrigger?: string
   validateOn?: ValidateTrigger | ValidateTrigger[]
-  validator?: FieldValidator<T>
+  validator?: FieldValidator<T, T[K]>
   visible?: (values: T) => boolean
   disabled?: (values: T) => boolean
-  transform?: (value: any, allValues: T) => any
+  transform?: (value: T[K], allValues: T) => unknown
   submitWhenHidden?: boolean
   submitWhenDisabled?: boolean
   slots?: Record<string, SlotContent>
@@ -91,7 +97,7 @@ export interface TypedFieldConfig<T extends object> {
 
 // ===== 表单组件类型 =====
 
-export interface ConfigFormProps<T extends object = Record<string, any>> {
+export interface ConfigFormProps<T extends object = FormValues> {
   namespace?: string
   inline?: boolean
   /**
@@ -103,24 +109,30 @@ export interface ConfigFormProps<T extends object = Record<string, any>> {
   modelValue?: T
 }
 
-export interface ConfigFormEmits<T extends object = Record<string, any>> {
+export interface ConfigFormEmits<T extends object = FormValues> {
   (e: 'submit', values: T): void
   (e: 'error', errors: FormErrors): void
   (e: 'update:modelValue', values: T): void
 }
 
-export interface ConfigFormExpose<T extends object = Record<string, any>> {
+export interface ConfigFormExpose<T extends object = FormValues> {
   submit: () => Promise<boolean>
   validate: () => Promise<boolean>
-  validateField: (field: string, trigger?: ValidateTrigger) => Promise<boolean>
+  validateField: (field: FieldKey<T> | string, trigger?: ValidateTrigger) => Promise<boolean>
   reset: () => void
-  setValue: (field: string, value: any) => void
+  setValue: {
+    <K extends FieldKey<T>>(field: K, value: T[K]): void
+    (field: string, value: unknown): void
+  }
   setValues: (values: Partial<T>, replace?: boolean) => void
-  getValue: (field: string) => any
+  getValue: {
+    <K extends FieldKey<T>>(field: K): T[K]
+    (field: string): unknown
+  }
   /** 获取表单值的浅拷贝快照（保留 Date/Dayjs 等实例） */
   getValues: () => T
   /** 清除指定字段的校验错误；不传字段时清除全部 */
-  clearValidate: (field?: string) => void
+  clearValidate: (field?: FieldKey<T> | string) => void
 }
 
 export interface FormErrors {
