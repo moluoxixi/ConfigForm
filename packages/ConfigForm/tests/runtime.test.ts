@@ -1,7 +1,18 @@
+import type { RuntimeToken } from '../src/types'
 import { describe, expect, it } from 'vitest'
 import { defineComponent, h, markRaw } from 'vue'
 import { defineField } from '../src/models/field'
-import { createFormRuntime, expr, i18n } from '../src/runtime'
+import { createFormRuntime, createRuntimeToken, expr } from '../src/runtime'
+
+interface MessageToken extends RuntimeToken<string, 'message'> {
+  key: string
+  fallback?: string
+  params?: Record<string, unknown>
+}
+
+function message(key: string, fallback?: string, params?: Record<string, unknown>): MessageToken {
+  return createRuntimeToken<string, 'message', Omit<MessageToken, '__configFormToken'>>('message', { fallback, key, params })
+}
 
 const RuntimeInput = markRaw(defineComponent({
   name: 'RuntimeInput',
@@ -18,7 +29,7 @@ const AlternateInput = markRaw(defineComponent({
 }))
 
 describe('form runtime', () => {
-  it('resolves components, i18n tokens, expressions, extensions, and debug events', () => {
+  it('resolves components, runtime tokens, expressions, extensions, and debug events', () => {
     const events: Array<{ type: string, field?: string, extension?: string }> = []
     const runtime = createFormRuntime({
       components: {
@@ -29,16 +40,19 @@ describe('form runtime', () => {
       },
       extensions: [
         {
-          i18n: {
-            locale: 'zh-CN',
-            translate: (key, params, fallback) => {
+          name: 'test-messages',
+          priority: -100,
+          tokens: {
+            message: (token, context, path, helpers) => {
+              const { fallback, key, params: rawParams } = token as MessageToken
+              const params = rawParams
+                ? helpers.resolveValue(rawParams, context, `${path}.params`) as Record<string, unknown>
+                : undefined
               if (key === 'fields.name')
                 return `用户名-${String(params?.name)}`
               return fallback ?? key
             },
           },
-          name: 'test-i18n',
-          priority: -100,
         },
         {
           name: 'late-props',
@@ -67,15 +81,15 @@ describe('form runtime', () => {
 
     const field = defineField({
       field: 'name',
-      label: i18n('fields.name', 'Name', { name: 'Ada' }),
+      label: message('fields.name', 'Name', { name: 'Ada' }),
       component: 'RuntimeInput',
       props: {
         disabled: expr({ left: { path: 'values.role' }, op: 'eq', right: 'guest' }, false),
-        placeholder: i18n('fields.name.placeholder', 'Name placeholder'),
+        placeholder: message('fields.name.placeholder', 'Name placeholder'),
       },
       visible: expr({ left: { path: 'values.role' }, op: 'eq', right: 'admin' }, false),
       slots: {
-        default: i18n('slots.name', 'Default slot'),
+        default: message('slots.name', 'Default slot'),
       },
     })
 
@@ -109,16 +123,16 @@ describe('form runtime', () => {
     expect(runtime.resolveValue(expr('canEdit', false), ctx)).toBe(true)
   })
 
-  it('throws when i18n tokens are used without an i18n adapter', () => {
+  it('throws when runtime tokens are used without a resolver', () => {
     const runtime = createFormRuntime()
     const field = defineField({
       component: 'input',
       field: 'name',
-      label: i18n('field.name', 'Name'),
+      label: message('field.name', 'Name'),
     })
 
     expect(() => runtime.resolveField(field, runtime.createContext({ errors: {}, values: {} })))
-      .toThrow(/No i18n plugin registered/)
+      .toThrow(/No token resolver registered/)
   })
 
   it('enforces duplicate extension and component conflicts in strict mode', () => {
@@ -130,6 +144,13 @@ describe('form runtime', () => {
       components: { RuntimeInput },
       extensions: [{ components: { RuntimeInput: AlternateInput }, name: 'ui' }],
     })).toThrow(/Component key conflict/)
+
+    expect(() => createFormRuntime({
+      extensions: [
+        { name: 'token-a', tokens: { sample: () => 'a' } },
+        { name: 'token-b', tokens: { sample: () => 'b' } },
+      ],
+    })).toThrow(/Token resolver conflict/)
   })
 
   it('can opt into last-write-wins conflicts explicitly', () => {
@@ -138,8 +159,8 @@ describe('form runtime', () => {
       components: { RuntimeInput },
       conflictStrategy: 'last-write-wins',
       extensions: [
-        { components: { RuntimeInput: AlternateInput }, name: 'ui' },
-        { name: 'ui' },
+        { components: { RuntimeInput: AlternateInput }, name: 'ui', tokens: { sample: () => 'first' } },
+        { name: 'ui', tokens: { sample: () => 'second' } },
       ],
       onConflict: warning => warnings.push(warning.message),
     })
@@ -148,6 +169,7 @@ describe('form runtime', () => {
     const resolved = runtime.resolveField(field, runtime.createContext({ errors: {}, values: {} }))
 
     expect(resolved.component).toBe(AlternateInput)
+    expect(runtime.resolveValue(createRuntimeToken<string, 'sample'>('sample'), runtime.createContext())).toBe('second')
     expect(warnings).toEqual([])
   })
 

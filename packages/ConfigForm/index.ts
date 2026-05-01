@@ -13,17 +13,16 @@ export {
 } from './src/models/field'
 export {
   createFormRuntime,
+  createRuntimeToken,
   expr,
-  i18n,
   isExpressionToken,
   isFormRuntime,
-  isI18nToken,
+  isRuntimeToken,
 } from './src/runtime'
 export type {
   ComponentRegistry,
   CreateRuntimeContextInput,
   FormExpressionAdapter,
-  FormI18nAdapter,
   FormRuntime,
   FormRuntimeConflict,
   FormRuntimeConflictStrategy,
@@ -34,6 +33,8 @@ export type {
   FormRuntimeInput,
   FormRuntimeLocale,
   FormRuntimeOptions,
+  FormRuntimeResolveHelpers,
+  FormRuntimeTokenResolver,
 } from './src/runtime'
 export type {
   ConfigFormEmits,
@@ -50,7 +51,6 @@ export type {
   FormErrors,
   FormValues,
   FunctionalFieldComponent,
-  I18nToken,
   NormalizedFieldConfig,
   ResolvedField,
   RuntimeText,

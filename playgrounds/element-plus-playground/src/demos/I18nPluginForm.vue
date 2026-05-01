@@ -5,10 +5,10 @@ import {
   ConfigForm,
   createFormRuntime,
   defineField,
-  i18n,
 } from '@moluoxixi/config-form'
 import {
   createI18nPlugin,
+  i18n,
   type I18nMessages,
 } from '@moluoxixi/config-form-plugin-i18n'
 import {

@@ -1,7 +1,11 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { z } from 'zod'
 import { defineField, defineFieldFor } from '../src/models/field'
-import { i18n } from '../src/runtime'
+import { createRuntimeToken } from '../src/runtime'
+
+function textToken(key: string) {
+  return createRuntimeToken<string, 'text'>('text', { key })
+}
 
 describe('defineField typing', () => {
   it('infers field value from schema', () => {
@@ -110,15 +114,34 @@ describe('defineField typing', () => {
       component: selectComponent,
       defaultValue: 'admin',
       props: {
-        placeholder: i18n('role.placeholder', '请选择角色'),
+        placeholder: textToken('role.placeholder'),
         options: [
-          { label: i18n('role.admin', '管理员'), value: 'admin' },
-          { label: i18n('role.user', '用户'), value: 'user' },
+          { label: textToken('role.admin'), value: 'admin' },
+          { label: textToken('role.user'), value: 'user' },
         ],
       },
     })
 
     expectTypeOf(roleField.defaultValue).toEqualTypeOf<string>()
+  })
+
+  it('rejects unknown props when component props are inferable', () => {
+    const inputComponent = (
+      _props: {
+        placeholder?: string
+      },
+    ) => null
+
+    defineField({
+      field: 'keyword',
+      component: inputComponent,
+      defaultValue: '',
+      props: {
+        placeholder: '请输入关键词',
+        // @ts-expect-error unknown props should be rejected when component props are inferable
+        placehodler: '拼写错误',
+      },
+    })
   })
 
   it('binds field value and all values for typed forms', () => {

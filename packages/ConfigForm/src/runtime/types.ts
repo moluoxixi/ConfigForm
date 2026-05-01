@@ -1,4 +1,12 @@
-import type { FieldConfig, FormErrors, FormValues, NormalizedFieldConfig, ResolvedField, SlotContent } from '@/types'
+import type {
+  FieldConfig,
+  FormErrors,
+  FormValues,
+  NormalizedFieldConfig,
+  ResolvedField,
+  RuntimeToken,
+  SlotContent,
+} from '@/types'
 
 export type ComponentRegistry = Record<string, FieldConfig['component']>
 
@@ -20,7 +28,7 @@ export interface FormRuntimeDebugEvent {
 }
 
 export interface FormRuntimeConflict {
-  type: 'component' | 'extension'
+  type: 'component' | 'extension' | 'token'
   key: string
   message: string
   existing?: unknown
@@ -38,11 +46,22 @@ export interface FormRuntimeContext<TValues extends FormValues = FormValues> {
   meta?: Record<string, unknown>
 }
 
+export interface FormRuntimeResolveHelpers {
+  resolveValue: <TValue = unknown>(value: TValue, context: FormRuntimeContext, path?: string) => unknown
+}
+
+export type FormRuntimeTokenResolver<TToken extends RuntimeToken = RuntimeToken> = (
+  token: TToken,
+  context: FormRuntimeContext,
+  path: string,
+  helpers: FormRuntimeResolveHelpers,
+) => unknown
+
 export interface FormRuntimeExtension {
   name: string
   priority?: number
   components?: ComponentRegistry
-  i18n?: FormI18nAdapter
+  tokens?: Record<string, FormRuntimeTokenResolver>
   prepareField?: (field: NormalizedFieldConfig, context: FormRuntimeContext) => NormalizedFieldConfig | void
   resolveValue?: (value: unknown, context: FormRuntimeContext, path: string) => unknown
   resolveField?: (field: ResolvedField, context: FormRuntimeContext) => ResolvedField | void
@@ -50,16 +69,6 @@ export interface FormRuntimeExtension {
   resolveVisible?: (field: NormalizedFieldConfig, context: FormRuntimeContext, next: () => boolean) => boolean
   resolveDisabled?: (field: NormalizedFieldConfig, context: FormRuntimeContext, next: () => boolean) => boolean
   onDebugEvent?: (event: FormRuntimeDebugEvent) => void
-}
-
-export interface FormI18nAdapter {
-  locale?: FormRuntimeLocale
-  translate: (
-    key: string,
-    params: Record<string, unknown> | undefined,
-    fallback: string | undefined,
-    context: FormRuntimeContext,
-  ) => string
 }
 
 export interface FormExpressionAdapter {
@@ -81,6 +90,7 @@ export interface CreateRuntimeContextInput<TValues extends FormValues = FormValu
   values?: TValues
   errors?: FormErrors
   field?: NormalizedFieldConfig
+  locale?: string
   meta?: Record<string, unknown>
 }
 
@@ -88,7 +98,6 @@ export interface FormRuntime {
   readonly __configFormRuntime: true
   readonly components: ComponentRegistry
   readonly extensions: readonly FormRuntimeExtension[]
-  readonly locale?: string
   createContext: <TValues extends FormValues = FormValues>(
     input?: CreateRuntimeContextInput<TValues>,
   ) => FormRuntimeContext<TValues>

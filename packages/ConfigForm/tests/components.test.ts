@@ -1,4 +1,4 @@
-import type { ConfigFormExpose } from '../src/types'
+import type { ConfigFormExpose, RuntimeToken } from '../src/types'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { defineComponent, h, markRaw, nextTick } from 'vue'
@@ -6,7 +6,16 @@ import { z } from 'zod'
 import FormField from '../src/components/FormField/src/index.vue'
 import ConfigForm from '../src/index.vue'
 import { defineField } from '../src/models/field'
-import { createFormRuntime, expr, i18n } from '../src/runtime'
+import { createFormRuntime, createRuntimeToken, expr } from '../src/runtime'
+
+interface MessageToken extends RuntimeToken<string, 'message'> {
+  key: string
+  fallback?: string
+}
+
+function message(key: string, fallback?: string): MessageToken {
+  return createRuntimeToken<string, 'message', Omit<MessageToken, '__configFormToken'>>('message', { fallback, key })
+}
 
 const TextInput = markRaw(defineComponent({
   name: 'TextInput',
@@ -211,7 +220,7 @@ describe('config form component', () => {
     expect(api.getValues()).toEqual({ name: '' })
   })
 
-  it('resolves runtime registry, i18n, expressions, and nested slot configs', async () => {
+  it('resolves runtime registry, tokens, expressions, and nested slot configs', async () => {
     const events: string[] = []
     const runtime = createFormRuntime({
       components: {
@@ -223,9 +232,10 @@ describe('config form component', () => {
       },
       extensions: [
         {
-          i18n: {
-            locale: 'zh-CN',
-            translate: (key, _params, fallback) => {
+          name: 'test-messages',
+          tokens: {
+            message: (token) => {
+              const { fallback, key } = token as MessageToken
               const messages: Record<string, string> = {
                 'field.nickname': '昵称',
                 'field.nickname.placeholder': '请输入昵称',
@@ -234,7 +244,6 @@ describe('config form component', () => {
               return messages[key] ?? fallback ?? key
             },
           },
-          name: 'test-i18n',
         },
       ],
     })
@@ -247,17 +256,17 @@ describe('config form component', () => {
       }),
       defineField({
         field: 'nickname',
-        label: i18n('field.nickname', 'Nickname'),
+        label: message('field.nickname', 'Nickname'),
         component: 'TextInput',
         props: {
-          placeholder: i18n('field.nickname.placeholder', 'Nickname placeholder'),
+          placeholder: message('field.nickname.placeholder', 'Nickname placeholder'),
         },
         visible: expr({ left: { path: 'values.role' }, op: 'eq', right: 'admin' }, false),
         slots: {
           prefix: {
             component: 'SlotLeaf',
             props: { 'data-role': 'runtime-prefix' },
-            slots: { default: i18n('slot.prefix', 'Prefix') },
+            slots: { default: message('slot.prefix', 'Prefix') },
           },
         },
       }),

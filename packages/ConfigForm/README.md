@@ -89,7 +89,7 @@ function onSubmit(values: LoginForm) {
 | `fields` | `FieldConfig[]` | - | 字段配置数组；`defineField` 返回的就是纯配置 |
 | `labelWidth` | `string \| number` | - | 标签宽度，number 自动转 px |
 | `modelValue` | `Record<string, unknown>` | - | 表单值，支持 `v-model`；传泛型后为对应表单类型 |
-| `runtime` | `FormRuntime \| FormRuntimeOptions` | - | DIY 运行时，用于组件注册、i18n、表达式、插件扩展和调试 |
+| `runtime` | `FormRuntime \| FormRuntimeOptions` | - | DIY 运行时，用于组件注册、runtime token、表达式、插件扩展和调试 |
 
 ## Events
 
@@ -136,7 +136,7 @@ defineUserField({
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `field` | `string` | - | 字段名，作为 values 的 key |
-| `label` | `RuntimeText` | - | 字段标签；支持字符串、i18n token 或表达式 token |
+| `label` | `RuntimeText` | - | 字段标签；支持字符串或 runtime token |
 | `schema` | `ZodTypeAny` | - | 字段 Zod 校验 |
 | `validator` | `(value, values) => string \| string[] \| void \| Promise` | - | 自定义校验，可访问全量 values |
 | `span` | `number` | `24` | 非 inline 模式下的 24 栅格跨度 |
@@ -176,8 +176,8 @@ defineField({
 
 ```vue
 <script setup lang="ts">
-import { ConfigForm, createFormRuntime, defineField, expr, i18n } from '@moluoxixi/config-form'
-import { createI18nPlugin } from '@moluoxixi/config-form-plugin-i18n'
+import { ConfigForm, createFormRuntime, defineField, expr } from '@moluoxixi/config-form'
+import { createI18nPlugin, i18n } from '@moluoxixi/config-form-plugin-i18n'
 import MyInput from './MyInput.vue'
 
 const runtime = createFormRuntime({
@@ -225,15 +225,15 @@ const fields = [
 </template>
 ```
 
-内置 token：
+Token：
 
-- `i18n(key, fallback?, params?)`：用于 `label`、`props`、`slots` 等位置的文案 token；需要配合 `@moluoxixi/config-form-plugin-i18n` 使用，未注册 i18n adapter 时会抛错。
-- `expr(expression, fallback?)`：用于 `visible`、`disabled`、`props` 等位置的安全表达式解析，不执行字符串代码。
+- `expr(expression, fallback?)`：核心内置表达式 token，用于 `visible`、`disabled`、`props` 等位置的安全表达式解析，不执行字符串代码。
+- `i18n(key, fallback?, params?)`：由 `@moluoxixi/config-form-plugin-i18n` 提供，用于 `label`、`props`、`slots` 等位置的文案 token。
 
 扩展点：
 
 - `components`：注册字符串组件 key，字段中可直接写 `component: 'MyInput'`；大写 key 未注册会抛错，原生标签如 `'input'` 可直接使用。
-- `extensions`：按 `priority` 从小到大执行，可实现 `prepareField`、`resolveValue`、`resolveField`、`resolveSlot`、`resolveVisible`、`resolveDisabled` 和 `onDebugEvent`。
+- `extensions`：按 `priority` 从小到大执行，可实现 `tokens`、`prepareField`、`resolveValue`、`resolveField`、`resolveSlot`、`resolveVisible`、`resolveDisabled` 和 `onDebugEvent`。
 - 官方插件包：例如 `@moluoxixi/config-form-plugin-i18n`，支持 `locale`、`fallbackLocale`、`messages`、`translate`、`missing`，并支持字符串模板 `{name}` 插值。
 - `conflictStrategy`：组件名或插件名冲突时可选 `'error'`、`'warn'`、`'last-write-wins'`，默认 `'error'`；需要宽松覆盖时必须显式声明。
 - `expression.evaluate`：接入自定义表达式引擎；返回 `undefined` 时回退到内置表达式解析。

@@ -5,14 +5,21 @@ import { defineConfig } from 'vitest/config'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
-  resolve: {
-    alias: {
-      '@': resolve(__dirname, '../ConfigForm/src'),
-      '@moluoxixi/config-form': resolve(__dirname, 'test-shims/configFormCore.ts'),
-    },
-  },
   test: {
     environment: 'happy-dom',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      reportsDirectory: './coverage',
+      all: true,
+      include: ['src/**/*.ts'],
+      thresholds: {
+        branches: 90,
+        functions: 95,
+        lines: 95,
+        statements: 95,
+      },
+    },
   },
   build: {
     lib: {

@@ -1,6 +1,6 @@
-import { createFormRuntime, defineField, i18n } from '@moluoxixi/config-form'
+import { createFormRuntime, defineField } from '@moluoxixi/config-form'
 import { describe, expect, it } from 'vitest'
-import { createI18nPlugin } from '../src'
+import { createI18nPlugin, i18n } from '../src'
 
 describe('i18n plugin package', () => {
   it('resolves messages by locale, fallback locale, fallback text, and params', () => {
@@ -66,5 +66,47 @@ describe('i18n plugin package', () => {
     locale = 'zh-CN'
     expect(runtime.resolveValue(i18n('status'), context)).toBe('状态')
     expect(runtime.resolveValue(i18n('runtime.locale', 'fallback', { value: 'active' }), context)).toBe('zh-CN:active')
+  })
+
+  it('supports function messages and empty interpolation values', () => {
+    const runtime = createFormRuntime({
+      extensions: [
+        createI18nPlugin({
+          locale: 'zh-CN',
+          messages: {
+            'zh-CN': {
+              empty: '空值 { value }',
+              greeting: (params, context) => `${context.locale}:${String(params?.name)}`,
+            },
+          },
+        }),
+      ],
+    })
+    const context = runtime.createContext({ errors: {}, values: {} })
+
+    expect(runtime.resolveValue(i18n('greeting', undefined, { name: 'Ada' }), context)).toBe('zh-CN:Ada')
+    expect(runtime.resolveValue(i18n('empty', undefined, { value: null }), context)).toBe('空值 ')
+    expect(runtime.resolveValue(i18n('missing.fallback', '兜底 { value }', { value: undefined }), context)).toBe('兜底 ')
+  })
+
+  it('uses missing handlers and default plugin metadata', () => {
+    const plugin = createI18nPlugin({
+      missing: key => `missing:${key}`,
+    })
+    const runtime = createFormRuntime({ extensions: [plugin] })
+    const context = runtime.createContext({ errors: {}, values: {} })
+
+    expect(plugin.name).toBe('i18n')
+    expect(plugin.priority).toBe(-100)
+    expect(runtime.resolveValue(i18n('missing.key'), context)).toBe('missing:missing.key')
+  })
+
+  it('returns the key when nothing resolves the message', () => {
+    const runtime = createFormRuntime({
+      extensions: [createI18nPlugin()],
+    })
+    const context = runtime.createContext({ errors: {}, values: {} })
+
+    expect(runtime.resolveValue(i18n('raw.key'), context)).toBe('raw.key')
   })
 })

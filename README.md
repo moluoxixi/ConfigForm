@@ -2,13 +2,14 @@
 
 基于 Vue 3 + Zod 的轻量配置化表单组件库，Monorepo 结构。
 
-核心包支持 `runtime` 扩展边界，可注册组件、解析 i18n token、安全表达式、调试事件和插件式字段扩展，便于业务侧按需 DIY。
+核心包支持 `runtime` 扩展边界，可注册组件、解析 runtime token、安全表达式、调试事件和插件式字段扩展，便于业务侧按需 DIY。
 
 ## 包
 
 | 包 | 说明 |
 |---|---|
 | [`@moluoxixi/config-form`](./packages/ConfigForm/) | 核心表单组件 |
+| [`@moluoxixi/config-form-plugin-i18n`](./packages/ConfigFormPluginI18n/) | 官方 i18n 插件 |
 | [`element-plus-playground`](./playgrounds/element-plus-playground/) | Element Plus 示例 |
 | [`antd-vue-playground`](./playgrounds/antd-vue-playground/) | Ant Design Vue 示例 |
 

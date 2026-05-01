@@ -18,11 +18,9 @@ export type FieldValidator<T extends object = FormValues, TValue = unknown> = (
   allValues: T,
 ) => FieldValidatorResult | Promise<FieldValidatorResult>
 
-export interface I18nToken {
-  readonly __configFormToken: 'i18n'
-  key: string
-  fallback?: string
-  params?: Record<string, unknown>
+export interface RuntimeToken<TValue = unknown, TType extends string = string> {
+  readonly __configFormToken: TType
+  readonly __configFormValue?: TValue
 }
 
 export type ExpressionInput
@@ -36,14 +34,12 @@ export type ExpressionInput
     | { op: 'not', value: ExpressionInput }
     | { op: 'includes', source: ExpressionInput, value: ExpressionInput }
 
-export interface ExpressionToken<TValue = unknown> {
-  readonly __configFormToken: 'expr'
+export interface ExpressionToken<TValue = unknown> extends RuntimeToken<TValue, 'expr'> {
   expression: ExpressionInput
   fallback?: TValue
 }
 
-export type RuntimeToken<TValue = unknown> = I18nToken | ExpressionToken<TValue>
-export type RuntimeText = string | I18nToken | ExpressionToken<string>
+export type RuntimeText = string | RuntimeToken<string>
 export type FieldCondition<T extends object = FormValues> = boolean | ExpressionToken<boolean> | ((values: T) => boolean)
 
 export type SlotPrimitive = string | number | boolean | null | undefined
@@ -161,7 +157,7 @@ export interface ConfigFormProps<T extends object = FormValues> {
   labelWidth?: string | number
   /** v-model 双向绑定表单值 */
   modelValue?: T
-  /** 表单运行时，用于组件注册、i18n、表达式、插件扩展和调试事件 */
+  /** 表单运行时，用于组件注册、runtime token、表达式、插件扩展和调试事件 */
   runtime?: FormRuntimeInput
 }
 

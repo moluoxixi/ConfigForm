@@ -6,8 +6,8 @@ import type {
   FormRuntimeConflictStrategy,
   FormRuntimeContext,
   FormRuntimeExtension,
-  FormRuntimeLocale,
   FormRuntimeOptions,
+  FormRuntimeTokenResolver,
 } from './types'
 import type {
   ExpressionInput,
@@ -15,44 +15,54 @@ import type {
   FieldCondition,
   FieldConfig,
   FormValues,
-  I18nToken,
   NormalizedFieldConfig,
   ResolvedField,
+  RuntimeToken,
   SlotContent,
   SlotFieldConfig,
 } from '@/types'
 import { isVNode } from 'vue'
 import { normalizeField } from '@/models/field'
 
-export function i18n(key: string, fallback?: string, params?: Record<string, unknown>): I18nToken {
+export function createRuntimeToken<TValue = unknown, TType extends string = string>(
+  type: TType,
+): RuntimeToken<TValue, TType>
+export function createRuntimeToken<
+  TValue = unknown,
+  TType extends string = string,
+  TPayload extends Record<string, unknown> = Record<string, unknown>,
+>(
+  type: TType,
+  payload: TPayload,
+): RuntimeToken<TValue, TType> & TPayload
+export function createRuntimeToken<TValue = unknown, TType extends string = string>(
+  type: TType,
+  payload: Record<string, unknown> = {},
+): RuntimeToken<TValue, TType> & Record<string, unknown> {
   return {
-    __configFormToken: 'i18n',
-    fallback,
-    key,
-    params,
-  }
+    __configFormToken: type,
+    ...payload,
+  } as RuntimeToken<TValue, TType> & Record<string, unknown>
 }
 
 export function expr<TValue = unknown>(expression: ExpressionInput, fallback?: TValue): ExpressionToken<TValue> {
-  return {
-    __configFormToken: 'expr',
+  return createRuntimeToken<TValue, 'expr', { expression: ExpressionInput, fallback?: TValue }>('expr', {
     expression,
     fallback,
-  }
+  })
 }
 
-export function isI18nToken(value: unknown): value is I18nToken {
+export function isRuntimeToken<TValue = unknown>(value: unknown): value is RuntimeToken<TValue> {
   return Boolean(
     value
     && typeof value === 'object'
-    && (value as { __configFormToken?: unknown }).__configFormToken === 'i18n',
+    && typeof (value as { __configFormToken?: unknown }).__configFormToken === 'string',
   )
 }
 
 export function isExpressionToken<TValue = unknown>(value: unknown): value is ExpressionToken<TValue> {
   return Boolean(
-    value
-    && typeof value === 'object'
+    isRuntimeToken(value)
     && (value as { __configFormToken?: unknown }).__configFormToken === 'expr',
   )
 }
@@ -172,15 +182,11 @@ function normalizeExtensions(extensions: FormRuntimeExtension[] = []): FormRunti
   return [...extensions].sort((a, b) => (a.priority ?? 100) - (b.priority ?? 100))
 }
 
-function resolveLocale(locale?: FormRuntimeLocale): string | undefined {
-  return typeof locale === 'function' ? locale() : locale
-}
-
 export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime {
   const conflictStrategy: FormRuntimeConflictStrategy = options.conflictStrategy ?? 'error'
   const extensions = normalizeExtensions(options.extensions)
   const components: ComponentRegistry = { ...(options.components ?? {}) }
-  let i18nAdapter: FormRuntimeExtension['i18n']
+  const tokenResolvers: Record<string, FormRuntimeTokenResolver> = {}
 
   function emitDebug(event: Parameters<FormRuntime['emitDebug']>[0]) {
     options.debug?.emit?.(event)
@@ -228,28 +234,17 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
       components[key] = component
     }
 
-    if (extension.i18n) {
-      if (i18nAdapter) {
+    for (const [type, resolver] of Object.entries(extension.tokens ?? {})) {
+      if (Object.hasOwn(tokenResolvers, type)) {
         handleConflict({
-          existing: i18nAdapter,
-          incoming: extension.i18n,
-          key: 'i18n',
-          message: 'Multiple i18n plugins registered',
-          type: 'extension',
+          existing: tokenResolvers[type],
+          incoming: resolver,
+          key: type,
+          message: `Token resolver conflict: ${type}`,
+          type: 'token',
         })
       }
-      i18nAdapter = extension.i18n
-    }
-  }
-
-  function currentLocale(): string | undefined {
-    return resolveLocale(i18nAdapter?.locale)
-  }
-
-  function withCurrentLocale(context: FormRuntimeContext): FormRuntimeContext {
-    return {
-      ...context,
-      locale: currentLocale(),
+      tokenResolvers[type] = resolver
     }
   }
 
@@ -259,7 +254,7 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
     return {
       errors: input.errors ?? {},
       field: input.field,
-      locale: currentLocale(),
+      locale: input.locale,
       meta: input.meta,
       values: input.values ?? ({} as TValues),
     }
@@ -273,23 +268,20 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
     return component
   }
 
-  function resolveToken(value: I18nToken | ExpressionToken, context: FormRuntimeContext): unknown {
-    if (isI18nToken(value)) {
-      if (!i18nAdapter)
-        throw new Error(`No i18n plugin registered for token: ${value.key}`)
-
-      const i18nContext = withCurrentLocale(context)
-      const params = value.params
-        ? resolveRecord(value.params, i18nContext, `${value.key}.params`)
-        : undefined
-      return i18nAdapter.translate(value.key, params, value.fallback, i18nContext)
+  function resolveToken(value: RuntimeToken, context: FormRuntimeContext, path: string): unknown {
+    if (isExpressionToken(value)) {
+      const customResult = options.expression?.evaluate?.(value.expression, context)
+      const result = customResult === undefined
+        ? defaultEvaluateExpression(value.expression, context)
+        : customResult
+      return result === undefined ? value.fallback : result
     }
 
-    const customResult = options.expression?.evaluate?.(value.expression, context)
-    const result = customResult === undefined
-      ? defaultEvaluateExpression(value.expression, context)
-      : customResult
-    return result === undefined ? value.fallback : result
+    const resolver = tokenResolvers[value.__configFormToken]
+    if (!resolver)
+      throw new Error(`No token resolver registered for token type: ${value.__configFormToken}`)
+
+    return resolver(value, context, path, { resolveValue })
   }
 
   function resolveRecord(
@@ -312,8 +304,8 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
   ): unknown {
     let resolved: unknown = value
 
-    if (isI18nToken(resolved) || isExpressionToken(resolved)) {
-      resolved = resolveToken(resolved, context)
+    if (isRuntimeToken(resolved)) {
+      resolved = resolveToken(resolved, context, path)
     }
     else if (Array.isArray(resolved)) {
       resolved = resolved.map((item, index) => resolveValue(item, context, `${path}.${index}`))
@@ -530,7 +522,6 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
     createContext,
     emitDebug,
     extensions,
-    locale: currentLocale(),
     resolveDisabled,
     resolveField,
     resolveSlot,

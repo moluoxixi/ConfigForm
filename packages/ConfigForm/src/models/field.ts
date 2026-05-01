@@ -36,7 +36,7 @@ type RuntimeResolvable<T> = T extends (...args: infer TArgs) => infer TReturn
 
 interface ComponentFieldPart<C> {
   component: C
-  props?: (RuntimeResolvable<ExtractComponentProps<NoInfer<C>>> & {}) | Record<string, unknown>
+  props?: RuntimeResolvable<ExtractComponentProps<NoInfer<C>>> & {}
 }
 
 type DefinedFieldConfig<TConfig> = TConfig & FieldConfig

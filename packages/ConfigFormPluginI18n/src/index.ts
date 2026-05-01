@@ -2,7 +2,14 @@ import type {
   FormRuntimeContext,
   FormRuntimeExtension,
   FormRuntimeLocale,
+  RuntimeToken,
 } from '@moluoxixi/config-form'
+
+export interface I18nToken extends RuntimeToken<string, 'i18n'> {
+  key: string
+  fallback?: string
+  params?: Record<string, unknown>
+}
 
 export type I18nMessageResolver = (
   params: Record<string, unknown> | undefined,
@@ -27,6 +34,23 @@ export interface I18nPluginOptions {
   messages?: I18nMessages
   translate?: I18nTranslate
   missing?: I18nTranslate
+}
+
+export function i18n(key: string, fallback?: string, params?: Record<string, unknown>): I18nToken {
+  return {
+    __configFormToken: 'i18n',
+    fallback,
+    key,
+    params,
+  }
+}
+
+export function isI18nToken(value: unknown): value is I18nToken {
+  return Boolean(
+    value
+    && typeof value === 'object'
+    && (value as { __configFormToken?: unknown }).__configFormToken === 'i18n',
+  )
 }
 
 function resolveLocale(locale?: FormRuntimeLocale): string | undefined {
@@ -59,12 +83,18 @@ function findMessage(
 
 export function createI18nPlugin(options: I18nPluginOptions = {}): FormRuntimeExtension {
   return {
-    i18n: {
-      locale: options.locale,
-      translate: (key, params, fallback, context) => {
+    tokens: {
+      i18n: (token, context, path, helpers) => {
+        if (!isI18nToken(token))
+          return undefined
+
         const locale = resolveLocale(options.locale)
         const fallbackLocale = resolveLocale(options.fallbackLocale)
         const i18nContext = { ...context, locale }
+        const params = token.params
+          ? helpers.resolveValue(token.params, i18nContext, `${path}.params`) as Record<string, unknown>
+          : undefined
+        const { fallback, key } = token
         const custom = options.translate?.(key, params, fallback, i18nContext)
         if (custom !== undefined)
           return custom

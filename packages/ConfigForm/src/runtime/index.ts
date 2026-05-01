@@ -1,16 +1,15 @@
 export {
   createFormRuntime,
+  createRuntimeToken,
   expr,
-  i18n,
   isExpressionToken,
   isFormRuntime,
-  isI18nToken,
+  isRuntimeToken,
 } from './createFormRuntime'
 export type {
   ComponentRegistry,
   CreateRuntimeContextInput,
   FormExpressionAdapter,
-  FormI18nAdapter,
   FormRuntime,
   FormRuntimeConflict,
   FormRuntimeConflictStrategy,
@@ -21,4 +20,6 @@ export type {
   FormRuntimeInput,
   FormRuntimeLocale,
   FormRuntimeOptions,
+  FormRuntimeResolveHelpers,
+  FormRuntimeTokenResolver,
 } from './types'
