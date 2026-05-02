@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import GridForm from './demos/GridForm.vue'
-import I18nPluginForm from './demos/I18nPluginForm.vue'
-import InlineForm from './demos/InlineForm.vue'
+import { defineAsyncComponent, ref } from 'vue'
+
+const GridForm = defineAsyncComponent(() => import('./demos/GridForm.vue'))
+const I18nPluginForm = defineAsyncComponent(() => import('./demos/I18nPluginForm.vue'))
+const InlineForm = defineAsyncComponent(() => import('./demos/InlineForm.vue'))
 
 const activeTab = ref('grid')
 </script>

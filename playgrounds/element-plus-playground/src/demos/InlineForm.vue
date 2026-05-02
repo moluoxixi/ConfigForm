@@ -2,25 +2,21 @@
 import { reactive, ref } from 'vue'
 import { z } from 'zod'
 import { ConfigForm, defineField } from '@moluoxixi/config-form'
-import {
-  ElAutocomplete,
-  ElCascader,
-  ElCheckbox,
-  ElCheckboxGroup,
-  ElColorPicker,
-  ElDatePicker,
-  ElInput,
-  ElInputNumber,
-  ElRadio,
-  ElRadioGroup,
-  ElRate,
-  ElSelectV2,
-  ElSlider,
-  ElSwitch,
-  ElTimePicker,
-  ElTimeSelect,
-  ElTreeSelect,
-} from 'element-plus'
+import { ElAutocomplete } from 'element-plus/es/components/autocomplete/index.mjs'
+import { ElCascader } from 'element-plus/es/components/cascader/index.mjs'
+import { ElCheckbox, ElCheckboxGroup } from 'element-plus/es/components/checkbox/index.mjs'
+import { ElColorPicker } from 'element-plus/es/components/color-picker/index.mjs'
+import { ElDatePicker } from 'element-plus/es/components/date-picker/index.mjs'
+import { ElInput } from 'element-plus/es/components/input/index.mjs'
+import { ElInputNumber } from 'element-plus/es/components/input-number/index.mjs'
+import { ElRadio, ElRadioGroup } from 'element-plus/es/components/radio/index.mjs'
+import { ElRate } from 'element-plus/es/components/rate/index.mjs'
+import { ElSelectV2 } from 'element-plus/es/components/select-v2/index.mjs'
+import { ElSlider } from 'element-plus/es/components/slider/index.mjs'
+import { ElSwitch } from 'element-plus/es/components/switch/index.mjs'
+import { ElTimePicker } from 'element-plus/es/components/time-picker/index.mjs'
+import { ElTimeSelect } from 'element-plus/es/components/time-select/index.mjs'
+import { ElTreeSelect } from 'element-plus/es/components/tree-select/index.mjs'
 
 // ===== 字段配置 =====
 

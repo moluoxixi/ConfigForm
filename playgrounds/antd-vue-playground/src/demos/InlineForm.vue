@@ -2,23 +2,19 @@
 import { reactive, ref } from 'vue'
 import { z } from 'zod'
 import { ConfigForm, defineField } from '@moluoxixi/config-form'
-import {
-  AutoComplete,
-  Cascader,
-  Checkbox,
-  CheckboxGroup,
-  DatePicker,
-  Input,
-  InputNumber,
-  Radio,
-  RadioGroup,
-  Rate,
-  Select,
-  Slider,
-  Switch,
-  TimePicker,
-  TreeSelect,
-} from 'ant-design-vue'
+import AutoComplete from 'ant-design-vue/es/auto-complete'
+import Cascader from 'ant-design-vue/es/cascader'
+import Checkbox, { CheckboxGroup } from 'ant-design-vue/es/checkbox'
+import DatePicker from 'ant-design-vue/es/date-picker'
+import Input from 'ant-design-vue/es/input'
+import InputNumber from 'ant-design-vue/es/input-number'
+import Radio, { RadioGroup } from 'ant-design-vue/es/radio'
+import Rate from 'ant-design-vue/es/rate'
+import Select from 'ant-design-vue/es/select'
+import Slider from 'ant-design-vue/es/slider'
+import Switch from 'ant-design-vue/es/switch'
+import TimePicker from 'ant-design-vue/es/time-picker'
+import TreeSelect from 'ant-design-vue/es/tree-select'
 
 // ===== 字段配置 =====
 

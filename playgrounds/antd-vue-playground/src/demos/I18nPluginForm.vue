@@ -11,12 +11,9 @@ import {
   i18n,
   type I18nMessages,
 } from '@moluoxixi/config-form-plugin-i18n'
-import {
-  Input,
-  Radio,
-  RadioGroup,
-  Select,
-} from 'ant-design-vue'
+import Input from 'ant-design-vue/es/input'
+import Radio, { RadioGroup } from 'ant-design-vue/es/radio'
+import Select from 'ant-design-vue/es/select'
 
 type Locale = 'zh-CN' | 'en-US'
 
