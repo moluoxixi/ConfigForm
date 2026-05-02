@@ -68,7 +68,7 @@ function createResponse() {
 }
 
 describe('open in editor helpers', () => {
-  it('creates code-compatible editor commands', () => {
+  it('creates code-compatible editor commands that reuse the current window', () => {
     const command = createEditorCommand({
       column: 7,
       editor: 'code',
@@ -77,7 +77,7 @@ describe('open in editor helpers', () => {
     })
 
     expect(command).toEqual({
-      args: ['-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
+      args: ['--reuse-window', '-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
       command: process.platform === 'win32' ? 'code.cmd' : 'code',
       ...(process.platform === 'win32' ? { shell: true } : {}),
     })
@@ -92,7 +92,7 @@ describe('open in editor helpers', () => {
       file: '/project/ConfigForm/playgrounds/demo.vue',
       line: 12,
     })).toEqual({
-      args: ['-g', '/project/ConfigForm/playgrounds/demo.vue:12:7'],
+      args: ['--reuse-window', '-g', '/project/ConfigForm/playgrounds/demo.vue:12:7'],
       command: 'cursor',
     })
 
@@ -129,6 +129,16 @@ describe('open in editor helpers', () => {
   it('creates webstorm and custom editor commands', () => {
     expect(createEditorCommand({
       column: 7,
+      editor: 'sublime',
+      file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
+      line: 12,
+    })).toEqual({
+      args: ['-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
+      command: 'sublime',
+    })
+
+    expect(createEditorCommand({
+      column: 7,
       editor: 'webstorm',
       file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
       line: 12,
@@ -157,7 +167,7 @@ describe('open in editor helpers', () => {
     await expect(launchEditor(
       { args: ['-g', 'demo.vue:1:1'], command: 'missing-editor' },
       createSpawnMock('error'),
-    )).rejects.toThrow(/spawn failed/)
+    )).rejects.toThrow(/Failed to start editor command "missing-editor -g demo.vue:1:1": spawn failed/)
 
     await expect(launchEditor(
       { args: ['-g', 'demo.vue:1:1'], command: 'missing-editor.cmd', shell: true },

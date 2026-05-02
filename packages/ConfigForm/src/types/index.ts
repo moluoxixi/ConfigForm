@@ -4,6 +4,8 @@ import type { FormRuntimeInput } from '@/runtime/types'
 
 // ===== 公共类型 =====
 
+export const CONFIG_FORM_DEFINED_NODE = Symbol.for('moluoxixi.config-form.defined-node')
+
 export type FunctionalFieldComponent = (
   props: { modelValue?: unknown, [key: string]: unknown },
   context: SetupContext,
@@ -58,7 +60,7 @@ export interface ComponentNodeConfig {
 }
 
 export type SlotRenderable = VNode | VNode[] | SlotPrimitive | RuntimeToken
-export type SlotContent = SlotRenderFn | FormNodeConfig | FormNodeConfig[] | SlotRenderable
+export type SlotContent = SlotRenderFn | DefinedFormNodeConfig | DefinedFormNodeConfig[] | SlotRenderable
 
 /** 插槽渲染函数，接收作用域参数，返回 VNode(s)、容器节点或真实字段节点 */
 export type SlotRenderFn = (scope?: Record<string, unknown>) => SlotContent
@@ -89,6 +91,12 @@ export interface FieldConfig extends ComponentNodeConfig {
 }
 
 export type FormNodeConfig = FieldConfig | ComponentNodeConfig
+
+export interface DefinedFormNodeBrand {
+  readonly [CONFIG_FORM_DEFINED_NODE]: true
+}
+
+export type DefinedFormNodeConfig<TConfig extends FormNodeConfig = FormNodeConfig> = TConfig & DefinedFormNodeBrand
 
 export interface NormalizedFieldConfig extends Omit<
   FieldConfig,

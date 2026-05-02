@@ -1,5 +1,6 @@
-import type { FieldConfig, FormNodeConfig, SlotContent } from '@/types'
+import type { DefinedFormNodeConfig, FieldConfig, FormNodeConfig, SlotContent } from '@/types'
 import { isVNode } from 'vue'
+import { CONFIG_FORM_DEFINED_NODE } from '@/types'
 
 const FIELD_ONLY_NODE_KEYS = [
   'blurTrigger',
@@ -37,6 +38,26 @@ export function isFieldConfig(value: unknown): value is FieldConfig {
   )
 }
 
+export function markDefinedFormNodeConfig<TConfig extends FormNodeConfig>(
+  value: TConfig,
+): DefinedFormNodeConfig<TConfig> {
+  Object.defineProperty(value, CONFIG_FORM_DEFINED_NODE, {
+    configurable: false,
+    enumerable: false,
+    value: true,
+    writable: false,
+  })
+
+  return value as DefinedFormNodeConfig<TConfig>
+}
+
+export function isDefinedFormNodeConfig(value: unknown): value is DefinedFormNodeConfig {
+  return Boolean(
+    isFormNodeConfig(value)
+    && (value as { [CONFIG_FORM_DEFINED_NODE]?: unknown })[CONFIG_FORM_DEFINED_NODE] === true,
+  )
+}
+
 export function assertComponentNodeConfig(value: FormNodeConfig, path = 'component node') {
   if (isFieldConfig(value))
     return
@@ -47,7 +68,12 @@ export function assertComponentNodeConfig(value: FormNodeConfig, path = 'compone
   }
 }
 
-function collectSlotFields(slot: SlotContent | undefined): FieldConfig[] {
+export function assertDefinedSlotNodeConfig(value: FormNodeConfig, path = 'slot node') {
+  if (!isDefinedFormNodeConfig(value))
+    throw new Error(`Slot node config at ${path} must be created with defineField(...)`)
+}
+
+function collectSlotFields(slot: SlotContent | undefined, path = 'slot'): FieldConfig[] {
   if (slot == null || slot === false)
     return []
 
@@ -55,11 +81,12 @@ function collectSlotFields(slot: SlotContent | undefined): FieldConfig[] {
     return []
 
   if (Array.isArray(slot))
-    return slot.flatMap(item => collectSlotFields(item as SlotContent))
+    return slot.flatMap((item, index) => collectSlotFields(item as SlotContent, `${path}.${index}`))
 
   if (!isFormNodeConfig(slot))
     return []
 
+  assertDefinedSlotNodeConfig(slot, path)
   return collectFieldConfigs([slot])
 }
 
@@ -67,7 +94,11 @@ export function collectFieldConfigs(nodes: readonly FormNodeConfig[]): FieldConf
   return nodes.flatMap((node) => {
     assertComponentNodeConfig(node)
 
-    const nested = Object.values(node.slots ?? {}).flatMap(slot => collectSlotFields(slot))
+    const nested = Object.entries(node.slots ?? {}).flatMap(([key, slot]) => collectSlotFields(slot, `${nodePath(node)}.slots.${key}`))
     return isFieldConfig(node) ? [node, ...nested] : nested
   })
+}
+
+function nodePath(node: FormNodeConfig): string {
+  return isFieldConfig(node) ? node.field : 'component node'
 }

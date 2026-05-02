@@ -206,9 +206,9 @@ const fields = computed(() => [
     ...v,
     slots: {
       default: [
-        { component: Radio, props: { value: 'male' }, slots: { default: i18n('i18n.gender.male', '男') } },
-        { component: Radio, props: { value: 'female' }, slots: { default: i18n('i18n.gender.female', '女') } },
-        { component: Radio, props: { value: 'other' }, slots: { default: () => i18n('i18n.gender.other', '其他') } },
+        defineField({ component: Radio, props: { value: 'male' }, slots: { default: i18n('i18n.gender.male', '男') } }),
+        defineField({ component: Radio, props: { value: 'female' }, slots: { default: i18n('i18n.gender.female', '女') } }),
+        defineField({ component: Radio, props: { value: 'other' }, slots: { default: () => i18n('i18n.gender.other', '其他') } }),
       ],
     },
   }),

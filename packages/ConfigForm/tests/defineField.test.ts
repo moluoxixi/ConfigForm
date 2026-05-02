@@ -104,8 +104,8 @@ describe('defineField typing', () => {
 
     defineField({
       component: 'input',
-      field: 'manual-source',
       // @ts-expect-error __source is injected by the devtools Vite plugin only
+      field: 'manual-source',
       __source: {
         column: 1,
         file: 'manual.ts',

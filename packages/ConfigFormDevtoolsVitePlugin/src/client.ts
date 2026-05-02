@@ -27,6 +27,11 @@ interface BubblePosition {
   edge: 'left' | 'right'
 }
 
+interface OpenSourceCommandPayload {
+  args?: unknown
+  command?: unknown
+}
+
 declare global {
   interface Window {
     __CONFIG_FORM_DEVTOOLS_BRIDGE__?: FormDevtoolsBridge
@@ -44,6 +49,32 @@ const DRAG_THRESHOLD = 4
 
 function formatPatch(value: number | undefined): string {
   return typeof value === 'number' ? value.toFixed(2) : '--'
+}
+
+function formatOpenSourceCommand(payload: unknown): string | undefined {
+  if (!payload || typeof payload !== 'object')
+    return undefined
+
+  const command = (payload as { command?: OpenSourceCommandPayload }).command
+  if (!command || typeof command !== 'object' || typeof command.command !== 'string')
+    return undefined
+
+  const args = Array.isArray(command.args)
+    ? command.args.filter((arg): arg is string => typeof arg === 'string')
+    : []
+
+  return [command.command, ...args].join(' ')
+}
+
+function resolveNodeKindIcon(node: FormDevtoolsNode): 'C' | 'F' {
+  return node.kind === 'component' ? 'C' : 'F'
+}
+
+function resolveNodeDisplayName(node: FormDevtoolsNode): string {
+  if (node.kind === 'component')
+    return node.component ?? node.kind
+
+  return node.field ?? node.component ?? node.kind
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -78,7 +109,11 @@ function ensureStyle() {
     .cf-devtools-empty { padding: 16px; color: #6b7280; font-size: 13px; }
     .cf-devtools-node { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; min-height: 30px; border: 0; border-radius: 6px; background: transparent; padding: 5px 6px; color: inherit; text-align: left; font: inherit; }
     .cf-devtools-node:hover { background: #f3f4f6; }
-    .cf-devtools-node-main { min-width: 0; }
+    .cf-devtools-node-main { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 6px; align-items: start; min-width: 0; }
+    .cf-devtools-node-kind { color: #4b5563; font-size: 11px; font-weight: 700; line-height: 16px; text-align: center; }
+    .cf-devtools-node-kind.is-component { color: #7c3aed; }
+    .cf-devtools-node-kind.is-field { color: #047857; }
+    .cf-devtools-node-text { min-width: 0; }
     .cf-devtools-node-key { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .cf-devtools-node-meta { color: #6b7280; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .cf-devtools-patch { font-variant-numeric: tabular-nums; font-size: 11px; color: #047857; }
@@ -152,9 +187,16 @@ function createNodeRow(
   const main = document.createElement('div')
   main.className = 'cf-devtools-node-main'
 
+  const kind = document.createElement('span')
+  kind.className = `cf-devtools-node-kind is-${node.kind}`
+  kind.textContent = resolveNodeKindIcon(node)
+
+  const text = document.createElement('div')
+  text.className = 'cf-devtools-node-text'
+
   const key = document.createElement('div')
   key.className = 'cf-devtools-node-key'
-  key.textContent = node.field ?? node.component ?? node.kind
+  key.textContent = resolveNodeDisplayName(node)
 
   const meta = document.createElement('div')
   meta.className = 'cf-devtools-node-meta'
@@ -186,9 +228,9 @@ function createNodeRow(
         headers: { 'content-type': 'application/json' },
         method: 'POST',
       })
+      const text = await response.text()
 
       if (!response.ok) {
-        const text = await response.text()
         try {
           const payload = JSON.parse(text) as { error?: unknown }
           setError(typeof payload.error === 'string' ? payload.error : text)
@@ -199,14 +241,21 @@ function createNodeRow(
         return
       }
 
-      setError('')
+      try {
+        const command = formatOpenSourceCommand(JSON.parse(text))
+        setError(command ? `Opened source: ${command}` : '')
+      }
+      catch {
+        setError('')
+      }
     })
   }
 
   row.addEventListener('mouseenter', () => highlight(node.element))
   row.addEventListener('mouseleave', () => highlight(null))
 
-  main.append(key, meta)
+  text.append(key, meta)
+  main.append(kind, text)
   row.append(main, patch, open)
 
   const children = [...store.nodes.values()]

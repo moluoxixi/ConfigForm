@@ -25,7 +25,13 @@ import type {
 } from '@/types'
 import { isVNode } from 'vue'
 import { normalizeField } from '@/models/field'
-import { assertComponentNodeConfig, isFieldConfig, isFormNodeConfig } from '@/models/node'
+import {
+  assertComponentNodeConfig,
+  assertDefinedSlotNodeConfig,
+  isFieldConfig,
+  isFormNodeConfig,
+  markDefinedFormNodeConfig,
+} from '@/models/node'
 
 export function createRuntimeToken<TValue = unknown, TType extends string = string>(
   type: TType,
@@ -330,7 +336,7 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
   ): ResolvedComponentNode {
     assertComponentNodeConfig(config, path)
 
-    return {
+    return markDefinedFormNodeConfig({
       ...config,
       component: resolveComponent(config.component),
       props: resolveRecord(config.props ?? {}, context, `${path}.props`),
@@ -342,7 +348,7 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
             ]),
           )
         : config.slots,
-    }
+    })
   }
 
   function resolveNode(node: FormNodeConfig, context: FormRuntimeContext, path = 'node'): ResolvedFormNode {
@@ -370,8 +376,10 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
     if (Array.isArray(slot))
       return slot.map((item, index) => resolveSlotBase(item as SlotContent, context, `${path}.${index}`)) as SlotContent
 
-    if (isFormNodeConfig(slot))
-      return resolveNode(slot, context, path)
+    if (isFormNodeConfig(slot)) {
+      assertDefinedSlotNodeConfig(slot, path)
+      return resolveNode(slot, context, path) as SlotContent
+    }
 
     return resolveValue(slot, context, path) as SlotContent
   }
@@ -395,7 +403,7 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
   }
 
   function resolveFieldBase(config: NormalizedFieldConfig, context: FormRuntimeContext): ResolvedField {
-    return {
+    return markDefinedFormNodeConfig({
       ...config,
       component: resolveComponent(config.component),
       label: config.label == null
@@ -410,7 +418,7 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
             ]),
           )
         : config.slots,
-    }
+    })
   }
 
   function prepareField(field: FieldConfig, context: FormRuntimeContext): NormalizedFieldConfig {

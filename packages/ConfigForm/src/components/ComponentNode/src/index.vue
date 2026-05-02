@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { FormRuntimeContext } from '@/runtime'
-import type { ResolvedFormNode, SlotContent } from '@/types'
-import { computed, defineComponent } from 'vue'
+import type { ResolvedComponentNode, ResolvedFormNode, SlotContent } from '@/types'
+import { computed, defineComponent, ref } from 'vue'
+import { useFormComponentNodeDevtools } from '@/composables/useDevtools'
 import { useRuntime } from '@/composables/useRuntime'
-import { isFormNodeConfig } from '@/models/node'
+import { isFieldConfig, isFormNodeConfig } from '@/models/node'
 
 defineOptions({ name: 'ComponentNode' })
 
@@ -18,14 +19,19 @@ const SlotRender = defineComponent({
   },
 })
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   node: ResolvedFormNode
   componentAttrs?: Record<string, unknown>
   componentListeners?: Record<string, (...args: unknown[]) => void>
+  registerDevtools?: boolean
   runtimeContext?: FormRuntimeContext
-}>()
+  slotName?: string
+}>(), {
+  registerDevtools: true,
+})
 
 const runtimeRef = useRuntime()
+const rootRef = ref<unknown>()
 
 const currentRuntimeContext = computed<FormRuntimeContext>(() =>
   props.runtimeContext ?? runtimeRef.value.createContext(),
@@ -35,6 +41,19 @@ const attrs = computed(() => ({
   ...props.node.props,
   ...(props.componentAttrs ?? {}),
 }))
+
+const devtoolsNode = computed<ResolvedComponentNode | undefined>(() =>
+  props.registerDevtools !== false && !isFieldConfig(props.node)
+    ? props.node
+    : undefined,
+)
+
+useFormComponentNodeDevtools({
+  enabled: props.registerDevtools !== false,
+  node: devtoolsNode,
+  rootRef,
+  slotName: computed(() => props.slotName),
+})
 
 type NormalizedSlotNode =
   | { key: string, kind: 'node', node: ResolvedFormNode }
@@ -85,6 +104,7 @@ function normalizeSlotValue(slotValue: SlotContent, scope: Record<string, unknow
 
 <template>
   <component
+    ref="rootRef"
     :is="node.component"
     v-bind="attrs"
     v-on="componentListeners ?? {}"

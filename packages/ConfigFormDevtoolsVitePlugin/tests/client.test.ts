@@ -89,6 +89,39 @@ describe('client overlay', () => {
     expect(String(fetchMock.mock.calls[0]?.[1]?.body)).toContain('"line":32')
   })
 
+  it('renders field and component node text badges beside display names', () => {
+    installConfigFormDevtools()
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      kind: 'field',
+      field: 'gender',
+      formId: 'form-1',
+      id: 'field-gender',
+      label: '性别',
+      order: 1,
+    }, null)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      kind: 'component',
+      component: 'ElRadio',
+      formId: 'form-1',
+      id: 'component-radio',
+      order: 2,
+      parentId: 'field-gender',
+      slotName: 'default',
+    }, null)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+
+    const fieldRow = document.querySelector<HTMLElement>('[data-cf-devtools-node-id="field-gender"]')
+    const componentRow = document.querySelector<HTMLElement>('[data-cf-devtools-node-id="component-radio"]')
+
+    expect(fieldRow?.querySelector('.cf-devtools-node-kind')?.textContent).toBe('F')
+    expect(fieldRow?.querySelector('.cf-devtools-node-key')?.textContent).toBe('gender')
+    expect(componentRow?.querySelector('.cf-devtools-node-kind')?.textContent).toBe('C')
+    expect(componentRow?.querySelector('.cf-devtools-node-key')?.textContent).toBe('ElRadio')
+    expect(componentRow?.textContent).toContain('slot:default')
+  })
+
   it('closes the panel when clicking outside the debugger overlay', () => {
     installConfigFormDevtools()
 
@@ -358,6 +391,94 @@ describe('client overlay', () => {
     await vi.waitFor(() => {
       expect(document.body.textContent).toContain('editor failed')
     })
+  })
+
+  it('shows the returned editor command after opening source', async () => {
+    const fetchMock = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({
+      command: {
+        args: ['--reuse-window', '-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
+        command: 'code.cmd',
+      },
+    }), { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+    installConfigFormDevtools()
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      kind: 'field',
+      field: 'email',
+      formId: 'form-1',
+      id: 'node-1',
+      source: {
+        column: 7,
+        file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
+        id: 'source-1',
+        line: 12,
+      },
+    }, null)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools-open="node-1"]')?.click()
+
+    await vi.waitFor(() => {
+      expect(document.body.textContent).toContain('Opened source: code.cmd --reuse-window -g D:/project-new/ConfigForm/playgrounds/demo.vue:12:7')
+    })
+  })
+
+  it('shows source open success when the editor command has no args', async () => {
+    const fetchMock = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({
+      command: {
+        command: 'custom-editor',
+      },
+    }), { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+    installConfigFormDevtools()
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      kind: 'field',
+      field: 'email',
+      formId: 'form-1',
+      id: 'node-1',
+      source: {
+        column: 7,
+        file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
+        id: 'source-1',
+        line: 12,
+      },
+    }, null)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools-open="node-1"]')?.click()
+
+    await vi.waitFor(() => {
+      expect(document.body.textContent).toContain('Opened source: custom-editor')
+    })
+  })
+
+  it('clears source open status when a successful response is not JSON', async () => {
+    const fetchMock = vi.fn<typeof fetch>(async () => new Response('opened', { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+    installConfigFormDevtools()
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      kind: 'field',
+      field: 'email',
+      formId: 'form-1',
+      id: 'node-1',
+      source: {
+        column: 7,
+        file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
+        id: 'source-1',
+        line: 12,
+      },
+    }, null)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools-open="node-1"]')?.click()
+
+    await vi.waitFor(() => {
+      expect(fetchMock).toHaveBeenCalled()
+    })
+    expect(document.body.textContent).not.toContain('Opened source:')
   })
 
   it('surfaces plain source open failures when the response is not JSON', async () => {

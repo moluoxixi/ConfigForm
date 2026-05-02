@@ -1,5 +1,8 @@
 import type { output, ZodTypeAny } from 'zod'
 import type {
+  ComponentNodeConfig,
+  DefinedFormNodeBrand,
+  DefinedFormNodeConfig,
   FieldCondition,
   FieldConfig,
   FieldValidator,
@@ -10,6 +13,7 @@ import type {
   SlotContent,
   ValidateTrigger,
 } from '@/types'
+import { markDefinedFormNodeConfig } from '@/models/node'
 
 // ===== 工具类型 =====
 
@@ -37,7 +41,14 @@ interface ComponentFieldPart<C> {
   props?: RuntimeResolvable<ExtractComponentProps<NoInfer<C>>> & {}
 }
 
-type DefinedFieldConfig<TConfig> = TConfig & FieldConfig
+interface ComponentNodeConfigCore<C> extends ComponentFieldPart<C> {
+  slots?: Record<string, SlotContent>
+}
+
+type FormNodeInput = FieldConfig | ComponentNodeConfig
+
+type DefinedFieldConfig<TConfig> = TConfig & FieldConfig & DefinedFormNodeBrand
+type DefinedComponentNodeConfig<TConfig> = TConfig & ComponentNodeConfig & DefinedFormNodeBrand
 
 // ===== 字段规范化 =====
 
@@ -164,7 +175,12 @@ export function defineField<
   config: UnknownValueFieldConfigCore<FormValues, TField> & ComponentFieldPart<C>,
 ): DefinedFieldConfig<UnknownValueFieldConfigCore<FormValues, TField> & ComponentFieldPart<C>>
 
+// 重载 4：slot 内无 field 的组件容器节点，也必须通过 defineField 创建
+export function defineField<C = unknown>(
+  config: ComponentNodeConfigCore<C>,
+): DefinedComponentNodeConfig<ComponentNodeConfigCore<C>>
+
 // 实现
-export function defineField(config: FieldConfig): FieldConfig {
-  return { ...config }
+export function defineField(config: FormNodeInput): DefinedFormNodeConfig {
+  return markDefinedFormNodeConfig({ ...config })
 }

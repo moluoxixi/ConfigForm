@@ -3,6 +3,7 @@ import type {
   FormDevtoolsBridge,
   FormDevtoolsNode,
   FormFieldPatchMetric,
+  ResolvedComponentNode,
   ResolvedField,
 } from '@/types'
 import { computed, inject, onBeforeUnmount, onBeforeUpdate, onMounted, onUpdated, provide } from 'vue'
@@ -17,6 +18,13 @@ interface UseFormFieldDevtoolsOptions {
   slotName: ComputedRef<string | undefined>
 }
 
+interface UseFormComponentNodeDevtoolsOptions {
+  enabled: boolean
+  node: ComputedRef<ResolvedComponentNode | undefined>
+  rootRef: Ref<unknown>
+  slotName: ComputedRef<string | undefined>
+}
+
 interface DevtoolsWindow extends Window {
   __CONFIG_FORM_DEVTOOLS_BRIDGE__?: FormDevtoolsBridge
   __CONFIG_FORM_DEVTOOLS_PENDING__?: boolean
@@ -27,18 +35,38 @@ const parentFieldNodeIdKey: InjectionKey<string | undefined> = Symbol('config-fo
 const devtoolsReadyEvent = 'config-form-devtools:ready'
 
 let formIdSeed = 0
-let fieldIdSeed = 0
+let devtoolsNodeIdSeed = 0
 
 function createFormId(): string {
   return `cf-devtools-form-${++formIdSeed}`
 }
 
-function createFieldNodeIdentity(): { id: string, order: number } {
-  const order = ++fieldIdSeed
+function createDevtoolsNodeIdentity(): { id: string, order: number } {
+  const order = ++devtoolsNodeIdSeed
   return {
-    id: `cf-devtools-field-${order}`,
+    id: `cf-devtools-node-${order}`,
     order,
   }
+}
+
+function resolveComponentName(component: ResolvedComponentNode['component']): string {
+  if (typeof component === 'string')
+    return component
+
+  const candidate = component as {
+    __name?: unknown
+    __vccOpts?: { __name?: unknown, name?: unknown }
+    displayName?: unknown
+    name?: unknown
+  }
+
+  const name = candidate.name
+    ?? candidate.displayName
+    ?? candidate.__name
+    ?? candidate.__vccOpts?.name
+    ?? candidate.__vccOpts?.__name
+
+  return typeof name === 'string' && name.length > 0 ? name : 'AnonymousComponent'
 }
 
 function getBridge(): FormDevtoolsBridge | undefined {
@@ -80,12 +108,7 @@ export function provideFormDevtoolsContext(): FormDevtoolsContext {
 export function useFormFieldDevtools(options: UseFormFieldDevtoolsOptions) {
   const formContext = inject(formDevtoolsContextKey, undefined)
   const parentId = inject(parentFieldNodeIdKey, undefined)
-  const { id: nodeId, order: nodeOrder } = createFieldNodeIdentity()
-  const mountedStartedAt = now()
-  let updateStartedAt = 0
-  let registered = false
-  let removeReadyListener: (() => void) | undefined
-  const pendingPatchMetrics: FormFieldPatchMetric[] = []
+  const { id: nodeId, order: nodeOrder } = createDevtoolsNodeIdentity()
 
   provide(parentFieldNodeIdKey, nodeId)
 
@@ -106,12 +129,62 @@ export function useFormFieldDevtools(options: UseFormFieldDevtoolsOptions) {
     }
   })
 
+  useDevtoolsNodeRegistration({
+    node,
+    nodeId,
+    rootRef: options.rootRef,
+  })
+}
+
+export function useFormComponentNodeDevtools(options: UseFormComponentNodeDevtoolsOptions) {
+  const formContext = inject(formDevtoolsContextKey, undefined)
+  const parentId = inject(parentFieldNodeIdKey, undefined)
+  const { id: nodeId, order: nodeOrder } = createDevtoolsNodeIdentity()
+
+  if (options.enabled)
+    provide(parentFieldNodeIdKey, nodeId)
+
+  const node = computed<FormDevtoolsNode | undefined>(() => {
+    const current = options.node.value
+    if (!formContext || !current)
+      return undefined
+
+    return {
+      component: resolveComponentName(current.component),
+      formId: formContext.formId,
+      id: nodeId,
+      kind: 'component',
+      order: nodeOrder,
+      parentId,
+      slotName: options.slotName.value,
+      source: current.__source,
+    }
+  })
+
+  useDevtoolsNodeRegistration({
+    node,
+    nodeId,
+    rootRef: options.rootRef,
+  })
+}
+
+function useDevtoolsNodeRegistration(options: {
+  node: ComputedRef<FormDevtoolsNode | undefined>
+  nodeId: string
+  rootRef: Ref<unknown>
+}) {
+  const mountedStartedAt = now()
+  let updateStartedAt = 0
+  let registered = false
+  let removeReadyListener: (() => void) | undefined
+  const pendingPatchMetrics: FormFieldPatchMetric[] = []
+
   function element() {
     return resolveElement(options.rootRef.value)
   }
 
   function registerCurrent(bridge: FormDevtoolsBridge) {
-    const current = node.value
+    const current = options.node.value
     if (!current)
       return
 
@@ -146,7 +219,7 @@ export function useFormFieldDevtools(options: UseFormFieldDevtoolsOptions) {
   }
 
   function registerOrWait() {
-    if (!node.value)
+    if (!options.node.value)
       return
 
     const bridge = getBridge()
@@ -176,7 +249,7 @@ export function useFormFieldDevtools(options: UseFormFieldDevtoolsOptions) {
   }
 
   function recordCurrentPatch(duration: number) {
-    const current = node.value
+    const current = options.node.value
     if (!current)
       return
 
@@ -197,7 +270,7 @@ export function useFormFieldDevtools(options: UseFormFieldDevtoolsOptions) {
   })
 
   onUpdated(() => {
-    const current = node.value
+    const current = options.node.value
     if (!current)
       return
 
@@ -222,6 +295,6 @@ export function useFormFieldDevtools(options: UseFormFieldDevtoolsOptions) {
     removeReadyListener?.()
 
     if (registered)
-      getBridge()?.unregisterField(nodeId)
+      getBridge()?.unregisterField(options.nodeId)
   })
 }

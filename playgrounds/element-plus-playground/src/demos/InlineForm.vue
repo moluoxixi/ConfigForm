@@ -138,21 +138,21 @@ const fields = [
     component: ElRadioGroup,
     slots: {
       default: [
-        {
+        defineField({
           component: ElRadio,
           props: { value: 'male' },
           slots: { default: '男' },
-        },
-        {
+        }),
+        defineField({
           component: ElRadio,
           props: { value: 'female' },
           slots: { default: '女' },
-        },
-        {
+        }),
+        defineField({
           component: ElRadio,
           props: { value: 'other' },
           slots: { default: '其他' },
-        },
+        }),
       ],
     },
   }),
@@ -163,18 +163,18 @@ const fields = [
     defaultValue: [],
     slots: {
       default: [
-        {
+        defineField({
           component: ElCheckbox,
           props: { value: 'reading', label: '阅读' },
-        },
-        {
+        }),
+        defineField({
           component: ElCheckbox,
           props: { value: 'sports', label: '运动' },
-        },
-        {
+        }),
+        defineField({
           component: ElCheckbox,
           props: { value: 'music', label: '音乐' },
-        },
+        }),
       ],
     },
   }),

@@ -247,7 +247,7 @@ describe('form runtime', () => {
 
     expect(resolved.props?.flag).toBe('from-extension')
     expect(resolved.slots?.default).toBe('slot-from-extension')
-    expect(runtime.resolveSlot({ component: 'input', field: 'slotField' }, ctx)).toMatchObject({
+    expect(runtime.resolveSlot(defineField({ component: 'input', field: 'slotField' }), ctx)).toMatchObject({
       component: 'input',
       field: 'slotField',
       valueProp: 'modelValue',
@@ -288,7 +288,7 @@ describe('form runtime', () => {
       },
     })
     expect('field' in resolved).toBe(false)
-    expect(runtime.resolveSlot({ component: 'RuntimeInput' }, ctx)).toMatchObject({
+    expect(runtime.resolveSlot(defineField({ component: 'RuntimeInput' }), ctx)).toMatchObject({
       component: RuntimeInput,
       props: {},
     })

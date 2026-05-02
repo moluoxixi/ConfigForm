@@ -1,4 +1,4 @@
-import type { ConfigFormExpose, RuntimeToken } from '../src/types'
+import type { ConfigFormExpose, FieldConfig, RuntimeToken } from '../src/types'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, markRaw, nextTick } from 'vue'
@@ -94,7 +94,7 @@ const CardContainer = markRaw(defineComponent({
   },
 }))
 
-function resolveTestField(field: ReturnType<typeof defineField>) {
+function resolveTestField(field: FieldConfig) {
   const runtime = createFormRuntime()
   return runtime.resolveField(field, runtime.createContext({ errors: {}, values: {} }))
 }
@@ -107,7 +107,7 @@ describe('config form component', () => {
         props: { title: '基础信息' },
         slots: {
           default: [
-            {
+            defineField({
               component: CardContainer,
               props: { title: '账号信息' },
               slots: {
@@ -121,7 +121,7 @@ describe('config form component', () => {
                   }),
                 ],
               },
-            },
+            }),
           ],
         },
       },
@@ -322,6 +322,76 @@ describe('config form component', () => {
     expect(second.order).toBeLessThan(suffix.order)
 
     wrapper.unmount()
+    delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_BRIDGE__?: typeof bridge }).__CONFIG_FORM_DEVTOOLS_BRIDGE__
+    delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_PENDING__?: boolean }).__CONFIG_FORM_DEVTOOLS_PENDING__
+  })
+
+  it('reports component defineField nodes returned from field slots as devtools tree children', async () => {
+    const bridge = {
+      recordPatch: vi.fn(),
+      registerField: vi.fn(),
+      unregisterField: vi.fn(),
+      updateField: vi.fn(),
+    }
+    ;(window as typeof window & { __CONFIG_FORM_DEVTOOLS_PENDING__?: boolean }).__CONFIG_FORM_DEVTOOLS_PENDING__ = true
+    ;(window as typeof window & { __CONFIG_FORM_DEVTOOLS_BRIDGE__?: typeof bridge }).__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
+
+    const fields = [
+      defineField({
+        component: SlotHost,
+        field: 'gender',
+        label: '性别',
+        slots: {
+          default: [
+            defineField({
+              component: SlotLeaf,
+              props: { role: 'male' },
+              slots: { default: '男' },
+            }),
+            defineField({
+              component: SlotLeaf,
+              props: { role: 'female' },
+              slots: { default: '女' },
+            }),
+            defineField({
+              component: SlotLeaf,
+              props: { role: 'other' },
+              slots: { default: '其他' },
+            }),
+          ],
+        },
+      }),
+    ]
+
+    const wrapper = mount(ConfigForm, {
+      props: {
+        fields,
+        modelValue: {},
+      },
+    })
+
+    await nextTick()
+
+    const nodes = bridge.registerField.mock.calls.map(call => call[0])
+    const parent = nodes.find(node => node.field === 'gender')
+    const children = nodes.filter(node => node.parentId === parent?.id)
+
+    if (!parent)
+      throw new Error('Expected gender field node to register')
+
+    expect(children).toHaveLength(3)
+    expect(children.map(node => node.kind)).toEqual(['component', 'component', 'component'])
+    expect(children.map(node => node.component)).toEqual(['SlotLeaf', 'SlotLeaf', 'SlotLeaf'])
+    expect(children.map(node => node.slotName)).toEqual(['default', 'default', 'default'])
+    expect(parent.order).toBeLessThan(children[0].order)
+    expect(children[0].order).toBeLessThan(children[1].order)
+    expect(children[1].order).toBeLessThan(children[2].order)
+
+    wrapper.unmount()
+    expect(bridge.unregisterField).toHaveBeenCalledWith(parent.id)
+    for (const child of children)
+      expect(bridge.unregisterField).toHaveBeenCalledWith(child.id)
+
     delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_BRIDGE__?: typeof bridge }).__CONFIG_FORM_DEVTOOLS_BRIDGE__
     delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_PENDING__?: boolean }).__CONFIG_FORM_DEVTOOLS_PENDING__
   })
@@ -554,11 +624,11 @@ describe('config form component', () => {
         },
         visible: expr({ left: { path: 'values.role' }, op: 'eq', right: 'admin' }, false),
         slots: {
-          prefix: {
+          prefix: defineField({
             component: 'SlotLeaf',
             props: { 'data-role': 'runtime-prefix' },
             slots: { default: message('slot.prefix', 'Prefix') },
-          },
+          }),
         },
       }),
     ]
@@ -705,11 +775,11 @@ describe('form field component', () => {
         component: SlotHost,
         slots: {
           default: [
-            {
+            defineField({
               component: SlotLeaf,
               props: { role: 'slot-child' },
               slots: { default: '嵌入选项' },
-            },
+            }),
           ],
         },
       },

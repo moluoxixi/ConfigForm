@@ -12,7 +12,7 @@ describe('useForm', () => {
         component: 'section',
         slots: {
           default: [
-            {
+            defineField({
               component: 'article',
               slots: {
                 default: [
@@ -24,7 +24,7 @@ describe('useForm', () => {
                   }),
                 ],
               },
-            },
+            }),
           ],
         },
       },

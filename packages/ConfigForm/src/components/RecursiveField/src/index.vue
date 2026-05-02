@@ -61,6 +61,7 @@ function emitCurrentFieldValue(value: unknown) {
         :node="fieldNode"
         :component-attrs="componentAttrs"
         :component-listeners="componentListeners"
+        :register-devtools="false"
         :runtime-context="fieldRuntimeContext"
       >
         <template #node="{ node: childNode, slotName: childSlotName }">
@@ -95,6 +96,7 @@ function emitCurrentFieldValue(value: unknown) {
     v-else
     :node="node"
     :runtime-context="runtimeContext"
+    :slot-name="slotName"
   >
     <template #node="{ node: childNode, slotName: childSlotName }">
       <RecursiveField

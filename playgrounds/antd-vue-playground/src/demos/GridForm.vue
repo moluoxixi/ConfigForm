@@ -271,21 +271,21 @@ const fields = [
     ...v,
     slots: {
       default: [
-        {
+        defineField({
           component: Radio,
           props: { value: 'male' },
           slots: { default: '男' },
-        },
-        {
+        }),
+        defineField({
           component: Radio,
           props: { value: 'female' },
           slots: { default: '女' },
-        },
-        {
+        }),
+        defineField({
           component: Radio,
           props: { value: 'other' },
           slots: { default: '其他' },
-        },
+        }),
       ],
     },
   }),
@@ -299,26 +299,26 @@ const fields = [
     defaultValue: [],
     slots: {
       default: [
-        {
+        defineField({
           component: Checkbox,
           props: { value: 'reading' },
           slots: { default: '阅读' },
-        },
-        {
+        }),
+        defineField({
           component: Checkbox,
           props: { value: 'sports' },
           slots: { default: '运动' },
-        },
-        {
+        }),
+        defineField({
           component: Checkbox,
           props: { value: 'music' },
           slots: { default: '音乐' },
-        },
-        {
+        }),
+        defineField({
           component: Checkbox,
           props: { value: 'travel' },
           slots: { default: '旅行' },
-        },
+        }),
       ],
     },
   }),

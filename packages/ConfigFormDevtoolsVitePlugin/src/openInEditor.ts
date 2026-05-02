@@ -39,6 +39,10 @@ function resolveEditorExecutable(editor: string): Pick<EditorCommand, 'command' 
   return { command: editor }
 }
 
+function formatEditorCommand(command: EditorCommand): string {
+  return [command.command, ...command.args].join(' ')
+}
+
 export function parseOpenInEditorPayload(input: unknown): OpenInEditorPayload {
   if (!input || typeof input !== 'object')
     throw new ConfigFormDevtoolsHttpError(400, 'Open-in-editor payload must be an object')
@@ -81,16 +85,19 @@ export function createEditorCommand(input: EditorCommandInput): EditorCommand {
 
   const editor = input.editor ?? 'code'
   const executable = resolveEditorExecutable(editor)
+  const target = `${input.file}:${input.line}:${input.column}`
 
   if (editor === 'webstorm') {
     return {
-      args: [`${input.file}:${input.line}:${input.column}`],
+      args: [target],
       ...executable,
     }
   }
 
   return {
-    args: ['-g', `${input.file}:${input.line}:${input.column}`],
+    args: ['code', 'cursor'].includes(editor)
+      ? ['--reuse-window', '-g', target]
+      : ['-g', target],
     ...executable,
   }
 }
@@ -121,17 +128,20 @@ export function launchEditor(
       resolveLaunch()
     }
 
-    child.once('error', error => settle(error instanceof Error ? error : new Error(String(error))))
+    child.once('error', (error) => {
+      const message = error instanceof Error ? error.message : String(error)
+      settle(new Error(`Failed to start editor command "${formatEditorCommand(command)}": ${message}`))
+    })
 
     if (command.shell) {
       child.once('exit', (code, signal) => {
         if (typeof code === 'number' && code !== 0) {
-          settle(new Error(`Editor command "${command.command}" exited with code ${code}`))
+          settle(new Error(`Editor command "${formatEditorCommand(command)}" exited with code ${code}`))
           return
         }
 
         if (signal) {
-          settle(new Error(`Editor command "${command.command}" exited with signal ${signal}`))
+          settle(new Error(`Editor command "${formatEditorCommand(command)}" exited with signal ${signal}`))
           return
         }
 

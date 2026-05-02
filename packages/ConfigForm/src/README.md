@@ -4,13 +4,13 @@
 
 ## 核心约定
 
-- 字段通过 `defineField({ field, component, schema, ... })` 创建。
-- `defineField` 返回纯 `FieldConfig`；字段默认值、组件解析、token 解析和状态判断统一由 runtime 管线完成。
+- 字段通过 `defineField({ field, component, schema, ... })` 创建；slot 内对象节点也必须通过 `defineField(...)` 创建。
+- `defineField` 返回带内部标记的纯配置对象；字段默认值、组件解析、token 解析和状态判断统一由 runtime 管线完成。
 - 表单值通过 `modelValue` / `v-model` 同步。
 - 默认值来自字段 `defaultValue`，外部 `modelValue` 会覆盖默认值。
 - `validator(value, values)` 可用于跨字段或异步校验。
 - 隐藏和禁用字段默认不进入 submit 输出，可用 `submitWhenHidden` / `submitWhenDisabled` 开启。
-- `slots` 可传文本、渲染函数、容器组件节点或真实字段节点数组；无 `field` 的节点只渲染组件本体，有 `field` 的节点才绑定表单值和校验。
+- `slots` 可传文本、渲染函数、由 `defineField` 创建的容器组件节点或真实字段节点数组；无 `field` 的节点只渲染组件本体，有 `field` 的节点才绑定表单值和校验。
 - runtime 默认严格处理组件/插件冲突；如果需要覆盖行为，必须显式传入 `conflictStrategy`。
 
 ## 样式命名空间

@@ -1,24 +1,9 @@
-import type { FieldConfig, ResolvedField } from '../src/types'
 import { mount } from '@vue/test-utils'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { defineComponent, h, markRaw } from 'vue'
-
-const defineFieldCalls = vi.hoisted(() => [] as FieldConfig[])
-
-vi.mock('@/models/field', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/models/field')>()
-
-  return {
-    ...actual,
-    defineField: vi.fn((config: FieldConfig) => {
-      defineFieldCalls.push(config)
-      return { ...config }
-    }),
-  }
-})
-
-const { default: FormField } = await import('../src/components/FormField/src/index.vue')
-const { createFormRuntime } = await import('../src/runtime')
+import ConfigForm from '../src/index.vue'
+import { defineField } from '../src/models/field'
+import { createFormRuntime } from '../src/runtime'
 
 const SlotHost = markRaw(defineComponent({
   name: 'SlotHost',
@@ -29,38 +14,60 @@ const SlotHost = markRaw(defineComponent({
 
 const SlotLeaf = markRaw(defineComponent({
   name: 'SlotLeaf',
-  setup(_props, { attrs, slots }) {
-    return () => h('span', attrs, slots.default?.())
+  props: {
+    role: String,
+  },
+  setup(props, { slots }) {
+    return () => h('span', { 'data-role': props.role }, slots.default?.())
   },
 }))
 
-function resolveTestField(field: FieldConfig): ResolvedField {
-  const runtime = createFormRuntime()
-  return runtime.resolveField(field, runtime.createContext({ errors: {}, values: {} }))
-}
-
 describe('slot field configs', () => {
-  it('does not call defineField while rendering object slot configs', () => {
-    const field = resolveTestField({
+  it('renders component slot nodes created with defineField without field wrappers', () => {
+    const fields = [
+      defineField({
+        component: SlotHost,
+        field: 'choice',
+        slots: {
+          default: [
+            defineField({
+              component: SlotLeaf,
+              props: { role: 'defined-slot-node' },
+              slots: { default: '插槽节点' },
+            }),
+          ],
+        },
+      }),
+    ]
+
+    const wrapper = mount(ConfigForm, {
+      props: {
+        fields,
+        modelValue: {},
+      },
+    })
+
+    expect(wrapper.find('[data-role="defined-slot-node"]').text()).toBe('插槽节点')
+    expect(wrapper.findAll('.cf-field')).toHaveLength(1)
+  })
+
+  it('throws when object slot nodes bypass defineField', () => {
+    const field = defineField({
       component: SlotHost,
       field: 'choice',
       slots: {
         default: [
-          { component: SlotLeaf, props: { 'data-role': 'first' }, slots: { default: '第一个选项' } },
+          {
+            component: SlotLeaf,
+            props: { role: 'raw-slot-node' },
+            slots: { default: '原始插槽节点' },
+          } as never,
         ],
       },
     })
+    const runtime = createFormRuntime()
 
-    defineFieldCalls.length = 0
-
-    mount(FormField, {
-      props: {
-        field,
-        modelValue: undefined,
-        visible: true,
-      },
-    })
-
-    expect(defineFieldCalls).toEqual([])
+    expect(() => runtime.resolveField(field, runtime.createContext({ errors: {}, values: {} })))
+      .toThrow(/defineField/)
   })
 })
