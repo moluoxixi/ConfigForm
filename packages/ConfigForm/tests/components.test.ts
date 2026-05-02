@@ -1,6 +1,6 @@
 import type { ConfigFormExpose, RuntimeToken } from '../src/types'
 import { flushPromises, mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, markRaw, nextTick } from 'vue'
 import { z } from 'zod'
 import FormField from '../src/components/FormField/src/index.vue'
@@ -87,6 +87,148 @@ function resolveTestField(field: ReturnType<typeof defineField>) {
 }
 
 describe('config form component', () => {
+  it('reports form field topology and patch metrics to the devtools bridge', async () => {
+    const bridge = {
+      recordPatch: vi.fn(),
+      registerField: vi.fn(),
+      unregisterField: vi.fn(),
+      updateField: vi.fn(),
+    }
+    ;(window as typeof window & { __CONFIG_FORM_DEVTOOLS_PENDING__?: boolean }).__CONFIG_FORM_DEVTOOLS_PENDING__ = true
+    ;(window as typeof window & { __CONFIG_FORM_DEVTOOLS_BRIDGE__?: typeof bridge }).__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
+
+    const source = {
+      column: 3,
+      file: 'D:/project-new/ConfigForm/playgrounds/element-plus-playground/src/demos/GridForm.vue',
+      id: 'source-id',
+      line: 55,
+    }
+
+    const fields = [
+      defineField({
+        __source: source,
+        component: SlotHost,
+        field: 'choice',
+        label: '选择',
+        slots: {
+          default: [
+            defineField({
+              component: SlotLeaf,
+              field: 'choice-first',
+              label: '第一个',
+              props: { role: 'first' },
+              slots: { default: '第一个选项' },
+            }),
+          ],
+        },
+      }),
+    ]
+
+    const wrapper = mount(ConfigForm, {
+      props: {
+        fields,
+        modelValue: {},
+      },
+    })
+
+    await nextTick()
+
+    const nodes = bridge.registerField.mock.calls.map(call => call[0])
+    const parent = nodes.find(node => node.field === 'choice')
+    const child = nodes.find(node => node.field === 'choice-first')
+
+    expect(parent).toMatchObject({
+      embedded: false,
+      field: 'choice',
+      label: '选择',
+      source,
+    })
+    expect(child).toMatchObject({
+      embedded: true,
+      field: 'choice-first',
+      parentId: parent.id,
+      slotName: 'default',
+    })
+    expect(bridge.registerField.mock.calls[0]?.[1]).toBeInstanceOf(HTMLElement)
+    expect(bridge.recordPatch).toHaveBeenCalledWith(expect.objectContaining({
+      duration: expect.any(Number),
+      id: parent.id,
+      timestamp: expect.any(Number),
+    }))
+    expect(bridge.recordPatch).toHaveBeenCalledWith(expect.objectContaining({
+      duration: expect.any(Number),
+      id: child.id,
+      timestamp: expect.any(Number),
+    }))
+
+    const mountedPatchCount = bridge.recordPatch.mock.calls.length
+
+    await wrapper.setProps({ inline: true })
+    await nextTick()
+
+    expect(bridge.recordPatch.mock.calls.length).toBeGreaterThan(mountedPatchCount)
+    expect(bridge.recordPatch).toHaveBeenCalledWith(expect.objectContaining({
+      duration: expect.any(Number),
+      id: parent.id,
+      timestamp: expect.any(Number),
+    }))
+
+    wrapper.unmount()
+    expect(bridge.unregisterField).toHaveBeenCalledWith(parent.id)
+
+    delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_BRIDGE__?: typeof bridge }).__CONFIG_FORM_DEVTOOLS_BRIDGE__
+    delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_PENDING__?: boolean }).__CONFIG_FORM_DEVTOOLS_PENDING__
+  })
+
+  it('registers fields when the devtools bridge becomes ready after mount', async () => {
+    delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_BRIDGE__?: unknown }).__CONFIG_FORM_DEVTOOLS_BRIDGE__
+    ;(window as typeof window & { __CONFIG_FORM_DEVTOOLS_PENDING__?: boolean }).__CONFIG_FORM_DEVTOOLS_PENDING__ = true
+
+    const bridge = {
+      recordPatch: vi.fn(),
+      registerField: vi.fn(),
+      unregisterField: vi.fn(),
+      updateField: vi.fn(),
+    }
+    const fields = [
+      defineField({
+        component: TextInput,
+        field: 'late-ready',
+        label: '延迟注册',
+      }),
+    ]
+
+    const wrapper = mount(ConfigForm, {
+      props: {
+        fields,
+        modelValue: {},
+      },
+    })
+
+    await nextTick()
+    expect(bridge.registerField).not.toHaveBeenCalled()
+
+    ;(window as typeof window & { __CONFIG_FORM_DEVTOOLS_BRIDGE__?: typeof bridge }).__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
+    window.dispatchEvent(new CustomEvent('config-form-devtools:ready', { detail: bridge }))
+    await nextTick()
+
+    expect(bridge.registerField).toHaveBeenCalledWith(expect.objectContaining({
+      field: 'late-ready',
+      label: '延迟注册',
+    }), expect.any(HTMLElement))
+    expect(bridge.recordPatch).toHaveBeenCalledWith(expect.objectContaining({
+      duration: expect.any(Number),
+      id: bridge.registerField.mock.calls[0]?.[0].id,
+      timestamp: expect.any(Number),
+    }))
+
+    wrapper.unmount()
+    expect(bridge.unregisterField).toHaveBeenCalled()
+
+    delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_BRIDGE__?: typeof bridge }).__CONFIG_FORM_DEVTOOLS_BRIDGE__
+    delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_PENDING__?: boolean }).__CONFIG_FORM_DEVTOOLS_PENDING__
+  })
+
   it('updates model values and renders blur validation errors', async () => {
     const fields = [
       defineField({

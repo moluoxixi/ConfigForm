@@ -44,8 +44,16 @@ export type FieldCondition<T extends object = FormValues> = boolean | Expression
 
 export type SlotPrimitive = string | number | boolean | null | undefined
 
+export interface FieldSourceMeta {
+  id: string
+  file: string
+  line: number
+  column: number
+}
+
 export interface SlotFieldConfig {
   field?: string
+  __source?: FieldSourceMeta
   label?: RuntimeText
   schema?: ZodTypeAny
   span?: number
@@ -79,6 +87,7 @@ export type SlotRenderFn = (scope?: Record<string, unknown>) => SlotContent
 
 export interface FieldConfig {
   field: string
+  __source?: FieldSourceMeta
   label?: RuntimeText
   schema?: ZodTypeAny
   span?: number
@@ -123,6 +132,30 @@ export interface ResolvedField extends Omit<NormalizedFieldConfig, 'label'> {
 }
 
 export type FieldKey<T extends object> = Extract<keyof T, string>
+
+export interface FormFieldDevtoolsNode {
+  id: string
+  formId: string
+  field: string
+  embedded: boolean
+  parentId?: string
+  label?: string
+  slotName?: string
+  source?: FieldSourceMeta
+}
+
+export interface FormFieldPatchMetric {
+  id: string
+  duration: number
+  timestamp: number
+}
+
+export interface FormDevtoolsBridge {
+  registerField: (node: FormFieldDevtoolsNode, element: HTMLElement | null) => void
+  updateField: (node: FormFieldDevtoolsNode, element: HTMLElement | null) => void
+  recordPatch: (metric: FormFieldPatchMetric) => void
+  unregisterField: (id: string) => void
+}
 
 // ===== 表单组件类型 =====
 

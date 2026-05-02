@@ -1,0 +1,88 @@
+import type { Plugin } from 'vite'
+import type { ConfigFormDevtoolsPluginOptions } from './types'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { createOpenInEditorMiddleware } from './openInEditor'
+import { transformDefineFieldSource } from './sourceInject'
+
+const VIRTUAL_CLIENT_ID = 'virtual:config-form-devtools/client'
+const RESOLVED_VIRTUAL_CLIENT_ID = `\0${VIRTUAL_CLIENT_ID}`
+const PUBLIC_CLIENT_ID = `/@id/__x00__${VIRTUAL_CLIENT_ID}`
+
+function normalizePath(path: string): string {
+  return path.replace(/\\/g, '/')
+}
+
+function resolveClientEntry(metaUrl: string): string {
+  const modulePath = fileURLToPath(metaUrl)
+  const moduleDir = dirname(modulePath)
+  const clientFile = normalizePath(modulePath).endsWith('/src/index.ts') ? 'client.ts' : 'client.js'
+  return normalizePath(resolve(moduleDir, clientFile))
+}
+
+const CLIENT_ENTRY = resolveClientEntry(import.meta.url)
+
+function shouldTransform(id: string): boolean {
+  if (id.includes('?'))
+    return false
+
+  const cleanId = normalizePath(id.split('?')[0])
+  return !cleanId.includes('/node_modules/')
+    && /\.(?:[cm]?[jt]sx?|vue)$/.test(cleanId)
+}
+
+export function configFormDevtools(options: ConfigFormDevtoolsPluginOptions = {}): Plugin {
+  return {
+    apply: 'serve',
+    enforce: 'pre',
+    name: 'moluoxixi:config-form-devtools',
+    configureServer(server) {
+      server.middlewares.use(
+        '/__config-form-devtools/open',
+        createOpenInEditorMiddleware({
+          allowRoots: options.allowRoots,
+          editor: options.editor,
+          root: server.config.root,
+        }),
+      )
+    },
+    load(id) {
+      if (id !== RESOLVED_VIRTUAL_CLIENT_ID)
+        return null
+
+      return `import { installConfigFormDevtools } from ${JSON.stringify(CLIENT_ENTRY)};\ninstallConfigFormDevtools();`
+    },
+    resolveId(id) {
+      return id === VIRTUAL_CLIENT_ID ? RESOLVED_VIRTUAL_CLIENT_ID : null
+    },
+    transform(code, id) {
+      if (!shouldTransform(id))
+        return null
+
+      return transformDefineFieldSource({
+        code,
+        id,
+        packageNames: options.packageNames,
+      })
+    },
+    transformIndexHtml() {
+      return [
+        {
+          children: 'window.__CONFIG_FORM_DEVTOOLS_PENDING__ = true;',
+          injectTo: 'head-prepend',
+          tag: 'script',
+        },
+        {
+          attrs: {
+            src: PUBLIC_CLIENT_ID,
+            type: 'module',
+          },
+          injectTo: 'head-prepend',
+          tag: 'script',
+        },
+      ]
+    },
+  }
+}
+
+export const configFormDevtoolsVitePlugin = configFormDevtools

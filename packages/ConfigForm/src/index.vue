@@ -2,6 +2,7 @@
 import { computed, watch } from 'vue'
 import type { ConfigFormEmits, ConfigFormExpose, ConfigFormProps } from '@/types'
 import FormField from '@/components/FormField'
+import { provideFormDevtoolsContext } from '@/composables/useDevtools'
 import { useForm } from '@/composables/useForm'
 import { provideNamespace, useBem } from '@/composables/useNamespace'
 import { normalizeFormRuntime, provideRuntime } from '@/composables/useRuntime'
@@ -16,6 +17,7 @@ const emit = defineEmits<ConfigFormEmits<T>>()
 
 const namespaceRef = computed(() => props.namespace)
 provideNamespace(namespaceRef)
+provideFormDevtoolsContext()
 const { b, m } = useBem(namespaceRef)
 
 const rawFields = computed(() => props.fields)

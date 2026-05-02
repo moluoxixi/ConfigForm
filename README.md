@@ -10,6 +10,7 @@
 |---|---|
 | [`@moluoxixi/config-form`](./packages/ConfigForm/) | 核心表单组件 |
 | [`@moluoxixi/config-form-plugin-i18n`](./packages/ConfigFormPluginI18n/) | 官方 i18n 插件 |
+| [`@moluoxixi/config-form-devtools-vite-plugin`](./packages/ConfigFormDevtoolsVitePlugin/) | 开发态源码定位 Vite 插件 |
 | [`element-plus-playground`](./playgrounds/element-plus-playground/) | Element Plus 示例 |
 | [`antd-vue-playground`](./playgrounds/antd-vue-playground/) | Ant Design Vue 示例 |
 

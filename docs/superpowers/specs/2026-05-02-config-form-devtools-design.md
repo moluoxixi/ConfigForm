@@ -26,7 +26,7 @@ ConfigForm 已经具备 `defineField` 字段工厂、运行时扩展、递归 sl
 
 ## 推荐方案
 
-采用独立包 `@moluoxixi/config-form-devtools` 加核心包最小 dev hook。
+采用独立包 `@moluoxixi/config-form-devtools-vite-plugin` 加核心包最小 dev hook。
 
 核心包负责：
 
@@ -57,10 +57,9 @@ Devtools 包负责：
 新增包：
 
 ```txt
-packages/ConfigFormDevtools/
+packages/ConfigFormDevtoolsVitePlugin/
   package.json
   index.ts
-  vite.ts
   src/
     types.ts
     vite/
@@ -142,7 +141,7 @@ export interface FormDevtoolsBridge {
 Devtools Vite 插件只在开发模式启用：
 
 ```ts
-import { configFormDevtools } from '@moluoxixi/config-form-devtools/vite'
+import { configFormDevtools } from '@moluoxixi/config-form-devtools-vite-plugin'
 
 export default defineConfig({
   plugins: [
@@ -320,7 +319,7 @@ configFormDevtools({
 
 - Vite 插件默认只在 `serve` / development 启用。
 - 核心包中 dev hook 调用必须包裹在 `if (import.meta.env.DEV)`。
-- 核心包不得静态 import `@moluoxixi/config-form-devtools`。
+- 核心包不得静态 import `@moluoxixi/config-form-devtools-vite-plugin`。
 - 生产构建产物不应包含 `cf-devtools`、`/__config-form-devtools/open`、`openInEditor`、调试 overlay 组件。
 - 字段对象里的 `__source` 只由开发态插件注入，生产构建不注入。
 

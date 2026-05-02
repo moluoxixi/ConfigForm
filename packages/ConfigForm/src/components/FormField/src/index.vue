@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { FieldConfig, ResolvedField, SlotContent, SlotFieldConfig } from '@/types'
 import type { FormRuntimeContext } from '@/runtime'
-import { computed, defineComponent } from 'vue'
+import { computed, defineComponent, ref } from 'vue'
+import { useFormFieldDevtools } from '@/composables/useDevtools'
 import { useBem, useNamespace } from '@/composables/useNamespace'
 import { useRuntime } from '@/composables/useRuntime'
 import { resolveLabelWidth } from '@/utils/style'
@@ -34,6 +35,8 @@ const props = defineProps<{
   runtimeContext?: FormRuntimeContext
   /** 作为父组件插槽内容递归渲染时，只输出实际组件，不输出表单项外壳 */
   embedded?: boolean
+  /** 当前字段来自父组件哪个 slot */
+  slotName?: string
 }>()
 
 const emit = defineEmits<{
@@ -45,6 +48,9 @@ const emit = defineEmits<{
 const ns = useNamespace()
 const { b, e, m } = useBem(ns)
 const runtimeRef = useRuntime()
+const rootRef = ref<unknown>()
+const embeddedRef = computed(() => props.embedded === true)
+const slotNameRef = computed(() => props.slotName)
 
 const currentRuntimeContext = computed<FormRuntimeContext>(() => {
   const base = props.runtimeContext ?? runtimeRef.value.createContext()
@@ -88,6 +94,13 @@ const componentAttrs = computed(() => ({
   ...componentProps.value,
   ...valueBinding.value,
 }))
+
+useFormFieldDevtools({
+  embedded: embeddedRef,
+  field: computed(() => props.field),
+  rootRef,
+  slotName: slotNameRef,
+})
 
 type NormalizedSlotNode =
   | { field: ResolvedField, key: string, kind: 'field' }
@@ -166,6 +179,7 @@ function onBlur() {
 
 <template>
   <component
+    ref="rootRef"
     :is="field.component"
     v-if="embedded"
     v-bind="componentAttrs"
@@ -182,6 +196,7 @@ function onBlur() {
           :field="slotNode.field"
           :model-value="undefined"
           :runtime-context="currentRuntimeContext"
+          :slot-name="String(slotName)"
           embedded
         />
         <SlotRender v-else :fn="slotNode.fn" />
@@ -191,6 +206,7 @@ function onBlur() {
 
   <div
     v-else-if="visible !== false"
+    ref="rootRef"
     :class="[b('field'), { [m('field', 'inline')]: inline }]"
     :style="!inline && field.span ? { gridColumn: `span ${field.span}` } : undefined"
   >
@@ -220,6 +236,7 @@ function onBlur() {
               :field="slotNode.field"
               :model-value="undefined"
               :runtime-context="currentRuntimeContext"
+              :slot-name="String(slotName)"
               embedded
             />
             <SlotRender v-else :fn="slotNode.fn" />
