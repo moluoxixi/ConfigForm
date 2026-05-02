@@ -2,24 +2,19 @@
 import { reactive, ref } from 'vue'
 import { z } from 'zod'
 import { ConfigForm, defineField } from '@moluoxixi/config-form'
-import {
-  AutoComplete,
-  Cascader,
-  Checkbox,
-  CheckboxGroup,
-  DatePicker,
-  Input,
-  InputNumber,
-  Radio,
-  RadioGroup,
-  Rate,
-  Select,
-  Slider,
-  Switch,
-  Textarea,
-  TimePicker,
-  TreeSelect,
-} from 'ant-design-vue'
+import AutoComplete from 'ant-design-vue/es/auto-complete'
+import Cascader from 'ant-design-vue/es/cascader'
+import Checkbox, { CheckboxGroup } from 'ant-design-vue/es/checkbox'
+import DatePicker from 'ant-design-vue/es/date-picker'
+import Input, { Textarea } from 'ant-design-vue/es/input'
+import InputNumber from 'ant-design-vue/es/input-number'
+import Radio, { RadioGroup } from 'ant-design-vue/es/radio'
+import Rate from 'ant-design-vue/es/rate'
+import Select from 'ant-design-vue/es/select'
+import Slider from 'ant-design-vue/es/slider'
+import Switch from 'ant-design-vue/es/switch'
+import TimePicker from 'ant-design-vue/es/time-picker'
+import TreeSelect from 'ant-design-vue/es/tree-select'
 
 // ===== 字段配置 =====
 
@@ -450,7 +445,10 @@ const fields = [
     component: Textarea,
     ...v,
     props: { placeholder: '评分达到 3 分后可填写建议', rows: 2, allowClear: true },
-    disabled: (values) => !values.rating || values.rating < 3,
+    disabled: (values) => {
+      const rating = typeof values.rating === 'number' ? values.rating : 0
+      return rating < 3
+    },
   }),
 
   // ── 文本域 ─────────────────────────────

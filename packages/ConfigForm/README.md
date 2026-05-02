@@ -116,6 +116,8 @@ function onSubmit(values: LoginForm) {
 
 `defineField` 会优先从 `schema` 和 `defaultValue` 推导当前字段值类型；没有可推导来源时，字段值默认为 `unknown`。它只返回纯 `FieldConfig`，所有默认值、显隐、禁用、组件注册和 token 解析都由 runtime 管线处理。字段配置彼此独立，`validator` 的第二个参数是当前表单 values 快照，可用于必要的跨字段校验。
 
+同一个表单内所有真实字段的 `field` 必须唯一；重复字段名会直接抛错，避免值、校验错误、显隐和禁用状态被覆盖。
+
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `field` | `string` | - | 字段名，作为 values 的 key |
@@ -138,6 +140,8 @@ function onSubmit(values: LoginForm) {
 | `slots` | `Record<string, SlotContent>` | - | 传给组件的插槽；支持文本、渲染函数、由 `defineField` 创建的容器组件节点或真实字段节点数组 |
 
 `slots` 中的对象配置必须通过 `defineField(...)` 创建，并按是否存在 `field` 区分语义：没有 `field` 的节点是容器/子组件，只渲染组件本体和插槽；存在 `field` 的节点是真实表单字段，会绑定表单值、校验、label 和错误展示。Radio / Checkbox 这类子组件通常不需要 `field`：
+
+如果 slot 渲染函数返回真实字段节点，字段拓扑会在表单初始化时用空 scope 收集一次；因此 `field`、`defaultValue`、`schema`、`validator`、显隐/禁用和提交相关选项必须不依赖运行时 slot scope。实际渲染内容仍会在组件渲染时接收真实 scope。
 
 ```ts
 defineField({

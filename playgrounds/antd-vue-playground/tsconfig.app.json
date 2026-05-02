@@ -7,14 +7,6 @@
     "lib": ["DOM", "dom.iterable", "ESNext"],
     "types": ["vite/client"]
   },
-  "vueCompilerOptions": {
-    "plugins": [
-      "@vue-macros/volar/define-models",
-      "@vue-macros/volar/define-slots",
-      "@vue-macros/volar/define-props",
-      "@vue-macros/volar/define-emit"
-    ]
-  },
   "include": ["src"],
   "exclude": ["vite.config.ts"]
 }

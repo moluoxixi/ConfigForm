@@ -11,6 +11,7 @@
 - `validator(value, values)` 可用于跨字段或异步校验。
 - 隐藏和禁用字段默认不进入 submit 输出，可用 `submitWhenHidden` / `submitWhenDisabled` 开启。
 - `slots` 可传文本、渲染函数、由 `defineField` 创建的容器组件节点或真实字段节点数组；无 `field` 的节点只渲染组件本体，有 `field` 的节点才绑定表单值和校验。
+- slot 渲染函数如果返回真实字段节点，字段生命周期选项必须不依赖 slot scope；表单初始化会用空 scope 收集字段拓扑。
 - runtime 默认严格处理组件/插件冲突；如果需要覆盖行为，必须显式传入 `conflictStrategy`。
 
 ## 样式命名空间

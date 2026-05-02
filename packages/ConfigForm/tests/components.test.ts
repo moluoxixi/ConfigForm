@@ -726,6 +726,55 @@ describe('form field component', () => {
     expect(wrapper.find('[data-role="suffix"]').exists()).toBe(true)
   })
 
+  it('tracks real fields returned from scoped slot functions through values, validation, and submit', async () => {
+    const fields = [
+      defineField({
+        component: SlotHost,
+        field: 'group',
+        slots: {
+          suffix: scope => defineField({
+            component: TextInput,
+            defaultValue: '',
+            field: 'scopedName',
+            label: String(scope?.label),
+            schema: z.string().min(2, '作用域姓名至少 2 个字符'),
+            validateOn: 'blur',
+          }),
+        },
+      }),
+    ]
+
+    const wrapper = mount(ConfigForm, {
+      props: {
+        fields,
+        modelValue: {},
+      },
+    })
+    const api = wrapper.vm as unknown as ConfigFormExpose<Record<string, unknown>>
+
+    await nextTick()
+
+    expect(api.getValues()).toEqual({
+      group: undefined,
+      scopedName: '',
+    })
+
+    await wrapper.get('input').setValue('A')
+    await wrapper.get('input').trigger('blur')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('作用域姓名至少 2 个字符')
+
+    await wrapper.get('input').setValue('Ada')
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+
+    expect(wrapper.emitted('submit')?.at(-1)).toEqual([{
+      group: undefined,
+      scopedName: 'Ada',
+    }])
+  })
+
   it('validates real fields rendered inside another field slot', async () => {
     const fields = [
       defineField({

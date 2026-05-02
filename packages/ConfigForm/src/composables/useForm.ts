@@ -25,6 +25,9 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
   const runtimeRef = computed(() => normalizeFormRuntime(toValue(options.runtime)))
   const fieldConfigs = computed(() => collectFieldConfigs(fields.value))
 
+  // 先同步校验初始字段拓扑，避免 Vue watcher 注册后才暴露重复 field 等配置错误。
+  collectFieldConfigs(fields.value)
+
   // ── 工具 ─────────────────────────────────────────────────────
 
   /** 从 errors 中移除指定字段的错误；不传字段名时清空全部错误 */

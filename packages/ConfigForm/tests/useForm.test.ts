@@ -6,6 +6,15 @@ import { defineField } from '../src/models/field'
 import { createFormRuntime, expr } from '../src/runtime'
 
 describe('useForm', () => {
+  it('throws when multiple real fields use the same field key', () => {
+    const fields = ref([
+      defineField({ component: 'input', field: 'duplicate' }),
+      defineField({ component: 'input', field: 'duplicate' }),
+    ])
+
+    expect(() => useForm({ fields })).toThrow(/Duplicate field key: duplicate/)
+  })
+
   it('collects real fields from nested component containers', async () => {
     const fields = ref([
       {

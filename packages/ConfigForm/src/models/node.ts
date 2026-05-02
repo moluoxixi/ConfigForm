@@ -77,8 +77,12 @@ function collectSlotFields(slot: SlotContent | undefined, path = 'slot'): FieldC
   if (slot == null || slot === false)
     return []
 
-  if (typeof slot === 'function')
-    return []
+  if (typeof slot === 'function') {
+    const resolved = slot(undefined)
+    return typeof resolved === 'function'
+      ? []
+      : collectSlotFields(resolved, path)
+  }
 
   if (Array.isArray(slot))
     return slot.flatMap((item, index) => collectSlotFields(item as SlotContent, `${path}.${index}`))
@@ -87,16 +91,35 @@ function collectSlotFields(slot: SlotContent | undefined, path = 'slot'): FieldC
     return []
 
   assertDefinedSlotNodeConfig(slot, path)
-  return collectFieldConfigs([slot])
+  return collectFieldConfigsRaw([slot])
 }
 
-export function collectFieldConfigs(nodes: readonly FormNodeConfig[]): FieldConfig[] {
+function collectFieldConfigsRaw(nodes: readonly FormNodeConfig[]): FieldConfig[] {
   return nodes.flatMap((node) => {
     assertComponentNodeConfig(node)
 
     const nested = Object.entries(node.slots ?? {}).flatMap(([key, slot]) => collectSlotFields(slot, `${nodePath(node)}.slots.${key}`))
     return isFieldConfig(node) ? [node, ...nested] : nested
   })
+}
+
+export function assertUniqueFieldConfigs<TField extends Pick<FieldConfig, 'field'>>(
+  fields: readonly TField[],
+): TField[] {
+  const seen = new Set<string>()
+
+  for (const field of fields) {
+    if (seen.has(field.field))
+      throw new Error(`Duplicate field key: ${field.field}`)
+
+    seen.add(field.field)
+  }
+
+  return [...fields]
+}
+
+export function collectFieldConfigs(nodes: readonly FormNodeConfig[]): FieldConfig[] {
+  return assertUniqueFieldConfigs(collectFieldConfigsRaw(nodes))
 }
 
 function nodePath(node: FormNodeConfig): string {

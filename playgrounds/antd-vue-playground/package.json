@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "typecheck": "vue-tsc -p tsconfig.app.json --noEmit"
   },
   "dependencies": {
     "@moluoxixi/config-form": "workspace:*",
@@ -18,6 +19,7 @@
     "@vitejs/plugin-vue": "catalog:dev",
     "@vitejs/plugin-vue-jsx": "catalog:dev",
     "sass": "catalog:dev",
-    "vite": "catalog:dev"
+    "vite": "catalog:dev",
+    "vue-tsc": "catalog:dev"
   }
 }

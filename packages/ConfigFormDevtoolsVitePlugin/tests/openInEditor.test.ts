@@ -78,8 +78,7 @@ describe('open in editor helpers', () => {
 
     expect(command).toEqual({
       args: ['--reuse-window', '-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
-      command: process.platform === 'win32' ? 'code.cmd' : 'code',
-      ...(process.platform === 'win32' ? { shell: true } : {}),
+      command: 'code',
     })
   })
 
@@ -144,8 +143,7 @@ describe('open in editor helpers', () => {
       line: 12,
     })).toEqual({
       args: ['D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
-      command: process.platform === 'win32' ? 'webstorm.cmd' : 'webstorm',
-      ...(process.platform === 'win32' ? { shell: true } : {}),
+      command: 'webstorm',
     })
 
     expect(createEditorCommand({
@@ -194,7 +192,7 @@ describe('open in editor helpers', () => {
       { column: 1, file, line: 1 },
       { root, spawn: createSpawnMock('spawn') },
     )).resolves.toMatchObject({
-      command: process.platform === 'win32' ? 'code.cmd' : 'code',
+      command: 'code',
     })
   })
 
