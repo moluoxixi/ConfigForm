@@ -29,9 +29,16 @@ const devtoolsReadyEvent = 'config-form-devtools:ready'
 let formIdSeed = 0
 let fieldIdSeed = 0
 
-function createId(prefix: string): string {
-  const seed = prefix === 'form' ? ++formIdSeed : ++fieldIdSeed
-  return `cf-devtools-${prefix}-${seed}`
+function createFormId(): string {
+  return `cf-devtools-form-${++formIdSeed}`
+}
+
+function createFieldNodeIdentity(): { id: string, order: number } {
+  const order = ++fieldIdSeed
+  return {
+    id: `cf-devtools-field-${order}`,
+    order,
+  }
 }
 
 function getBridge(): FormDevtoolsBridge | undefined {
@@ -62,7 +69,7 @@ function now(): number {
 }
 
 export function provideFormDevtoolsContext(): FormDevtoolsContext {
-  const context = { formId: createId('form') }
+  const context = { formId: createFormId() }
 
   if (isDevtoolsEnabled())
     provide(formDevtoolsContextKey, context)
@@ -73,7 +80,7 @@ export function provideFormDevtoolsContext(): FormDevtoolsContext {
 export function useFormFieldDevtools(options: UseFormFieldDevtoolsOptions) {
   const formContext = inject(formDevtoolsContextKey, undefined)
   const parentId = inject(parentFieldNodeIdKey, undefined)
-  const nodeId = createId('field')
+  const { id: nodeId, order: nodeOrder } = createFieldNodeIdentity()
   const mountedStartedAt = now()
   let updateStartedAt = 0
   let registered = false
@@ -92,6 +99,7 @@ export function useFormFieldDevtools(options: UseFormFieldDevtoolsOptions) {
       id: nodeId,
       kind: 'field',
       label: options.field.value.label,
+      order: nodeOrder,
       parentId,
       slotName: options.slotName.value,
       source: options.field.value.__source,

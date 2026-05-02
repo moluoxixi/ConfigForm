@@ -1,3 +1,4 @@
+import type { FieldConfig } from '../src/types'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { z } from 'zod'
 import { defineField } from '../src/models/field'
@@ -84,6 +85,34 @@ describe('defineField typing', () => {
 
     expectTypeOf(ageField.field).toEqualTypeOf<'age'>()
     expectTypeOf(ageField.defaultValue).toEqualTypeOf<number>()
+  })
+
+  it('rejects devtools source metadata in public defineField inputs', () => {
+    const fieldConfig: FieldConfig = {
+      component: 'input',
+      field: 'manual-field-config',
+      // @ts-expect-error __source is injected by the devtools Vite plugin only
+      __source: {
+        column: 1,
+        file: 'manual.ts',
+        id: 'manual',
+        line: 1,
+      },
+    }
+
+    expect(fieldConfig.field).toBe('manual-field-config')
+
+    defineField({
+      component: 'input',
+      field: 'manual-source',
+      // @ts-expect-error __source is injected by the devtools Vite plugin only
+      __source: {
+        column: 1,
+        file: 'manual.ts',
+        id: 'manual',
+        line: 1,
+      },
+    })
   })
 
   it('allows runtime tokens inside inferred component props', () => {

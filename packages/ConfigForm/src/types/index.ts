@@ -45,14 +45,13 @@ export type FieldCondition<T extends object = FormValues> = boolean | Expression
 export type SlotPrimitive = string | number | boolean | null | undefined
 
 export interface FieldSourceMeta {
-  id: string
-  file: string
-  line: number
-  column: number
+  readonly id: string
+  readonly file: string
+  readonly line: number
+  readonly column: number
 }
 
 export interface ComponentNodeConfig {
-  __source?: FieldSourceMeta
   component: Component | FunctionalFieldComponent | string
   props?: Record<string, unknown>
   slots?: Record<string, SlotContent>
@@ -95,6 +94,7 @@ export interface NormalizedFieldConfig extends Omit<
   FieldConfig,
   'blurTrigger' | 'props' | 'span' | 'submitWhenDisabled' | 'submitWhenHidden' | 'trigger' | 'validateOn' | 'valueProp'
 > {
+  readonly __source?: FieldSourceMeta
   span: number
   props: Record<string, unknown>
   valueProp: string
@@ -110,6 +110,7 @@ export interface ResolvedField extends Omit<NormalizedFieldConfig, 'label'> {
 }
 
 export interface ResolvedComponentNode extends Omit<ComponentNodeConfig, 'props'> {
+  readonly __source?: FieldSourceMeta
   props: Record<string, unknown>
 }
 
@@ -123,6 +124,7 @@ export interface FormDevtoolsNode {
   id: string
   formId: string
   kind: FormDevtoolsNodeKind
+  order?: number
   field?: string
   component?: string
   parentId?: string

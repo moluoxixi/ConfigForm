@@ -114,7 +114,7 @@ function createStore(render: () => void): DevtoolsStore {
         ...existing,
         ...node,
         element,
-        order: existing?.order ?? ++orderSeed,
+        order: node.order ?? existing?.order ?? ++orderSeed,
         samples: existing?.samples ?? 0,
       })
       render()
@@ -129,7 +129,7 @@ function createStore(render: () => void): DevtoolsStore {
         ...existing,
         ...node,
         element,
-        order: existing?.order ?? ++orderSeed,
+        order: node.order ?? existing?.order ?? ++orderSeed,
         samples: existing?.samples ?? 0,
       })
       render()
@@ -344,6 +344,22 @@ function installBubbleDrag(bubble: HTMLElement, panel: HTMLElement) {
   updateBubblePosition(bubble, panel, position)
 }
 
+function installOutsidePanelClose(bubble: HTMLElement, panel: HTMLElement, closePanel: () => void) {
+  document.addEventListener('click', (event) => {
+    if (!panel.classList.contains('is-open'))
+      return
+
+    const target = event.target
+    if (!(target instanceof Node))
+      return
+
+    if (panel.contains(target) || bubble.contains(target))
+      return
+
+    closePanel()
+  }, { capture: true })
+}
+
 export function installConfigFormDevtools(): FormDevtoolsBridge {
   if (typeof document === 'undefined')
     throw new Error('ConfigForm devtools client requires a browser document')
@@ -400,6 +416,12 @@ export function installConfigFormDevtools(): FormDevtoolsBridge {
     errorBox.textContent = message
   }
 
+  function closePanel() {
+    panel.classList.remove('is-open')
+    highlight(null)
+    setError('')
+  }
+
   const store = createStore(() => renderTree(body, store, highlight, setError))
   const bridge: FormDevtoolsBridge = {
     recordPatch: store.recordPatch,
@@ -417,6 +439,7 @@ export function installConfigFormDevtools(): FormDevtoolsBridge {
   root.append(bubble, panel, highlightBox)
   document.body.append(root)
   installBubbleDrag(bubble, panel)
+  installOutsidePanelClose(bubble, panel, closePanel)
   window.__CONFIG_FORM_DEVTOOLS_PENDING__ = true
   window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
   window.dispatchEvent(new CustomEvent(READY_EVENT, { detail: bridge }))

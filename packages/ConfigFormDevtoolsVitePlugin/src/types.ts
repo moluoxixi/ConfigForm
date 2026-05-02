@@ -2,10 +2,10 @@ import type { SourceMap } from 'magic-string'
 import type { ChildProcess } from 'node:child_process'
 
 export interface FieldSourceMeta {
-  id: string
-  file: string
-  line: number
-  column: number
+  readonly id: string
+  readonly file: string
+  readonly line: number
+  readonly column: number
 }
 
 export type FormDevtoolsNodeKind = 'component' | 'field'
@@ -14,6 +14,7 @@ export interface FormDevtoolsNode {
   id: string
   formId: string
   kind: FormDevtoolsNodeKind
+  order?: number
   field?: string
   component?: string
   parentId?: string

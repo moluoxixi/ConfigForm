@@ -83,7 +83,6 @@ interface FieldConfigBase<
   TField extends string = string,
 > {
   field: TField
-  __source?: FieldConfig['__source']
   label?: RuntimeText
   span?: number
   valueProp?: string

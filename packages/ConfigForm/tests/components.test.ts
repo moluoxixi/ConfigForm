@@ -165,9 +165,8 @@ describe('config form component', () => {
       line: 55,
     }
 
-    const fields = [
-      defineField({
-        __source: source,
+    const sourceField = {
+      ...defineField({
         component: SlotHost,
         field: 'choice',
         label: '选择',
@@ -183,7 +182,10 @@ describe('config form component', () => {
           ],
         },
       }),
-    ]
+      __source: source,
+    }
+
+    const fields = [sourceField]
 
     const wrapper = mount(ConfigForm, {
       props: {
@@ -237,6 +239,89 @@ describe('config form component', () => {
     wrapper.unmount()
     expect(bridge.unregisterField).toHaveBeenCalledWith(parent.id)
 
+    delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_BRIDGE__?: typeof bridge }).__CONFIG_FORM_DEVTOOLS_BRIDGE__
+    delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_PENDING__?: boolean }).__CONFIG_FORM_DEVTOOLS_PENDING__
+  })
+
+  it('reports defineField nodes returned from slots as ordered devtools tree children', async () => {
+    const bridge = {
+      recordPatch: vi.fn(),
+      registerField: vi.fn(),
+      unregisterField: vi.fn(),
+      updateField: vi.fn(),
+    }
+    ;(window as typeof window & { __CONFIG_FORM_DEVTOOLS_PENDING__?: boolean }).__CONFIG_FORM_DEVTOOLS_PENDING__ = true
+    ;(window as typeof window & { __CONFIG_FORM_DEVTOOLS_BRIDGE__?: typeof bridge }).__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
+
+    const fields = [
+      defineField({
+        component: SlotHost,
+        field: 'choice',
+        label: '选择',
+        slots: {
+          default: [
+            defineField({
+              component: SlotLeaf,
+              field: 'choice-first',
+              props: { role: 'first' },
+              slots: { default: '第一个选项' },
+            }),
+            defineField({
+              component: SlotLeaf,
+              field: 'choice-second',
+              props: { role: 'second' },
+              slots: { default: '第二个选项' },
+            }),
+          ],
+          suffix: scope => defineField({
+            component: SlotLeaf,
+            field: 'choice-suffix',
+            props: { role: 'suffix' },
+            slots: { default: String(scope?.label) },
+          }),
+        },
+      }),
+    ]
+
+    const wrapper = mount(ConfigForm, {
+      props: {
+        fields,
+        modelValue: {},
+      },
+    })
+
+    await nextTick()
+
+    const nodes = bridge.registerField.mock.calls.map(call => call[0])
+    const parent = nodes.find(node => node.field === 'choice')
+    const first = nodes.find(node => node.field === 'choice-first')
+    const second = nodes.find(node => node.field === 'choice-second')
+    const suffix = nodes.find(node => node.field === 'choice-suffix')
+
+    if (!parent || !first || !second || !suffix)
+      throw new Error('Expected parent and slot field nodes to register')
+
+    expect(first).toMatchObject({
+      parentId: parent.id,
+      slotName: 'default',
+    })
+    expect(second).toMatchObject({
+      parentId: parent.id,
+      slotName: 'default',
+    })
+    expect(suffix).toMatchObject({
+      parentId: parent.id,
+      slotName: 'suffix',
+    })
+    expect(parent.order).toEqual(expect.any(Number))
+    expect(first.order).toEqual(expect.any(Number))
+    expect(second.order).toEqual(expect.any(Number))
+    expect(suffix.order).toEqual(expect.any(Number))
+    expect(parent.order).toBeLessThan(first.order)
+    expect(first.order).toBeLessThan(second.order)
+    expect(second.order).toBeLessThan(suffix.order)
+
+    wrapper.unmount()
     delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_BRIDGE__?: typeof bridge }).__CONFIG_FORM_DEVTOOLS_BRIDGE__
     delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_PENDING__?: boolean }).__CONFIG_FORM_DEVTOOLS_PENDING__
   })

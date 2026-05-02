@@ -89,6 +89,66 @@ describe('client overlay', () => {
     expect(String(fetchMock.mock.calls[0]?.[1]?.body)).toContain('"line":32')
   })
 
+  it('closes the panel when clicking outside the debugger overlay', () => {
+    installConfigFormDevtools()
+
+    const bubble = document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')
+    const panel = document.querySelector<HTMLElement>('[data-cf-devtools="panel"]')
+
+    if (!bubble || !panel)
+      throw new Error('Expected devtools bubble and panel to exist')
+
+    bubble.click()
+    expect(panel.classList.contains('is-open')).toBe(true)
+
+    panel.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    expect(panel.classList.contains('is-open')).toBe(true)
+
+    document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    expect(panel.classList.contains('is-open')).toBe(false)
+  })
+
+  it('renders explicit field order even when nodes register out of render order', () => {
+    installConfigFormDevtools()
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'first-child-b',
+      formId: 'form-1',
+      id: 'first-child-b',
+      kind: 'field',
+      order: 3,
+      parentId: 'first-root',
+    }, null)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'second-root',
+      formId: 'form-1',
+      id: 'second-root',
+      kind: 'field',
+      order: 4,
+    }, null)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'first-child-a',
+      formId: 'form-1',
+      id: 'first-child-a',
+      kind: 'field',
+      order: 2,
+      parentId: 'first-root',
+    }, null)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'first-root',
+      formId: 'form-1',
+      id: 'first-root',
+      kind: 'field',
+      order: 1,
+    }, null)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+
+    expect([...document.querySelectorAll<HTMLElement>('[data-cf-devtools-node-id]')]
+      .map(node => node.dataset.cfDevtoolsNodeId))
+      .toEqual(['first-root', 'first-child-a', 'first-child-b', 'second-root'])
+  })
+
   it('preserves the field registration order for roots and nested slot fields', () => {
     installConfigFormDevtools()
 
