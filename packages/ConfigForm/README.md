@@ -23,7 +23,7 @@ pnpm add @moluoxixi/config-form zod
 <script setup lang="ts">
 import { ref } from 'vue'
 import { z } from 'zod'
-import { ConfigForm, defineFieldFor } from '@moluoxixi/config-form'
+import { ConfigForm, defineField } from '@moluoxixi/config-form'
 import MyInput from './MyInput.vue'
 
 interface LoginForm {
@@ -34,10 +34,9 @@ interface LoginForm {
 
 const formRef = ref()
 const model = ref<LoginForm>({ username: 'Ada', password: '', confirm: '' })
-const defineLoginField = defineFieldFor<LoginForm>()
 
 const fields = [
-  defineLoginField({
+  defineField({
     field: 'username',
     label: '用户名',
     schema: z.string().min(2, '至少 2 个字符'),
@@ -46,7 +45,7 @@ const fields = [
     props: { placeholder: '请输入' },
     validateOn: ['blur', 'change'],
   }),
-  defineLoginField({
+  defineField({
     field: 'password',
     label: '密码',
     schema: z.string().min(6, '至少 6 个字符'),
@@ -54,7 +53,7 @@ const fields = [
     component: MyInput,
     props: { type: 'password' },
   }),
-  defineLoginField({
+  defineField({
     field: 'confirm',
     label: '确认密码',
     component: MyInput,
@@ -115,23 +114,7 @@ function onSubmit(values: LoginForm) {
 
 ## Field 配置
 
-`defineField` 会优先从 `schema` 和 `defaultValue` 推导字段值类型；没有可推导来源时，字段值默认为 `unknown`。它只返回纯 `FieldConfig`，所有默认值、显隐、禁用、组件注册和 token 解析都由 runtime 管线处理。需要让 `values` 和 `field` 精确关联表单类型时，推荐先创建 typed helper：
-
-```ts
-interface UserForm {
-  name: string
-  age: number
-}
-
-const defineUserField = defineFieldFor<UserForm>()
-
-defineUserField({
-  field: 'age',
-  component: InputNumber,
-  defaultValue: 18,
-  validator: (value, values) => value > values.name.length ? undefined : '年龄太小',
-})
-```
+`defineField` 会优先从 `schema` 和 `defaultValue` 推导当前字段值类型；没有可推导来源时，字段值默认为 `unknown`。它只返回纯 `FieldConfig`，所有默认值、显隐、禁用、组件注册和 token 解析都由 runtime 管线处理。字段配置彼此独立，`validator` 的第二个参数是当前表单 values 快照，可用于必要的跨字段校验。
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|

@@ -2,14 +2,12 @@ import type { output, ZodTypeAny } from 'zod'
 import type {
   FieldCondition,
   FieldConfig,
-  FieldKey,
   FieldValidator,
   FormValues,
   NormalizedFieldConfig,
   RuntimeText,
   RuntimeToken,
   SlotContent,
-  TypedFieldConfig,
   ValidateTrigger,
 } from '@/types'
 
@@ -128,7 +126,6 @@ interface UnknownValueFieldConfigCore<
 
 /**
  * 根据 schema/defaultValue 自动推导字段值类型，根据 component 自动推导 props 类型。
- * 强类型表单推荐使用 defineFieldFor<T>()，可让 field、value 和 values 都精确到字段 key。
  *
  * @example
  * ```ts
@@ -138,26 +135,8 @@ interface UnknownValueFieldConfigCore<
  *   defaultValue: '',
  *   validator: value => value.length > 0 ? undefined : '必填',
  * })
- *
- * interface UserForm { name: string; age: number }
- * const userField = defineFieldFor<UserForm>()({
- *   field: 'name',
- *   component: Input,
- *   validator: (value, values) => values.age > 0 && value.length > 0 ? undefined : '必填',
- * })
  * ```
  */
-
-export function defineFieldFor<TValues extends object>() {
-  return function typedDefineField<
-    K extends FieldKey<TValues>,
-    C = unknown,
-  >(
-    config: TypedFieldConfig<TValues, K> & ComponentFieldPart<C>,
-  ): DefinedFieldConfig<TypedFieldConfig<TValues, K> & ComponentFieldPart<C>> {
-    return { ...config } as DefinedFieldConfig<TypedFieldConfig<TValues, K> & ComponentFieldPart<C>>
-  }
-}
 
 // 重载 1：不传表单泛型，按 schema/defaultValue 推导 value，values 使用默认 FormValues
 export function defineField<

@@ -1,6 +1,6 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { z } from 'zod'
-import { defineField, defineFieldFor } from '../src/models/field'
+import { defineField } from '../src/models/field'
 import { createRuntimeToken } from '../src/runtime'
 
 function textToken(key: string) {
@@ -84,21 +84,6 @@ describe('defineField typing', () => {
 
     expectTypeOf(ageField.field).toEqualTypeOf<'age'>()
     expectTypeOf(ageField.defaultValue).toEqualTypeOf<number>()
-
-    interface UserForm {
-      age: number
-      name: string
-    }
-
-    const defineUserField = defineFieldFor<UserForm>()
-    const userAgeField = defineUserField({
-      field: 'age',
-      component: 'input',
-      defaultValue: 18,
-    })
-
-    expectTypeOf(userAgeField.field).toEqualTypeOf<'age'>()
-    expectTypeOf(userAgeField.defaultValue).toEqualTypeOf<number | undefined>()
   })
 
   it('allows runtime tokens inside inferred component props', () => {
@@ -140,31 +125,6 @@ describe('defineField typing', () => {
         placeholder: '请输入关键词',
         // @ts-expect-error unknown props should be rejected when component props are inferable
         placehodler: '拼写错误',
-      },
-    })
-  })
-
-  it('binds field value and all values for typed forms', () => {
-    interface UserForm {
-      age: number
-      name: string
-    }
-
-    const defineUserField = defineFieldFor<UserForm>()
-
-    defineUserField({
-      field: 'age',
-      component: 'input',
-      defaultValue: 18,
-      validator: (value, values) => {
-        expectTypeOf(value).toEqualTypeOf<number>()
-        expectTypeOf(values).toEqualTypeOf<UserForm>()
-        return value > values.name.length ? undefined : '年龄太小'
-      },
-      transform: (value, values) => {
-        expectTypeOf(value).toEqualTypeOf<number>()
-        expectTypeOf(values).toEqualTypeOf<UserForm>()
-        return value
       },
     })
   })

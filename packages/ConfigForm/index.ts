@@ -6,7 +6,6 @@ export { default as ConfigForm } from './src/index.vue'
 export {
   applyFieldTransform,
   defineField,
-  defineFieldFor,
   normalizeField,
   normalizeValidateOn,
   shouldValidateOn,
@@ -60,6 +59,5 @@ export type {
   SlotPrimitive,
   SlotRenderable,
   SlotRenderFn,
-  TypedFieldConfig,
   ValidateTrigger,
 } from './src/types'

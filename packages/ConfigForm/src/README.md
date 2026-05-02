@@ -6,7 +6,6 @@
 
 - 字段通过 `defineField({ field, component, schema, ... })` 创建。
 - `defineField` 返回纯 `FieldConfig`；字段默认值、组件解析、token 解析和状态判断统一由 runtime 管线完成。
-- 强类型表单优先使用 `defineFieldFor<T>()`，让 `field`、`value`、`values` 精确关联。
 - 表单值通过 `modelValue` / `v-model` 同步。
 - 默认值来自字段 `defaultValue`，外部 `modelValue` 会覆盖默认值。
 - `validator(value, values)` 可用于跨字段或异步校验。

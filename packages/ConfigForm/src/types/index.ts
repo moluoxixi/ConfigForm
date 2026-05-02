@@ -124,31 +124,6 @@ export interface ResolvedField extends Omit<NormalizedFieldConfig, 'label'> {
 
 export type FieldKey<T extends object> = Extract<keyof T, string>
 
-/** 泛型版 FieldConfig，用于 defineFieldFor<T>() 回调参数类型推导 */
-export interface TypedFieldConfig<
-  T extends object,
-  K extends FieldKey<T> = FieldKey<T>,
-> {
-  field: K
-  label?: RuntimeText
-  schema?: FieldSchema<T[K]>
-  span?: number
-  component: Component | FunctionalFieldComponent | string
-  props?: Record<string, unknown>
-  defaultValue?: T[K]
-  valueProp?: string
-  trigger?: string
-  blurTrigger?: string
-  validateOn?: ValidateTrigger | ValidateTrigger[]
-  validator?: FieldValidator<T, T[K]>
-  visible?: FieldCondition<T>
-  disabled?: FieldCondition<T>
-  transform?: (value: T[K], allValues: T) => unknown
-  submitWhenHidden?: boolean
-  submitWhenDisabled?: boolean
-  slots?: Record<string, SlotContent>
-}
-
 // ===== 表单组件类型 =====
 
 export interface ConfigFormProps<T extends object = FormValues> {
