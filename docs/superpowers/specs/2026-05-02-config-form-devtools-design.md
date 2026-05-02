@@ -8,7 +8,7 @@ ConfigForm 已经具备 `defineField` 字段工厂、运行时扩展、递归 sl
 
 ## 目标
 
-- 在构建阶段识别 `defineField` / `defineFieldFor<T>()({...})` 调用，并为对象字面量配置注入源码位置。
+- 在构建阶段识别 `defineField({...})` 调用，并为对象字面量配置注入源码位置。
 - 在运行时还原顶层字段和递归 slot 字段形成的逻辑树。
 - 采集每个真实 `FormField` 实例的 patch duration，并实时同步给全局调试 UI。
 - 在 `document.body` 挂载可拖拽、可吸边隐藏的悬浮入口。
@@ -43,6 +43,14 @@ Devtools 包负责：
 - IDE 跳转 middleware。
 
 这样可以让 `@moluoxixi/config-form` 保持组件库职责，避免生产包绑定调试面板和 dev server 行为。
+
+## API 精简决策
+
+`defineFieldFor<T>()` 只服务于“表单整体模型强类型”场景：它让 `field` 限制在模型 key 内，并让 `validator` / `transform` 的 `value` 与 `values` 按模型推导类型。
+
+当前 ConfigForm 的设计重心是字段配置独立、运行时递归组合和插件化解析。字段本身不需要依赖整体表单模型才能成立，因此 `defineFieldFor<T>()` 不是必须 API。继续保留它会增加类型维护成本、测试面和 devtools AST 识别分支。
+
+本设计将 `defineFieldFor<T>()` 从 devtools 支持范围移除，并在实施阶段同步移除公共导出、类型测试和文档示例。后续如确需强类型表单模型，可以通过用户侧封装或独立 helper 重新引入，不放在核心字段工厂路径内。
 
 ## 包结构
 
@@ -148,11 +156,9 @@ export default defineConfig({
 
 识别规则：
 
-- 只转换绑定到 ConfigForm 的 `defineField` 和 `defineFieldFor`。
+- 只转换绑定到 ConfigForm 的 `defineField`。
 - 只处理第一个参数为对象字面量的调用。
 - 支持 `defineField({...})`。
-- 支持 `const f = defineFieldFor<T>(); f({...})`。
-- 支持 `defineFieldFor<T>()({...})`。
 - 如果对象已存在 `__source`，插件必须抛错，不允许覆盖。
 - 不能解析的位置必须抛错，不允许注入空对象或跳过成功。
 
@@ -348,7 +354,6 @@ configFormDevtools({
 Devtools 包测试：
 
 - Vite 插件注入 `defineField({...})`。
-- Vite 插件注入 `defineFieldFor<T>()({...})`。
 - Vue SFC `<script setup>` 注入位置正确。
 - 已有 `__source` 时抛错。
 - 生产模式不注入。
@@ -378,14 +383,15 @@ pnpm build
 
 ## 实施顺序
 
-1. 核心类型和 dev bridge：先定义协议，不接 UI。
-2. `FormField` 生命周期采集：完成注册、注销、patch duration、slot parentId。
-3. Devtools store：实现树构建和性能聚合。
-4. Vite 注入插件：完成源码 metadata 注入和单元测试。
-5. Overlay UI：完成气泡、面板、树、高亮。
-6. IDE 跳转 middleware：完成 open endpoint。
-7. Playground 接入：两个 playground 都启用 devtools。
-8. 生产隔离检查：确认构建产物无调试残留。
+1. API 精简：移除 `defineFieldFor<T>()` 的公共导出、类型测试和文档示例。
+2. 核心类型和 dev bridge：先定义协议，不接 UI。
+3. `FormField` 生命周期采集：完成注册、注销、patch duration、slot parentId。
+4. Devtools store：实现树构建和性能聚合。
+5. Vite 注入插件：完成源码 metadata 注入和单元测试。
+6. Overlay UI：完成气泡、面板、树、高亮。
+7. IDE 跳转 middleware：完成 open endpoint。
+8. Playground 接入：两个 playground 都启用 devtools。
+9. 生产隔离检查：确认构建产物无调试残留。
 
 ## 验收标准
 
