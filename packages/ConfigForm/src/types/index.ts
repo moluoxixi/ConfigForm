@@ -52,8 +52,11 @@ export interface SlotFieldConfig {
   component: Component | FunctionalFieldComponent | string
   props?: Record<string, unknown>
   defaultValue?: unknown
+  /** 注入到组件的值的属性名，默认 'modelValue' */
   valueProp?: string
+  /** 接收组件值的事件名，同时也作为 change 校验的触发事件，默认 'update:modelValue' */
   trigger?: string
+  /** 触发 blur 校验的事件名，默认 'blur' */
   blurTrigger?: string
   validateOn?: ValidateTrigger | ValidateTrigger[]
   validator?: FieldValidator<FormValues, unknown>
@@ -66,7 +69,8 @@ export interface SlotFieldConfig {
 }
 
 export type SlotRenderable = VNode | VNode[] | SlotPrimitive | RuntimeToken
-export type SlotContent = SlotRenderFn | SlotFieldConfig | SlotFieldConfig[] | SlotRenderable
+export type SlotFieldContent = SlotFieldConfig
+export type SlotContent = SlotRenderFn | SlotFieldContent | SlotFieldContent[] | SlotRenderable
 
 /** 插槽渲染函数，接收作用域参数，返回 VNode(s) 或递归字段配置 */
 export type SlotRenderFn = (scope?: Record<string, unknown>) => SlotContent

@@ -200,4 +200,24 @@ describe('defineField typing', () => {
     expect('isDisabled' in field).toBe(false)
     expect('applyTransform' in field).toBe(false)
   })
+
+  it('infers slot field configs at the defineField call site', () => {
+    defineField({
+      field: 'host',
+      component: 'div',
+      slots: {
+        default: [
+          defineField({
+            field: 'host-option',
+            component: 'input',
+            defaultValue: 'option',
+            validator: (value) => {
+              expectTypeOf(value).toEqualTypeOf<string>()
+              return undefined
+            },
+          }),
+        ],
+      },
+    })
+  })
 })
