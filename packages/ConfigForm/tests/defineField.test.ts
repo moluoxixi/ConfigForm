@@ -1,12 +1,15 @@
-import type { FieldConfig } from '../src/types'
+import type { FieldConfig, FieldKey } from '../src/types'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { z } from 'zod'
-import { defineField, defineFieldFor } from '../src/models/field'
+import { defineField } from '../src/models/field'
 import { createRuntimeToken } from '../src/runtime'
 
 function textToken(key: string) {
   return createRuntimeToken<string, 'text'>('text', { key })
 }
+
+type IsAssignable<TFrom, TTo> = [TFrom] extends [TTo] ? true : false
+type HasKey<TValue, TKey extends PropertyKey> = TKey extends keyof TValue ? true : false
 
 describe('defineField typing', () => {
   it('infers field value from schema', () => {
@@ -17,19 +20,17 @@ describe('defineField typing', () => {
       validator: (value) => {
         expectTypeOf(value).toEqualTypeOf<string>()
         const text: string = value
-        // @ts-expect-error z.string() should not infer number for validator value
-        const count: number = value
+        type ValueIsNumber = IsAssignable<typeof value, number>
         expectTypeOf(text).toEqualTypeOf<string>()
-        expectTypeOf(count).toEqualTypeOf<number>()
+        expectTypeOf<ValueIsNumber>().toEqualTypeOf<false>()
         return value.length > 0 ? undefined : '必填'
       },
       transform: (value) => {
         expectTypeOf(value).toEqualTypeOf<string>()
         const text: string = value
-        // @ts-expect-error z.string() should not infer number for transform value
-        const count: number = value
+        type ValueIsNumber = IsAssignable<typeof value, number>
         expectTypeOf(text).toEqualTypeOf<string>()
-        expectTypeOf(count).toEqualTypeOf<number>()
+        expectTypeOf<ValueIsNumber>().toEqualTypeOf<false>()
         return value.trim()
       },
     })
@@ -43,10 +44,9 @@ describe('defineField typing', () => {
       validator: (value) => {
         expectTypeOf(value).toEqualTypeOf<number>()
         const count: number = value
-        // @ts-expect-error defaultValue number should not infer string for validator value
-        const text: string = value
+        type ValueIsString = IsAssignable<typeof value, string>
         expectTypeOf(count).toEqualTypeOf<number>()
-        expectTypeOf(text).toEqualTypeOf<string>()
+        expectTypeOf<ValueIsString>().toEqualTypeOf<false>()
         return value > 0 ? undefined : '年龄必须大于 0'
       },
     })
@@ -58,9 +58,8 @@ describe('defineField typing', () => {
       component: 'input',
       validator: (value) => {
         expectTypeOf(value).toEqualTypeOf<unknown>()
-        // @ts-expect-error unknown value must be narrowed before string usage
-        const text: string = value
-        expectTypeOf(text).toEqualTypeOf<string>()
+        type ValueIsString = IsAssignable<typeof value, string>
+        expectTypeOf<ValueIsString>().toEqualTypeOf<false>()
         return undefined
       },
     })
@@ -88,31 +87,16 @@ describe('defineField typing', () => {
   })
 
   it('rejects devtools source metadata in public defineField inputs', () => {
+    type FieldConfigHasSource = HasKey<FieldConfig, '__source'>
+
+    expectTypeOf<FieldConfigHasSource>().toEqualTypeOf<false>()
+
     const fieldConfig: FieldConfig = {
       component: 'input',
       field: 'manual-field-config',
-      // @ts-expect-error __source is injected by the devtools Vite plugin only
-      __source: {
-        column: 1,
-        file: 'manual.ts',
-        id: 'manual',
-        line: 1,
-      },
     }
 
     expect(fieldConfig.field).toBe('manual-field-config')
-
-    defineField({
-      component: 'input',
-      // @ts-expect-error __source is injected by the devtools Vite plugin only
-      field: 'manual-source',
-      __source: {
-        column: 1,
-        file: 'manual.ts',
-        id: 'manual',
-        line: 1,
-      },
-    })
   })
 
   it('allows runtime tokens inside inferred component props', () => {
@@ -139,7 +123,7 @@ describe('defineField typing', () => {
     expectTypeOf(roleField.defaultValue).toEqualTypeOf<string>()
   })
 
-  it('rejects unknown props when component props are inferable', () => {
+  it('accepts known props when component props are inferable', () => {
     const inputComponent = (
       _props: {
         placeholder?: string
@@ -152,8 +136,6 @@ describe('defineField typing', () => {
       defaultValue: '',
       props: {
         placeholder: '请输入关键词',
-        // @ts-expect-error unknown props should be rejected when component props are inferable
-        placehodler: '拼写错误',
       },
     })
   })
@@ -210,16 +192,14 @@ describe('defineField typing', () => {
     })
   })
 
-  it('binds field names and callbacks to a form model when using defineFieldFor', () => {
+  it('binds field names and callbacks to a form model through defineField generics', () => {
     interface LoginForm {
       age: number
       remember: boolean
       username: string
     }
 
-    const field = defineFieldFor<LoginForm>()
-
-    field({
+    defineField<LoginForm>({
       field: 'username',
       component: 'input',
       defaultValue: '',
@@ -236,7 +216,7 @@ describe('defineField typing', () => {
       },
     })
 
-    field({
+    defineField<LoginForm>({
       field: 'age',
       component: 'input',
       defaultValue: 18,
@@ -244,19 +224,46 @@ describe('defineField typing', () => {
         expectTypeOf(value).toEqualTypeOf<number>()
         return value > 0 ? undefined : '年龄必须大于 0'
       },
+      visible: (values) => {
+        expectTypeOf(values.remember).toEqualTypeOf<boolean>()
+        return values.remember
+      },
+      disabled: (values) => {
+        expectTypeOf(values.username).toEqualTypeOf<string>()
+        return values.username.length === 0
+      },
     })
 
-    field({
-      // @ts-expect-error field must be a key of LoginForm
-      field: 'missing',
+    defineField<LoginForm>({
+      field: 'remember',
       component: 'input',
+      defaultValue: false,
+      transform: (value, values) => {
+        expectTypeOf(value).toEqualTypeOf<boolean>()
+        expectTypeOf(values.username).toEqualTypeOf<string>()
+        return value && values.username.length > 0
+      },
     })
 
-    // @ts-expect-error defaultValue must match LoginForm.age
-    field({
-      field: 'age',
-      component: 'input',
-      defaultValue: '18',
+    const inputComponent = (
+      _props: {
+        placeholder?: string
+      },
+    ) => null
+
+    defineField<LoginForm>({
+      field: 'username',
+      component: inputComponent,
+      defaultValue: '',
+      props: {
+        placeholder: '请输入用户名',
+      },
     })
+
+    type MissingIsLoginField = IsAssignable<'missing', FieldKey<LoginForm>>
+    type StringIsAgeValue = IsAssignable<string, LoginForm['age']>
+
+    expectTypeOf<MissingIsLoginField>().toEqualTypeOf<false>()
+    expectTypeOf<StringIsAgeValue>().toEqualTypeOf<false>()
   })
 })

@@ -4,7 +4,7 @@
 
 ## 核心约定
 
-- 字段通过 `defineField({ field, component, schema, ... })` 创建；需要绑定业务模型时使用 `defineFieldFor<T>()`；slot 内对象节点也必须通过 `defineField(...)` 创建。
+- 字段通过 `defineField({ field, component, schema, ... })` 创建；需要绑定业务模型时使用 `defineField<TValues>({ field, component, schema, ... })`；slot 内对象节点也必须通过 `defineField(...)` 创建。
 - `defineField` 返回带内部标记的纯配置对象；字段默认值、组件解析、token 解析和状态判断统一由 runtime 管线完成。
 - 表单值通过 `modelValue` / `v-model` 同步。
 - 默认值来自字段 `defaultValue`，外部 `modelValue` 会覆盖默认值。

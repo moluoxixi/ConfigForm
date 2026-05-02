@@ -46,11 +46,11 @@ Devtools 包负责：
 
 ## API 精简决策
 
-`defineFieldFor<T>()` 只服务于“表单整体模型强类型”场景：它让 `field` 限制在模型 key 内，并让 `validator` / `transform` 的 `value` 与 `values` 按模型推导类型。
+表单整体模型强类型只需要作为 `defineField<TValues>(...)` 的泛型存在：它让 `field` 限制在模型 key 内，并让 `validator` / `transform` 的 `value` 与 `values` 按模型推导类型。
 
-当前 ConfigForm 的设计重心是字段配置独立、运行时递归组合和插件化解析。字段本身不需要依赖整体表单模型才能成立，因此 `defineFieldFor<T>()` 不是必须 API。继续保留它会增加类型维护成本、测试面和 devtools AST 识别分支。
+当前 ConfigForm 的设计重心是字段配置独立、运行时递归组合和插件化解析。字段本身不需要依赖整体表单模型才能成立，因此没有必要提供第二个字段工厂。继续保留并行 API 会增加类型维护成本、测试面和 devtools AST 识别分支。
 
-本设计将 `defineFieldFor<T>()` 从 devtools 支持范围移除，并在实施阶段同步移除公共导出、类型测试和文档示例。后续如确需强类型表单模型，可以通过用户侧封装或独立 helper 重新引入，不放在核心字段工厂路径内。
+本设计将模型绑定能力收敛到 `defineField<TValues>(...)`，并在实施阶段同步移除额外公共导出、类型测试和文档示例，保持核心字段工厂路径单一。
 
 ## 包结构
 
@@ -385,7 +385,7 @@ pnpm build
 
 ## 实施顺序
 
-1. API 精简：移除 `defineFieldFor<T>()` 的公共导出、类型测试和文档示例。
+1. API 精简：将模型绑定能力收敛到 `defineField<TValues>(...)`，移除额外公共导出、类型测试和文档示例。
 2. 核心类型和 dev bridge：先定义协议，不接 UI。
 3. `FormField` 生命周期采集：完成注册、注销、patch duration、slot parentId。
 4. Devtools store：实现树构建和性能聚合。

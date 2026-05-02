@@ -23,7 +23,7 @@ pnpm add @moluoxixi/config-form zod
 <script setup lang="ts">
 import { ref } from 'vue'
 import { z } from 'zod'
-import { ConfigForm, defineFieldFor } from '@moluoxixi/config-form'
+import { ConfigForm, defineField } from '@moluoxixi/config-form'
 import MyInput from './MyInput.vue'
 
 interface LoginForm {
@@ -34,10 +34,9 @@ interface LoginForm {
 
 const formRef = ref()
 const model = ref<LoginForm>({ username: 'Ada', password: '', confirm: '' })
-const field = defineFieldFor<LoginForm>()
 
 const fields = [
-  field({
+  defineField<LoginForm>({
     field: 'username',
     label: '用户名',
     schema: z.string().min(2, '至少 2 个字符'),
@@ -46,7 +45,7 @@ const fields = [
     props: { placeholder: '请输入' },
     validateOn: ['blur', 'change'],
   }),
-  field({
+  defineField<LoginForm>({
     field: 'password',
     label: '密码',
     schema: z.string().min(6, '至少 6 个字符'),
@@ -54,7 +53,7 @@ const fields = [
     component: MyInput,
     props: { type: 'password' },
   }),
-  field({
+  defineField<LoginForm>({
     field: 'confirm',
     label: '确认密码',
     component: MyInput,
@@ -86,7 +85,7 @@ function onSubmit(values: LoginForm) {
 |------|------|---------|-------------|
 | `namespace` | `string` | `'cf'` | 运行时 CSS 类名前缀 |
 | `inline` | `boolean` | `false` | 行内布局模式 |
-| `fields` | `FormNodeConfig[]` | - | 字段/容器配置数组；`defineField` / `defineFieldFor<T>()` 返回的都是纯配置 |
+| `fields` | `FormNodeConfig[]` | - | 字段/容器配置数组；`defineField` 返回纯配置 |
 | `labelWidth` | `string \| number` | - | 标签宽度，number 自动转 px |
 | `modelValue` | `Record<string, unknown>` | - | 表单值，支持 `v-model`；传泛型后为对应表单类型 |
 | `runtime` | `FormRuntime \| FormRuntimeOptions` | - | DIY 运行时，用于组件注册、runtime token、表达式、插件扩展和调试 |
@@ -117,7 +116,7 @@ function onSubmit(values: LoginForm) {
 
 `defineField` 会优先从 `schema` 和 `defaultValue` 推导当前字段值类型；没有可推导来源时，字段值默认为 `unknown`。它只返回纯 `FieldConfig`，所有默认值、显隐、禁用、组件注册和 token 解析都由 runtime 管线处理。字段配置彼此独立，`validator` 的第二个参数是当前表单 values 快照，可用于必要的跨字段校验。
 
-如果需要把字段配置和业务模型绑定，优先使用 `defineFieldFor<T>()`。它会把 `field` 限制为 `T` 的字符串 key，并让 `defaultValue`、`validator`、`transform`、`visible`、`disabled` 中的字段值和全量 values 使用同一个模型类型：
+如果需要把字段配置和业务模型绑定，把表单模型作为 `defineField<TValues>(...)` 的泛型传入。此时 `field` 会被限制为 `TValues` 的字符串 key，并且 `defaultValue`、`validator`、`transform`、`visible`、`disabled` 中的字段值和全量 values 使用同一个模型类型：
 
 ```ts
 interface LoginForm {
@@ -125,10 +124,8 @@ interface LoginForm {
   remember: boolean
 }
 
-const field = defineFieldFor<LoginForm>()
-
 const fields = [
-  field({
+  defineField<LoginForm>({
     field: 'username',
     component: MyInput,
     defaultValue: '',
