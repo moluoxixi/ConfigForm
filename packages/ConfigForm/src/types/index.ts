@@ -51,48 +51,26 @@ export interface FieldSourceMeta {
   column: number
 }
 
-export interface SlotFieldConfig {
-  field?: string
+export interface ComponentNodeConfig {
   __source?: FieldSourceMeta
-  label?: RuntimeText
-  schema?: ZodTypeAny
-  span?: number
   component: Component | FunctionalFieldComponent | string
   props?: Record<string, unknown>
-  defaultValue?: unknown
-  /** 注入到组件的值的属性名，默认 'modelValue' */
-  valueProp?: string
-  /** 接收组件值的事件名，同时也作为 change 校验的触发事件，默认 'update:modelValue' */
-  trigger?: string
-  /** 触发 blur 校验的事件名，默认 'blur' */
-  blurTrigger?: string
-  validateOn?: ValidateTrigger | ValidateTrigger[]
-  validator?: FieldValidator<FormValues, unknown>
-  visible?: FieldCondition<FormValues>
-  disabled?: FieldCondition<FormValues>
-  transform?: (value: unknown, allValues: FormValues) => unknown
-  submitWhenHidden?: boolean
-  submitWhenDisabled?: boolean
   slots?: Record<string, SlotContent>
 }
 
 export type SlotRenderable = VNode | VNode[] | SlotPrimitive | RuntimeToken
-export type SlotFieldContent = SlotFieldConfig
-export type SlotContent = SlotRenderFn | SlotFieldContent | SlotFieldContent[] | SlotRenderable
+export type SlotContent = SlotRenderFn | FormNodeConfig | FormNodeConfig[] | SlotRenderable
 
-/** 插槽渲染函数，接收作用域参数，返回 VNode(s) 或递归字段配置 */
+/** 插槽渲染函数，接收作用域参数，返回 VNode(s)、容器节点或真实字段节点 */
 export type SlotRenderFn = (scope?: Record<string, unknown>) => SlotContent
 
 // ===== FieldConfig：公开字段输入协议 =====
 
-export interface FieldConfig {
+export interface FieldConfig extends ComponentNodeConfig {
   field: string
-  __source?: FieldSourceMeta
   label?: RuntimeText
   schema?: ZodTypeAny
   span?: number
-  component: Component | FunctionalFieldComponent | string
-  props?: Record<string, unknown>
   defaultValue?: unknown
   /** 注入到组件的值的属性名，默认 'modelValue' */
   valueProp?: string
@@ -109,9 +87,9 @@ export interface FieldConfig {
   submitWhenHidden?: boolean
   /** 禁用时仍参与 submit 输出，默认 false */
   submitWhenDisabled?: boolean
-  /** 传递给组件的插槽，可为渲染函数、文本、递归字段配置或配置数组 */
-  slots?: Record<string, SlotContent>
 }
+
+export type FormNodeConfig = FieldConfig | ComponentNodeConfig
 
 export interface NormalizedFieldConfig extends Omit<
   FieldConfig,
@@ -131,13 +109,22 @@ export interface ResolvedField extends Omit<NormalizedFieldConfig, 'label'> {
   label?: string
 }
 
+export interface ResolvedComponentNode extends Omit<ComponentNodeConfig, 'props'> {
+  props: Record<string, unknown>
+}
+
+export type ResolvedFormNode = ResolvedField | ResolvedComponentNode
+
 export type FieldKey<T extends object> = Extract<keyof T, string>
 
-export interface FormFieldDevtoolsNode {
+export type FormDevtoolsNodeKind = 'component' | 'field'
+
+export interface FormDevtoolsNode {
   id: string
   formId: string
-  field: string
-  embedded: boolean
+  kind: FormDevtoolsNodeKind
+  field?: string
+  component?: string
   parentId?: string
   label?: string
   slotName?: string
@@ -151,8 +138,8 @@ export interface FormFieldPatchMetric {
 }
 
 export interface FormDevtoolsBridge {
-  registerField: (node: FormFieldDevtoolsNode, element: HTMLElement | null) => void
-  updateField: (node: FormFieldDevtoolsNode, element: HTMLElement | null) => void
+  registerField: (node: FormDevtoolsNode, element: HTMLElement | null) => void
+  updateField: (node: FormDevtoolsNode, element: HTMLElement | null) => void
   recordPatch: (metric: FormFieldPatchMetric) => void
   unregisterField: (id: string) => void
 }
@@ -165,7 +152,7 @@ export interface ConfigFormProps<T extends object = FormValues> {
   /**
    * 表单字段配置
    */
-  fields: FieldConfig[]
+  fields: FormNodeConfig[]
   labelWidth?: string | number
   /** v-model 双向绑定表单值 */
   modelValue?: T

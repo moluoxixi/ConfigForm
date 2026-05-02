@@ -257,4 +257,50 @@ describe('form runtime', () => {
     expect(runtime.resolveDisabled(field, ctx)).toBe(true)
     expect(debugEvents).toContain('extension:resolved')
   })
+
+  it('resolves component container nodes without manufacturing field bindings', () => {
+    const runtime = createFormRuntime({
+      components: {
+        RuntimeInput,
+      },
+    })
+    const ctx = runtime.createContext({ errors: {}, values: {} })
+
+    const resolved = runtime.resolveNode({
+      component: 'RuntimeInput',
+      props: {
+        placeholder: 'Container placeholder',
+      },
+      slots: {
+        default: [
+          defineField({
+            component: 'input',
+            field: 'inside',
+          }),
+        ],
+      },
+    }, ctx)
+
+    expect(resolved).toMatchObject({
+      component: RuntimeInput,
+      props: {
+        placeholder: 'Container placeholder',
+      },
+    })
+    expect('field' in resolved).toBe(false)
+    expect(runtime.resolveSlot({ component: 'RuntimeInput' }, ctx)).toMatchObject({
+      component: RuntimeInput,
+      props: {},
+    })
+  })
+
+  it('throws when field-only options are used on component containers', () => {
+    const runtime = createFormRuntime()
+    const ctx = runtime.createContext({ errors: {}, values: {} })
+
+    expect(() => runtime.resolveNode({
+      component: 'section',
+      label: '错误的容器 label',
+    } as never, ctx)).toThrow(/Component node without field cannot use field-only option "label"/)
+  })
 })

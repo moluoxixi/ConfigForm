@@ -8,11 +8,14 @@ export interface FieldSourceMeta {
   column: number
 }
 
-export interface FormFieldDevtoolsNode {
+export type FormDevtoolsNodeKind = 'component' | 'field'
+
+export interface FormDevtoolsNode {
   id: string
   formId: string
-  field: string
-  embedded: boolean
+  kind: FormDevtoolsNodeKind
+  field?: string
+  component?: string
   parentId?: string
   label?: string
   slotName?: string
@@ -26,8 +29,8 @@ export interface FormFieldPatchMetric {
 }
 
 export interface FormDevtoolsBridge {
-  registerField: (node: FormFieldDevtoolsNode, element: HTMLElement | null) => void
-  updateField: (node: FormFieldDevtoolsNode, element: HTMLElement | null) => void
+  registerField: (node: FormDevtoolsNode, element: HTMLElement | null) => void
+  updateField: (node: FormDevtoolsNode, element: HTMLElement | null) => void
   recordPatch: (metric: FormFieldPatchMetric) => void
   unregisterField: (id: string) => void
 }

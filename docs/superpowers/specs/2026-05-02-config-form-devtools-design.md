@@ -109,13 +109,16 @@ export interface FieldConfig {
 核心包新增开发态桥接接口：
 
 ```ts
-export interface FormFieldDevtoolsNode {
+export type FormDevtoolsNodeKind = 'component' | 'field'
+
+export interface FormDevtoolsNode {
   id: string
   parentId?: string
   formId: string
-  field: string
+  kind: FormDevtoolsNodeKind
+  field?: string
+  component?: string
   label?: string
-  embedded: boolean
   slotName?: string
   source?: FieldSourceMeta
 }
@@ -127,8 +130,8 @@ export interface FormFieldPatchMetric {
 }
 
 export interface FormDevtoolsBridge {
-  registerField: (node: FormFieldDevtoolsNode, element: HTMLElement | null) => void
-  updateField: (node: FormFieldDevtoolsNode, element: HTMLElement | null) => void
+  registerField: (node: FormDevtoolsNode, element: HTMLElement | null) => void
+  updateField: (node: FormDevtoolsNode, element: HTMLElement | null) => void
   recordPatch: (metric: FormFieldPatchMetric) => void
   unregisterField: (id: string) => void
 }
@@ -194,7 +197,7 @@ defineField({
 
 - 注入父节点 id。
 - 生成本实例 `nodeId`。
-- 注册自身字段、label、embedded 状态、slotName、source。
+- 注册自身字段、label、slotName、source 和节点类型。
 - 将自身 `nodeId` provide 给递归 slot 子字段。
 - 在 unmount 时注销自身。
 

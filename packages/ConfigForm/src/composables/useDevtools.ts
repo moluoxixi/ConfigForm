@@ -1,7 +1,7 @@
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 import type {
   FormDevtoolsBridge,
-  FormFieldDevtoolsNode,
+  FormDevtoolsNode,
   FormFieldPatchMetric,
   ResolvedField,
 } from '@/types'
@@ -14,7 +14,6 @@ interface FormDevtoolsContext {
 interface UseFormFieldDevtoolsOptions {
   field: ComputedRef<ResolvedField>
   rootRef: Ref<unknown>
-  embedded: ComputedRef<boolean>
   slotName: ComputedRef<string | undefined>
 }
 
@@ -83,15 +82,15 @@ export function useFormFieldDevtools(options: UseFormFieldDevtoolsOptions) {
 
   provide(parentFieldNodeIdKey, nodeId)
 
-  const node = computed<FormFieldDevtoolsNode | undefined>(() => {
+  const node = computed<FormDevtoolsNode | undefined>(() => {
     if (!formContext)
       return undefined
 
     return {
-      embedded: options.embedded.value,
       field: options.field.value.field,
       formId: formContext.formId,
       id: nodeId,
+      kind: 'field',
       label: options.field.value.label,
       parentId,
       slotName: options.slotName.value,

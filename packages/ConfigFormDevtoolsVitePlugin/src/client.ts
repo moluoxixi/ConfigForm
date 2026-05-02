@@ -1,10 +1,10 @@
 import type {
   FormDevtoolsBridge,
-  FormFieldDevtoolsNode,
+  FormDevtoolsNode,
   FormFieldPatchMetric,
 } from './types'
 
-interface StoredNode extends FormFieldDevtoolsNode {
+interface StoredNode extends FormDevtoolsNode {
   element: HTMLElement | null
   lastPatchMs?: number
   maxPatchMs?: number
@@ -108,7 +108,7 @@ function createStore(render: () => void): DevtoolsStore {
       node.avgPatchMs = total / node.samples
       render()
     },
-    registerField(node: FormFieldDevtoolsNode, element: HTMLElement | null) {
+    registerField(node: FormDevtoolsNode, element: HTMLElement | null) {
       const existing = nodes.get(node.id)
       nodes.set(node.id, {
         ...existing,
@@ -123,7 +123,7 @@ function createStore(render: () => void): DevtoolsStore {
       nodes.delete(id)
       render()
     },
-    updateField(node: FormFieldDevtoolsNode, element: HTMLElement | null) {
+    updateField(node: FormDevtoolsNode, element: HTMLElement | null) {
       const existing = nodes.get(node.id)
       nodes.set(node.id, {
         ...existing,
@@ -154,7 +154,7 @@ function createNodeRow(
 
   const key = document.createElement('div')
   key.className = 'cf-devtools-node-key'
-  key.textContent = node.field
+  key.textContent = node.field ?? node.component ?? node.kind
 
   const meta = document.createElement('div')
   meta.className = 'cf-devtools-node-meta'

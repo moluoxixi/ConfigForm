@@ -241,24 +241,21 @@ const fields = [
     component: ElRadioGroup,
     slots: {
       default: [
-        defineField({
-          field: 'gender-male',
+        {
           component: ElRadio,
           props: { value: 'male' },
           slots: { default: '男' },
-        }),
-        defineField({
-          field: 'gender-female',
+        },
+        {
           component: ElRadio,
           props: { value: 'female' },
           slots: { default: '女' },
-        }),
-        defineField({
-          field: 'gender-other',
+        },
+        {
           component: ElRadio,
           props: { value: 'other' },
           slots: { default: '其他' },
-        }),
+        },
       ],
     },
   }),
@@ -271,26 +268,22 @@ const fields = [
     defaultValue: [],
     slots: {
       default: [
-        defineField({
-          field: 'hobbies-reading',
+        {
           component: ElCheckbox,
           props: { value: 'reading', label: '阅读' },
-        }),
-        defineField({
-          field: 'hobbies-sports',
+        },
+        {
           component: ElCheckbox,
           props: { value: 'sports', label: '运动' },
-        }),
-        defineField({
-          field: 'hobbies-music',
+        },
+        {
           component: ElCheckbox,
           props: { value: 'music', label: '音乐' },
-        }),
-        defineField({
-          field: 'hobbies-travel',
+        },
+        {
           component: ElCheckbox,
           props: { value: 'travel', label: '旅行' },
-        }),
+        },
       ],
     },
   }),

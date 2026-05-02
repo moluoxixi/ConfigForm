@@ -81,12 +81,73 @@ const SlotLeaf = markRaw(defineComponent({
   },
 }))
 
+const CardContainer = markRaw(defineComponent({
+  name: 'CardContainer',
+  props: {
+    title: String,
+  },
+  setup(props, { slots }) {
+    return () => h('section', { 'data-card': props.title }, [
+      h('h2', props.title),
+      slots.default?.(),
+    ])
+  },
+}))
+
 function resolveTestField(field: ReturnType<typeof defineField>) {
   const runtime = createFormRuntime()
   return runtime.resolveField(field, runtime.createContext({ errors: {}, values: {} }))
 }
 
 describe('config form component', () => {
+  it('renders component containers around real fields without binding container values', async () => {
+    const fields = [
+      {
+        component: CardContainer,
+        props: { title: '基础信息' },
+        slots: {
+          default: [
+            {
+              component: CardContainer,
+              props: { title: '账号信息' },
+              slots: {
+                default: [
+                  defineField({
+                    component: TextInput,
+                    field: 'username',
+                    label: '用户名',
+                    schema: z.string().min(4, '用户名至少 4 个字符'),
+                    validateOn: 'blur',
+                  }),
+                ],
+              },
+            },
+          ],
+        },
+      },
+    ]
+
+    const wrapper = mount(ConfigForm, {
+      props: {
+        fields,
+        modelValue: {},
+      },
+    })
+
+    expect(wrapper.find('[data-card="基础信息"]').exists()).toBe(true)
+    expect(wrapper.find('[data-card="账号信息"]').exists()).toBe(true)
+    expect(wrapper.findAll('label')).toHaveLength(1)
+    expect(wrapper.get('label').text()).toBe('用户名')
+    expect(wrapper.find('[data-card="基础信息"]').attributes('modelvalue')).toBeUndefined()
+
+    await wrapper.get('input').setValue('Ada')
+    await wrapper.get('input').trigger('blur')
+    await flushPromises()
+
+    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([{ username: 'Ada' }])
+    expect(wrapper.text()).toContain('用户名至少 4 个字符')
+  })
+
   it('reports form field topology and patch metrics to the devtools bridge', async () => {
     const bridge = {
       recordPatch: vi.fn(),
@@ -138,14 +199,14 @@ describe('config form component', () => {
     const child = nodes.find(node => node.field === 'choice-first')
 
     expect(parent).toMatchObject({
-      embedded: false,
       field: 'choice',
+      kind: 'field',
       label: '选择',
       source,
     })
     expect(child).toMatchObject({
-      embedded: true,
       field: 'choice-first',
+      kind: 'field',
       parentId: parent.id,
       slotName: 'default',
     })
@@ -466,7 +527,7 @@ describe('form field component', () => {
     expect(wrapper.emitted('blur')).toEqual([['status']])
   })
 
-  it('renders defineField slot configs recursively including scoped slot functions', () => {
+  it('renders field slot configs recursively including scoped slot functions', () => {
     const field = defineField({
       component: SlotHost,
       field: 'choice',
@@ -495,11 +556,10 @@ describe('form field component', () => {
       },
     })
 
-    const wrapper = mount(FormField, {
+    const wrapper = mount(ConfigForm, {
       props: {
-        field: resolveTestField(field),
-        modelValue: undefined,
-        visible: true,
+        fields: [field],
+        modelValue: {},
       },
     })
 
@@ -511,31 +571,74 @@ describe('form field component', () => {
     expect(wrapper.find('[data-role="suffix"]').exists()).toBe(true)
   })
 
-  it('renders recursive slot fields while embedded', () => {
-    const field = defineField({
-      component: SlotHost,
-      field: 'embedded-choice',
-      slots: {
-        default: [
-          defineField({
-            field: 'embedded-option',
-            component: SlotLeaf,
-            props: { role: 'embedded' },
-            slots: { default: '嵌入选项' },
-          }),
-        ],
+  it('validates real fields rendered inside another field slot', async () => {
+    const fields = [
+      defineField({
+        component: SlotHost,
+        field: 'group',
+        slots: {
+          default: [
+            defineField({
+              component: TextInput,
+              field: 'nestedName',
+              label: '嵌套姓名',
+              schema: z.string().min(2, '嵌套姓名至少 2 个字符'),
+              validateOn: 'blur',
+            }),
+          ],
+        },
+      }),
+    ]
+
+    const wrapper = mount(ConfigForm, {
+      props: {
+        fields,
+        modelValue: {},
       },
     })
 
-    const wrapper = mount(FormField, {
+    await wrapper.get('input').setValue('A')
+    await wrapper.get('input').trigger('blur')
+    await flushPromises()
+
+    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([{
+      group: undefined,
+      nestedName: 'A',
+    }])
+    expect(wrapper.text()).toContain('嵌套姓名至少 2 个字符')
+
+    await wrapper.get('input').setValue('Ada')
+    await wrapper.get('input').trigger('blur')
+    await flushPromises()
+
+    expect(wrapper.text()).not.toContain('嵌套姓名至少 2 个字符')
+  })
+
+  it('renders component slot nodes without adding form field wrappers', () => {
+    const fields = [
+      {
+        component: SlotHost,
+        slots: {
+          default: [
+            {
+              component: SlotLeaf,
+              props: { role: 'slot-child' },
+              slots: { default: '嵌入选项' },
+            },
+          ],
+        },
+      },
+    ]
+
+    const wrapper = mount(ConfigForm, {
       props: {
-        embedded: true,
-        field: resolveTestField(field),
-        modelValue: undefined,
+        fields,
+        modelValue: {},
       },
     })
 
     expect(wrapper.text()).toContain('嵌入选项')
-    expect(wrapper.find('[data-role="embedded"]').exists()).toBe(true)
+    expect(wrapper.find('[data-role="slot-child"]').exists()).toBe(true)
+    expect(wrapper.find('.cf-field').exists()).toBe(false)
   })
 })

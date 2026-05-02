@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="T extends object = Record<string, unknown>">
 import { computed, watch } from 'vue'
 import type { ConfigFormEmits, ConfigFormExpose, ConfigFormProps } from '@/types'
-import FormField from '@/components/FormField'
+import RecursiveField from '@/components/RecursiveField'
 import { provideFormDevtoolsContext } from '@/composables/useDevtools'
 import { useForm } from '@/composables/useForm'
 import { provideNamespace, useBem } from '@/composables/useNamespace'
@@ -20,7 +20,7 @@ provideNamespace(namespaceRef)
 provideFormDevtoolsContext()
 const { b, m } = useBem(namespaceRef)
 
-const rawFields = computed(() => props.fields)
+const rawNodes = computed(() => props.fields)
 const initialValues = computed(() => props.modelValue)
 const runtimeRef = computed(() => normalizeFormRuntime(props.runtime))
 provideRuntime(runtimeRef)
@@ -40,7 +40,7 @@ const {
   getValues,
   clearFieldError,
 } = useForm({
-  fields: rawFields,
+  fields: rawNodes,
   initialValues,
   runtime: runtimeRef,
   onSubmit: vals => emit('submit', vals as T),
@@ -52,8 +52,22 @@ const runtimeContext = computed(() => runtimeRef.value.createContext({
   values: { ...values },
 }))
 
-const resolvedFields = computed(() =>
-  rawFields.value.map(field => runtimeRef.value.resolveField(field, runtimeContext.value)),
+const resolvedNodes = computed(() =>
+  rawNodes.value.map((node, index) => runtimeRef.value.resolveNode(node, runtimeContext.value, `fields.${index}`)),
+)
+
+function nodeKey(node: typeof resolvedNodes.value[number], index: number): string {
+  if ('field' in node)
+    return node.field
+
+  return node.__source?.id ?? `${String(node.component)}-${index}`
+}
+
+const keyedResolvedNodes = computed(() =>
+  resolvedNodes.value.map((node, index) => ({
+    key: nodeKey(node, index),
+    node,
+  })),
 )
 
 // ── v-model：值变化时向上发出 ──────────────────────────────────
@@ -81,24 +95,24 @@ defineExpose<ConfigFormExpose<T>>({
     :class="[b('form'), { [m('form', 'inline')]: inline }]"
     @submit.prevent="submit()"
   >
-    <template v-for="field in resolvedFields" :key="field.field">
-      <FormField
-        :field="field"
-        :model-value="values[field.field]"
-        :error="errors[field.field]"
+    <template v-for="item in keyedResolvedNodes" :key="item.key">
+      <RecursiveField
+        :node="item.node"
+        :values="values"
+        :errors="errors"
+        :visibility-map="visibilityMap"
+        :disabled-map="disabledMap"
         :inline="inline"
         :label-width="resolveLabelWidth(labelWidth)"
         :runtime-context="runtimeContext"
-        :visible="visibilityMap[field.field]"
-        :disabled="disabledMap[field.field]"
-        @update:model-value="(val: unknown) => setValue(field.field, val)"
-        @blur="(name: string) => validateSingleField(name, 'blur')"
-        @change="(name: string) => validateSingleField(name, 'change')"
+        @update:field-value="(field: string, val: unknown) => setValue(field, val)"
+        @field-blur="(name: string) => validateSingleField(name, 'blur')"
+        @field-change="(name: string) => validateSingleField(name, 'change')"
       >
-        <template #error="slotProps">
+        <template #field-error="slotProps">
           <slot name="field-error" v-bind="slotProps" />
         </template>
-      </FormField>
+      </RecursiveField>
     </template>
   </form>
 </template>

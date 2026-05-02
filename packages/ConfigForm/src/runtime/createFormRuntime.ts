@@ -14,15 +14,18 @@ import type {
   ExpressionToken,
   FieldCondition,
   FieldConfig,
+  FormNodeConfig,
   FormValues,
   NormalizedFieldConfig,
+  ResolvedComponentNode,
   ResolvedField,
+  ResolvedFormNode,
   RuntimeToken,
   SlotContent,
-  SlotFieldConfig,
 } from '@/types'
 import { isVNode } from 'vue'
 import { normalizeField } from '@/models/field'
+import { assertComponentNodeConfig, isFieldConfig, isFormNodeConfig } from '@/models/node'
 
 export function createRuntimeToken<TValue = unknown, TType extends string = string>(
   type: TType,
@@ -89,16 +92,6 @@ function isComponentLikeRecord(value: Record<string, unknown>): boolean {
     || value.render
     || value.template
     || value.__vccOpts,
-  )
-}
-
-function isSlotFieldConfig(value: unknown): value is SlotFieldConfig {
-  return Boolean(
-    value
-    && typeof value === 'object'
-    && !Array.isArray(value)
-    && !isVNode(value)
-    && 'component' in value,
   )
 }
 
@@ -330,22 +323,17 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
     return resolved
   }
 
-  function resolveSlotFieldConfig(
-    config: SlotFieldConfig,
+  function resolveComponentNodeBase(
+    config: FormNodeConfig,
     context: FormRuntimeContext,
     path: string,
-  ): NormalizedFieldConfig {
-    const normalized = normalizeField({
-      ...config,
-      field: config.field ?? path.replace(/[^\w-]/g, '-'),
-    } as FieldConfig)
+  ): ResolvedComponentNode {
+    assertComponentNodeConfig(config, path)
+
     return {
-      ...normalized,
-      component: resolveComponent(normalized.component),
-      label: normalized.label == null
-        ? normalized.label
-        : String(resolveValue(normalized.label, context, `${path}.label`)),
-      props: resolveRecord(normalized.props, context, `${path}.props`),
+      ...config,
+      component: resolveComponent(config.component),
+      props: resolveRecord(config.props ?? {}, context, `${path}.props`),
       slots: config.slots
         ? Object.fromEntries(
             Object.entries(config.slots).map(([key, slot]) => [
@@ -353,8 +341,15 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
               resolveSlot(slot, context, `${path}.slots.${key}`),
             ]),
           )
-        : normalized.slots,
+        : config.slots,
     }
+  }
+
+  function resolveNode(node: FormNodeConfig, context: FormRuntimeContext, path = 'node'): ResolvedFormNode {
+    if (isFieldConfig(node))
+      return resolveField(node, context)
+
+    return resolveComponentNodeBase(node, context, path)
   }
 
   function resolveSlotBase(slot: SlotContent, context: FormRuntimeContext, path: string): SlotContent {
@@ -375,8 +370,8 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
     if (Array.isArray(slot))
       return slot.map((item, index) => resolveSlotBase(item as SlotContent, context, `${path}.${index}`)) as SlotContent
 
-    if (isSlotFieldConfig(slot))
-      return resolveSlotFieldConfig(slot, context, path)
+    if (isFormNodeConfig(slot))
+      return resolveNode(slot, context, path)
 
     return resolveValue(slot, context, path) as SlotContent
   }
@@ -524,6 +519,7 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
     extensions,
     resolveDisabled,
     resolveField,
+    resolveNode,
     resolveSlot,
     resolveValue,
     resolveVisible,

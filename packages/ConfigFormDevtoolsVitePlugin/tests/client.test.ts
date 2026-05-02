@@ -33,7 +33,7 @@ describe('client overlay', () => {
     expect(document.head.textContent).toContain('translateX(20px)')
 
     window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
-      embedded: false,
+      kind: 'field',
       field: 'username',
       formId: 'form-1',
       id: 'node-1',
@@ -56,7 +56,7 @@ describe('client overlay', () => {
       timestamp: 2,
     })
     window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
-      embedded: true,
+      kind: 'field',
       field: 'username-option',
       formId: 'form-1',
       id: 'node-2',
@@ -93,27 +93,27 @@ describe('client overlay', () => {
     installConfigFormDevtools()
 
     window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
-      embedded: false,
+      kind: 'field',
       field: 'zeta',
       formId: 'form-1',
       id: 'root-zeta',
     }, null)
     window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
-      embedded: true,
+      kind: 'field',
       field: 'z-child',
       formId: 'form-1',
       id: 'child-z',
       parentId: 'root-zeta',
     }, null)
     window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
-      embedded: true,
+      kind: 'field',
       field: 'a-child',
       formId: 'form-1',
       id: 'child-a',
       parentId: 'root-zeta',
     }, null)
     window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
-      embedded: false,
+      kind: 'field',
       field: 'alpha',
       formId: 'form-1',
       id: 'root-alpha',
@@ -280,7 +280,7 @@ describe('client overlay', () => {
     installConfigFormDevtools()
 
     window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
-      embedded: false,
+      kind: 'field',
       field: 'email',
       formId: 'form-1',
       id: 'node-1',
@@ -306,7 +306,7 @@ describe('client overlay', () => {
     installConfigFormDevtools()
 
     window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
-      embedded: false,
+      kind: 'field',
       field: 'email',
       formId: 'form-1',
       id: 'node-1',
@@ -356,7 +356,7 @@ describe('client overlay', () => {
     installConfigFormDevtools()
 
     window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
-      embedded: false,
+      kind: 'field',
       field: 'role',
       formId: 'form-1',
       id: 'node-1',
@@ -367,14 +367,14 @@ describe('client overlay', () => {
       timestamp: 1,
     })
     window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
-      embedded: false,
+      kind: 'field',
       field: 'role',
       formId: 'form-1',
       id: 'node-1',
       label: '权限',
     }, null)
     window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.updateField({
-      embedded: false,
+      kind: 'field',
       field: 'role',
       formId: 'form-1',
       id: 'node-1',
@@ -391,7 +391,7 @@ describe('client overlay', () => {
     expect(document.body.textContent).not.toContain('角色')
 
     window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.updateField({
-      embedded: false,
+      kind: 'field',
       field: 'created-by-update',
       formId: 'form-1',
       id: 'node-2',

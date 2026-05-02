@@ -10,7 +10,7 @@
 - 默认值来自字段 `defaultValue`，外部 `modelValue` 会覆盖默认值。
 - `validator(value, values)` 可用于跨字段或异步校验。
 - 隐藏和禁用字段默认不进入 submit 输出，可用 `submitWhenHidden` / `submitWhenDisabled` 开启。
-- `slots` 可传文本、渲染函数、递归字段配置或配置数组；对象配置会先经过 runtime 规范化，再由 `FormField` 渲染。
+- `slots` 可传文本、渲染函数、容器组件节点或真实字段节点数组；无 `field` 的节点只渲染组件本体，有 `field` 的节点才绑定表单值和校验。
 - runtime 默认严格处理组件/插件冲突；如果需要覆盖行为，必须显式传入 `conflictStrategy`。
 
 ## 样式命名空间

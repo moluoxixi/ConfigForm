@@ -6,6 +6,43 @@ import { defineField } from '../src/models/field'
 import { createFormRuntime, expr } from '../src/runtime'
 
 describe('useForm', () => {
+  it('collects real fields from nested component containers', async () => {
+    const fields = ref([
+      {
+        component: 'section',
+        slots: {
+          default: [
+            {
+              component: 'article',
+              slots: {
+                default: [
+                  defineField({
+                    component: 'input',
+                    defaultValue: '',
+                    field: 'username',
+                    validator: value => value ? undefined : '用户名必填',
+                  }),
+                ],
+              },
+            },
+          ],
+        },
+      },
+    ])
+    const onSubmit = vi.fn()
+
+    const form = useForm({ fields, onSubmit })
+
+    expect(form.getValues()).toEqual({ username: '' })
+    await expect(form.submit()).resolves.toBe(false)
+    expect(form.errors.value.username).toEqual(['用户名必填'])
+
+    form.setValue('username', 'Ada')
+
+    await expect(form.submit()).resolves.toBe(true)
+    expect(onSubmit).toHaveBeenCalledWith({ username: 'Ada' })
+  })
+
   it('initializes from model values and reacts to external replacements', async () => {
     const fields = ref([
       defineField({ field: 'name', component: 'input', defaultValue: 'default name' }),

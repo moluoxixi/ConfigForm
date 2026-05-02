@@ -1,9 +1,11 @@
 import type {
   FieldConfig,
   FormErrors,
+  FormNodeConfig,
   FormValues,
   NormalizedFieldConfig,
   ResolvedField,
+  ResolvedFormNode,
   RuntimeToken,
   SlotContent,
 } from '@/types'
@@ -104,6 +106,7 @@ export interface FormRuntime {
   emitDebug: (event: FormRuntimeDebugEvent) => void
   resolveValue: <TValue = unknown>(value: TValue, context: FormRuntimeContext, path?: string) => unknown
   resolveSlot: (slot: SlotContent, context: FormRuntimeContext, path?: string) => SlotContent
+  resolveNode: (node: FormNodeConfig, context: FormRuntimeContext, path?: string) => ResolvedFormNode
   resolveField: (field: FieldConfig, context: FormRuntimeContext) => ResolvedField
   resolveVisible: (field: FieldConfig | NormalizedFieldConfig, context: FormRuntimeContext) => boolean
   resolveDisabled: (field: FieldConfig | NormalizedFieldConfig, context: FormRuntimeContext) => boolean

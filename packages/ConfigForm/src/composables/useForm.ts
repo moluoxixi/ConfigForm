@@ -1,13 +1,14 @@
 import type { MaybeRef, Ref } from 'vue'
 import type { FormRuntimeInput } from '@/runtime'
-import type { FieldConfig, FieldKey, FormErrors, FormValues, ValidateTrigger } from '@/types'
+import type { FieldKey, FormErrors, FormNodeConfig, FormValues, ValidateTrigger } from '@/types'
 import { computed, reactive, ref, toRaw, toValue, watch } from 'vue'
 import { normalizeFormRuntime } from '@/composables/useRuntime'
 import { applyFieldTransform, normalizeField, shouldValidateOn } from '@/models/field'
+import { collectFieldConfigs } from '@/models/node'
 import { validateFieldRules, validateForm } from '@/utils/validate'
 
 export interface UseFormOptions<T extends object = FormValues> {
-  fields: Ref<FieldConfig[]>
+  fields: Ref<FormNodeConfig[]>
   initialValues?: Ref<Partial<T> | undefined>
   runtime?: MaybeRef<FormRuntimeInput | undefined>
   onSubmit?: (values: T) => void
@@ -22,6 +23,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
   const valueStore = values as FormValues
   const errors = ref<FormErrors>({})
   const runtimeRef = computed(() => normalizeFormRuntime(toValue(options.runtime)))
+  const fieldConfigs = computed(() => collectFieldConfigs(fields.value))
 
   // ── 工具 ─────────────────────────────────────────────────────
 
@@ -53,7 +55,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
 
   function initValues(source: FormValues = (initialValues?.value ?? {}) as FormValues) {
     const next: FormValues = { ...source }
-    for (const config of fields.value) {
+    for (const config of fieldConfigs.value) {
       const field = normalizeField(config)
       if (!Object.hasOwn(next, field.field))
         next[field.field] = field.defaultValue !== undefined ? field.defaultValue : undefined
@@ -79,13 +81,13 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
   const visibilityMap = computed<Record<string, boolean>>(() => {
     const snap = { ...values }
     const context = createRuntimeContext(snap)
-    return Object.fromEntries(fields.value.map(f => [f.field, runtimeRef.value.resolveVisible(f, context)]))
+    return Object.fromEntries(fieldConfigs.value.map(f => [f.field, runtimeRef.value.resolveVisible(f, context)]))
   })
 
   const disabledMap = computed<Record<string, boolean>>(() => {
     const snap = { ...values }
     const context = createRuntimeContext(snap)
-    return Object.fromEntries(fields.value.map(f => [f.field, runtimeRef.value.resolveDisabled(f, context)]))
+    return Object.fromEntries(fieldConfigs.value.map(f => [f.field, runtimeRef.value.resolveDisabled(f, context)]))
   })
 
   // ── 值操作 ───────────────────────────────────────────────────
@@ -123,7 +125,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
   // ── 校验 ─────────────────────────────────────────────────────
 
   async function validateSingleField(fieldName: string, trigger: ValidateTrigger): Promise<boolean> {
-    const config = fields.value.find(f => f.field === fieldName)
+    const config = fieldConfigs.value.find(f => f.field === fieldName)
     const field = config ? normalizeField(config) : undefined
     if (!field?.schema && !field?.validator)
       return true
@@ -157,7 +159,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
   }
 
   async function validate(): Promise<boolean> {
-    const formErrors = await validateForm({ ...values }, fields.value, 'submit', runtimeRef.value)
+    const formErrors = await validateForm({ ...values }, fieldConfigs.value, 'submit', runtimeRef.value)
     errors.value = formErrors
     if (Object.keys(formErrors).length > 0) {
       onError?.(formErrors)
@@ -175,7 +177,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     const snap = { ...values }
     const context = createRuntimeContext(snap)
     const submitValues: FormValues = {}
-    for (const config of fields.value) {
+    for (const config of fieldConfigs.value) {
       const field = normalizeField(config)
       if (!runtimeRef.value.resolveVisible(field, context) && !field.submitWhenHidden)
         continue
