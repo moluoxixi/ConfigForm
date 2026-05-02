@@ -58,8 +58,11 @@ const SlotHost = markRaw(defineComponent({
 
 const SlotLeaf = markRaw(defineComponent({
   name: 'SlotLeaf',
-  setup(_props, { attrs, slots }) {
-    return () => h('span', attrs, slots.default?.())
+  props: {
+    role: String,
+  },
+  setup(props, { slots }) {
+    return () => h('span', { 'data-role': props.role }, slots.default?.())
   },
 }))
 
@@ -229,18 +232,29 @@ describe('form field component', () => {
     expect(wrapper.emitted('blur')).toEqual([['status']])
   })
 
-  it('renders object slot configs recursively including scoped slot functions', () => {
+  it('renders defineField slot configs recursively including scoped slot functions', () => {
     const field = new FieldDef({
       component: SlotHost,
       field: 'choice',
       slots: {
         default: [
-          { component: SlotLeaf, props: { 'data-role': 'first' }, slots: { default: '第一个选项' } },
-          { component: SlotLeaf, props: { 'data-role': 'second' }, slots: { default: '第二个选项' } },
+          defineField({
+            field: 'choice-first',
+            component: SlotLeaf,
+            props: { role: 'first' },
+            slots: { default: '第一个选项' },
+          }),
+          defineField({
+            field: 'choice-second',
+            component: SlotLeaf,
+            props: { role: 'second' },
+            slots: { default: '第二个选项' },
+          }),
         ],
-        suffix: scope => ({
+        suffix: scope => defineField({
+          field: 'choice-suffix',
           component: SlotLeaf,
-          props: { 'data-role': 'suffix' },
+          props: { role: 'suffix' },
           slots: { default: String(scope?.label) },
         }),
         footer: '纯文本插槽',
@@ -269,7 +283,12 @@ describe('form field component', () => {
       field: 'embedded-choice',
       slots: {
         default: [
-          { component: SlotLeaf, props: { 'data-role': 'embedded' }, slots: { default: '嵌入选项' } },
+          defineField({
+            field: 'embedded-option',
+            component: SlotLeaf,
+            props: { role: 'embedded' },
+            slots: { default: '嵌入选项' },
+          }),
         ],
       },
     })

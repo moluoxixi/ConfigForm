@@ -151,9 +151,9 @@ defineUserField({
 | `transform` | `(value, values) => unknown` | - | submit 前转换值 |
 | `submitWhenHidden` | `boolean` | `false` | 隐藏字段是否仍提交 |
 | `submitWhenDisabled` | `boolean` | `false` | 禁用字段是否仍提交 |
-| `slots` | `Record<string, SlotContent>` | - | 传给组件的插槽；支持文本、渲染函数、递归字段配置或配置数组 |
+| `slots` | `Record<string, SlotContent>` | - | 传给组件的插槽；支持文本、渲染函数、`defineField` 递归字段或配置数组 |
 
-对象形式的 slot 会继续交给 `FormField` 递归渲染，适合配置 Radio / Checkbox 这类子组件：
+`defineField` 返回的 slot 会继续交给 `FormField` 递归渲染，适合配置 Radio / Checkbox 这类子组件，并让子组件配置获得 props 和字段值推导：
 
 ```ts
 defineField({
@@ -162,8 +162,8 @@ defineField({
   component: RadioGroup,
   slots: {
     default: [
-      { component: Radio, props: { value: 'male' }, slots: { default: '男' } },
-      { component: Radio, props: { value: 'female' }, slots: { default: '女' } },
+      defineField({ field: 'gender-male', component: Radio, props: { value: 'male' }, slots: { default: '男' } }),
+      defineField({ field: 'gender-female', component: Radio, props: { value: 'female' }, slots: { default: '女' } }),
     ],
   },
 })

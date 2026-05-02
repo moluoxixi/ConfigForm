@@ -94,4 +94,24 @@ describe('defineField typing', () => {
 
     expect(field.validateOn).toEqual(['submit', 'blur'])
   })
+
+  it('infers slot field configs at the defineField call site', () => {
+    defineField({
+      field: 'host',
+      component: 'div',
+      slots: {
+        default: [
+          defineField({
+            field: 'host-option',
+            component: 'input',
+            defaultValue: 'option',
+            validator: (value) => {
+              expectTypeOf(value).toEqualTypeOf<string>()
+              return undefined
+            },
+          }),
+        ],
+      },
+    })
+  })
 })
