@@ -1,6 +1,15 @@
-import type { DefinedFormNodeConfig, FieldConfig, FormNodeConfig, SlotContent } from '@/types'
+import type {
+  DefinedFormNodeConfig,
+  FieldConfig,
+  FormNodeConfig,
+  ResolvedField,
+  ResolvedFormNode,
+  SlotContent,
+} from '@/types'
 import { isVNode } from 'vue'
 import { CONFIG_FORM_DEFINED_NODE } from '@/types'
+
+const CONFIG_FORM_RESOLVED_NODE = Symbol.for('moluoxixi.config-form.resolved-node')
 
 const FIELD_ONLY_NODE_KEYS = [
   'blurTrigger',
@@ -56,6 +65,34 @@ export function isDefinedFormNodeConfig(value: unknown): value is DefinedFormNod
     isFormNodeConfig(value)
     && (value as { [CONFIG_FORM_DEFINED_NODE]?: unknown })[CONFIG_FORM_DEFINED_NODE] === true,
   )
+}
+
+export function markResolvedFormNodeConfig<TConfig extends ResolvedFormNode>(
+  value: TConfig,
+): TConfig {
+  const defined = markDefinedFormNodeConfig(value as TConfig & FormNodeConfig)
+
+  if ((defined as unknown as Record<symbol, unknown>)[CONFIG_FORM_RESOLVED_NODE] !== true) {
+    Object.defineProperty(defined, CONFIG_FORM_RESOLVED_NODE, {
+      configurable: false,
+      enumerable: false,
+      value: true,
+      writable: false,
+    })
+  }
+
+  return defined as TConfig
+}
+
+export function isResolvedFormNodeConfig(value: unknown): value is ResolvedFormNode {
+  return Boolean(
+    isFormNodeConfig(value)
+    && (value as unknown as Record<symbol, unknown>)[CONFIG_FORM_RESOLVED_NODE] === true,
+  )
+}
+
+export function isResolvedFieldConfig(value: unknown): value is ResolvedField {
+  return isResolvedFormNodeConfig(value) && isFieldConfig(value)
 }
 
 export function assertComponentNodeConfig(value: FormNodeConfig, path = 'component node') {

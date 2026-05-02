@@ -24,6 +24,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
   const errors = ref<FormErrors>({})
   const runtimeRef = computed(() => normalizeFormRuntime(toValue(options.runtime)))
   const fieldConfigs = computed(() => collectFieldConfigs(fields.value))
+  const fieldTopologyKey = computed(() => fieldConfigs.value.map(field => field.field).join('\0'))
 
   // 先同步校验初始字段拓扑，避免 Vue watcher 注册后才暴露重复 field 等配置错误。
   collectFieldConfigs(fields.value)
@@ -56,20 +57,39 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     }
   }
 
-  function initValues(source: FormValues = (initialValues?.value ?? {}) as FormValues) {
-    const next: FormValues = { ...source }
-    for (const config of fieldConfigs.value) {
-      const field = normalizeField(config)
+  function createValuesWithDefaults(source: FormValues, pruneToFields: boolean): FormValues {
+    const normalizedFields = fieldConfigs.value.map(config => normalizeField(config))
+    const fieldNames = new Set(normalizedFields.map(field => field.field))
+    const next: FormValues = pruneToFields
+      ? Object.fromEntries(Object.entries(source).filter(([key]) => fieldNames.has(key)))
+      : { ...source }
+
+    for (const field of normalizedFields) {
       if (!Object.hasOwn(next, field.field))
         next[field.field] = field.defaultValue !== undefined ? field.defaultValue : undefined
     }
+
+    return next
+  }
+
+  function initValues(source: FormValues = (initialValues?.value ?? {}) as FormValues, pruneToFields = false) {
+    const next = createValuesWithDefaults(source, pruneToFields)
     syncValues(next)
   }
 
+  function syncFieldTopology() {
+    initValues({ ...toRaw(values) }, true)
+  }
+
   watch(
-    [fields, () => initialValues?.value],
-    () => initValues(),
+    () => initialValues?.value,
+    source => initValues((source ?? {}) as FormValues),
     { immediate: true, deep: true },
+  )
+
+  watch(
+    fieldTopologyKey,
+    () => syncFieldTopology(),
   )
 
   // ── 动态状态 ─────────────────────────────────────────────────

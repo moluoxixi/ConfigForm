@@ -1,7 +1,7 @@
 import type { FieldConfig } from '../src/types'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { z } from 'zod'
-import { defineField } from '../src/models/field'
+import { defineField, defineFieldFor } from '../src/models/field'
 import { createRuntimeToken } from '../src/runtime'
 
 function textToken(key: string) {
@@ -207,6 +207,56 @@ describe('defineField typing', () => {
           }),
         ],
       },
+    })
+  })
+
+  it('binds field names and callbacks to a form model when using defineFieldFor', () => {
+    interface LoginForm {
+      age: number
+      remember: boolean
+      username: string
+    }
+
+    const field = defineFieldFor<LoginForm>()
+
+    field({
+      field: 'username',
+      component: 'input',
+      defaultValue: '',
+      validator: (value, values) => {
+        expectTypeOf(value).toEqualTypeOf<string>()
+        expectTypeOf(values.age).toEqualTypeOf<number>()
+        expectTypeOf(values.remember).toEqualTypeOf<boolean>()
+        return value === values.username ? undefined : '用户名不一致'
+      },
+      transform: (value, values) => {
+        expectTypeOf(value).toEqualTypeOf<string>()
+        expectTypeOf(values.username).toEqualTypeOf<string>()
+        return value.trim()
+      },
+    })
+
+    field({
+      field: 'age',
+      component: 'input',
+      defaultValue: 18,
+      validator: (value) => {
+        expectTypeOf(value).toEqualTypeOf<number>()
+        return value > 0 ? undefined : '年龄必须大于 0'
+      },
+    })
+
+    field({
+      // @ts-expect-error field must be a key of LoginForm
+      field: 'missing',
+      component: 'input',
+    })
+
+    // @ts-expect-error defaultValue must match LoginForm.age
+    field({
+      field: 'age',
+      component: 'input',
+      defaultValue: '18',
     })
   })
 })

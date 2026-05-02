@@ -5,6 +5,7 @@ import type {
   DefinedFormNodeConfig,
   FieldCondition,
   FieldConfig,
+  FieldKey,
   FieldValidator,
   FormValues,
   NormalizedFieldConfig,
@@ -49,6 +50,27 @@ type FormNodeInput = FieldConfig | ComponentNodeConfig
 
 type DefinedFieldConfig<TConfig> = TConfig & FieldConfig & DefinedFormNodeBrand
 type DefinedComponentNodeConfig<TConfig> = TConfig & ComponentNodeConfig & DefinedFormNodeBrand
+
+type ModelFieldConfigCore<
+  TValues extends object,
+  TField extends FieldKey<TValues>,
+> = FieldConfigBase<TValues, TValues[TField], TField> & {
+  schema?: ZodTypeAny
+  defaultValue?: TValues[TField]
+}
+
+export interface DefineFieldFor<TValues extends object> {
+  <
+    C = unknown,
+    TField extends FieldKey<TValues> = FieldKey<TValues>,
+  >(
+    config: ModelFieldConfigCore<TValues, TField> & ComponentFieldPart<C>,
+  ): DefinedFieldConfig<ModelFieldConfigCore<TValues, TField> & ComponentFieldPart<C>>
+
+  <C = unknown>(
+    config: ComponentNodeConfigCore<C>,
+  ): DefinedComponentNodeConfig<ComponentNodeConfigCore<C>>
+}
 
 // ===== 字段规范化 =====
 
@@ -104,6 +126,7 @@ interface FieldConfigBase<
   visible?: FieldCondition<TValues>
   disabled?: FieldCondition<TValues>
   transform?: (value: TValue, allValues: TValues) => unknown
+  getValueFromEvent?: (...args: unknown[]) => TValue
   submitWhenHidden?: boolean
   submitWhenDisabled?: boolean
   slots?: Record<string, SlotContent>
@@ -183,4 +206,8 @@ export function defineField<C = unknown>(
 // 实现
 export function defineField(config: FormNodeInput): DefinedFormNodeConfig {
   return markDefinedFormNodeConfig({ ...config })
+}
+
+export function defineFieldFor<TValues extends object>(): DefineFieldFor<TValues> {
+  return defineField as DefineFieldFor<TValues>
 }

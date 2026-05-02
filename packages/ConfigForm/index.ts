@@ -6,10 +6,12 @@ export { default as ConfigForm } from './src/index.vue'
 export {
   applyFieldTransform,
   defineField,
+  defineFieldFor,
   normalizeField,
   normalizeValidateOn,
   shouldValidateOn,
 } from './src/models/field'
+export type { DefineFieldFor } from './src/models/field'
 export {
   assertComponentNodeConfig,
   collectFieldConfigs,

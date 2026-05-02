@@ -30,7 +30,9 @@ import {
   assertDefinedSlotNodeConfig,
   isFieldConfig,
   isFormNodeConfig,
-  markDefinedFormNodeConfig,
+  isResolvedFieldConfig,
+  isResolvedFormNodeConfig,
+  markResolvedFormNodeConfig,
 } from '@/models/node'
 
 export function createRuntimeToken<TValue = unknown, TType extends string = string>(
@@ -336,7 +338,7 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
   ): ResolvedComponentNode {
     assertComponentNodeConfig(config, path)
 
-    return markDefinedFormNodeConfig({
+    return markResolvedFormNodeConfig({
       ...config,
       component: resolveComponent(config.component),
       props: resolveRecord(config.props ?? {}, context, `${path}.props`),
@@ -352,6 +354,9 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
   }
 
   function resolveNode(node: FormNodeConfig, context: FormRuntimeContext, path = 'node'): ResolvedFormNode {
+    if (isResolvedFormNodeConfig(node))
+      return node
+
     if (isFieldConfig(node))
       return resolveField(node, context)
 
@@ -377,6 +382,9 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
       return slot.map((item, index) => resolveSlotBase(item as SlotContent, context, `${path}.${index}`)) as SlotContent
 
     if (isFormNodeConfig(slot)) {
+      if (isResolvedFormNodeConfig(slot))
+        return slot
+
       assertDefinedSlotNodeConfig(slot, path)
       return resolveNode(slot, context, path) as SlotContent
     }
@@ -403,7 +411,7 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
   }
 
   function resolveFieldBase(config: NormalizedFieldConfig, context: FormRuntimeContext): ResolvedField {
-    return markDefinedFormNodeConfig({
+    return markResolvedFormNodeConfig({
       ...config,
       component: resolveComponent(config.component),
       label: config.label == null
@@ -442,6 +450,9 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
   }
 
   function resolveField(field: FieldConfig, context: FormRuntimeContext): ResolvedField {
+    if (isResolvedFieldConfig(field))
+      return field
+
     const prepared = prepareField(field, context)
     const fieldContext = { ...context, field: prepared }
     let config = resolveFieldBase(prepared, fieldContext)

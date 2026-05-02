@@ -1,3 +1,4 @@
+import type { FormNodeConfig } from '../src/types'
 import { describe, expect, it, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
 import { z } from 'zod'
@@ -7,7 +8,7 @@ import { createFormRuntime, expr } from '../src/runtime'
 
 describe('useForm', () => {
   it('throws when multiple real fields use the same field key', () => {
-    const fields = ref([
+    const fields = ref<FormNodeConfig[]>([
       defineField({ component: 'input', field: 'duplicate' }),
       defineField({ component: 'input', field: 'duplicate' }),
     ])
@@ -16,7 +17,7 @@ describe('useForm', () => {
   })
 
   it('collects real fields from nested component containers', async () => {
-    const fields = ref([
+    const fields = ref<FormNodeConfig[]>([
       {
         component: 'section',
         slots: {
@@ -72,6 +73,40 @@ describe('useForm', () => {
     await nextTick()
 
     expect(form.getValues()).toEqual({ name: 'default name', age: 18 })
+  })
+
+  it('preserves edited values when field metadata changes or fields are appended', async () => {
+    const fields = ref<FormNodeConfig[]>([
+      defineField({
+        field: 'name',
+        component: 'input',
+        defaultValue: 'default name',
+        props: { placeholder: 'initial' },
+      }),
+    ])
+
+    const form = useForm({ fields })
+
+    form.setValue('name', 'Grace')
+    fields.value = [
+      defineField({
+        field: 'name',
+        component: 'input',
+        defaultValue: 'changed default',
+        props: { placeholder: 'changed' },
+      }),
+      defineField({
+        field: 'age',
+        component: 'input',
+        defaultValue: 37,
+      }),
+    ]
+    await nextTick()
+
+    expect(form.getValues()).toEqual({
+      age: 37,
+      name: 'Grace',
+    })
   })
 
   it('supports validators that can inspect all field values', async () => {

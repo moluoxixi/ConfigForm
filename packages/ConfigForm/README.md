@@ -23,7 +23,7 @@ pnpm add @moluoxixi/config-form zod
 <script setup lang="ts">
 import { ref } from 'vue'
 import { z } from 'zod'
-import { ConfigForm, defineField } from '@moluoxixi/config-form'
+import { ConfigForm, defineFieldFor } from '@moluoxixi/config-form'
 import MyInput from './MyInput.vue'
 
 interface LoginForm {
@@ -34,9 +34,10 @@ interface LoginForm {
 
 const formRef = ref()
 const model = ref<LoginForm>({ username: 'Ada', password: '', confirm: '' })
+const field = defineFieldFor<LoginForm>()
 
 const fields = [
-  defineField({
+  field({
     field: 'username',
     label: '用户名',
     schema: z.string().min(2, '至少 2 个字符'),
@@ -45,7 +46,7 @@ const fields = [
     props: { placeholder: '请输入' },
     validateOn: ['blur', 'change'],
   }),
-  defineField({
+  field({
     field: 'password',
     label: '密码',
     schema: z.string().min(6, '至少 6 个字符'),
@@ -53,7 +54,7 @@ const fields = [
     component: MyInput,
     props: { type: 'password' },
   }),
-  defineField({
+  field({
     field: 'confirm',
     label: '确认密码',
     component: MyInput,
@@ -85,7 +86,7 @@ function onSubmit(values: LoginForm) {
 |------|------|---------|-------------|
 | `namespace` | `string` | `'cf'` | 运行时 CSS 类名前缀 |
 | `inline` | `boolean` | `false` | 行内布局模式 |
-| `fields` | `FieldConfig[]` | - | 字段配置数组；`defineField` 返回的就是纯配置 |
+| `fields` | `FormNodeConfig[]` | - | 字段/容器配置数组；`defineField` / `defineFieldFor<T>()` 返回的都是纯配置 |
 | `labelWidth` | `string \| number` | - | 标签宽度，number 自动转 px |
 | `modelValue` | `Record<string, unknown>` | - | 表单值，支持 `v-model`；传泛型后为对应表单类型 |
 | `runtime` | `FormRuntime \| FormRuntimeOptions` | - | DIY 运行时，用于组件注册、runtime token、表达式、插件扩展和调试 |
@@ -116,6 +117,27 @@ function onSubmit(values: LoginForm) {
 
 `defineField` 会优先从 `schema` 和 `defaultValue` 推导当前字段值类型；没有可推导来源时，字段值默认为 `unknown`。它只返回纯 `FieldConfig`，所有默认值、显隐、禁用、组件注册和 token 解析都由 runtime 管线处理。字段配置彼此独立，`validator` 的第二个参数是当前表单 values 快照，可用于必要的跨字段校验。
 
+如果需要把字段配置和业务模型绑定，优先使用 `defineFieldFor<T>()`。它会把 `field` 限制为 `T` 的字符串 key，并让 `defaultValue`、`validator`、`transform`、`visible`、`disabled` 中的字段值和全量 values 使用同一个模型类型：
+
+```ts
+interface LoginForm {
+  username: string
+  remember: boolean
+}
+
+const field = defineFieldFor<LoginForm>()
+
+const fields = [
+  field({
+    field: 'username',
+    component: MyInput,
+    defaultValue: '',
+    validator: (value, values) =>
+      values.remember && value.length === 0 ? '请输入用户名' : undefined,
+  }),
+]
+```
+
 同一个表单内所有真实字段的 `field` 必须唯一；重复字段名会直接抛错，避免值、校验错误、显隐和禁用状态被覆盖。
 
 | Key | Type | Default | Description |
@@ -130,6 +152,7 @@ function onSubmit(values: LoginForm) {
 | `defaultValue` | `unknown` | `undefined` | 默认值；会参与 `defineField` 字段值推导 |
 | `valueProp` | `string` | `'modelValue'` | 注入组件的值 prop |
 | `trigger` | `string` | `'update:modelValue'` | 接收组件值变化的事件名 |
+| `getValueFromEvent` | `(...args) => unknown` | 第一个事件参数 | 从组件事件参数中提取字段值；原生 `input` 可从 `event.target.value` 取值 |
 | `blurTrigger` | `string` | `'blur'` | blur 校验事件名 |
 | `validateOn` | `'submit' \| 'blur' \| 'change' \| array` | `'submit'` | 校验触发时机，始终包含 submit |
 | `visible` | `boolean \| ExpressionToken<boolean> \| (values) => boolean` | - | 动态显隐 |

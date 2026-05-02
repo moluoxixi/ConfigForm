@@ -258,6 +258,44 @@ describe('form runtime', () => {
     expect(debugEvents).toContain('extension:resolved')
   })
 
+  it('does not re-run field extensions for already resolved slot nodes', () => {
+    const resolvedFields: string[] = []
+    const runtime = createFormRuntime({
+      extensions: [
+        {
+          name: 'count-resolve-field',
+          resolveField: (field) => {
+            resolvedFields.push(field.field)
+            return field
+          },
+        },
+      ],
+    })
+    const field = defineField({
+      component: 'section',
+      field: 'host',
+      slots: {
+        default: defineField({
+          component: 'input',
+          field: 'child',
+        }),
+      },
+    })
+    const ctx = runtime.createContext({ errors: {}, values: {} })
+
+    const resolved = runtime.resolveField(field, ctx)
+
+    expect(resolvedFields).toEqual(['child', 'host'])
+
+    resolvedFields.length = 0
+    expect(runtime.resolveField(resolved, ctx)).toBe(resolved)
+    expect(resolvedFields).toEqual([])
+
+    resolvedFields.length = 0
+    expect(runtime.resolveSlot(resolved.slots?.default, ctx)).toBe(resolved.slots?.default)
+    expect(resolvedFields).toEqual([])
+  })
+
   it('resolves component container nodes without manufacturing field bindings', () => {
     const runtime = createFormRuntime({
       components: {

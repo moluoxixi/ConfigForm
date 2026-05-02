@@ -76,7 +76,7 @@ const componentAttrs = computed(() => ({
 
 const componentListeners = computed<Record<string, (...args: unknown[]) => void>>(() => ({
   [props.field.blurTrigger]: () => onBlur(),
-  [props.field.trigger]: (value: unknown) => onChange(value),
+  [props.field.trigger]: (...args: unknown[]) => onChange(...args),
 }))
 
 useFormFieldDevtools({
@@ -85,7 +85,11 @@ useFormFieldDevtools({
   slotName: slotNameRef,
 })
 
-function onChange(value: unknown) {
+function onChange(...args: unknown[]) {
+  const value = props.field.getValueFromEvent
+    ? props.field.getValueFromEvent(...args)
+    : args[0]
+
   emit('update:modelValue', value)
   emit('change', props.field.field)
 }

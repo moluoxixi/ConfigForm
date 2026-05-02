@@ -77,6 +77,8 @@ export interface FieldConfig extends ComponentNodeConfig {
   valueProp?: string
   /** 接收组件值的事件名，同时也作为 change 校验的触发事件，默认 'update:modelValue' */
   trigger?: string
+  /** 从组件事件参数中提取字段值，默认取第一个参数 */
+  getValueFromEvent?: (...args: unknown[]) => unknown
   /** 触发 blur 校验的事件名，默认 'blur' */
   blurTrigger?: string
   validateOn?: ValidateTrigger | ValidateTrigger[]

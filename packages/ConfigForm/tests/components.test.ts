@@ -682,6 +682,28 @@ describe('form field component', () => {
     expect(wrapper.emitted('blur')).toEqual([['status']])
   })
 
+  it('extracts component values from custom event payloads', async () => {
+    const field = defineField({
+      component: 'input',
+      field: 'nativeInput',
+      getValueFromEvent: event => ((event as Event).target as HTMLInputElement).value,
+      trigger: 'input',
+    })
+
+    const wrapper = mount(FormField, {
+      props: {
+        field: resolveTestField(field),
+        modelValue: '',
+        visible: true,
+      },
+    })
+
+    await wrapper.get('input').setValue('Ada')
+
+    expect(wrapper.emitted('update:modelValue')).toEqual([['Ada']])
+    expect(wrapper.emitted('change')).toEqual([['nativeInput']])
+  })
+
   it('renders field slot configs recursively including scoped slot functions', () => {
     const field = defineField({
       component: SlotHost,
