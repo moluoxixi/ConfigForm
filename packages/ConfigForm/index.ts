@@ -19,15 +19,12 @@ export {
 export {
   createFormRuntime,
   createRuntimeToken,
-  expr,
-  isExpressionToken,
   isFormRuntime,
   isRuntimeToken,
 } from './src/runtime'
 export type {
   ComponentRegistry,
   CreateRuntimeContextInput,
-  FormExpressionAdapter,
   FormFieldTransform,
   FormRuntime,
   FormRuntimeContext,
@@ -45,8 +42,6 @@ export type {
   ConfigFormEmits,
   ConfigFormExpose,
   ConfigFormProps,
-  ExpressionInput,
-  ExpressionToken,
   FieldCondition,
   FieldConfig,
   FieldKey,

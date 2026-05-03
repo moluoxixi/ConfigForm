@@ -13,8 +13,6 @@ import type {
   FormRuntimeTransformContextInput,
 } from './types'
 import type {
-  ExpressionInput,
-  ExpressionToken,
   FieldCondition,
   FieldConfig,
   FormNodeConfig,
@@ -69,28 +67,12 @@ export function createRuntimeToken<TValue = unknown, TType extends string = stri
   } as RuntimeToken<TValue, TType> & Record<string, unknown>
 }
 
-/** 创建内置表达式 token，用于 label、props、visible、disabled 等运行时表达式场景。 */
-export function expr<TValue = unknown>(expression: ExpressionInput, fallback?: TValue): ExpressionToken<TValue> {
-  return createRuntimeToken<TValue, 'expr', { expression: ExpressionInput, fallback?: TValue }>('expr', {
-    expression,
-    fallback,
-  })
-}
-
 /** 判断未知值是否是 runtime token。 */
 export function isRuntimeToken<TValue = unknown>(value: unknown): value is RuntimeToken<TValue> {
   return Boolean(
     value
     && typeof value === 'object'
     && typeof (value as { __configFormToken?: unknown }).__configFormToken === 'string',
-  )
-}
-
-/** 判断未知值是否是内置表达式 token。 */
-export function isExpressionToken<TValue = unknown>(value: unknown): value is ExpressionToken<TValue> {
-  return Boolean(
-    isRuntimeToken(value)
-    && (value as { __configFormToken?: unknown }).__configFormToken === 'expr',
   )
 }
 
@@ -186,82 +168,6 @@ function orderHooks<THandler extends (...args: never[]) => unknown>(
   return [...pre, ...normal, ...post]
 }
 
-function getByPath(source: unknown, path: string): unknown {
-  if (!path)
-    return source
-
-  return path.split('.').reduce<unknown>((current, segment) => {
-    if (current == null)
-      return undefined
-    if (typeof current !== 'object')
-      return undefined
-    return (current as Record<string, unknown>)[segment]
-  }, source)
-}
-
-function resolvePath(input: { path: string, fallback?: unknown }, context: FormRuntimeContext): unknown {
-  const root = {
-    errors: context.errors,
-    field: context.field,
-    slotName: context.slotName,
-    slotScope: context.slotScope,
-    values: context.values,
-  }
-  const firstSegment = input.path.split('.')[0]
-  const value = firstSegment && firstSegment in root
-    ? getByPath(root, input.path)
-    : getByPath(context.values, input.path)
-  return value === undefined ? input.fallback : value
-}
-
-function defaultEvaluateExpression(input: ExpressionInput, context: FormRuntimeContext): unknown {
-  if (input == null || typeof input !== 'object')
-    return input
-
-  if ('path' in input)
-    return resolvePath(input, context)
-
-  if ('op' in input) {
-    switch (input.op) {
-      case 'and':
-        return input.items.every(item => Boolean(defaultEvaluateExpression(item, context)))
-      case 'or':
-        return input.items.some(item => Boolean(defaultEvaluateExpression(item, context)))
-      case 'not':
-        return !defaultEvaluateExpression(input.value, context)
-      case 'includes': {
-        const source = defaultEvaluateExpression(input.source, context)
-        const value = defaultEvaluateExpression(input.value, context)
-        return typeof source === 'string' || Array.isArray(source)
-          ? source.includes(value as never)
-          : false
-      }
-      case 'eq':
-      case 'neq':
-      case 'gt':
-      case 'gte':
-      case 'lt':
-      case 'lte': {
-        const left = defaultEvaluateExpression(input.left, context)
-        const right = defaultEvaluateExpression(input.right, context)
-        if (input.op === 'eq')
-          return left === right
-        if (input.op === 'neq')
-          return left !== right
-        if (input.op === 'gt')
-          return Number(left) > Number(right)
-        if (input.op === 'gte')
-          return Number(left) >= Number(right)
-        if (input.op === 'lt')
-          return Number(left) < Number(right)
-        return Number(left) <= Number(right)
-      }
-    }
-  }
-
-  throw new Error(`Unsupported expression: ${JSON.stringify(input)}`)
-}
-
 function createSlotContext(context: FormRuntimeContext, slotName: string): FormRuntimeContext & { slotName: string } {
   return {
     ...context,
@@ -322,14 +228,6 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
   }
 
   function resolveToken(value: RuntimeToken, context: FormRuntimeContext, path: string): unknown {
-    if (isExpressionToken(value)) {
-      const customResult = options.expression?.evaluate?.(value.expression, context)
-      const result = customResult === undefined
-        ? defaultEvaluateExpression(value.expression, context)
-        : customResult
-      return result === undefined ? value.fallback : result
-    }
-
     const resolver = tokenResolvers[value.__configFormToken]
     if (!resolver)
       throw new Error(`No token resolver registered for token type: ${value.__configFormToken}`)
@@ -518,7 +416,7 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
       return fallback
     if (typeof condition === 'boolean')
       return condition
-    if (isExpressionToken<boolean>(condition))
+    if (isRuntimeToken<boolean>(condition))
       return Boolean(resolveValue(condition, context, 'condition'))
     return condition(context.values)
   }

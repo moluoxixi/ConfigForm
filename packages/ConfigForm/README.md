@@ -88,7 +88,7 @@ function onSubmit(values: LoginForm) {
 | `fields` | `FormNodeConfig[]` | - | 字段/容器配置数组；`defineField` 返回纯配置 |
 | `labelWidth` | `string \| number` | - | 标签宽度，number 自动转 px |
 | `modelValue` | `Record<string, unknown>` | - | 表单值，支持 `v-model`；传泛型后为对应表单类型 |
-| `runtime` | `FormRuntime \| FormRuntimeOptions` | - | DIY 运行时，用于组件注册、runtime token、表达式和插件生命周期 |
+| `runtime` | `FormRuntime \| FormRuntimeOptions` | - | DIY 运行时，用于组件注册、runtime token 和插件生命周期 |
 
 ## Events
 
@@ -152,8 +152,8 @@ const fields = [
 | `getValueFromEvent` | `(...args) => unknown` | 第一个事件参数 | 从组件事件参数中提取字段值；原生 `input` 可从 `event.target.value` 取值 |
 | `blurTrigger` | `string` | `'blur'` | blur 校验事件名 |
 | `validateOn` | `'submit' \| 'blur' \| 'change' \| array` | `'submit'` | 校验触发时机，始终包含 submit |
-| `visible` | `boolean \| ExpressionToken<boolean> \| (values) => boolean` | - | 动态显隐 |
-| `disabled` | `boolean \| ExpressionToken<boolean> \| (values) => boolean` | - | 动态禁用 |
+| `visible` | `boolean \| RuntimeToken<boolean> \| (values) => boolean` | - | 动态显隐 |
+| `disabled` | `boolean \| RuntimeToken<boolean> \| (values) => boolean` | - | 动态禁用 |
 | `transform` | `(value, values) => unknown` | - | submit 前转换值 |
 | `submitWhenHidden` | `boolean` | `false` | 隐藏字段是否仍提交 |
 | `submitWhenDisabled` | `boolean` | `false` | 禁用字段是否仍提交 |
@@ -179,11 +179,11 @@ defineField({
 
 ## DIY Runtime
 
-`runtime` 是表单的开放扩展边界。字段始终是纯配置，runtime 在渲染、校验和提交前规范化字段，并解析组件、表达式、插槽和插件。国际化等官方插件以独立包接入，例如 `@moluoxixi/config-form-plugin-i18n`。
+`runtime` 是表单的开放扩展边界。字段始终是纯配置，runtime 在渲染、校验和提交前规范化字段，并解析组件、runtime token、插槽和插件生命周期。国际化等官方插件以独立包接入，例如 `@moluoxixi/config-form-plugin-i18n`。
 
 ```vue
 <script setup lang="ts">
-import { ConfigForm, createFormRuntime, defineField, expr } from '@moluoxixi/config-form'
+import { ConfigForm, createFormRuntime, defineField } from '@moluoxixi/config-form'
 import { createI18nPlugin, i18n } from '@moluoxixi/config-form-plugin-i18n'
 import MyInput from './MyInput.vue'
 
@@ -222,7 +222,7 @@ const fields = [
       defaultMessage: '用户名',
       params: { required: ' *' },
     }),
-    visible: expr({ left: { path: 'values.role' }, op: 'neq', right: 'guest' }, true),
+    visible: values => values.role !== 'guest',
     props: {
       placeholder: i18n('field.username.placeholder', { defaultMessage: '请输入用户名' }),
     },
@@ -237,7 +237,7 @@ const fields = [
 
 Token：
 
-- `expr(expression, fallback?)`：核心内置表达式 token，用于 `visible`、`disabled`、`props` 等位置的安全表达式解析，不执行字符串代码；非法表达式配置会直接抛错。
+- `createRuntimeToken(type, payload?)`：创建插件自定义 token；core 只负责按 token type 找 resolver，不内置条件语言或业务语义。
 - `i18n(key, options?)`：由 `@moluoxixi/config-form-plugin-i18n` 提供，用于 `label`、`props`、`slots` 等位置的文案 token；`options.defaultMessage` 是显式默认文案，`options.params` 是模板插值参数。
 
 扩展点：
@@ -247,7 +247,6 @@ Token：
 - 字段转换：插件可在 core normalize 后、resolve 前通过 `transformField` 返回新的字段配置；该 hook 不接收 values/errors，渲染、显隐、禁用、校验和提交共享同一条转换结果。
 - 官方插件包：例如 `@moluoxixi/config-form-plugin-i18n`，支持 `locale`、`messages`、`translate`、`missing`，并支持字符串模板 `{name}` 插值；没有命中当前语言文案或默认文案时会抛错，`missing` 仅用于通知/诊断。
 - 注册冲突：重复插件名、重复组件 key 或重复 token resolver 会直接抛错，不提供覆盖或静默降级策略。
-- `expression.evaluate`：接入自定义表达式引擎；返回 `undefined` 表示未处理，由内置表达式解析器继续解析。
 
 ## 样式
 

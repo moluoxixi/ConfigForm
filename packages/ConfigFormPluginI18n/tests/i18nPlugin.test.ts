@@ -1,6 +1,15 @@
-import { createFormRuntime, defineField, expr } from '@moluoxixi/config-form'
+import type { RuntimeToken } from '@moluoxixi/config-form'
+import { createFormRuntime, createRuntimeToken, defineField } from '@moluoxixi/config-form'
 import { describe, expect, it } from 'vitest'
 import { createI18nPlugin, i18n } from '../src'
+
+interface FormValueToken<TValue = unknown> extends RuntimeToken<TValue, 'form-value'> {
+  field: string
+}
+
+function formValue<TValue = unknown>(field: string): FormValueToken<TValue> {
+  return createRuntimeToken<TValue, 'form-value', { field: string }>('form-value', { field })
+}
 
 describe('i18n plugin package', () => {
   it('resolves i18n tokens in field labels, props, nested props, and slots', () => {
@@ -49,14 +58,22 @@ describe('i18n plugin package', () => {
 
   it('uses default messages and dynamic params when no locale message resolves', () => {
     const runtime = createFormRuntime({
-      plugins: [createI18nPlugin()],
+      plugins: [
+        {
+          name: 'form-values',
+          tokens: {
+            'form-value': (token, context) => context.values[(token as FormValueToken).field],
+          },
+        },
+        createI18nPlugin(),
+      ],
     })
     const context = runtime.createContext({ errors: {}, values: { name: 'Ada' } })
 
     expect(runtime.resolveValue(i18n('field.nickname', {
       defaultMessage: 'Nickname {name}',
       params: {
-        name: expr({ path: 'values.name' }),
+        name: formValue('name'),
       },
     }), context)).toBe('Nickname Ada')
   })

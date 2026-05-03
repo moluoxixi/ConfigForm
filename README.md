@@ -2,7 +2,7 @@
 
 基于 Vue 3 + Zod 的轻量配置化表单组件库，Monorepo 结构。
 
-核心包支持 `runtime` 插件边界，可注册组件、解析 runtime token、安全表达式，并通过 Rollup 风格生命周期转换字段配置。
+核心包支持 `runtime` 插件边界，可注册组件、解析 runtime token，并通过 Rollup 风格生命周期转换字段配置。
 
 ## 包
 

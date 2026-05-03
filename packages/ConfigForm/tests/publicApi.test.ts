@@ -17,7 +17,11 @@ describe('public api', () => {
     type HasRuntimeContextPlugins = 'plugins' extends keyof PublicApi.FormRuntimeContext ? true : false
     type HasRuntimeOptionsExtensions = 'extensions' extends keyof PublicApi.FormRuntimeOptions ? true : false
     type HasRuntimeOptionsPlugins = 'plugins' extends keyof PublicApi.FormRuntimeOptions ? true : false
+    type HasRuntimeOptionsExpression = 'expression' extends keyof PublicApi.FormRuntimeOptions ? true : false
     type HasFieldConfigPlugins = 'plugins' extends keyof PublicApi.FieldConfig ? true : false
+    type HasExpr = 'expr' extends keyof typeof PublicApi ? true : false
+    type HasIsExpressionToken = 'isExpressionToken' extends keyof typeof PublicApi ? true : false
+    type RuntimeTokenConditionAllowed = PublicApi.RuntimeToken<boolean> extends PublicApi.FieldCondition ? true : false
 
     expectTypeOf<HasDefineField>().toEqualTypeOf<true>()
     expectTypeOf<HasDefineFieldFor>().toEqualTypeOf<false>()
@@ -33,6 +37,10 @@ describe('public api', () => {
     expectTypeOf<HasRuntimeContextPlugins>().toEqualTypeOf<false>()
     expectTypeOf<HasRuntimeOptionsExtensions>().toEqualTypeOf<false>()
     expectTypeOf<HasRuntimeOptionsPlugins>().toEqualTypeOf<true>()
+    expectTypeOf<HasRuntimeOptionsExpression>().toEqualTypeOf<false>()
     expectTypeOf<HasFieldConfigPlugins>().toEqualTypeOf<false>()
+    expectTypeOf<HasExpr>().toEqualTypeOf<false>()
+    expectTypeOf<HasIsExpressionToken>().toEqualTypeOf<false>()
+    expectTypeOf<RuntimeTokenConditionAllowed>().toEqualTypeOf<true>()
   })
 })

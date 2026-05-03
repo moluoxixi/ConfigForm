@@ -1,8 +1,9 @@
+import type { FormRuntimeContext } from '../src/runtime'
 import type { RuntimeToken } from '../src/types'
 import { describe, expect, it } from 'vitest'
 import { defineComponent, h, markRaw } from 'vue'
 import { defineField } from '../src/models/field'
-import { createFormRuntime, createRuntimeToken, expr } from '../src/runtime'
+import { createFormRuntime, createRuntimeToken } from '../src/runtime'
 
 interface MessageToken extends RuntimeToken<string, 'message'> {
   key: string
@@ -12,6 +13,56 @@ interface MessageToken extends RuntimeToken<string, 'message'> {
 
 function message(key: string, fallback?: string, params?: Record<string, unknown>): MessageToken {
   return createRuntimeToken<string, 'message', Omit<MessageToken, '__configFormToken'>>('message', { fallback, key, params })
+}
+
+type PathTokenPayload<TValue = unknown> = Record<string, unknown> & {
+  path: string
+  fallback?: TValue
+}
+
+interface PathToken<TValue = unknown> extends RuntimeToken<TValue, 'path'>, PathTokenPayload<TValue> {}
+
+function pathValue<TValue = unknown>(path: string, fallback?: TValue): PathToken<TValue> {
+  const payload: PathTokenPayload<TValue> = { path }
+  if (fallback !== undefined)
+    payload.fallback = fallback
+  return createRuntimeToken<TValue, 'path', PathTokenPayload<TValue>>('path', payload)
+}
+
+interface RoleIsToken extends RuntimeToken<boolean, 'roleIs'> {
+  role: string
+}
+
+function roleIs(role: string): RoleIsToken {
+  return createRuntimeToken<boolean, 'roleIs', { role: string }>('roleIs', { role })
+}
+
+function getByPath(source: unknown, path: string): unknown {
+  if (!path)
+    return source
+
+  return path.split('.').reduce<unknown>((current, segment) => {
+    if (current == null)
+      return undefined
+    if (typeof current !== 'object')
+      return undefined
+    return (current as Record<string, unknown>)[segment]
+  }, source)
+}
+
+function resolveContextPath(path: string, context: FormRuntimeContext): unknown {
+  const roots: Record<string, unknown> = {
+    errors: context.errors,
+    field: context.field,
+    slotName: context.slotName,
+    slotScope: context.slotScope,
+    values: context.values,
+  }
+  const firstSegment = path.split('.')[0]
+  const source = firstSegment && Object.hasOwn(roots, firstSegment)
+    ? roots
+    : context.values
+  return getByPath(source, path)
 }
 
 const RuntimeInput = markRaw(defineComponent({
@@ -29,12 +80,23 @@ const AlternateInput = markRaw(defineComponent({
 }))
 
 describe('form runtime', () => {
-  it('resolves components, runtime tokens, expressions, and plugins', () => {
+  it('resolves components, runtime tokens, token conditions, and plugins', () => {
     const runtime = createFormRuntime({
       components: {
         RuntimeInput,
       },
       plugins: [
+        {
+          name: 'test-paths',
+          tokens: {
+            path: (token, context) => {
+              const pathToken = token as PathToken
+              const value = resolveContextPath(pathToken.path, context)
+              return value === undefined ? pathToken.fallback : value
+            },
+            roleIs: (token, context) => context.values.role === (token as RoleIsToken).role,
+          },
+        },
         {
           name: 'test-messages',
           tokens: {
@@ -103,10 +165,10 @@ describe('form runtime', () => {
       label: message('fields.name', 'Name', { name: 'Ada' }),
       component: 'RuntimeInput',
       props: {
-        disabled: expr({ left: { path: 'values.role' }, op: 'eq', right: 'guest' }, false),
+        disabled: roleIs('guest'),
         placeholder: message('fields.name.placeholder', 'Name placeholder'),
       },
-      visible: expr({ left: { path: 'values.role' }, op: 'eq', right: 'admin' }, false),
+      visible: roleIs('admin'),
       slots: {
         default: message('slots.name', 'Default slot'),
       },
@@ -125,18 +187,6 @@ describe('form runtime', () => {
     expect(resolved.slots?.default).toBe('Default slot')
     expect(runtime.resolveVisible(field, ctx)).toBe(true)
     expect(runtime.resolveDisabled(field, ctx)).toBe(false)
-  })
-
-  it('uses custom expression evaluators without eval-style assumptions', () => {
-    const runtime = createFormRuntime({
-      expression: {
-        evaluate: (input, ctx) => input === 'canEdit' ? ctx.values.canEdit === true : undefined,
-      },
-    })
-
-    const ctx = runtime.createContext({ errors: {}, values: { canEdit: true } })
-
-    expect(runtime.resolveValue(expr('canEdit', false), ctx)).toBe(true)
   })
 
   it('throws when runtime tokens are used without a resolver', () => {
@@ -177,44 +227,26 @@ describe('form runtime', () => {
       .toThrow(/Unknown component key: MissingInput/)
   })
 
-  it('evaluates built-in expressions and path fallbacks without unsafe eval', () => {
-    const runtime = createFormRuntime()
-    const ctx = runtime.createContext({
-      errors: {},
-      values: {
-        count: 3,
-        name: 'Ada Lovelace',
-        tags: ['admin', 'editor'],
-      },
-    })
-
-    expect(runtime.resolveValue(expr({ path: 'values.count' }), ctx)).toBe(3)
-    expect(runtime.resolveValue(expr({ path: 'count' }), ctx)).toBe(3)
-    expect(runtime.resolveValue(expr({ path: 'missing', fallback: 'fallback' }), ctx)).toBe('fallback')
-    expect(runtime.resolveValue(expr({ path: '' }), ctx)).toEqual(ctx.values)
-    expect(runtime.resolveValue(expr({ path: 'values.count.deep', fallback: 'bad path' }), ctx)).toBe('bad path')
-    expect(runtime.resolveValue(expr({ left: { path: 'count' }, op: 'neq', right: 4 }), ctx)).toBe(true)
-    expect(runtime.resolveValue(expr({ left: { path: 'count' }, op: 'gt', right: 2 }), ctx)).toBe(true)
-    expect(runtime.resolveValue(expr({ left: { path: 'count' }, op: 'gte', right: 3 }), ctx)).toBe(true)
-    expect(runtime.resolveValue(expr({ left: { path: 'count' }, op: 'lt', right: 4 }), ctx)).toBe(true)
-    expect(runtime.resolveValue(expr({ left: { path: 'count' }, op: 'lte', right: 3 }), ctx)).toBe(true)
-    expect(runtime.resolveValue(expr({ items: [true, { left: { path: 'count' }, op: 'eq', right: 3 }], op: 'and' }), ctx)).toBe(true)
-    expect(runtime.resolveValue(expr({ items: [false, { left: { path: 'count' }, op: 'eq', right: 3 }], op: 'or' }), ctx)).toBe(true)
-    expect(runtime.resolveValue(expr({ op: 'not', value: false }), ctx)).toBe(true)
-    expect(runtime.resolveValue(expr({ op: 'includes', source: { path: 'tags' }, value: 'admin' }), ctx)).toBe(true)
-    expect(runtime.resolveValue(expr({ op: 'includes', source: { path: 'name' }, value: 'Love' }), ctx)).toBe(true)
-    expect(runtime.resolveValue(expr({ op: 'includes', source: 3, value: '3' }), ctx)).toBe(false)
-    expect(() => runtime.resolveValue(expr({} as never, 'unsupported'), ctx))
-      .toThrow(/Unsupported expression/)
-  })
-
   it('resolves slot field configs, vnodes, and conditions without plugin hooks', () => {
-    const runtime = createFormRuntime()
+    const runtime = createFormRuntime({
+      plugins: [
+        {
+          name: 'test-paths',
+          tokens: {
+            path: (token, context) => {
+              const pathToken = token as PathToken
+              const value = resolveContextPath(pathToken.path, context)
+              return value === undefined ? pathToken.fallback : value
+            },
+          },
+        },
+      ],
+    })
     const field = defineField({
       component: 'input',
       disabled: true,
       field: 'field',
-      props: { flag: expr({ path: 'values.flag' }) },
+      props: { flag: pathValue('values.flag') },
       slots: { default: 'base' },
       visible: false,
     })
@@ -267,7 +299,17 @@ describe('form runtime', () => {
   })
 
   it('keeps runtime context limited to form and slot data', () => {
-    const runtime = createFormRuntime()
+    const slotScopeLabel = createRuntimeToken<string | undefined, 'slotScopeLabel'>('slotScopeLabel')
+    const runtime = createFormRuntime({
+      plugins: [
+        {
+          name: 'slot-scope-label',
+          tokens: {
+            slotScopeLabel: (_token, context) => context.slotScope?.label,
+          },
+        },
+      ],
+    })
     const context = runtime.createContext({
       errors: {},
       slotScope: { label: '作用域' },
@@ -278,7 +320,7 @@ describe('form runtime', () => {
     expect(context).not.toHaveProperty('meta')
     expect(context).not.toHaveProperty('plugins')
     expect(context.slotScope).toEqual({ label: '作用域' })
-    expect(runtime.resolveValue(expr({ path: 'slotScope.label' }), context)).toBe('作用域')
+    expect(runtime.resolveValue(slotScopeLabel, context)).toBe('作用域')
   })
 
   it('does not re-run field transforms for already resolved slot nodes', () => {

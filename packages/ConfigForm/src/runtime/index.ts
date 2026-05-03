@@ -1,15 +1,12 @@
 export {
   createFormRuntime,
   createRuntimeToken,
-  expr,
-  isExpressionToken,
   isFormRuntime,
   isRuntimeToken,
 } from './createFormRuntime'
 export type {
   ComponentRegistry,
   CreateRuntimeContextInput,
-  FormExpressionAdapter,
   FormFieldTransform,
   FormRuntime,
   FormRuntimeContext,

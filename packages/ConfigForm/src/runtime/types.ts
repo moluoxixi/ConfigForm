@@ -15,9 +15,9 @@ export type ComponentRegistry = Record<string, FieldConfig['component']>
 
 /** 单次运行时解析需要的上下文。 */
 export interface FormRuntimeContext<TValues extends FormValues = FormValues> {
-  /** 当前表单值快照，表达式、条件和 token resolver 都从这里读取业务数据。 */
+  /** 当前表单值快照，字段条件和 token resolver 都从这里读取业务数据。 */
   values: TValues
-  /** 当前校验错误快照，主要供表达式、token resolver 或自定义渲染逻辑读取。 */
+  /** 当前校验错误快照，主要供 token resolver 或自定义渲染逻辑读取。 */
   errors: FormErrors
   /** 当前正在解析或渲染的字段；组件容器节点没有字段时为空。 */
   field?: NormalizedFieldConfig
@@ -96,20 +96,12 @@ export interface FormRuntimePlugin {
   transformField?: FormRuntimeObjectHook<FormFieldTransform>
 }
 
-/** 表达式适配器，用于接入外部表达式引擎。 */
-export interface FormExpressionAdapter {
-  /** 返回 undefined 表示交给内置表达式解析器继续处理。 */
-  evaluate?: (input: unknown, context: FormRuntimeContext) => unknown
-}
-
 /** 创建 FormRuntime 时可配置的选项。 */
 export interface FormRuntimeOptions {
   /** 全局组件注册表。 */
   components?: ComponentRegistry
   /** 运行时插件列表；按用户注册顺序执行，同一 hook 仅允许 pre/post 边界排序。 */
   plugins?: FormRuntimePlugin[]
-  /** 自定义表达式解析器。 */
-  expression?: FormExpressionAdapter
 }
 
 /** createContext 的输入；所有字段都是可选的，缺省值由 runtime 填充。 */
@@ -134,7 +126,7 @@ export interface FormRuntime {
   createContext: <TValues extends FormValues = FormValues>(
     input?: CreateRuntimeContextInput<TValues>,
   ) => FormRuntimeContext<TValues>
-  /** 解析 RuntimeToken、表达式、数组和普通对象中的嵌套运行时值。 */
+  /** 解析 RuntimeToken、数组和普通对象中的嵌套运行时值。 */
   resolveValue: <TValue = unknown>(value: TValue, context: FormRuntimeContext, path?: string) => unknown
   /** 执行 core normalize 和插件 transformField 生命周期，得到后续渲染、校验、提交共享的字段。 */
   transformField: (

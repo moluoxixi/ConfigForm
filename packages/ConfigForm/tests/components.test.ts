@@ -6,7 +6,7 @@ import { z } from 'zod'
 import FormField from '../src/components/FormField/src/index.vue'
 import ConfigForm from '../src/index.vue'
 import { defineField } from '../src/models/field'
-import { createFormRuntime, createRuntimeToken, expr } from '../src/runtime'
+import { createFormRuntime, createRuntimeToken } from '../src/runtime'
 
 interface MessageToken extends RuntimeToken<string, 'message'> {
   key: string
@@ -284,7 +284,7 @@ describe('config form component', () => {
     expect(api.getValues()).toEqual({ name: '' })
   })
 
-  it('resolves runtime registry, tokens, expressions, and nested slot configs', async () => {
+  it('resolves runtime registry, tokens, predicates, and nested slot configs', async () => {
     const runtime = createFormRuntime({
       components: {
         SlotLeaf,
@@ -321,7 +321,7 @@ describe('config form component', () => {
         props: {
           placeholder: message('field.nickname.placeholder', 'Nickname placeholder'),
         },
-        visible: expr({ left: { path: 'values.role' }, op: 'eq', right: 'admin' }, false),
+        visible: values => values.role === 'admin',
         slots: {
           prefix: defineField({
             component: 'SlotLeaf',

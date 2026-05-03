@@ -15,7 +15,7 @@ export interface I18nToken extends RuntimeToken<string, 'i18n'> {
 export interface I18nTokenOptions {
   /** 语言包缺失时使用的显式默认文案。 */
   defaultMessage?: string
-  /** 文案模板插值参数，支持 runtime token 或 expr 作为嵌套值。 */
+  /** 文案模板插值参数，支持 runtime token 作为嵌套值。 */
   params?: Record<string, unknown>
 }
 

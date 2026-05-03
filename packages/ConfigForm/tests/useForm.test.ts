@@ -4,7 +4,7 @@ import { nextTick, ref } from 'vue'
 import { z } from 'zod'
 import { useForm } from '../src/composables/useForm'
 import { defineField } from '../src/models/field'
-import { createFormRuntime, expr } from '../src/runtime'
+import { createFormRuntime } from '../src/runtime'
 
 describe('useForm', () => {
   it('throws when multiple real fields use the same field key', () => {
@@ -310,7 +310,7 @@ describe('useForm', () => {
     expect(form.errors.value).toEqual({})
   })
 
-  it('uses runtime expressions for visibility, disabled, validation skips, and submit output', async () => {
+  it('uses field predicates for visibility, disabled, validation skips, and submit output', async () => {
     const runtime = ref(createFormRuntime())
     const fields = ref([
       defineField({
@@ -323,14 +323,14 @@ describe('useForm', () => {
         component: 'input',
         defaultValue: 'visible for admins',
         submitWhenHidden: false,
-        visible: expr({ left: { path: 'values.role' }, op: 'eq', right: 'admin' }, false),
+        visible: values => values.role === 'admin',
         validator: () => '隐藏时不应校验',
       }),
       defineField({
         field: 'guestNote',
         component: 'input',
         defaultValue: 'disabled for guests',
-        disabled: expr({ left: { path: 'values.role' }, op: 'eq', right: 'guest' }, false),
+        disabled: values => values.role === 'guest',
         validator: () => '禁用时不应校验',
       }),
     ])
