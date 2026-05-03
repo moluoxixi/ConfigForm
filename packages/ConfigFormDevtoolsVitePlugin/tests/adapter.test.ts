@@ -256,6 +256,152 @@ describe('configForm devtools adapter', () => {
     })
   })
 
+  it('resolves component node elements from their devtools source ids', async () => {
+    const bridge = createBridge()
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
+    const containerSource = {
+      ...source,
+      id: 'source-container-element',
+      line: 20,
+    }
+    const containerElement = document.createElement('section')
+    containerElement.dataset.cfDevtoolsSourceId = containerSource.id
+    document.body.append(containerElement)
+
+    mountAdapter([
+      {
+        __source: containerSource,
+        component: { name: 'CardContainer' },
+        slots: {
+          default: [
+            {
+              component: 'input',
+              field: 'name',
+            },
+          ],
+        },
+      },
+    ])
+    await nextTick()
+    await nextTick()
+
+    expect(bridge.registerField).toHaveBeenCalledWith(expect.objectContaining({
+      component: 'CardContainer',
+      kind: 'component',
+      source: containerSource,
+    }), containerElement)
+  })
+
+  it('resolves visible source elements before hidden duplicate source nodes', async () => {
+    const bridge = createBridge()
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
+    const sharedSource = {
+      ...source,
+      id: 'source-shared-container',
+      line: 20,
+    }
+
+    const CoreWithVisibleContainer = defineComponent({
+      name: 'CoreWithVisibleContainer',
+      props: {
+        fields: { type: Array, required: true },
+      },
+      setup(props) {
+        return () => h('form', props.fields.map((field) => {
+          const config = field as FieldStub
+          return h('div', [
+            h('span', {
+              'data-cf-devtools-source-id': config.__source?.id,
+              'style': 'display: none;',
+            }),
+            h('section', {
+              'data-cf-devtools-source-id': config.__source?.id,
+              'ref': (element) => {
+                if (element instanceof HTMLElement) {
+                  element.getBoundingClientRect = () => ({
+                    bottom: 60,
+                    height: 40,
+                    left: 10,
+                    right: 210,
+                    top: 20,
+                    width: 200,
+                    x: 10,
+                    y: 20,
+                    toJSON: () => ({}),
+                  })
+                }
+              },
+            }),
+          ])
+        }))
+      },
+    })
+    const Adapter = createDevtoolsConfigFormAdapter({
+      ConfigForm: CoreWithVisibleContainer as Component,
+      collectFieldConfigs: nodes => nodes as never,
+    })
+    const root = document.createElement('div')
+    document.body.append(root)
+    const app = createApp({
+      render: () => h(Adapter, {
+        fields: [{
+          __source: sharedSource,
+          component: { name: 'CardContainer' },
+        }],
+      }),
+    })
+
+    app.mount(root)
+    await nextTick()
+    await nextTick()
+
+    const visibleContainer = root.querySelectorAll<HTMLElement>('[data-cf-devtools-source-id="source-shared-container"]')[1]
+    expect(bridge.registerField).toHaveBeenCalledWith(expect.objectContaining({
+      component: 'CardContainer',
+      kind: 'component',
+      source: sharedSource,
+    }), visibleContainer)
+
+    app.unmount()
+  })
+
+  it('registers the surrounding tab label as the devtools form label', async () => {
+    const bridge = createBridge()
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
+    const label = document.createElement('button')
+    label.id = 'tab-nested-card-checkbox'
+    label.textContent = 'element Card 嵌套 Checkbox'
+    document.body.append(label)
+
+    const Adapter = createAdapter()
+    const root = document.createElement('div')
+    root.setAttribute('aria-labelledby', label.id)
+    root.setAttribute('role', 'tabpanel')
+    document.body.append(root)
+    const app = createApp({
+      render: () => h(Adapter, {
+        fields: [
+          {
+            component: 'input',
+            field: 'permissionScopes',
+          },
+        ],
+        namespace: 'demo',
+      }),
+    })
+
+    app.mount(root)
+    await nextTick()
+    await nextTick()
+
+    expect(bridge.registerField).toHaveBeenCalledWith(expect.objectContaining({
+      field: 'permissionScopes',
+      formLabel: 'element Card 嵌套 Checkbox',
+    }), expect.any(HTMLInputElement))
+
+    app.unmount()
+  })
+
   it('does not register plain Vue VNodes returned from slot functions as devtools nodes', async () => {
     const bridge = createBridge()
     window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge

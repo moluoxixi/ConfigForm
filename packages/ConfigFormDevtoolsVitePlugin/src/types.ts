@@ -13,6 +13,7 @@ export type FormDevtoolsNodeKind = 'component' | 'field'
 export interface FormDevtoolsNode {
   id: string
   formId: string
+  formLabel?: string
   kind: FormDevtoolsNodeKind
   order?: number
   field?: string

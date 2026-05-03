@@ -185,7 +185,7 @@ describe('client overlay', () => {
       .toEqual(['first-root', 'first-child-a', 'first-child-b', 'second-root'])
   })
 
-  it('keeps root nodes grouped by ConfigForm instead of interleaving local field orders', () => {
+  it('renders multiple ConfigForms as a navlist and shows only the selected form tree', () => {
     installConfigFormDevtools()
 
     window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
@@ -219,12 +219,231 @@ describe('client overlay', () => {
 
     document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
 
-    expect([...document.querySelectorAll<HTMLElement>('.cf-devtools-form-group')]
-      .map(node => node.dataset.cfDevtoolsFormId))
+    expect([...document.querySelectorAll<HTMLElement>('[data-cf-devtools-nav-form-id]')]
+      .map(node => node.dataset.cfDevtoolsNavFormId))
       .toEqual(['form-1', 'form-2'])
     expect([...document.querySelectorAll<HTMLElement>('[data-cf-devtools-node-id]')]
       .map(node => node.dataset.cfDevtoolsNodeId))
-      .toEqual(['form-1:first', 'form-1:second', 'form-2:first', 'form-2:second'])
+      .toEqual(['form-1:first', 'form-1:second'])
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools-nav-form-id="form-2"]')?.click()
+
+    expect(document.querySelector<HTMLElement>('[data-cf-devtools-nav-form-id="form-2"]')?.classList.contains('is-active')).toBe(true)
+    expect([...document.querySelectorAll<HTMLElement>('[data-cf-devtools-node-id]')]
+      .map(node => node.dataset.cfDevtoolsNodeId))
+      .toEqual(['form-2:first', 'form-2:second'])
+  })
+
+  it('uses form labels in the ConfigForm navlist when available', () => {
+    installConfigFormDevtools()
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'grid',
+      formId: 'form-1',
+      formLabel: 'element Grid 模式',
+      id: 'form-1:grid',
+      kind: 'field',
+      order: 1,
+    }, null)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'nested',
+      formId: 'form-2',
+      formLabel: 'element Card 嵌套 Checkbox',
+      id: 'form-2:nested',
+      kind: 'field',
+      order: 1,
+    }, null)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+
+    expect([...document.querySelectorAll<HTMLElement>('.cf-devtools-nav-title')]
+      .map(node => node.textContent))
+      .toEqual(['element Grid 模式', 'element Card 嵌套 Checkbox'])
+  })
+
+  it('renders ConfigForm navlist by DOM order instead of registration order', () => {
+    installConfigFormDevtools()
+
+    const gridElement = document.createElement('div')
+    const inlineElement = document.createElement('div')
+    document.body.append(gridElement, inlineElement)
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'inline',
+      formId: 'form-inline',
+      formLabel: 'element Inline 模式',
+      id: 'form-inline:first',
+      kind: 'field',
+      order: 1,
+    }, inlineElement)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'grid',
+      formId: 'form-grid',
+      formLabel: 'element Grid 模式',
+      id: 'form-grid:first',
+      kind: 'field',
+      order: 1,
+    }, gridElement)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+
+    expect([...document.querySelectorAll<HTMLElement>('.cf-devtools-nav-title')]
+      .map(node => node.textContent))
+      .toEqual(['element Grid 模式', 'element Inline 模式'])
+  })
+
+  it('keeps ConfigForm navlist in DOM order when registration already follows DOM order', () => {
+    installConfigFormDevtools()
+
+    const gridElement = document.createElement('div')
+    const inlineElement = document.createElement('div')
+    document.body.append(gridElement, inlineElement)
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'grid',
+      formId: 'form-grid',
+      formLabel: 'element Grid 模式',
+      id: 'form-grid:first',
+      kind: 'field',
+      order: 1,
+    }, gridElement)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'inline',
+      formId: 'form-inline',
+      formLabel: 'element Inline 模式',
+      id: 'form-inline:first',
+      kind: 'field',
+      order: 1,
+    }, inlineElement)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+
+    expect([...document.querySelectorAll<HTMLElement>('.cf-devtools-nav-title')]
+      .map(node => node.textContent))
+      .toEqual(['element Grid 模式', 'element Inline 模式'])
+  })
+
+  it('uses descendant node elements for DOM ordering when a root node has no element', () => {
+    installConfigFormDevtools()
+
+    const inlineChildElement = document.createElement('div')
+    const gridElement = document.createElement('div')
+    document.body.append(inlineChildElement, gridElement)
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      component: 'InlineRoot',
+      formId: 'form-inline',
+      formLabel: 'element Inline 模式',
+      id: 'form-inline:root',
+      kind: 'component',
+      order: 1,
+    }, null)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'inline',
+      formId: 'form-inline',
+      id: 'form-inline:child',
+      kind: 'field',
+      order: 1,
+      parentId: 'form-inline:root',
+    }, inlineChildElement)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'grid',
+      formId: 'form-grid',
+      formLabel: 'element Grid 模式',
+      id: 'form-grid:first',
+      kind: 'field',
+      order: 1,
+    }, gridElement)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+
+    expect([...document.querySelectorAll<HTMLElement>('.cf-devtools-nav-title')]
+      .map(node => node.textContent))
+      .toEqual(['element Inline 模式', 'element Grid 模式'])
+  })
+
+  it('falls back to registration order when DOM position cannot be compared', () => {
+    installConfigFormDevtools()
+
+    const firstElement = document.createElement('div')
+    const secondElement = document.createElement('div')
+    firstElement.compareDocumentPosition = () => 0
+    secondElement.compareDocumentPosition = () => 0
+    document.body.append(firstElement, secondElement)
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'first',
+      formId: 'form-first',
+      formLabel: 'First form',
+      id: 'form-first:first',
+      kind: 'field',
+      order: 1,
+    }, firstElement)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'second',
+      formId: 'form-second',
+      formLabel: 'Second form',
+      id: 'form-second:first',
+      kind: 'field',
+      order: 1,
+    }, secondElement)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+
+    expect([...document.querySelectorAll<HTMLElement>('.cf-devtools-nav-title')]
+      .map(node => node.textContent))
+      .toEqual(['First form', 'Second form'])
+  })
+
+  it('selects the first visible ConfigForm when multiple forms are registered', () => {
+    installConfigFormDevtools()
+
+    const hiddenElement = document.createElement('div')
+    hiddenElement.getBoundingClientRect = () => ({
+      bottom: 0,
+      height: 0,
+      left: 0,
+      right: 0,
+      top: 0,
+      width: 0,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    })
+    const visibleElement = document.createElement('div')
+    visibleElement.getBoundingClientRect = () => ({
+      bottom: 80,
+      height: 40,
+      left: 20,
+      right: 220,
+      top: 40,
+      width: 200,
+      x: 20,
+      y: 40,
+      toJSON: () => ({}),
+    })
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'hidden',
+      formId: 'form-1',
+      id: 'form-1:hidden',
+      kind: 'field',
+      order: 1,
+    }, hiddenElement)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'visible',
+      formId: 'form-2',
+      id: 'form-2:visible',
+      kind: 'field',
+      order: 1,
+    }, visibleElement)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+
+    expect(document.querySelector<HTMLElement>('[data-cf-devtools-nav-form-id="form-2"]')?.classList.contains('is-active')).toBe(true)
+    expect([...document.querySelectorAll<HTMLElement>('[data-cf-devtools-node-id]')]
+      .map(node => node.dataset.cfDevtoolsNodeId))
+      .toEqual(['form-2:visible'])
   })
 
   it('preserves the field registration order for roots and nested slot fields', () => {
@@ -768,6 +987,32 @@ describe('client overlay', () => {
       label: '更新创建',
     }, null)
     expect(document.body.textContent).toContain('更新创建')
+  })
+
+  it('keeps a form registered when unregistering only one of its nodes', () => {
+    installConfigFormDevtools()
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'first',
+      formId: 'form-1',
+      id: 'form-1:first',
+      kind: 'field',
+      order: 1,
+    }, null)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'second',
+      formId: 'form-1',
+      id: 'form-1:second',
+      kind: 'field',
+      order: 2,
+    }, null)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.unregisterField('form-1:first')
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+
+    expect([...document.querySelectorAll<HTMLElement>('[data-cf-devtools-node-id]')]
+      .map(node => node.dataset.cfDevtoolsNodeId))
+      .toEqual(['form-1:second'])
   })
 
   it('throws when a duplicate node id points to a different logical field', () => {

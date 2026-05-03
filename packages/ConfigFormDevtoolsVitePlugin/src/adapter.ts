@@ -31,6 +31,7 @@ declare global {
 }
 
 const READY_EVENT = 'config-form-devtools:ready'
+const SOURCE_ID_ATTRIBUTE = 'data-cf-devtools-source-id'
 const EXPOSED_METHODS = [
   'submit',
   'validate',
@@ -53,16 +54,65 @@ function sanitizeFieldName(field: string): string {
   return field.replace(/[^\w-]/g, '-')
 }
 
+function escapeAttributeValue(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+}
+
 function getBridge(): FormDevtoolsBridge | undefined {
   if (typeof window === 'undefined')
     return undefined
   return window.__CONFIG_FORM_DEVTOOLS_BRIDGE__
 }
 
-function resolveElement(namespace: string, field: string): HTMLElement | null {
+function resolveSourceElementArea(element: HTMLElement): number {
+  const rect = element.getBoundingClientRect()
+  return rect.width * rect.height
+}
+
+function selectBestSourceElement(candidates: HTMLElement[]): HTMLElement | null {
+  if (candidates.length === 0)
+    return null
+
+  const visibleCandidates = candidates
+    .map(element => ({
+      area: resolveSourceElementArea(element),
+      element,
+    }))
+    .filter(candidate => candidate.area > 0)
+    .sort((a, b) => b.area - a.area)
+
+  return visibleCandidates[0]?.element ?? candidates[0]
+}
+
+function querySourceElements(root: ParentNode, sourceId: string): HTMLElement[] {
+  return [...root.querySelectorAll<HTMLElement>(
+    `[${SOURCE_ID_ATTRIBUTE}="${escapeAttributeValue(sourceId)}"]`,
+  )]
+}
+
+function resolveSourceElement(source: FieldSourceMeta | undefined, root: ParentNode | null): HTMLElement | null {
+  if (typeof document === 'undefined' || !source)
+    return null
+
+  const scopedElement = root ? selectBestSourceElement(querySourceElements(root, source.id)) : null
+  if (scopedElement)
+    return scopedElement
+
+  return selectBestSourceElement(querySourceElements(document, source.id))
+}
+
+function resolveElement(namespace: string, node: FormDevtoolsNode, root: ParentNode | null): HTMLElement | null {
   if (typeof document === 'undefined')
     return null
-  return document.getElementById(`${namespace}-${sanitizeFieldName(field)}-field`)
+
+  const sourceElement = resolveSourceElement(node.source, root)
+  if (sourceElement)
+    return sourceElement
+
+  if (!node.field)
+    return null
+
+  return document.getElementById(`${namespace}-${sanitizeFieldName(node.field)}-field`)
 }
 
 function resolveComponentName(component: unknown): string | undefined {
@@ -83,6 +133,42 @@ function resolveComponentName(component: unknown): string | undefined {
 
 function resolveLabel(label: unknown): string | undefined {
   return typeof label === 'string' ? label : undefined
+}
+
+function normalizeTextContent(value: string | null | undefined): string | undefined {
+  const text = value?.replace(/\s+/g, ' ').trim()
+  return text && text.length > 0 ? text : undefined
+}
+
+function resolveLabelledByText(labelledBy: string | null): string | undefined {
+  if (typeof document === 'undefined' || !labelledBy)
+    return undefined
+
+  for (const id of labelledBy.split(/\s+/)) {
+    const text = normalizeTextContent(document.getElementById(id)?.textContent)
+    if (text)
+      return text
+  }
+
+  return undefined
+}
+
+function resolveTabPanel(host: HTMLElement | null): HTMLElement | null {
+  return host?.closest<HTMLElement>('[role="tabpanel"]') ?? null
+}
+
+function resolveFormLabel(host: HTMLElement | null): string | undefined {
+  if (!host)
+    return undefined
+
+  const explicitLabelHost = host.closest<HTMLElement>('[data-cf-devtools-form-label]')
+  const explicitLabel = normalizeTextContent(explicitLabelHost?.dataset.cfDevtoolsFormLabel)
+  if (explicitLabel)
+    return explicitLabel
+
+  const tabPanel = resolveTabPanel(host)
+  return normalizeTextContent(tabPanel?.getAttribute('aria-label'))
+    ?? resolveLabelledByText(tabPanel?.getAttribute('aria-labelledby') ?? null)
 }
 
 function isFormNodeConfig(value: unknown): value is DevtoolsFormNodeConfig {
@@ -115,6 +201,7 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
       const attrs = useAttrs()
       const formId = `cf-form-${++formSeed}`
       const coreRef = ref<ExposedConfigForm | null>(null)
+      const hostRef = ref<HTMLElement | null>(null)
       const registeredIds = new Set<string>()
 
       function callExposed(methodName: string, args: unknown[]) {
@@ -131,6 +218,7 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
 
       function collectNodeTree(
         nodes: readonly unknown[],
+        formLabel: string | undefined,
         parentId: string | undefined,
         path: string,
         slotName?: string,
@@ -146,6 +234,7 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
             component: resolveComponentName(node.component),
             field: isField ? node.field : undefined,
             formId,
+            formLabel,
             id,
             kind: isField ? 'field' : 'component',
             label: resolveLabel(node.label),
@@ -158,7 +247,7 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
           const children = Object.entries(node.slots ?? {}).flatMap(([childSlotName, slot]) => {
             const content = resolveSlotContent(slot)
             const childNodes = Array.isArray(content) ? content : [content]
-            return collectNodeTree(childNodes, id, `${nodePath}.slots.${childSlotName}`, childSlotName)
+            return collectNodeTree(childNodes, formLabel, id, `${nodePath}.slots.${childSlotName}`, childSlotName)
           })
 
           return [current, ...children]
@@ -166,7 +255,7 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
       }
 
       function collectNodes(): FormDevtoolsNode[] {
-        return collectNodeTree(props.fields, undefined, 'fields')
+        return collectNodeTree(props.fields, resolveFormLabel(hostRef.value), undefined, 'fields')
       }
 
       function syncBridge() {
@@ -186,7 +275,7 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         }
 
         for (const node of nodes) {
-          const element = node.field ? resolveElement(props.namespace, node.field) : null
+          const element = resolveElement(props.namespace, node, hostRef.value)
           const action = registeredIds.has(node.id) ? bridge.updateField : bridge.registerField
           action(node, element)
           registeredIds.add(node.id)
@@ -226,12 +315,14 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         unregisterNodes()
       })
 
-      return () => h(options.ConfigForm, {
-        ...attrs,
-        fields: props.fields,
-        namespace: props.namespace,
-        ref: coreRef,
-      }, slots)
+      return () => h('div', { ref: hostRef, style: { display: 'contents' } }, [
+        h(options.ConfigForm, {
+          ...attrs,
+          fields: props.fields,
+          namespace: props.namespace,
+          ref: coreRef,
+        }, slots),
+      ])
     },
   })
 }

@@ -1,5 +1,5 @@
 import type { FormRuntimeOptions } from '../src/runtime'
-import type { ConfigFormExpose, FieldConfig, RuntimeToken } from '../src/types'
+import type { ConfigFormExpose, FieldConfig, FormNodeConfig, RuntimeToken } from '../src/types'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { defineComponent, h, markRaw, nextTick } from 'vue'
@@ -101,6 +101,43 @@ function resolveTestField(field: FieldConfig) {
 }
 
 describe('config form component', () => {
+  it('marks component containers with their devtools source id for DOM highlighting', () => {
+    const source = {
+      column: 9,
+      file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
+      id: 'source-card',
+      line: 20,
+    }
+    const fields: FormNodeConfig[] = [
+      {
+        ...defineField({
+          component: CardContainer,
+          props: { title: '基础信息' },
+          slots: {
+            default: [
+              defineField({
+                component: TextInput,
+                field: 'username',
+                label: '用户名',
+              }),
+            ],
+          },
+        }),
+        __source: source,
+      } as FormNodeConfig,
+    ]
+
+    const wrapper = mount(ConfigForm, {
+      props: {
+        fields,
+        modelValue: {},
+      },
+    })
+
+    const card = wrapper.get('[data-cf-devtools-source-id="source-card"]')
+    expect(card.attributes('data-card')).toBe('基础信息')
+  })
+
   it('renders component containers around real fields without binding container values', async () => {
     const fields = [
       {

@@ -31,9 +31,22 @@ const currentResolveSnap = computed<FormRuntimeResolveSnap>(() =>
   props.resolveSnap ?? runtimeRef.value.createResolveSnap(),
 )
 
+function resolveDevtoolsSourceId(node: ResolvedFormNode): string | undefined {
+  const source = (node as { __source?: { id?: unknown } }).__source
+  return typeof source?.id === 'string' && source.id.length > 0 ? source.id : undefined
+}
+
+const devtoolsAttrs = computed(() => {
+  const sourceId = resolveDevtoolsSourceId(props.node)
+  return sourceId
+    ? { 'data-cf-devtools-source-id': sourceId }
+    : {}
+})
+
 const attrs = computed(() => ({
   ...props.node.props,
   ...(props.componentAttrs ?? {}),
+  ...devtoolsAttrs.value,
 }))
 
 type NormalizedSlotNode =

@@ -6,18 +6,25 @@ import type {
 
 interface StoredNode extends FormDevtoolsNode {
   element: HTMLElement | null
-  formOrder: number
   lastPatchMs?: number
   maxPatchMs?: number
   avgPatchMs?: number
   order: number
+  registrationOrder: number
   samples: number
 }
 
 interface RootGroup {
+  element?: HTMLElement
   formId: string
-  formOrder: number
+  formLabel?: string
+  registrationOrder: number
   nodes: StoredNode[]
+}
+
+interface DevtoolsRenderState {
+  activeFormId?: string
+  activeFormSelectedByUser?: boolean
 }
 
 interface DevtoolsStore {
@@ -168,6 +175,36 @@ function assertCompatibleNode(existing: FormDevtoolsNode | undefined, next: Form
   }
 }
 
+function compareElementsByDocumentPosition(first: HTMLElement, second: HTMLElement): number {
+  if (first === second)
+    return 0
+
+  const position = first.compareDocumentPosition(second)
+  if (position & Node.DOCUMENT_POSITION_FOLLOWING)
+    return -1
+  if (position & Node.DOCUMENT_POSITION_PRECEDING)
+    return 1
+  return 0
+}
+
+function selectEarlierElement(current: HTMLElement | undefined, next: HTMLElement | null): HTMLElement | undefined {
+  if (!next)
+    return current
+  if (!current)
+    return next
+  return compareElementsByDocumentPosition(next, current) < 0 ? next : current
+}
+
+function compareRootGroups(first: RootGroup, second: RootGroup): number {
+  if (first.element && second.element) {
+    const elementOrder = compareElementsByDocumentPosition(first.element, second.element)
+    if (elementOrder !== 0)
+      return elementOrder
+  }
+
+  return first.registrationOrder - second.registrationOrder
+}
+
 function ensureStyle() {
   if (document.getElementById(STYLE_ID))
     return
@@ -195,14 +232,18 @@ function ensureStyle() {
     .cf-devtools-node-text { min-width: 0; }
     .cf-devtools-node-key { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .cf-devtools-node-meta { color: #6b7280; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .cf-devtools-form-group { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; border-top: 1px solid #f3f4f6; padding: 7px 6px 5px; color: #374151; font-size: 11px; font-weight: 700; }
-    .cf-devtools-form-group:first-child { margin-top: 0; border-top: 0; }
-    .cf-devtools-form-label { flex: none; }
-    .cf-devtools-form-id { min-width: 0; overflow: hidden; color: #6b7280; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+    .cf-devtools-layout { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 8px; min-height: 0; }
+    .cf-devtools-nav { display: flex; flex-direction: column; gap: 4px; border-right: 1px solid #e5e7eb; padding-right: 8px; }
+    .cf-devtools-nav-item { width: 100%; min-height: 42px; border: 1px solid transparent; border-radius: 6px; background: transparent; padding: 6px; color: inherit; cursor: pointer; text-align: left; font: inherit; }
+    .cf-devtools-nav-item:hover { background: #f3f4f6; }
+    .cf-devtools-nav-item.is-active { border-color: #c7d2fe; background: #eef2ff; color: #1e3a8a; }
+    .cf-devtools-nav-title { display: block; overflow: hidden; font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .cf-devtools-nav-meta { display: block; overflow: hidden; margin-top: 2px; color: #6b7280; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .cf-devtools-tree { min-width: 0; }
     .cf-devtools-patch { font-variant-numeric: tabular-nums; font-size: 11px; color: #047857; }
     .cf-devtools-open { width: 24px; height: 24px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; cursor: pointer; }
     .cf-devtools-open:disabled { opacity: .35; cursor: not-allowed; }
-    .cf-devtools-highlight { position: fixed; display: none; border: 2px solid #38bdf8; background: rgba(56,189,248,.12); box-shadow: 0 0 0 9999px rgba(15,23,42,.08); pointer-events: none; border-radius: 4px; }
+    .cf-devtools-highlight { position: fixed; display: none; box-sizing: border-box; border: 2px solid #38bdf8; background: rgba(56,189,248,.12); box-shadow: 0 0 0 9999px rgba(15,23,42,.08); pointer-events: none; border-radius: 4px; }
     .cf-devtools-error { padding: 0 12px 10px; color: #b91c1c; font-size: 12px; }
   `
   document.head.append(style)
@@ -210,26 +251,26 @@ function ensureStyle() {
 
 function createStore(render: () => void): DevtoolsStore {
   const nodes = new Map<string, StoredNode>()
-  const formOrders = new Map<string, number>()
+  const formRegistrationOrders = new Map<string, number>()
   let orderSeed = 0
-  let formOrderSeed = 0
+  let formRegistrationOrderSeed = 0
 
-  function resolveFormOrder(formId: string): number {
-    const existing = formOrders.get(formId)
+  function resolveFormRegistrationOrder(formId: string): number {
+    const existing = formRegistrationOrders.get(formId)
     if (existing !== undefined)
       return existing
 
-    const next = ++formOrderSeed
-    formOrders.set(formId, next)
+    const next = ++formRegistrationOrderSeed
+    formRegistrationOrders.set(formId, next)
     return next
   }
 
-  function dropUnusedFormOrder(formId: string) {
+  function dropUnusedFormRegistrationOrder(formId: string) {
     for (const node of nodes.values()) {
       if (node.formId === formId)
         return
     }
-    formOrders.delete(formId)
+    formRegistrationOrders.delete(formId)
   }
 
   function upsertNode(node: FormDevtoolsNode, element: HTMLElement | null) {
@@ -239,8 +280,8 @@ function createStore(render: () => void): DevtoolsStore {
       ...existing,
       ...node,
       element,
-      formOrder: existing?.formOrder ?? resolveFormOrder(node.formId),
       order: node.order ?? existing?.order ?? ++orderSeed,
+      registrationOrder: existing?.registrationOrder ?? resolveFormRegistrationOrder(node.formId),
       samples: existing?.samples ?? 0,
     })
     render()
@@ -267,7 +308,7 @@ function createStore(render: () => void): DevtoolsStore {
       const existing = nodes.get(id)
       nodes.delete(id)
       if (existing)
-        dropUnusedFormOrder(existing.formId)
+        dropUnusedFormRegistrationOrder(existing.formId)
       render()
     },
     updateField(node: FormDevtoolsNode, element: HTMLElement | null) {
@@ -280,45 +321,90 @@ function collectRootGroups(store: DevtoolsStore): RootGroup[] {
   const groups = new Map<string, RootGroup>()
 
   for (const node of store.nodes.values()) {
-    if (node.parentId)
-      continue
-
     const group = groups.get(node.formId)
     if (group) {
-      group.nodes.push(node)
+      group.formLabel ??= node.formLabel
+      group.element = selectEarlierElement(group.element, node.element)
+      if (!node.parentId)
+        group.nodes.push(node)
       continue
     }
 
     groups.set(node.formId, {
+      element: node.element ?? undefined,
       formId: node.formId,
-      formOrder: node.formOrder,
-      nodes: [node],
+      formLabel: node.formLabel,
+      nodes: node.parentId ? [] : [node],
+      registrationOrder: node.registrationOrder,
     })
   }
 
   return [...groups.values()]
-    .sort((a, b) => a.formOrder - b.formOrder)
+    .sort(compareRootGroups)
     .map(group => ({
       ...group,
       nodes: group.nodes.sort((a, b) => a.order - b.order),
     }))
 }
 
-function createFormGroupHeader(group: RootGroup, index: number): HTMLElement {
-  const row = document.createElement('div')
-  row.className = 'cf-devtools-form-group'
-  row.dataset.cfDevtoolsFormId = group.formId
+function nodeHasVisibleElement(node: StoredNode): boolean {
+  if (!node.element)
+    return false
 
-  const label = document.createElement('span')
-  label.className = 'cf-devtools-form-label'
-  label.textContent = `ConfigForm ${index + 1}`
+  const rect = node.element.getBoundingClientRect()
+  return rect.width > 0 && rect.height > 0
+}
 
-  const id = document.createElement('span')
-  id.className = 'cf-devtools-form-id'
-  id.textContent = group.formId
+function groupHasVisibleElement(group: RootGroup): boolean {
+  return group.nodes.some(node => nodeHasVisibleElement(node))
+}
 
-  row.append(label, id)
-  return row
+function resolveActiveGroup(groups: RootGroup[], state: DevtoolsRenderState): RootGroup {
+  const activeGroup = groups.find(group => group.formId === state.activeFormId)
+  const visibleGroup = groups.find(group => groupHasVisibleElement(group))
+  const hasVisibleGroup = Boolean(visibleGroup)
+
+  if (!activeGroup) {
+    state.activeFormSelectedByUser = false
+    return visibleGroup ?? groups[0]
+  }
+
+  if (state.activeFormSelectedByUser || !hasVisibleGroup || groupHasVisibleElement(activeGroup))
+    return activeGroup
+
+  state.activeFormSelectedByUser = false
+  return visibleGroup ?? activeGroup
+}
+
+function resolveGroupMeta(group: RootGroup): string {
+  return group.nodes
+    .slice(0, 2)
+    .map(resolveNodeDisplayName)
+    .join(', ') || group.formId
+}
+
+function createFormNavItem(
+  group: RootGroup,
+  index: number,
+  active: boolean,
+  onSelect: () => void,
+): HTMLElement {
+  const button = document.createElement('button')
+  button.className = `cf-devtools-nav-item${active ? ' is-active' : ''}`
+  button.dataset.cfDevtoolsNavFormId = group.formId
+  button.type = 'button'
+
+  const title = document.createElement('span')
+  title.className = 'cf-devtools-nav-title'
+  title.textContent = group.formLabel ?? `ConfigForm ${index + 1}`
+
+  const meta = document.createElement('span')
+  meta.className = 'cf-devtools-nav-meta'
+  meta.textContent = resolveGroupMeta(group)
+
+  button.addEventListener('click', onSelect)
+  button.append(title, meta)
+  return button
 }
 
 function createNodeRow(
@@ -424,6 +510,7 @@ function renderTree(
   store: DevtoolsStore,
   highlight: (element: HTMLElement | null) => void,
   setError: (message: string) => void,
+  state: DevtoolsRenderState,
 ) {
   container.textContent = ''
 
@@ -431,6 +518,8 @@ function renderTree(
   const roots = groups.flatMap(group => group.nodes)
 
   if (roots.length === 0) {
+    state.activeFormId = undefined
+    state.activeFormSelectedByUser = false
     const empty = document.createElement('div')
     empty.className = 'cf-devtools-empty'
     empty.textContent = 'No fields'
@@ -439,16 +528,43 @@ function renderTree(
   }
 
   if (groups.length === 1) {
+    state.activeFormId = groups[0]?.formId
+    state.activeFormSelectedByUser = false
     for (const node of roots)
       container.append(createNodeRow(node, store, 0, highlight, setError))
     return
   }
 
+  const activeGroup = resolveActiveGroup(groups, state)
+  state.activeFormId = activeGroup.formId
+
+  const layout = document.createElement('div')
+  layout.className = 'cf-devtools-layout'
+
+  const nav = document.createElement('div')
+  nav.className = 'cf-devtools-nav'
+
+  const tree = document.createElement('div')
+  tree.className = 'cf-devtools-tree'
+
   groups.forEach((group, index) => {
-    container.append(createFormGroupHeader(group, index))
-    for (const node of group.nodes)
-      container.append(createNodeRow(node, store, 1, highlight, setError))
+    nav.append(createFormNavItem(
+      group,
+      index,
+      group.formId === activeGroup.formId,
+      () => {
+        state.activeFormId = group.formId
+        state.activeFormSelectedByUser = true
+        renderTree(container, store, highlight, setError, state)
+      },
+    ))
   })
+
+  for (const node of activeGroup.nodes)
+    tree.append(createNodeRow(node, store, 0, highlight, setError))
+
+  layout.append(nav, tree)
+  container.append(layout)
 }
 
 function updateBubblePosition(bubble: HTMLElement, panel: HTMLElement, position: BubblePosition) {
@@ -682,7 +798,8 @@ export function installConfigFormDevtools(): FormDevtoolsBridge {
     setError('')
   }
 
-  const store = createStore(() => renderTree(body, store, highlight, setError))
+  const renderState: DevtoolsRenderState = {}
+  const store = createStore(() => renderTree(body, store, highlight, setError, renderState))
   const bridge: FormDevtoolsBridge = {
     recordPatch: store.recordPatch,
     registerField: store.registerField,
@@ -692,7 +809,7 @@ export function installConfigFormDevtools(): FormDevtoolsBridge {
 
   bubble.addEventListener('click', () => {
     panel.classList.toggle('is-open')
-    renderTree(body, store, highlight, setError)
+    renderTree(body, store, highlight, setError, renderState)
   })
 
   panel.append(header, body, errorBox)
@@ -704,7 +821,7 @@ export function installConfigFormDevtools(): FormDevtoolsBridge {
   window.__CONFIG_FORM_DEVTOOLS_PENDING__ = true
   window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
   window.dispatchEvent(new CustomEvent(READY_EVENT, { detail: bridge }))
-  renderTree(body, store, highlight, setError)
+  renderTree(body, store, highlight, setError, renderState)
 
   return bridge
 }
