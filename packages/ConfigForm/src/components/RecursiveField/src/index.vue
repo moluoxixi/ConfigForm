@@ -4,7 +4,7 @@ import type { FormErrors, FormValues, ResolvedField, ResolvedFormNode } from '@/
 import { computed } from 'vue'
 import ComponentNode from '@/components/ComponentNode'
 import FormField from '@/components/FormField'
-import { isFieldConfig } from '@/models/node'
+import { isResolvedFieldConfig } from '@/models/node'
 
 defineOptions({ name: 'RecursiveField' })
 
@@ -17,7 +17,6 @@ const props = defineProps<{
   inline?: boolean
   labelWidth?: string | number
   runtimeContext?: FormRuntimeContext
-  slotName?: string
 }>()
 
 defineSlots<{
@@ -30,7 +29,7 @@ const emit = defineEmits<{
   'fieldChange': [field: string]
 }>()
 
-const fieldNode = computed(() => isFieldConfig(props.node) ? props.node : undefined)
+const fieldNode = computed(() => isResolvedFieldConfig(props.node) ? props.node : undefined)
 
 function emitCurrentFieldValue(value: unknown) {
   if (!fieldNode.value)
@@ -51,7 +50,6 @@ function emitCurrentFieldValue(value: unknown) {
     :runtime-context="runtimeContext"
     :visible="visibilityMap[fieldNode.field]"
     :disabled="disabledMap[fieldNode.field]"
-    :slot-name="slotName"
     @update:model-value="emitCurrentFieldValue"
     @blur="(name: string) => emit('fieldBlur', name)"
     @change="(name: string) => emit('fieldChange', name)"
@@ -61,10 +59,9 @@ function emitCurrentFieldValue(value: unknown) {
         :node="fieldNode"
         :component-attrs="componentAttrs"
         :component-listeners="componentListeners"
-        :register-devtools="false"
         :runtime-context="fieldRuntimeContext"
       >
-        <template #node="{ node: childNode, slotName: childSlotName }">
+        <template #node="{ node: childNode, runtimeContext: childRuntimeContext }">
           <RecursiveField
             :node="childNode"
             :values="values"
@@ -73,8 +70,7 @@ function emitCurrentFieldValue(value: unknown) {
             :disabled-map="disabledMap"
             :inline="inline"
             :label-width="labelWidth"
-            :runtime-context="fieldRuntimeContext"
-            :slot-name="childSlotName"
+            :runtime-context="childRuntimeContext"
             @update:field-value="(field: string, value: unknown) => emit('update:fieldValue', field, value)"
             @field-blur="(field: string) => emit('fieldBlur', field)"
             @field-change="(field: string) => emit('fieldChange', field)"
@@ -96,9 +92,8 @@ function emitCurrentFieldValue(value: unknown) {
     v-else
     :node="node"
     :runtime-context="runtimeContext"
-    :slot-name="slotName"
   >
-    <template #node="{ node: childNode, slotName: childSlotName }">
+    <template #node="{ node: childNode, runtimeContext: childRuntimeContext }">
       <RecursiveField
         :node="childNode"
         :values="values"
@@ -107,8 +102,7 @@ function emitCurrentFieldValue(value: unknown) {
         :disabled-map="disabledMap"
         :inline="inline"
         :label-width="labelWidth"
-        :runtime-context="runtimeContext"
-        :slot-name="childSlotName"
+        :runtime-context="childRuntimeContext"
         @update:field-value="(field: string, value: unknown) => emit('update:fieldValue', field, value)"
         @field-blur="(field: string) => emit('fieldBlur', field)"
         @field-change="(field: string) => emit('fieldChange', field)"

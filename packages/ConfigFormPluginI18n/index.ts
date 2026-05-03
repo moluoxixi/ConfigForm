@@ -5,11 +5,13 @@ export {
 } from './src'
 
 export type {
+  I18nLocale,
   I18nMessage,
   I18nMessageResolver,
   I18nMessages,
   I18nMissingHandler,
   I18nPluginOptions,
   I18nToken,
+  I18nTokenOptions,
   I18nTranslate,
 } from './src'

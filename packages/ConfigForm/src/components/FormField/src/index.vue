@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { FormRuntimeContext } from '@/runtime'
 import type { ResolvedField } from '@/types'
-import { computed, ref } from 'vue'
-import { useFormFieldDevtools } from '@/composables/useDevtools'
+import { computed } from 'vue'
 import { useBem, useNamespace } from '@/composables/useNamespace'
 import { useRuntime } from '@/composables/useRuntime'
 import { resolveLabelWidth } from '@/utils/style'
@@ -21,8 +20,6 @@ const props = defineProps<{
   disabled?: boolean
   /** 当前表单运行时上下文，递归字段会沿用它 */
   runtimeContext?: FormRuntimeContext
-  /** 当前字段来自父组件哪个 slot */
-  slotName?: string
 }>()
 
 const emit = defineEmits<{
@@ -34,8 +31,6 @@ const emit = defineEmits<{
 const ns = useNamespace()
 const { b, e, m } = useBem(ns)
 const runtimeRef = useRuntime()
-const rootRef = ref<unknown>()
-const slotNameRef = computed(() => props.slotName)
 
 const currentRuntimeContext = computed<FormRuntimeContext>(() => {
   const base = props.runtimeContext ?? runtimeRef.value.createContext()
@@ -79,12 +74,6 @@ const componentListeners = computed<Record<string, (...args: unknown[]) => void>
   [props.field.trigger]: (...args: unknown[]) => onChange(...args),
 }))
 
-useFormFieldDevtools({
-  field: computed(() => props.field),
-  rootRef,
-  slotName: slotNameRef,
-})
-
 function onChange(...args: unknown[]) {
   const value = props.field.getValueFromEvent
     ? props.field.getValueFromEvent(...args)
@@ -102,7 +91,6 @@ function onBlur() {
 <template>
   <div
     v-if="visible !== false"
-    ref="rootRef"
     :class="[b('field'), { [m('field', 'inline')]: inline }]"
     :style="!inline && field.span ? { gridColumn: `span ${field.span}` } : undefined"
   >

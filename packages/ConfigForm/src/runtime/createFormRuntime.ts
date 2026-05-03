@@ -1,13 +1,16 @@
 import type {
   ComponentRegistry,
   CreateRuntimeContextInput,
+  FormFieldTransform,
   FormRuntime,
-  FormRuntimeConflict,
-  FormRuntimeConflictStrategy,
   FormRuntimeContext,
-  FormRuntimeExtension,
+  FormRuntimeHookOrder,
+  FormRuntimeObjectHook,
   FormRuntimeOptions,
+  FormRuntimePlugin,
   FormRuntimeTokenResolver,
+  FormRuntimeTransformContext,
+  FormRuntimeTransformContextInput,
 } from './types'
 import type {
   ExpressionInput,
@@ -35,9 +38,19 @@ import {
   markResolvedFormNodeConfig,
 } from '@/models/node'
 
+const CONFIG_FORM_TRANSFORMED_FIELD = Symbol('moluoxixi.config-form.transformed-field')
+
+interface RuntimeHook<THandler extends (...args: never[]) => unknown> {
+  handler: THandler
+  order?: FormRuntimeHookOrder
+  pluginName: string
+}
+
+/** 创建一个运行时 token，后续由同 type 的 token resolver 解析成真实值。 */
 export function createRuntimeToken<TValue = unknown, TType extends string = string>(
   type: TType,
 ): RuntimeToken<TValue, TType>
+/** 创建一个带 payload 的运行时 token；payload 会原样传给 token resolver。 */
 export function createRuntimeToken<
   TValue = unknown,
   TType extends string = string,
@@ -56,6 +69,7 @@ export function createRuntimeToken<TValue = unknown, TType extends string = stri
   } as RuntimeToken<TValue, TType> & Record<string, unknown>
 }
 
+/** 创建内置表达式 token，用于 label、props、visible、disabled 等运行时表达式场景。 */
 export function expr<TValue = unknown>(expression: ExpressionInput, fallback?: TValue): ExpressionToken<TValue> {
   return createRuntimeToken<TValue, 'expr', { expression: ExpressionInput, fallback?: TValue }>('expr', {
     expression,
@@ -63,6 +77,7 @@ export function expr<TValue = unknown>(expression: ExpressionInput, fallback?: T
   })
 }
 
+/** 判断未知值是否是 runtime token。 */
 export function isRuntimeToken<TValue = unknown>(value: unknown): value is RuntimeToken<TValue> {
   return Boolean(
     value
@@ -71,6 +86,7 @@ export function isRuntimeToken<TValue = unknown>(value: unknown): value is Runti
   )
 }
 
+/** 判断未知值是否是内置表达式 token。 */
 export function isExpressionToken<TValue = unknown>(value: unknown): value is ExpressionToken<TValue> {
   return Boolean(
     isRuntimeToken(value)
@@ -78,6 +94,7 @@ export function isExpressionToken<TValue = unknown>(value: unknown): value is Ex
   )
 }
 
+/** 判断未知值是否是 ConfigForm runtime 实例。 */
 export function isFormRuntime(value: unknown): value is FormRuntime {
   return Boolean(
     value
@@ -103,6 +120,72 @@ function isComponentLikeRecord(value: Record<string, unknown>): boolean {
   )
 }
 
+function isTransformedFieldConfig(value: unknown): value is NormalizedFieldConfig {
+  return Boolean(
+    value
+    && typeof value === 'object'
+    && (value as Record<symbol, unknown>)[CONFIG_FORM_TRANSFORMED_FIELD] === true,
+  )
+}
+
+function markTransformedFieldConfig<TField extends NormalizedFieldConfig>(field: TField): TField {
+  Object.defineProperty(field, CONFIG_FORM_TRANSFORMED_FIELD, {
+    configurable: false,
+    enumerable: false,
+    value: true,
+    writable: false,
+  })
+
+  return field
+}
+
+function cloneNormalizedField(field: NormalizedFieldConfig): NormalizedFieldConfig {
+  return {
+    ...field,
+    props: { ...field.props },
+    slots: field.slots ? { ...field.slots } : field.slots,
+  }
+}
+
+function assertNoLegacyFieldPlugins(value: unknown, path: string): void {
+  if (value && typeof value === 'object' && Object.hasOwn(value, 'plugins'))
+    throw new Error(`${path}.plugins is no longer supported. Use runtime plugins and runtime tokens instead.`)
+}
+
+function normalizeObjectHook<THandler extends (...args: never[]) => unknown>(
+  pluginName: string,
+  hookName: string,
+  hook: FormRuntimeObjectHook<THandler>,
+): RuntimeHook<THandler> {
+  if (typeof hook === 'function') {
+    return {
+      handler: hook,
+      pluginName,
+    }
+  }
+
+  if (!hook || typeof hook !== 'object' || typeof hook.handler !== 'function')
+    throw new TypeError(`Plugin ${pluginName} hook ${hookName} must be a function or an object hook`)
+
+  if (hook.order !== undefined && hook.order !== 'pre' && hook.order !== 'post')
+    throw new TypeError(`Plugin ${pluginName} hook ${hookName}.order must be "pre" or "post"`)
+
+  return {
+    handler: hook.handler,
+    order: hook.order,
+    pluginName,
+  }
+}
+
+function orderHooks<THandler extends (...args: never[]) => unknown>(
+  hooks: RuntimeHook<THandler>[],
+): RuntimeHook<THandler>[] {
+  const pre = hooks.filter(hook => hook.order === 'pre')
+  const normal = hooks.filter(hook => hook.order === undefined)
+  const post = hooks.filter(hook => hook.order === 'post')
+  return [...pre, ...normal, ...post]
+}
+
 function getByPath(source: unknown, path: string): unknown {
   if (!path)
     return source
@@ -120,8 +203,8 @@ function resolvePath(input: { path: string, fallback?: unknown }, context: FormR
   const root = {
     errors: context.errors,
     field: context.field,
-    locale: context.locale,
-    meta: context.meta,
+    slotName: context.slotName,
+    slotScope: context.slotScope,
     values: context.values,
   }
   const firstSegment = input.path.split('.')[0]
@@ -179,75 +262,44 @@ function defaultEvaluateExpression(input: ExpressionInput, context: FormRuntimeC
   throw new Error(`Unsupported expression: ${JSON.stringify(input)}`)
 }
 
-function normalizeExtensions(extensions: FormRuntimeExtension[] = []): FormRuntimeExtension[] {
-  return [...extensions].sort((a, b) => (a.priority ?? 100) - (b.priority ?? 100))
+function createSlotContext(context: FormRuntimeContext, slotName: string): FormRuntimeContext & { slotName: string } {
+  return {
+    ...context,
+    slotName,
+  }
 }
 
+/** 创建表单运行时实例，合并组件注册、插件 hook 和 token resolver。 */
 export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime {
-  const conflictStrategy: FormRuntimeConflictStrategy = options.conflictStrategy ?? 'error'
-  const extensions = normalizeExtensions(options.extensions)
+  const plugins: FormRuntimePlugin[] = [...(options.plugins ?? [])]
   const components: ComponentRegistry = { ...(options.components ?? {}) }
   const tokenResolvers: Record<string, FormRuntimeTokenResolver> = {}
+  const fieldTransformHooks: RuntimeHook<FormFieldTransform>[] = []
 
-  function emitDebug(event: Parameters<FormRuntime['emitDebug']>[0]) {
-    options.debug?.emit?.(event)
-    for (const extension of extensions)
-      extension.onDebugEvent?.(event)
-  }
+  const seenPluginNames = new Set<string>()
+  for (const plugin of plugins) {
+    if (seenPluginNames.has(plugin.name))
+      throw new Error(`Duplicate plugin name: ${plugin.name}`)
+    else
+      seenPluginNames.add(plugin.name)
 
-  function handleConflict(conflict: FormRuntimeConflict) {
-    if (conflictStrategy === 'error')
-      throw new Error(conflict.message)
-    if (conflictStrategy === 'warn') {
-      options.onConflict?.(conflict)
-      emitDebug({
-        data: { conflict },
-        message: conflict.message,
-        type: 'conflict',
-      })
-    }
-  }
-
-  const seenExtensionNames = new Set<string>()
-  for (const extension of extensions) {
-    if (seenExtensionNames.has(extension.name)) {
-      handleConflict({
-        incoming: extension,
-        key: extension.name,
-        message: `Duplicate extension name: ${extension.name}`,
-        type: 'extension',
-      })
-    }
-    else {
-      seenExtensionNames.add(extension.name)
-    }
-
-    for (const [key, component] of Object.entries(extension.components ?? {})) {
-      if (Object.hasOwn(components, key)) {
-        handleConflict({
-          existing: components[key],
-          incoming: component,
-          key,
-          message: `Component key conflict: ${key}`,
-          type: 'component',
-        })
-      }
+    for (const [key, component] of Object.entries(plugin.components ?? {})) {
+      if (Object.hasOwn(components, key))
+        throw new Error(`Component key conflict: ${key}`)
       components[key] = component
     }
 
-    for (const [type, resolver] of Object.entries(extension.tokens ?? {})) {
-      if (Object.hasOwn(tokenResolvers, type)) {
-        handleConflict({
-          existing: tokenResolvers[type],
-          incoming: resolver,
-          key: type,
-          message: `Token resolver conflict: ${type}`,
-          type: 'token',
-        })
-      }
+    for (const [type, resolver] of Object.entries(plugin.tokens ?? {})) {
+      if (Object.hasOwn(tokenResolvers, type))
+        throw new Error(`Token resolver conflict: ${type}`)
       tokenResolvers[type] = resolver
     }
+
+    if (plugin.transformField)
+      fieldTransformHooks.push(normalizeObjectHook(plugin.name, 'transformField', plugin.transformField))
   }
+
+  const orderedFieldTransformHooks = orderHooks(fieldTransformHooks)
 
   function createContext<TValues extends FormValues = FormValues>(
     input: CreateRuntimeContextInput<TValues> = {},
@@ -255,8 +307,8 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
     return {
       errors: input.errors ?? {},
       field: input.field,
-      locale: input.locale,
-      meta: input.meta,
+      slotName: input.slotName,
+      slotScope: input.slotScope,
       values: input.values ?? ({} as TValues),
     }
   }
@@ -315,19 +367,6 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
       resolved = resolveRecord(resolved, context, path)
     }
 
-    for (const extension of extensions) {
-      const next = extension.resolveValue?.(resolved, context, path)
-      if (next !== undefined) {
-        resolved = next
-        emitDebug({
-          extension: extension.name,
-          path,
-          type: 'extension:resolved',
-        })
-      }
-    }
-
-    emitDebug({ path, type: 'value:resolved' })
     return resolved
   }
 
@@ -346,7 +385,7 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
         ? Object.fromEntries(
             Object.entries(config.slots).map(([key, slot]) => [
               key,
-              resolveSlot(slot, context, `${path}.slots.${key}`),
+              resolveSlot(slot, createSlotContext(context, key), `${path}.slots.${key}`),
             ]),
           )
         : config.slots,
@@ -369,10 +408,7 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
         slot(scope),
         {
           ...context,
-          meta: {
-            ...context.meta,
-            slotScope: scope,
-          },
+          slotScope: scope,
         },
         path,
       )
@@ -393,21 +429,7 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
   }
 
   function resolveSlot(slot: SlotContent, context: FormRuntimeContext, path = 'slot'): SlotContent {
-    let resolved = resolveSlotBase(slot, context, path)
-
-    for (const extension of extensions) {
-      const next = extension.resolveSlot?.(resolved, context, path)
-      if (next !== undefined) {
-        resolved = next
-        emitDebug({
-          extension: extension.name,
-          path,
-          type: 'extension:resolved',
-        })
-      }
-    }
-
-    return resolveSlotBase(resolved, context, path)
+    return resolveSlotBase(slot, context, path)
   }
 
   function resolveFieldBase(config: NormalizedFieldConfig, context: FormRuntimeContext): ResolvedField {
@@ -422,58 +444,69 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
         ? Object.fromEntries(
             Object.entries(config.slots).map(([key, slot]) => [
               key,
-              resolveSlot(slot, context, `${config.field}.slots.${key}`),
+              resolveSlot(slot, createSlotContext(context, key), `${config.field}.slots.${key}`),
             ]),
           )
         : config.slots,
     })
   }
 
-  function prepareField(field: FieldConfig, context: FormRuntimeContext): NormalizedFieldConfig {
-    let config = normalizeField(field)
-    let fieldContext = { ...context, field: config }
+  function createTransformContext(
+    field: NormalizedFieldConfig,
+    input: FormRuntimeTransformContextInput = {},
+  ): FormRuntimeTransformContext {
+    const context: FormRuntimeTransformContext = { field }
+    if (input.slotName !== undefined)
+      context.slotName = input.slotName
+    if (input.slotScope !== undefined)
+      context.slotScope = input.slotScope
+    return context
+  }
 
-    for (const extension of extensions) {
-      const next = extension.prepareField?.(config, fieldContext)
-      if (next) {
-        config = normalizeField(next)
-        fieldContext = { ...context, field: config }
-        emitDebug({
-          extension: extension.name,
-          field: config.field,
-          type: 'extension:resolved',
-        })
+  function transformField(
+    field: FieldConfig | NormalizedFieldConfig,
+    context: FormRuntimeTransformContextInput = {},
+  ): NormalizedFieldConfig {
+    if (isResolvedFieldConfig(field) || isTransformedFieldConfig(field))
+      return field
+
+    assertNoLegacyFieldPlugins(field, 'field')
+
+    let config = normalizeField(field)
+    assertNoLegacyFieldPlugins(config, 'field')
+
+    for (const hook of orderedFieldTransformHooks) {
+      const hookField = cloneNormalizedField(config)
+      const next = hook.handler(hookField, createTransformContext(hookField, context))
+      if (next === undefined)
+        continue
+
+      if (!next || typeof next !== 'object' || Array.isArray(next))
+        throw new TypeError(`Plugin ${hook.pluginName} transformField must return a field object or undefined`)
+
+      assertNoLegacyFieldPlugins(next, `plugin ${hook.pluginName} transformField result`)
+
+      const normalized = normalizeField(next as FieldConfig)
+      assertNoLegacyFieldPlugins(normalized, `plugin ${hook.pluginName} transformField result`)
+      if (normalized.field !== config.field) {
+        throw new Error(
+          `Plugin ${hook.pluginName} transformField cannot change field key from "${config.field}" to "${normalized.field}"`,
+        )
       }
+
+      config = normalized
     }
 
-    return config
+    return markTransformedFieldConfig(config)
   }
 
   function resolveField(field: FieldConfig, context: FormRuntimeContext): ResolvedField {
     if (isResolvedFieldConfig(field))
       return field
 
-    const prepared = prepareField(field, context)
-    const fieldContext = { ...context, field: prepared }
-    let config = resolveFieldBase(prepared, fieldContext)
-
-    for (const extension of extensions) {
-      const next = extension.resolveField?.(config, fieldContext)
-      if (next) {
-        config = resolveFieldBase(normalizeField(next), fieldContext)
-        emitDebug({
-          extension: extension.name,
-          field: config.field,
-          type: 'extension:resolved',
-        })
-      }
-    }
-
-    emitDebug({
-      field: config.field,
-      type: 'field:resolved',
-    })
-    return config
+    const transformed = transformField(field, context)
+    const fieldContext = { ...context, field: transformed }
+    return resolveFieldBase(transformed, fieldContext)
   }
 
   function resolveConditionBase(
@@ -491,59 +524,28 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
   }
 
   function resolveVisible(field: FieldConfig | NormalizedFieldConfig, context: FormRuntimeContext): boolean {
-    const normalized = normalizeField(field)
-    const fieldContext = { ...context, field: normalized }
-    const hooks = extensions.filter(extension => extension.resolveVisible)
-    const base = () => resolveConditionBase(normalized.visible, fieldContext, true)
-    const dispatch = (index: number): boolean => {
-      const extension = hooks[index]
-      if (!extension?.resolveVisible)
-        return base()
-      return extension.resolveVisible(normalized, fieldContext, () => dispatch(index + 1))
-    }
-    const result = dispatch(0)
-    emitDebug({
-      data: { result },
-      field: normalized.field,
-      type: 'condition:resolved',
-    })
-    return result
+    const transformed = transformField(field, context)
+    const fieldContext = { ...context, field: transformed }
+    return resolveConditionBase(transformed.visible, fieldContext, true)
   }
 
   function resolveDisabled(field: FieldConfig | NormalizedFieldConfig, context: FormRuntimeContext): boolean {
-    const normalized = normalizeField(field)
-    const fieldContext = { ...context, field: normalized }
-    const hooks = extensions.filter(extension => extension.resolveDisabled)
-    const base = () => resolveConditionBase(normalized.disabled, fieldContext, false)
-    const dispatch = (index: number): boolean => {
-      const extension = hooks[index]
-      if (!extension?.resolveDisabled)
-        return base()
-      return extension.resolveDisabled(normalized, fieldContext, () => dispatch(index + 1))
-    }
-    const result = dispatch(0)
-    emitDebug({
-      data: { result },
-      field: normalized.field,
-      type: 'condition:resolved',
-    })
-    return result
+    const transformed = transformField(field, context)
+    const fieldContext = { ...context, field: transformed }
+    return resolveConditionBase(transformed.disabled, fieldContext, false)
   }
 
   const runtime: FormRuntime = {
     __configFormRuntime: true,
-    components,
     createContext,
-    emitDebug,
-    extensions,
     resolveDisabled,
     resolveField,
     resolveNode,
     resolveSlot,
     resolveValue,
     resolveVisible,
+    transformField,
   }
 
-  emitDebug({ type: 'runtime:created' })
   return runtime
 }

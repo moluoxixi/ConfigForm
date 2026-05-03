@@ -3,7 +3,7 @@ import type { FormRuntimeInput } from '@/runtime'
 import type { FieldKey, FormErrors, FormNodeConfig, FormValues, ValidateTrigger } from '@/types'
 import { computed, reactive, ref, toRaw, toValue, watch } from 'vue'
 import { normalizeFormRuntime } from '@/composables/useRuntime'
-import { applyFieldTransform, normalizeField, shouldValidateOn } from '@/models/field'
+import { applyFieldTransform, shouldValidateOn } from '@/models/field'
 import { collectFieldConfigs } from '@/models/node'
 import { validateFieldRules, validateForm } from '@/utils/validate'
 
@@ -58,13 +58,14 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
   }
 
   function createValuesWithDefaults(source: FormValues, pruneToFields: boolean): FormValues {
-    const normalizedFields = fieldConfigs.value.map(config => normalizeField(config))
-    const fieldNames = new Set(normalizedFields.map(field => field.field))
+    const runtime = runtimeRef.value
+    const transformedFields = fieldConfigs.value.map(config => runtime.transformField(config))
+    const fieldNames = new Set(transformedFields.map(field => field.field))
     const next: FormValues = pruneToFields
       ? Object.fromEntries(Object.entries(source).filter(([key]) => fieldNames.has(key)))
       : { ...source }
 
-    for (const field of normalizedFields) {
+    for (const field of transformedFields) {
       if (!Object.hasOwn(next, field.field))
         next[field.field] = field.defaultValue !== undefined ? field.defaultValue : undefined
     }
@@ -149,7 +150,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
 
   async function validateSingleField(fieldName: string, trigger: ValidateTrigger): Promise<boolean> {
     const config = fieldConfigs.value.find(f => f.field === fieldName)
-    const field = config ? normalizeField(config) : undefined
+    const field = config ? runtimeRef.value.transformField(config) : undefined
     if (!field?.schema && !field?.validator)
       return true
 
@@ -201,7 +202,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     const context = createRuntimeContext(snap)
     const submitValues: FormValues = {}
     for (const config of fieldConfigs.value) {
-      const field = normalizeField(config)
+      const field = runtimeRef.value.transformField(config)
       if (!runtimeRef.value.resolveVisible(field, context) && !field.submitWhenHidden)
         continue
       if (runtimeRef.value.resolveDisabled(field, context) && !field.submitWhenDisabled)

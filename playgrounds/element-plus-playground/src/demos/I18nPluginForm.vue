@@ -48,7 +48,7 @@ const messages: I18nMessages = {
     'i18n.role.placeholder': '请选择角色',
     'i18n.role.required': '请选择角色',
     'i18n.role.user': '用户',
-    'i18n.suggestion.label': (_params, context) => context.locale === 'en-US' ? 'Suggestion' : '建议',
+    'i18n.suggestion.label': (_params, _context, currentLocale) => currentLocale === 'en-US' ? 'Suggestion' : '建议',
     'i18n.suggestion.placeholder': '函数消息 label + token placeholder',
     'i18n.username.guestMin': '访客用户名至少 {min} 个字符',
     'i18n.username.label': '用户名（{min}-{max} 个字符）',
@@ -83,7 +83,7 @@ const messages: I18nMessages = {
     'i18n.role.placeholder': 'Select role',
     'i18n.role.required': 'Select a role',
     'i18n.role.user': 'User',
-    'i18n.suggestion.label': (_params, context) => context.locale === 'en-US' ? 'Suggestion' : '建议',
+    'i18n.suggestion.label': (_params, _context, currentLocale) => currentLocale === 'en-US' ? 'Suggestion' : '建议',
     'i18n.suggestion.placeholder': 'Function message label + token placeholder',
     'i18n.username.guestMin': 'Guest username must be at least {min} characters',
     'i18n.username.label': 'Username ({min}-{max} chars)',
@@ -112,13 +112,13 @@ function t(key: string, params?: Record<string, unknown>) {
 }
 
 const runtime = createFormRuntime({
-  extensions: [
+  plugins: [
     createI18nPlugin({
       locale: () => locale.value,
       messages,
-      translate: (key, params, defaultMessage, context) => {
+      translate: (key, params, defaultMessage, context, currentLocale) => {
         if (key === 'i18n.custom.label') {
-          const prefix = context.locale === 'en-US' ? 'Custom field' : '自定义字段'
+          const prefix = currentLocale === 'en-US' ? 'Custom field' : '自定义字段'
           const fieldName = params?.field ?? context.field?.field
           if (fieldName == null)
             throw new Error(defaultMessage ?? `Missing custom field name: ${key}`)
@@ -138,14 +138,20 @@ const nextLocaleLabel = computed(() => locale.value === 'zh-CN'
 const fields = computed(() => [
   defineField({
     field: 'username',
-    label: i18n('i18n.username.label', '用户名', { max: 20, min: 2 }),
     validateOn: ['blur', 'change'],
     schema: z.string()
       .min(2, t('i18n.username.min', { min: 2 }))
       .max(20, t('i18n.username.max', { max: 20 })),
     span: 12,
     component: ElInput,
-    props: { clearable: true, placeholder: i18n('i18n.username.placeholder', '请输入用户名') },
+    label: i18n('i18n.username.label', {
+      defaultMessage: '用户名',
+      params: { max: 20, min: 2 },
+    }),
+    props: {
+      clearable: true,
+      placeholder: i18n('i18n.username.placeholder', { defaultMessage: '请输入用户名' }),
+    },
     validator: (value, values) => {
       if (values.role === 'guest' && value.length < 4)
         return t('i18n.username.guestMin', { min: 4 })
@@ -156,67 +162,82 @@ const fields = computed(() => [
   }),
   defineField({
     field: 'email',
-    label: i18n('i18n.email.label', '邮箱'),
     validateOn: 'blur',
     schema: z.string().email(t('i18n.email.invalid')).optional(),
     span: 12,
     component: ElInput,
-    props: { clearable: true, placeholder: i18n('i18n.email.placeholder', '请输入邮箱') },
+    label: i18n('i18n.email.label', { defaultMessage: '邮箱' }),
+    props: {
+      clearable: true,
+      placeholder: i18n('i18n.email.placeholder', { defaultMessage: '请输入邮箱' }),
+    },
     transform: value => value?.trim(),
   }),
   defineField({
     field: 'role',
-    label: i18n('i18n.role.label', '角色'),
     schema: z.string().min(1, t('i18n.role.required')).optional(),
     span: 12,
     component: ElSelectV2,
+    label: i18n('i18n.role.label', { defaultMessage: '角色' }),
     props: {
       clearable: true,
       options: [
-        { label: i18n('i18n.role.admin', '管理员'), value: 'admin' },
-        { label: i18n('i18n.role.user', '用户'), value: 'user' },
-        { label: i18n('i18n.role.guest', '访客'), value: 'guest' },
+        { label: i18n('i18n.role.admin', { defaultMessage: '管理员' }), value: 'admin' },
+        { label: i18n('i18n.role.user', { defaultMessage: '用户' }), value: 'user' },
+        { label: i18n('i18n.role.guest', { defaultMessage: '访客' }), value: 'guest' },
       ],
-      placeholder: i18n('i18n.role.placeholder', '请选择角色'),
+      placeholder: i18n('i18n.role.placeholder', { defaultMessage: '请选择角色' }),
     },
   }),
   defineField({
     field: 'phone',
-    label: i18n('i18n.phone.label', '手机号'),
     schema: z.string().optional(),
     span: 12,
     component: ElInput,
-    props: { clearable: true, placeholder: i18n('i18n.phone.placeholder', '请输入手机号') },
+    label: i18n('i18n.phone.label', { defaultMessage: '手机号' }),
+    props: {
+      clearable: true,
+      placeholder: i18n('i18n.phone.placeholder', { defaultMessage: '请输入手机号' }),
+    },
   }),
   defineField({
     field: 'gender',
-    label: i18n('i18n.gender.label', '性别'),
     schema: z.string().optional(),
     span: 12,
     component: ElRadioGroup,
+    label: i18n('i18n.gender.label', { defaultMessage: '性别' }),
     slots: {
       default: [
-        defineField({ component: ElRadio, props: { value: 'male' }, slots: { default: i18n('i18n.gender.male', '男') } }),
-        defineField({ component: ElRadio, props: { value: 'female' }, slots: { default: i18n('i18n.gender.female', '女') } }),
-        defineField({ component: ElRadio, props: { value: 'other' }, slots: { default: () => i18n('i18n.gender.other', '其他') } }),
+        defineField({ component: ElRadio, props: { value: 'male' }, slots: { default: i18n('i18n.gender.male', { defaultMessage: '男' }) } }),
+        defineField({ component: ElRadio, props: { value: 'female' }, slots: { default: i18n('i18n.gender.female', { defaultMessage: '女' }) } }),
+        defineField({ component: ElRadio, props: { value: 'other' }, slots: { default: () => i18n('i18n.gender.other', { defaultMessage: '其他' }) } }),
       ],
     },
   }),
   defineField({
     field: 'suggestion',
-    label: i18n('i18n.suggestion.label', '建议'),
     schema: z.string().optional(),
     span: 12,
     component: ElInput,
-    props: { clearable: true, placeholder: i18n('i18n.suggestion.placeholder', '请输入建议') },
+    label: i18n('i18n.suggestion.label', { defaultMessage: '建议' }),
+    props: {
+      clearable: true,
+      placeholder: i18n('i18n.suggestion.placeholder', { defaultMessage: '请输入建议' }),
+    },
   }),
   defineField({
     field: 'custom',
-    label: i18n('i18n.custom.label', '自定义字段', { field: 'custom' }),
     schema: z.string().optional(),
     span: 12,
     component: ElInput,
-    props: { clearable: true, placeholder: i18n('i18n.custom.placeholder', '自定义 translate') },
+    label: i18n('i18n.custom.label', {
+      defaultMessage: '自定义字段',
+      params: { field: 'custom' },
+    }),
+    props: {
+      clearable: true,
+      placeholder: i18n('i18n.custom.placeholder', { defaultMessage: '自定义 translate' }),
+    },
   }),
 ])
 

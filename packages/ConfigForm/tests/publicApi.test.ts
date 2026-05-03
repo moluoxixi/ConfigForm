@@ -5,8 +5,34 @@ describe('public api', () => {
   it('keeps defineField as the only public field factory', () => {
     type HasDefineField = 'defineField' extends keyof typeof PublicApi ? true : false
     type HasDefineFieldFor = 'defineFieldFor' extends keyof typeof PublicApi ? true : false
+    type HasFormRuntimeLocale = 'FormRuntimeLocale' extends keyof typeof PublicApi ? true : false
+    type HasFormRuntimeDebugEvent = 'FormRuntimeDebugEvent' extends keyof typeof PublicApi ? true : false
+    type HasFormRuntimeConflictStrategy = 'FormRuntimeConflictStrategy' extends keyof typeof PublicApi ? true : false
+    type HasFormRuntimePluginContext = 'FormRuntimePluginContext' extends keyof typeof PublicApi ? true : false
+    type HasFormDevtoolsBridge = 'FormDevtoolsBridge' extends keyof typeof PublicApi ? true : false
+    type HasRuntimeTransformField = 'transformField' extends keyof PublicApi.FormRuntime ? true : false
+    type HasRuntimeComponents = 'components' extends keyof PublicApi.FormRuntime ? true : false
+    type HasRuntimeExtensions = 'extensions' extends keyof PublicApi.FormRuntime ? true : false
+    type HasRuntimeEmitDebug = 'emitDebug' extends keyof PublicApi.FormRuntime ? true : false
+    type HasRuntimeContextPlugins = 'plugins' extends keyof PublicApi.FormRuntimeContext ? true : false
+    type HasRuntimeOptionsExtensions = 'extensions' extends keyof PublicApi.FormRuntimeOptions ? true : false
+    type HasRuntimeOptionsPlugins = 'plugins' extends keyof PublicApi.FormRuntimeOptions ? true : false
+    type HasFieldConfigPlugins = 'plugins' extends keyof PublicApi.FieldConfig ? true : false
 
     expectTypeOf<HasDefineField>().toEqualTypeOf<true>()
     expectTypeOf<HasDefineFieldFor>().toEqualTypeOf<false>()
+    expectTypeOf<HasFormRuntimeLocale>().toEqualTypeOf<false>()
+    expectTypeOf<HasFormRuntimeDebugEvent>().toEqualTypeOf<false>()
+    expectTypeOf<HasFormRuntimeConflictStrategy>().toEqualTypeOf<false>()
+    expectTypeOf<HasFormRuntimePluginContext>().toEqualTypeOf<false>()
+    expectTypeOf<HasFormDevtoolsBridge>().toEqualTypeOf<false>()
+    expectTypeOf<HasRuntimeTransformField>().toEqualTypeOf<true>()
+    expectTypeOf<HasRuntimeComponents>().toEqualTypeOf<false>()
+    expectTypeOf<HasRuntimeExtensions>().toEqualTypeOf<false>()
+    expectTypeOf<HasRuntimeEmitDebug>().toEqualTypeOf<false>()
+    expectTypeOf<HasRuntimeContextPlugins>().toEqualTypeOf<false>()
+    expectTypeOf<HasRuntimeOptionsExtensions>().toEqualTypeOf<false>()
+    expectTypeOf<HasRuntimeOptionsPlugins>().toEqualTypeOf<true>()
+    expectTypeOf<HasFieldConfigPlugins>().toEqualTypeOf<false>()
   })
 })

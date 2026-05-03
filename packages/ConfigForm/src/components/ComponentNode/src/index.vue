@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type { FormRuntimeContext } from '@/runtime'
-import type { ResolvedComponentNode, ResolvedFormNode, SlotContent } from '@/types'
-import { computed, defineComponent, ref } from 'vue'
-import { useFormComponentNodeDevtools } from '@/composables/useDevtools'
+import type { ResolvedFormNode, SlotContent } from '@/types'
+import { computed, defineComponent } from 'vue'
 import { useRuntime } from '@/composables/useRuntime'
-import { isFieldConfig, isFormNodeConfig } from '@/models/node'
+import { isFormNodeConfig } from '@/models/node'
 
 defineOptions({ name: 'ComponentNode' })
 
@@ -19,19 +18,14 @@ const SlotRender = defineComponent({
   },
 })
 
-const props = withDefaults(defineProps<{
+const props = defineProps<{
   node: ResolvedFormNode
   componentAttrs?: Record<string, unknown>
   componentListeners?: Record<string, (...args: unknown[]) => void>
-  registerDevtools?: boolean
   runtimeContext?: FormRuntimeContext
-  slotName?: string
-}>(), {
-  registerDevtools: true,
-})
+}>()
 
 const runtimeRef = useRuntime()
-const rootRef = ref<unknown>()
 
 const currentRuntimeContext = computed<FormRuntimeContext>(() =>
   props.runtimeContext ?? runtimeRef.value.createContext(),
@@ -42,30 +36,21 @@ const attrs = computed(() => ({
   ...(props.componentAttrs ?? {}),
 }))
 
-const devtoolsNode = computed<ResolvedComponentNode | undefined>(() =>
-  props.registerDevtools !== false && !isFieldConfig(props.node)
-    ? props.node
-    : undefined,
-)
-
-useFormComponentNodeDevtools({
-  enabled: props.registerDevtools !== false,
-  node: devtoolsNode,
-  rootRef,
-  slotName: computed(() => props.slotName),
-})
-
 type NormalizedSlotNode =
-  | { key: string, kind: 'node', node: ResolvedFormNode }
+  | { key: string, kind: 'node', node: ResolvedFormNode, runtimeContext: FormRuntimeContext }
   | { fn: () => unknown, key: string, kind: 'render' }
 
-function normalizeResolvedSlotValue(value: SlotContent, slotName: string, path = '0'): NormalizedSlotNode[] {
+type SlotRuntimeContext = FormRuntimeContext & { slotName: string }
+
+function normalizeResolvedSlotValue(value: SlotContent, context: SlotRuntimeContext, path = '0'): NormalizedSlotNode[] {
   if (value == null || value === false)
     return []
 
+  const { slotName } = context
+
   if (Array.isArray(value)) {
     return value.flatMap((item, index) =>
-      normalizeResolvedSlotValue(item as SlotContent, slotName, `${path}-${index}`),
+      normalizeResolvedSlotValue(item as SlotContent, context, `${path}-${index}`),
     )
   }
 
@@ -73,7 +58,8 @@ function normalizeResolvedSlotValue(value: SlotContent, slotName: string, path =
     return [{
       key: `node-${slotName}-${path}`,
       kind: 'node',
-      node: runtimeRef.value.resolveNode(value, currentRuntimeContext.value, `${slotName}.${path}`),
+      node: runtimeRef.value.resolveNode(value, context, `${slotName}.${path}`),
+      runtimeContext: context,
     }]
   }
 
@@ -85,26 +71,22 @@ function normalizeResolvedSlotValue(value: SlotContent, slotName: string, path =
 }
 
 function normalizeSlotValue(slotValue: SlotContent, scope: Record<string, unknown> | undefined, slotName: string): NormalizedSlotNode[] {
-  const context = {
+  const context: SlotRuntimeContext = {
     ...currentRuntimeContext.value,
-    meta: {
-      ...currentRuntimeContext.value.meta,
-      slotScope: scope,
-    },
+    slotName,
+    slotScope: scope,
   }
-
   const resolvedSlot = runtimeRef.value.resolveSlot(slotValue, context, `slots.${slotName}`)
 
   if (typeof resolvedSlot === 'function')
-    return normalizeResolvedSlotValue(resolvedSlot(scope), slotName)
+    return normalizeResolvedSlotValue(resolvedSlot(scope), context)
 
-  return normalizeResolvedSlotValue(resolvedSlot, slotName)
+  return normalizeResolvedSlotValue(resolvedSlot, context)
 }
 </script>
 
 <template>
   <component
-    ref="rootRef"
     :is="node.component"
     v-bind="attrs"
     v-on="componentListeners ?? {}"
@@ -118,7 +100,7 @@ function normalizeSlotValue(slotValue: SlotContent, scope: Record<string, unknow
           v-if="slotNode.kind === 'node'"
           name="node"
           :node="slotNode.node"
-          :slot-name="String(slotName)"
+          :runtime-context="slotNode.runtimeContext"
         />
         <SlotRender v-else :fn="slotNode.fn" />
       </template>

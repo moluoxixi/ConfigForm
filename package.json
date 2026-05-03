@@ -10,7 +10,7 @@
     "lint:fix": "eslint . --fix",
     "test": "pnpm -C packages/ConfigForm build && pnpm -r --filter \"./packages/*\" test",
     "test:coverage": "pnpm -C packages/ConfigForm build && pnpm -r --filter \"./packages/*\" test:coverage",
-    "typecheck": "pnpm -C packages/ConfigForm build && pnpm -r --filter \"./packages/*\" --filter \"./playgrounds/*\" typecheck"
+    "typecheck": "pnpm -r --filter \"./packages/*\" build && pnpm -r --filter \"./packages/*\" --filter \"./playgrounds/*\" typecheck"
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:dev",

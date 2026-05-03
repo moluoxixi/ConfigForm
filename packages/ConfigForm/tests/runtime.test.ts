@@ -29,19 +29,14 @@ const AlternateInput = markRaw(defineComponent({
 }))
 
 describe('form runtime', () => {
-  it('resolves components, runtime tokens, expressions, extensions, and debug events', () => {
-    const events: Array<{ type: string, field?: string, extension?: string }> = []
+  it('resolves components, runtime tokens, expressions, and plugins', () => {
     const runtime = createFormRuntime({
       components: {
         RuntimeInput,
       },
-      debug: {
-        emit: event => events.push(event),
-      },
-      extensions: [
+      plugins: [
         {
           name: 'test-messages',
-          priority: -100,
           tokens: {
             message: (token, context, path, helpers) => {
               const { fallback, key, params: rawParams } = token as MessageToken
@@ -55,24 +50,48 @@ describe('form runtime', () => {
           },
         },
         {
-          name: 'late-props',
-          priority: 20,
-          resolveField: field => ({
+          name: 'normal-props',
+          transformField: field => ({
             ...field,
             props: {
               ...field.props,
-              order: [...((field.props?.order as string[] | undefined) ?? []), 'late'],
+              order: [...((field.props?.order as string[] | undefined) ?? []), 'normal'],
             },
           }),
         },
         {
-          name: 'early-props',
-          priority: 10,
-          resolveField: field => ({
+          name: 'pre-props',
+          transformField: {
+            order: 'pre',
+            handler: field => ({
+              ...field,
+              props: {
+                ...field.props,
+                order: [...((field.props?.order as string[] | undefined) ?? []), 'pre'],
+              },
+            }),
+          },
+        },
+        {
+          name: 'post-props',
+          transformField: {
+            order: 'post',
+            handler: field => ({
+              ...field,
+              props: {
+                ...field.props,
+                order: [...((field.props?.order as string[] | undefined) ?? []), 'post'],
+              },
+            }),
+          },
+        },
+        {
+          name: 'normal-props-2',
+          transformField: field => ({
             ...field,
             props: {
               ...field.props,
-              order: [...((field.props?.order as string[] | undefined) ?? []), 'early'],
+              order: [...((field.props?.order as string[] | undefined) ?? []), 'normal-2'],
             },
           }),
         },
@@ -100,15 +119,12 @@ describe('form runtime', () => {
     expect(resolved.label).toBe('用户名-Ada')
     expect(resolved.props).toMatchObject({
       disabled: false,
-      order: ['early', 'late'],
+      order: ['pre', 'normal', 'normal-2', 'post'],
       placeholder: 'Name placeholder',
     })
     expect(resolved.slots?.default).toBe('Default slot')
     expect(runtime.resolveVisible(field, ctx)).toBe(true)
     expect(runtime.resolveDisabled(field, ctx)).toBe(false)
-    expect(events.map(event => event.type)).toEqual(
-      expect.arrayContaining(['field:resolved', 'extension:resolved', 'condition:resolved']),
-    )
   })
 
   it('uses custom expression evaluators without eval-style assumptions', () => {
@@ -135,42 +151,22 @@ describe('form runtime', () => {
       .toThrow(/No token resolver registered/)
   })
 
-  it('enforces duplicate extension and component conflicts in strict mode', () => {
+  it('enforces duplicate plugin and component conflicts in strict mode', () => {
     expect(() => createFormRuntime({
-      extensions: [{ name: 'dup' }, { name: 'dup' }],
-    })).toThrow(/Duplicate extension/)
+      plugins: [{ name: 'dup' }, { name: 'dup' }],
+    })).toThrow(/Duplicate plugin/)
 
     expect(() => createFormRuntime({
       components: { RuntimeInput },
-      extensions: [{ components: { RuntimeInput: AlternateInput }, name: 'ui' }],
+      plugins: [{ components: { RuntimeInput: AlternateInput }, name: 'ui' }],
     })).toThrow(/Component key conflict/)
 
     expect(() => createFormRuntime({
-      extensions: [
+      plugins: [
         { name: 'token-a', tokens: { sample: () => 'a' } },
         { name: 'token-b', tokens: { sample: () => 'b' } },
       ],
     })).toThrow(/Token resolver conflict/)
-  })
-
-  it('can opt into last-write-wins conflicts explicitly', () => {
-    const warnings: string[] = []
-    const runtime = createFormRuntime({
-      components: { RuntimeInput },
-      conflictStrategy: 'last-write-wins',
-      extensions: [
-        { components: { RuntimeInput: AlternateInput }, name: 'ui', tokens: { sample: () => 'first' } },
-        { name: 'ui', tokens: { sample: () => 'second' } },
-      ],
-      onConflict: warning => warnings.push(warning.message),
-    })
-
-    const field = defineField({ component: 'RuntimeInput', field: 'name' })
-    const resolved = runtime.resolveField(field, runtime.createContext({ errors: {}, values: {} }))
-
-    expect(resolved.component).toBe(AlternateInput)
-    expect(runtime.resolveValue(createRuntimeToken<string, 'sample'>('sample'), runtime.createContext())).toBe('second')
-    expect(warnings).toEqual([])
   })
 
   it('throws when uppercase component keys cannot be resolved', () => {
@@ -212,41 +208,22 @@ describe('form runtime', () => {
       .toThrow(/Unsupported expression/)
   })
 
-  it('lets value, slot, and condition extensions compose in priority order', () => {
-    const debugEvents: string[] = []
-    const runtime = createFormRuntime({
-      debug: {
-        emit: event => debugEvents.push(event.type),
-      },
-      extensions: [
-        {
-          name: 'conditions',
-          resolveDisabled: (_field, _ctx, next) => !next(),
-          resolveVisible: (_field, _ctx, next) => !next(),
-        },
-        {
-          name: 'value-and-slot',
-          resolveSlot: slot => slot === 'base' ? 'slot-from-extension' : undefined,
-          resolveValue: (value, _ctx, path) => path === 'field.props.flag' && value === 'raw'
-            ? 'from-extension'
-            : undefined,
-        },
-      ],
-    })
+  it('resolves slot field configs, vnodes, and conditions without plugin hooks', () => {
+    const runtime = createFormRuntime()
     const field = defineField({
       component: 'input',
-      disabled: false,
+      disabled: true,
       field: 'field',
-      props: { flag: 'raw' },
+      props: { flag: expr({ path: 'values.flag' }) },
       slots: { default: 'base' },
-      visible: true,
+      visible: false,
     })
-    const ctx = runtime.createContext({ errors: {}, values: {} })
+    const ctx = runtime.createContext({ errors: {}, values: { flag: 'from-values' } })
     const resolved = runtime.resolveField(field, ctx)
     const vnode = h('span', 'kept')
 
-    expect(resolved.props?.flag).toBe('from-extension')
-    expect(resolved.slots?.default).toBe('slot-from-extension')
+    expect(resolved.props?.flag).toBe('from-values')
+    expect(resolved.slots?.default).toBe('base')
     expect(runtime.resolveSlot(defineField({ component: 'input', field: 'slotField' }), ctx)).toMatchObject({
       component: 'input',
       field: 'slotField',
@@ -255,16 +232,62 @@ describe('form runtime', () => {
     expect(runtime.resolveSlot(vnode, ctx)).toBe(vnode)
     expect(runtime.resolveVisible(field, ctx)).toBe(false)
     expect(runtime.resolveDisabled(field, ctx)).toBe(true)
-    expect(debugEvents).toContain('extension:resolved')
   })
 
-  it('does not re-run field extensions for already resolved slot nodes', () => {
+  it('exposes the current slot name through runtime context while resolving slots', () => {
+    const seenSlotNames: Array<string | undefined> = []
+    const slotNameToken = createRuntimeToken<string | undefined, 'slotName'>('slotName')
+    const runtime = createFormRuntime({
+      plugins: [
+        {
+          name: 'slot-context',
+          tokens: {
+            slotName: (_token, context) => {
+              seenSlotNames.push(context.slotName)
+              return context.slotName
+            },
+          },
+        },
+      ],
+    })
+    const field = defineField({
+      component: 'section',
+      field: 'group',
+      slots: {
+        default: slotNameToken,
+        suffix: slotNameToken,
+      },
+    })
+
+    const resolved = runtime.resolveField(field, runtime.createContext({ errors: {}, values: {} }))
+
+    expect(seenSlotNames).toEqual(['default', 'suffix'])
+    expect(resolved.slots?.default).toBe('default')
+    expect(resolved.slots?.suffix).toBe('suffix')
+  })
+
+  it('keeps runtime context limited to form and slot data', () => {
+    const runtime = createFormRuntime()
+    const context = runtime.createContext({
+      errors: {},
+      slotScope: { label: '作用域' },
+      values: {},
+    })
+
+    expect(context).not.toHaveProperty('locale')
+    expect(context).not.toHaveProperty('meta')
+    expect(context).not.toHaveProperty('plugins')
+    expect(context.slotScope).toEqual({ label: '作用域' })
+    expect(runtime.resolveValue(expr({ path: 'slotScope.label' }), context)).toBe('作用域')
+  })
+
+  it('does not re-run field transforms for already resolved slot nodes', () => {
     const resolvedFields: string[] = []
     const runtime = createFormRuntime({
-      extensions: [
+      plugins: [
         {
           name: 'count-resolve-field',
-          resolveField: (field) => {
+          transformField: (field) => {
             resolvedFields.push(field.field)
             return field
           },
@@ -285,7 +308,7 @@ describe('form runtime', () => {
 
     const resolved = runtime.resolveField(field, ctx)
 
-    expect(resolvedFields).toEqual(['child', 'host'])
+    expect(resolvedFields).toEqual(['host', 'child'])
 
     resolvedFields.length = 0
     expect(runtime.resolveField(resolved, ctx)).toBe(resolved)
@@ -340,5 +363,48 @@ describe('form runtime', () => {
       component: 'section',
       label: '错误的容器 label',
     } as never, ctx)).toThrow(/Component node without field cannot use field-only option "label"/)
+  })
+
+  it('runs field transforms without exposing form values or errors', () => {
+    const seenKeys: string[][] = []
+    const runtime = createFormRuntime({
+      plugins: [
+        {
+          name: 'static-transform',
+          transformField: (field, context) => {
+            seenKeys.push(Object.keys(context).sort())
+            return {
+              ...field,
+              props: {
+                ...field.props,
+                transformed: true,
+              },
+            }
+          },
+        },
+      ],
+    })
+
+    const resolved = runtime.resolveField(
+      defineField({ component: 'input', field: 'name' }),
+      runtime.createContext({ errors: { name: ['error'] }, values: { name: 'Ada' } }),
+    )
+
+    expect(resolved.props.transformed).toBe(true)
+    expect(seenKeys).toEqual([['field']])
+  })
+
+  it('rejects legacy field plugins config instead of silently ignoring it', () => {
+    const runtime = createFormRuntime()
+
+    expect(() => runtime.resolveField({
+      component: 'input',
+      field: 'name',
+      plugins: {
+        i18n: {
+          label: 'field.name',
+        },
+      },
+    } as never, runtime.createContext())).toThrow(/field\.plugins is no longer supported/)
   })
 })

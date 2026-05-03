@@ -2,12 +2,10 @@
 import { computed, watch } from 'vue'
 import type { ConfigFormEmits, ConfigFormExpose, ConfigFormProps } from '@/types'
 import RecursiveField from '@/components/RecursiveField'
-import { provideFormDevtoolsContext } from '@/composables/useDevtools'
 import { useForm } from '@/composables/useForm'
 import { provideNamespace, useBem } from '@/composables/useNamespace'
 import { normalizeFormRuntime, provideRuntime } from '@/composables/useRuntime'
 import { resolveLabelWidth } from '@/utils/style'
-
 
 const props = withDefaults(defineProps<ConfigFormProps<T>>(), {
   namespace: 'cf',
@@ -17,7 +15,6 @@ const emit = defineEmits<ConfigFormEmits<T>>()
 
 const namespaceRef = computed(() => props.namespace)
 provideNamespace(namespaceRef)
-provideFormDevtoolsContext()
 const { b, m } = useBem(namespaceRef)
 
 const rawNodes = computed(() => props.fields)
@@ -60,7 +57,7 @@ function nodeKey(node: typeof resolvedNodes.value[number], index: number): strin
   if ('field' in node)
     return node.field
 
-  return node.__source?.id ?? `${String(node.component)}-${index}`
+  return `${String(node.component)}-${index}`
 }
 
 const keyedResolvedNodes = computed(() =>
@@ -86,8 +83,6 @@ defineExpose<ConfigFormExpose<T>>({
   getValues: getValues as () => T,
   clearValidate: clearFieldError,
 })
-
-
 </script>
 
 <template>

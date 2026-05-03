@@ -1,6 +1,6 @@
 import type { ConfigFormExpose, FieldConfig, RuntimeToken } from '../src/types'
 import { flushPromises, mount } from '@vue/test-utils'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { defineComponent, h, markRaw, nextTick } from 'vue'
 import { z } from 'zod'
 import FormField from '../src/components/FormField/src/index.vue'
@@ -148,303 +148,6 @@ describe('config form component', () => {
     expect(wrapper.text()).toContain('用户名至少 4 个字符')
   })
 
-  it('reports form field topology and patch metrics to the devtools bridge', async () => {
-    const bridge = {
-      recordPatch: vi.fn(),
-      registerField: vi.fn(),
-      unregisterField: vi.fn(),
-      updateField: vi.fn(),
-    }
-    ;(window as typeof window & { __CONFIG_FORM_DEVTOOLS_PENDING__?: boolean }).__CONFIG_FORM_DEVTOOLS_PENDING__ = true
-    ;(window as typeof window & { __CONFIG_FORM_DEVTOOLS_BRIDGE__?: typeof bridge }).__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
-
-    const source = {
-      column: 3,
-      file: 'D:/project-new/ConfigForm/playgrounds/element-plus-playground/src/demos/GridForm.vue',
-      id: 'source-id',
-      line: 55,
-    }
-
-    const sourceField = {
-      ...defineField({
-        component: SlotHost,
-        field: 'choice',
-        label: '选择',
-        slots: {
-          default: [
-            defineField({
-              component: SlotLeaf,
-              field: 'choice-first',
-              label: '第一个',
-              props: { role: 'first' },
-              slots: { default: '第一个选项' },
-            }),
-          ],
-        },
-      }),
-      __source: source,
-    }
-
-    const fields = [sourceField]
-
-    const wrapper = mount(ConfigForm, {
-      props: {
-        fields,
-        modelValue: {},
-      },
-    })
-
-    await nextTick()
-
-    const nodes = bridge.registerField.mock.calls.map(call => call[0])
-    const parent = nodes.find(node => node.field === 'choice')
-    const child = nodes.find(node => node.field === 'choice-first')
-
-    expect(parent).toMatchObject({
-      field: 'choice',
-      kind: 'field',
-      label: '选择',
-      source,
-    })
-    expect(child).toMatchObject({
-      field: 'choice-first',
-      kind: 'field',
-      parentId: parent.id,
-      slotName: 'default',
-    })
-    expect(bridge.registerField.mock.calls[0]?.[1]).toBeInstanceOf(HTMLElement)
-    expect(bridge.recordPatch).toHaveBeenCalledWith(expect.objectContaining({
-      duration: expect.any(Number),
-      id: parent.id,
-      timestamp: expect.any(Number),
-    }))
-    expect(bridge.recordPatch).toHaveBeenCalledWith(expect.objectContaining({
-      duration: expect.any(Number),
-      id: child.id,
-      timestamp: expect.any(Number),
-    }))
-
-    const mountedPatchCount = bridge.recordPatch.mock.calls.length
-
-    await wrapper.setProps({ inline: true })
-    await nextTick()
-
-    expect(bridge.recordPatch.mock.calls.length).toBeGreaterThan(mountedPatchCount)
-    expect(bridge.recordPatch).toHaveBeenCalledWith(expect.objectContaining({
-      duration: expect.any(Number),
-      id: parent.id,
-      timestamp: expect.any(Number),
-    }))
-
-    wrapper.unmount()
-    expect(bridge.unregisterField).toHaveBeenCalledWith(parent.id)
-
-    delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_BRIDGE__?: typeof bridge }).__CONFIG_FORM_DEVTOOLS_BRIDGE__
-    delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_PENDING__?: boolean }).__CONFIG_FORM_DEVTOOLS_PENDING__
-  })
-
-  it('reports defineField nodes returned from slots as ordered devtools tree children', async () => {
-    const bridge = {
-      recordPatch: vi.fn(),
-      registerField: vi.fn(),
-      unregisterField: vi.fn(),
-      updateField: vi.fn(),
-    }
-    ;(window as typeof window & { __CONFIG_FORM_DEVTOOLS_PENDING__?: boolean }).__CONFIG_FORM_DEVTOOLS_PENDING__ = true
-    ;(window as typeof window & { __CONFIG_FORM_DEVTOOLS_BRIDGE__?: typeof bridge }).__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
-
-    const fields = [
-      defineField({
-        component: SlotHost,
-        field: 'choice',
-        label: '选择',
-        slots: {
-          default: [
-            defineField({
-              component: SlotLeaf,
-              field: 'choice-first',
-              props: { role: 'first' },
-              slots: { default: '第一个选项' },
-            }),
-            defineField({
-              component: SlotLeaf,
-              field: 'choice-second',
-              props: { role: 'second' },
-              slots: { default: '第二个选项' },
-            }),
-          ],
-          suffix: scope => defineField({
-            component: SlotLeaf,
-            field: 'choice-suffix',
-            props: { role: 'suffix' },
-            slots: { default: String(scope?.label) },
-          }),
-        },
-      }),
-    ]
-
-    const wrapper = mount(ConfigForm, {
-      props: {
-        fields,
-        modelValue: {},
-      },
-    })
-
-    await nextTick()
-
-    const nodes = bridge.registerField.mock.calls.map(call => call[0])
-    const parent = nodes.find(node => node.field === 'choice')
-    const first = nodes.find(node => node.field === 'choice-first')
-    const second = nodes.find(node => node.field === 'choice-second')
-    const suffix = nodes.find(node => node.field === 'choice-suffix')
-
-    if (!parent || !first || !second || !suffix)
-      throw new Error('Expected parent and slot field nodes to register')
-
-    expect(first).toMatchObject({
-      parentId: parent.id,
-      slotName: 'default',
-    })
-    expect(second).toMatchObject({
-      parentId: parent.id,
-      slotName: 'default',
-    })
-    expect(suffix).toMatchObject({
-      parentId: parent.id,
-      slotName: 'suffix',
-    })
-    expect(parent.order).toEqual(expect.any(Number))
-    expect(first.order).toEqual(expect.any(Number))
-    expect(second.order).toEqual(expect.any(Number))
-    expect(suffix.order).toEqual(expect.any(Number))
-    expect(parent.order).toBeLessThan(first.order)
-    expect(first.order).toBeLessThan(second.order)
-    expect(second.order).toBeLessThan(suffix.order)
-
-    wrapper.unmount()
-    delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_BRIDGE__?: typeof bridge }).__CONFIG_FORM_DEVTOOLS_BRIDGE__
-    delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_PENDING__?: boolean }).__CONFIG_FORM_DEVTOOLS_PENDING__
-  })
-
-  it('reports component defineField nodes returned from field slots as devtools tree children', async () => {
-    const bridge = {
-      recordPatch: vi.fn(),
-      registerField: vi.fn(),
-      unregisterField: vi.fn(),
-      updateField: vi.fn(),
-    }
-    ;(window as typeof window & { __CONFIG_FORM_DEVTOOLS_PENDING__?: boolean }).__CONFIG_FORM_DEVTOOLS_PENDING__ = true
-    ;(window as typeof window & { __CONFIG_FORM_DEVTOOLS_BRIDGE__?: typeof bridge }).__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
-
-    const fields = [
-      defineField({
-        component: SlotHost,
-        field: 'gender',
-        label: '性别',
-        slots: {
-          default: [
-            defineField({
-              component: SlotLeaf,
-              props: { role: 'male' },
-              slots: { default: '男' },
-            }),
-            defineField({
-              component: SlotLeaf,
-              props: { role: 'female' },
-              slots: { default: '女' },
-            }),
-            defineField({
-              component: SlotLeaf,
-              props: { role: 'other' },
-              slots: { default: '其他' },
-            }),
-          ],
-        },
-      }),
-    ]
-
-    const wrapper = mount(ConfigForm, {
-      props: {
-        fields,
-        modelValue: {},
-      },
-    })
-
-    await nextTick()
-
-    const nodes = bridge.registerField.mock.calls.map(call => call[0])
-    const parent = nodes.find(node => node.field === 'gender')
-    const children = nodes.filter(node => node.parentId === parent?.id)
-
-    if (!parent)
-      throw new Error('Expected gender field node to register')
-
-    expect(children).toHaveLength(3)
-    expect(children.map(node => node.kind)).toEqual(['component', 'component', 'component'])
-    expect(children.map(node => node.component)).toEqual(['SlotLeaf', 'SlotLeaf', 'SlotLeaf'])
-    expect(children.map(node => node.slotName)).toEqual(['default', 'default', 'default'])
-    expect(parent.order).toBeLessThan(children[0].order)
-    expect(children[0].order).toBeLessThan(children[1].order)
-    expect(children[1].order).toBeLessThan(children[2].order)
-
-    wrapper.unmount()
-    expect(bridge.unregisterField).toHaveBeenCalledWith(parent.id)
-    for (const child of children)
-      expect(bridge.unregisterField).toHaveBeenCalledWith(child.id)
-
-    delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_BRIDGE__?: typeof bridge }).__CONFIG_FORM_DEVTOOLS_BRIDGE__
-    delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_PENDING__?: boolean }).__CONFIG_FORM_DEVTOOLS_PENDING__
-  })
-
-  it('registers fields when the devtools bridge becomes ready after mount', async () => {
-    delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_BRIDGE__?: unknown }).__CONFIG_FORM_DEVTOOLS_BRIDGE__
-    ;(window as typeof window & { __CONFIG_FORM_DEVTOOLS_PENDING__?: boolean }).__CONFIG_FORM_DEVTOOLS_PENDING__ = true
-
-    const bridge = {
-      recordPatch: vi.fn(),
-      registerField: vi.fn(),
-      unregisterField: vi.fn(),
-      updateField: vi.fn(),
-    }
-    const fields = [
-      defineField({
-        component: TextInput,
-        field: 'late-ready',
-        label: '延迟注册',
-      }),
-    ]
-
-    const wrapper = mount(ConfigForm, {
-      props: {
-        fields,
-        modelValue: {},
-      },
-    })
-
-    await nextTick()
-    expect(bridge.registerField).not.toHaveBeenCalled()
-
-    ;(window as typeof window & { __CONFIG_FORM_DEVTOOLS_BRIDGE__?: typeof bridge }).__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
-    window.dispatchEvent(new CustomEvent('config-form-devtools:ready', { detail: bridge }))
-    await nextTick()
-
-    expect(bridge.registerField).toHaveBeenCalledWith(expect.objectContaining({
-      field: 'late-ready',
-      label: '延迟注册',
-    }), expect.any(HTMLElement))
-    expect(bridge.recordPatch).toHaveBeenCalledWith(expect.objectContaining({
-      duration: expect.any(Number),
-      id: bridge.registerField.mock.calls[0]?.[0].id,
-      timestamp: expect.any(Number),
-    }))
-
-    wrapper.unmount()
-    expect(bridge.unregisterField).toHaveBeenCalled()
-
-    delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_BRIDGE__?: typeof bridge }).__CONFIG_FORM_DEVTOOLS_BRIDGE__
-    delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_PENDING__?: boolean }).__CONFIG_FORM_DEVTOOLS_PENDING__
-  })
-
   it('updates model values and renders blur validation errors', async () => {
     const fields = [
       defineField({
@@ -582,16 +285,12 @@ describe('config form component', () => {
   })
 
   it('resolves runtime registry, tokens, expressions, and nested slot configs', async () => {
-    const events: string[] = []
     const runtime = createFormRuntime({
       components: {
         SlotLeaf,
         TextInput,
       },
-      debug: {
-        emit: event => events.push(event.type),
-      },
-      extensions: [
+      plugins: [
         {
           name: 'test-messages',
           tokens: {
@@ -644,7 +343,6 @@ describe('config form component', () => {
     expect(wrapper.text()).toContain('昵称')
     expect(wrapper.find('input[placeholder="请输入昵称"]').exists()).toBe(true)
     expect(wrapper.find('[data-role="runtime-prefix"]').text()).toBe('前缀')
-    expect(events).toContain('field:resolved')
 
     const api = wrapper.vm as unknown as ConfigFormExpose<Record<string, unknown>>
     api.setValue('role', 'guest')

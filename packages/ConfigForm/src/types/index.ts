@@ -46,13 +46,6 @@ export type FieldCondition<T extends object = FormValues> = boolean | Expression
 
 export type SlotPrimitive = string | number | boolean | null | undefined
 
-export interface FieldSourceMeta {
-  readonly id: string
-  readonly file: string
-  readonly line: number
-  readonly column: number
-}
-
 export interface ComponentNodeConfig {
   component: Component | FunctionalFieldComponent | string
   props?: Record<string, unknown>
@@ -62,7 +55,7 @@ export interface ComponentNodeConfig {
 export type SlotRenderable = VNode | VNode[] | SlotPrimitive | RuntimeToken
 export type SlotContent = SlotRenderFn | DefinedFormNodeConfig | DefinedFormNodeConfig[] | SlotRenderable
 
-/** 插槽渲染函数，接收作用域参数，返回 VNode(s)、容器节点或真实字段节点 */
+/** 插槽渲染函数，接收作用域参数，返回 VNode(s)、容器节点或真实字段节点。 */
 export type SlotRenderFn = (scope?: Record<string, unknown>) => SlotContent
 
 // ===== FieldConfig：公开字段输入协议 =====
@@ -104,7 +97,6 @@ export interface NormalizedFieldConfig extends Omit<
   FieldConfig,
   'blurTrigger' | 'props' | 'span' | 'submitWhenDisabled' | 'submitWhenHidden' | 'trigger' | 'validateOn' | 'valueProp'
 > {
-  readonly __source?: FieldSourceMeta
   span: number
   props: Record<string, unknown>
   valueProp: string
@@ -120,41 +112,12 @@ export interface ResolvedField extends Omit<NormalizedFieldConfig, 'label'> {
 }
 
 export interface ResolvedComponentNode extends Omit<ComponentNodeConfig, 'props'> {
-  readonly __source?: FieldSourceMeta
   props: Record<string, unknown>
 }
 
 export type ResolvedFormNode = ResolvedField | ResolvedComponentNode
 
 export type FieldKey<T extends object> = Extract<keyof T, string>
-
-export type FormDevtoolsNodeKind = 'component' | 'field'
-
-export interface FormDevtoolsNode {
-  id: string
-  formId: string
-  kind: FormDevtoolsNodeKind
-  order?: number
-  field?: string
-  component?: string
-  parentId?: string
-  label?: string
-  slotName?: string
-  source?: FieldSourceMeta
-}
-
-export interface FormFieldPatchMetric {
-  id: string
-  duration: number
-  timestamp: number
-}
-
-export interface FormDevtoolsBridge {
-  registerField: (node: FormDevtoolsNode, element: HTMLElement | null) => void
-  updateField: (node: FormDevtoolsNode, element: HTMLElement | null) => void
-  recordPatch: (metric: FormFieldPatchMetric) => void
-  unregisterField: (id: string) => void
-}
 
 // ===== 表单组件类型 =====
 
@@ -168,7 +131,7 @@ export interface ConfigFormProps<T extends object = FormValues> {
   labelWidth?: string | number
   /** v-model 双向绑定表单值 */
   modelValue?: T
-  /** 表单运行时，用于组件注册、runtime token、表达式、插件扩展和调试事件 */
+  /** 表单运行时，用于组件注册、runtime token、表达式和插件生命周期。 */
   runtime?: FormRuntimeInput
 }
 

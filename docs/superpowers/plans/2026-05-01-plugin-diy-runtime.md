@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a strict runtime-first extension boundary so ConfigForm can support DIY component registries, i18n tokens, safe expressions, debug traces, and future low-code adapters with pure field configs as the public input.
+**Goal:** Add a strict runtime-first plugin boundary so ConfigForm can support DIY component registries, i18n tokens, safe expressions, and future low-code adapters with pure field configs as the public input.
 
 **Architecture:** `defineField` returns plain `FieldConfig`; the old public `FieldDef` runtime model is removed from the core path. Runtime normalizes fields, resolves values, conditions, components, and slots before Vue renders them. `ConfigForm` owns runtime creation, `useForm` consumes runtime for visibility/disabled checks, and `FormField` consumes resolved fields for rendering.
 
@@ -20,7 +20,7 @@
 
 - [x] **Step 1: Write failing tests**
 
-Tests cover component registry resolution, i18n token resolution, safe expression conditions, extension priority ordering, strict duplicate extension conflict handling, unresolved component errors, and debug trace events.
+Tests cover component registry resolution, i18n token resolution, safe expression conditions, plugin hook ordering, strict duplicate plugin conflict handling, and unresolved component errors.
 
 - [x] **Step 2: Run runtime tests**
 
@@ -29,7 +29,7 @@ Expected: fail because runtime files are not implemented yet.
 
 - [x] **Step 3: Implement runtime**
 
-Create a pure runtime with `createFormRuntime(options)`, `i18n(key, fallback, params)`, `expr(expression, fallback)`, `resolveField`, `resolveValue`, `resolveVisible`, `resolveDisabled`, extension sorting, strict registry merging, and debug event emission.
+Create a pure runtime with `createFormRuntime(options)`, `i18n(key, options)`, `expr(expression, fallback)`, `resolveField`, `resolveValue`, `resolveVisible`, `resolveDisabled`, Rollup-style plugin hook ordering, and strict registry merging.
 
 - [x] **Step 4: Run runtime tests**
 
@@ -74,11 +74,11 @@ Expected: pass.
 
 - [x] **Step 1: Export runtime APIs and types**
 
-Export runtime helpers and public types so external users can build their own extensions.
+Export runtime helpers and public types so external users can build their own plugins.
 
 - [x] **Step 2: Add documentation**
 
-Document minimal DIY runtime usage: component registry, i18n token, expression visibility, extension conflict strategy, and debug trace.
+Document minimal DIY runtime usage: component registry, i18n token, expression visibility, and strict plugin conflict behavior.
 
 - [x] **Step 3: Run package verification**
 

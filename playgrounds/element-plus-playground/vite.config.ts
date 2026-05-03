@@ -15,8 +15,8 @@ export default defineConfig({
     configFormDevtools(),
     Vue(),
     VueJsx(),
-    AutoImport({ resolvers: [ElementPlusResolver()] }),
-    Components({ resolvers: [ElementPlusResolver()] }),
+    AutoImport({ dts: false, resolvers: [ElementPlusResolver()] }),
+    Components({ dts: false, resolvers: [ElementPlusResolver()] }),
   ],
   resolve: {
     alias: {

@@ -353,4 +353,72 @@ describe('useForm', () => {
     expect(form.errors.value.adminNote).toEqual(['隐藏时不应校验'])
     expect(form.errors.value.guestNote).toEqual(['禁用时不应校验'])
   })
+
+  it('uses transformed fields consistently for dynamic state, validation, and submit output', async () => {
+    const onSubmit = vi.fn()
+    const runtime = createFormRuntime({
+      plugins: [
+        {
+          name: 'submit-policy',
+          transformField: (field) => {
+            if (field.field === 'dynamicHidden') {
+              return {
+                ...field,
+                submitWhenHidden: true,
+                transform: value => `kept:${String(value)}`,
+                visible: false,
+              }
+            }
+
+            if (field.field === 'dynamicDisabled') {
+              return {
+                ...field,
+                disabled: true,
+                submitWhenDisabled: true,
+                validator: () => 'transformed validator',
+              }
+            }
+
+            return undefined
+          },
+        },
+      ],
+    })
+    const fields = ref<FormNodeConfig[]>([
+      defineField({
+        component: 'input',
+        defaultValue: 'hidden value',
+        field: 'dynamicHidden',
+      }),
+      defineField({
+        component: 'input',
+        defaultValue: 'disabled value',
+        field: 'dynamicDisabled',
+      }),
+    ])
+
+    const form = useForm({ fields, onSubmit, runtime })
+
+    expect(form.visibilityMap.value.dynamicHidden).toBe(false)
+    expect(form.disabledMap.value.dynamicDisabled).toBe(true)
+
+    await expect(form.submit()).resolves.toBe(false)
+    expect(form.errors.value.dynamicDisabled).toEqual(['transformed validator'])
+
+    fields.value = [
+      fields.value[0],
+      defineField({
+        component: 'input',
+        defaultValue: 'active value',
+        field: 'active',
+      }),
+    ]
+    await nextTick()
+
+    await expect(form.submit()).resolves.toBe(true)
+    expect(onSubmit).toHaveBeenCalledWith({
+      active: 'active value',
+      dynamicHidden: 'kept:hidden value',
+    })
+  })
 })

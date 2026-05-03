@@ -88,8 +88,10 @@ describe('defineField typing', () => {
 
   it('rejects devtools source metadata in public defineField inputs', () => {
     type FieldConfigHasSource = HasKey<FieldConfig, '__source'>
+    type FieldConfigHasPlugins = HasKey<FieldConfig, 'plugins'>
 
     expectTypeOf<FieldConfigHasSource>().toEqualTypeOf<false>()
+    expectTypeOf<FieldConfigHasPlugins>().toEqualTypeOf<false>()
 
     const fieldConfig: FieldConfig = {
       component: 'input',

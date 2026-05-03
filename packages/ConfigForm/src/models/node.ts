@@ -32,6 +32,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value))
 }
 
+function assertNoLegacyNodePlugins(value: FormNodeConfig, path: string): void {
+  if (Object.hasOwn(value, 'plugins'))
+    throw new Error(`${path}.plugins is no longer supported. Use runtime plugins and runtime tokens instead.`)
+}
+
 export function isFormNodeConfig(value: unknown): value is FormNodeConfig {
   return Boolean(
     isRecord(value)
@@ -96,8 +101,12 @@ export function isResolvedFieldConfig(value: unknown): value is ResolvedField {
 }
 
 export function assertComponentNodeConfig(value: FormNodeConfig, path = 'component node') {
-  if (isFieldConfig(value))
+  if (isFieldConfig(value)) {
+    assertNoLegacyNodePlugins(value, 'field')
     return
+  }
+
+  assertNoLegacyNodePlugins(value, path)
 
   for (const key of FIELD_ONLY_NODE_KEYS) {
     if (key in value)

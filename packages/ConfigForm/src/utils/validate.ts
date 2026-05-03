@@ -1,7 +1,7 @@
 import type { ZodTypeAny } from 'zod'
 import type { FormRuntime } from '@/runtime'
 import type { FieldConfig, FieldValidator, FormErrors, FormValues, ValidateTrigger } from '@/types'
-import { normalizeField, shouldValidateOn } from '@/models/field'
+import { shouldValidateOn } from '@/models/field'
 import { createFormRuntime } from '@/runtime'
 
 /** 校验单个字段值（纯 Zod 调用）。 */
@@ -51,7 +51,7 @@ export async function validateForm(
   const errors: FormErrors = {}
   const context = runtime.createContext({ errors, values })
   for (const config of fields) {
-    const field = normalizeField(config)
+    const field = runtime.transformField(config)
     if (!field.schema && !field.validator)
       continue
     const shouldValidateHidden = trigger === 'submit' && field.submitWhenHidden
