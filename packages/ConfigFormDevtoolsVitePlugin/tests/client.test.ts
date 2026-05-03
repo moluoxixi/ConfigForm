@@ -6,6 +6,9 @@ describe('client overlay', () => {
   beforeEach(() => {
     vi.unstubAllGlobals()
     document.body.innerHTML = ''
+    Object.defineProperty(document.documentElement, 'clientWidth', { configurable: true, value: 0 })
+    Object.defineProperty(document.documentElement, 'clientHeight', { configurable: true, value: 0 })
+    Object.defineProperty(document.documentElement, 'scrollHeight', { configurable: true, value: 0 })
     delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_BRIDGE__?: unknown }).__CONFIG_FORM_DEVTOOLS_BRIDGE__
     delete (window as typeof window & { __CONFIG_FORM_DEVTOOLS_PENDING__?: unknown }).__CONFIG_FORM_DEVTOOLS_PENDING__
     vi.restoreAllMocks()
@@ -182,6 +185,48 @@ describe('client overlay', () => {
       .toEqual(['first-root', 'first-child-a', 'first-child-b', 'second-root'])
   })
 
+  it('keeps root nodes grouped by ConfigForm instead of interleaving local field orders', () => {
+    installConfigFormDevtools()
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'first-form-first',
+      formId: 'form-1',
+      id: 'form-1:first',
+      kind: 'field',
+      order: 1,
+    }, null)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'second-form-first',
+      formId: 'form-2',
+      id: 'form-2:first',
+      kind: 'field',
+      order: 1,
+    }, null)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'first-form-second',
+      formId: 'form-1',
+      id: 'form-1:second',
+      kind: 'field',
+      order: 2,
+    }, null)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'second-form-second',
+      formId: 'form-2',
+      id: 'form-2:second',
+      kind: 'field',
+      order: 2,
+    }, null)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+
+    expect([...document.querySelectorAll<HTMLElement>('.cf-devtools-form-group')]
+      .map(node => node.dataset.cfDevtoolsFormId))
+      .toEqual(['form-1', 'form-2'])
+    expect([...document.querySelectorAll<HTMLElement>('[data-cf-devtools-node-id]')]
+      .map(node => node.dataset.cfDevtoolsNodeId))
+      .toEqual(['form-1:first', 'form-1:second', 'form-2:first', 'form-2:second'])
+  })
+
   it('preserves the field registration order for roots and nested slot fields', () => {
     installConfigFormDevtools()
 
@@ -264,6 +309,150 @@ describe('client overlay', () => {
 
     expect(bubble.style.left).toBe('0px')
     expect(bubble.style.top).toBe('72px')
+  })
+
+  it('reserves the scrollbar gutter when the bubble snaps to the right edge', () => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 500 })
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 400 })
+    Object.defineProperty(document.documentElement, 'clientWidth', { configurable: true, value: 490 })
+    Object.defineProperty(document.documentElement, 'clientHeight', { configurable: true, value: 390 })
+    Object.defineProperty(document.documentElement, 'scrollHeight', { configurable: true, value: 900 })
+
+    installConfigFormDevtools()
+
+    const bubble = document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')
+    const panel = document.querySelector<HTMLElement>('[data-cf-devtools="panel"]')
+
+    if (!bubble || !panel)
+      throw new Error('Expected devtools bubble and panel to exist')
+
+    expect(bubble.style.left).toBe('432px')
+    expect(panel.style.right).toBe('26px')
+
+    bubble.dispatchEvent(new MouseEvent('mousedown', {
+      bubbles: true,
+      button: 0,
+      cancelable: true,
+      clientX: 450,
+      clientY: 350,
+    }))
+    document.dispatchEvent(new MouseEvent('mousemove', {
+      bubbles: true,
+      clientX: 470,
+      clientY: 340,
+    }))
+    document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
+
+    expect(bubble.style.left).toBe('448px')
+    expect(panel.style.right).toBe('26px')
+  })
+
+  it('keeps the debugger panel inside the viewport when opened near the bottom edge', () => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 390 })
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 844 })
+
+    installConfigFormDevtools()
+
+    const bubble = document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')
+    const panel = document.querySelector<HTMLElement>('[data-cf-devtools="panel"]')
+
+    if (!bubble || !panel)
+      throw new Error('Expected devtools bubble and panel to exist')
+
+    bubble.click()
+
+    const panelTop = Number.parseFloat(panel.style.top)
+    expect(panelTop + 560).toBeLessThanOrEqual(844 - 16)
+  })
+
+  it('drags the debugger panel from its header', () => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 800 })
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 600 })
+
+    installConfigFormDevtools()
+
+    const bubble = document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')
+    const panel = document.querySelector<HTMLElement>('[data-cf-devtools="panel"]')
+    const header = document.querySelector<HTMLElement>('.cf-devtools-header')
+
+    if (!bubble || !panel || !header)
+      throw new Error('Expected devtools bubble, panel, and header to exist')
+
+    bubble.click()
+    panel.getBoundingClientRect = () => ({
+      bottom: 420,
+      height: 300,
+      left: 100,
+      right: 520,
+      top: 120,
+      width: 420,
+      x: 100,
+      y: 120,
+      toJSON: () => ({}),
+    })
+
+    header.dispatchEvent(new MouseEvent('mousedown', {
+      bubbles: true,
+      button: 0,
+      cancelable: true,
+      clientX: 120,
+      clientY: 140,
+    }))
+    document.dispatchEvent(new MouseEvent('mousemove', {
+      bubbles: true,
+      clientX: 220,
+      clientY: 240,
+    }))
+    document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
+
+    expect(panel.style.left).toBe('200px')
+    expect(panel.style.top).toBe('220px')
+    expect(panel.style.right).toBe('auto')
+    expect(panel.style.bottom).toBe('auto')
+  })
+
+  it('clamps the dragged debugger panel inside the viewport', () => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 800 })
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 600 })
+
+    installConfigFormDevtools()
+
+    const bubble = document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')
+    const panel = document.querySelector<HTMLElement>('[data-cf-devtools="panel"]')
+    const header = document.querySelector<HTMLElement>('.cf-devtools-header')
+
+    if (!bubble || !panel || !header)
+      throw new Error('Expected devtools bubble, panel, and header to exist')
+
+    bubble.click()
+    panel.getBoundingClientRect = () => ({
+      bottom: 420,
+      height: 300,
+      left: 100,
+      right: 520,
+      top: 120,
+      width: 420,
+      x: 100,
+      y: 120,
+      toJSON: () => ({}),
+    })
+
+    header.dispatchEvent(new MouseEvent('mousedown', {
+      bubbles: true,
+      button: 0,
+      cancelable: true,
+      clientX: 120,
+      clientY: 140,
+    }))
+    document.dispatchEvent(new MouseEvent('mousemove', {
+      bubbles: true,
+      clientX: 900,
+      clientY: 900,
+    }))
+    document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
+
+    expect(panel.style.left).toBe('364px')
+    expect(panel.style.top).toBe('284px')
   })
 
   it('ignores non-left drag starts and keeps right-edge placement on resize', () => {

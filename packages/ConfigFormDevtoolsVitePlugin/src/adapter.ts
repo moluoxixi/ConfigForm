@@ -1,11 +1,19 @@
 import type { Component } from 'vue'
 import type { FieldSourceMeta, FormDevtoolsBridge, FormDevtoolsNode } from './types'
-import { defineComponent, h, nextTick, onMounted, onUnmounted, onUpdated, ref, useAttrs } from 'vue'
+import { defineComponent, h, isVNode, nextTick, onMounted, onUnmounted, onUpdated, ref, useAttrs } from 'vue'
 
 interface DevtoolsFieldConfig {
   component: unknown
   field: string
   label?: unknown
+  __source?: FieldSourceMeta
+}
+
+interface DevtoolsFormNodeConfig {
+  component?: unknown
+  field?: unknown
+  label?: unknown
+  slots?: Record<string, unknown>
   __source?: FieldSourceMeta
 }
 
@@ -15,10 +23,6 @@ export interface DevtoolsConfigFormAdapterOptions {
 }
 
 type ExposedConfigForm = Record<string, unknown>
-
-interface AdapterFieldNode extends FormDevtoolsNode {
-  field: string
-}
 
 declare global {
   interface Window {
@@ -81,6 +85,24 @@ function resolveLabel(label: unknown): string | undefined {
   return typeof label === 'string' ? label : undefined
 }
 
+function isFormNodeConfig(value: unknown): value is DevtoolsFormNodeConfig {
+  return Boolean(
+    value
+    && typeof value === 'object'
+    && !Array.isArray(value)
+    && !isVNode(value)
+    && 'component' in value,
+  )
+}
+
+function isFieldNodeConfig(value: DevtoolsFormNodeConfig): value is DevtoolsFormNodeConfig & { field: string } {
+  return typeof value.field === 'string'
+}
+
+function resolveSlotContent(slot: unknown): unknown {
+  return typeof slot === 'function' ? (slot as (scope?: Record<string, unknown>) => unknown)(undefined) : slot
+}
+
 export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapterOptions): Component {
   return defineComponent({
     inheritAttrs: false,
@@ -107,17 +129,44 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         (...args: unknown[]) => callExposed(methodName, args),
       ])))
 
-      function collectNodes(): AdapterFieldNode[] {
-        return options.collectFieldConfigs(props.fields).map((field, index) => ({
-          component: resolveComponentName(field.component),
-          field: field.field,
-          formId,
-          id: `${formId}:${field.field}`,
-          kind: 'field',
-          label: resolveLabel(field.label),
-          order: index + 1,
-          source: field.__source,
-        }))
+      function collectNodeTree(
+        nodes: readonly unknown[],
+        parentId: string | undefined,
+        path: string,
+        slotName?: string,
+      ): FormDevtoolsNode[] {
+        return nodes.flatMap((node, index) => {
+          if (!isFormNodeConfig(node))
+            return []
+
+          const nodePath = `${path}.${index}`
+          const isField = isFieldNodeConfig(node)
+          const id = isField ? `${formId}:${node.field}` : `${formId}:${nodePath}`
+          const current: FormDevtoolsNode = {
+            component: resolveComponentName(node.component),
+            field: isField ? node.field : undefined,
+            formId,
+            id,
+            kind: isField ? 'field' : 'component',
+            label: resolveLabel(node.label),
+            order: index + 1,
+            parentId,
+            slotName,
+            source: node.__source,
+          }
+
+          const children = Object.entries(node.slots ?? {}).flatMap(([childSlotName, slot]) => {
+            const content = resolveSlotContent(slot)
+            const childNodes = Array.isArray(content) ? content : [content]
+            return collectNodeTree(childNodes, id, `${nodePath}.slots.${childSlotName}`, childSlotName)
+          })
+
+          return [current, ...children]
+        })
+      }
+
+      function collectNodes(): FormDevtoolsNode[] {
+        return collectNodeTree(props.fields, undefined, 'fields')
       }
 
       function syncBridge() {
@@ -137,7 +186,7 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         }
 
         for (const node of nodes) {
-          const element = resolveElement(props.namespace, node.field)
+          const element = node.field ? resolveElement(props.namespace, node.field) : null
           const action = registeredIds.has(node.id) ? bridge.updateField : bridge.registerField
           action(node, element)
           registeredIds.add(node.id)

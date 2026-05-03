@@ -6,11 +6,18 @@ import type {
 
 interface StoredNode extends FormDevtoolsNode {
   element: HTMLElement | null
+  formOrder: number
   lastPatchMs?: number
   maxPatchMs?: number
   avgPatchMs?: number
   order: number
   samples: number
+}
+
+interface RootGroup {
+  formId: string
+  formOrder: number
+  nodes: StoredNode[]
 }
 
 interface DevtoolsStore {
@@ -46,6 +53,8 @@ const BUBBLE_SIZE = 42
 const BUBBLE_MARGIN = 16
 const BUBBLE_HIDE_OFFSET = 20
 const DRAG_THRESHOLD = 4
+const RIGHT_DOCK_SCROLLBAR_FALLBACK = 10
+const PANEL_MAX_HEIGHT = 560
 
 function formatPatch(value: number | undefined): string {
   return typeof value === 'number' ? value.toFixed(2) : '--'
@@ -89,6 +98,56 @@ function viewportHeight(): number {
   return Math.max(BUBBLE_SIZE, window.innerHeight || document.documentElement.clientHeight || BUBBLE_SIZE)
 }
 
+function rightDockScrollbarWidth(): number {
+  const width = window.innerWidth || 0
+  const clientWidth = document.documentElement.clientWidth || 0
+
+  if (width > 0 && clientWidth > 0 && width > clientWidth)
+    return width - clientWidth
+
+  const clientHeight = document.documentElement.clientHeight || window.innerHeight || 0
+  if (document.documentElement.scrollHeight > clientHeight)
+    return RIGHT_DOCK_SCROLLBAR_FALLBACK
+
+  return 0
+}
+
+function rightDockViewportEdge(): number {
+  return viewportWidth() - rightDockScrollbarWidth()
+}
+
+function panelViewportHeight(): number {
+  return Math.max(BUBBLE_SIZE, viewportHeight() - BUBBLE_MARGIN * 2)
+}
+
+function resolvePanelHeight(panel: HTMLElement): number {
+  const height = panel.getBoundingClientRect().height
+  if (height > 0)
+    return Math.min(height, panelViewportHeight())
+
+  return Math.min(PANEL_MAX_HEIGHT, panelViewportHeight())
+}
+
+function resolvePanelTop(panel: HTMLElement, position: BubblePosition): number {
+  const panelHeight = resolvePanelHeight(panel)
+  const minTop = BUBBLE_MARGIN
+  const maxTop = Math.max(minTop, viewportHeight() - BUBBLE_MARGIN - panelHeight)
+  const aboveTop = position.top - panelHeight - BUBBLE_MARGIN
+  const belowTop = position.top + BUBBLE_SIZE + BUBBLE_MARGIN
+  const bottomLimit = viewportHeight() - BUBBLE_MARGIN
+
+  if (position.top + BUBBLE_SIZE / 2 > viewportHeight() / 2 && aboveTop >= minTop)
+    return clamp(aboveTop, minTop, maxTop)
+
+  if (belowTop + panelHeight <= bottomLimit)
+    return clamp(belowTop, minTop, maxTop)
+
+  if (aboveTop >= minTop)
+    return clamp(aboveTop, minTop, maxTop)
+
+  return clamp(position.top - 300, minTop, maxTop)
+}
+
 function assertCompatibleNode(existing: FormDevtoolsNode | undefined, next: FormDevtoolsNode) {
   if (!existing)
     return
@@ -122,9 +181,9 @@ function ensureStyle() {
     .cf-devtools-bubble.is-left-edge { transform: translateX(-${BUBBLE_HIDE_OFFSET}px); }
     .cf-devtools-bubble.is-right-edge { transform: translateX(${BUBBLE_HIDE_OFFSET}px); }
     .cf-devtools-bubble.is-left-edge:hover, .cf-devtools-bubble.is-right-edge:hover, .cf-devtools-bubble.is-dragging { transform: translateX(0); }
-    .cf-devtools-panel { position: fixed; right: 16px; bottom: 68px; width: min(420px, calc(100vw - 32px)); max-height: min(560px, calc(100vh - 96px)); display: none; flex-direction: column; overflow: hidden; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; color: #111827; box-shadow: 0 16px 48px rgba(0,0,0,.22); pointer-events: auto; }
+    .cf-devtools-panel { position: fixed; right: 16px; bottom: 68px; box-sizing: border-box; width: min(420px, calc(100vw - 32px)); max-height: min(${PANEL_MAX_HEIGHT}px, calc(100vh - ${BUBBLE_MARGIN * 2}px)); display: none; flex-direction: column; overflow: hidden; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; color: #111827; box-shadow: 0 16px 48px rgba(0,0,0,.22); pointer-events: auto; }
     .cf-devtools-panel.is-open { display: flex; }
-    .cf-devtools-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid #e5e7eb; font-weight: 600; }
+    .cf-devtools-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid #e5e7eb; cursor: move; font-weight: 600; user-select: none; }
     .cf-devtools-body { overflow: auto; padding: 8px; }
     .cf-devtools-empty { padding: 16px; color: #6b7280; font-size: 13px; }
     .cf-devtools-node { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; min-height: 30px; border: 0; border-radius: 6px; background: transparent; padding: 5px 6px; color: inherit; text-align: left; font: inherit; }
@@ -136,6 +195,10 @@ function ensureStyle() {
     .cf-devtools-node-text { min-width: 0; }
     .cf-devtools-node-key { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .cf-devtools-node-meta { color: #6b7280; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cf-devtools-form-group { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; border-top: 1px solid #f3f4f6; padding: 7px 6px 5px; color: #374151; font-size: 11px; font-weight: 700; }
+    .cf-devtools-form-group:first-child { margin-top: 0; border-top: 0; }
+    .cf-devtools-form-label { flex: none; }
+    .cf-devtools-form-id { min-width: 0; overflow: hidden; color: #6b7280; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
     .cf-devtools-patch { font-variant-numeric: tabular-nums; font-size: 11px; color: #047857; }
     .cf-devtools-open { width: 24px; height: 24px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; cursor: pointer; }
     .cf-devtools-open:disabled { opacity: .35; cursor: not-allowed; }
@@ -147,7 +210,41 @@ function ensureStyle() {
 
 function createStore(render: () => void): DevtoolsStore {
   const nodes = new Map<string, StoredNode>()
+  const formOrders = new Map<string, number>()
   let orderSeed = 0
+  let formOrderSeed = 0
+
+  function resolveFormOrder(formId: string): number {
+    const existing = formOrders.get(formId)
+    if (existing !== undefined)
+      return existing
+
+    const next = ++formOrderSeed
+    formOrders.set(formId, next)
+    return next
+  }
+
+  function dropUnusedFormOrder(formId: string) {
+    for (const node of nodes.values()) {
+      if (node.formId === formId)
+        return
+    }
+    formOrders.delete(formId)
+  }
+
+  function upsertNode(node: FormDevtoolsNode, element: HTMLElement | null) {
+    const existing = nodes.get(node.id)
+    assertCompatibleNode(existing, node)
+    nodes.set(node.id, {
+      ...existing,
+      ...node,
+      element,
+      formOrder: existing?.formOrder ?? resolveFormOrder(node.formId),
+      order: node.order ?? existing?.order ?? ++orderSeed,
+      samples: existing?.samples ?? 0,
+    })
+    render()
+  }
 
   return {
     nodes,
@@ -164,34 +261,64 @@ function createStore(render: () => void): DevtoolsStore {
       render()
     },
     registerField(node: FormDevtoolsNode, element: HTMLElement | null) {
-      const existing = nodes.get(node.id)
-      assertCompatibleNode(existing, node)
-      nodes.set(node.id, {
-        ...existing,
-        ...node,
-        element,
-        order: node.order ?? existing?.order ?? ++orderSeed,
-        samples: existing?.samples ?? 0,
-      })
-      render()
+      upsertNode(node, element)
     },
     unregisterField(id: string) {
+      const existing = nodes.get(id)
       nodes.delete(id)
+      if (existing)
+        dropUnusedFormOrder(existing.formId)
       render()
     },
     updateField(node: FormDevtoolsNode, element: HTMLElement | null) {
-      const existing = nodes.get(node.id)
-      assertCompatibleNode(existing, node)
-      nodes.set(node.id, {
-        ...existing,
-        ...node,
-        element,
-        order: node.order ?? existing?.order ?? ++orderSeed,
-        samples: existing?.samples ?? 0,
-      })
-      render()
+      upsertNode(node, element)
     },
   }
+}
+
+function collectRootGroups(store: DevtoolsStore): RootGroup[] {
+  const groups = new Map<string, RootGroup>()
+
+  for (const node of store.nodes.values()) {
+    if (node.parentId)
+      continue
+
+    const group = groups.get(node.formId)
+    if (group) {
+      group.nodes.push(node)
+      continue
+    }
+
+    groups.set(node.formId, {
+      formId: node.formId,
+      formOrder: node.formOrder,
+      nodes: [node],
+    })
+  }
+
+  return [...groups.values()]
+    .sort((a, b) => a.formOrder - b.formOrder)
+    .map(group => ({
+      ...group,
+      nodes: group.nodes.sort((a, b) => a.order - b.order),
+    }))
+}
+
+function createFormGroupHeader(group: RootGroup, index: number): HTMLElement {
+  const row = document.createElement('div')
+  row.className = 'cf-devtools-form-group'
+  row.dataset.cfDevtoolsFormId = group.formId
+
+  const label = document.createElement('span')
+  label.className = 'cf-devtools-form-label'
+  label.textContent = `ConfigForm ${index + 1}`
+
+  const id = document.createElement('span')
+  id.className = 'cf-devtools-form-id'
+  id.textContent = group.formId
+
+  row.append(label, id)
+  return row
 }
 
 function createNodeRow(
@@ -300,9 +427,8 @@ function renderTree(
 ) {
   container.textContent = ''
 
-  const roots = [...store.nodes.values()]
-    .filter(node => !node.parentId)
-    .sort((a, b) => a.order - b.order)
+  const groups = collectRootGroups(store)
+  const roots = groups.flatMap(group => group.nodes)
 
   if (roots.length === 0) {
     const empty = document.createElement('div')
@@ -312,8 +438,17 @@ function renderTree(
     return
   }
 
-  for (const node of roots)
-    container.append(createNodeRow(node, store, 0, highlight, setError))
+  if (groups.length === 1) {
+    for (const node of roots)
+      container.append(createNodeRow(node, store, 0, highlight, setError))
+    return
+  }
+
+  groups.forEach((group, index) => {
+    container.append(createFormGroupHeader(group, index))
+    for (const node of group.nodes)
+      container.append(createNodeRow(node, store, 1, highlight, setError))
+  })
 }
 
 function updateBubblePosition(bubble: HTMLElement, panel: HTMLElement, position: BubblePosition) {
@@ -323,7 +458,7 @@ function updateBubblePosition(bubble: HTMLElement, panel: HTMLElement, position:
   bubble.classList.toggle('is-right-edge', position.edge === 'right')
 
   panel.style.bottom = 'auto'
-  panel.style.top = `${clamp(position.top - 300, BUBBLE_MARGIN, Math.max(BUBBLE_MARGIN, viewportHeight() - 96))}px`
+  panel.style.top = `${resolvePanelTop(panel, position)}px`
 
   if (position.edge === 'left') {
     panel.style.left = `${BUBBLE_MARGIN}px`
@@ -332,15 +467,15 @@ function updateBubblePosition(bubble: HTMLElement, panel: HTMLElement, position:
   }
 
   panel.style.left = 'auto'
-  panel.style.right = `${BUBBLE_MARGIN}px`
+  panel.style.right = `${BUBBLE_MARGIN + rightDockScrollbarWidth()}px`
 }
 
 function installBubbleDrag(bubble: HTMLElement, panel: HTMLElement) {
-  const maxLeft = () => viewportWidth() - BUBBLE_SIZE
+  const maxLeft = () => Math.max(0, rightDockViewportEdge() - BUBBLE_SIZE)
   const maxTop = () => viewportHeight() - BUBBLE_SIZE
   const position: BubblePosition = {
     edge: 'right',
-    left: clamp(viewportWidth() - BUBBLE_SIZE - BUBBLE_MARGIN, 0, maxLeft()),
+    left: clamp(rightDockViewportEdge() - BUBBLE_SIZE - BUBBLE_MARGIN, 0, maxLeft()),
     top: clamp(viewportHeight() - BUBBLE_SIZE - BUBBLE_MARGIN, 0, maxTop()),
   }
   let dragStartX = 0
@@ -413,6 +548,60 @@ function installBubbleDrag(bubble: HTMLElement, panel: HTMLElement) {
   })
 
   updateBubblePosition(bubble, panel, position)
+}
+
+function installPanelDrag(panel: HTMLElement, handle: HTMLElement) {
+  let dragStartX = 0
+  let dragStartY = 0
+  let panelStartLeft = 0
+  let panelStartTop = 0
+  let panelWidth = 0
+  let panelHeight = 0
+  let dragging = false
+
+  function maxLeft() {
+    return Math.max(BUBBLE_MARGIN, rightDockViewportEdge() - BUBBLE_MARGIN - panelWidth)
+  }
+
+  function maxTop() {
+    return Math.max(BUBBLE_MARGIN, viewportHeight() - BUBBLE_MARGIN - panelHeight)
+  }
+
+  function movePanel(left: number, top: number) {
+    panel.style.bottom = 'auto'
+    panel.style.left = `${clamp(left, BUBBLE_MARGIN, maxLeft())}px`
+    panel.style.right = 'auto'
+    panel.style.top = `${clamp(top, BUBBLE_MARGIN, maxTop())}px`
+  }
+
+  handle.addEventListener('mousedown', (event) => {
+    if (event.button !== 0)
+      return
+
+    const rect = panel.getBoundingClientRect()
+    dragging = true
+    dragStartX = event.clientX
+    dragStartY = event.clientY
+    panelStartLeft = rect.left
+    panelStartTop = rect.top
+    panelWidth = rect.width
+    panelHeight = rect.height
+    event.preventDefault()
+  })
+
+  document.addEventListener('mousemove', (event) => {
+    if (!dragging)
+      return
+
+    movePanel(
+      panelStartLeft + event.clientX - dragStartX,
+      panelStartTop + event.clientY - dragStartY,
+    )
+  })
+
+  document.addEventListener('mouseup', () => {
+    dragging = false
+  })
 }
 
 function installOutsidePanelClose(bubble: HTMLElement, panel: HTMLElement, closePanel: () => void) {
@@ -510,6 +699,7 @@ export function installConfigFormDevtools(): FormDevtoolsBridge {
   root.append(bubble, panel, highlightBox)
   document.body.append(root)
   installBubbleDrag(bubble, panel)
+  installPanelDrag(panel, header)
   installOutsidePanelClose(bubble, panel, closePanel)
   window.__CONFIG_FORM_DEVTOOLS_PENDING__ = true
   window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge

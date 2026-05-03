@@ -15,6 +15,7 @@ interface FieldStub {
   component: unknown
   field: string
   label?: unknown
+  slots?: Record<string, unknown>
   __source?: typeof source
 }
 
@@ -106,6 +107,107 @@ describe('configForm devtools adapter', () => {
       duration: expect.any(Number),
       timestamp: expect.any(Number),
     }))
+  })
+
+  it('registers slot component nodes as children of their owning field', async () => {
+    const bridge = createBridge()
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
+
+    mountAdapter([
+      {
+        component: 'radio-group',
+        field: 'gender',
+        slots: {
+          default: [
+            {
+              __source: source,
+              component: { name: 'RadioOption' },
+              slots: {
+                default: 'Male',
+              },
+            },
+          ],
+        },
+      },
+    ])
+    await nextTick()
+    await nextTick()
+
+    const fieldNode = bridge.registerField.mock.calls.find(([node]) => node.field === 'gender')?.[0]
+    const optionNode = bridge.registerField.mock.calls.find(([node]) => node.component === 'RadioOption')?.[0]
+
+    expect(fieldNode).toMatchObject({
+      field: 'gender',
+      kind: 'field',
+    })
+    expect(optionNode).toMatchObject({
+      kind: 'component',
+      parentId: fieldNode.id,
+      slotName: 'default',
+      source,
+    })
+  })
+
+  it('registers slot field nodes with source metadata for source jumping', async () => {
+    const bridge = createBridge()
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
+    const childSource = {
+      ...source,
+      id: 'source-child',
+      line: 24,
+    }
+
+    mountAdapter([
+      {
+        component: 'input-group',
+        field: 'account',
+        slots: {
+          default: [
+            {
+              __source: childSource,
+              component: 'input',
+              field: 'accountSuffix',
+            },
+          ],
+        },
+      },
+    ])
+    await nextTick()
+    await nextTick()
+
+    const fieldNode = bridge.registerField.mock.calls.find(([node]) => node.field === 'account')?.[0]
+    const childNode = bridge.registerField.mock.calls.find(([node]) => node.field === 'accountSuffix')?.[0]
+
+    expect(childNode).toMatchObject({
+      field: 'accountSuffix',
+      kind: 'field',
+      parentId: fieldNode.id,
+      slotName: 'default',
+      source: childSource,
+    })
+  })
+
+  it('does not register plain Vue VNodes returned from slot functions as devtools nodes', async () => {
+    const bridge = createBridge()
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
+
+    mountAdapter([
+      {
+        component: 'input-group',
+        field: 'account',
+        slots: {
+          default: () => h('span', 'plain suffix'),
+        },
+      },
+    ])
+    await nextTick()
+    await nextTick()
+
+    expect(bridge.registerField).toHaveBeenCalledTimes(1)
+    expect(bridge.registerField).toHaveBeenCalledWith(expect.objectContaining({
+      field: 'account',
+      kind: 'field',
+    }), expect.any(HTMLInputElement))
   })
 
   it('unregisters devtools nodes when the wrapped form unmounts', async () => {
