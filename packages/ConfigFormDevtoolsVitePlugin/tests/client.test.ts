@@ -446,6 +446,460 @@ describe('client overlay', () => {
       .toEqual(['form-2:visible'])
   })
 
+  it('selects the ConfigForm with the highest viewport score when multiple forms are visible', () => {
+    installConfigFormDevtools()
+
+    const firstElement = document.createElement('div')
+    firstElement.getBoundingClientRect = () => ({
+      bottom: 100,
+      height: 300,
+      left: 20,
+      right: 220,
+      top: -200,
+      width: 200,
+      x: 20,
+      y: -200,
+      toJSON: () => ({}),
+    })
+    const secondElement = document.createElement('div')
+    secondElement.getBoundingClientRect = () => ({
+      bottom: 420,
+      height: 300,
+      left: 20,
+      right: 220,
+      top: 120,
+      width: 200,
+      x: 20,
+      y: 120,
+      toJSON: () => ({}),
+    })
+    document.body.append(firstElement, secondElement)
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'first',
+      formId: 'form-first',
+      formLabel: 'First Form',
+      id: 'form-first:first',
+      kind: 'field',
+      order: 1,
+    }, firstElement)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'second',
+      formId: 'form-second',
+      formLabel: 'Second Form',
+      id: 'form-second:first',
+      kind: 'field',
+      order: 1,
+    }, secondElement)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+
+    expect(document.querySelector<HTMLElement>('[data-cf-devtools-nav-form-id="form-second"]')?.classList.contains('is-active')).toBe(true)
+    expect([...document.querySelectorAll<HTMLElement>('[data-cf-devtools-node-id]')]
+      .map(node => node.dataset.cfDevtoolsNodeId))
+      .toEqual(['form-second:first'])
+  })
+
+  it('syncs the active ConfigForm on scroll by viewport score', async () => {
+    installConfigFormDevtools()
+
+    let scrolled = false
+    const firstElement = document.createElement('div')
+    firstElement.getBoundingClientRect = () => scrolled
+      ? {
+          bottom: -120,
+          height: 300,
+          left: 20,
+          right: 220,
+          top: -420,
+          width: 200,
+          x: 20,
+          y: -420,
+          toJSON: () => ({}),
+        }
+      : {
+          bottom: 320,
+          height: 300,
+          left: 20,
+          right: 220,
+          top: 20,
+          width: 200,
+          x: 20,
+          y: 20,
+          toJSON: () => ({}),
+        }
+    const secondElement = document.createElement('div')
+    secondElement.getBoundingClientRect = () => scrolled
+      ? {
+          bottom: 360,
+          height: 300,
+          left: 20,
+          right: 220,
+          top: 60,
+          width: 200,
+          x: 20,
+          y: 60,
+          toJSON: () => ({}),
+        }
+      : {
+          bottom: 720,
+          height: 300,
+          left: 20,
+          right: 220,
+          top: 420,
+          width: 200,
+          x: 20,
+          y: 420,
+          toJSON: () => ({}),
+        }
+    document.body.append(firstElement, secondElement)
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'first',
+      formId: 'form-first',
+      formLabel: 'First Form',
+      id: 'form-first:first',
+      kind: 'field',
+      order: 1,
+    }, firstElement)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'second',
+      formId: 'form-second',
+      formLabel: 'Second Form',
+      id: 'form-second:first',
+      kind: 'field',
+      order: 1,
+    }, secondElement)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+    expect(document.querySelector<HTMLElement>('[data-cf-devtools-nav-form-id="form-first"]')?.classList.contains('is-active')).toBe(true)
+
+    scrolled = true
+    window.dispatchEvent(new Event('scroll'))
+
+    await vi.waitFor(() => {
+      expect(document.querySelector<HTMLElement>('[data-cf-devtools-nav-form-id="form-second"]')?.classList.contains('is-active')).toBe(true)
+    })
+  })
+
+  it('keeps display none ConfigForms in the navlist as disabled items', () => {
+    installConfigFormDevtools()
+
+    const hiddenPanel = document.createElement('section')
+    hiddenPanel.style.display = 'none'
+    const hiddenElement = document.createElement('div')
+    hiddenElement.getBoundingClientRect = () => ({
+      bottom: 320,
+      height: 300,
+      left: 20,
+      right: 220,
+      top: 20,
+      width: 200,
+      x: 20,
+      y: 20,
+      toJSON: () => ({}),
+    })
+    hiddenPanel.append(hiddenElement)
+
+    const visibleElement = document.createElement('div')
+    visibleElement.getBoundingClientRect = () => ({
+      bottom: 420,
+      height: 300,
+      left: 20,
+      right: 220,
+      top: 120,
+      width: 200,
+      x: 20,
+      y: 120,
+      toJSON: () => ({}),
+    })
+    document.body.append(hiddenPanel, visibleElement)
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'hidden',
+      formId: 'form-hidden',
+      formLabel: 'Hidden Form',
+      id: 'form-hidden:first',
+      kind: 'field',
+      order: 1,
+    }, hiddenElement)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'visible',
+      formId: 'form-visible',
+      formLabel: 'Visible Form',
+      id: 'form-visible:first',
+      kind: 'field',
+      order: 1,
+    }, visibleElement)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+
+    const hiddenNav = document.querySelector<HTMLButtonElement>('[data-cf-devtools-nav-form-id="form-hidden"]')
+    expect(hiddenNav?.disabled).toBe(true)
+    expect(hiddenNav?.classList.contains('is-disabled')).toBe(true)
+    expect(document.querySelector<HTMLElement>('[data-cf-devtools-nav-form-id="form-visible"]')?.classList.contains('is-active')).toBe(true)
+
+    hiddenNav?.click()
+    expect(document.querySelector<HTMLElement>('[data-cf-devtools-nav-form-id="form-visible"]')?.classList.contains('is-active')).toBe(true)
+    expect([...document.querySelectorAll<HTMLElement>('[data-cf-devtools-node-id]')]
+      .map(node => node.dataset.cfDevtoolsNodeId))
+      .toEqual(['form-visible:first'])
+  })
+
+  it('syncs the active ConfigForm when a tab switch changes DOM visibility without bridge updates', async () => {
+    installConfigFormDevtools()
+
+    let activeTab: 'grid' | 'inline' = 'grid'
+    const visibleRect = {
+      bottom: 80,
+      height: 40,
+      left: 20,
+      right: 220,
+      top: 40,
+      width: 200,
+      x: 20,
+      y: 40,
+      toJSON: () => ({}),
+    }
+    const hiddenRect = {
+      bottom: 0,
+      height: 0,
+      left: 0,
+      right: 0,
+      top: 0,
+      width: 0,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    }
+    const gridElement = document.createElement('div')
+    gridElement.getBoundingClientRect = () => activeTab === 'grid' ? visibleRect : hiddenRect
+    const inlineElement = document.createElement('div')
+    inlineElement.getBoundingClientRect = () => activeTab === 'inline' ? visibleRect : hiddenRect
+    document.body.append(gridElement, inlineElement)
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'grid',
+      formId: 'form-grid',
+      formLabel: 'element Grid 模式',
+      id: 'form-grid:first',
+      kind: 'field',
+      order: 1,
+    }, gridElement)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'inline',
+      formId: 'form-inline',
+      formLabel: 'element Inline 模式',
+      id: 'form-inline:first',
+      kind: 'field',
+      order: 1,
+    }, inlineElement)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+    expect(document.querySelector<HTMLElement>('[data-cf-devtools-nav-form-id="form-grid"]')?.classList.contains('is-active')).toBe(true)
+
+    activeTab = 'inline'
+    document.body.classList.add('is-inline-active')
+
+    await vi.waitFor(() => {
+      expect(document.querySelector<HTMLElement>('[data-cf-devtools-nav-form-id="form-inline"]')?.classList.contains('is-active')).toBe(true)
+    })
+  })
+
+  it('uses viewport score instead of aria-selected when multiple tab panels remain visible', () => {
+    installConfigFormDevtools()
+
+    const tabList = document.createElement('div')
+    tabList.setAttribute('role', 'tablist')
+    const gridTab = document.createElement('button')
+    gridTab.id = 'tab-grid'
+    gridTab.setAttribute('aria-selected', 'false')
+    gridTab.setAttribute('role', 'tab')
+    gridTab.textContent = 'element Grid 模式'
+    const inlineTab = document.createElement('button')
+    inlineTab.id = 'tab-inline'
+    inlineTab.setAttribute('aria-selected', 'true')
+    inlineTab.setAttribute('role', 'tab')
+    inlineTab.textContent = 'element Inline 模式'
+    tabList.append(gridTab, inlineTab)
+
+    const gridRect = {
+      bottom: 320,
+      height: 300,
+      left: 20,
+      right: 220,
+      top: 20,
+      width: 200,
+      x: 20,
+      y: 20,
+      toJSON: () => ({}),
+    }
+    const inlineRect = {
+      bottom: 80,
+      height: 40,
+      left: 20,
+      right: 220,
+      top: 40,
+      width: 200,
+      x: 20,
+      y: 40,
+      toJSON: () => ({}),
+    }
+    const gridPanel = document.createElement('section')
+    gridPanel.setAttribute('aria-labelledby', gridTab.id)
+    gridPanel.setAttribute('role', 'tabpanel')
+    const gridElement = document.createElement('div')
+    gridElement.getBoundingClientRect = () => gridRect
+    gridPanel.append(gridElement)
+
+    const inlinePanel = document.createElement('section')
+    inlinePanel.setAttribute('aria-labelledby', inlineTab.id)
+    inlinePanel.setAttribute('role', 'tabpanel')
+    const inlineElement = document.createElement('div')
+    inlineElement.getBoundingClientRect = () => inlineRect
+    inlinePanel.append(inlineElement)
+    document.body.append(tabList, gridPanel, inlinePanel)
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'grid',
+      formId: 'form-grid',
+      formLabel: 'element Grid 模式',
+      id: 'form-grid:first',
+      kind: 'field',
+      order: 1,
+    }, gridElement)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'inline',
+      formId: 'form-inline',
+      formLabel: 'element Inline 模式',
+      id: 'form-inline:first',
+      kind: 'field',
+      order: 1,
+    }, inlineElement)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+    expect(document.querySelector<HTMLElement>('[data-cf-devtools-nav-form-id="form-grid"]')?.classList.contains('is-active')).toBe(true)
+  })
+
+  it('uses explicit active markers for non-standard containers and syncs keyboard tab changes without animation frames', async () => {
+    vi.stubGlobal('requestAnimationFrame', undefined)
+    installConfigFormDevtools()
+
+    const measurableRect = {
+      bottom: 80,
+      height: 40,
+      left: 20,
+      right: 220,
+      top: 40,
+      width: 200,
+      x: 20,
+      y: 40,
+      toJSON: () => ({}),
+    }
+    const gridPanel = document.createElement('section')
+    gridPanel.dataset.cfDevtoolsActive = 'true'
+    const gridElement = document.createElement('div')
+    gridElement.getBoundingClientRect = () => measurableRect
+    gridPanel.append(gridElement)
+
+    const inlinePanel = document.createElement('section')
+    inlinePanel.dataset.cfDevtoolsActive = 'false'
+    const inlineElement = document.createElement('div')
+    inlineElement.getBoundingClientRect = () => measurableRect
+    inlinePanel.append(inlineElement)
+    document.body.append(gridPanel, inlinePanel)
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'grid',
+      formId: 'form-grid',
+      formLabel: 'element Grid 模式',
+      id: 'form-grid:first',
+      kind: 'field',
+      order: 1,
+    }, gridElement)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'inline',
+      formId: 'form-inline',
+      formLabel: 'element Inline 模式',
+      id: 'form-inline:first',
+      kind: 'field',
+      order: 1,
+    }, inlineElement)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+    expect(document.querySelector<HTMLElement>('[data-cf-devtools-nav-form-id="form-grid"]')?.classList.contains('is-active')).toBe(true)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')
+      ?.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: 'Enter' }))
+    expect(document.querySelector<HTMLElement>('[data-cf-devtools-nav-form-id="form-grid"]')?.classList.contains('is-active')).toBe(true)
+
+    gridPanel.dataset.cfDevtoolsActive = 'false'
+    inlinePanel.dataset.cfDevtoolsActive = 'true'
+    document.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: 'ArrowRight' }))
+
+    await vi.waitFor(() => {
+      expect(document.querySelector<HTMLElement>('[data-cf-devtools-nav-form-id="form-inline"]')?.classList.contains('is-active')).toBe(true)
+    })
+  })
+
+  it('falls back to the next visible ConfigForm when the active form is removed', () => {
+    installConfigFormDevtools()
+
+    const measurableRect = {
+      bottom: 80,
+      height: 40,
+      left: 20,
+      right: 220,
+      top: 40,
+      width: 200,
+      x: 20,
+      y: 40,
+      toJSON: () => ({}),
+    }
+    const gridElement = document.createElement('div')
+    gridElement.getBoundingClientRect = () => measurableRect
+    const inlineElement = document.createElement('div')
+    inlineElement.getBoundingClientRect = () => measurableRect
+    const cardElement = document.createElement('div')
+    cardElement.getBoundingClientRect = () => measurableRect
+    document.body.append(gridElement, inlineElement, cardElement)
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'grid',
+      formId: 'form-grid',
+      formLabel: 'element Grid 模式',
+      id: 'form-grid:first',
+      kind: 'field',
+      order: 1,
+    }, gridElement)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'inline',
+      formId: 'form-inline',
+      formLabel: 'element Inline 模式',
+      id: 'form-inline:first',
+      kind: 'field',
+      order: 1,
+    }, inlineElement)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'card',
+      formId: 'form-card',
+      formLabel: 'element Card 模式',
+      id: 'form-card:first',
+      kind: 'field',
+      order: 1,
+    }, cardElement)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+    expect(document.querySelector<HTMLElement>('[data-cf-devtools-nav-form-id="form-grid"]')?.classList.contains('is-active')).toBe(true)
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.unregisterField('form-grid:first')
+
+    expect(document.querySelector<HTMLElement>('[data-cf-devtools-nav-form-id="form-inline"]')?.classList.contains('is-active')).toBe(true)
+    expect([...document.querySelectorAll<HTMLElement>('[data-cf-devtools-node-id]')]
+      .map(node => node.dataset.cfDevtoolsNodeId))
+      .toEqual(['form-inline:first'])
+  })
+
   it('preserves the field registration order for roots and nested slot fields', () => {
     installConfigFormDevtools()
 

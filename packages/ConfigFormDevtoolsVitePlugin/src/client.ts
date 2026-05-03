@@ -18,8 +18,11 @@ interface RootGroup {
   element?: HTMLElement
   formId: string
   formLabel?: string
+  hasEnabledElement: boolean
+  hasInspectableElement: boolean
   registrationOrder: number
   nodes: StoredNode[]
+  viewportScore: number
 }
 
 interface DevtoolsRenderState {
@@ -62,6 +65,15 @@ const BUBBLE_HIDE_OFFSET = 20
 const DRAG_THRESHOLD = 4
 const RIGHT_DOCK_SCROLLBAR_FALLBACK = 10
 const PANEL_MAX_HEIGHT = 560
+const CONTEXT_SYNC_ATTRIBUTES = [
+  'aria-hidden',
+  'aria-selected',
+  'class',
+  'data-cf-devtools-active',
+  'hidden',
+  'inert',
+  'style',
+]
 
 function formatPatch(value: number | undefined): string {
   return typeof value === 'number' ? value.toFixed(2) : '--'
@@ -205,6 +217,55 @@ function compareRootGroups(first: RootGroup, second: RootGroup): number {
   return first.registrationOrder - second.registrationOrder
 }
 
+function elementIsHiddenByState(element: HTMLElement): boolean {
+  for (let current: HTMLElement | null = element; current; current = current.parentElement) {
+    if (
+      current.hidden
+      || current.hasAttribute('inert')
+      || current.getAttribute('aria-hidden') === 'true'
+      || current.dataset.cfDevtoolsActive === 'false'
+    ) {
+      return true
+    }
+
+    const style = window.getComputedStyle(current)
+    if (style.display === 'none' || style.visibility === 'hidden' || style.visibility === 'collapse')
+      return true
+  }
+
+  return false
+}
+
+function elementHasEnabledBox(element: HTMLElement): boolean {
+  if (elementIsHiddenByState(element))
+    return false
+
+  const rect = element.getBoundingClientRect()
+  return rect.width > 0 && rect.height > 0
+}
+
+function elementViewportScore(element: HTMLElement): number {
+  if (elementIsHiddenByState(element))
+    return 0
+
+  const rect = element.getBoundingClientRect()
+  if (rect.width <= 0 || rect.height <= 0)
+    return 0
+
+  const intersectionLeft = Math.max(0, rect.left)
+  const intersectionTop = Math.max(0, rect.top)
+  const intersectionRight = Math.min(viewportWidth(), rect.right)
+  const intersectionBottom = Math.min(viewportHeight(), rect.bottom)
+  const intersectionWidth = intersectionRight - intersectionLeft
+  const intersectionHeight = intersectionBottom - intersectionTop
+  if (intersectionWidth <= 0 || intersectionHeight <= 0)
+    return 0
+
+  const visibleArea = intersectionWidth * intersectionHeight
+  const distanceFromViewportTop = Math.abs(Math.max(rect.top, 0))
+  return visibleArea * 1000 - distanceFromViewportTop
+}
+
 function ensureStyle() {
   if (document.getElementById(STYLE_ID))
     return
@@ -237,6 +298,8 @@ function ensureStyle() {
     .cf-devtools-nav-item { width: 100%; min-height: 42px; border: 1px solid transparent; border-radius: 6px; background: transparent; padding: 6px; color: inherit; cursor: pointer; text-align: left; font: inherit; }
     .cf-devtools-nav-item:hover { background: #f3f4f6; }
     .cf-devtools-nav-item.is-active { border-color: #c7d2fe; background: #eef2ff; color: #1e3a8a; }
+    .cf-devtools-nav-item:disabled { opacity: .42; cursor: not-allowed; }
+    .cf-devtools-nav-item.is-disabled:hover { background: transparent; }
     .cf-devtools-nav-title { display: block; overflow: hidden; font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
     .cf-devtools-nav-meta { display: block; overflow: hidden; margin-top: 2px; color: #6b7280; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
     .cf-devtools-tree { min-width: 0; }
@@ -325,6 +388,9 @@ function collectRootGroups(store: DevtoolsStore): RootGroup[] {
     if (group) {
       group.formLabel ??= node.formLabel
       group.element = selectEarlierElement(group.element, node.element)
+      group.hasInspectableElement = group.hasInspectableElement || Boolean(node.element)
+      group.hasEnabledElement = group.hasEnabledElement || nodeHasEnabledElement(node)
+      group.viewportScore = Math.max(group.viewportScore, nodeViewportScore(node))
       if (!node.parentId)
         group.nodes.push(node)
       continue
@@ -334,8 +400,11 @@ function collectRootGroups(store: DevtoolsStore): RootGroup[] {
       element: node.element ?? undefined,
       formId: node.formId,
       formLabel: node.formLabel,
+      hasEnabledElement: nodeHasEnabledElement(node),
+      hasInspectableElement: Boolean(node.element),
       nodes: node.parentId ? [] : [node],
       registrationOrder: node.registrationOrder,
+      viewportScore: nodeViewportScore(node),
     })
   }
 
@@ -347,33 +416,50 @@ function collectRootGroups(store: DevtoolsStore): RootGroup[] {
     }))
 }
 
-function nodeHasVisibleElement(node: StoredNode): boolean {
+function nodeHasEnabledElement(node: StoredNode): boolean {
   if (!node.element)
     return false
 
-  const rect = node.element.getBoundingClientRect()
-  return rect.width > 0 && rect.height > 0
+  return elementHasEnabledBox(node.element)
 }
 
-function groupHasVisibleElement(group: RootGroup): boolean {
-  return group.nodes.some(node => nodeHasVisibleElement(node))
+function nodeViewportScore(node: StoredNode): number {
+  if (!node.element)
+    return 0
+
+  return elementViewportScore(node.element)
 }
 
-function resolveActiveGroup(groups: RootGroup[], state: DevtoolsRenderState): RootGroup {
-  const activeGroup = groups.find(group => group.formId === state.activeFormId)
-  const visibleGroup = groups.find(group => groupHasVisibleElement(group))
-  const hasVisibleGroup = Boolean(visibleGroup)
+function groupIsDisabled(group: RootGroup): boolean {
+  return group.hasInspectableElement && !group.hasEnabledElement
+}
 
-  if (!activeGroup) {
+function resolveViewportActiveGroup(groups: RootGroup[]): RootGroup | undefined {
+  return groups.reduce<RootGroup | undefined>((best, group) => {
+    if (groupIsDisabled(group) || group.viewportScore <= 0)
+      return best
+    if (!best || group.viewportScore > best.viewportScore)
+      return group
+    return best
+  }, undefined)
+}
+
+function resolveActiveGroup(groups: RootGroup[], state: DevtoolsRenderState): RootGroup | undefined {
+  const enabledGroups = groups.filter(group => !groupIsDisabled(group))
+
+  if (enabledGroups.length === 0) {
+    state.activeFormId = undefined
     state.activeFormSelectedByUser = false
-    return visibleGroup ?? groups[0]
+    return undefined
   }
 
-  if (state.activeFormSelectedByUser || !hasVisibleGroup || groupHasVisibleElement(activeGroup))
+  const activeGroup = enabledGroups.find(group => group.formId === state.activeFormId)
+  if (state.activeFormSelectedByUser && activeGroup)
     return activeGroup
 
+  const viewportActiveGroup = resolveViewportActiveGroup(enabledGroups)
   state.activeFormSelectedByUser = false
-  return visibleGroup ?? activeGroup
+  return viewportActiveGroup ?? activeGroup ?? enabledGroups[0]
 }
 
 function resolveGroupMeta(group: RootGroup): string {
@@ -387,11 +473,15 @@ function createFormNavItem(
   group: RootGroup,
   index: number,
   active: boolean,
+  disabled: boolean,
   onSelect: () => void,
 ): HTMLElement {
   const button = document.createElement('button')
-  button.className = `cf-devtools-nav-item${active ? ' is-active' : ''}`
+  button.className = `cf-devtools-nav-item${active ? ' is-active' : ''}${disabled ? ' is-disabled' : ''}`
   button.dataset.cfDevtoolsNavFormId = group.formId
+  button.disabled = disabled
+  if (disabled)
+    button.title = 'ConfigForm is hidden'
   button.type = 'button'
 
   const title = document.createElement('span')
@@ -400,7 +490,7 @@ function createFormNavItem(
 
   const meta = document.createElement('span')
   meta.className = 'cf-devtools-nav-meta'
-  meta.textContent = resolveGroupMeta(group)
+  meta.textContent = disabled ? `${resolveGroupMeta(group)} · hidden` : resolveGroupMeta(group)
 
   button.addEventListener('click', onSelect)
   button.append(title, meta)
@@ -527,7 +617,7 @@ function renderTree(
     return
   }
 
-  if (groups.length === 1) {
+  if (groups.length === 1 && !groupIsDisabled(groups[0])) {
     state.activeFormId = groups[0]?.formId
     state.activeFormSelectedByUser = false
     for (const node of roots)
@@ -536,7 +626,7 @@ function renderTree(
   }
 
   const activeGroup = resolveActiveGroup(groups, state)
-  state.activeFormId = activeGroup.formId
+  state.activeFormId = activeGroup?.formId
 
   const layout = document.createElement('div')
   layout.className = 'cf-devtools-layout'
@@ -548,11 +638,15 @@ function renderTree(
   tree.className = 'cf-devtools-tree'
 
   groups.forEach((group, index) => {
+    const disabled = groupIsDisabled(group)
     nav.append(createFormNavItem(
       group,
       index,
-      group.formId === activeGroup.formId,
+      group.formId === activeGroup?.formId,
+      disabled,
       () => {
+        if (disabled)
+          return
         state.activeFormId = group.formId
         state.activeFormSelectedByUser = true
         renderTree(container, store, highlight, setError, state)
@@ -560,8 +654,16 @@ function renderTree(
     ))
   })
 
-  for (const node of activeGroup.nodes)
-    tree.append(createNodeRow(node, store, 0, highlight, setError))
+  if (activeGroup) {
+    for (const node of activeGroup.nodes)
+      tree.append(createNodeRow(node, store, 0, highlight, setError))
+  }
+  else {
+    const empty = document.createElement('div')
+    empty.className = 'cf-devtools-empty'
+    empty.textContent = 'No visible ConfigForm'
+    tree.append(empty)
+  }
 
   layout.append(nav, tree)
   container.append(layout)
@@ -736,6 +838,73 @@ function installOutsidePanelClose(bubble: HTMLElement, panel: HTMLElement, close
   }, { capture: true })
 }
 
+function createAsyncRenderScheduler(render: () => void): () => void {
+  let pending = false
+
+  return () => {
+    if (pending)
+      return
+
+    pending = true
+    const flush = () => {
+      pending = false
+      render()
+    }
+
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(flush)
+      return
+    }
+
+    setTimeout(flush, 0)
+  }
+}
+
+function installExternalContextSync(root: HTMLElement, render: () => void, resetManualSelection: () => void) {
+  const scheduleRender = createAsyncRenderScheduler(render)
+  const scheduleAutoRender = () => {
+    resetManualSelection()
+    scheduleRender()
+  }
+
+  document.addEventListener('click', (event) => {
+    const target = event.target
+    if (target instanceof Node && root.contains(target))
+      return
+
+    scheduleAutoRender()
+  }, { capture: true })
+
+  document.addEventListener('keyup', (event) => {
+    const target = event.target
+    if (target instanceof Node && root.contains(target))
+      return
+
+    scheduleAutoRender()
+  }, { capture: true })
+
+  window.addEventListener('scroll', scheduleAutoRender, { capture: true, passive: true })
+  window.addEventListener('resize', scheduleAutoRender, { passive: true })
+
+  if (typeof MutationObserver === 'undefined')
+    return
+
+  const observer = new MutationObserver((mutations) => {
+    const hasExternalContextChange = mutations.some((mutation) => {
+      const target = mutation.target
+      return target instanceof Node && !root.contains(target)
+    })
+    if (hasExternalContextChange)
+      scheduleAutoRender()
+  })
+
+  observer.observe(document.body, {
+    attributeFilter: CONTEXT_SYNC_ATTRIBUTES,
+    attributes: true,
+    subtree: true,
+  })
+}
+
 export function installConfigFormDevtools(): FormDevtoolsBridge {
   if (typeof document === 'undefined')
     throw new Error('ConfigForm devtools client requires a browser document')
@@ -818,6 +987,13 @@ export function installConfigFormDevtools(): FormDevtoolsBridge {
   installBubbleDrag(bubble, panel)
   installPanelDrag(panel, header)
   installOutsidePanelClose(bubble, panel, closePanel)
+  installExternalContextSync(
+    root,
+    () => renderTree(body, store, highlight, setError, renderState),
+    () => {
+      renderState.activeFormSelectedByUser = false
+    },
+  )
   window.__CONFIG_FORM_DEVTOOLS_PENDING__ = true
   window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
   window.dispatchEvent(new CustomEvent(READY_EVENT, { detail: bridge }))

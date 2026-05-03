@@ -4,6 +4,7 @@ import { defineAsyncComponent, ref } from 'vue'
 const GridForm = defineAsyncComponent(() => import('./demos/GridForm.vue'))
 const I18nPluginForm = defineAsyncComponent(() => import('./demos/I18nPluginForm.vue'))
 const InlineForm = defineAsyncComponent(() => import('./demos/InlineForm.vue'))
+const MultiCardForms = defineAsyncComponent(() => import('./demos/MultiCardForms.vue'))
 const NestedCardCheckboxForm = defineAsyncComponent(() => import('./demos/NestedCardCheckboxForm.vue'))
 
 const activeTab = ref('grid')
@@ -20,6 +21,9 @@ const activeTab = ref('grid')
       </el-tab-pane>
       <el-tab-pane label="element Card 嵌套 Checkbox" name="nested-card-checkbox">
         <NestedCardCheckboxForm />
+      </el-tab-pane>
+      <el-tab-pane label="element 多 Form Card" name="multi-card-forms">
+        <MultiCardForms />
       </el-tab-pane>
       <el-tab-pane label="i18n 插件" name="i18n-plugin">
         <I18nPluginForm />
