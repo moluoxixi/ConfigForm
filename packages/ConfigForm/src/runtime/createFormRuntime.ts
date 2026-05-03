@@ -9,8 +9,6 @@ import type {
   FormRuntimeOptions,
   FormRuntimePlugin,
   FormRuntimeTokenResolver,
-  FormRuntimeTransformContext,
-  FormRuntimeTransformContextInput,
 } from './types'
 import type {
   FieldCondition,
@@ -349,21 +347,8 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
     })
   }
 
-  function createTransformContext(
-    field: NormalizedFieldConfig,
-    input: FormRuntimeTransformContextInput = {},
-  ): FormRuntimeTransformContext {
-    const context: FormRuntimeTransformContext = { field }
-    if (input.slotName !== undefined)
-      context.slotName = input.slotName
-    if (input.slotScope !== undefined)
-      context.slotScope = input.slotScope
-    return context
-  }
-
   function transformField(
     field: FieldConfig | NormalizedFieldConfig,
-    context: FormRuntimeTransformContextInput = {},
   ): NormalizedFieldConfig {
     if (isResolvedFieldConfig(field) || isTransformedFieldConfig(field))
       return field
@@ -375,7 +360,7 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
 
     for (const hook of orderedFieldTransformHooks) {
       const hookField = cloneNormalizedField(config)
-      const next = hook.handler(hookField, createTransformContext(hookField, context))
+      const next = hook.handler(hookField)
       if (next === undefined)
         continue
 
@@ -402,7 +387,7 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
     if (isResolvedFieldConfig(field))
       return field
 
-    const transformed = transformField(field, context)
+    const transformed = transformField(field)
     const fieldContext = { ...context, field: transformed }
     return resolveFieldBase(transformed, fieldContext)
   }
@@ -422,13 +407,13 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
   }
 
   function resolveVisible(field: FieldConfig | NormalizedFieldConfig, context: FormRuntimeContext): boolean {
-    const transformed = transformField(field, context)
+    const transformed = transformField(field)
     const fieldContext = { ...context, field: transformed }
     return resolveConditionBase(transformed.visible, fieldContext, true)
   }
 
   function resolveDisabled(field: FieldConfig | NormalizedFieldConfig, context: FormRuntimeContext): boolean {
-    const transformed = transformField(field, context)
+    const transformed = transformField(field)
     const fieldContext = { ...context, field: transformed }
     return resolveConditionBase(transformed.disabled, fieldContext, false)
   }

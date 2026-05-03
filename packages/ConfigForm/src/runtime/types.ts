@@ -58,30 +58,10 @@ export type FormRuntimeObjectHook<THandler extends (...args: never[]) => unknown
       handler: THandler
     }
 
-/** 字段转换 hook 的上下文；只包含静态字段和 slot 位置信息，不暴露 values/errors。 */
-export interface FormRuntimeTransformContext {
-  /** 当前正在转换的字段快照。 */
-  field: NormalizedFieldConfig
-  /** 当前字段来自父组件的哪个 slot；根节点或非 slot 场景为空。 */
-  slotName?: string
-  /** 当前 scoped slot 调用传入的作用域对象；非 scoped slot 场景为空。 */
-  slotScope?: Record<string, unknown>
-}
-
-/** transformField 的可选入参；用于把 slot 位置信息传入转换层。 */
-export interface FormRuntimeTransformContextInput {
-  /** 当前字段来自父组件的哪个 slot。 */
-  slotName?: string
-  /** 当前 scoped slot 作用域。 */
-  slotScope?: Record<string, unknown>
-}
-
 /** 字段转换 hook：在 core normalize 后、resolve 前顺序执行。 */
 export type FormFieldTransform = (
-  /** 当前已标准化字段；插件不得原地修改。 */
+  /** 当前已标准化字段；插件不得原地修改，不接收 values/errors/slot scope。 */
   field: NormalizedFieldConfig,
-  /** 静态转换上下文，不包含表单值和错误。 */
-  context: FormRuntimeTransformContext,
 ) => FieldConfig | NormalizedFieldConfig | void
 
 /** runtime 插件：用于注册组件、token resolver，或通过生命周期转换字段声明。 */
@@ -129,10 +109,7 @@ export interface FormRuntime {
   /** 解析 RuntimeToken、数组和普通对象中的嵌套运行时值。 */
   resolveValue: <TValue = unknown>(value: TValue, context: FormRuntimeContext, path?: string) => unknown
   /** 执行 core normalize 和插件 transformField 生命周期，得到后续渲染、校验、提交共享的字段。 */
-  transformField: (
-    field: FieldConfig | NormalizedFieldConfig,
-    context?: FormRuntimeTransformContextInput,
-  ) => NormalizedFieldConfig
+  transformField: (field: FieldConfig | NormalizedFieldConfig) => NormalizedFieldConfig
   /** 解析 slot 内容，包括 slot 函数、slot 节点配置、数组和 token。 */
   resolveSlot: (slot: SlotContent, context: FormRuntimeContext, path?: string) => SlotContent
   /** 解析字段节点或组件容器节点。 */

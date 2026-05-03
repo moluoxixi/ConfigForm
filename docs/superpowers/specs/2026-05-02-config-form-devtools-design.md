@@ -2,7 +2,9 @@
 
 ## 背景
 
-ConfigForm 已经具备 `defineField` 字段工厂、运行时扩展、递归 slot 字段渲染和 playground 示例。本设计新增一个开发态源码导航与性能监控套件，用于定位 `defineField` 源码、还原 `FormField` 递归拓扑、采集单个字段实例的 patch 耗时，并通过全局悬浮 UI 进行交互。
+ConfigForm 已经具备 `defineField` 字段工厂、运行时扩展、递归 slot 字段渲染和 playground 示例。本设计新增一个开发态源码导航与性能监控套件，用于定位 `defineField` 源码、还原字段拓扑、采集字段实例的 patch 耗时，并通过全局悬浮 UI 进行交互。
+
+> 当前架构修订：核心包必须保持纯净，不内置 devtools bridge、源码元数据类型、实例注册 hook 或 patch duration 采集。devtools 相关协议、全局 bridge、源码注入和 UI 均属于 `@moluoxixi/config-form-devtools-vite-plugin`；如需采集字段实例，应由独立开发态适配层消费浏览器 bridge，而不是把调试生命周期放回 `@moluoxixi/config-form`。
 
 本能力必须只存在于开发环境。生产构建不能引入调试 UI、IDE 跳转接口、DOM 高亮逻辑或调试元数据注入逻辑。
 
@@ -10,7 +12,7 @@ ConfigForm 已经具备 `defineField` 字段工厂、运行时扩展、递归 sl
 
 - 在构建阶段识别 `defineField({...})` 调用，并为对象字面量配置注入源码位置。
 - 在运行时还原顶层字段和递归 slot 字段形成的逻辑树。
-- 采集每个真实 `FormField` 实例的 patch duration，并实时同步给全局调试 UI。
+- 通过开发态适配层采集字段实例的 patch duration，并实时同步给全局调试 UI。
 - 在 `document.body` 挂载可拖拽、可吸边隐藏的悬浮入口。
 - 展示字段树、字段 key、label、实时 patch 耗时。
 - 鼠标悬浮树节点时高亮页面中的真实字段实例。
@@ -26,13 +28,12 @@ ConfigForm 已经具备 `defineField` 字段工厂、运行时扩展、递归 sl
 
 ## 推荐方案
 
-采用独立包 `@moluoxixi/config-form-devtools-vite-plugin` 加核心包最小 dev hook。
+采用独立包 `@moluoxixi/config-form-devtools-vite-plugin`，不向核心包增加 dev hook。
 
 核心包负责：
 
-- 扩展字段类型，允许开发态源码元数据。
-- 在 `FormField` 生命周期内暴露实例注册、注销、DOM 引用、父子关系和 patch 耗时。
-- 在 `ConfigForm` 根节点提供当前调试上下文。
+- 保持字段、runtime、渲染、校验和提交的生产能力纯净。
+- 不公开 devtools bridge、源码元数据类型、DOM 引用、patch 耗时或调试上下文。
 
 Devtools 包负责：
 
@@ -42,7 +43,7 @@ Devtools 包负责：
 - DOM 高亮。
 - IDE 跳转 middleware。
 
-这样可以让 `@moluoxixi/config-form` 保持组件库职责，避免生产包绑定调试面板和 dev server 行为。
+这样可以让 `@moluoxixi/config-form` 保持组件库职责，避免生产包绑定调试面板、dev server 行为或调试生命周期。
 
 ## API 精简决策
 
@@ -77,19 +78,9 @@ packages/ConfigFormDevtoolsVitePlugin/
       styles.scss
 ```
 
-核心包新增或修改：
-
-```txt
-packages/ConfigForm/src/types/index.ts
-packages/ConfigForm/src/runtime/types.ts
-packages/ConfigForm/src/components/FormField/src/index.vue
-packages/ConfigForm/src/index.vue
-packages/ConfigForm/index.ts
-```
-
 ## 公共数据契约
 
-核心包新增字段源码元数据类型：
+devtools 包内部使用字段源码元数据类型：
 
 ```ts
 export interface FieldSourceMeta {
@@ -98,15 +89,11 @@ export interface FieldSourceMeta {
   line: number
   column: number
 }
-
-export interface FieldConfig {
-  __source?: FieldSourceMeta
-}
 ```
 
-`ResolvedField` 必须保留 `__source`。如果字段没有源码信息，运行时不得制造默认值。
+`__source` 由开发态 Vite 插件注入到源码中，但不是核心包的公开字段类型，也不由核心 runtime 消费。如果字段没有源码信息，devtools 不得制造默认值。
 
-核心包新增开发态桥接接口：
+devtools 包内部提供开发态桥接接口：
 
 ```ts
 export type FormDevtoolsNodeKind = 'component' | 'field'
@@ -137,7 +124,7 @@ export interface FormDevtoolsBridge {
 }
 ```
 
-桥接对象通过 Vue provide/inject 或 runtime devtools option 传入。核心包只依赖类型和空值判断，不静态 import devtools 包。
+桥接对象挂在浏览器全局对象上，由开发态适配层消费。核心包不依赖这些类型，也不静态 import devtools 包。
 
 ## 构建期源码注入
 
@@ -187,13 +174,13 @@ defineField({
 
 源码位置属于编译期事实，应在 AST 阶段注入。`defineField` 只负责承载字段定义契约并保留注入后的 metadata。
 
-拓扑、DOM 高亮和 patch duration 也不能放在 `defineField` 内，因为它不代表真实组件实例。一个配置可能不渲染、被复用、多次 mount，或者由 slot 函数动态返回。真实父子关系、DOM 元素和更新耗时只能在 `FormField` 生命周期内采集。
+拓扑、DOM 高亮和 patch duration 也不能放在 `defineField` 内，因为它不代表真实组件实例。一个配置可能不渲染、被复用、多次 mount，或者由 slot 函数动态返回。真实父子关系、DOM 元素和更新耗时只能由开发态实例适配层采集，不能进入核心包。
 
 ## 运行时拓扑采集
 
-`ConfigForm` 创建 `formId`，并 provide 给内部 `FormField`。
+开发态适配层创建 `formId`，并把注册信息同步到 devtools bridge。
 
-每个 `FormField`：
+每个被适配的字段实例：
 
 - 注入父节点 id。
 - 生成本实例 `nodeId`。
@@ -215,7 +202,7 @@ gender
 
 ## Patch Duration 采集
 
-在 `FormField` 中使用 Vue 生命周期近似采样：
+在开发态适配层中使用 Vue 生命周期近似采样：
 
 - `onBeforeUpdate()` 记录 `performance.now()`。
 - `onUpdated()` 计算 duration 并调用 `recordPatch()`。
@@ -321,10 +308,10 @@ configFormDevtools({
 必须同时满足：
 
 - Vite 插件默认只在 `serve` / development 启用。
-- 核心包中 dev hook 调用必须包裹在 `if (import.meta.env.DEV)`。
+- 核心包不得包含 dev hook 调用。
 - 核心包不得静态 import `@moluoxixi/config-form-devtools-vite-plugin`。
 - 生产构建产物不应包含 `cf-devtools`、`/__config-form-devtools/open`、`openInEditor`、调试 overlay 组件。
-- 字段对象里的 `__source` 只由开发态插件注入，生产构建不注入。
+- 字段对象里的 `__source` 只由开发态 Vite 插件注入，生产构建不注入，核心包不把它作为公开 API。
 
 如生产构建检查发现调试标识残留，视为构建失败。
 
@@ -343,16 +330,6 @@ configFormDevtools({
 
 ## 测试计划
 
-核心包测试：
-
-- `defineField` 保留 `__source`。
-- runtime resolve 后保留 `__source`。
-- `FormField` mount 时注册节点。
-- `FormField` update 后记录 patch duration。
-- `FormField` unmount 后注销节点。
-- slot 递归字段注册 parentId 和 slotName。
-- 无 bridge 时开发态不崩溃，生产态不触发调试逻辑。
-
 Devtools 包测试：
 
 - Vite 插件注入 `defineField({...})`。
@@ -362,6 +339,7 @@ Devtools 包测试：
 - open middleware 参数校验、越界路径、文件不存在、成功打开路径。
 - store 能构建树、更新性能统计、清理节点。
 - overlay 树节点 hover 调用高亮。
+- 浏览器 bridge 可注册、更新、注销字段节点并记录 patch duration。
 
 集成验证：
 
@@ -386,14 +364,12 @@ pnpm build
 ## 实施顺序
 
 1. API 精简：将模型绑定能力收敛到 `defineField<TValues>(...)`，移除额外公共导出、类型测试和文档示例。
-2. 核心类型和 dev bridge：先定义协议，不接 UI。
-3. `FormField` 生命周期采集：完成注册、注销、patch duration、slot parentId。
-4. Devtools store：实现树构建和性能聚合。
-5. Vite 注入插件：完成源码 metadata 注入和单元测试。
-6. Overlay UI：完成气泡、面板、树、高亮。
-7. IDE 跳转 middleware：完成 open endpoint。
-8. Playground 接入：两个 playground 都启用 devtools。
-9. 生产隔离检查：确认构建产物无调试残留。
+2. Devtools store：实现树构建和性能聚合。
+3. Vite 注入插件：完成源码 metadata 注入和单元测试。
+4. Overlay UI：完成气泡、面板、树、高亮。
+5. IDE 跳转 middleware：完成 open endpoint。
+6. Playground 接入：两个 playground 都启用 devtools。
+7. 生产隔离检查：确认构建产物无调试残留。
 
 ## 验收标准
 

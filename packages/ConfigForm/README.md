@@ -244,7 +244,7 @@ Token：
 
 - `components`：注册字符串组件 key，字段中可直接写 `component: 'MyInput'`；大写 key 未注册会抛错，原生标签如 `'input'` 可直接使用。
 - `plugins`：按用户注册顺序收集组件、token resolver 和字段生命周期 hook；`transformField` 支持 Rollup 风格 object hook，可声明 `order: 'pre' | 'post'`，同一组内仍按注册顺序执行。
-- 字段转换：插件可在 core normalize 后、resolve 前通过 `transformField` 返回新的字段配置；该 hook 不接收 values/errors，渲染、显隐、禁用、校验和提交共享同一条转换结果。
+- 字段转换：插件可在 core normalize 后、resolve 前通过 `transformField` 返回新的字段配置；该 hook 只接收已标准化字段，不接收 values/errors/slot scope，渲染、显隐、禁用、校验和提交共享同一条转换结果。
 - 官方插件包：例如 `@moluoxixi/config-form-plugin-i18n`，支持 `locale`、`messages`、`translate`、`missing`，并支持字符串模板 `{name}` 插值；没有命中当前语言文案或默认文案时会抛错，`missing` 仅用于通知/诊断。
 - 注册冲突：重复插件名、重复组件 key 或重复 token resolver 会直接抛错，不提供覆盖或静默降级策略。
 

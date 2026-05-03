@@ -408,13 +408,14 @@ describe('form runtime', () => {
   })
 
   it('runs field transforms without exposing form values or errors', () => {
-    const seenKeys: string[][] = []
+    const seenArgCounts: number[] = []
     const runtime = createFormRuntime({
       plugins: [
         {
           name: 'static-transform',
-          transformField: (field, context) => {
-            seenKeys.push(Object.keys(context).sort())
+          transformField: (...args) => {
+            seenArgCounts.push(args.length)
+            const [field] = args
             return {
               ...field,
               props: {
@@ -433,7 +434,7 @@ describe('form runtime', () => {
     )
 
     expect(resolved.props.transformed).toBe(true)
-    expect(seenKeys).toEqual([['field']])
+    expect(seenArgCounts).toEqual([1])
   })
 
   it('rejects legacy field plugins config instead of silently ignoring it', () => {

@@ -35,8 +35,6 @@ export type {
   FormRuntimePlugin,
   FormRuntimeResolveHelpers,
   FormRuntimeTokenResolver,
-  FormRuntimeTransformContext,
-  FormRuntimeTransformContextInput,
 } from './src/runtime'
 export type {
   ConfigFormEmits,
