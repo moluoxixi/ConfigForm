@@ -37,6 +37,7 @@ function assertNoLegacyNodePlugins(value: FormNodeConfig, path: string): void {
     throw new Error(`${path}.plugins is no longer supported. Use runtime plugins and runtime tokens instead.`)
 }
 
+/** Return whether an unknown value looks like a ConfigForm node declaration. */
 export function isFormNodeConfig(value: unknown): value is FormNodeConfig {
   return Boolean(
     isRecord(value)
@@ -45,6 +46,7 @@ export function isFormNodeConfig(value: unknown): value is FormNodeConfig {
   )
 }
 
+/** Return whether a node declaration is a real field node with a bound value key. */
 export function isFieldConfig(value: unknown): value is FieldConfig {
   return Boolean(
     isFormNodeConfig(value)
@@ -52,6 +54,7 @@ export function isFieldConfig(value: unknown): value is FieldConfig {
   )
 }
 
+/** Attach the non-enumerable defineField(...) brand to a node config. */
 export function markDefinedFormNodeConfig<TConfig extends FormNodeConfig>(
   value: TConfig,
 ): DefinedFormNodeConfig<TConfig> {
@@ -65,6 +68,7 @@ export function markDefinedFormNodeConfig<TConfig extends FormNodeConfig>(
   return value as DefinedFormNodeConfig<TConfig>
 }
 
+/** Return whether a node config was created by defineField(...). */
 export function isDefinedFormNodeConfig(value: unknown): value is DefinedFormNodeConfig {
   return Boolean(
     isFormNodeConfig(value)
@@ -72,6 +76,7 @@ export function isDefinedFormNodeConfig(value: unknown): value is DefinedFormNod
   )
 }
 
+/** Attach both defineField and resolved-node brands to a runtime-resolved node. */
 export function markResolvedFormNodeConfig<TConfig extends ResolvedFormNode>(
   value: TConfig,
 ): TConfig {
@@ -89,6 +94,7 @@ export function markResolvedFormNodeConfig<TConfig extends ResolvedFormNode>(
   return defined as TConfig
 }
 
+/** Return whether a node has already been resolved by FormRuntime. */
 export function isResolvedFormNodeConfig(value: unknown): value is ResolvedFormNode {
   return Boolean(
     isFormNodeConfig(value)
@@ -96,10 +102,17 @@ export function isResolvedFormNodeConfig(value: unknown): value is ResolvedFormN
   )
 }
 
+/** Return whether a resolved node is also a field node. */
 export function isResolvedFieldConfig(value: unknown): value is ResolvedField {
   return isResolvedFormNodeConfig(value) && isFieldConfig(value)
 }
 
+/**
+ * Validate node-level invariants.
+ *
+ * A node with `field` is a real form field; a node without `field` is a
+ * container and must not use field-only options such as label or schema.
+ */
 export function assertComponentNodeConfig(value: FormNodeConfig, path = 'component node') {
   if (isFieldConfig(value)) {
     assertNoLegacyNodePlugins(value, 'field')
@@ -114,6 +127,7 @@ export function assertComponentNodeConfig(value: FormNodeConfig, path = 'compone
   }
 }
 
+/** Enforce defineField(...) usage for object node configs returned from slots. */
 export function assertDefinedSlotNodeConfig(value: FormNodeConfig, path = 'slot node') {
   if (!isDefinedFormNodeConfig(value))
     throw new Error(`Slot node config at ${path} must be created with defineField(...)`)
@@ -149,6 +163,7 @@ function collectFieldConfigsRaw(nodes: readonly FormNodeConfig[]): FieldConfig[]
   })
 }
 
+/** Throw when multiple collected real fields bind the same form value key. */
 export function assertUniqueFieldConfigs<TField extends Pick<FieldConfig, 'field'>>(
   fields: readonly TField[],
 ): TField[] {
@@ -164,6 +179,12 @@ export function assertUniqueFieldConfigs<TField extends Pick<FieldConfig, 'field
   return [...fields]
 }
 
+/**
+ * Collect real field configs from a mixed node tree, including slot children.
+ *
+ * Container nodes are traversed but are not returned because they do not own
+ * values, validation, or submit behavior.
+ */
 export function collectFieldConfigs(nodes: readonly FormNodeConfig[]): FieldConfig[] {
   return assertUniqueFieldConfigs(collectFieldConfigsRaw(nodes))
 }

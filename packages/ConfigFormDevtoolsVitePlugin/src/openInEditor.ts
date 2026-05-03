@@ -35,6 +35,7 @@ function formatEditorCommand(command: EditorCommand): string {
   return [command.command, ...command.args].join(' ')
 }
 
+/** Validate and normalize the JSON payload sent by the browser devtools client. */
 export function parseOpenInEditorPayload(input: unknown): OpenInEditorPayload {
   if (!input || typeof input !== 'object')
     throw new ConfigFormDevtoolsHttpError(400, 'Open-in-editor payload must be an object')
@@ -57,6 +58,7 @@ export function parseOpenInEditorPayload(input: unknown): OpenInEditorPayload {
   }
 }
 
+/** Resolve a requested file and reject paths outside the configured roots. */
 export function resolveAllowedFile(input: ResolveAllowedFileInput): string {
   const file = resolve(input.file)
   const roots = [input.root, ...(input.allowRoots ?? [])].map(root => resolve(root))
@@ -71,6 +73,7 @@ export function resolveAllowedFile(input: ResolveAllowedFileInput): string {
   return normalizePath(file)
 }
 
+/** Build the editor command for a source location and selected editor preset. */
 export function createEditorCommand(input: EditorCommandInput): EditorCommand {
   if (input.editor && typeof input.editor === 'object')
     return input.editor
@@ -94,6 +97,7 @@ export function createEditorCommand(input: EditorCommandInput): EditorCommand {
   }
 }
 
+/** Launch an editor command and reject when the process cannot be started. */
 export function launchEditor(
   command: EditorCommand,
   spawnEditor: SpawnEditorProcess = spawn,
@@ -148,6 +152,7 @@ export function launchEditor(
   })
 }
 
+/** Open a validated source location in the configured editor. */
 export async function openInEditor(payload: unknown, options: OpenInEditorOptions): Promise<EditorCommand> {
   const parsed = parseOpenInEditorPayload(payload)
   const file = resolveAllowedFile({
@@ -183,6 +188,7 @@ function sendJson(res: ServerResponse, statusCode: number, payload: Record<strin
   res.end(JSON.stringify(payload))
 }
 
+/** Create the Vite middleware backing /__config-form-devtools/open. */
 export function createOpenInEditorMiddleware(options: OpenInEditorOptions) {
   return async (req: IncomingMessage, res: ServerResponse) => {
     if (req.method !== 'POST') {

@@ -6,8 +6,11 @@ import type {
 
 /** i18n runtime token；由本插件的 token resolver 解析为当前语言文案。 */
 export interface I18nToken extends RuntimeToken<string, 'i18n'> {
+  /** Message key looked up in the current locale. */
   key: string
+  /** Fallback message rendered when the key is missing from the message table. */
   defaultMessage?: string
+  /** Template params; runtime tokens are resolved before message rendering. */
   params?: Record<string, unknown>
 }
 
@@ -22,15 +25,20 @@ export interface I18nTokenOptions {
 /** locale 输入形态；插件每次解析文案时按需读取当前语言。 */
 export type I18nLocale = string | (() => string | undefined)
 
+/** Function message resolver for dynamic, locale-aware message rendering. */
 export type I18nMessageResolver = (
   params: Record<string, unknown> | undefined,
   resolveSnap: FormRuntimeResolveSnap,
   locale: string | undefined,
 ) => string
 
+/** Message entry stored in the locale message table. */
 export type I18nMessage = string | I18nMessageResolver
+
+/** Locale-keyed message table consumed by createI18nPlugin(...). */
 export type I18nMessages = Record<string, Record<string, I18nMessage>>
 
+/** Optional custom translator that can override message-table lookup. */
 export type I18nTranslate = (
   key: string,
   params: Record<string, unknown> | undefined,
@@ -39,6 +47,7 @@ export type I18nTranslate = (
   locale: string | undefined,
 ) => string | undefined
 
+/** Callback invoked before throwing when no message or defaultMessage exists. */
 export type I18nMissingHandler = (
   key: string,
   params: Record<string, unknown> | undefined,
@@ -47,11 +56,17 @@ export type I18nMissingHandler = (
   locale: string | undefined,
 ) => void
 
+/** Options for the ConfigForm i18n runtime plugin. */
 export interface I18nPluginOptions {
+  /** Runtime plugin name; defaults to "i18n". */
   name?: string
+  /** Static locale or getter read at token resolution time. */
   locale?: I18nLocale
+  /** Locale-keyed messages used by the default translator. */
   messages?: I18nMessages
+  /** Custom translation hook; returning undefined falls back to messages. */
   translate?: I18nTranslate
+  /** Missing-message hook called immediately before the resolver throws. */
   missing?: I18nMissingHandler
 }
 
@@ -121,6 +136,12 @@ function findMessage(
   return messages?.[locale]?.[key]
 }
 
+/**
+ * Create a ConfigForm runtime plugin that resolves i18n(...) tokens.
+ *
+ * Resolution order is custom translate hook, message table, defaultMessage,
+ * missing hook, then an explicit error for unresolved keys.
+ */
 export function createI18nPlugin(options: I18nPluginOptions = {}): FormRuntimePlugin {
   return {
     name: options.name ?? 'i18n',

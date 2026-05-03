@@ -7,14 +7,26 @@ import { applyFieldTransform, shouldValidateOn } from '@/models/field'
 import { collectFieldConfigs } from '@/models/node'
 import { validateFieldRules, validateForm } from '@/utils/validate'
 
+/** Options used by the headless form state, validation, and submit controller. */
 export interface UseFormOptions<T extends object = FormValues> {
+  /** Reactive node tree; only real field nodes are collected for values/errors. */
   fields: Ref<FormNodeConfig[]>
+  /** Optional external initial values, usually derived from ConfigForm v-model. */
   initialValues?: Ref<Partial<T> | undefined>
+  /** Runtime options or runtime plugin list used to resolve fields and tokens. */
   runtime?: MaybeRef<FormRuntimeOptions | undefined>
+  /** Called with transformed submit values after validation passes. */
   onSubmit?: (values: T) => void
+  /** Called with current validation errors when submit validation fails. */
   onError?: (errors: FormErrors) => void
 }
 
+/**
+ * Create the headless ConfigForm controller.
+ *
+ * The composable owns values, validation errors, field visibility/disabled
+ * maps, submit serialization, reset behavior, and the ref-exposed form methods.
+ */
 export function useForm<T extends object = FormValues>(options: UseFormOptions<T>) {
   const { fields, initialValues, onSubmit, onError } = options
 

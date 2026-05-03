@@ -34,6 +34,13 @@ function shouldTransform(id: string): boolean {
     && /\.(?:[cm]?[jt]sx?|vue)$/.test(cleanId)
 }
 
+/**
+ * Create the ConfigForm devtools Vite plugin.
+ *
+ * In dev server mode it injects the browser overlay, rewrites ConfigForm imports
+ * to a devtools adapter, records defineField(...) source locations, and exposes
+ * an open-in-editor middleware endpoint.
+ */
 export function configFormDevtools(options: ConfigFormDevtoolsPluginOptions = {}): Plugin {
   const corePackageName = options.packageNames?.[0] ?? '@moluoxixi/config-form'
 
@@ -107,4 +114,5 @@ export function configFormDevtools(options: ConfigFormDevtoolsPluginOptions = {}
   }
 }
 
+/** Backward-compatible alias for configFormDevtools(...). */
 export const configFormDevtoolsVitePlugin = configFormDevtools

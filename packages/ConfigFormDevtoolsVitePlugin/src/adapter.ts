@@ -18,7 +18,9 @@ interface DevtoolsFormNodeConfig {
 }
 
 export interface DevtoolsConfigFormAdapterOptions {
+  /** Core ConfigForm component to wrap in dev server mode. */
   ConfigForm: Component
+  /** Core field collector used to preserve real field semantics. */
   collectFieldConfigs: (nodes: readonly unknown[]) => DevtoolsFieldConfig[]
 }
 
@@ -157,6 +159,12 @@ function resolveTabPanel(host: HTMLElement | null): HTMLElement | null {
   return host?.closest<HTMLElement>('[role="tabpanel"]') ?? null
 }
 
+/**
+ * Resolve a human-readable form label for multi-form navigation.
+ *
+ * Explicit data-cf-devtools-form-label wins; tabpanel aria metadata is only a
+ * fallback so generic containers and non-tab layouts can still label a form.
+ */
 function resolveFormLabel(host: HTMLElement | null): string | undefined {
   if (!host)
     return undefined
@@ -189,6 +197,13 @@ function resolveSlotContent(slot: unknown): unknown {
   return typeof slot === 'function' ? (slot as (scope?: Record<string, unknown>) => unknown)(undefined) : slot
 }
 
+/**
+ * Wrap ConfigForm with devtools registration while preserving the core exposed API.
+ *
+ * The adapter collects the declared node tree, maps nodes to rendered DOM
+ * elements, forwards ref methods to the inner ConfigForm, and keeps the browser
+ * bridge synchronized across mount/update/unmount.
+ */
 export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapterOptions): Component {
   return defineComponent({
     inheritAttrs: false,
@@ -223,6 +238,8 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         path: string,
         slotName?: string,
       ): FormDevtoolsNode[] {
+        // Keep the devtools tree aligned with user-declared order instead of
+        // relying on Vue mount timing, which can change for slot children.
         return nodes.flatMap((node, index) => {
           if (!isFormNodeConfig(node))
             return []
@@ -263,6 +280,8 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         if (!bridge)
           return
 
+        // Register/update all nodes as one snapshot so the client can drop
+        // stale ids when fields or slot trees change.
         const start = now()
         const nodes = collectNodes()
         const nextIds = new Set(nodes.map(node => node.id))

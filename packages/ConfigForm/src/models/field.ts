@@ -58,7 +58,7 @@ type FieldValueFor<
 
 // ===== 字段规范化 =====
 
-/** 规范化 validateOn，确保始终包含 'submit' */
+/** Normalize a validation trigger declaration and always include submit validation. */
 export function normalizeValidateOn(on?: ValidateTrigger | ValidateTrigger[]): ValidateTrigger[] {
   if (!on)
     return ['submit']
@@ -66,6 +66,10 @@ export function normalizeValidateOn(on?: ValidateTrigger | ValidateTrigger[]): V
   return arr.includes('submit') ? arr : [...arr, 'submit']
 }
 
+/**
+ * Normalize a public field declaration into the internal shape shared by
+ * rendering, validation, runtime plugins, and submit serialization.
+ */
 export function normalizeField(input: FieldConfig): NormalizedFieldConfig {
   const trigger = input.trigger || 'update:modelValue'
   const blurTrigger = input.blurTrigger || 'blur'
@@ -89,10 +93,12 @@ export function normalizeField(input: FieldConfig): NormalizedFieldConfig {
   }
 }
 
+/** Return whether a normalized field should validate on the requested trigger. */
 export function shouldValidateOn(field: Pick<NormalizedFieldConfig, 'validateOn'>, trigger: ValidateTrigger): boolean {
   return field.validateOn.includes(trigger)
 }
 
+/** Apply a submit-time field transform when one is declared. */
 export function applyFieldTransform(
   field: Pick<NormalizedFieldConfig, 'transform'>,
   value: unknown,
@@ -173,6 +179,10 @@ type ModelUnknownValueFieldConfigInput<
 /**
  * 根据 schema/defaultValue 自动推导字段值类型，根据 component 自动推导 props 类型。
  *
+ * The returned config is branded so slot node configs can be distinguished from
+ * arbitrary objects at runtime. Passing no `field` creates a container node that
+ * renders structure only and does not bind a value.
+ *
  * @example
  * ```ts
  * const nameField = defineField({
@@ -184,7 +194,7 @@ type ModelUnknownValueFieldConfigInput<
  * ```
  */
 
-// 重载 1：不传表单泛型，按 schema/defaultValue 推导 value，values 使用默认 FormValues
+/** Infer value from schema when no form model generic is supplied. */
 export function defineField<
   C = unknown,
   TSchema extends ZodTypeAny = ZodTypeAny,
@@ -193,7 +203,7 @@ export function defineField<
   config: SchemaFieldConfigCore<FormValues, TSchema, TField> & ComponentFieldPart<C>,
 ): DefinedFieldConfig<SchemaFieldConfigCore<FormValues, TSchema, TField> & ComponentFieldPart<C>>
 
-// 重载 2：没有 schema 时，按 defaultValue 推导 value
+/** Infer value from defaultValue when no schema or form model generic is supplied. */
 export function defineField<
   C = unknown,
   TValue = unknown,
@@ -202,7 +212,7 @@ export function defineField<
   config: DefaultValueFieldConfigCore<FormValues, TValue, TField> & ComponentFieldPart<C>,
 ): DefinedFieldConfig<DefaultValueFieldConfigCore<FormValues, TValue, TField> & ComponentFieldPart<C>>
 
-// 重载 3：没有 schema/defaultValue 时，value 使用默认 unknown
+/** Use unknown value inference when neither schema nor defaultValue is supplied. */
 export function defineField<
   C = unknown,
   TField extends FieldKey<FormValues> = FieldKey<FormValues>,
@@ -210,12 +220,12 @@ export function defineField<
   config: UnknownValueFieldConfigCore<FormValues, TField> & ComponentFieldPart<C>,
 ): DefinedFieldConfig<UnknownValueFieldConfigCore<FormValues, TField> & ComponentFieldPart<C>>
 
-// 重载 4：slot 内无 field 的组件容器节点，也必须通过 defineField 创建
+/** Define a container component node for slots or top-level layout. */
 export function defineField<C = unknown>(
   config: ComponentNodeConfigCore<C>,
 ): DefinedComponentNodeConfig<ComponentNodeConfigCore<C>>
 
-// 模型泛型重载：字段输入按 key 分发，组件 props 仍由独立的 ComponentFieldPart 推导。
+/** Infer schema-backed field config against a typed form model. */
 export function defineField<
   TValues extends object,
   C = unknown,
@@ -224,6 +234,7 @@ export function defineField<
   config: ModelSchemaFieldConfigInput<TValues, TSchema> & ComponentFieldPart<C>,
 ): DefinedFieldConfig<ModelSchemaFieldConfigInput<TValues, TSchema> & ComponentFieldPart<C>>
 
+/** Infer defaultValue-backed field config against a typed form model. */
 export function defineField<
   TValues extends object,
   C = unknown,
@@ -231,6 +242,7 @@ export function defineField<
   config: ModelDefaultValueFieldConfigInput<TValues> & ComponentFieldPart<C>,
 ): DefinedFieldConfig<ModelDefaultValueFieldConfigInput<TValues> & ComponentFieldPart<C>>
 
+/** Define a typed-model field without schema/defaultValue value inference. */
 export function defineField<
   TValues extends object,
   C = unknown,
@@ -238,11 +250,12 @@ export function defineField<
   config: ModelUnknownValueFieldConfigInput<TValues> & ComponentFieldPart<C>,
 ): DefinedFieldConfig<ModelUnknownValueFieldConfigInput<TValues> & ComponentFieldPart<C>>
 
+/** Define a typed-model container component node. */
 export function defineField<_TValues extends object, C = unknown>(
   config: ComponentNodeConfigCore<C>,
 ): DefinedComponentNodeConfig<ComponentNodeConfigCore<C>>
 
-// 实现
+/** Runtime implementation shared by all defineField overloads. */
 export function defineField(config: FormNodeInput): DefinedFormNodeConfig {
   return markDefinedFormNodeConfig({ ...config })
 }

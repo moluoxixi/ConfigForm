@@ -4,6 +4,7 @@ import type {
   FormFieldPatchMetric,
 } from './types'
 
+/** Devtools node plus browser-only state kept by the overlay store. */
 interface StoredNode extends FormDevtoolsNode {
   element: HTMLElement | null
   lastPatchMs?: number
@@ -14,6 +15,7 @@ interface StoredNode extends FormDevtoolsNode {
   samples: number
 }
 
+/** Aggregated state for one ConfigForm instance in the multi-form nav. */
 interface RootGroup {
   element?: HTMLElement
   formId: string
@@ -25,6 +27,7 @@ interface RootGroup {
   viewportScore: number
 }
 
+/** Mutable render state that tracks manual form selection between renders. */
 interface DevtoolsRenderState {
   activeFormId?: string
   activeFormSelectedByUser?: boolean
@@ -217,6 +220,12 @@ function compareRootGroups(first: RootGroup, second: RootGroup): number {
   return first.registrationOrder - second.registrationOrder
 }
 
+/**
+ * Return whether an element or ancestor is explicitly hidden from inspection.
+ *
+ * This keeps display:none/v-show forms visible in nav as disabled items while
+ * excluding them from automatic active-form selection.
+ */
 function elementIsHiddenByState(element: HTMLElement): boolean {
   for (let current: HTMLElement | null = element; current; current = current.parentElement) {
     if (
@@ -244,6 +253,12 @@ function elementHasEnabledBox(element: HTMLElement): boolean {
   return rect.width > 0 && rect.height > 0
 }
 
+/**
+ * Score how strongly an element is visible in the viewport.
+ *
+ * Visible area is the primary signal; distance from the viewport top is a
+ * tie-breaker so stacked forms select the form the user is actually reading.
+ */
 function elementViewportScore(element: HTMLElement): number {
   if (elementIsHiddenByState(element))
     return 0
@@ -380,6 +395,7 @@ function createStore(render: () => void): DevtoolsStore {
   }
 }
 
+/** Group flat registered nodes by ConfigForm instance and compute nav metadata. */
 function collectRootGroups(store: DevtoolsStore): RootGroup[] {
   const groups = new Map<string, RootGroup>()
 
@@ -434,6 +450,7 @@ function groupIsDisabled(group: RootGroup): boolean {
   return group.hasInspectableElement && !group.hasEnabledElement
 }
 
+/** Pick the enabled form with the strongest current viewport visibility score. */
 function resolveViewportActiveGroup(groups: RootGroup[]): RootGroup | undefined {
   return groups.reduce<RootGroup | undefined>((best, group) => {
     if (groupIsDisabled(group) || group.viewportScore <= 0)
@@ -444,6 +461,12 @@ function resolveViewportActiveGroup(groups: RootGroup[]): RootGroup | undefined 
   }, undefined)
 }
 
+/**
+ * Resolve the active form for rendering.
+ *
+ * Manual nav selection is honored until external context changes reset it;
+ * otherwise the visible-in-viewport score controls active selection.
+ */
 function resolveActiveGroup(groups: RootGroup[], state: DevtoolsRenderState): RootGroup | undefined {
   const enabledGroups = groups.filter(group => !groupIsDisabled(group))
 
@@ -905,6 +928,7 @@ function installExternalContextSync(root: HTMLElement, render: () => void, reset
   })
 }
 
+/** Install the browser overlay and return the global ConfigForm devtools bridge. */
 export function installConfigFormDevtools(): FormDevtoolsBridge {
   if (typeof document === 'undefined')
     throw new Error('ConfigForm devtools client requires a browser document')

@@ -225,6 +225,8 @@ function collectInjectionEdits(segment: ScriptSegment, id: string, packageNames:
   if (defineFieldLocals.size === 0)
     return edits
 
+  // Only mutate defineField(...) calls imported from the configured ConfigForm
+  // package names so unrelated helpers named defineField are left untouched.
   walkAst(ast, (node) => {
     if (node.type !== 'CallExpression')
       return
@@ -284,6 +286,12 @@ function createScriptSegments(code: string, id: string): ScriptSegment[] {
     }))
 }
 
+/**
+ * Inject source metadata into defineField(...) object literals.
+ *
+ * Vue SFCs are transformed per script block so reported line/column values
+ * still point at the original file, not at extracted script content.
+ */
 export function transformDefineFieldSource(options: SourceInjectionOptions) {
   if (options.id.includes('?'))
     return null
