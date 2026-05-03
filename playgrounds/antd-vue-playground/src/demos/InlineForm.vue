@@ -16,12 +16,10 @@ import Switch from 'ant-design-vue/es/switch'
 import TimePicker from 'ant-design-vue/es/time-picker'
 import TreeSelect from 'ant-design-vue/es/tree-select'
 
-// ===== 字段配置 =====
-
 const formRef = ref()
 const formValues = reactive<Record<string, unknown>>({})
 
-// Ant Design Vue 通用 value/trigger 配置
+/** Ant Design Vue 组件统一使用 value/update:value 作为 ConfigForm 双向绑定协议。 */
 const v = { valueProp: 'value', trigger: 'update:value' } as const
 
 interface DayjsLike {

@@ -225,8 +225,7 @@ function collectInjectionEdits(segment: ScriptSegment, id: string, packageNames:
   if (defineFieldLocals.size === 0)
     return edits
 
-  // Only mutate defineField(...) calls imported from the configured ConfigForm
-  // package names so unrelated helpers named defineField are left untouched.
+  // 只改写从指定 ConfigForm 包导入的 defineField(...)，避免误伤同名业务函数。
   walkAst(ast, (node) => {
     if (node.type !== 'CallExpression')
       return
@@ -287,10 +286,9 @@ function createScriptSegments(code: string, id: string): ScriptSegment[] {
 }
 
 /**
- * Inject source metadata into defineField(...) object literals.
+ * 向 defineField(...) 对象字面量注入源码位置元信息。
  *
- * Vue SFCs are transformed per script block so reported line/column values
- * still point at the original file, not at extracted script content.
+ * Vue SFC 会按 script block 分段转换，确保行列号仍指向原始文件，而不是抽离后的脚本内容。
  */
 export function transformDefineFieldSource(options: SourceInjectionOptions) {
   if (options.id.includes('?'))

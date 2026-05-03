@@ -1,147 +1,161 @@
 import type { SourceMap } from 'magic-string'
 import type { ChildProcess } from 'node:child_process'
 
-/** Source location injected into defineField(...) calls during Vite transform. */
+/** Vite transform 阶段注入到 defineField(...) 调用里的源码位置。 */
 export interface FieldSourceMeta {
-  /** Stable source id used to match rendered DOM markers with devtools nodes. */
+  /** 稳定源码 id，用于匹配渲染后的 DOM 标记和 devtools 节点。 */
   readonly id: string
-  /** Absolute or Vite-normalized source file path. */
+  /** 绝对路径或 Vite 标准化后的源码路径。 */
   readonly file: string
-  /** One-based source line. */
+  /** 从 1 开始的源码行号。 */
   readonly line: number
-  /** One-based source column. */
+  /** 从 1 开始的源码列号。 */
   readonly column: number
 }
 
-/** Devtools tree node categories. */
+/** devtools 树节点类型。 */
 export type FormDevtoolsNodeKind = 'component' | 'field'
 
-/** Node payload registered by the ConfigForm adapter into the browser devtools bridge. */
+/** ConfigForm adapter 注册到浏览器 devtools bridge 的节点数据。 */
 export interface FormDevtoolsNode {
-  /** Stable node id scoped by form id and node path or field key. */
+  /** 节点稳定 id，由 form id 与节点路径或字段 key 共同限定。 */
   id: string
-  /** Stable id for the owning ConfigForm instance. */
+  /** 所属 ConfigForm 实例的稳定 id。 */
   formId: string
-  /** Human-readable label for the owning form, used by multi-form nav. */
+  /** 所属表单的可读标签，用于多表单导航。 */
   formLabel?: string
-  /** Whether this node binds a field value or only renders component structure. */
+  /** 当前节点绑定字段值，还是只渲染组件结构。 */
   kind: FormDevtoolsNodeKind
-  /** Declaration order within the current parent node. */
+  /** 当前父节点下的声明顺序。 */
   order?: number
-  /** Bound form value key when kind is field. */
+  /** kind 为 field 时绑定的表单值 key。 */
   field?: string
-  /** Component name, native tag, or component key when it can be resolved. */
+  /** 可解析时记录组件名、原生标签名或组件 key。 */
   component?: string
-  /** Parent devtools node id for nested slot trees. */
+  /** 嵌套 slot 树中的父级 devtools 节点 id。 */
   parentId?: string
-  /** Rendered field label when it is statically known. */
+  /** 可静态读取时记录渲染后的字段标签。 */
   label?: string
-  /** Slot name that produced this node. */
+  /** 生成当前节点的 slot 名称。 */
   slotName?: string
-  /** Injected source location used by open-in-editor. */
+  /** open-in-editor 使用的注入源码位置。 */
   source?: FieldSourceMeta
 }
 
-/** Per-node render/update timing metric sent by the adapter. */
-export interface FormFieldPatchMetric {
-  /** Registered devtools node id. */
+/** 用于度量单个节点渲染耗时的 Vue 生命周期阶段。 */
+export type FormNodeRenderPhase = 'mount' | 'update'
+
+/** adapter 发送的单节点耗时指标公共字段。 */
+export interface FormNodeTimingMetric {
+  /** 已注册的 devtools 节点 id。 */
   id: string
-  /** Patch duration in milliseconds. */
+  /** 耗时，单位 ms。 */
   duration: number
-  /** Metric timestamp in performance.now()/Date.now() units. */
+  /** 指标时间戳，使用 performance.now()/Date.now() 的单位。 */
   timestamp: number
 }
 
-/** Browser bridge installed by the virtual devtools client. */
+/** 通过 Vue vnode 生命周期 hook 采集的单节点渲染耗时。 */
+export interface FormNodeRenderMetric extends FormNodeTimingMetric {
+  /** 产生本次渲染指标的生命周期阶段。 */
+  phase: FormNodeRenderPhase
+}
+
+/** adapter 同步 bridge 时采集的单节点同步耗时。 */
+export type FormNodeSyncMetric = FormNodeTimingMetric
+
+/** 虚拟 devtools client 注入到浏览器中的 bridge。 */
 export interface FormDevtoolsBridge {
-  /** Register a new node and its best matching DOM element. */
+  /** 注册新节点及其最佳匹配 DOM 元素。 */
   registerField: (node: FormDevtoolsNode, element: HTMLElement | null) => void
-  /** Update an existing node and its best matching DOM element. */
+  /** 更新已有节点及其最佳匹配 DOM 元素。 */
   updateField: (node: FormDevtoolsNode, element: HTMLElement | null) => void
-  /** Record render/update timing for a node. */
-  recordPatch: (metric: FormFieldPatchMetric) => void
-  /** Remove a node by id. */
+  /** 记录节点真实渲染耗时。 */
+  recordRender: (metric: FormNodeRenderMetric) => void
+  /** 记录 devtools bridge 同步耗时。 */
+  recordSync: (metric: FormNodeSyncMetric) => void
+  /** 按 id 移除节点。 */
   unregisterField: (id: string) => void
 }
 
-/** MagicString transform result returned to Vite. */
+/** 返回给 Vite 的 MagicString transform 结果。 */
 export interface ConfigFormDevtoolsTransformResult {
-  /** Transformed source code. */
+  /** 转换后的源码。 */
   code: string
-  /** High-resolution source map generated from the transform. */
+  /** transform 生成的高精度 source map。 */
   map: SourceMap
 }
 
-/** Options for defineField source injection. */
+/** defineField 源码位置注入选项。 */
 export interface SourceInjectionOptions {
-  /** Source code to transform. */
+  /** 待转换源码。 */
   code: string
-  /** Vite module id for the current file. */
+  /** 当前文件的 Vite module id。 */
   id: string
-  /** Optional virtual adapter id used to rewrite ConfigForm imports in dev mode. */
+  /** 开发模式下重写 ConfigForm import 的虚拟 adapter id。 */
   adapterModuleId?: string
-  /** Package names that should be treated as ConfigForm core imports. */
+  /** 应识别为 ConfigForm core import 的包名。 */
   packageNames?: string[]
 }
 
-/** Built-in editor command presets supported by open-in-editor. */
+/** open-in-editor 支持的内置编辑器命令预设。 */
 export type EditorPreset = 'code' | 'cursor' | 'webstorm'
 
-/** Fully resolved editor command. */
+/** 已解析完成的编辑器命令。 */
 export interface EditorCommand {
-  /** Executable or shell command name. */
+  /** 可执行文件名或 shell 命令名。 */
   command: string
-  /** Command arguments. */
+  /** 命令参数。 */
   args: string[]
-  /** Whether the command should be launched through a shell. */
+  /** 是否通过 shell 启动命令。 */
   shell?: boolean
 }
 
-/** Request payload sent by the devtools browser client to the Vite middleware. */
+/** devtools 浏览器端发送给 Vite middleware 的请求载荷。 */
 export interface OpenInEditorPayload {
-  /** Source file path to open. */
+  /** 要打开的源码文件路径。 */
   file: string
-  /** One-based source line. */
+  /** 从 1 开始的源码行号。 */
   line: number
-  /** One-based source column. */
+  /** 从 1 开始的源码列号。 */
   column: number
 }
 
-/** Input used to build an editor command from a source location. */
+/** 基于源码位置构造编辑器命令的输入。 */
 export interface EditorCommandInput extends OpenInEditorPayload {
   editor?: EditorPreset | string | EditorCommand
 }
 
-/** Spawn abstraction used by tests and by the editor launcher. */
+/** 测试和编辑器启动逻辑共用的 spawn 抽象。 */
 export type SpawnEditorProcess = (
   command: string,
   args: string[],
   options: { detached: boolean, shell?: boolean, stdio: 'ignore' },
 ) => ChildProcess
 
-/** Options for launching source files from the devtools middleware. */
+/** devtools middleware 启动源码文件的选项。 */
 export interface OpenInEditorOptions {
-  /** Project root allowed for source-open requests. */
+  /** source-open 请求允许访问的项目根目录。 */
   root: string
-  /** Additional allowed roots for monorepo or linked-package source files. */
+  /** monorepo 或 linked package 源码允许访问的额外根目录。 */
   allowRoots?: string[]
-  /** Editor preset, executable name, or full command override. */
+  /** 编辑器预设、可执行文件名或完整命令覆盖。 */
   editor?: EditorPreset | string | EditorCommand
-  /** Optional spawn implementation for tests. */
+  /** 测试可注入的 spawn 实现。 */
   spawn?: SpawnEditorProcess
 }
 
-/** Public Vite plugin options. */
+/** 公开 Vite 插件选项。 */
 export interface ConfigFormDevtoolsPluginOptions {
-  /** ConfigForm package names to rewrite and inspect. */
+  /** 需要重写和检查的 ConfigForm 包名。 */
   packageNames?: string[]
-  /** Additional filesystem roots allowed by the open-in-editor endpoint. */
+  /** open-in-editor endpoint 允许访问的额外文件系统根目录。 */
   allowRoots?: string[]
-  /** Editor preset, executable name, or command override for source-open. */
+  /** source-open 使用的编辑器预设、可执行文件名或命令覆盖。 */
   editor?: EditorPreset | string | EditorCommand
 }
 
-/** Error thrown for transform-time failures that should surface in Vite. */
+/** transform 阶段失败时抛出的错误，供 Vite 直接展示。 */
 export class ConfigFormDevtoolsPluginError extends Error {
   constructor(message: string) {
     super(message)
@@ -149,7 +163,7 @@ export class ConfigFormDevtoolsPluginError extends Error {
   }
 }
 
-/** HTTP-aware error used by the open-in-editor middleware. */
+/** open-in-editor middleware 使用的带 HTTP 状态码错误。 */
 export class ConfigFormDevtoolsHttpError extends Error {
   constructor(
     readonly statusCode: number,

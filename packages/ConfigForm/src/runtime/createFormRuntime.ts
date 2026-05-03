@@ -43,11 +43,11 @@ interface RuntimeHook<THandler extends (...args: never[]) => unknown> {
   pluginName: string
 }
 
-/** 创建一个运行时 token，后续由同 type 的 token resolver 解析成真实值。 */
+/** 创建运行时 token，后续由同 type 的 token resolver 解析成真实值。 */
 export function createRuntimeToken<TValue = unknown, TType extends string = string>(
   type: TType,
 ): RuntimeToken<TValue, TType>
-/** 创建一个带 payload 的运行时 token；payload 会原样传给 token resolver。 */
+/** 创建带 payload 的运行时 token；payload 会原样传给 token resolver。 */
 export function createRuntimeToken<
   TValue = unknown,
   TType extends string = string,
@@ -397,6 +397,7 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
     resolveSnap: FormRuntimeResolveSnap,
     fallback: boolean,
   ): boolean {
+    // fallback 只表示 visible/disabled 的业务默认值，不能吞掉 resolver 或条件函数抛出的错误。
     if (condition == null)
       return fallback
     if (typeof condition === 'boolean')

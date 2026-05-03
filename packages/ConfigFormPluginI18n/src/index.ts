@@ -6,11 +6,11 @@ import type {
 
 /** i18n runtime token；由本插件的 token resolver 解析为当前语言文案。 */
 export interface I18nToken extends RuntimeToken<string, 'i18n'> {
-  /** Message key looked up in the current locale. */
+  /** 当前 locale 下查找的文案 key。 */
   key: string
-  /** Fallback message rendered when the key is missing from the message table. */
+  /** 语言包缺失该 key 时使用的显式默认文案。 */
   defaultMessage?: string
-  /** Template params; runtime tokens are resolved before message rendering. */
+  /** 文案模板插值参数，渲染前会先解析其中的 runtime token。 */
   params?: Record<string, unknown>
 }
 
@@ -25,20 +25,20 @@ export interface I18nTokenOptions {
 /** locale 输入形态；插件每次解析文案时按需读取当前语言。 */
 export type I18nLocale = string | (() => string | undefined)
 
-/** Function message resolver for dynamic, locale-aware message rendering. */
+/** 动态文案解析函数，可基于 params、resolveSnap 和 locale 生成文案。 */
 export type I18nMessageResolver = (
   params: Record<string, unknown> | undefined,
   resolveSnap: FormRuntimeResolveSnap,
   locale: string | undefined,
 ) => string
 
-/** Message entry stored in the locale message table. */
+/** 语言包中单条文案的存储形态。 */
 export type I18nMessage = string | I18nMessageResolver
 
-/** Locale-keyed message table consumed by createI18nPlugin(...). */
+/** createI18nPlugin(...) 消费的按 locale 索引语言包。 */
 export type I18nMessages = Record<string, Record<string, I18nMessage>>
 
-/** Optional custom translator that can override message-table lookup. */
+/** 可选自定义翻译器；返回 undefined 时继续走语言包查找。 */
 export type I18nTranslate = (
   key: string,
   params: Record<string, unknown> | undefined,
@@ -47,7 +47,7 @@ export type I18nTranslate = (
   locale: string | undefined,
 ) => string | undefined
 
-/** Callback invoked before throwing when no message or defaultMessage exists. */
+/** 缺少语言包文案和 defaultMessage 时、正式抛错前调用的回调。 */
 export type I18nMissingHandler = (
   key: string,
   params: Record<string, unknown> | undefined,
@@ -56,17 +56,17 @@ export type I18nMissingHandler = (
   locale: string | undefined,
 ) => void
 
-/** Options for the ConfigForm i18n runtime plugin. */
+/** ConfigForm i18n runtime 插件选项。 */
 export interface I18nPluginOptions {
-  /** Runtime plugin name; defaults to "i18n". */
+  /** runtime 插件名称，默认 "i18n"。 */
   name?: string
-  /** Static locale or getter read at token resolution time. */
+  /** 静态 locale，或每次解析 token 时读取的 getter。 */
   locale?: I18nLocale
-  /** Locale-keyed messages used by the default translator. */
+  /** 默认翻译器使用的按 locale 索引语言包。 */
   messages?: I18nMessages
-  /** Custom translation hook; returning undefined falls back to messages. */
+  /** 自定义翻译 hook；返回 undefined 时回到 messages 查找。 */
   translate?: I18nTranslate
-  /** Missing-message hook called immediately before the resolver throws. */
+  /** 缺失文案时、resolver 抛错前调用的 hook。 */
   missing?: I18nMissingHandler
 }
 
@@ -137,10 +137,10 @@ function findMessage(
 }
 
 /**
- * Create a ConfigForm runtime plugin that resolves i18n(...) tokens.
+ * 创建用于解析 i18n(...) token 的 ConfigForm runtime 插件。
  *
- * Resolution order is custom translate hook, message table, defaultMessage,
- * missing hook, then an explicit error for unresolved keys.
+ * 解析顺序为自定义 translate hook、messages 语言包、defaultMessage、missing hook，
+ * 最后对无法解析的 key 显式抛错。
  */
 export function createI18nPlugin(options: I18nPluginOptions = {}): FormRuntimePlugin {
   return {

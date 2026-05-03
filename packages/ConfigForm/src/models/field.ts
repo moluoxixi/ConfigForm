@@ -16,9 +16,7 @@ import type {
 } from '@/types'
 import { markDefinedFormNodeConfig } from '@/models/node'
 
-// ===== 工具类型 =====
-
-/** 从 Vue 组件中提取 props 类型（支持 class / functional 组件） */
+/** 从 Vue 组件中提取 props 类型，支持 class component 和 function component。 */
 export type ExtractComponentProps<C> = C extends abstract new (...args: unknown[]) => { $props: infer P }
   ? P
   : C extends (props: infer P, ...args: unknown[]) => unknown
@@ -56,9 +54,7 @@ type FieldValueFor<
   TFallback,
 > = [FormValues] extends [TValues] ? TFallback : TValues[TField]
 
-// ===== 字段规范化 =====
-
-/** Normalize a validation trigger declaration and always include submit validation. */
+/** 规范化字段校验触发时机，并保证 submit 校验始终存在。 */
 export function normalizeValidateOn(on?: ValidateTrigger | ValidateTrigger[]): ValidateTrigger[] {
   if (!on)
     return ['submit']
@@ -67,8 +63,9 @@ export function normalizeValidateOn(on?: ValidateTrigger | ValidateTrigger[]): V
 }
 
 /**
- * Normalize a public field declaration into the internal shape shared by
- * rendering, validation, runtime plugins, and submit serialization.
+ * 将公开字段声明转换成内部统一结构。
+ *
+ * 渲染、校验、runtime 插件和提交序列化都消费这个规范化结果。
  */
 export function normalizeField(input: FieldConfig): NormalizedFieldConfig {
   const trigger = input.trigger || 'update:modelValue'
@@ -93,12 +90,12 @@ export function normalizeField(input: FieldConfig): NormalizedFieldConfig {
   }
 }
 
-/** Return whether a normalized field should validate on the requested trigger. */
+/** 判断字段是否需要响应当前校验触发时机。 */
 export function shouldValidateOn(field: Pick<NormalizedFieldConfig, 'validateOn'>, trigger: ValidateTrigger): boolean {
   return field.validateOn.includes(trigger)
 }
 
-/** Apply a submit-time field transform when one is declared. */
+/** 在提交阶段执行字段 transform；未声明时原样返回。 */
 export function applyFieldTransform(
   field: Pick<NormalizedFieldConfig, 'transform'>,
   value: unknown,
@@ -106,8 +103,6 @@ export function applyFieldTransform(
 ): unknown {
   return field.transform ? field.transform(value, allValues) : value
 }
-
-// ===== defineField：纯配置工厂 =====
 
 interface FieldConfigBase<
   TValues extends object = FormValues,
@@ -179,9 +174,8 @@ type ModelUnknownValueFieldConfigInput<
 /**
  * 根据 schema/defaultValue 自动推导字段值类型，根据 component 自动推导 props 类型。
  *
- * The returned config is branded so slot node configs can be distinguished from
- * arbitrary objects at runtime. Passing no `field` creates a container node that
- * renders structure only and does not bind a value.
+ * 返回值会带上运行时 brand，便于 slot 中区分真实节点配置和普通对象。
+ * 不传 `field` 时创建容器节点，仅渲染结构，不绑定表单值。
  *
  * @example
  * ```ts
@@ -194,7 +188,7 @@ type ModelUnknownValueFieldConfigInput<
  * ```
  */
 
-/** Infer value from schema when no form model generic is supplied. */
+/** 未传表单模型泛型时，根据 schema 推导字段值类型。 */
 export function defineField<
   C = unknown,
   TSchema extends ZodTypeAny = ZodTypeAny,
@@ -203,7 +197,7 @@ export function defineField<
   config: SchemaFieldConfigCore<FormValues, TSchema, TField> & ComponentFieldPart<C>,
 ): DefinedFieldConfig<SchemaFieldConfigCore<FormValues, TSchema, TField> & ComponentFieldPart<C>>
 
-/** Infer value from defaultValue when no schema or form model generic is supplied. */
+/** 未传表单模型泛型且无 schema 时，根据 defaultValue 推导字段值类型。 */
 export function defineField<
   C = unknown,
   TValue = unknown,
@@ -212,7 +206,7 @@ export function defineField<
   config: DefaultValueFieldConfigCore<FormValues, TValue, TField> & ComponentFieldPart<C>,
 ): DefinedFieldConfig<DefaultValueFieldConfigCore<FormValues, TValue, TField> & ComponentFieldPart<C>>
 
-/** Use unknown value inference when neither schema nor defaultValue is supplied. */
+/** 未传表单模型泛型、schema 和 defaultValue 时，字段值类型保持 unknown。 */
 export function defineField<
   C = unknown,
   TField extends FieldKey<FormValues> = FieldKey<FormValues>,
@@ -220,12 +214,12 @@ export function defineField<
   config: UnknownValueFieldConfigCore<FormValues, TField> & ComponentFieldPart<C>,
 ): DefinedFieldConfig<UnknownValueFieldConfigCore<FormValues, TField> & ComponentFieldPart<C>>
 
-/** Define a container component node for slots or top-level layout. */
+/** 定义用于 slot 或顶层布局的容器节点。 */
 export function defineField<C = unknown>(
   config: ComponentNodeConfigCore<C>,
 ): DefinedComponentNodeConfig<ComponentNodeConfigCore<C>>
 
-/** Infer schema-backed field config against a typed form model. */
+/** 传入表单模型泛型时，按模型字段和 schema 推导字段配置。 */
 export function defineField<
   TValues extends object,
   C = unknown,
@@ -234,7 +228,7 @@ export function defineField<
   config: ModelSchemaFieldConfigInput<TValues, TSchema> & ComponentFieldPart<C>,
 ): DefinedFieldConfig<ModelSchemaFieldConfigInput<TValues, TSchema> & ComponentFieldPart<C>>
 
-/** Infer defaultValue-backed field config against a typed form model. */
+/** 传入表单模型泛型且无 schema 时，按模型字段和 defaultValue 推导字段配置。 */
 export function defineField<
   TValues extends object,
   C = unknown,
@@ -242,7 +236,7 @@ export function defineField<
   config: ModelDefaultValueFieldConfigInput<TValues> & ComponentFieldPart<C>,
 ): DefinedFieldConfig<ModelDefaultValueFieldConfigInput<TValues> & ComponentFieldPart<C>>
 
-/** Define a typed-model field without schema/defaultValue value inference. */
+/** 传入表单模型泛型但无 schema/defaultValue 时，按模型字段约束字段名和值类型。 */
 export function defineField<
   TValues extends object,
   C = unknown,
@@ -250,12 +244,12 @@ export function defineField<
   config: ModelUnknownValueFieldConfigInput<TValues> & ComponentFieldPart<C>,
 ): DefinedFieldConfig<ModelUnknownValueFieldConfigInput<TValues> & ComponentFieldPart<C>>
 
-/** Define a typed-model container component node. */
+/** 传入表单模型泛型时定义容器节点；模型类型只用于保持调用形态一致。 */
 export function defineField<_TValues extends object, C = unknown>(
   config: ComponentNodeConfigCore<C>,
 ): DefinedComponentNodeConfig<ComponentNodeConfigCore<C>>
 
-/** Runtime implementation shared by all defineField overloads. */
+/** 所有 defineField 重载共用的运行时实现，只负责复制配置并打上 brand。 */
 export function defineField(config: FormNodeInput): DefinedFormNodeConfig {
   return markDefinedFormNodeConfig({ ...config })
 }

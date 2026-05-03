@@ -5,6 +5,9 @@ import { computed, defineComponent } from 'vue'
 import { useRuntime } from '@/composables/useRuntime'
 import { isFormNodeConfig } from '@/models/node'
 
+/**
+ * ComponentNode 渲染已经解析过的容器/字段组件，并把 slot 中的节点继续交给递归层处理。
+ */
 defineOptions({ name: 'ComponentNode' })
 
 const SlotRender = defineComponent({
@@ -55,6 +58,11 @@ type NormalizedSlotNode =
 
 type SlotResolveSnap = FormRuntimeResolveSnap & { slotName: string }
 
+/**
+ * 将 runtime 解析后的 slot 返回值统一成渲染节点。
+ *
+ * 对象节点会继续通过 FormRuntime.resolveNode(...) 解析，普通 VNode/原始值则原样渲染。
+ */
 function normalizeResolvedSlotValue(value: SlotContent, resolveSnap: SlotResolveSnap, path = '0'): NormalizedSlotNode[] {
   if (value == null || value === false)
     return []

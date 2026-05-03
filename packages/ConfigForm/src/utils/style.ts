@@ -1,4 +1,4 @@
-/** 将 labelWidth 统一为 CSS 值字符串 */
+/** 将 labelWidth 统一为 CSS 可消费的宽度字符串。 */
 export function resolveLabelWidth(width?: string | number): string | undefined {
   if (!width)
     return undefined

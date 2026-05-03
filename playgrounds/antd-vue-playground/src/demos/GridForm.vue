@@ -16,12 +16,10 @@ import Switch from 'ant-design-vue/es/switch'
 import TimePicker from 'ant-design-vue/es/time-picker'
 import TreeSelect from 'ant-design-vue/es/tree-select'
 
-// ===== 字段配置 =====
-
 const formRef = ref()
 const formValues = reactive<Record<string, unknown>>({})
 
-// Ant Design Vue 通用 value/trigger 配置
+/** Ant Design Vue 组件统一使用 value/update:value 作为 ConfigForm 双向绑定协议。 */
 const v = { valueProp: 'value', trigger: 'update:value' } as const
 
 interface DayjsLike {
@@ -46,7 +44,7 @@ function optionIncludes(input: string, option: unknown): boolean {
 }
 
 const fields = [
-  // ── 文本输入 ─────────────────────────────
+  // 文本输入
   defineField({
     field: 'username',
     label: '用户名',
@@ -131,7 +129,7 @@ const fields = [
     disabled: values => values.role === 'guest',
   }),
 
-  // ── 数字输入 ─────────────────────────────
+  // 数字输入
   defineField({
     field: 'age',
     label: '年龄',
@@ -160,7 +158,7 @@ const fields = [
     props: { min: 0, step: 1, precision: 0, placeholder: '数量', style: { width: '100%' } },
   }),
 
-  // ── 选择器 ─────────────────────────────
+  // 选择器
   defineField({
     field: 'role',
     label: '角色',
@@ -256,7 +254,7 @@ const fields = [
     },
   }),
 
-  // ── 单选 / 多选（通过 slots 传递子组件）─────────────────────────
+  // 单选 / 多选（通过 slots 传递子组件）
   defineField({
     field: 'gender',
     label: '性别',
@@ -318,7 +316,7 @@ const fields = [
     },
   }),
 
-  // ── 日期时间 ─────────────────────────────
+  // 日期时间
   defineField({
     field: 'birthday',
     label: '出生日期',
@@ -350,7 +348,7 @@ const fields = [
     transform: val => formatDateRange(val, 'YYYY-MM-DD'),
   }),
 
-  // ── 开关 ─────────────────────────────
+  // 开关
   defineField({
     field: 'active',
     label: '启用状态',
@@ -362,7 +360,7 @@ const fields = [
     defaultValue: true,
   }),
 
-  // ── 评分 / 滑块 ─────────────────────────────
+  // 评分 / 滑块
   defineField({
     field: 'rating',
     label: '评分',
@@ -383,7 +381,7 @@ const fields = [
     defaultValue: 0,
   }),
 
-  // ── 自动补全 ─────────────────────────────
+  // 自动补全
   defineField({
     field: 'city',
     label: '城市',
@@ -399,7 +397,7 @@ const fields = [
     },
   }),
 
-  // ── 条件显隐：性别选"其他"时显示 ─────────────────────────────
+  // 条件显隐：性别选"其他"时显示
   defineField({
     field: 'genderOther',
     label: '请说明',
@@ -411,7 +409,7 @@ const fields = [
     visible: (values) => values.gender === 'other',
   }),
 
-  // ── 条件显隐：启用状态下显示生效日期 ─────────────────────────────
+  // 条件显隐：启用状态下显示生效日期
   defineField({
     field: 'effectiveDate',
     label: '生效日期',
@@ -424,7 +422,7 @@ const fields = [
     visible: (values) => values.active === true,
   }),
 
-  // ── 条件禁用：角色为"访客"时禁用 ─────────────────────────────
+  // 条件禁用：角色为"访客"时禁用
   defineField({
     field: 'remark',
     label: '备注',
@@ -436,7 +434,7 @@ const fields = [
     disabled: (values) => values.role === 'guest',
   }),
 
-  // ── 条件禁用：评分低于3时禁用提交建议 ─────────────────────────────
+  // 条件禁用：评分低于3时禁用提交建议
   defineField({
     field: 'suggestion',
     label: '建议',
@@ -451,7 +449,7 @@ const fields = [
     },
   }),
 
-  // ── 文本域 ─────────────────────────────
+  // 文本域
   defineField({
     field: 'bio',
     label: '个人简介',

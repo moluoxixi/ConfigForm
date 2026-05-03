@@ -48,15 +48,22 @@ describe('client overlay', () => {
         line: 32,
       },
     }, target)
-    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.recordPatch({
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.recordRender({
       duration: 12.34,
       id: 'node-1',
+      phase: 'mount',
       timestamp: 1,
     })
-    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.recordPatch({
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.recordRender({
       duration: 13.45,
       id: 'node-1',
+      phase: 'update',
       timestamp: 2,
+    })
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.recordSync({
+      duration: 2.5,
+      id: 'node-1',
+      timestamp: 3,
     })
     window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
       kind: 'field',
@@ -72,7 +79,8 @@ describe('client overlay', () => {
     expect(document.body.textContent).toContain('username')
     expect(document.body.textContent).toContain('slot:default')
     expect(document.body.textContent).toContain('用户名')
-    expect(document.body.textContent).toContain('13.45')
+    expect(document.body.textContent).toContain('render 13.45 ms')
+    expect(document.body.textContent).toContain('sync 2.50 ms')
 
     document.querySelector<HTMLElement>('[data-cf-devtools-node-id="node-1"]')?.dispatchEvent(new MouseEvent('mouseenter'))
 
@@ -123,6 +131,33 @@ describe('client overlay', () => {
     expect(componentRow?.querySelector('.cf-devtools-node-kind')?.textContent).toBe('C')
     expect(componentRow?.querySelector('.cf-devtools-node-key')?.textContent).toBe('ElRadio')
     expect(componentRow?.textContent).toContain('slot:default')
+  })
+
+  it('keeps render and sync metrics that arrive before node registration', () => {
+    const bridge = installConfigFormDevtools()
+
+    bridge.recordRender({
+      duration: 4.56,
+      id: 'pending-node',
+      phase: 'mount',
+      timestamp: 1,
+    })
+    bridge.recordSync({
+      duration: 1.25,
+      id: 'pending-node',
+      timestamp: 2,
+    })
+    bridge.registerField({
+      field: 'pending',
+      formId: 'form-1',
+      id: 'pending-node',
+      kind: 'field',
+    }, null)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+
+    expect(document.body.textContent).toContain('render 4.56 ms')
+    expect(document.body.textContent).toContain('sync 1.25 ms')
   })
 
   it('closes the panel when clicking outside the debugger overlay', () => {
@@ -1404,7 +1439,7 @@ describe('client overlay', () => {
       formId: 'form-1',
       id: 'node-1',
     }, null)
-    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.recordPatch({
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.recordSync({
       duration: 1.23,
       id: 'node-1',
       timestamp: 1,

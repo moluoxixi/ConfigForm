@@ -35,11 +35,10 @@ function shouldTransform(id: string): boolean {
 }
 
 /**
- * Create the ConfigForm devtools Vite plugin.
+ * 创建 ConfigForm devtools Vite 插件。
  *
- * In dev server mode it injects the browser overlay, rewrites ConfigForm imports
- * to a devtools adapter, records defineField(...) source locations, and exposes
- * an open-in-editor middleware endpoint.
+ * 开发服务模式下会注入浏览器 overlay、把 ConfigForm import 重写到 devtools adapter、
+ * 记录 defineField(...) 源码位置，并暴露 open-in-editor middleware。
  */
 export function configFormDevtools(options: ConfigFormDevtoolsPluginOptions = {}): Plugin {
   const corePackageName = options.packageNames?.[0] ?? '@moluoxixi/config-form'
@@ -114,5 +113,5 @@ export function configFormDevtools(options: ConfigFormDevtoolsPluginOptions = {}
   }
 }
 
-/** Backward-compatible alias for configFormDevtools(...). */
+/** 保留给早期调用方的 configFormDevtools(...) 别名。 */
 export const configFormDevtoolsVitePlugin = configFormDevtools

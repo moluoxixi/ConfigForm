@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import type { Component } from 'vue'
+import type { Component, VNodeChild } from 'vue'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createApp, defineComponent, h, nextTick, ref } from 'vue'
 import { createDevtoolsConfigFormAdapter } from '../src/adapter'
@@ -15,13 +15,15 @@ interface FieldStub {
   component: unknown
   field?: string
   label?: unknown
+  props?: Record<string, unknown>
   slots?: Record<string, unknown>
   __source?: typeof source
 }
 
 function createBridge() {
   return {
-    recordPatch: vi.fn(),
+    recordRender: vi.fn(),
+    recordSync: vi.fn(),
     registerField: vi.fn(),
     unregisterField: vi.fn(),
     updateField: vi.fn(),
@@ -42,6 +44,7 @@ const CoreConfigForm = defineComponent({
     return () => h('form', props.fields.map((field) => {
       const config = field as FieldStub
       return h('input', {
+        ...(config.props ?? {}),
         id: `${props.namespace}-${config.field}-field`,
         value: '',
       })
@@ -103,9 +106,194 @@ describe('configForm devtools adapter', () => {
       label: 'Name',
       source,
     }), expect.any(HTMLInputElement))
-    expect(bridge.recordPatch).toHaveBeenCalledWith(expect.objectContaining({
+    expect(bridge.recordSync).toHaveBeenCalledWith(expect.objectContaining({
       duration: expect.any(Number),
       timestamp: expect.any(Number),
+    }))
+  })
+
+  it('records sync timing per node without including previous node work', async () => {
+    let clock = 0
+    vi.spyOn(performance, 'now').mockImplementation(() => clock)
+    const bridge = createBridge()
+    bridge.registerField.mockImplementation((node) => {
+      clock += node.field === 'first' ? 5 : 7
+    })
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
+
+    mountAdapter([
+      {
+        component: 'input',
+        field: 'first',
+      },
+      {
+        component: 'input',
+        field: 'second',
+      },
+    ])
+    await nextTick()
+    await nextTick()
+
+    const syncMetrics = bridge.recordSync.mock.calls.map(([metric]) => ({
+      duration: metric.duration,
+      field: bridge.registerField.mock.calls.find(([node]) => node.id === metric.id)?.[0].field,
+    }))
+
+    expect(syncMetrics).toEqual([
+      { duration: 5, field: 'first' },
+      { duration: 7, field: 'second' },
+    ])
+  })
+
+  it('records render timing from the rendered node vnode lifecycle', async () => {
+    let clock = 0
+    vi.spyOn(performance, 'now').mockImplementation(() => clock)
+    const bridge = createBridge()
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
+
+    const SlowInput = defineComponent({
+      name: 'SlowInput',
+      setup(_, { attrs }) {
+        return () => {
+          clock += 6
+          return h('input', attrs)
+        }
+      },
+    })
+    const CoreWithConfiguredComponents = defineComponent({
+      name: 'CoreWithConfiguredComponents',
+      props: {
+        fields: { type: Array, required: true },
+        namespace: { type: String, default: 'cf' },
+      },
+      setup(props) {
+        return () => h('form', props.fields.map((field) => {
+          const config = field as FieldStub
+          return h(config.component as Component, {
+            ...(config.props ?? {}),
+            id: `${props.namespace}-${config.field}-field`,
+          })
+        }))
+      },
+    })
+    const Adapter = createDevtoolsConfigFormAdapter({
+      ConfigForm: CoreWithConfiguredComponents as Component,
+      collectFieldConfigs: nodes => nodes as never,
+    })
+    const root = document.createElement('div')
+    document.body.append(root)
+    createApp({
+      render: () => h(Adapter, {
+        fields: [
+          {
+            component: SlowInput,
+            field: 'timed',
+          },
+        ],
+        namespace: 'demo',
+      }),
+    }).mount(root)
+    await nextTick()
+    await nextTick()
+
+    expect(bridge.recordRender).toHaveBeenCalledWith(expect.objectContaining({
+      duration: 6,
+      id: expect.stringMatching(/:timed$/),
+      phase: 'mount',
+      timestamp: expect.any(Number),
+    }))
+  })
+
+  it('preserves user vnode lifecycle hooks while adding render timing', async () => {
+    const bridge = createBridge()
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
+    const beforeMount = vi.fn()
+    const mounted = vi.fn()
+
+    mountAdapter([
+      {
+        component: 'input',
+        field: 'hooked',
+        props: {
+          onVnodeBeforeMount: [beforeMount],
+          onVnodeMounted: mounted,
+        },
+      },
+    ])
+    await nextTick()
+    await nextTick()
+
+    expect(beforeMount).toHaveBeenCalled()
+    expect(mounted).toHaveBeenCalled()
+    expect(bridge.recordRender).toHaveBeenCalledWith(expect.objectContaining({
+      id: expect.stringMatching(/:hooked$/),
+      phase: 'mount',
+    }))
+  })
+
+  it('records render timing for nodes returned by slot functions', async () => {
+    const bridge = createBridge()
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
+    const CoreWithSlotFunctions = defineComponent({
+      name: 'CoreWithSlotFunctions',
+      props: {
+        fields: { type: Array, required: true },
+        namespace: { type: String, default: 'cf' },
+      },
+      setup(props) {
+        function renderConfigNode(value: unknown): VNodeChild {
+          if (!value || typeof value !== 'object' || !('component' in value))
+            return value as VNodeChild
+
+          const config = value as FieldStub
+          return h('input', {
+            ...(config.props ?? {}),
+            id: config.field ? `${props.namespace}-${config.field}-field` : undefined,
+          })
+        }
+
+        return () => h('form', props.fields.map((field) => {
+          const config = field as FieldStub
+          const slot = config.slots?.default
+          const content = typeof slot === 'function'
+            ? (slot as (scope?: Record<string, unknown>) => unknown)({})
+            : slot
+          const children = Array.isArray(content)
+            ? content.map(renderConfigNode)
+            : [renderConfigNode(content)]
+
+          return h('section', config.props ?? {}, children)
+        }))
+      },
+    })
+    const Adapter = createDevtoolsConfigFormAdapter({
+      ConfigForm: CoreWithSlotFunctions as Component,
+      collectFieldConfigs: nodes => nodes as never,
+    })
+    const root = document.createElement('div')
+    document.body.append(root)
+    createApp({
+      render: () => h(Adapter, {
+        fields: [
+          {
+            component: 'section',
+            slots: {
+              default: () => ({
+                component: 'input',
+                field: 'slotChild',
+              }),
+            },
+          },
+        ],
+        namespace: 'demo',
+      }),
+    }).mount(root)
+    await nextTick()
+    await nextTick()
+
+    expect(bridge.recordRender).toHaveBeenCalledWith(expect.objectContaining({
+      id: expect.stringMatching(/:slotChild$/),
+      phase: 'mount',
     }))
   })
 

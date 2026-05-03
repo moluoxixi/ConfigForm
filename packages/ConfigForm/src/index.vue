@@ -7,6 +7,9 @@ import { provideNamespace, useBem } from '@/composables/useNamespace'
 import { normalizeFormRuntime, provideRuntime } from '@/composables/useRuntime'
 import { resolveLabelWidth } from '@/utils/style'
 
+/**
+ * ConfigForm 根组件负责注入命名空间和 runtime，并把声明式节点树连接到无头表单控制器。
+ */
 const props = withDefaults(defineProps<ConfigFormProps<T>>(), {
   namespace: 'cf',
 })
@@ -68,7 +71,7 @@ const keyedResolvedNodes = computed(() =>
   })),
 )
 
-// ── v-model：值变化时向上发出 ──────────────────────────────────
+// values 是 reactive 对象，需监听内部字段变化以同步 v-model。
 watch(values, (newVals) => {
   emit('update:modelValue', { ...newVals } as T)
 }, { deep: true })

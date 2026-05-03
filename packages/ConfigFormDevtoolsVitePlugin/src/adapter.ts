@@ -1,6 +1,6 @@
 import type { Component } from 'vue'
-import type { FieldSourceMeta, FormDevtoolsBridge, FormDevtoolsNode } from './types'
-import { defineComponent, h, isVNode, nextTick, onMounted, onUnmounted, onUpdated, ref, useAttrs } from 'vue'
+import type { FieldSourceMeta, FormDevtoolsBridge, FormDevtoolsNode, FormNodeRenderPhase } from './types'
+import { computed, defineComponent, h, isVNode, nextTick, onMounted, onUnmounted, onUpdated, ref, useAttrs } from 'vue'
 
 interface DevtoolsFieldConfig {
   component: unknown
@@ -13,18 +13,20 @@ interface DevtoolsFormNodeConfig {
   component?: unknown
   field?: unknown
   label?: unknown
+  props?: Record<string, unknown>
   slots?: Record<string, unknown>
   __source?: FieldSourceMeta
 }
 
 export interface DevtoolsConfigFormAdapterOptions {
-  /** Core ConfigForm component to wrap in dev server mode. */
+  /** 开发服务中要包裹的核心 ConfigForm 组件。 */
   ConfigForm: Component
-  /** Core field collector used to preserve real field semantics. */
+  /** 核心字段收集器，用来保持真实字段与容器节点语义一致。 */
   collectFieldConfigs: (nodes: readonly unknown[]) => DevtoolsFieldConfig[]
 }
 
 type ExposedConfigForm = Record<string, unknown>
+type VNodeLifecycleHook = (...args: unknown[]) => void
 
 declare global {
   interface Window {
@@ -160,10 +162,9 @@ function resolveTabPanel(host: HTMLElement | null): HTMLElement | null {
 }
 
 /**
- * Resolve a human-readable form label for multi-form navigation.
+ * 为多表单导航解析可读表单标签。
  *
- * Explicit data-cf-devtools-form-label wins; tabpanel aria metadata is only a
- * fallback so generic containers and non-tab layouts can still label a form.
+ * 显式 data-cf-devtools-form-label 优先；tabpanel 的 aria 元数据只作为布局容器的标签来源。
  */
 function resolveFormLabel(host: HTMLElement | null): string | undefined {
   if (!host)
@@ -198,11 +199,54 @@ function resolveSlotContent(slot: unknown): unknown {
 }
 
 /**
- * Wrap ConfigForm with devtools registration while preserving the core exposed API.
+ * 克隆节点配置并保留原型和不可枚举属性，避免丢失 defineField/runtime brand。
+ */
+function cloneFormNodeConfig<TNode extends DevtoolsFormNodeConfig>(node: TNode): TNode {
+  const clone = Object.create(Object.getPrototypeOf(node)) as TNode
+  Object.defineProperties(clone, Object.getOwnPropertyDescriptors(node))
+  return clone
+}
+
+function callVNodeHook(hook: unknown, args: unknown[]) {
+  if (Array.isArray(hook)) {
+    for (const item of hook)
+      callVNodeHook(item, args)
+    return
+  }
+
+  if (typeof hook === 'function')
+    (hook as VNodeLifecycleHook)(...args)
+}
+
+/**
+ * 合并 adapter 注入的 vnode 生命周期 hook 与用户已有 hook。
  *
- * The adapter collects the declared node tree, maps nodes to rendered DOM
- * elements, forwards ref methods to the inner ConfigForm, and keeps the browser
- * bridge synchronized across mount/update/unmount.
+ * 采集开始点放在用户 hook 后，结束点放在用户 hook 前，避免把用户 hook 执行时间算进渲染耗时。
+ */
+function mergeVNodeHook(
+  existing: unknown,
+  injected: VNodeLifecycleHook,
+  order: 'before-existing' | 'after-existing',
+): VNodeLifecycleHook {
+  if (!existing)
+    return injected
+
+  return (...args: unknown[]) => {
+    if (order === 'before-existing')
+      injected(...args)
+
+    callVNodeHook(existing, args)
+
+    if (order === 'after-existing')
+      injected(...args)
+  }
+}
+
+/**
+ * 包裹 ConfigForm 并注册 devtools，同时保留核心组件暴露的 ref API。
+ *
+ * adapter 会收集声明式节点树、映射真实 DOM、代理内部 ConfigForm 方法，
+ * 并在 mount/update/unmount 阶段同步浏览器 bridge。
  */
 export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapterOptions): Component {
   return defineComponent({
@@ -218,6 +262,53 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
       const coreRef = ref<ExposedConfigForm | null>(null)
       const hostRef = ref<HTMLElement | null>(null)
       const registeredIds = new Set<string>()
+      const renderStarts = new Map<string, number>()
+
+      function startRenderTiming(id: string) {
+        renderStarts.set(id, now())
+      }
+
+      function finishRenderTiming(id: string, phase: FormNodeRenderPhase) {
+        const start = renderStarts.get(id)
+        if (start === undefined)
+          return
+
+        renderStarts.delete(id)
+        const end = now()
+        getBridge()?.recordRender({
+          duration: Math.max(0, end - start),
+          id,
+          phase,
+          timestamp: now(),
+        })
+      }
+
+      function withRenderTimingProps(id: string, props: Record<string, unknown> | undefined): Record<string, unknown> {
+        const next = { ...(props ?? {}) }
+
+        next.onVnodeBeforeMount = mergeVNodeHook(
+          props?.onVnodeBeforeMount,
+          () => startRenderTiming(id),
+          'after-existing',
+        )
+        next.onVnodeMounted = mergeVNodeHook(
+          props?.onVnodeMounted,
+          () => finishRenderTiming(id, 'mount'),
+          'before-existing',
+        )
+        next.onVnodeBeforeUpdate = mergeVNodeHook(
+          props?.onVnodeBeforeUpdate,
+          () => startRenderTiming(id),
+          'after-existing',
+        )
+        next.onVnodeUpdated = mergeVNodeHook(
+          props?.onVnodeUpdated,
+          () => finishRenderTiming(id, 'update'),
+          'before-existing',
+        )
+
+        return next
+      }
 
       function callExposed(methodName: string, args: unknown[]) {
         const method = coreRef.value?.[methodName]
@@ -238,8 +329,7 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         path: string,
         slotName?: string,
       ): FormDevtoolsNode[] {
-        // Keep the devtools tree aligned with user-declared order instead of
-        // relying on Vue mount timing, which can change for slot children.
+        // devtools 树必须按用户声明顺序展示，不能依赖 slot 子节点可能变化的 Vue 挂载时序。
         return nodes.flatMap((node, index) => {
           if (!isFormNodeConfig(node))
             return []
@@ -271,18 +361,71 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         })
       }
 
+      /**
+       * 给声明式节点树注入 vnode 生命周期计时 props。
+       *
+       * 这里返回克隆节点，避免为了 devtools 采集修改用户传入的字段配置对象。
+       */
+      function instrumentNode(
+        node: unknown,
+        path: string,
+        index: number,
+      ): unknown {
+        if (!isFormNodeConfig(node))
+          return node
+
+        const nodePath = `${path}.${index}`
+        const id = isFieldNodeConfig(node) ? `${formId}:${node.field}` : `${formId}:${nodePath}`
+        const next = cloneFormNodeConfig(node)
+        next.props = withRenderTimingProps(id, node.props)
+
+        if (node.slots) {
+          next.slots = Object.fromEntries(
+            Object.entries(node.slots).map(([slotName, slot]) => [
+              slotName,
+              instrumentSlot(slot, `${nodePath}.slots.${slotName}`),
+            ]),
+          )
+        }
+
+        return next
+      }
+
+      function instrumentNodeTree(nodes: readonly unknown[], path: string): unknown[] {
+        return nodes.map((node, index) => instrumentNode(node, path, index))
+      }
+
+      function instrumentSlotContent(content: unknown, path: string): unknown {
+        if (Array.isArray(content))
+          return content.map((node, index) => instrumentNode(node, path, index))
+
+        return instrumentNode(content, path, 0)
+      }
+
+      function instrumentSlot(slot: unknown, path: string): unknown {
+        if (typeof slot !== 'function')
+          return instrumentSlotContent(slot, path)
+
+        return function instrumentedSlot(this: unknown, scope?: Record<string, unknown>) {
+          return instrumentSlotContent(
+            (slot as (this: unknown, scope?: Record<string, unknown>) => unknown).call(this, scope),
+            path,
+          )
+        }
+      }
+
       function collectNodes(): FormDevtoolsNode[] {
         return collectNodeTree(props.fields, resolveFormLabel(hostRef.value), undefined, 'fields')
       }
+
+      const instrumentedFields = computed(() => instrumentNodeTree(props.fields, 'fields'))
 
       function syncBridge() {
         const bridge = getBridge()
         if (!bridge)
           return
 
-        // Register/update all nodes as one snapshot so the client can drop
-        // stale ids when fields or slot trees change.
-        const start = now()
+        // 每次同步都按完整快照注册/更新，便于 client 删除字段或 slot 树变化后的过期 id。
         const nodes = collectNodes()
         const nextIds = new Set(nodes.map(node => node.id))
 
@@ -294,12 +437,13 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         }
 
         for (const node of nodes) {
+          const syncStart = now()
           const element = resolveElement(props.namespace, node, hostRef.value)
           const action = registeredIds.has(node.id) ? bridge.updateField : bridge.registerField
           action(node, element)
           registeredIds.add(node.id)
-          bridge.recordPatch({
-            duration: Math.max(0, now() - start),
+          bridge.recordSync({
+            duration: Math.max(0, now() - syncStart),
             id: node.id,
             timestamp: now(),
           })
@@ -337,7 +481,7 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
       return () => h('div', { ref: hostRef, style: { display: 'contents' } }, [
         h(options.ConfigForm, {
           ...attrs,
-          fields: props.fields,
+          fields: instrumentedFields.value,
           namespace: props.namespace,
           ref: coreRef,
         }, slots),

@@ -6,6 +6,9 @@ import ComponentNode from '@/components/ComponentNode'
 import FormField from '@/components/FormField'
 import { isResolvedFieldConfig } from '@/models/node'
 
+/**
+ * RecursiveField 负责在字段节点和容器节点之间分派渲染，并沿 slot 树传递表单状态。
+ */
 defineOptions({ name: 'RecursiveField' })
 
 const props = defineProps<{

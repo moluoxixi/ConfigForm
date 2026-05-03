@@ -6,6 +6,9 @@ import { useBem, useNamespace } from '@/composables/useNamespace'
 import { useRuntime } from '@/composables/useRuntime'
 import { resolveLabelWidth } from '@/utils/style'
 
+/**
+ * FormField 负责单个真实字段的布局、组件事件适配和校验错误展示。
+ */
 defineOptions({ name: 'FormField' })
 
 const props = defineProps<{

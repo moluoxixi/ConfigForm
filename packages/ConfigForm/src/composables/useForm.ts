@@ -7,25 +7,24 @@ import { applyFieldTransform, shouldValidateOn } from '@/models/field'
 import { collectFieldConfigs } from '@/models/node'
 import { validateFieldRules, validateForm } from '@/utils/validate'
 
-/** Options used by the headless form state, validation, and submit controller. */
+/** 无头表单控制器选项，驱动值状态、校验和提交流程。 */
 export interface UseFormOptions<T extends object = FormValues> {
-  /** Reactive node tree; only real field nodes are collected for values/errors. */
+  /** 响应式节点树；只有真实字段节点会参与值、错误和提交。 */
   fields: Ref<FormNodeConfig[]>
-  /** Optional external initial values, usually derived from ConfigForm v-model. */
+  /** 外部初始值，通常来自 ConfigForm 的 v-model。 */
   initialValues?: Ref<Partial<T> | undefined>
-  /** Runtime options or runtime plugin list used to resolve fields and tokens. */
+  /** 运行时配置，用于解析组件、runtime token 和插件生命周期。 */
   runtime?: MaybeRef<FormRuntimeOptions | undefined>
-  /** Called with transformed submit values after validation passes. */
+  /** 校验通过后接收已执行 transform 的提交值。 */
   onSubmit?: (values: T) => void
-  /** Called with current validation errors when submit validation fails. */
+  /** 提交校验失败时接收当前错误集合。 */
   onError?: (errors: FormErrors) => void
 }
 
 /**
- * Create the headless ConfigForm controller.
+ * 创建 ConfigForm 的无头状态控制器。
  *
- * The composable owns values, validation errors, field visibility/disabled
- * maps, submit serialization, reset behavior, and the ref-exposed form methods.
+ * 负责字段值、校验错误、显隐/禁用映射、提交序列化、重置逻辑和组件 ref 暴露的方法。
  */
 export function useForm<T extends object = FormValues>(options: UseFormOptions<T>) {
   const { fields, initialValues, onSubmit, onError } = options
@@ -41,9 +40,6 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
   // 先同步校验初始字段拓扑，避免 Vue watcher 注册后才暴露重复 field 等配置错误。
   collectFieldConfigs(fields.value)
 
-  // ── 工具 ─────────────────────────────────────────────────────
-
-  /** 从 errors 中移除指定字段的错误；不传字段名时清空全部错误 */
   function clearFieldError(fieldName?: string) {
     if (!fieldName) {
       errors.value = {}
@@ -64,8 +60,6 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     if (Object.keys(nextErrors).length !== Object.keys(errors.value).length)
       errors.value = nextErrors
   }
-
-  // ── 初始化 ───────────────────────────────────────────────────
 
   function syncValues(next: FormValues) {
     for (const key of Object.keys(values)) {
@@ -116,8 +110,6 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     () => syncFieldTopology(),
   )
 
-  // ── 动态状态 ─────────────────────────────────────────────────
-
   function createResolveSnap(snapshot: FormValues) {
     return runtimeRef.value.createResolveSnap({
       errors: errors.value,
@@ -136,8 +128,6 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     const resolveSnap = createResolveSnap(snap)
     return Object.fromEntries(fieldConfigs.value.map(f => [f.field, runtimeRef.value.resolveDisabled(f, resolveSnap)]))
   })
-
-  // ── 值操作 ───────────────────────────────────────────────────
 
   function setValue<K extends FieldKey<T>>(field: K, value: T[K]): void
   function setValue(field: string, value: unknown): void
@@ -164,12 +154,10 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     return valueStore[field]
   }
 
-  /** 获取表单值的浅拷贝快照，保留 Date/Dayjs 等实例 */
+  /** 获取表单值的浅拷贝快照，保留 Date/Dayjs 等实例。 */
   function getValues(): T & FormValues {
     return { ...toRaw(values) } as T & FormValues
   }
-
-  // ── 校验 ─────────────────────────────────────────────────────
 
   async function validateSingleField(fieldName: string, trigger: ValidateTrigger): Promise<boolean> {
     const config = fieldConfigs.value.find(f => f.field === fieldName)
@@ -217,8 +205,6 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     return true
   }
 
-  // ── 提交 ─────────────────────────────────────────────────────
-
   async function submit(): Promise<boolean> {
     if (!await validate())
       return false
@@ -237,8 +223,6 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     onSubmit?.(submitValues as T)
     return true
   }
-
-  // ── 重置 ─────────────────────────────────────────────────────
 
   function reset() {
     initValues({})

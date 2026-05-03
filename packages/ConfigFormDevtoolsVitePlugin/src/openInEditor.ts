@@ -35,7 +35,7 @@ function formatEditorCommand(command: EditorCommand): string {
   return [command.command, ...command.args].join(' ')
 }
 
-/** Validate and normalize the JSON payload sent by the browser devtools client. */
+/** 校验并规范化浏览器 devtools client 发送的 JSON payload。 */
 export function parseOpenInEditorPayload(input: unknown): OpenInEditorPayload {
   if (!input || typeof input !== 'object')
     throw new ConfigFormDevtoolsHttpError(400, 'Open-in-editor payload must be an object')
@@ -58,7 +58,7 @@ export function parseOpenInEditorPayload(input: unknown): OpenInEditorPayload {
   }
 }
 
-/** Resolve a requested file and reject paths outside the configured roots. */
+/** 解析请求文件，并拒绝配置根目录之外的路径。 */
 export function resolveAllowedFile(input: ResolveAllowedFileInput): string {
   const file = resolve(input.file)
   const roots = [input.root, ...(input.allowRoots ?? [])].map(root => resolve(root))
@@ -73,7 +73,7 @@ export function resolveAllowedFile(input: ResolveAllowedFileInput): string {
   return normalizePath(file)
 }
 
-/** Build the editor command for a source location and selected editor preset. */
+/** 根据源码位置和编辑器预设构造启动命令。 */
 export function createEditorCommand(input: EditorCommandInput): EditorCommand {
   if (input.editor && typeof input.editor === 'object')
     return input.editor
@@ -97,7 +97,7 @@ export function createEditorCommand(input: EditorCommandInput): EditorCommand {
   }
 }
 
-/** Launch an editor command and reject when the process cannot be started. */
+/** 启动编辑器命令；进程无法启动或 shell 命令失败时返回失败。 */
 export function launchEditor(
   command: EditorCommand,
   spawnEditor: SpawnEditorProcess = spawn,
@@ -152,7 +152,7 @@ export function launchEditor(
   })
 }
 
-/** Open a validated source location in the configured editor. */
+/** 在配置的编辑器中打开已经校验过的源码位置。 */
 export async function openInEditor(payload: unknown, options: OpenInEditorOptions): Promise<EditorCommand> {
   const parsed = parseOpenInEditorPayload(payload)
   const file = resolveAllowedFile({
@@ -188,7 +188,7 @@ function sendJson(res: ServerResponse, statusCode: number, payload: Record<strin
   res.end(JSON.stringify(payload))
 }
 
-/** Create the Vite middleware backing /__config-form-devtools/open. */
+/** 创建支撑 /__config-form-devtools/open 的 Vite middleware。 */
 export function createOpenInEditorMiddleware(options: OpenInEditorOptions) {
   return async (req: IncomingMessage, res: ServerResponse) => {
     if (req.method !== 'POST') {

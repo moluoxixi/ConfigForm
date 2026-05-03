@@ -2,84 +2,80 @@ import type { Component, SetupContext, VNode } from 'vue'
 import type { ZodType, ZodTypeAny, ZodTypeDef } from 'zod'
 import type { FormRuntimeOptions } from '@/runtime/types'
 
-// ===== 公共类型 =====
-
-/** Runtime brand attached to configs created by defineField(...). */
+/** defineField(...) 创建的配置会携带这个运行时 brand。 */
 export const CONFIG_FORM_DEFINED_NODE = Symbol.for('moluoxixi.config-form.defined-node')
 
-/** Vue-compatible function component shape accepted by ConfigForm field nodes. */
+/** ConfigForm 字段节点可接收的 Vue function component 形态。 */
 export type FunctionalFieldComponent = (
   props: { modelValue?: unknown, [key: string]: unknown },
   context: SetupContext,
 ) => VNode
 
-/** Plain object used as the canonical form value store. */
+/** 表单值的标准存储结构。 */
 export type FormValues = Record<string, unknown>
 
-/** Validation lifecycle names understood by ConfigForm. */
+/** ConfigForm 支持的校验触发时机。 */
 export type ValidateTrigger = 'submit' | 'blur' | 'change'
 
-/** Normalized custom validator result before it is converted into string arrays. */
+/** 自定义校验器的原始返回值，后续会统一转换为字符串数组。 */
 export type FieldValidatorResult = string | string[] | void | null | undefined
 
-/** Zod schema accepted by a field declaration. */
+/** 字段声明可接收的 Zod schema。 */
 export type FieldSchema<TValue = unknown> = ZodType<TValue, ZodTypeDef, unknown>
 
-/** Custom validator that can read both the current field value and all form values. */
+/** 自定义校验器，可同时读取当前字段值和全量表单值。 */
 export type FieldValidator<T extends object = FormValues, TValue = unknown> = (
   value: TValue,
   allValues: T,
 ) => FieldValidatorResult | Promise<FieldValidatorResult>
 
-/** Runtime token resolved by FormRuntime before rendering, validation, or submit. */
+/** FormRuntime 会在渲染、校验和提交前解析的 runtime token。 */
 export interface RuntimeToken<TValue = unknown, TType extends string = string> {
-  /** Token resolver key. */
+  /** token resolver 的匹配 key。 */
   readonly __configFormToken: TType
-  /** Phantom value type carried for TypeScript inference only. */
+  /** 仅用于 TypeScript 推导的 phantom 类型字段。 */
   readonly __configFormValue?: TValue
 }
 
-/** Text that can be static or deferred to runtime token resolution. */
+/** 可直接提供，也可延迟到 runtime token 中解析的文本。 */
 export type RuntimeText = string | RuntimeToken<string>
 
-/** Boolean field condition that can be static, token-based, or derived from values. */
+/** 字段布尔条件，支持静态值、runtime token 或基于 values 的派生函数。 */
 export type FieldCondition<T extends object = FormValues> = boolean | RuntimeToken<boolean> | ((values: T) => boolean)
 
-/** Primitive slot return values that Vue can render directly. */
+/** Vue 可直接渲染的 slot 原始返回值。 */
 export type SlotPrimitive = string | number | boolean | null | undefined
 
-/** Container node config: renders a component and slots without binding a form field. */
+/** 容器节点配置：只渲染组件和 slots，不绑定表单字段。 */
 export interface ComponentNodeConfig {
-  /** Vue component, function component, native tag, or runtime-registered component key. */
+  /** Vue 组件、function component、原生标签或 runtime 注册的组件 key。 */
   component: Component | FunctionalFieldComponent | string
-  /** Props passed to the rendered component after runtime token resolution. */
+  /** runtime token 解析后传给渲染组件的 props。 */
   props?: Record<string, unknown>
-  /** Child slots; nested form node configs must be created with defineField(...). */
+  /** 子级 slots；其中的表单节点配置必须由 defineField(...) 创建。 */
   slots?: Record<string, SlotContent>
 }
 
-/** Values accepted as direct slot output after runtime resolution. */
+/** runtime 解析后可作为 slot 直接输出的值。 */
 export type SlotRenderable = VNode | VNode[] | SlotPrimitive | RuntimeToken
 
-/** Full slot content contract for static nodes, arrays, render functions, and primitives. */
+/** 完整 slot 内容协议，覆盖静态节点、数组、渲染函数和原始值。 */
 export type SlotContent = SlotRenderFn | DefinedFormNodeConfig | DefinedFormNodeConfig[] | SlotRenderable
 
 /** 插槽渲染函数，接收作用域参数，返回 VNode(s)、容器节点或真实字段节点。 */
 export type SlotRenderFn = (scope?: Record<string, unknown>) => SlotContent
 
-// ===== FieldConfig：公开字段输入协议 =====
-
-/** Field node config: renders a component bound to one form value key. */
+/** 字段节点配置：渲染组件并绑定一个表单值 key。 */
 export interface FieldConfig extends ComponentNodeConfig {
-  /** Form value key controlled by this field. */
+  /** 当前字段控制的表单值 key。 */
   field: string
-  /** Field label rendered by the adapter; runtime tokens are resolved before render. */
+  /** 字段标签；runtime token 会在渲染前解析。 */
   label?: RuntimeText
-  /** Optional Zod schema used by validation. */
+  /** 字段校验使用的 Zod schema。 */
   schema?: ZodTypeAny
-  /** Grid span consumed by concrete UI adapters. */
+  /** 栅格跨度，由具体 UI 适配层消费。 */
   span?: number
-  /** Value inserted when the field is missing from the current model. */
+  /** 当前模型缺少该字段时写入的默认值。 */
   defaultValue?: unknown
   /** 注入到组件的值的属性名，默认 'modelValue' */
   valueProp?: string
@@ -89,15 +85,15 @@ export interface FieldConfig extends ComponentNodeConfig {
   getValueFromEvent?: (...args: unknown[]) => unknown
   /** 触发 blur 校验的事件名，默认 'blur' */
   blurTrigger?: string
-  /** Validation trigger list; submit is always included after normalization. */
+  /** 校验触发时机列表；规范化后一定包含 submit。 */
   validateOn?: ValidateTrigger | ValidateTrigger[]
-  /** Custom validator executed after schema validation. */
+  /** schema 校验后执行的自定义校验器。 */
   validator?: FieldValidator<FormValues, unknown>
-  /** Field visibility condition; hidden fields are skipped by validation/submit by default. */
+  /** 字段显隐条件；隐藏字段默认跳过校验和提交。 */
   visible?: FieldCondition<FormValues>
-  /** Field disabled condition; disabled fields are skipped by validation/submit by default. */
+  /** 字段禁用条件；禁用字段默认跳过校验和提交。 */
   disabled?: FieldCondition<FormValues>
-  /** Submit-time value mapper applied after validation passes. */
+  /** 提交校验通过后执行的字段值映射。 */
   transform?: (value: unknown, allValues: FormValues) => unknown
   /** 隐藏时仍参与 submit 输出，默认 false */
   submitWhenHidden?: boolean
@@ -105,18 +101,18 @@ export interface FieldConfig extends ComponentNodeConfig {
   submitWhenDisabled?: boolean
 }
 
-/** Any top-level ConfigForm node, including real fields and container nodes. */
+/** ConfigForm 顶层节点，可以是真实字段节点或容器节点。 */
 export type FormNodeConfig = FieldConfig | ComponentNodeConfig
 
-/** Non-enumerable brand added by defineField(...) and runtime resolution. */
+/** defineField(...) 和 runtime 解析写入的不可枚举 brand。 */
 export interface DefinedFormNodeBrand {
   readonly [CONFIG_FORM_DEFINED_NODE]: true
 }
 
-/** Form node config that has passed through defineField(...). */
+/** 已经过 defineField(...) 的表单节点配置。 */
 export type DefinedFormNodeConfig<TConfig extends FormNodeConfig = FormNodeConfig> = TConfig & DefinedFormNodeBrand
 
-/** Field config after defaults have been applied and scalar options normalized. */
+/** 已补全默认值并规范化标量选项后的字段配置。 */
 export interface NormalizedFieldConfig extends Omit<
   FieldConfig,
   'blurTrigger' | 'props' | 'span' | 'submitWhenDisabled' | 'submitWhenHidden' | 'trigger' | 'validateOn' | 'valueProp'
@@ -131,35 +127,31 @@ export interface NormalizedFieldConfig extends Omit<
   submitWhenDisabled: boolean
 }
 
-/** Render-ready field node after runtime component, token, prop, slot, and label resolution. */
+/** 组件、token、props、slots 和 label 全部解析后的可渲染字段节点。 */
 export interface ResolvedField extends Omit<NormalizedFieldConfig, 'label'> {
   label?: string
 }
 
-/** Render-ready container node after runtime component, prop, and slot resolution. */
+/** 组件、props 和 slots 全部解析后的可渲染容器节点。 */
 export interface ResolvedComponentNode extends Omit<ComponentNodeConfig, 'props'> {
   props: Record<string, unknown>
 }
 
-/** Any node returned by FormRuntime.resolveNode(...). */
+/** FormRuntime.resolveNode(...) 返回的节点类型。 */
 export type ResolvedFormNode = ResolvedField | ResolvedComponentNode
 
-/** String keys available on a typed form model. */
+/** 类型化表单模型中可用的字符串 key。 */
 export type FieldKey<T extends object> = Extract<keyof T, string>
 
-// ===== 表单组件类型 =====
-
-/** Props accepted by the ConfigForm Vue component. */
+/** ConfigForm Vue 组件接收的 props。 */
 export interface ConfigFormProps<T extends object = FormValues> {
-  /** CSS class namespace prefix; defaults to "cf". */
+  /** CSS 类名前缀，默认 "cf"。 */
   namespace?: string
-  /** Render fields in inline mode when supported by the adapter CSS. */
+  /** 在适配样式支持时以内联模式渲染字段。 */
   inline?: boolean
-  /**
-   * 表单字段配置
-   */
+  /** 表单字段配置。 */
   fields: FormNodeConfig[]
-  /** Label width forwarded to field layout. */
+  /** 传递给字段布局的 label 宽度。 */
   labelWidth?: string | number
   /** v-model 双向绑定表单值 */
   modelValue?: T
@@ -167,31 +159,31 @@ export interface ConfigFormProps<T extends object = FormValues> {
   runtime?: FormRuntimeOptions
 }
 
-/** Events emitted by ConfigForm. */
+/** ConfigForm 对外发出的事件。 */
 export interface ConfigFormEmits<T extends object = FormValues> {
   (e: 'submit', values: T): void
   (e: 'error', errors: FormErrors): void
   (e: 'update:modelValue', values: T): void
 }
 
-/** Methods exposed through ConfigForm template refs. */
+/** ConfigForm 通过模板 ref 暴露的方法。 */
 export interface ConfigFormExpose<T extends object = FormValues> {
-  /** Validate and emit submit/error events. */
+  /** 执行整表校验，并按结果触发 submit/error 事件。 */
   submit: () => Promise<boolean>
-  /** Validate all fields for submit. */
+  /** 按 submit 触发时机校验全部字段。 */
   validate: () => Promise<boolean>
-  /** Validate one field for the specified trigger. */
+  /** 按指定触发时机校验单个字段。 */
   validateField: (field: FieldKey<T> | string, trigger?: ValidateTrigger) => Promise<boolean>
-  /** Reset values to defaults and clear validation errors. */
+  /** 重置字段值为默认值并清空校验错误。 */
   reset: () => void
-  /** Set one field value and clear its validation error. */
+  /** 设置单个字段值并清除该字段校验错误。 */
   setValue: {
     <K extends FieldKey<T>>(field: K, value: T[K]): void
     (field: string, value: unknown): void
   }
-  /** Merge or replace form values, clearing errors for touched fields. */
+  /** 合并或替换表单值，并清除被写入字段的错误。 */
   setValues: (values: Partial<T>, replace?: boolean) => void
-  /** Read one field value. */
+  /** 读取单个字段值。 */
   getValue: {
     <K extends FieldKey<T>>(field: K): T[K]
     (field: string): unknown
@@ -202,7 +194,7 @@ export interface ConfigFormExpose<T extends object = FormValues> {
   clearValidate: (field?: FieldKey<T> | string) => void
 }
 
-/** Validation errors keyed by form field name. */
+/** 按字段名索引的校验错误。 */
 export interface FormErrors {
   [field: string]: string[]
 }

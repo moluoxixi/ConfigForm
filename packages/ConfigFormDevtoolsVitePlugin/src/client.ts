@@ -1,21 +1,27 @@
 import type {
   FormDevtoolsBridge,
   FormDevtoolsNode,
-  FormFieldPatchMetric,
+  FormNodeRenderMetric,
+  FormNodeSyncMetric,
 } from './types'
 
-/** Devtools node plus browser-only state kept by the overlay store. */
+/** devtools 节点加浏览器 overlay store 独有的状态。 */
 interface StoredNode extends FormDevtoolsNode {
+  avgRenderMs?: number
+  avgSyncMs?: number
   element: HTMLElement | null
-  lastPatchMs?: number
-  maxPatchMs?: number
-  avgPatchMs?: number
+  lastRenderMs?: number
+  lastRenderPhase?: FormNodeRenderMetric['phase']
+  lastSyncMs?: number
+  maxRenderMs?: number
+  maxSyncMs?: number
   order: number
   registrationOrder: number
-  samples: number
+  renderSamples: number
+  syncSamples: number
 }
 
-/** Aggregated state for one ConfigForm instance in the multi-form nav. */
+/** 多表单导航中单个 ConfigForm 实例的聚合状态。 */
 interface RootGroup {
   element?: HTMLElement
   formId: string
@@ -27,7 +33,7 @@ interface RootGroup {
   viewportScore: number
 }
 
-/** Mutable render state that tracks manual form selection between renders. */
+/** 跨渲染保存的可变状态，用来区分用户手动选择和自动选中。 */
 interface DevtoolsRenderState {
   activeFormId?: string
   activeFormSelectedByUser?: boolean
@@ -37,7 +43,8 @@ interface DevtoolsStore {
   nodes: Map<string, StoredNode>
   registerField: FormDevtoolsBridge['registerField']
   updateField: FormDevtoolsBridge['updateField']
-  recordPatch: FormDevtoolsBridge['recordPatch']
+  recordRender: FormDevtoolsBridge['recordRender']
+  recordSync: FormDevtoolsBridge['recordSync']
   unregisterField: FormDevtoolsBridge['unregisterField']
 }
 
@@ -78,7 +85,7 @@ const CONTEXT_SYNC_ATTRIBUTES = [
   'style',
 ]
 
-function formatPatch(value: number | undefined): string {
+function formatTiming(value: number | undefined): string {
   return typeof value === 'number' ? value.toFixed(2) : '--'
 }
 
@@ -221,10 +228,9 @@ function compareRootGroups(first: RootGroup, second: RootGroup): number {
 }
 
 /**
- * Return whether an element or ancestor is explicitly hidden from inspection.
+ * 判断元素或祖先节点是否被显式隐藏，不应参与自动巡检。
  *
- * This keeps display:none/v-show forms visible in nav as disabled items while
- * excluding them from automatic active-form selection.
+ * display:none/v-show 表单仍会留在导航中显示为禁用项，但不会自动成为当前表单。
  */
 function elementIsHiddenByState(element: HTMLElement): boolean {
   for (let current: HTMLElement | null = element; current; current = current.parentElement) {
@@ -254,10 +260,10 @@ function elementHasEnabledBox(element: HTMLElement): boolean {
 }
 
 /**
- * Score how strongly an element is visible in the viewport.
+ * 计算元素在当前视口中的可见强度。
  *
- * Visible area is the primary signal; distance from the viewport top is a
- * tie-breaker so stacked forms select the form the user is actually reading.
+ * 可见面积是主信号；距离视口顶部的距离只作为并列时的排序因素，
+ * 让堆叠表单优先选中用户正在阅读的那一个。
  */
 function elementViewportScore(element: HTMLElement): number {
   if (elementIsHiddenByState(element))
@@ -318,7 +324,10 @@ function ensureStyle() {
     .cf-devtools-nav-title { display: block; overflow: hidden; font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
     .cf-devtools-nav-meta { display: block; overflow: hidden; margin-top: 2px; color: #6b7280; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
     .cf-devtools-tree { min-width: 0; }
-    .cf-devtools-patch { font-variant-numeric: tabular-nums; font-size: 11px; color: #047857; }
+    .cf-devtools-timings { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-variant-numeric: tabular-nums; font-size: 11px; line-height: 1.15; }
+    .cf-devtools-timing { white-space: nowrap; }
+    .cf-devtools-timing.is-render { color: #047857; }
+    .cf-devtools-timing.is-sync { color: #2563eb; }
     .cf-devtools-open { width: 24px; height: 24px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; cursor: pointer; }
     .cf-devtools-open:disabled { opacity: .35; cursor: not-allowed; }
     .cf-devtools-highlight { position: fixed; display: none; box-sizing: border-box; border: 2px solid #38bdf8; background: rgba(56,189,248,.12); box-shadow: 0 0 0 9999px rgba(15,23,42,.08); pointer-events: none; border-radius: 4px; }
@@ -330,6 +339,8 @@ function ensureStyle() {
 function createStore(render: () => void): DevtoolsStore {
   const nodes = new Map<string, StoredNode>()
   const formRegistrationOrders = new Map<string, number>()
+  const pendingRenderMetrics = new Map<string, FormNodeRenderMetric[]>()
+  const pendingSyncMetrics = new Map<string, FormNodeSyncMetric[]>()
   let orderSeed = 0
   let formRegistrationOrderSeed = 0
 
@@ -351,32 +362,87 @@ function createStore(render: () => void): DevtoolsStore {
     formRegistrationOrders.delete(formId)
   }
 
+  function applyRenderMetric(node: StoredNode, metric: FormNodeRenderMetric) {
+    const total = (node.avgRenderMs ?? 0) * node.renderSamples + metric.duration
+    node.renderSamples += 1
+    node.lastRenderMs = metric.duration
+    node.lastRenderPhase = metric.phase
+    node.maxRenderMs = Math.max(node.maxRenderMs ?? metric.duration, metric.duration)
+    node.avgRenderMs = total / node.renderSamples
+  }
+
+  function applySyncMetric(node: StoredNode, metric: FormNodeSyncMetric) {
+    const total = (node.avgSyncMs ?? 0) * node.syncSamples + metric.duration
+    node.syncSamples += 1
+    node.lastSyncMs = metric.duration
+    node.maxSyncMs = Math.max(node.maxSyncMs ?? metric.duration, metric.duration)
+    node.avgSyncMs = total / node.syncSamples
+  }
+
+  function pushPendingMetric<TMetric>(pending: Map<string, TMetric[]>, metric: TMetric & { id: string }) {
+    const existing = pending.get(metric.id)
+    if (existing) {
+      existing.push(metric)
+      return
+    }
+
+    pending.set(metric.id, [metric])
+  }
+
+  function flushPendingMetrics(node: StoredNode) {
+    // render/sync 指标可能早于节点注册到达，注册时必须补记，避免刷新时丢样本。
+    const renderMetrics = pendingRenderMetrics.get(node.id)
+    if (renderMetrics) {
+      for (const metric of renderMetrics)
+        applyRenderMetric(node, metric)
+      pendingRenderMetrics.delete(node.id)
+    }
+
+    const syncMetrics = pendingSyncMetrics.get(node.id)
+    if (syncMetrics) {
+      for (const metric of syncMetrics)
+        applySyncMetric(node, metric)
+      pendingSyncMetrics.delete(node.id)
+    }
+  }
+
   function upsertNode(node: FormDevtoolsNode, element: HTMLElement | null) {
     const existing = nodes.get(node.id)
     assertCompatibleNode(existing, node)
-    nodes.set(node.id, {
+    const stored: StoredNode = {
       ...existing,
       ...node,
       element,
       order: node.order ?? existing?.order ?? ++orderSeed,
       registrationOrder: existing?.registrationOrder ?? resolveFormRegistrationOrder(node.formId),
-      samples: existing?.samples ?? 0,
-    })
+      renderSamples: existing?.renderSamples ?? 0,
+      syncSamples: existing?.syncSamples ?? 0,
+    }
+    nodes.set(node.id, stored)
+    flushPendingMetrics(stored)
     render()
   }
 
   return {
     nodes,
-    recordPatch(metric: FormFieldPatchMetric) {
+    recordRender(metric: FormNodeRenderMetric) {
       const node = nodes.get(metric.id)
-      if (!node)
+      if (!node) {
+        pushPendingMetric(pendingRenderMetrics, metric)
         return
+      }
 
-      const total = (node.avgPatchMs ?? 0) * node.samples + metric.duration
-      node.samples += 1
-      node.lastPatchMs = metric.duration
-      node.maxPatchMs = Math.max(node.maxPatchMs ?? metric.duration, metric.duration)
-      node.avgPatchMs = total / node.samples
+      applyRenderMetric(node, metric)
+      render()
+    },
+    recordSync(metric: FormNodeSyncMetric) {
+      const node = nodes.get(metric.id)
+      if (!node) {
+        pushPendingMetric(pendingSyncMetrics, metric)
+        return
+      }
+
+      applySyncMetric(node, metric)
       render()
     },
     registerField(node: FormDevtoolsNode, element: HTMLElement | null) {
@@ -385,6 +451,8 @@ function createStore(render: () => void): DevtoolsStore {
     unregisterField(id: string) {
       const existing = nodes.get(id)
       nodes.delete(id)
+      pendingRenderMetrics.delete(id)
+      pendingSyncMetrics.delete(id)
       if (existing)
         dropUnusedFormRegistrationOrder(existing.formId)
       render()
@@ -395,7 +463,7 @@ function createStore(render: () => void): DevtoolsStore {
   }
 }
 
-/** Group flat registered nodes by ConfigForm instance and compute nav metadata. */
+/** 按 ConfigForm 实例聚合扁平节点，并计算导航所需元数据。 */
 function collectRootGroups(store: DevtoolsStore): RootGroup[] {
   const groups = new Map<string, RootGroup>()
 
@@ -450,7 +518,7 @@ function groupIsDisabled(group: RootGroup): boolean {
   return group.hasInspectableElement && !group.hasEnabledElement
 }
 
-/** Pick the enabled form with the strongest current viewport visibility score. */
+/** 选出当前视口中可见强度最高的可用表单。 */
 function resolveViewportActiveGroup(groups: RootGroup[]): RootGroup | undefined {
   return groups.reduce<RootGroup | undefined>((best, group) => {
     if (groupIsDisabled(group) || group.viewportScore <= 0)
@@ -462,10 +530,9 @@ function resolveViewportActiveGroup(groups: RootGroup[]): RootGroup | undefined 
 }
 
 /**
- * Resolve the active form for rendering.
+ * 解析当前应渲染的表单。
  *
- * Manual nav selection is honored until external context changes reset it;
- * otherwise the visible-in-viewport score controls active selection.
+ * 用户手动选择会保持到外部上下文变化；没有手动选择时由视口可见强度决定。
  */
 function resolveActiveGroup(groups: RootGroup[], state: DevtoolsRenderState): RootGroup | undefined {
   const enabledGroups = groups.filter(group => !groupIsDisabled(group))
@@ -520,6 +587,22 @@ function createFormNavItem(
   return button
 }
 
+function createTimingRow(
+  label: 'render' | 'sync',
+  value: number | undefined,
+  avg: number | undefined,
+  max: number | undefined,
+  samples: number,
+): HTMLElement {
+  const item = document.createElement('span')
+  item.className = `cf-devtools-timing is-${label}`
+  item.textContent = `${label} ${formatTiming(value)} ms`
+  item.title = samples > 0
+    ? `${label}: avg ${formatTiming(avg)} ms, max ${formatTiming(max)} ms, samples ${samples}`
+    : `${label}: no samples`
+  return item
+}
+
 function createNodeRow(
   node: StoredNode,
   store: DevtoolsStore,
@@ -550,9 +633,12 @@ function createNodeRow(
   meta.className = 'cf-devtools-node-meta'
   meta.textContent = [node.label, node.slotName ? `slot:${node.slotName}` : undefined].filter(Boolean).join(' · ')
 
-  const patch = document.createElement('span')
-  patch.className = 'cf-devtools-patch'
-  patch.textContent = `${formatPatch(node.lastPatchMs)} ms`
+  const timings = document.createElement('div')
+  timings.className = 'cf-devtools-timings'
+  timings.append(
+    createTimingRow('render', node.lastRenderMs, node.avgRenderMs, node.maxRenderMs, node.renderSamples),
+    createTimingRow('sync', node.lastSyncMs, node.avgSyncMs, node.maxSyncMs, node.syncSamples),
+  )
 
   const open = document.createElement('button')
   open.className = 'cf-devtools-open'
@@ -604,7 +690,7 @@ function createNodeRow(
 
   text.append(key, meta)
   main.append(kind, text)
-  row.append(main, patch, open)
+  row.append(main, timings, open)
 
   const children = [...store.nodes.values()]
     .filter(item => item.parentId === node.id)
@@ -928,7 +1014,7 @@ function installExternalContextSync(root: HTMLElement, render: () => void, reset
   })
 }
 
-/** Install the browser overlay and return the global ConfigForm devtools bridge. */
+/** 安装浏览器 overlay，并返回全局 ConfigForm devtools bridge。 */
 export function installConfigFormDevtools(): FormDevtoolsBridge {
   if (typeof document === 'undefined')
     throw new Error('ConfigForm devtools client requires a browser document')
@@ -994,7 +1080,8 @@ export function installConfigFormDevtools(): FormDevtoolsBridge {
   const renderState: DevtoolsRenderState = {}
   const store = createStore(() => renderTree(body, store, highlight, setError, renderState))
   const bridge: FormDevtoolsBridge = {
-    recordPatch: store.recordPatch,
+    recordRender: store.recordRender,
+    recordSync: store.recordSync,
     registerField: store.registerField,
     unregisterField: store.unregisterField,
     updateField: store.updateField,

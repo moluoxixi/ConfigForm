@@ -18,8 +18,6 @@ import { ElTimePicker } from 'element-plus/es/components/time-picker/index.mjs'
 import { ElTimeSelect } from 'element-plus/es/components/time-select/index.mjs'
 import { ElTreeSelect } from 'element-plus/es/components/tree-select/index.mjs'
 
-// ===== 字段配置 =====
-
 const formRef = ref()
 const formValues = reactive<Record<string, unknown>>({})
 
