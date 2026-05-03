@@ -24,6 +24,7 @@ export default defineConfig({
   build: {
     lib: {
       entry: {
+        adapter: resolve(__dirname, 'src/adapter.ts'),
         client: resolve(__dirname, 'src/client.ts'),
         index: resolve(__dirname, 'index.ts'),
       },
@@ -43,6 +44,7 @@ export default defineConfig({
         'node:process',
         'node:url',
         'vite',
+        'vue',
       ],
     },
   },

@@ -580,4 +580,52 @@ describe('client overlay', () => {
     }, null)
     expect(document.body.textContent).toContain('更新创建')
   })
+
+  it('throws when a duplicate node id points to a different logical field', () => {
+    const bridge = installConfigFormDevtools()
+
+    bridge.registerField({
+      field: 'role',
+      formId: 'form-1',
+      id: 'node-1',
+      kind: 'field',
+    }, null)
+
+    expect(() => bridge.registerField({
+      field: 'status',
+      formId: 'form-1',
+      id: 'node-1',
+      kind: 'field',
+    }, null)).toThrow(/Conflicting devtools node id/)
+  })
+
+  it('throws when a duplicate node id points to a different source location', () => {
+    const bridge = installConfigFormDevtools()
+
+    bridge.registerField({
+      field: 'role',
+      formId: 'form-1',
+      id: 'node-1',
+      kind: 'field',
+      source: {
+        column: 1,
+        file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
+        id: 'source-1',
+        line: 1,
+      },
+    }, null)
+
+    expect(() => bridge.updateField({
+      field: 'role',
+      formId: 'form-1',
+      id: 'node-1',
+      kind: 'field',
+      source: {
+        column: 1,
+        file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
+        id: 'source-2',
+        line: 1,
+      },
+    }, null)).toThrow(/Conflicting devtools node id/)
+  })
 })

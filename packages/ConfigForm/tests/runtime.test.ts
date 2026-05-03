@@ -201,6 +201,29 @@ describe('form runtime', () => {
       .toThrow(/No token resolver registered/)
   })
 
+  it('rejects runtime token payloads that try to overwrite reserved metadata', () => {
+    expect(() => createRuntimeToken('message', {
+      __configFormToken: 'other',
+    } as never)).toThrow(/reserved runtime token key: __configFormToken/)
+
+    expect(() => createRuntimeToken('message', {
+      __configFormValue: 'phantom',
+    } as never)).toThrow(/reserved runtime token key: __configFormValue/)
+  })
+
+  it('rejects fields that use the same event for value and blur triggers', () => {
+    const runtime = createFormRuntime()
+    const field = defineField({
+      blurTrigger: 'commit',
+      component: 'input',
+      field: 'status',
+      trigger: 'commit',
+    })
+
+    expect(() => runtime.resolveField(field, runtime.createResolveSnap({ errors: {}, values: {} })))
+      .toThrow(/cannot use the same event for trigger and blurTrigger/)
+  })
+
   it('enforces duplicate plugin and component conflicts in strict mode', () => {
     expect(() => createFormRuntime({
       plugins: [{ name: 'dup' }, { name: 'dup' }],

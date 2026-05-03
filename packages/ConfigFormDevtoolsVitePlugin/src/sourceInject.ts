@@ -16,6 +16,7 @@ interface ScriptSegment {
 }
 
 interface InjectionEdit {
+  end?: number
   index: number
   text: string
 }
@@ -34,7 +35,7 @@ interface AstNode {
 }
 
 interface ImportDeclarationNode extends AstNode {
-  source: { value?: unknown }
+  source: AstNode & { value?: unknown }
   specifiers: AstNode[]
 }
 
@@ -110,6 +111,44 @@ function collectDefineFieldLocals(ast: AstNode, packageNames: string[]): Set<str
   }
 
   return locals
+}
+
+function collectImportSourceEdits(
+  segment: ScriptSegment,
+  id: string,
+  packageNames: string[],
+  adapterModuleId: string | undefined,
+): InjectionEdit[] {
+  if (!adapterModuleId)
+    return []
+
+  const ast = parseScript(segment.content, id)
+  const edits: InjectionEdit[] = []
+  const body = (ast as { program?: { body?: AstNode[] } }).program?.body ?? []
+
+  for (const node of body) {
+    if (node.type !== 'ImportDeclaration')
+      continue
+
+    const declaration = node as ImportDeclarationNode
+    if (typeof declaration.source.value !== 'string')
+      continue
+    if (!packageNames.includes(declaration.source.value))
+      continue
+    if (declaration.source.start == null || declaration.source.end == null) {
+      throw new ConfigFormDevtoolsPluginError(
+        `[config-form-devtools] Missing import source location in ${id}`,
+      )
+    }
+
+    edits.push({
+      end: segment.offset + declaration.source.end,
+      index: segment.offset + declaration.source.start,
+      text: JSON.stringify(adapterModuleId),
+    })
+  }
+
+  return edits
 }
 
 function getObjectKeyName(node: AstNode): string | undefined {
@@ -255,14 +294,21 @@ export function transformDefineFieldSource(options: SourceInjectionOptions) {
 
   const packageNames = options.packageNames ?? DEFAULT_PACKAGE_NAMES
   const segments = createScriptSegments(options.code, id)
-  const edits = segments.flatMap(segment => collectInjectionEdits(segment, id, packageNames))
+  const edits = segments.flatMap(segment => [
+    ...collectImportSourceEdits(segment, id, packageNames, options.adapterModuleId),
+    ...collectInjectionEdits(segment, id, packageNames),
+  ])
 
   if (edits.length === 0)
     return null
 
   const source = new MagicString(options.code)
-  for (const edit of edits)
-    source.appendLeft(edit.index, edit.text)
+  for (const edit of edits) {
+    if (edit.end == null)
+      source.appendLeft(edit.index, edit.text)
+    else
+      source.overwrite(edit.index, edit.end, edit.text)
+  }
 
   return {
     code: source.toString(),

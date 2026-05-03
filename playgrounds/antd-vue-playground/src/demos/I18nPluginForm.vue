@@ -113,6 +113,18 @@ function t(key: string, params?: Record<string, unknown>) {
   return renderTemplate(message, params)
 }
 
+function emptyStringToUndefined(value: unknown) {
+  if (typeof value !== 'string')
+    return value
+
+  const trimmed = value.trim()
+  return trimmed.length === 0 ? undefined : trimmed
+}
+
+function optionalText(schema: z.ZodString = z.string()) {
+  return z.preprocess(emptyStringToUndefined, schema.optional())
+}
+
 const runtimeOptions = {
   plugins: [
     createI18nPlugin({
@@ -166,7 +178,7 @@ const fields = computed(() => [
   defineField({
     field: 'email',
     validateOn: 'blur',
-    schema: z.string().email(t('i18n.email.invalid')).optional(),
+    schema: optionalText(z.string().email(t('i18n.email.invalid'))),
     span: 12,
     component: Input,
     ...v,
@@ -175,11 +187,11 @@ const fields = computed(() => [
       allowClear: true,
       placeholder: i18n('i18n.email.placeholder', { defaultMessage: '请输入邮箱' }),
     },
-    transform: value => value?.trim(),
+    transform: emptyStringToUndefined,
   }),
   defineField({
     field: 'role',
-    schema: z.string().min(1, t('i18n.role.required')).optional(),
+    schema: z.preprocess(emptyStringToUndefined, z.string().min(1, t('i18n.role.required')).optional()),
     span: 12,
     component: Select,
     ...v,
@@ -196,7 +208,7 @@ const fields = computed(() => [
   }),
   defineField({
     field: 'phone',
-    schema: z.string().optional(),
+    schema: optionalText(),
     span: 12,
     component: Input,
     ...v,
@@ -205,10 +217,11 @@ const fields = computed(() => [
       allowClear: true,
       placeholder: i18n('i18n.phone.placeholder', { defaultMessage: '请输入手机号' }),
     },
+    transform: emptyStringToUndefined,
   }),
   defineField({
     field: 'gender',
-    schema: z.string().optional(),
+    schema: z.preprocess(emptyStringToUndefined, z.string().optional()),
     span: 12,
     component: RadioGroup,
     ...v,
@@ -223,7 +236,7 @@ const fields = computed(() => [
   }),
   defineField({
     field: 'suggestion',
-    schema: z.string().optional(),
+    schema: optionalText(),
     span: 12,
     component: Input,
     ...v,
@@ -232,10 +245,11 @@ const fields = computed(() => [
       allowClear: true,
       placeholder: i18n('i18n.suggestion.placeholder', { defaultMessage: '请输入建议' }),
     },
+    transform: emptyStringToUndefined,
   }),
   defineField({
     field: 'custom',
-    schema: z.string().optional(),
+    schema: optionalText(),
     span: 12,
     component: Input,
     ...v,
@@ -247,6 +261,7 @@ const fields = computed(() => [
       allowClear: true,
       placeholder: i18n('i18n.custom.placeholder', { defaultMessage: '自定义 translate' }),
     },
+    transform: emptyStringToUndefined,
   }),
 ])
 

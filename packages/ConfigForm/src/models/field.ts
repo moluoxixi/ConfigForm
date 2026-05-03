@@ -67,14 +67,23 @@ export function normalizeValidateOn(on?: ValidateTrigger | ValidateTrigger[]): V
 }
 
 export function normalizeField(input: FieldConfig): NormalizedFieldConfig {
+  const trigger = input.trigger || 'update:modelValue'
+  const blurTrigger = input.blurTrigger || 'blur'
+
+  if (trigger === blurTrigger) {
+    throw new Error(
+      `Field "${input.field}" cannot use the same event for trigger and blurTrigger: ${trigger}`,
+    )
+  }
+
   return {
     ...input,
-    blurTrigger: input.blurTrigger || 'blur',
+    blurTrigger,
     props: input.props ?? {},
     span: input.span ?? 24,
     submitWhenDisabled: input.submitWhenDisabled ?? false,
     submitWhenHidden: input.submitWhenHidden ?? false,
-    trigger: input.trigger || 'update:modelValue',
+    trigger,
     validateOn: normalizeValidateOn(input.validateOn),
     valueProp: input.valueProp || 'modelValue',
   }

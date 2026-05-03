@@ -16,14 +16,16 @@
     "dist"
   ],
   "scripts": {
-    "build": "vite build && vue-tsc -p tsconfig.app.json --declaration --emitDeclarationOnly --outDir dist",
+    "build": "vite build && node ../../scripts/remove-tsbuildinfo.mjs .tsbuildinfo/tsconfig.app.tsbuildinfo && vue-tsc -p tsconfig.app.json --declaration --emitDeclarationOnly --outDir dist",
     "dev": "vite build --watch",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "typecheck": "vue-tsc -p tsconfig.test.json --noEmit"
   },
   "peerDependencies": {
-    "vite": "^6.2.0"
+    "@moluoxixi/config-form": "^0.1.0",
+    "vite": "^6.2.0",
+    "vue": "^3.5.0"
   },
   "dependencies": {
     "@babel/parser": "catalog:dev",
@@ -31,12 +33,14 @@
     "magic-string": "catalog:dev"
   },
   "devDependencies": {
+    "@moluoxixi/config-form": "workspace:*",
     "@types/node": "catalog:type",
     "@vitest/coverage-v8": "catalog:dev",
     "happy-dom": "catalog:dev",
     "typescript": "catalog:dev",
     "vite": "catalog:dev",
     "vitest": "catalog:dev",
+    "vue": "catalog:build",
     "vue-tsc": "catalog:dev"
   },
   "publishConfig": {

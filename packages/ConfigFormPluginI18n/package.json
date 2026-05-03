@@ -16,7 +16,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "vite build && vue-tsc -p tsconfig.app.json --declaration --emitDeclarationOnly --outDir dist",
+    "build": "vite build && node ../../scripts/remove-tsbuildinfo.mjs .tsbuildinfo/tsconfig.app.tsbuildinfo && vue-tsc -p tsconfig.app.json --declaration --emitDeclarationOnly --outDir dist",
     "dev": "vite build --watch",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",

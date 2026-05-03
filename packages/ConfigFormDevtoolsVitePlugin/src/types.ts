@@ -44,6 +44,7 @@ export interface ConfigFormDevtoolsTransformResult {
 export interface SourceInjectionOptions {
   code: string
   id: string
+  adapterModuleId?: string
   packageNames?: string[]
 }
 

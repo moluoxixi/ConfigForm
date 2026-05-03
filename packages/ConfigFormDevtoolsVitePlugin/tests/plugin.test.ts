@@ -33,6 +33,27 @@ describe('configFormDevtools vite plugin', () => {
     expect(result).toMatchObject({
       code: expect.stringContaining('__source'),
     })
+    expect(result).toMatchObject({
+      code: expect.stringContaining('virtual:config-form-devtools/config-form'),
+    })
+  })
+
+  it('rewrites ConfigForm imports even when a file has no defineField calls', () => {
+    const plugin = configFormDevtools()
+    const transform = plugin.transform
+
+    if (typeof transform !== 'function')
+      throw new Error('Expected transform hook to be a function')
+
+    const result = transform.call(
+      {} as never,
+      'import { ConfigForm } from \'@moluoxixi/config-form\'\nexport const view = ConfigForm',
+      'D:/project-new/ConfigForm/playgrounds/demo.ts',
+    )
+
+    expect(result).toMatchObject({
+      code: expect.stringContaining('virtual:config-form-devtools/config-form'),
+    })
   })
 
   it('skips node_modules and unsupported files in the transform hook', () => {
@@ -121,5 +142,21 @@ describe('configFormDevtools vite plugin', () => {
 
     expect(String(load.call({} as never, resolved as string))).toContain('installConfigFormDevtools')
     expect(load.call({} as never, '\0virtual:other')).toBeNull()
+  })
+
+  it('resolves and loads the virtual ConfigForm devtools adapter module', () => {
+    const plugin = configFormDevtools()
+    const resolveId = plugin.resolveId
+    const load = plugin.load
+
+    if (typeof resolveId !== 'function' || typeof load !== 'function')
+      throw new Error('Expected resolveId and load hooks to be functions')
+
+    const resolved = resolveId.call({} as never, 'virtual:config-form-devtools/config-form', undefined, {} as never)
+    expect(resolved).toBe('\0virtual:config-form-devtools/config-form')
+
+    const code = String(load.call({} as never, resolved as string))
+    expect(code).toContain('createDevtoolsConfigFormAdapter')
+    expect(code).toContain('@moluoxixi/config-form')
   })
 })

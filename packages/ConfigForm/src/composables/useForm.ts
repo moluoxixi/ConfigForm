@@ -1,6 +1,6 @@
 import type { MaybeRef, Ref } from 'vue'
 import type { FormRuntimeOptions } from '@/runtime'
-import type { FieldKey, FormErrors, FormNodeConfig, FormValues, ValidateTrigger } from '@/types'
+import type { FieldConfig, FieldKey, FormErrors, FormNodeConfig, FormValues, ValidateTrigger } from '@/types'
 import { computed, reactive, ref, toRaw, toValue, watch } from 'vue'
 import { normalizeFormRuntime } from '@/composables/useRuntime'
 import { applyFieldTransform, shouldValidateOn } from '@/models/field'
@@ -43,6 +43,16 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     }
   }
 
+  function syncErrorsToFields(fields: readonly Pick<FieldConfig, 'field'>[]) {
+    const fieldNames = new Set(fields.map(field => field.field))
+    const nextErrors = Object.fromEntries(
+      Object.entries(errors.value).filter(([field]) => fieldNames.has(field)),
+    )
+
+    if (Object.keys(nextErrors).length !== Object.keys(errors.value).length)
+      errors.value = nextErrors
+  }
+
   // ── 初始化 ───────────────────────────────────────────────────
 
   function syncValues(next: FormValues) {
@@ -80,6 +90,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
 
   function syncFieldTopology() {
     initValues({ ...toRaw(values) }, true)
+    syncErrorsToFields(fieldConfigs.value)
   }
 
   watch(
@@ -151,8 +162,10 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
   async function validateSingleField(fieldName: string, trigger: ValidateTrigger): Promise<boolean> {
     const config = fieldConfigs.value.find(f => f.field === fieldName)
     const field = config ? runtimeRef.value.transformField(config) : undefined
-    if (!field?.schema && !field?.validator)
+    if (!field?.schema && !field?.validator) {
+      clearFieldError(fieldName)
       return true
+    }
 
     const snap = { ...values }
     const resolveSnap = createResolveSnap(snap)

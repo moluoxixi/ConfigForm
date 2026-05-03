@@ -35,6 +35,7 @@ import {
 } from '@/models/node'
 
 const CONFIG_FORM_TRANSFORMED_FIELD = Symbol('moluoxixi.config-form.transformed-field')
+const RUNTIME_TOKEN_RESERVED_KEYS = ['__configFormToken', '__configFormValue'] as const
 
 interface RuntimeHook<THandler extends (...args: never[]) => unknown> {
   handler: THandler
@@ -59,6 +60,11 @@ export function createRuntimeToken<TValue = unknown, TType extends string = stri
   type: TType,
   payload: Record<string, unknown> = {},
 ): RuntimeToken<TValue, TType> & Record<string, unknown> {
+  for (const key of RUNTIME_TOKEN_RESERVED_KEYS) {
+    if (Object.hasOwn(payload, key))
+      throw new TypeError(`Payload cannot contain reserved runtime token key: ${key}`)
+  }
+
   return {
     __configFormToken: type,
     ...payload,

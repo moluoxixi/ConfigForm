@@ -89,6 +89,26 @@ function viewportHeight(): number {
   return Math.max(BUBBLE_SIZE, window.innerHeight || document.documentElement.clientHeight || BUBBLE_SIZE)
 }
 
+function assertCompatibleNode(existing: FormDevtoolsNode | undefined, next: FormDevtoolsNode) {
+  if (!existing)
+    return
+
+  const keys: Array<keyof FormDevtoolsNode> = ['formId', 'kind', 'field', 'component', 'parentId']
+  for (const key of keys) {
+    if (existing[key] !== undefined && next[key] !== undefined && existing[key] !== next[key]) {
+      throw new Error(
+        `Conflicting devtools node id: ${next.id} changed ${key} from ${String(existing[key])} to ${String(next[key])}`,
+      )
+    }
+  }
+
+  if (existing.source && next.source && existing.source.id !== next.source.id) {
+    throw new Error(
+      `Conflicting devtools node id: ${next.id} changed source from ${existing.source.id} to ${next.source.id}`,
+    )
+  }
+}
+
 function ensureStyle() {
   if (document.getElementById(STYLE_ID))
     return
@@ -145,6 +165,7 @@ function createStore(render: () => void): DevtoolsStore {
     },
     registerField(node: FormDevtoolsNode, element: HTMLElement | null) {
       const existing = nodes.get(node.id)
+      assertCompatibleNode(existing, node)
       nodes.set(node.id, {
         ...existing,
         ...node,
@@ -160,6 +181,7 @@ function createStore(render: () => void): DevtoolsStore {
     },
     updateField(node: FormDevtoolsNode, element: HTMLElement | null) {
       const existing = nodes.get(node.id)
+      assertCompatibleNode(existing, node)
       nodes.set(node.id, {
         ...existing,
         ...node,

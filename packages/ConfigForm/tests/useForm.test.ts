@@ -259,6 +259,53 @@ describe('useForm', () => {
     })
   })
 
+  it('clears stale errors when validation rules are removed from a field', async () => {
+    const fields = ref<FormNodeConfig[]>([
+      defineField({
+        component: 'input',
+        field: 'name',
+        schema: z.string().min(2, '姓名至少 2 个字符'),
+      }),
+    ])
+
+    const form = useForm({ fields })
+
+    await expect(form.validateSingleField('name', 'submit')).resolves.toBe(false)
+    expect(form.errors.value.name).toEqual(['Required'])
+
+    fields.value = [
+      defineField({
+        component: 'input',
+        field: 'name',
+      }),
+    ]
+    await nextTick()
+
+    await expect(form.validateSingleField('name', 'submit')).resolves.toBe(true)
+    expect(form.errors.value.name).toBeUndefined()
+  })
+
+  it('prunes errors when fields are removed from the topology', async () => {
+    const fields = ref<FormNodeConfig[]>([
+      defineField({
+        component: 'input',
+        field: 'name',
+        schema: z.string().min(2, '姓名至少 2 个字符'),
+      }),
+    ])
+
+    const form = useForm({ fields })
+
+    await expect(form.validateSingleField('name', 'submit')).resolves.toBe(false)
+    expect(form.errors.value.name).toEqual(['Required'])
+
+    fields.value = []
+    await nextTick()
+
+    expect(form.getValues()).toEqual({})
+    expect(form.errors.value).toEqual({})
+  })
+
   it('skips inactive single-field validation unless the field opts into submit validation', async () => {
     const fields = ref([
       defineField({
