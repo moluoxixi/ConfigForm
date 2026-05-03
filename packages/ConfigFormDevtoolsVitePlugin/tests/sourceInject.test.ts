@@ -189,6 +189,39 @@ describe('defineField source injection', () => {
     expect(result?.code).toContain('line: 4')
   })
 
+  it('injects source metadata into nested slot container and input nodes', () => {
+    const result = transformDefineFieldSource({
+      code: [
+        '<script setup lang="ts">',
+        'import { defineField } from \'@moluoxixi/config-form\'',
+        'const fields = [',
+        '  defineField({',
+        '    component: OuterContainer,',
+        '    slots: {',
+        '      default: () => [',
+        '        defineField({',
+        '          component: InnerContainer,',
+        '          slots: {',
+        '            default: [',
+        '              defineField({ field: \'nestedInput\', component: Input })',
+        '            ],',
+        '          },',
+        '        }),',
+        '      ],',
+        '    },',
+        '  }),',
+        ']',
+        '</script>',
+      ].join('\n'),
+      id: VUE_FILE,
+    })
+
+    expect(result?.code.match(/__source/g)).toHaveLength(3)
+    expect(result?.code).toContain('line: 4')
+    expect(result?.code).toContain('line: 8')
+    expect(result?.code).toContain('line: 12')
+  })
+
   it('returns null for Vue files without script blocks', () => {
     const result = transformDefineFieldSource({
       code: '<template><div /></template>',

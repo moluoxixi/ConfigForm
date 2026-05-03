@@ -13,7 +13,7 @@ const source = {
 
 interface FieldStub {
   component: unknown
-  field: string
+  field?: string
   label?: unknown
   slots?: Record<string, unknown>
   __source?: typeof source
@@ -52,7 +52,7 @@ const CoreConfigForm = defineComponent({
 function mountAdapter(fields: FieldStub[]) {
   const Adapter = createDevtoolsConfigFormAdapter({
     ConfigForm: CoreConfigForm as Component,
-    collectFieldConfigs: nodes => nodes as FieldStub[],
+    collectFieldConfigs: nodes => nodes as never,
   })
   const root = document.createElement('div')
   document.body.append(root)
@@ -70,7 +70,7 @@ function mountAdapter(fields: FieldStub[]) {
 function createAdapter() {
   return createDevtoolsConfigFormAdapter({
     ConfigForm: CoreConfigForm as Component,
-    collectFieldConfigs: nodes => nodes as FieldStub[],
+    collectFieldConfigs: nodes => nodes as never,
   })
 }
 
@@ -184,6 +184,75 @@ describe('configForm devtools adapter', () => {
       parentId: fieldNode.id,
       slotName: 'default',
       source: childSource,
+    })
+  })
+
+  it('registers nested slot containers and final input nodes with source metadata', async () => {
+    const bridge = createBridge()
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
+    const outerSource = {
+      ...source,
+      id: 'source-outer',
+      line: 20,
+    }
+    const innerSource = {
+      ...source,
+      id: 'source-inner',
+      line: 24,
+    }
+    const inputSource = {
+      ...source,
+      id: 'source-input',
+      line: 28,
+    }
+
+    mountAdapter([
+      {
+        __source: outerSource,
+        component: { name: 'OuterContainer' },
+        slots: {
+          default: [
+            {
+              __source: innerSource,
+              component: { name: 'InnerContainer' },
+              slots: {
+                default: [
+                  {
+                    __source: inputSource,
+                    component: 'input',
+                    field: 'nestedInput',
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+    ])
+    await nextTick()
+    await nextTick()
+
+    const outerNode = bridge.registerField.mock.calls.find(([node]) => node.component === 'OuterContainer')?.[0]
+    const innerNode = bridge.registerField.mock.calls.find(([node]) => node.component === 'InnerContainer')?.[0]
+    const inputNode = bridge.registerField.mock.calls.find(([node]) => node.field === 'nestedInput')?.[0]
+
+    expect(outerNode).toMatchObject({
+      kind: 'component',
+      parentId: undefined,
+      source: outerSource,
+    })
+    expect(innerNode).toMatchObject({
+      kind: 'component',
+      parentId: outerNode.id,
+      slotName: 'default',
+      source: innerSource,
+    })
+    expect(inputNode).toMatchObject({
+      field: 'nestedInput',
+      kind: 'field',
+      parentId: innerNode.id,
+      slotName: 'default',
+      source: inputSource,
     })
   })
 

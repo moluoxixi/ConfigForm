@@ -4,6 +4,7 @@ import { defineAsyncComponent, ref } from 'vue'
 const GridForm = defineAsyncComponent(() => import('./demos/GridForm.vue'))
 const I18nPluginForm = defineAsyncComponent(() => import('./demos/I18nPluginForm.vue'))
 const InlineForm = defineAsyncComponent(() => import('./demos/InlineForm.vue'))
+const NestedCardCheckboxForm = defineAsyncComponent(() => import('./demos/NestedCardCheckboxForm.vue'))
 
 const activeTab = ref('grid')
 </script>
@@ -16,6 +17,9 @@ const activeTab = ref('grid')
       </a-tab-pane>
       <a-tab-pane key="inline" tab="antd Inline 模式">
         <InlineForm />
+      </a-tab-pane>
+      <a-tab-pane key="nested-card-checkbox" tab="antd Card 嵌套 Checkbox">
+        <NestedCardCheckboxForm />
       </a-tab-pane>
       <a-tab-pane key="i18n" tab="antd i18n 插件">
         <I18nPluginForm />
