@@ -19,6 +19,7 @@ const { b, m } = useBem(namespaceRef)
 
 const rawNodes = computed(() => props.fields)
 const initialValues = computed(() => props.modelValue)
+const runtimeOptions = computed(() => props.runtime)
 const runtimeRef = computed(() => normalizeFormRuntime(props.runtime))
 provideRuntime(runtimeRef)
 
@@ -39,18 +40,18 @@ const {
 } = useForm({
   fields: rawNodes,
   initialValues,
-  runtime: runtimeRef,
+  runtime: runtimeOptions,
   onSubmit: vals => emit('submit', vals as T),
   onError: errs => emit('error', errs),
 })
 
-const runtimeContext = computed(() => runtimeRef.value.createContext({
+const resolveSnap = computed(() => runtimeRef.value.createResolveSnap({
   errors: errors.value,
   values: { ...values },
 }))
 
 const resolvedNodes = computed(() =>
-  rawNodes.value.map((node, index) => runtimeRef.value.resolveNode(node, runtimeContext.value, `fields.${index}`)),
+  rawNodes.value.map((node, index) => runtimeRef.value.resolveNode(node, resolveSnap.value, `fields.${index}`)),
 )
 
 function nodeKey(node: typeof resolvedNodes.value[number], index: number): string {
@@ -99,7 +100,7 @@ defineExpose<ConfigFormExpose<T>>({
         :disabled-map="disabledMap"
         :inline="inline"
         :label-width="resolveLabelWidth(labelWidth)"
-        :runtime-context="runtimeContext"
+        :resolve-snap="resolveSnap"
         @update:field-value="(field: string, val: unknown) => setValue(field, val)"
         @field-blur="(name: string) => validateSingleField(name, 'blur')"
         @field-change="(name: string) => validateSingleField(name, 'change')"

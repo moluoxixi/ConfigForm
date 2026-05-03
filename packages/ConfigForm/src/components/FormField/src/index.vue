@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FormRuntimeContext } from '@/runtime'
+import type { FormRuntimeResolveSnap } from '@/runtime'
 import type { ResolvedField } from '@/types'
 import { computed } from 'vue'
 import { useBem, useNamespace } from '@/composables/useNamespace'
@@ -18,8 +18,8 @@ const props = defineProps<{
   visible?: boolean
   /** 由父层 disabledMap 计算传入 */
   disabled?: boolean
-  /** 当前表单运行时上下文，递归字段会沿用它 */
-  runtimeContext?: FormRuntimeContext
+  /** 当前解析快照，递归字段会沿用它 */
+  resolveSnap?: FormRuntimeResolveSnap
 }>()
 
 const emit = defineEmits<{
@@ -32,8 +32,8 @@ const ns = useNamespace()
 const { b, e, m } = useBem(ns)
 const runtimeRef = useRuntime()
 
-const currentRuntimeContext = computed<FormRuntimeContext>(() => {
-  const base = props.runtimeContext ?? runtimeRef.value.createContext()
+const currentResolveSnap = computed<FormRuntimeResolveSnap>(() => {
+  const base = props.resolveSnap ?? runtimeRef.value.createResolveSnap()
   return {
     ...base,
     field: props.field,
@@ -107,7 +107,7 @@ function onBlur() {
       <slot
         :component-attrs="componentAttrs"
         :component-listeners="componentListeners"
-        :runtime-context="currentRuntimeContext"
+        :resolve-snap="currentResolveSnap"
       >
         <component
           :is="field.component"

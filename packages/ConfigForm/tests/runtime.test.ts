@@ -1,4 +1,4 @@
-import type { FormRuntimeContext } from '../src/runtime'
+import type { FormRuntimeResolveSnap } from '../src/runtime'
 import type { RuntimeToken } from '../src/types'
 import { describe, expect, it } from 'vitest'
 import { defineComponent, h, markRaw } from 'vue'
@@ -50,18 +50,18 @@ function getByPath(source: unknown, path: string): unknown {
   }, source)
 }
 
-function resolveContextPath(path: string, context: FormRuntimeContext): unknown {
+function resolveSnapPath(path: string, resolveSnap: FormRuntimeResolveSnap): unknown {
   const roots: Record<string, unknown> = {
-    errors: context.errors,
-    field: context.field,
-    slotName: context.slotName,
-    slotScope: context.slotScope,
-    values: context.values,
+    errors: resolveSnap.errors,
+    field: resolveSnap.field,
+    slotName: resolveSnap.slotName,
+    slotScope: resolveSnap.slotScope,
+    values: resolveSnap.values,
   }
   const firstSegment = path.split('.')[0]
   const source = firstSegment && Object.hasOwn(roots, firstSegment)
     ? roots
-    : context.values
+    : resolveSnap.values
   return getByPath(source, path)
 }
 
@@ -89,21 +89,21 @@ describe('form runtime', () => {
         {
           name: 'test-paths',
           tokens: {
-            path: (token, context) => {
+            path: (token, resolveSnap) => {
               const pathToken = token as PathToken
-              const value = resolveContextPath(pathToken.path, context)
+              const value = resolveSnapPath(pathToken.path, resolveSnap)
               return value === undefined ? pathToken.fallback : value
             },
-            roleIs: (token, context) => context.values.role === (token as RoleIsToken).role,
+            roleIs: (token, resolveSnap) => resolveSnap.values.role === (token as RoleIsToken).role,
           },
         },
         {
           name: 'test-messages',
           tokens: {
-            message: (token, context, path, helpers) => {
+            message: (token, resolveSnap, path, helpers) => {
               const { fallback, key, params: rawParams } = token as MessageToken
               const params = rawParams
-                ? helpers.resolveValue(rawParams, context, `${path}.params`) as Record<string, unknown>
+                ? helpers.resolveValue(rawParams, resolveSnap, `${path}.params`) as Record<string, unknown>
                 : undefined
               if (key === 'fields.name')
                 return `用户名-${String(params?.name)}`
@@ -174,8 +174,8 @@ describe('form runtime', () => {
       },
     })
 
-    const ctx = runtime.createContext({ errors: {}, values: { role: 'admin' } })
-    const resolved = runtime.resolveField(field, ctx)
+    const resolveSnap = runtime.createResolveSnap({ errors: {}, values: { role: 'admin' } })
+    const resolved = runtime.resolveField(field, resolveSnap)
 
     expect(resolved.component).toBe(RuntimeInput)
     expect(resolved.label).toBe('用户名-Ada')
@@ -185,8 +185,8 @@ describe('form runtime', () => {
       placeholder: 'Name placeholder',
     })
     expect(resolved.slots?.default).toBe('Default slot')
-    expect(runtime.resolveVisible(field, ctx)).toBe(true)
-    expect(runtime.resolveDisabled(field, ctx)).toBe(false)
+    expect(runtime.resolveVisible(field, resolveSnap)).toBe(true)
+    expect(runtime.resolveDisabled(field, resolveSnap)).toBe(false)
   })
 
   it('throws when runtime tokens are used without a resolver', () => {
@@ -197,7 +197,7 @@ describe('form runtime', () => {
       label: message('field.name', 'Name'),
     })
 
-    expect(() => runtime.resolveField(field, runtime.createContext({ errors: {}, values: {} })))
+    expect(() => runtime.resolveField(field, runtime.createResolveSnap({ errors: {}, values: {} })))
       .toThrow(/No token resolver registered/)
   })
 
@@ -223,7 +223,7 @@ describe('form runtime', () => {
     const runtime = createFormRuntime()
     const field = defineField({ component: 'MissingInput', field: 'name' })
 
-    expect(() => runtime.resolveField(field, runtime.createContext({ errors: {}, values: {} })))
+    expect(() => runtime.resolveField(field, runtime.createResolveSnap({ errors: {}, values: {} })))
       .toThrow(/Unknown component key: MissingInput/)
   })
 
@@ -233,9 +233,9 @@ describe('form runtime', () => {
         {
           name: 'test-paths',
           tokens: {
-            path: (token, context) => {
+            path: (token, resolveSnap) => {
               const pathToken = token as PathToken
-              const value = resolveContextPath(pathToken.path, context)
+              const value = resolveSnapPath(pathToken.path, resolveSnap)
               return value === undefined ? pathToken.fallback : value
             },
           },
@@ -250,33 +250,33 @@ describe('form runtime', () => {
       slots: { default: 'base' },
       visible: false,
     })
-    const ctx = runtime.createContext({ errors: {}, values: { flag: 'from-values' } })
-    const resolved = runtime.resolveField(field, ctx)
+    const resolveSnap = runtime.createResolveSnap({ errors: {}, values: { flag: 'from-values' } })
+    const resolved = runtime.resolveField(field, resolveSnap)
     const vnode = h('span', 'kept')
 
     expect(resolved.props?.flag).toBe('from-values')
     expect(resolved.slots?.default).toBe('base')
-    expect(runtime.resolveSlot(defineField({ component: 'input', field: 'slotField' }), ctx)).toMatchObject({
+    expect(runtime.resolveSlot(defineField({ component: 'input', field: 'slotField' }), resolveSnap)).toMatchObject({
       component: 'input',
       field: 'slotField',
       valueProp: 'modelValue',
     })
-    expect(runtime.resolveSlot(vnode, ctx)).toBe(vnode)
-    expect(runtime.resolveVisible(field, ctx)).toBe(false)
-    expect(runtime.resolveDisabled(field, ctx)).toBe(true)
+    expect(runtime.resolveSlot(vnode, resolveSnap)).toBe(vnode)
+    expect(runtime.resolveVisible(field, resolveSnap)).toBe(false)
+    expect(runtime.resolveDisabled(field, resolveSnap)).toBe(true)
   })
 
-  it('exposes the current slot name through runtime context while resolving slots', () => {
+  it('exposes the current slot name through resolve snap while resolving slots', () => {
     const seenSlotNames: Array<string | undefined> = []
     const slotNameToken = createRuntimeToken<string | undefined, 'slotName'>('slotName')
     const runtime = createFormRuntime({
       plugins: [
         {
-          name: 'slot-context',
+          name: 'slot-snap',
           tokens: {
-            slotName: (_token, context) => {
-              seenSlotNames.push(context.slotName)
-              return context.slotName
+            slotName: (_token, resolveSnap) => {
+              seenSlotNames.push(resolveSnap.slotName)
+              return resolveSnap.slotName
             },
           },
         },
@@ -291,36 +291,36 @@ describe('form runtime', () => {
       },
     })
 
-    const resolved = runtime.resolveField(field, runtime.createContext({ errors: {}, values: {} }))
+    const resolved = runtime.resolveField(field, runtime.createResolveSnap({ errors: {}, values: {} }))
 
     expect(seenSlotNames).toEqual(['default', 'suffix'])
     expect(resolved.slots?.default).toBe('default')
     expect(resolved.slots?.suffix).toBe('suffix')
   })
 
-  it('keeps runtime context limited to form and slot data', () => {
+  it('keeps resolve snap limited to form and slot data', () => {
     const slotScopeLabel = createRuntimeToken<string | undefined, 'slotScopeLabel'>('slotScopeLabel')
     const runtime = createFormRuntime({
       plugins: [
         {
           name: 'slot-scope-label',
           tokens: {
-            slotScopeLabel: (_token, context) => context.slotScope?.label,
+            slotScopeLabel: (_token, resolveSnap) => resolveSnap.slotScope?.label,
           },
         },
       ],
     })
-    const context = runtime.createContext({
+    const resolveSnap = runtime.createResolveSnap({
       errors: {},
       slotScope: { label: '作用域' },
       values: {},
     })
 
-    expect(context).not.toHaveProperty('locale')
-    expect(context).not.toHaveProperty('meta')
-    expect(context).not.toHaveProperty('plugins')
-    expect(context.slotScope).toEqual({ label: '作用域' })
-    expect(runtime.resolveValue(slotScopeLabel, context)).toBe('作用域')
+    expect(resolveSnap).not.toHaveProperty('locale')
+    expect(resolveSnap).not.toHaveProperty('meta')
+    expect(resolveSnap).not.toHaveProperty('plugins')
+    expect(resolveSnap.slotScope).toEqual({ label: '作用域' })
+    expect(runtime.resolveValue(slotScopeLabel, resolveSnap)).toBe('作用域')
   })
 
   it('does not re-run field transforms for already resolved slot nodes', () => {
@@ -346,18 +346,18 @@ describe('form runtime', () => {
         }),
       },
     })
-    const ctx = runtime.createContext({ errors: {}, values: {} })
+    const resolveSnap = runtime.createResolveSnap({ errors: {}, values: {} })
 
-    const resolved = runtime.resolveField(field, ctx)
+    const resolved = runtime.resolveField(field, resolveSnap)
 
     expect(resolvedFields).toEqual(['host', 'child'])
 
     resolvedFields.length = 0
-    expect(runtime.resolveField(resolved, ctx)).toBe(resolved)
+    expect(runtime.resolveField(resolved, resolveSnap)).toBe(resolved)
     expect(resolvedFields).toEqual([])
 
     resolvedFields.length = 0
-    expect(runtime.resolveSlot(resolved.slots?.default, ctx)).toBe(resolved.slots?.default)
+    expect(runtime.resolveSlot(resolved.slots?.default, resolveSnap)).toBe(resolved.slots?.default)
     expect(resolvedFields).toEqual([])
   })
 
@@ -367,7 +367,7 @@ describe('form runtime', () => {
         RuntimeInput,
       },
     })
-    const ctx = runtime.createContext({ errors: {}, values: {} })
+    const resolveSnap = runtime.createResolveSnap({ errors: {}, values: {} })
 
     const resolved = runtime.resolveNode({
       component: 'RuntimeInput',
@@ -382,7 +382,7 @@ describe('form runtime', () => {
           }),
         ],
       },
-    }, ctx)
+    }, resolveSnap)
 
     expect(resolved).toMatchObject({
       component: RuntimeInput,
@@ -391,7 +391,7 @@ describe('form runtime', () => {
       },
     })
     expect('field' in resolved).toBe(false)
-    expect(runtime.resolveSlot(defineField({ component: 'RuntimeInput' }), ctx)).toMatchObject({
+    expect(runtime.resolveSlot(defineField({ component: 'RuntimeInput' }), resolveSnap)).toMatchObject({
       component: RuntimeInput,
       props: {},
     })
@@ -399,12 +399,12 @@ describe('form runtime', () => {
 
   it('throws when field-only options are used on component containers', () => {
     const runtime = createFormRuntime()
-    const ctx = runtime.createContext({ errors: {}, values: {} })
+    const resolveSnap = runtime.createResolveSnap({ errors: {}, values: {} })
 
     expect(() => runtime.resolveNode({
       component: 'section',
       label: '错误的容器 label',
-    } as never, ctx)).toThrow(/Component node without field cannot use field-only option "label"/)
+    } as never, resolveSnap)).toThrow(/Component node without field cannot use field-only option "label"/)
   })
 
   it('runs field transforms without exposing form values or errors', () => {
@@ -430,7 +430,7 @@ describe('form runtime', () => {
 
     const resolved = runtime.resolveField(
       defineField({ component: 'input', field: 'name' }),
-      runtime.createContext({ errors: { name: ['error'] }, values: { name: 'Ada' } }),
+      runtime.createResolveSnap({ errors: { name: ['error'] }, values: { name: 'Ada' } }),
     )
 
     expect(resolved.props.transformed).toBe(true)
@@ -448,6 +448,6 @@ describe('form runtime', () => {
           label: 'field.name',
         },
       },
-    } as never, runtime.createContext())).toThrow(/field\.plugins is no longer supported/)
+    } as never, runtime.createResolveSnap())).toThrow(/field\.plugins is no longer supported/)
   })
 })

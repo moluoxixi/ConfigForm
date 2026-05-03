@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FormRuntimeContext } from '@/runtime'
+import type { FormRuntimeResolveSnap } from '@/runtime'
 import type { ResolvedFormNode, SlotContent } from '@/types'
 import { computed, defineComponent } from 'vue'
 import { useRuntime } from '@/composables/useRuntime'
@@ -22,13 +22,13 @@ const props = defineProps<{
   node: ResolvedFormNode
   componentAttrs?: Record<string, unknown>
   componentListeners?: Record<string, (...args: unknown[]) => void>
-  runtimeContext?: FormRuntimeContext
+  resolveSnap?: FormRuntimeResolveSnap
 }>()
 
 const runtimeRef = useRuntime()
 
-const currentRuntimeContext = computed<FormRuntimeContext>(() =>
-  props.runtimeContext ?? runtimeRef.value.createContext(),
+const currentResolveSnap = computed<FormRuntimeResolveSnap>(() =>
+  props.resolveSnap ?? runtimeRef.value.createResolveSnap(),
 )
 
 const attrs = computed(() => ({
@@ -37,20 +37,20 @@ const attrs = computed(() => ({
 }))
 
 type NormalizedSlotNode =
-  | { key: string, kind: 'node', node: ResolvedFormNode, runtimeContext: FormRuntimeContext }
+  | { key: string, kind: 'node', node: ResolvedFormNode, resolveSnap: FormRuntimeResolveSnap }
   | { fn: () => unknown, key: string, kind: 'render' }
 
-type SlotRuntimeContext = FormRuntimeContext & { slotName: string }
+type SlotResolveSnap = FormRuntimeResolveSnap & { slotName: string }
 
-function normalizeResolvedSlotValue(value: SlotContent, context: SlotRuntimeContext, path = '0'): NormalizedSlotNode[] {
+function normalizeResolvedSlotValue(value: SlotContent, resolveSnap: SlotResolveSnap, path = '0'): NormalizedSlotNode[] {
   if (value == null || value === false)
     return []
 
-  const { slotName } = context
+  const { slotName } = resolveSnap
 
   if (Array.isArray(value)) {
     return value.flatMap((item, index) =>
-      normalizeResolvedSlotValue(item as SlotContent, context, `${path}-${index}`),
+      normalizeResolvedSlotValue(item as SlotContent, resolveSnap, `${path}-${index}`),
     )
   }
 
@@ -58,8 +58,8 @@ function normalizeResolvedSlotValue(value: SlotContent, context: SlotRuntimeCont
     return [{
       key: `node-${slotName}-${path}`,
       kind: 'node',
-      node: runtimeRef.value.resolveNode(value, context, `${slotName}.${path}`),
-      runtimeContext: context,
+      node: runtimeRef.value.resolveNode(value, resolveSnap, `${slotName}.${path}`),
+      resolveSnap,
     }]
   }
 
@@ -71,17 +71,17 @@ function normalizeResolvedSlotValue(value: SlotContent, context: SlotRuntimeCont
 }
 
 function normalizeSlotValue(slotValue: SlotContent, scope: Record<string, unknown> | undefined, slotName: string): NormalizedSlotNode[] {
-  const context: SlotRuntimeContext = {
-    ...currentRuntimeContext.value,
+  const resolveSnap: SlotResolveSnap = {
+    ...currentResolveSnap.value,
     slotName,
     slotScope: scope,
   }
-  const resolvedSlot = runtimeRef.value.resolveSlot(slotValue, context, `slots.${slotName}`)
+  const resolvedSlot = runtimeRef.value.resolveSlot(slotValue, resolveSnap, `slots.${slotName}`)
 
   if (typeof resolvedSlot === 'function')
-    return normalizeResolvedSlotValue(resolvedSlot(scope), context)
+    return normalizeResolvedSlotValue(resolvedSlot(scope), resolveSnap)
 
-  return normalizeResolvedSlotValue(resolvedSlot, context)
+  return normalizeResolvedSlotValue(resolvedSlot, resolveSnap)
 }
 </script>
 
@@ -100,7 +100,7 @@ function normalizeSlotValue(slotValue: SlotContent, scope: Record<string, unknow
           v-if="slotNode.kind === 'node'"
           name="node"
           :node="slotNode.node"
-          :runtime-context="slotNode.runtimeContext"
+          :resolve-snap="slotNode.resolveSnap"
         />
         <SlotRender v-else :fn="slotNode.fn" />
       </template>

@@ -1,6 +1,6 @@
 import type { Component, SetupContext, VNode } from 'vue'
 import type { ZodType, ZodTypeAny, ZodTypeDef } from 'zod'
-import type { FormRuntimeInput } from '@/runtime/types'
+import type { FormRuntimeOptions } from '@/runtime/types'
 
 // ===== 公共类型 =====
 
@@ -115,8 +115,8 @@ export interface ConfigFormProps<T extends object = FormValues> {
   labelWidth?: string | number
   /** v-model 双向绑定表单值 */
   modelValue?: T
-  /** 表单运行时，用于组件注册、runtime token 和插件生命周期。 */
-  runtime?: FormRuntimeInput
+  /** 表单运行时配置，用于组件注册、runtime token 和插件生命周期。 */
+  runtime?: FormRuntimeOptions
 }
 
 export interface ConfigFormEmits<T extends object = FormValues> {

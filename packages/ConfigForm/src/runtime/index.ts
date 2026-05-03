@@ -1,20 +1,18 @@
 export {
   createFormRuntime,
   createRuntimeToken,
-  isFormRuntime,
   isRuntimeToken,
 } from './createFormRuntime'
 export type {
   ComponentRegistry,
-  CreateRuntimeContextInput,
+  CreateRuntimeResolveSnapInput,
   FormFieldTransform,
   FormRuntime,
-  FormRuntimeContext,
   FormRuntimeHookOrder,
-  FormRuntimeInput,
   FormRuntimeObjectHook,
   FormRuntimeOptions,
   FormRuntimePlugin,
   FormRuntimeResolveHelpers,
+  FormRuntimeResolveSnap,
   FormRuntimeTokenResolver,
 } from './types'

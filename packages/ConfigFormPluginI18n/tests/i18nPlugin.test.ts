@@ -45,7 +45,7 @@ describe('i18n plugin package', () => {
         default: i18n('slot.help', { params: { name: 'Ada' } }),
       },
     })
-    const resolved = runtime.resolveField(field, runtime.createContext({ errors: {}, values: {} }))
+    const resolved = runtime.resolveField(field, runtime.createResolveSnap({ errors: {}, values: {} }))
 
     expect(resolved.label).toBe('姓名 Ada')
     expect(resolved.props.placeholder).toBe('请输入 Ada')
@@ -62,35 +62,35 @@ describe('i18n plugin package', () => {
         {
           name: 'form-values',
           tokens: {
-            'form-value': (token, context) => context.values[(token as FormValueToken).field],
+            'form-value': (token, resolveSnap) => resolveSnap.values[(token as FormValueToken).field],
           },
         },
         createI18nPlugin(),
       ],
     })
-    const context = runtime.createContext({ errors: {}, values: { name: 'Ada' } })
+    const resolveSnap = runtime.createResolveSnap({ errors: {}, values: { name: 'Ada' } })
 
     expect(runtime.resolveValue(i18n('field.nickname', {
       defaultMessage: 'Nickname {name}',
       params: {
         name: formValue('name'),
       },
-    }), context)).toBe('Nickname Ada')
+    }), resolveSnap)).toBe('Nickname Ada')
   })
 
   it('throws on invalid i18n token payloads', () => {
     const runtime = createFormRuntime({
       plugins: [createI18nPlugin()],
     })
-    const context = runtime.createContext({ errors: {}, values: {} })
+    const resolveSnap = runtime.createResolveSnap({ errors: {}, values: {} })
 
-    expect(() => runtime.resolveValue({ __configFormToken: 'i18n' } as never, context))
+    expect(() => runtime.resolveValue({ __configFormToken: 'i18n' } as never, resolveSnap))
       .toThrow(/Invalid i18n token/)
-    expect(() => runtime.resolveValue(i18n('', { defaultMessage: 'Empty key' }), context))
+    expect(() => runtime.resolveValue(i18n('', { defaultMessage: 'Empty key' }), resolveSnap))
       .toThrow(/i18n key must be a non-empty string/)
-    expect(() => runtime.resolveValue(i18n('bad.default', { defaultMessage: 123 as never }), context))
+    expect(() => runtime.resolveValue(i18n('bad.default', { defaultMessage: 123 as never }), resolveSnap))
       .toThrow(/i18n defaultMessage must be a string/)
-    expect(() => runtime.resolveValue(i18n('bad.params', { params: [] as never }), context))
+    expect(() => runtime.resolveValue(i18n('bad.params', { params: [] as never }), resolveSnap))
       .toThrow(/i18n params must be an object/)
   })
 
@@ -111,13 +111,13 @@ describe('i18n plugin package', () => {
         }),
       ],
     })
-    const context = runtime.createContext({ errors: {}, values: {} })
+    const resolveSnap = runtime.createResolveSnap({ errors: {}, values: {} })
 
-    expect(runtime.resolveValue(i18n('field.name', { defaultMessage: 'Name', params: { name: 'Ada' } }), context))
+    expect(runtime.resolveValue(i18n('field.name', { defaultMessage: 'Name', params: { name: 'Ada' } }), resolveSnap))
       .toBe('姓名 Ada')
-    expect(runtime.resolveValue(i18n('field.email', { defaultMessage: 'Email default' }), context))
+    expect(runtime.resolveValue(i18n('field.email', { defaultMessage: 'Email default' }), resolveSnap))
       .toBe('Email default')
-    expect(() => runtime.resolveValue(i18n('field.email'), context))
+    expect(() => runtime.resolveValue(i18n('field.email'), resolveSnap))
       .toThrow(/Missing i18n message: field\.email/)
   })
 
@@ -131,9 +131,9 @@ describe('i18n plugin package', () => {
             'en-US': { status: 'Status' },
             'zh-CN': { status: '状态' },
           },
-          translate: (key, params, defaultMessage, context, currentLocale) => {
-            expect(context).not.toHaveProperty('locale')
-            expect(context).not.toHaveProperty('plugins')
+          translate: (key, params, defaultMessage, resolveSnap, currentLocale) => {
+            expect(resolveSnap).not.toHaveProperty('locale')
+            expect(resolveSnap).not.toHaveProperty('plugins')
             if (key === 'runtime.locale')
               return `${currentLocale}:${String(params?.value)}`
             return defaultMessage
@@ -141,15 +141,15 @@ describe('i18n plugin package', () => {
         }),
       ],
     })
-    const context = runtime.createContext({ errors: {}, values: {} })
+    const resolveSnap = runtime.createResolveSnap({ errors: {}, values: {} })
 
-    expect(runtime.resolveValue(i18n('status'), context)).toBe('Status')
+    expect(runtime.resolveValue(i18n('status'), resolveSnap)).toBe('Status')
     locale = 'zh-CN'
-    expect(runtime.resolveValue(i18n('status'), context)).toBe('状态')
+    expect(runtime.resolveValue(i18n('status'), resolveSnap)).toBe('状态')
     expect(runtime.resolveValue(i18n('runtime.locale', {
       defaultMessage: 'default',
       params: { value: 'active' },
-    }), context)).toBe('zh-CN:active')
+    }), resolveSnap)).toBe('zh-CN:active')
   })
 
   it('supports function messages and empty interpolation values', () => {
@@ -160,20 +160,20 @@ describe('i18n plugin package', () => {
           messages: {
             'zh-CN': {
               empty: '空值 { value }',
-              greeting: (params, _context, currentLocale) => `${currentLocale}:${String(params?.name)}`,
+              greeting: (params, _resolveSnap, currentLocale) => `${currentLocale}:${String(params?.name)}`,
             },
           },
         }),
       ],
     })
-    const context = runtime.createContext({ errors: {}, values: {} })
+    const resolveSnap = runtime.createResolveSnap({ errors: {}, values: {} })
 
-    expect(runtime.resolveValue(i18n('greeting', { params: { name: 'Ada' } }), context)).toBe('zh-CN:Ada')
-    expect(runtime.resolveValue(i18n('empty', { params: { value: null } }), context)).toBe('空值 ')
+    expect(runtime.resolveValue(i18n('greeting', { params: { name: 'Ada' } }), resolveSnap)).toBe('zh-CN:Ada')
+    expect(runtime.resolveValue(i18n('empty', { params: { value: null } }), resolveSnap)).toBe('空值 ')
     expect(runtime.resolveValue(i18n('missing.default', {
       defaultMessage: '默认 { value }',
       params: { value: undefined },
-    }), context)).toBe('默认 ')
+    }), resolveSnap)).toBe('默认 ')
   })
 
   it('notifies missing handlers but still throws missing message errors', () => {
@@ -184,11 +184,11 @@ describe('i18n plugin package', () => {
       },
     })
     const runtime = createFormRuntime({ plugins: [plugin] })
-    const context = runtime.createContext({ errors: {}, values: {} })
+    const resolveSnap = runtime.createResolveSnap({ errors: {}, values: {} })
 
     expect(plugin.name).toBe('i18n')
     expect(plugin).not.toHaveProperty('priority')
-    expect(() => runtime.resolveValue(i18n('missing.key'), context))
+    expect(() => runtime.resolveValue(i18n('missing.key'), resolveSnap))
       .toThrow(/Missing i18n message: missing\.key/)
     expect(missingKey).toBe('missing.key')
 
@@ -200,7 +200,7 @@ describe('i18n plugin package', () => {
       ],
     })
 
-    expect(() => runtimeWithReturningMissing.resolveValue(i18n('still.missing'), context))
+    expect(() => runtimeWithReturningMissing.resolveValue(i18n('still.missing'), resolveSnap))
       .toThrow(/Missing i18n message: still\.missing/)
   })
 
@@ -209,14 +209,14 @@ describe('i18n plugin package', () => {
       const runtime = createFormRuntime({
         plugins: [createI18nPlugin({ locale: () => { throw new Error('locale failed') } })],
       })
-      runtime.resolveValue(i18n('status'), runtime.createContext())
+      runtime.resolveValue(i18n('status'), runtime.createResolveSnap())
     }).toThrow('locale failed')
 
     expect(() => {
       const runtime = createFormRuntime({
         plugins: [createI18nPlugin({ translate: () => { throw new Error('translate failed') } })],
       })
-      runtime.resolveValue(i18n('status'), runtime.createContext())
+      runtime.resolveValue(i18n('status'), runtime.createResolveSnap())
     }).toThrow('translate failed')
 
     expect(() => {
@@ -232,14 +232,14 @@ describe('i18n plugin package', () => {
           }),
         ],
       })
-      runtime.resolveValue(i18n('status'), runtime.createContext())
+      runtime.resolveValue(i18n('status'), runtime.createResolveSnap())
     }).toThrow('message failed')
 
     expect(() => {
       const runtime = createFormRuntime({
         plugins: [createI18nPlugin({ missing: () => { throw new Error('missing failed') } })],
       })
-      runtime.resolveValue(i18n('status'), runtime.createContext())
+      runtime.resolveValue(i18n('status'), runtime.createResolveSnap())
     }).toThrow('missing failed')
   })
 })

@@ -57,7 +57,7 @@ Expected: fail before integration.
 
 - [x] **Step 3: Implement integration**
 
-Add runtime prop to public types, provide/inject runtime, resolve top-level fields in `ConfigForm`, pass runtime context into `FormField`, and let `useForm` use runtime condition resolution for maps, validation skip checks, and submit output filtering. Keep `FormField` typed against resolved fields only.
+Add runtime prop to public types, provide/inject runtime, resolve top-level fields in `ConfigForm`, pass resolve snaps into `FormField`, and let `useForm` use runtime condition resolution for maps, validation skip checks, and submit output filtering. Keep `FormField` typed against resolved fields only.
 
 - [x] **Step 4: Run integration tests**
 

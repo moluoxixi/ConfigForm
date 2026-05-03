@@ -49,7 +49,7 @@ export async function validateForm(
   runtime: FormRuntime = createFormRuntime(),
 ): Promise<FormErrors> {
   const errors: FormErrors = {}
-  const context = runtime.createContext({ errors, values })
+  const resolveSnap = runtime.createResolveSnap({ errors, values })
   for (const config of fields) {
     const field = runtime.transformField(config)
     if (!field.schema && !field.validator)
@@ -57,9 +57,9 @@ export async function validateForm(
     const shouldValidateHidden = trigger === 'submit' && field.submitWhenHidden
     const shouldValidateDisabled = trigger === 'submit' && field.submitWhenDisabled
 
-    if (!runtime.resolveVisible(field, context) && !shouldValidateHidden)
+    if (!runtime.resolveVisible(field, resolveSnap) && !shouldValidateHidden)
       continue
-    if (runtime.resolveDisabled(field, context) && !shouldValidateDisabled)
+    if (runtime.resolveDisabled(field, resolveSnap) && !shouldValidateDisabled)
       continue
     if (!shouldValidateOn(field, trigger))
       continue

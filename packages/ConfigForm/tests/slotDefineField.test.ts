@@ -67,7 +67,7 @@ describe('slot field configs', () => {
     })
     const runtime = createFormRuntime()
 
-    expect(() => runtime.resolveField(field, runtime.createContext({ errors: {}, values: {} })))
+    expect(() => runtime.resolveField(field, runtime.createResolveSnap({ errors: {}, values: {} })))
       .toThrow(/defineField/)
   })
 })

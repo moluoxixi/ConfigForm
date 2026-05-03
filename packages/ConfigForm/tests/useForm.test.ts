@@ -1,10 +1,10 @@
+import type { FormRuntimeOptions } from '../src/runtime'
 import type { FormNodeConfig } from '../src/types'
 import { describe, expect, it, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
 import { z } from 'zod'
 import { useForm } from '../src/composables/useForm'
 import { defineField } from '../src/models/field'
-import { createFormRuntime } from '../src/runtime'
 
 describe('useForm', () => {
   it('throws when multiple real fields use the same field key', () => {
@@ -311,7 +311,6 @@ describe('useForm', () => {
   })
 
   it('uses field predicates for visibility, disabled, validation skips, and submit output', async () => {
-    const runtime = ref(createFormRuntime())
     const fields = ref([
       defineField({
         field: 'role',
@@ -336,7 +335,7 @@ describe('useForm', () => {
     ])
     const onSubmit = vi.fn()
 
-    const form = useForm({ fields, onSubmit, runtime })
+    const form = useForm({ fields, onSubmit })
 
     expect(form.visibilityMap.value.adminNote).toBe(false)
     expect(form.disabledMap.value.guestNote).toBe(true)
@@ -356,7 +355,7 @@ describe('useForm', () => {
 
   it('uses transformed fields consistently for dynamic state, validation, and submit output', async () => {
     const onSubmit = vi.fn()
-    const runtime = createFormRuntime({
+    const runtime = {
       plugins: [
         {
           name: 'submit-policy',
@@ -383,7 +382,7 @@ describe('useForm', () => {
           },
         },
       ],
-    })
+    } satisfies FormRuntimeOptions
     const fields = ref<FormNodeConfig[]>([
       defineField({
         component: 'input',

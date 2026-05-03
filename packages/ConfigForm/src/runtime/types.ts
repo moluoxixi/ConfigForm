@@ -13,8 +13,8 @@ import type {
 /** 运行时可按字符串 key 解析的组件注册表。 */
 export type ComponentRegistry = Record<string, FieldConfig['component']>
 
-/** 单次运行时解析需要的上下文。 */
-export interface FormRuntimeContext<TValues extends FormValues = FormValues> {
+/** 单次运行时解析需要的快照。 */
+export interface FormRuntimeResolveSnap<TValues extends FormValues = FormValues> {
   /** 当前表单值快照，字段条件和 token resolver 都从这里读取业务数据。 */
   values: TValues
   /** 当前校验错误快照，主要供 token resolver 或自定义渲染逻辑读取。 */
@@ -30,15 +30,15 @@ export interface FormRuntimeContext<TValues extends FormValues = FormValues> {
 /** token resolver 可调用的 runtime 辅助方法。 */
 export interface FormRuntimeResolveHelpers {
   /** 使用同一套 runtime 规则继续解析嵌套值。 */
-  resolveValue: <TValue = unknown>(value: TValue, context: FormRuntimeContext, path?: string) => unknown
+  resolveValue: <TValue = unknown>(value: TValue, resolveSnap: FormRuntimeResolveSnap, path?: string) => unknown
 }
 
 /** 自定义 RuntimeToken 的解析函数。 */
 export type FormRuntimeTokenResolver<TToken extends RuntimeToken = RuntimeToken> = (
   /** createRuntimeToken 创建的 token 对象。 */
   token: TToken,
-  /** 当前解析上下文。 */
-  context: FormRuntimeContext,
+  /** 当前解析快照。 */
+  resolveSnap: FormRuntimeResolveSnap,
   /** token 所在配置路径。 */
   path: string,
   /** 递归解析辅助方法。 */
@@ -84,8 +84,8 @@ export interface FormRuntimeOptions {
   plugins?: FormRuntimePlugin[]
 }
 
-/** createContext 的输入；所有字段都是可选的，缺省值由 runtime 填充。 */
-export interface CreateRuntimeContextInput<TValues extends FormValues = FormValues> {
+/** createResolveSnap 的输入；所有字段都是可选的，缺省值由 runtime 填充。 */
+export interface CreateRuntimeResolveSnapInput<TValues extends FormValues = FormValues> {
   /** 当前表单值。缺省为空对象。 */
   values?: TValues
   /** 当前校验错误。缺省为空对象。 */
@@ -100,27 +100,22 @@ export interface CreateRuntimeContextInput<TValues extends FormValues = FormValu
 
 /** 表单运行时实例，负责把声明式表单配置解析成渲染层可直接消费的结构。 */
 export interface FormRuntime {
-  /** runtime 实例品牌标记，用于 isFormRuntime 判断。 */
-  readonly __configFormRuntime: true
-  /** 创建一次解析上下文，保证 values/errors 至少是对象。 */
-  createContext: <TValues extends FormValues = FormValues>(
-    input?: CreateRuntimeContextInput<TValues>,
-  ) => FormRuntimeContext<TValues>
+  /** 创建一次解析快照，保证 values/errors 至少是对象。 */
+  createResolveSnap: <TValues extends FormValues = FormValues>(
+    input?: CreateRuntimeResolveSnapInput<TValues>,
+  ) => FormRuntimeResolveSnap<TValues>
   /** 解析 RuntimeToken、数组和普通对象中的嵌套运行时值。 */
-  resolveValue: <TValue = unknown>(value: TValue, context: FormRuntimeContext, path?: string) => unknown
+  resolveValue: <TValue = unknown>(value: TValue, resolveSnap: FormRuntimeResolveSnap, path?: string) => unknown
   /** 执行 core normalize 和插件 transformField 生命周期，得到后续渲染、校验、提交共享的字段。 */
   transformField: (field: FieldConfig | NormalizedFieldConfig) => NormalizedFieldConfig
   /** 解析 slot 内容，包括 slot 函数、slot 节点配置、数组和 token。 */
-  resolveSlot: (slot: SlotContent, context: FormRuntimeContext, path?: string) => SlotContent
+  resolveSlot: (slot: SlotContent, resolveSnap: FormRuntimeResolveSnap, path?: string) => SlotContent
   /** 解析字段节点或组件容器节点。 */
-  resolveNode: (node: FormNodeConfig, context: FormRuntimeContext, path?: string) => ResolvedFormNode
+  resolveNode: (node: FormNodeConfig, resolveSnap: FormRuntimeResolveSnap, path?: string) => ResolvedFormNode
   /** 解析字段配置，得到已补全默认项且组件/props/slots 已解析的字段。 */
-  resolveField: (field: FieldConfig, context: FormRuntimeContext) => ResolvedField
+  resolveField: (field: FieldConfig, resolveSnap: FormRuntimeResolveSnap) => ResolvedField
   /** 解析字段 visible 条件，缺省为 true。 */
-  resolveVisible: (field: FieldConfig | NormalizedFieldConfig, context: FormRuntimeContext) => boolean
+  resolveVisible: (field: FieldConfig | NormalizedFieldConfig, resolveSnap: FormRuntimeResolveSnap) => boolean
   /** 解析字段 disabled 条件，缺省为 false。 */
-  resolveDisabled: (field: FieldConfig | NormalizedFieldConfig, context: FormRuntimeContext) => boolean
+  resolveDisabled: (field: FieldConfig | NormalizedFieldConfig, resolveSnap: FormRuntimeResolveSnap) => boolean
 }
-
-/** 组件 props 接受的 runtime 入参：可传已创建的实例，也可传 options 让组件内部创建。 */
-export type FormRuntimeInput = FormRuntime | FormRuntimeOptions

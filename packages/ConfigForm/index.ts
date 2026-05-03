@@ -1,7 +1,6 @@
 export { useForm } from './src/composables/useForm'
 export type { UseFormOptions } from './src/composables/useForm'
 export { useBem, useNamespace } from './src/composables/useNamespace'
-export { normalizeFormRuntime, provideRuntime, useRuntime } from './src/composables/useRuntime'
 export { default as ConfigForm } from './src/index.vue'
 export {
   applyFieldTransform,
@@ -19,21 +18,19 @@ export {
 export {
   createFormRuntime,
   createRuntimeToken,
-  isFormRuntime,
   isRuntimeToken,
 } from './src/runtime'
 export type {
   ComponentRegistry,
-  CreateRuntimeContextInput,
+  CreateRuntimeResolveSnapInput,
   FormFieldTransform,
   FormRuntime,
-  FormRuntimeContext,
   FormRuntimeHookOrder,
-  FormRuntimeInput,
   FormRuntimeObjectHook,
   FormRuntimeOptions,
   FormRuntimePlugin,
   FormRuntimeResolveHelpers,
+  FormRuntimeResolveSnap,
   FormRuntimeTokenResolver,
 } from './src/runtime'
 export type {

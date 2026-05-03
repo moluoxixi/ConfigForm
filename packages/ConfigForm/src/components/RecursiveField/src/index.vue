@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FormRuntimeContext } from '@/runtime'
+import type { FormRuntimeResolveSnap } from '@/runtime'
 import type { FormErrors, FormValues, ResolvedField, ResolvedFormNode } from '@/types'
 import { computed } from 'vue'
 import ComponentNode from '@/components/ComponentNode'
@@ -16,7 +16,7 @@ const props = defineProps<{
   disabledMap: Record<string, boolean>
   inline?: boolean
   labelWidth?: string | number
-  runtimeContext?: FormRuntimeContext
+  resolveSnap?: FormRuntimeResolveSnap
 }>()
 
 defineSlots<{
@@ -47,21 +47,21 @@ function emitCurrentFieldValue(value: unknown) {
     :error="errors[fieldNode.field]"
     :inline="inline"
     :label-width="labelWidth"
-    :runtime-context="runtimeContext"
+    :resolve-snap="resolveSnap"
     :visible="visibilityMap[fieldNode.field]"
     :disabled="disabledMap[fieldNode.field]"
     @update:model-value="emitCurrentFieldValue"
     @blur="(name: string) => emit('fieldBlur', name)"
     @change="(name: string) => emit('fieldChange', name)"
   >
-    <template #default="{ componentAttrs, componentListeners, runtimeContext: fieldRuntimeContext }">
+    <template #default="{ componentAttrs, componentListeners, resolveSnap: fieldResolveSnap }">
       <ComponentNode
         :node="fieldNode"
         :component-attrs="componentAttrs"
         :component-listeners="componentListeners"
-        :runtime-context="fieldRuntimeContext"
+        :resolve-snap="fieldResolveSnap"
       >
-        <template #node="{ node: childNode, runtimeContext: childRuntimeContext }">
+        <template #node="{ node: childNode, resolveSnap: childResolveSnap }">
           <RecursiveField
             :node="childNode"
             :values="values"
@@ -70,7 +70,7 @@ function emitCurrentFieldValue(value: unknown) {
             :disabled-map="disabledMap"
             :inline="inline"
             :label-width="labelWidth"
-            :runtime-context="childRuntimeContext"
+            :resolve-snap="childResolveSnap"
             @update:field-value="(field: string, value: unknown) => emit('update:fieldValue', field, value)"
             @field-blur="(field: string) => emit('fieldBlur', field)"
             @field-change="(field: string) => emit('fieldChange', field)"
@@ -91,9 +91,9 @@ function emitCurrentFieldValue(value: unknown) {
   <ComponentNode
     v-else
     :node="node"
-    :runtime-context="runtimeContext"
+    :resolve-snap="resolveSnap"
   >
-    <template #node="{ node: childNode, runtimeContext: childRuntimeContext }">
+    <template #node="{ node: childNode, resolveSnap: childResolveSnap }">
       <RecursiveField
         :node="childNode"
         :values="values"
@@ -102,7 +102,7 @@ function emitCurrentFieldValue(value: unknown) {
         :disabled-map="disabledMap"
         :inline="inline"
         :label-width="labelWidth"
-        :runtime-context="childRuntimeContext"
+        :resolve-snap="childResolveSnap"
         @update:field-value="(field: string, value: unknown) => emit('update:fieldValue', field, value)"
         @field-blur="(field: string) => emit('fieldBlur', field)"
         @field-change="(field: string) => emit('fieldChange', field)"

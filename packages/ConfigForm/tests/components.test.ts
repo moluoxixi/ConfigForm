@@ -1,3 +1,4 @@
+import type { FormRuntimeOptions } from '../src/runtime'
 import type { ConfigFormExpose, FieldConfig, RuntimeToken } from '../src/types'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
@@ -96,7 +97,7 @@ const CardContainer = markRaw(defineComponent({
 
 function resolveTestField(field: FieldConfig) {
   const runtime = createFormRuntime()
-  return runtime.resolveField(field, runtime.createContext({ errors: {}, values: {} }))
+  return runtime.resolveField(field, runtime.createResolveSnap({ errors: {}, values: {} }))
 }
 
 describe('config form component', () => {
@@ -285,7 +286,7 @@ describe('config form component', () => {
   })
 
   it('resolves runtime registry, tokens, predicates, and nested slot configs', async () => {
-    const runtime = createFormRuntime({
+    const runtime = {
       components: {
         SlotLeaf,
         TextInput,
@@ -306,7 +307,7 @@ describe('config form component', () => {
           },
         },
       ],
-    })
+    } satisfies FormRuntimeOptions
 
     const fields = [
       defineField({

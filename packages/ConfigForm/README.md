@@ -88,7 +88,7 @@ function onSubmit(values: LoginForm) {
 | `fields` | `FormNodeConfig[]` | - | 字段/容器配置数组；`defineField` 返回纯配置 |
 | `labelWidth` | `string \| number` | - | 标签宽度，number 自动转 px |
 | `modelValue` | `Record<string, unknown>` | - | 表单值，支持 `v-model`；传泛型后为对应表单类型 |
-| `runtime` | `FormRuntime \| FormRuntimeOptions` | - | DIY 运行时，用于组件注册、runtime token 和插件生命周期 |
+| `runtime` | `FormRuntimeOptions` | - | DIY 运行时配置，用于组件注册、runtime token 和插件生命周期 |
 
 ## Events
 
@@ -183,11 +183,12 @@ defineField({
 
 ```vue
 <script setup lang="ts">
-import { ConfigForm, createFormRuntime, defineField } from '@moluoxixi/config-form'
+import type { FormRuntimeOptions } from '@moluoxixi/config-form'
+import { ConfigForm, defineField } from '@moluoxixi/config-form'
 import { createI18nPlugin, i18n } from '@moluoxixi/config-form-plugin-i18n'
 import MyInput from './MyInput.vue'
 
-const runtime = createFormRuntime({
+const runtimeOptions = {
   components: {
     MyInput,
   },
@@ -212,7 +213,7 @@ const runtime = createFormRuntime({
       }),
     },
   ],
-})
+} satisfies FormRuntimeOptions
 
 const fields = [
   defineField({
@@ -231,13 +232,16 @@ const fields = [
 </script>
 
 <template>
-  <ConfigForm :fields="fields" :runtime="runtime" />
+  <ConfigForm :fields="fields" :runtime="runtimeOptions" />
 </template>
 ```
+
+`<ConfigForm>` 的 `runtime` prop 只接收 `FormRuntimeOptions`，组件内部会创建实际 runtime 实例。`createFormRuntime(options)` 仍然导出给插件测试、底层解析和非组件场景使用。
 
 Token：
 
 - `createRuntimeToken(type, payload?)`：创建插件自定义 token；core 只负责按 token type 找 resolver，不内置条件语言或业务语义。
+- `FormRuntimeResolveSnap`：单次解析快照，包含当前 `values`、`errors`、`field`、`slotName`、`slotScope`；低层解析场景可用 `runtime.createResolveSnap(input?)` 创建。
 - `i18n(key, options?)`：由 `@moluoxixi/config-form-plugin-i18n` 提供，用于 `label`、`props`、`slots` 等位置的文案 token；`options.defaultMessage` 是显式默认文案，`options.params` 是模板插值参数。
 
 扩展点：

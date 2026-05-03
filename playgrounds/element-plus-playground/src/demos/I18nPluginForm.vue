@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import type { FormRuntimeOptions } from '@moluoxixi/config-form'
 import { computed, reactive, ref } from 'vue'
 import { z } from 'zod'
 import {
   ConfigForm,
-  createFormRuntime,
   defineField,
 } from '@moluoxixi/config-form'
 import {
@@ -48,7 +48,7 @@ const messages: I18nMessages = {
     'i18n.role.placeholder': '请选择角色',
     'i18n.role.required': '请选择角色',
     'i18n.role.user': '用户',
-    'i18n.suggestion.label': (_params, _context, currentLocale) => currentLocale === 'en-US' ? 'Suggestion' : '建议',
+    'i18n.suggestion.label': (_params, _resolveSnap, currentLocale) => currentLocale === 'en-US' ? 'Suggestion' : '建议',
     'i18n.suggestion.placeholder': '函数消息 label + token placeholder',
     'i18n.username.guestMin': '访客用户名至少 {min} 个字符',
     'i18n.username.label': '用户名（{min}-{max} 个字符）',
@@ -83,7 +83,7 @@ const messages: I18nMessages = {
     'i18n.role.placeholder': 'Select role',
     'i18n.role.required': 'Select a role',
     'i18n.role.user': 'User',
-    'i18n.suggestion.label': (_params, _context, currentLocale) => currentLocale === 'en-US' ? 'Suggestion' : '建议',
+    'i18n.suggestion.label': (_params, _resolveSnap, currentLocale) => currentLocale === 'en-US' ? 'Suggestion' : '建议',
     'i18n.suggestion.placeholder': 'Function message label + token placeholder',
     'i18n.username.guestMin': 'Guest username must be at least {min} characters',
     'i18n.username.label': 'Username ({min}-{max} chars)',
@@ -111,15 +111,15 @@ function t(key: string, params?: Record<string, unknown>) {
   return renderTemplate(message, params)
 }
 
-const runtime = createFormRuntime({
+const runtimeOptions = {
   plugins: [
     createI18nPlugin({
       locale: () => locale.value,
       messages,
-      translate: (key, params, defaultMessage, context, currentLocale) => {
+      translate: (key, params, defaultMessage, resolveSnap, currentLocale) => {
         if (key === 'i18n.custom.label') {
           const prefix = currentLocale === 'en-US' ? 'Custom field' : '自定义字段'
-          const fieldName = params?.field ?? context.field?.field
+          const fieldName = params?.field ?? resolveSnap.field?.field
           if (fieldName == null)
             throw new Error(defaultMessage ?? `Missing custom field name: ${key}`)
 
@@ -129,7 +129,7 @@ const runtime = createFormRuntime({
       },
     }),
   ],
-})
+} satisfies FormRuntimeOptions
 
 const nextLocaleLabel = computed(() => locale.value === 'zh-CN'
   ? t('i18n.locale.en')
@@ -265,7 +265,7 @@ function onModelUpdate(vals: Record<string, unknown>) {
       :model-value="formValues"
       namespace="moluoxixi"
       :fields="fields"
-      :runtime="runtime"
+      :runtime="runtimeOptions"
       label-width="120px"
       @submit="onSubmit"
       @error="onError"

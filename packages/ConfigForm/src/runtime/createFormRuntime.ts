@@ -1,13 +1,13 @@
 import type {
   ComponentRegistry,
-  CreateRuntimeContextInput,
+  CreateRuntimeResolveSnapInput,
   FormFieldTransform,
   FormRuntime,
-  FormRuntimeContext,
   FormRuntimeHookOrder,
   FormRuntimeObjectHook,
   FormRuntimeOptions,
   FormRuntimePlugin,
+  FormRuntimeResolveSnap,
   FormRuntimeTokenResolver,
 } from './types'
 import type {
@@ -71,15 +71,6 @@ export function isRuntimeToken<TValue = unknown>(value: unknown): value is Runti
     value
     && typeof value === 'object'
     && typeof (value as { __configFormToken?: unknown }).__configFormToken === 'string',
-  )
-}
-
-/** 判断未知值是否是 ConfigForm runtime 实例。 */
-export function isFormRuntime(value: unknown): value is FormRuntime {
-  return Boolean(
-    value
-    && typeof value === 'object'
-    && (value as { __configFormRuntime?: unknown }).__configFormRuntime === true,
   )
 }
 
@@ -166,9 +157,12 @@ function orderHooks<THandler extends (...args: never[]) => unknown>(
   return [...pre, ...normal, ...post]
 }
 
-function createSlotContext(context: FormRuntimeContext, slotName: string): FormRuntimeContext & { slotName: string } {
+function createSlotResolveSnap(
+  resolveSnap: FormRuntimeResolveSnap,
+  slotName: string,
+): FormRuntimeResolveSnap & { slotName: string } {
   return {
-    ...context,
+    ...resolveSnap,
     slotName,
   }
 }
@@ -205,9 +199,9 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
 
   const orderedFieldTransformHooks = orderHooks(fieldTransformHooks)
 
-  function createContext<TValues extends FormValues = FormValues>(
-    input: CreateRuntimeContextInput<TValues> = {},
-  ): FormRuntimeContext<TValues> {
+  function createResolveSnap<TValues extends FormValues = FormValues>(
+    input: CreateRuntimeResolveSnapInput<TValues> = {},
+  ): FormRuntimeResolveSnap<TValues> {
     return {
       errors: input.errors ?? {},
       field: input.field,
@@ -225,42 +219,42 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
     return component
   }
 
-  function resolveToken(value: RuntimeToken, context: FormRuntimeContext, path: string): unknown {
+  function resolveToken(value: RuntimeToken, resolveSnap: FormRuntimeResolveSnap, path: string): unknown {
     const resolver = tokenResolvers[value.__configFormToken]
     if (!resolver)
       throw new Error(`No token resolver registered for token type: ${value.__configFormToken}`)
 
-    return resolver(value, context, path, { resolveValue })
+    return resolver(value, resolveSnap, path, { resolveValue })
   }
 
   function resolveRecord(
     value: Record<string, unknown>,
-    context: FormRuntimeContext,
+    resolveSnap: FormRuntimeResolveSnap,
     path: string,
   ): Record<string, unknown> {
     return Object.fromEntries(
       Object.entries(value).map(([key, item]) => [
         key,
-        resolveValue(item, context, `${path}.${key}`),
+        resolveValue(item, resolveSnap, `${path}.${key}`),
       ]),
     )
   }
 
   function resolveValue<TValue = unknown>(
     value: TValue,
-    context: FormRuntimeContext,
+    resolveSnap: FormRuntimeResolveSnap,
     path = 'value',
   ): unknown {
     let resolved: unknown = value
 
     if (isRuntimeToken(resolved)) {
-      resolved = resolveToken(resolved, context, path)
+      resolved = resolveToken(resolved, resolveSnap, path)
     }
     else if (Array.isArray(resolved)) {
-      resolved = resolved.map((item, index) => resolveValue(item, context, `${path}.${index}`))
+      resolved = resolved.map((item, index) => resolveValue(item, resolveSnap, `${path}.${index}`))
     }
     else if (isPlainRecord(resolved) && !isVNode(resolved) && !isComponentLikeRecord(resolved)) {
-      resolved = resolveRecord(resolved, context, path)
+      resolved = resolveRecord(resolved, resolveSnap, path)
     }
 
     return resolved
@@ -268,7 +262,7 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
 
   function resolveComponentNodeBase(
     config: FormNodeConfig,
-    context: FormRuntimeContext,
+    resolveSnap: FormRuntimeResolveSnap,
     path: string,
   ): ResolvedComponentNode {
     assertComponentNodeConfig(config, path)
@@ -276,34 +270,34 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
     return markResolvedFormNodeConfig({
       ...config,
       component: resolveComponent(config.component),
-      props: resolveRecord(config.props ?? {}, context, `${path}.props`),
+      props: resolveRecord(config.props ?? {}, resolveSnap, `${path}.props`),
       slots: config.slots
         ? Object.fromEntries(
             Object.entries(config.slots).map(([key, slot]) => [
               key,
-              resolveSlot(slot, createSlotContext(context, key), `${path}.slots.${key}`),
+              resolveSlot(slot, createSlotResolveSnap(resolveSnap, key), `${path}.slots.${key}`),
             ]),
           )
         : config.slots,
     })
   }
 
-  function resolveNode(node: FormNodeConfig, context: FormRuntimeContext, path = 'node'): ResolvedFormNode {
+  function resolveNode(node: FormNodeConfig, resolveSnap: FormRuntimeResolveSnap, path = 'node'): ResolvedFormNode {
     if (isResolvedFormNodeConfig(node))
       return node
 
     if (isFieldConfig(node))
-      return resolveField(node, context)
+      return resolveField(node, resolveSnap)
 
-    return resolveComponentNodeBase(node, context, path)
+    return resolveComponentNodeBase(node, resolveSnap, path)
   }
 
-  function resolveSlotBase(slot: SlotContent, context: FormRuntimeContext, path: string): SlotContent {
+  function resolveSlotBase(slot: SlotContent, resolveSnap: FormRuntimeResolveSnap, path: string): SlotContent {
     if (typeof slot === 'function') {
       return (scope?: Record<string, unknown>) => resolveSlotBase(
         slot(scope),
         {
-          ...context,
+          ...resolveSnap,
           slotScope: scope,
         },
         path,
@@ -311,36 +305,36 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
     }
 
     if (Array.isArray(slot))
-      return slot.map((item, index) => resolveSlotBase(item as SlotContent, context, `${path}.${index}`)) as SlotContent
+      return slot.map((item, index) => resolveSlotBase(item as SlotContent, resolveSnap, `${path}.${index}`)) as SlotContent
 
     if (isFormNodeConfig(slot)) {
       if (isResolvedFormNodeConfig(slot))
         return slot
 
       assertDefinedSlotNodeConfig(slot, path)
-      return resolveNode(slot, context, path) as SlotContent
+      return resolveNode(slot, resolveSnap, path) as SlotContent
     }
 
-    return resolveValue(slot, context, path) as SlotContent
+    return resolveValue(slot, resolveSnap, path) as SlotContent
   }
 
-  function resolveSlot(slot: SlotContent, context: FormRuntimeContext, path = 'slot'): SlotContent {
-    return resolveSlotBase(slot, context, path)
+  function resolveSlot(slot: SlotContent, resolveSnap: FormRuntimeResolveSnap, path = 'slot'): SlotContent {
+    return resolveSlotBase(slot, resolveSnap, path)
   }
 
-  function resolveFieldBase(config: NormalizedFieldConfig, context: FormRuntimeContext): ResolvedField {
+  function resolveFieldBase(config: NormalizedFieldConfig, resolveSnap: FormRuntimeResolveSnap): ResolvedField {
     return markResolvedFormNodeConfig({
       ...config,
       component: resolveComponent(config.component),
       label: config.label == null
         ? config.label
-        : String(resolveValue(config.label, context, `${config.field}.label`)),
-      props: resolveRecord(config.props, context, `${config.field}.props`),
+        : String(resolveValue(config.label, resolveSnap, `${config.field}.label`)),
+      props: resolveRecord(config.props, resolveSnap, `${config.field}.props`),
       slots: config.slots
         ? Object.fromEntries(
             Object.entries(config.slots).map(([key, slot]) => [
               key,
-              resolveSlot(slot, createSlotContext(context, key), `${config.field}.slots.${key}`),
+              resolveSlot(slot, createSlotResolveSnap(resolveSnap, key), `${config.field}.slots.${key}`),
             ]),
           )
         : config.slots,
@@ -383,18 +377,18 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
     return markTransformedFieldConfig(config)
   }
 
-  function resolveField(field: FieldConfig, context: FormRuntimeContext): ResolvedField {
+  function resolveField(field: FieldConfig, resolveSnap: FormRuntimeResolveSnap): ResolvedField {
     if (isResolvedFieldConfig(field))
       return field
 
     const transformed = transformField(field)
-    const fieldContext = { ...context, field: transformed }
-    return resolveFieldBase(transformed, fieldContext)
+    const fieldResolveSnap = { ...resolveSnap, field: transformed }
+    return resolveFieldBase(transformed, fieldResolveSnap)
   }
 
   function resolveConditionBase(
     condition: FieldCondition<FormValues> | undefined,
-    context: FormRuntimeContext,
+    resolveSnap: FormRuntimeResolveSnap,
     fallback: boolean,
   ): boolean {
     if (condition == null)
@@ -402,25 +396,24 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
     if (typeof condition === 'boolean')
       return condition
     if (isRuntimeToken<boolean>(condition))
-      return Boolean(resolveValue(condition, context, 'condition'))
-    return condition(context.values)
+      return Boolean(resolveValue(condition, resolveSnap, 'condition'))
+    return condition(resolveSnap.values)
   }
 
-  function resolveVisible(field: FieldConfig | NormalizedFieldConfig, context: FormRuntimeContext): boolean {
+  function resolveVisible(field: FieldConfig | NormalizedFieldConfig, resolveSnap: FormRuntimeResolveSnap): boolean {
     const transformed = transformField(field)
-    const fieldContext = { ...context, field: transformed }
-    return resolveConditionBase(transformed.visible, fieldContext, true)
+    const fieldResolveSnap = { ...resolveSnap, field: transformed }
+    return resolveConditionBase(transformed.visible, fieldResolveSnap, true)
   }
 
-  function resolveDisabled(field: FieldConfig | NormalizedFieldConfig, context: FormRuntimeContext): boolean {
+  function resolveDisabled(field: FieldConfig | NormalizedFieldConfig, resolveSnap: FormRuntimeResolveSnap): boolean {
     const transformed = transformField(field)
-    const fieldContext = { ...context, field: transformed }
-    return resolveConditionBase(transformed.disabled, fieldContext, false)
+    const fieldResolveSnap = { ...resolveSnap, field: transformed }
+    return resolveConditionBase(transformed.disabled, fieldResolveSnap, false)
   }
 
   const runtime: FormRuntime = {
-    __configFormRuntime: true,
-    createContext,
+    createResolveSnap,
     resolveDisabled,
     resolveField,
     resolveNode,

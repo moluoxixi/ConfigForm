@@ -1,6 +1,6 @@
 import type {
-  FormRuntimeContext,
   FormRuntimePlugin,
+  FormRuntimeResolveSnap,
   RuntimeToken,
 } from '@moluoxixi/config-form'
 
@@ -24,7 +24,7 @@ export type I18nLocale = string | (() => string | undefined)
 
 export type I18nMessageResolver = (
   params: Record<string, unknown> | undefined,
-  context: FormRuntimeContext,
+  resolveSnap: FormRuntimeResolveSnap,
   locale: string | undefined,
 ) => string
 
@@ -35,7 +35,7 @@ export type I18nTranslate = (
   key: string,
   params: Record<string, unknown> | undefined,
   defaultMessage: string | undefined,
-  context: FormRuntimeContext,
+  resolveSnap: FormRuntimeResolveSnap,
   locale: string | undefined,
 ) => string | undefined
 
@@ -43,7 +43,7 @@ export type I18nMissingHandler = (
   key: string,
   params: Record<string, unknown> | undefined,
   defaultMessage: string | undefined,
-  context: FormRuntimeContext,
+  resolveSnap: FormRuntimeResolveSnap,
   locale: string | undefined,
 ) => void
 
@@ -99,11 +99,11 @@ function assertI18nToken(token: RuntimeToken): asserts token is I18nToken {
 function renderMessage(
   message: I18nMessage,
   params: Record<string, unknown> | undefined,
-  context: FormRuntimeContext,
+  resolveSnap: FormRuntimeResolveSnap,
   locale: string | undefined,
 ): string {
   if (typeof message === 'function')
-    return message(params, context, locale)
+    return message(params, resolveSnap, locale)
 
   return message.replace(/\{([^}]+)\}/g, (_, key: string) => {
     const value = params?.[key.trim()]
@@ -125,26 +125,26 @@ export function createI18nPlugin(options: I18nPluginOptions = {}): FormRuntimePl
   return {
     name: options.name ?? 'i18n',
     tokens: {
-      i18n: (token, context, path, helpers) => {
+      i18n: (token, resolveSnap, path, helpers) => {
         assertI18nToken(token)
 
         const locale = resolveLocale(options.locale)
         const params = token.params
-          ? helpers.resolveValue(token.params, context, `${path}.params`) as Record<string, unknown>
+          ? helpers.resolveValue(token.params, resolveSnap, `${path}.params`) as Record<string, unknown>
           : undefined
         const { defaultMessage, key } = token
-        const custom = options.translate?.(key, params, defaultMessage, context, locale)
+        const custom = options.translate?.(key, params, defaultMessage, resolveSnap, locale)
         if (custom !== undefined)
           return custom
 
         const message = findMessage(options.messages, locale, key)
         if (message !== undefined)
-          return renderMessage(message, params, context, locale)
+          return renderMessage(message, params, resolveSnap, locale)
 
         if (defaultMessage !== undefined)
-          return renderMessage(defaultMessage, params, context, locale)
+          return renderMessage(defaultMessage, params, resolveSnap, locale)
 
-        options.missing?.(key, params, defaultMessage, context, locale)
+        options.missing?.(key, params, defaultMessage, resolveSnap, locale)
 
         throw new Error(`Missing i18n message: ${key}`)
       },
