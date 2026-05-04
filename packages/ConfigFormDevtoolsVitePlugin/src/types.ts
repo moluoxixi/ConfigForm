@@ -98,7 +98,7 @@ export interface SourceInjectionOptions {
   packageNames?: string[]
 }
 
-/** open-in-editor 支持的内置编辑器命令预设。 */
+/** launch-editor 已验证支持的常用编辑器预设。 */
 export type EditorPreset = 'code' | 'cursor' | 'webstorm'
 
 /** 已解析完成的编辑器命令。 */
@@ -139,7 +139,7 @@ export interface OpenInEditorOptions {
   root: string
   /** monorepo 或 linked package 源码允许访问的额外根目录。 */
   allowRoots?: string[]
-  /** 编辑器预设、可执行文件名或完整命令覆盖。 */
+  /** 编辑器预设、可执行文件名或完整命令覆盖；字符串会交给 launch-editor 解析。 */
   editor?: EditorPreset | string | EditorCommand
   /** 测试可注入的 spawn 实现。 */
   spawn?: SpawnEditorProcess
@@ -151,7 +151,7 @@ export interface ConfigFormDevtoolsPluginOptions {
   packageNames?: string[]
   /** open-in-editor endpoint 允许访问的额外文件系统根目录。 */
   allowRoots?: string[]
-  /** source-open 使用的编辑器预设、可执行文件名或命令覆盖。 */
+  /** source-open 使用的编辑器预设、可执行文件名或命令覆盖；字符串会交给 launch-editor 解析。 */
   editor?: EditorPreset | string | EditorCommand
 }
 

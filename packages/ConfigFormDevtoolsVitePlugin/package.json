@@ -30,6 +30,7 @@
   "dependencies": {
     "@babel/parser": "catalog:dev",
     "@vue/compiler-sfc": "catalog:dev",
+    "launch-editor": "catalog:dev",
     "magic-string": "catalog:dev"
   },
   "devDependencies": {

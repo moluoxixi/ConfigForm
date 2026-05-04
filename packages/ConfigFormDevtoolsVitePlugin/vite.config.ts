@@ -45,6 +45,7 @@ export default defineConfig({
         'node:child_process',
         'node:crypto',
         'node:fs',
+        'node:module',
         'node:path',
         'node:process',
         'node:url',

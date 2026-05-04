@@ -9,15 +9,31 @@ import type {
 import { Buffer } from 'node:buffer'
 import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
-import { isAbsolute, relative, resolve } from 'node:path'
+import { createRequire } from 'node:module'
+import { basename, isAbsolute, relative, resolve } from 'node:path'
 import process from 'node:process'
 import { ConfigFormDevtoolsHttpError } from './types'
+
+type LaunchEditorArgumentResolver = (
+  editor: string,
+  fileName: string,
+  lineNumber: string,
+  columnNumber: string,
+) => string[]
+
+type LaunchEditorCommandResolver = (specifiedEditor?: string) => [string | null, ...string[]]
 
 interface ResolveAllowedFileInput {
   file: string
   root: string
   allowRoots?: string[]
 }
+
+const require = createRequire(import.meta.url)
+const getArgumentsForPosition = require('launch-editor/get-args') as LaunchEditorArgumentResolver
+const guessEditorCommand = require('launch-editor/guess') as LaunchEditorCommandResolver
+
+const WINDOWS_WEBSTORM_COMMAND = 'webstorm64.exe'
 
 /** 将文件路径规范化为前端可展示的 POSIX 形式。 */
 function normalizePath(input: string): string {
@@ -37,24 +53,77 @@ function isInsideRoot(file: string, root: string): boolean {
 /**
  * 解析编辑器命令名和 shell 策略。
  *
- * Windows 下 code/cursor/webstorm 走对应命令包装器，其他平台保留用户传入命令。
+ * 未显式传入编辑器时交给 launch-editor 根据运行进程和环境变量推导。
  */
-function resolveEditorExecutable(editor: string): Pick<EditorCommand, 'command' | 'shell'> {
-  if (process.platform === 'win32') {
-    if (editor === 'code')
-      return { command: 'code.cmd', shell: true }
-    if (editor === 'cursor')
-      return { command: 'cursor.cmd', shell: true }
-    if (editor === 'webstorm')
-      return { command: 'webstorm.bat', shell: true }
+function resolveEditorExecutable(editor?: string): Pick<EditorCommand, 'args' | 'command' | 'shell'> {
+  const [command, ...args] = guessEditorCommand(editor)
+
+  if (!command) {
+    throw new ConfigFormDevtoolsHttpError(
+      500,
+      'Unable to resolve editor command. Configure configFormDevtools({ editor: "code" | "cursor" | "webstorm" }) or set LAUNCH_EDITOR.',
+    )
   }
 
-  return { command: editor }
+  return {
+    args,
+    command,
+    ...(shouldUseShell(command) ? { shell: true } : {}),
+  }
 }
 
 /** 格式化编辑器命令用于错误信息展示，不参与实际 shell 拼接。 */
 function formatEditorCommand(command: EditorCommand): string {
   return [command.command, ...command.args].join(' ')
+}
+
+/** 读取编辑器命令的基础名称，用于识别带扩展名或绝对路径的 launcher。 */
+function getEditorBasename(editor: string): string {
+  return basename(editor).replace(/\.(?:exe|cmd|bat|sh)$/i, '').toLowerCase()
+}
+
+/**
+ * 判断编辑器命令是否必须通过 shell 解析。
+ *
+ * Windows 下 code/cursor 这类 PATH 命令通常由 .cmd 包装器提供，必须走 shell；
+ * 已解析到 .exe 的完整路径则直接 spawn，避免带空格路径被 shell 重新拆分。
+ */
+function shouldUseShell(command: string): boolean {
+  if (process.platform !== 'win32')
+    return false
+
+  return !basename(command).toLowerCase().endsWith('.exe')
+}
+
+/** 判断用户传入的编辑器字符串是否已经是具体 launcher。 */
+function isExplicitLauncher(editor: string): boolean {
+  return editor.includes('\\')
+    || editor.includes('/')
+    || /\.(?:exe|cmd|bat)$/i.test(basename(editor))
+}
+
+/**
+ * 为 Windows WebStorm 使用官方 launcher 参数格式。
+ *
+ * launch-editor 的自动识别会在 WebStorm 运行时解析到 webstorm64.exe；
+ * 显式 `editor: 'webstorm'` 时也直接使用 exe，避免 batch/shell 转发影响行列跳转。
+ */
+function createWindowsWebStormCommand(input: EditorCommandInput): EditorCommand | undefined {
+  if (process.platform !== 'win32' || typeof input.editor !== 'string')
+    return undefined
+  const editorBasename = getEditorBasename(input.editor)
+  if (!['webstorm', 'webstorm64'].includes(editorBasename))
+    return undefined
+
+  const command = isExplicitLauncher(input.editor)
+    ? input.editor
+    : WINDOWS_WEBSTORM_COMMAND
+
+  return {
+    args: ['--line', String(input.line), '--column', String(input.column), input.file],
+    command,
+    ...(shouldUseShell(command) ? { shell: true } : {}),
+  }
 }
 
 /** 校验并规范化浏览器 devtools client 发送的 JSON payload。 */
@@ -92,7 +161,7 @@ export function resolveAllowedFile(input: ResolveAllowedFileInput): string {
     )
   }
 
-  return normalizePath(file)
+  return file
 }
 
 /** 根据源码位置和编辑器预设构造启动命令。 */
@@ -100,22 +169,21 @@ export function createEditorCommand(input: EditorCommandInput): EditorCommand {
   if (input.editor && typeof input.editor === 'object')
     return input.editor
 
-  const editor = input.editor ?? 'code'
-  const executable = resolveEditorExecutable(editor)
-  const target = `${input.file}:${input.line}:${input.column}`
+  const windowsWebStormCommand = createWindowsWebStormCommand(input)
+  if (windowsWebStormCommand)
+    return windowsWebStormCommand
 
-  if (editor === 'webstorm') {
-    return {
-      args: [target],
-      ...executable,
-    }
-  }
+  const executable = resolveEditorExecutable(input.editor)
+  const locationArgs = getArgumentsForPosition(
+    executable.command,
+    input.file,
+    String(input.line),
+    String(input.column),
+  )
 
   return {
-    args: ['code', 'cursor'].includes(editor)
-      ? ['--reuse-window', '-g', target]
-      : ['-g', target],
     ...executable,
+    args: [...executable.args, ...locationArgs],
   }
 }
 

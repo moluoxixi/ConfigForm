@@ -83,7 +83,7 @@ function createResponse() {
 }
 
 describe('open in editor helpers', () => {
-  it('creates non-Windows code-compatible editor commands that reuse the current window', () => {
+  it('creates non-Windows code-compatible editor commands through launch-editor mappings', () => {
     const platform = vi.spyOn(process, 'platform', 'get').mockReturnValue('linux')
 
     try {
@@ -95,7 +95,7 @@ describe('open in editor helpers', () => {
       })
 
       expect(command).toEqual({
-        args: ['--reuse-window', '-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
+        args: ['-r', '-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
         command: 'code',
       })
     }
@@ -104,7 +104,7 @@ describe('open in editor helpers', () => {
     }
   })
 
-  it('creates Windows preset editor commands through shell-compatible launchers', () => {
+  it('creates Windows preset editor commands and direct WebStorm exe launches', () => {
     const platform = vi.spyOn(process, 'platform', 'get').mockReturnValue('win32')
 
     try {
@@ -114,8 +114,8 @@ describe('open in editor helpers', () => {
         file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
         line: 12,
       })).toEqual({
-        args: ['--reuse-window', '-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
-        command: 'code.cmd',
+        args: ['-r', '-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
+        command: 'code',
         shell: true,
       })
 
@@ -125,8 +125,8 @@ describe('open in editor helpers', () => {
         file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
         line: 12,
       })).toEqual({
-        args: ['--reuse-window', '-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
-        command: 'cursor.cmd',
+        args: ['-r', '-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
+        command: 'cursor',
         shell: true,
       })
 
@@ -136,9 +136,18 @@ describe('open in editor helpers', () => {
         file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
         line: 12,
       })).toEqual({
-        args: ['D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
-        command: 'webstorm.bat',
-        shell: true,
+        args: ['--line', '12', '--column', '7', 'D:/project-new/ConfigForm/playgrounds/demo.vue'],
+        command: 'webstorm64.exe',
+      })
+
+      expect(createEditorCommand({
+        column: 7,
+        editor: 'D:\\code\\WebStorm 2025.3.2\\bin\\webstorm64.exe',
+        file: 'D:\\project-new\\ConfigForm\\playgrounds\\demo.vue',
+        line: 12,
+      })).toEqual({
+        args: ['--line', '12', '--column', '7', 'D:\\project-new\\ConfigForm\\playgrounds\\demo.vue'],
+        command: 'D:\\code\\WebStorm 2025.3.2\\bin\\webstorm64.exe',
       })
     }
     finally {
@@ -156,7 +165,7 @@ describe('open in editor helpers', () => {
         file: '/project/ConfigForm/playgrounds/demo.vue',
         line: 12,
       })).toEqual({
-        args: ['--reuse-window', '-g', '/project/ConfigForm/playgrounds/demo.vue:12:7'],
+        args: ['-r', '-g', '/project/ConfigForm/playgrounds/demo.vue:12:7'],
         command: 'cursor',
       })
     }
@@ -189,7 +198,7 @@ describe('open in editor helpers', () => {
       allowRoots: ['D:/project-new/Other'],
       file: 'D:/project-new/Other/demo.vue',
       root: 'D:/project-new/ConfigForm',
-    })).toBe('D:/project-new/Other/demo.vue')
+    }).replace(/\\/g, '/')).toBe('D:/project-new/Other/demo.vue')
   })
 
   it('creates webstorm and custom editor commands', () => {
@@ -202,7 +211,7 @@ describe('open in editor helpers', () => {
         file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
         line: 12,
       })).toEqual({
-        args: ['-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
+        args: ['D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
         command: 'sublime',
       })
 
@@ -212,7 +221,7 @@ describe('open in editor helpers', () => {
         file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
         line: 12,
       })).toEqual({
-        args: ['D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
+        args: ['--line', '12', '--column', '7', 'D:/project-new/ConfigForm/playgrounds/demo.vue'],
         command: 'webstorm',
       })
 
@@ -266,7 +275,7 @@ describe('open in editor helpers', () => {
     try {
       await expect(openInEditor(
         { column: 1, file, line: 1 },
-        { root, spawn: createSpawnMock('spawn') },
+        { editor: 'code', root, spawn: createSpawnMock('spawn') },
       )).resolves.toMatchObject({
         command: 'code',
       })
@@ -276,12 +285,69 @@ describe('open in editor helpers', () => {
     }
   })
 
+  it('opens WebStorm on Windows through the exe launcher without shell splitting', async () => {
+    const platform = vi.spyOn(process, 'platform', 'get').mockReturnValue('win32')
+    const root = mkdtempSync(join(tmpdir(), 'cf-devtools-'))
+    const file = join(root, 'demo.vue')
+    const spawnEditor = createSpawnMock('spawn')
+    writeFileSync(file, '<template />')
+
+    try {
+      await expect(openInEditor(
+        { column: 3, file, line: 2 },
+        { editor: 'webstorm', root, spawn: spawnEditor },
+      )).resolves.toMatchObject({
+        command: 'webstorm64.exe',
+      })
+
+      expect(spawnEditor).toHaveBeenCalledWith('webstorm64.exe', ['--line', '2', '--column', '3', file], {
+        detached: true,
+        stdio: 'ignore',
+      })
+    }
+    finally {
+      platform.mockRestore()
+    }
+  })
+
+  it('opens auto-detected WebStorm on Windows without requiring an editor option', async () => {
+    const platform = vi.spyOn(process, 'platform', 'get').mockReturnValue('win32')
+    const previousLaunchEditor = process.env.LAUNCH_EDITOR
+    const root = mkdtempSync(join(tmpdir(), 'cf-devtools-'))
+    const file = join(root, 'demo.vue')
+    const webstorm = 'D:\\code\\WebStorm 2025.3.2\\bin\\webstorm64.exe'
+    const spawnEditor = createSpawnMock('spawn')
+    process.env.LAUNCH_EDITOR = webstorm
+    writeFileSync(file, '<template />')
+
+    try {
+      await expect(openInEditor(
+        { column: 5, file, line: 4 },
+        { root, spawn: spawnEditor },
+      )).resolves.toMatchObject({
+        command: webstorm,
+      })
+
+      expect(spawnEditor).toHaveBeenCalledWith(webstorm, ['--line', '4', '--column', '5', file], {
+        detached: true,
+        stdio: 'ignore',
+      })
+    }
+    finally {
+      if (previousLaunchEditor === undefined)
+        delete process.env.LAUNCH_EDITOR
+      else
+        process.env.LAUNCH_EDITOR = previousLaunchEditor
+      platform.mockRestore()
+    }
+  })
+
   it('rejects missing files during open', async () => {
     const root = mkdtempSync(join(tmpdir(), 'cf-devtools-'))
 
     await expect(openInEditor(
       { column: 1, file: join(root, 'missing.vue'), line: 1 },
-      { root, spawn: createSpawnMock('spawn') },
+      { editor: 'code', root, spawn: createSpawnMock('spawn') },
     )).rejects.toThrow(/File does not exist/)
   })
 
@@ -291,19 +357,19 @@ describe('open in editor helpers', () => {
     writeFileSync(file, '<template />')
 
     const methodResponse = createResponse()
-    await createOpenInEditorMiddleware({ root })(createRequest('GET'), methodResponse)
+    await createOpenInEditorMiddleware({ editor: 'code', root })(createRequest('GET'), methodResponse)
     expect(methodResponse.statusCode).toBe(405)
 
     const invalidResponse = createResponse()
-    await createOpenInEditorMiddleware({ root })(createRequest('POST', '{"file":""}'), invalidResponse)
+    await createOpenInEditorMiddleware({ editor: 'code', root })(createRequest('POST', '{"file":""}'), invalidResponse)
     expect(invalidResponse.statusCode).toBe(400)
 
     const emptyResponse = createResponse()
-    await createOpenInEditorMiddleware({ root })(createRequest('POST'), emptyResponse)
+    await createOpenInEditorMiddleware({ editor: 'code', root })(createRequest('POST'), emptyResponse)
     expect(emptyResponse.statusCode).toBe(400)
 
     const successResponse = createResponse()
-    await createOpenInEditorMiddleware({ root, spawn: createSpawnMock('spawn') })(
+    await createOpenInEditorMiddleware({ editor: 'code', root, spawn: createSpawnMock('spawn') })(
       createRequest('POST', JSON.stringify({ column: 1, file, line: 1 })),
       successResponse,
     )
@@ -311,11 +377,11 @@ describe('open in editor helpers', () => {
     expect(successResponse.body).toContain('"command"')
 
     const failureResponse = createResponse()
-    await createOpenInEditorMiddleware({ root })(createRequest('POST', '{'), failureResponse)
+    await createOpenInEditorMiddleware({ editor: 'code', root })(createRequest('POST', '{'), failureResponse)
     expect(failureResponse.statusCode).toBe(500)
 
     const nonErrorResponse = createResponse()
-    await createOpenInEditorMiddleware({ root, spawn: createSpawnMock('error', 'plain failure') })(
+    await createOpenInEditorMiddleware({ editor: 'code', root, spawn: createSpawnMock('error', 'plain failure') })(
       createRequest('POST', JSON.stringify({ column: 1, file, line: 1 })),
       nonErrorResponse,
     )
