@@ -37,6 +37,8 @@ interface RootGroup {
 interface DevtoolsRenderState {
   activeFormId?: string
   activeFormSelectedByUser?: boolean
+  pickingNode?: boolean
+  selectedNodeId?: string
 }
 
 interface DevtoolsStore {
@@ -302,11 +304,15 @@ function ensureStyle() {
     .cf-devtools-bubble.is-left-edge:hover, .cf-devtools-bubble.is-right-edge:hover, .cf-devtools-bubble.is-dragging { transform: translateX(0); }
     .cf-devtools-panel { position: fixed; right: 16px; bottom: 68px; box-sizing: border-box; width: min(420px, calc(100vw - 32px)); max-height: min(${PANEL_MAX_HEIGHT}px, calc(100vh - ${BUBBLE_MARGIN * 2}px)); display: none; flex-direction: column; overflow: hidden; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; color: #111827; box-shadow: 0 16px 48px rgba(0,0,0,.22); pointer-events: auto; }
     .cf-devtools-panel.is-open { display: flex; }
-    .cf-devtools-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid #e5e7eb; cursor: move; font-weight: 600; user-select: none; }
+    .cf-devtools-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-bottom: 1px solid #e5e7eb; cursor: move; font-weight: 600; user-select: none; }
+    .cf-devtools-title { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cf-devtools-pick { width: 26px; height: 26px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; color: #374151; cursor: crosshair; font-size: 14px; line-height: 1; }
+    .cf-devtools-pick.is-active { border-color: #2563eb; background: #dbeafe; color: #1d4ed8; }
     .cf-devtools-body { overflow: auto; padding: 8px; }
     .cf-devtools-empty { padding: 16px; color: #6b7280; font-size: 13px; }
     .cf-devtools-node { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; min-height: 30px; border: 0; border-radius: 6px; background: transparent; padding: 5px 6px; color: inherit; text-align: left; font: inherit; }
     .cf-devtools-node:hover { background: #f3f4f6; }
+    .cf-devtools-node.is-selected { background: #eef2ff; box-shadow: inset 0 0 0 1px #c7d2fe; }
     .cf-devtools-node-main { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 6px; align-items: start; min-width: 0; }
     .cf-devtools-node-kind { color: #4b5563; font-size: 11px; font-weight: 700; line-height: 16px; text-align: center; }
     .cf-devtools-node-kind.is-component { color: #7c3aed; }
@@ -514,6 +520,64 @@ function nodeViewportScore(node: StoredNode): number {
   return elementViewportScore(node.element)
 }
 
+function elementArea(element: HTMLElement): number {
+  const rect = element.getBoundingClientRect()
+  return Math.max(0, rect.width) * Math.max(0, rect.height)
+}
+
+function nodeTreeDepth(store: DevtoolsStore, node: StoredNode): number {
+  let depth = 0
+  let parentId = node.parentId
+
+  while (parentId) {
+    const parent = store.nodes.get(parentId)
+    if (!parent)
+      break
+
+    depth += 1
+    parentId = parent.parentId
+  }
+
+  return depth
+}
+
+function comparePickNodes(store: DevtoolsStore, first: StoredNode, second: StoredNode): number {
+  if (first.element && second.element && first.element !== second.element) {
+    if (first.element.contains(second.element))
+      return 1
+    if (second.element.contains(first.element))
+      return -1
+
+    const areaDiff = elementArea(first.element) - elementArea(second.element)
+    if (areaDiff !== 0)
+      return areaDiff
+  }
+
+  const depthDiff = nodeTreeDepth(store, second) - nodeTreeDepth(store, first)
+  if (depthDiff !== 0)
+    return depthDiff
+
+  return first.order - second.order
+}
+
+function resolvePickedNode(store: DevtoolsStore, target: Node): StoredNode | undefined {
+  return [...store.nodes.values()]
+    .filter((node) => {
+      const element = node.element
+      return Boolean(element && element.contains(target) && elementHasEnabledBox(element))
+    })
+    .sort((first, second) => comparePickNodes(store, first, second))[0]
+}
+
+function scrollSelectedNodeIntoView(container: HTMLElement, selectedNodeId: string | undefined) {
+  if (!selectedNodeId)
+    return
+
+  const row = [...container.querySelectorAll<HTMLElement>('[data-cf-devtools-node-id]')]
+    .find(item => item.dataset.cfDevtoolsNodeId === selectedNodeId)
+  row?.scrollIntoView({ block: 'nearest' })
+}
+
 function groupIsDisabled(group: RootGroup): boolean {
   return group.hasInspectableElement && !group.hasEnabledElement
 }
@@ -540,6 +604,7 @@ function resolveActiveGroup(groups: RootGroup[], state: DevtoolsRenderState): Ro
   if (enabledGroups.length === 0) {
     state.activeFormId = undefined
     state.activeFormSelectedByUser = false
+    state.selectedNodeId = undefined
     return undefined
   }
 
@@ -607,11 +672,12 @@ function createNodeRow(
   node: StoredNode,
   store: DevtoolsStore,
   level: number,
+  selectedNodeId: string | undefined,
   highlight: (element: HTMLElement | null) => void,
   setError: (message: string) => void,
 ): HTMLElement {
   const row = document.createElement('div')
-  row.className = 'cf-devtools-node'
+  row.className = `cf-devtools-node${selectedNodeId === node.id ? ' is-selected' : ''}`
   row.dataset.cfDevtoolsNodeId = node.id
   row.style.paddingLeft = `${6 + level * 14}px`
 
@@ -699,7 +765,7 @@ function createNodeRow(
   const wrapper = document.createElement('div')
   wrapper.append(row)
   for (const child of children)
-    wrapper.append(createNodeRow(child, store, level + 1, highlight, setError))
+    wrapper.append(createNodeRow(child, store, level + 1, selectedNodeId, highlight, setError))
 
   return wrapper
 }
@@ -715,10 +781,13 @@ function renderTree(
 
   const groups = collectRootGroups(store)
   const roots = groups.flatMap(group => group.nodes)
+  if (state.selectedNodeId && !store.nodes.has(state.selectedNodeId))
+    state.selectedNodeId = undefined
 
   if (roots.length === 0) {
     state.activeFormId = undefined
     state.activeFormSelectedByUser = false
+    state.selectedNodeId = undefined
     const empty = document.createElement('div')
     empty.className = 'cf-devtools-empty'
     empty.textContent = 'No fields'
@@ -730,7 +799,8 @@ function renderTree(
     state.activeFormId = groups[0]?.formId
     state.activeFormSelectedByUser = false
     for (const node of roots)
-      container.append(createNodeRow(node, store, 0, highlight, setError))
+      container.append(createNodeRow(node, store, 0, state.selectedNodeId, highlight, setError))
+    scrollSelectedNodeIntoView(container, state.selectedNodeId)
     return
   }
 
@@ -758,6 +828,7 @@ function renderTree(
           return
         state.activeFormId = group.formId
         state.activeFormSelectedByUser = true
+        state.selectedNodeId = undefined
         renderTree(container, store, highlight, setError, state)
       },
     ))
@@ -765,7 +836,7 @@ function renderTree(
 
   if (activeGroup) {
     for (const node of activeGroup.nodes)
-      tree.append(createNodeRow(node, store, 0, highlight, setError))
+      tree.append(createNodeRow(node, store, 0, state.selectedNodeId, highlight, setError))
   }
   else {
     const empty = document.createElement('div')
@@ -776,6 +847,7 @@ function renderTree(
 
   layout.append(nav, tree)
   container.append(layout)
+  scrollSelectedNodeIntoView(container, state.selectedNodeId)
 }
 
 function updateBubblePosition(bubble: HTMLElement, panel: HTMLElement, position: BubblePosition) {
@@ -904,6 +976,8 @@ function installPanelDrag(panel: HTMLElement, handle: HTMLElement) {
   handle.addEventListener('mousedown', (event) => {
     if (event.button !== 0)
       return
+    if (event.target instanceof Element && event.target.closest('button'))
+      return
 
     const rect = panel.getBoundingClientRect()
     dragging = true
@@ -929,6 +1003,92 @@ function installPanelDrag(panel: HTMLElement, handle: HTMLElement) {
   document.addEventListener('mouseup', () => {
     dragging = false
   })
+}
+
+function installPagePicker(
+  root: HTMLElement,
+  panel: HTMLElement,
+  body: HTMLElement,
+  pickButton: HTMLElement,
+  store: DevtoolsStore,
+  state: DevtoolsRenderState,
+  render: () => void,
+  highlight: (element: HTMLElement | null) => void,
+  setError: (message: string) => void,
+) {
+  let previousCursor = ''
+
+  function setPicking(active: boolean) {
+    if (state.pickingNode === active)
+      return
+
+    state.pickingNode = active
+    pickButton.classList.toggle('is-active', active)
+    pickButton.setAttribute('aria-pressed', String(active))
+
+    if (active) {
+      previousCursor = document.documentElement.style.cursor
+      document.documentElement.style.cursor = 'crosshair'
+      return
+    }
+
+    document.documentElement.style.cursor = previousCursor
+  }
+
+  pickButton.addEventListener('mousedown', event => event.stopPropagation())
+  pickButton.addEventListener('click', (event) => {
+    event.stopPropagation()
+    setPicking(!state.pickingNode)
+    setError(state.pickingNode ? 'Click a ConfigForm field or component in the page' : '')
+  })
+
+  document.addEventListener('keydown', (event) => {
+    if (!state.pickingNode || event.key !== 'Escape')
+      return
+
+    setPicking(false)
+    setError('')
+    highlight(null)
+  }, { capture: true })
+
+  document.addEventListener('click', (event) => {
+    if (!state.pickingNode)
+      return
+
+    const target = event.target
+    if (target instanceof Node && root.contains(target))
+      return
+
+    event.preventDefault()
+    event.stopImmediatePropagation()
+
+    if (!(target instanceof Node)) {
+      setPicking(false)
+      setError('No ConfigForm field/component found at this point')
+      highlight(null)
+      return
+    }
+
+    const node = resolvePickedNode(store, target)
+    setPicking(false)
+
+    if (!node) {
+      setError('No ConfigForm field/component found at this point')
+      highlight(null)
+      return
+    }
+
+    panel.classList.add('is-open')
+    state.activeFormId = node.formId
+    state.activeFormSelectedByUser = true
+    state.selectedNodeId = node.id
+    setError('')
+    render()
+    highlight(node.element)
+    scrollSelectedNodeIntoView(body, node.id)
+  }, { capture: true })
+
+  return () => setPicking(false)
 }
 
 function installOutsidePanelClose(bubble: HTMLElement, panel: HTMLElement, closePanel: () => void) {
@@ -1041,7 +1201,20 @@ export function installConfigFormDevtools(): FormDevtoolsBridge {
 
   const header = document.createElement('div')
   header.className = 'cf-devtools-header'
-  header.textContent = 'ConfigForm'
+
+  const title = document.createElement('span')
+  title.className = 'cf-devtools-title'
+  title.textContent = 'ConfigForm'
+
+  const pickButton = document.createElement('button')
+  pickButton.className = 'cf-devtools-pick'
+  pickButton.dataset.cfDevtoolsPick = 'true'
+  pickButton.type = 'button'
+  pickButton.textContent = '⌖'
+  pickButton.title = 'Select field/component from page'
+  pickButton.setAttribute('aria-label', 'Select field/component from page')
+  pickButton.setAttribute('aria-pressed', 'false')
+  header.append(title, pickButton)
 
   const body = document.createElement('div')
   body.className = 'cf-devtools-body'
@@ -1071,14 +1244,18 @@ export function installConfigFormDevtools(): FormDevtoolsBridge {
     errorBox.textContent = message
   }
 
+  let cancelPagePicker = () => {}
+
   function closePanel() {
     panel.classList.remove('is-open')
+    cancelPagePicker()
     highlight(null)
     setError('')
   }
 
   const renderState: DevtoolsRenderState = {}
   const store = createStore(() => renderTree(body, store, highlight, setError, renderState))
+  const render = () => renderTree(body, store, highlight, setError, renderState)
   const bridge: FormDevtoolsBridge = {
     recordRender: store.recordRender,
     recordSync: store.recordSync,
@@ -1088,8 +1265,13 @@ export function installConfigFormDevtools(): FormDevtoolsBridge {
   }
 
   bubble.addEventListener('click', () => {
-    panel.classList.toggle('is-open')
-    renderTree(body, store, highlight, setError, renderState)
+    if (panel.classList.contains('is-open')) {
+      closePanel()
+      return
+    }
+
+    panel.classList.add('is-open')
+    render()
   })
 
   panel.append(header, body, errorBox)
@@ -1097,18 +1279,20 @@ export function installConfigFormDevtools(): FormDevtoolsBridge {
   document.body.append(root)
   installBubbleDrag(bubble, panel)
   installPanelDrag(panel, header)
+  cancelPagePicker = installPagePicker(root, panel, body, pickButton, store, renderState, render, highlight, setError)
   installOutsidePanelClose(bubble, panel, closePanel)
   installExternalContextSync(
     root,
-    () => renderTree(body, store, highlight, setError, renderState),
+    render,
     () => {
       renderState.activeFormSelectedByUser = false
+      renderState.selectedNodeId = undefined
     },
   )
   window.__CONFIG_FORM_DEVTOOLS_PENDING__ = true
   window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
   window.dispatchEvent(new CustomEvent(READY_EVENT, { detail: bridge }))
-  renderTree(body, store, highlight, setError, renderState)
+  render()
 
   return bridge
 }

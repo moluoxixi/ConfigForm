@@ -106,10 +106,28 @@ describe('configForm devtools adapter', () => {
       label: 'Name',
       source,
     }), expect.any(HTMLInputElement))
+    expect(document.querySelector('[data-cf-devtools-source-id="source-1"]')).toBeInstanceOf(HTMLInputElement)
     expect(bridge.recordSync).toHaveBeenCalledWith(expect.objectContaining({
       duration: expect.any(Number),
       timestamp: expect.any(Number),
     }))
+  })
+
+  it('throws when user props conflict with the injected devtools source id', () => {
+    const bridge = createBridge()
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
+
+    expect(() => mountAdapter([
+      {
+        __source: source,
+        component: 'input',
+        field: 'name',
+        props: {
+          'data-cf-devtools-source-id': 'different-source',
+        },
+      },
+    ])).toThrow(/Conflicting data-cf-devtools-source-id/)
   })
 
   it('records sync timing per node without including previous node work', async () => {
@@ -452,32 +470,47 @@ describe('configForm devtools adapter', () => {
       id: 'source-container-element',
       line: 20,
     }
-    const containerElement = document.createElement('section')
-    containerElement.dataset.cfDevtoolsSourceId = containerSource.id
-    document.body.append(containerElement)
-
-    mountAdapter([
-      {
-        __source: containerSource,
-        component: { name: 'CardContainer' },
-        slots: {
-          default: [
-            {
-              component: 'input',
-              field: 'name',
-            },
-          ],
-        },
+    const CoreWithContainer = defineComponent({
+      name: 'CoreWithContainer',
+      props: {
+        fields: { type: Array, required: true },
       },
-    ])
+      setup(props) {
+        return () => h('form', props.fields.map((field) => {
+          const config = field as FieldStub
+          return h('section', config.props ?? {})
+        }))
+      },
+    })
+    const Adapter = createDevtoolsConfigFormAdapter({
+      ConfigForm: CoreWithContainer as Component,
+      collectFieldConfigs: nodes => nodes as never,
+    })
+    const root = document.createElement('div')
+    document.body.append(root)
+
+    const app = createApp({
+      render: () => h(Adapter, {
+        fields: [
+          {
+            __source: containerSource,
+            component: { name: 'CardContainer' },
+          },
+        ],
+      }),
+    })
+    app.mount(root)
     await nextTick()
     await nextTick()
 
+    const containerElement = root.querySelector<HTMLElement>('[data-cf-devtools-source-id="source-container-element"]')
     expect(bridge.registerField).toHaveBeenCalledWith(expect.objectContaining({
       component: 'CardContainer',
       kind: 'component',
       source: containerSource,
     }), containerElement)
+
+    app.unmount()
   })
 
   it('resolves visible source elements before hidden duplicate source nodes', async () => {

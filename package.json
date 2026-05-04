@@ -2,18 +2,23 @@
   "name": "config-form",
   "type": "module",
   "private": true,
+  "packageManager": "pnpm@10.29.3",
   "scripts": {
+    "changeset": "changeset",
     "dev:ep": "pnpm build && pnpm -C playgrounds/element-plus-playground dev",
     "dev:antd": "pnpm build && pnpm -C playgrounds/antd-vue-playground dev",
     "build": "pnpm -r --filter \"./packages/*\" --filter \"./playgrounds/*\" build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "release": "pnpm build && changeset publish",
     "test": "pnpm -C packages/ConfigForm build && pnpm -r --filter \"./packages/*\" test",
     "test:coverage": "pnpm -C packages/ConfigForm build && pnpm -r --filter \"./packages/*\" test:coverage",
-    "typecheck": "pnpm -r --filter \"./packages/*\" build && pnpm -r --filter \"./packages/*\" --filter \"./playgrounds/*\" typecheck"
+    "typecheck": "pnpm -r --filter \"./packages/*\" build && pnpm -r --filter \"./packages/*\" --filter \"./playgrounds/*\" typecheck",
+    "version-packages": "changeset version"
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:dev",
+    "@changesets/cli": "catalog:dev",
     "@types/node": "catalog:type",
     "eslint": "catalog:dev",
     "eslint-plugin-format": "catalog:dev",

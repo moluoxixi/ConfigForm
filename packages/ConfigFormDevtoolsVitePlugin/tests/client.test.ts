@@ -179,6 +179,111 @@ describe('client overlay', () => {
     expect(panel.classList.contains('is-open')).toBe(false)
   })
 
+  it('selects a registered field from picker mode by clicking the page element', () => {
+    installConfigFormDevtools()
+
+    const target = document.createElement('button')
+    target.getBoundingClientRect = () => ({
+      bottom: 44,
+      height: 24,
+      left: 20,
+      right: 160,
+      top: 20,
+      width: 140,
+      x: 20,
+      y: 20,
+      toJSON: () => ({}),
+    })
+    document.body.append(target)
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'email',
+      formId: 'form-1',
+      id: 'node-email',
+      kind: 'field',
+      order: 1,
+    }, target)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+    const pickButton = document.querySelector<HTMLButtonElement>('[data-cf-devtools-pick]')
+    pickButton?.click()
+    expect(pickButton?.getAttribute('aria-pressed')).toBe('true')
+
+    target.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+
+    expect(pickButton?.getAttribute('aria-pressed')).toBe('false')
+    expect(document.querySelector<HTMLElement>('[data-cf-devtools="panel"]')?.classList.contains('is-open')).toBe(true)
+    expect(document.querySelector<HTMLElement>('[data-cf-devtools-node-id="node-email"]')?.classList.contains('is-selected')).toBe(true)
+    expect(document.querySelector<HTMLElement>('[data-cf-devtools="highlight"]')?.style.display).toBe('block')
+  })
+
+  it('selects the innermost component or field when picker candidates are nested', () => {
+    installConfigFormDevtools()
+
+    const parent = document.createElement('section')
+    parent.getBoundingClientRect = () => ({
+      bottom: 140,
+      height: 120,
+      left: 20,
+      right: 260,
+      top: 20,
+      width: 240,
+      x: 20,
+      y: 20,
+      toJSON: () => ({}),
+    })
+    const child = document.createElement('input')
+    child.getBoundingClientRect = () => ({
+      bottom: 66,
+      height: 26,
+      left: 40,
+      right: 220,
+      top: 40,
+      width: 180,
+      x: 40,
+      y: 40,
+      toJSON: () => ({}),
+    })
+    parent.append(child)
+    document.body.append(parent)
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      component: 'CardContainer',
+      formId: 'form-1',
+      id: 'node-container',
+      kind: 'component',
+      order: 1,
+    }, parent)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'name',
+      formId: 'form-1',
+      id: 'node-name',
+      kind: 'field',
+      order: 1,
+      parentId: 'node-container',
+    }, child)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools-pick]')?.click()
+    child.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+
+    expect(document.querySelector<HTMLElement>('[data-cf-devtools-node-id="node-name"]')?.classList.contains('is-selected')).toBe(true)
+    expect(document.querySelector<HTMLElement>('[data-cf-devtools-node-id="node-container"]')?.classList.contains('is-selected')).toBe(false)
+  })
+
+  it('cancels picker mode with Escape', () => {
+    installConfigFormDevtools()
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+    const pickButton = document.querySelector<HTMLButtonElement>('[data-cf-devtools-pick]')
+    pickButton?.click()
+    expect(pickButton?.getAttribute('aria-pressed')).toBe('true')
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }))
+
+    expect(pickButton?.getAttribute('aria-pressed')).toBe('false')
+  })
+
   it('renders explicit field order even when nodes register out of render order', () => {
     installConfigFormDevtools()
 

@@ -101,7 +101,7 @@ function resolveTestField(field: FieldConfig) {
 }
 
 describe('config form component', () => {
-  it('marks component containers with their devtools source id for DOM highlighting', () => {
+  it('keeps devtools source ids out of core component container rendering', () => {
     const source = {
       column: 9,
       file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
@@ -134,8 +134,9 @@ describe('config form component', () => {
       },
     })
 
-    const card = wrapper.get('[data-cf-devtools-source-id="source-card"]')
+    const card = wrapper.get('[data-card="基础信息"]')
     expect(card.attributes('data-card')).toBe('基础信息')
+    expect(card.attributes('data-cf-devtools-source-id')).toBeUndefined()
   })
 
   it('renders component containers around real fields without binding container values', async () => {

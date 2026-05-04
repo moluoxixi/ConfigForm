@@ -139,6 +139,11 @@ function resolveLabel(label: unknown): string | undefined {
   return typeof label === 'string' ? label : undefined
 }
 
+function resolveDevtoolsSourceId(node: DevtoolsFormNodeConfig): string | undefined {
+  const id = node.__source?.id
+  return typeof id === 'string' && id.length > 0 ? id : undefined
+}
+
 function normalizeTextContent(value: string | null | undefined): string | undefined {
   const text = value?.replace(/\s+/g, ' ').trim()
   return text && text.length > 0 ? text : undefined
@@ -310,6 +315,31 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         return next
       }
 
+      function withDevtoolsSourceProps(
+        node: DevtoolsFormNodeConfig,
+        props: Record<string, unknown>,
+      ): Record<string, unknown> {
+        const sourceId = resolveDevtoolsSourceId(node)
+        if (!sourceId)
+          return props
+
+        const existing = props[SOURCE_ID_ATTRIBUTE]
+        if (existing !== undefined && existing !== sourceId) {
+          throw new Error(
+            `Conflicting ${SOURCE_ID_ATTRIBUTE}: expected ${sourceId}, received ${String(existing)}`,
+          )
+        }
+
+        return {
+          ...props,
+          [SOURCE_ID_ATTRIBUTE]: sourceId,
+        }
+      }
+
+      function withDevtoolsNodeProps(id: string, node: DevtoolsFormNodeConfig): Record<string, unknown> {
+        return withDevtoolsSourceProps(node, withRenderTimingProps(id, node.props))
+      }
+
       function callExposed(methodName: string, args: unknown[]) {
         const method = coreRef.value?.[methodName]
         if (typeof method !== 'function')
@@ -377,7 +407,7 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         const nodePath = `${path}.${index}`
         const id = isFieldNodeConfig(node) ? `${formId}:${node.field}` : `${formId}:${nodePath}`
         const next = cloneFormNodeConfig(node)
-        next.props = withRenderTimingProps(id, node.props)
+        next.props = withDevtoolsNodeProps(id, node)
 
         if (node.slots) {
           next.slots = Object.fromEntries(
