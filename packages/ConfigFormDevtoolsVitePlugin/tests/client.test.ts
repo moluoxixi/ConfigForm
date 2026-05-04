@@ -82,13 +82,13 @@ describe('client overlay', () => {
     expect(document.body.textContent).toContain('render 13.45 ms')
     expect(document.body.textContent).toContain('sync 2.50 ms')
 
-    document.querySelector<HTMLElement>('[data-cf-devtools-node-id="node-1"]')?.dispatchEvent(new MouseEvent('mouseenter'))
+    document.querySelector<HTMLElement>('[data-cf-devtools-node-id="node-1"]')?.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))
 
     const highlight = document.querySelector<HTMLElement>('[data-cf-devtools="highlight"]')
     expect(highlight?.style.display).toBe('block')
     expect(highlight?.style.left).toBe('10px')
 
-    document.querySelector<HTMLElement>('[data-cf-devtools-node-id="node-1"]')?.dispatchEvent(new MouseEvent('mouseleave'))
+    document.querySelector<HTMLElement>('[data-cf-devtools-node-id="node-1"]')?.dispatchEvent(new MouseEvent('mouseout', { bubbles: true }))
     expect(highlight?.style.display).toBe('none')
 
     document.querySelector<HTMLButtonElement>('[data-cf-devtools-open="node-1"]')?.click()
@@ -179,7 +179,14 @@ describe('client overlay', () => {
     expect(panel.classList.contains('is-open')).toBe(false)
   })
 
-  it('selects a registered field from picker mode by clicking the page element', () => {
+  it('highlights picker candidates on hover and opens source by clicking the page element', async () => {
+    const fetchMock = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({
+      command: {
+        args: ['--reuse-window', '-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:32:5'],
+        command: 'code.cmd',
+      },
+    }), { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
     installConfigFormDevtools()
 
     const target = document.createElement('button')
@@ -202,6 +209,12 @@ describe('client overlay', () => {
       id: 'node-email',
       kind: 'field',
       order: 1,
+      source: {
+        column: 5,
+        file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
+        id: 'source-email',
+        line: 32,
+      },
     }, target)
 
     document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
@@ -209,12 +222,26 @@ describe('client overlay', () => {
     pickButton?.click()
     expect(pickButton?.getAttribute('aria-pressed')).toBe('true')
 
+    target.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, cancelable: true }))
+    const highlight = document.querySelector<HTMLElement>('[data-cf-devtools="highlight"]')
+    expect(highlight?.style.display).toBe('block')
+    expect(highlight?.style.left).toBe('20px')
+    expect(fetchMock).not.toHaveBeenCalled()
+
     target.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
 
     expect(pickButton?.getAttribute('aria-pressed')).toBe('false')
     expect(document.querySelector<HTMLElement>('[data-cf-devtools="panel"]')?.classList.contains('is-open')).toBe(true)
     expect(document.querySelector<HTMLElement>('[data-cf-devtools-node-id="node-email"]')?.classList.contains('is-selected')).toBe(true)
-    expect(document.querySelector<HTMLElement>('[data-cf-devtools="highlight"]')?.style.display).toBe('block')
+    await vi.waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith('/__config-form-devtools/open', expect.objectContaining({
+        method: 'POST',
+      }))
+    })
+    expect(String(fetchMock.mock.calls[0]?.[1]?.body)).toContain('"line":32')
+    await vi.waitFor(() => {
+      expect(document.body.textContent).toContain('Opened source: code.cmd --reuse-window -g D:/project-new/ConfigForm/playgrounds/demo.vue:32:5')
+    })
   })
 
   it('selects the innermost component or field when picker candidates are nested', () => {
@@ -722,6 +749,89 @@ describe('client overlay', () => {
     })
   })
 
+  it('does not resync the active ConfigForm when the debugger panel scrolls', async () => {
+    installConfigFormDevtools()
+
+    let panelScrolled = false
+    const firstElement = document.createElement('div')
+    firstElement.getBoundingClientRect = () => panelScrolled
+      ? {
+          bottom: -120,
+          height: 300,
+          left: 20,
+          right: 220,
+          top: -420,
+          width: 200,
+          x: 20,
+          y: -420,
+          toJSON: () => ({}),
+        }
+      : {
+          bottom: 320,
+          height: 300,
+          left: 20,
+          right: 220,
+          top: 20,
+          width: 200,
+          x: 20,
+          y: 20,
+          toJSON: () => ({}),
+        }
+    const secondElement = document.createElement('div')
+    secondElement.getBoundingClientRect = () => panelScrolled
+      ? {
+          bottom: 360,
+          height: 300,
+          left: 20,
+          right: 220,
+          top: 60,
+          width: 200,
+          x: 20,
+          y: 60,
+          toJSON: () => ({}),
+        }
+      : {
+          bottom: 720,
+          height: 300,
+          left: 20,
+          right: 220,
+          top: 420,
+          width: 200,
+          x: 20,
+          y: 420,
+          toJSON: () => ({}),
+        }
+    document.body.append(firstElement, secondElement)
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'first',
+      formId: 'form-first',
+      formLabel: 'First Form',
+      id: 'form-first:first',
+      kind: 'field',
+      order: 1,
+    }, firstElement)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'second',
+      formId: 'form-second',
+      formLabel: 'Second Form',
+      id: 'form-second:first',
+      kind: 'field',
+      order: 1,
+    }, secondElement)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+    expect(document.querySelector<HTMLElement>('[data-cf-devtools-nav-form-id="form-first"]')?.classList.contains('is-active')).toBe(true)
+
+    panelScrolled = true
+    document.querySelector<HTMLElement>('[data-cf-devtools="panel"]')?.dispatchEvent(new Event('scroll'))
+    document.querySelector<HTMLElement>('[data-cf-devtools-node-id="form-first:first"]')?.dispatchEvent(new Event('wheel', { bubbles: true }))
+    window.dispatchEvent(new Event('scroll'))
+
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(document.querySelector<HTMLElement>('[data-cf-devtools-nav-form-id="form-first"]')?.classList.contains('is-active')).toBe(true)
+  })
+
   it('keeps display none ConfigForms in the navlist as disabled items', () => {
     installConfigFormDevtools()
 
@@ -1178,6 +1288,17 @@ describe('client overlay', () => {
     expect(panelTop + 560).toBeLessThanOrEqual(844 - 16)
   })
 
+  it('keeps the left nav and right tree as independent scroll panes', () => {
+    installConfigFormDevtools()
+
+    const style = document.head.textContent ?? ''
+    expect(style).toContain('.cf-devtools-panel { position: fixed;')
+    expect(style).toContain('overflow: hidden;')
+    expect(style).toContain('.cf-devtools-body { min-height: 0; flex: 1 1 auto; display: flex; flex-direction: column; overflow: hidden; padding: 8px; }')
+    expect(style).toContain('.cf-devtools-nav { min-height: 0; overflow: auto;')
+    expect(style).toContain('.cf-devtools-tree { min-height: 0; overflow: auto;')
+  })
+
   it('drags the debugger panel from its header', () => {
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 800 })
     Object.defineProperty(window, 'innerHeight', { configurable: true, value: 600 })
@@ -1424,6 +1545,118 @@ describe('client overlay', () => {
     await vi.waitFor(() => {
       expect(document.body.textContent).toContain('Opened source: code.cmd --reuse-window -g D:/project-new/ConfigForm/playgrounds/demo.vue:12:7')
     })
+  })
+
+  it('opens source directly when clicking a field row', async () => {
+    const fetchMock = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({
+      command: {
+        args: ['--reuse-window', '-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
+        command: 'code.cmd',
+      },
+    }), { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+    installConfigFormDevtools()
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'email',
+      formId: 'form-1',
+      id: 'node-1',
+      kind: 'field',
+      source: {
+        column: 7,
+        file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
+        id: 'source-1',
+        line: 12,
+      },
+    }, null)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+    document.querySelector<HTMLElement>('[data-cf-devtools-node-id="node-1"]')?.click()
+
+    await vi.waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith('/__config-form-devtools/open', expect.objectContaining({
+        method: 'POST',
+      }))
+    })
+    expect(document.querySelector<HTMLElement>('[data-cf-devtools-node-id="node-1"]')?.classList.contains('is-selected')).toBe(true)
+    await vi.waitFor(() => {
+      expect(document.body.textContent).toContain('Opened source: code.cmd --reuse-window -g D:/project-new/ConfigForm/playgrounds/demo.vue:12:7')
+    })
+  })
+
+  it('opens source directly from the search input by label or component metadata', async () => {
+    const fetchMock = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({
+      command: {
+        args: ['--reuse-window', '-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:24:9'],
+        command: 'code.cmd',
+      },
+    }), { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+    installConfigFormDevtools()
+
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      field: 'email',
+      formId: 'form-1',
+      id: 'node-field',
+      kind: 'field',
+      label: '邮箱',
+      order: 1,
+      source: {
+        column: 7,
+        file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
+        id: 'source-field',
+        line: 12,
+      },
+    }, null)
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
+      component: 'ElInput',
+      formId: 'form-1',
+      id: 'node-component',
+      kind: 'component',
+      order: 2,
+      parentId: 'node-field',
+      slotName: 'default',
+      source: {
+        column: 9,
+        file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
+        id: 'source-component',
+        line: 24,
+      },
+    }, null)
+
+    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
+
+    expect(document.querySelector('[data-cf-devtools-source-select]')).toBeNull()
+
+    let search = document.querySelector<HTMLInputElement>('[data-cf-devtools-source-search]')
+    expect(search).toBeTruthy()
+
+    search!.value = '邮箱'
+    search!.dispatchEvent(new Event('input', { bubbles: true }))
+    expect([...document.querySelectorAll<HTMLElement>('[data-cf-devtools-source-result-id]')]
+      .map(item => item.textContent))
+      .toEqual(['F email · 邮箱'])
+
+    search = document.querySelector<HTMLInputElement>('[data-cf-devtools-source-search]')
+    search!.value = 'slot:default'
+    search!.dispatchEvent(new Event('input', { bubbles: true }))
+
+    const results = [...document.querySelectorAll<HTMLButtonElement>('[data-cf-devtools-source-result-id]')]
+    expect(results.map(item => item.textContent)).toEqual(['C ElInput · slot:default'])
+    results[0]?.click()
+
+    await vi.waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith('/__config-form-devtools/open', expect.objectContaining({
+        method: 'POST',
+      }))
+    })
+
+    expect(String(fetchMock.mock.calls[0]?.[1]?.body)).toContain('"line":24')
+    expect(String(fetchMock.mock.calls[0]?.[1]?.body)).toContain('"column":9')
+    await vi.waitFor(() => {
+      expect(document.body.textContent).toContain('Opened source: code.cmd --reuse-window -g D:/project-new/ConfigForm/playgrounds/demo.vue:24:9')
+    })
+    expect(document.querySelector<HTMLElement>('[data-cf-devtools-node-id="node-component"]')?.classList.contains('is-selected')).toBe(true)
   })
 
   it('shows source open success when the editor command has no args', async () => {

@@ -39,6 +39,7 @@ interface DevtoolsRenderState {
   activeFormSelectedByUser?: boolean
   pickingNode?: boolean
   selectedNodeId?: string
+  sourceSearchQuery?: string
 }
 
 interface DevtoolsStore {
@@ -104,6 +105,44 @@ function formatOpenSourceCommand(payload: unknown): string | undefined {
     : []
 
   return [command.command, ...args].join(' ')
+}
+
+async function openNodeSource(node: StoredNode, setError: (message: string) => void): Promise<void> {
+  const source = node.source
+  if (!source) {
+    setError('No source location for selected field/component')
+    return
+  }
+
+  const response = await fetch('/__config-form-devtools/open', {
+    body: JSON.stringify({
+      column: source.column,
+      file: source.file,
+      line: source.line,
+    }),
+    headers: { 'content-type': 'application/json' },
+    method: 'POST',
+  })
+  const text = await response.text()
+
+  if (!response.ok) {
+    try {
+      const payload = JSON.parse(text) as { error?: unknown }
+      setError(typeof payload.error === 'string' ? payload.error : text)
+    }
+    catch {
+      setError(text)
+    }
+    return
+  }
+
+  try {
+    const command = formatOpenSourceCommand(JSON.parse(text))
+    setError(command ? `Opened source: ${command}` : '')
+  }
+  catch {
+    setError('')
+  }
 }
 
 function resolveNodeKindIcon(node: FormDevtoolsNode): 'C' | 'F' {
@@ -304,13 +343,13 @@ function ensureStyle() {
     .cf-devtools-bubble.is-left-edge:hover, .cf-devtools-bubble.is-right-edge:hover, .cf-devtools-bubble.is-dragging { transform: translateX(0); }
     .cf-devtools-panel { position: fixed; right: 16px; bottom: 68px; box-sizing: border-box; width: min(420px, calc(100vw - 32px)); max-height: min(${PANEL_MAX_HEIGHT}px, calc(100vh - ${BUBBLE_MARGIN * 2}px)); display: none; flex-direction: column; overflow: hidden; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; color: #111827; box-shadow: 0 16px 48px rgba(0,0,0,.22); pointer-events: auto; }
     .cf-devtools-panel.is-open { display: flex; }
-    .cf-devtools-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-bottom: 1px solid #e5e7eb; cursor: move; font-weight: 600; user-select: none; }
+    .cf-devtools-header { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-bottom: 1px solid #e5e7eb; background: #fff; cursor: move; font-weight: 600; user-select: none; }
     .cf-devtools-title { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .cf-devtools-pick { width: 26px; height: 26px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; color: #374151; cursor: crosshair; font-size: 14px; line-height: 1; }
     .cf-devtools-pick.is-active { border-color: #2563eb; background: #dbeafe; color: #1d4ed8; }
-    .cf-devtools-body { overflow: auto; padding: 8px; }
+    .cf-devtools-body { min-height: 0; flex: 1 1 auto; display: flex; flex-direction: column; overflow: hidden; padding: 8px; }
     .cf-devtools-empty { padding: 16px; color: #6b7280; font-size: 13px; }
-    .cf-devtools-node { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; min-height: 30px; border: 0; border-radius: 6px; background: transparent; padding: 5px 6px; color: inherit; text-align: left; font: inherit; }
+    .cf-devtools-node { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; min-height: 30px; border: 0; border-radius: 6px; background: transparent; padding: 5px 6px; color: inherit; text-align: left; font: inherit; cursor: pointer; }
     .cf-devtools-node:hover { background: #f3f4f6; }
     .cf-devtools-node.is-selected { background: #eef2ff; box-shadow: inset 0 0 0 1px #c7d2fe; }
     .cf-devtools-node-main { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 6px; align-items: start; min-width: 0; }
@@ -320,8 +359,9 @@ function ensureStyle() {
     .cf-devtools-node-text { min-width: 0; }
     .cf-devtools-node-key { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .cf-devtools-node-meta { color: #6b7280; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .cf-devtools-layout { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 8px; min-height: 0; }
-    .cf-devtools-nav { display: flex; flex-direction: column; gap: 4px; border-right: 1px solid #e5e7eb; padding-right: 8px; }
+    .cf-devtools-layout { min-height: 0; flex: 1 1 auto; display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 8px; }
+    .cf-devtools-layout.is-single { grid-template-columns: minmax(0, 1fr); }
+    .cf-devtools-nav { min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 4px; border-right: 1px solid #e5e7eb; padding-right: 8px; }
     .cf-devtools-nav-item { width: 100%; min-height: 42px; border: 1px solid transparent; border-radius: 6px; background: transparent; padding: 6px; color: inherit; cursor: pointer; text-align: left; font: inherit; }
     .cf-devtools-nav-item:hover { background: #f3f4f6; }
     .cf-devtools-nav-item.is-active { border-color: #c7d2fe; background: #eef2ff; color: #1e3a8a; }
@@ -329,7 +369,14 @@ function ensureStyle() {
     .cf-devtools-nav-item.is-disabled:hover { background: transparent; }
     .cf-devtools-nav-title { display: block; overflow: hidden; font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
     .cf-devtools-nav-meta { display: block; overflow: hidden; margin-top: 2px; color: #6b7280; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
-    .cf-devtools-tree { min-width: 0; }
+    .cf-devtools-source-search-box { flex: 0 0 auto; padding: 0 0 8px; }
+    .cf-devtools-source-search { box-sizing: border-box; width: 100%; height: 30px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; color: #111827; padding: 0 8px; font: inherit; font-size: 12px; }
+    .cf-devtools-source-search:disabled { opacity: .55; cursor: not-allowed; }
+    .cf-devtools-source-results { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
+    .cf-devtools-source-result { width: 100%; min-height: 28px; border: 1px solid transparent; border-radius: 6px; background: #fff; padding: 4px 6px; color: inherit; cursor: pointer; text-align: left; font: inherit; font-size: 12px; }
+    .cf-devtools-source-result:hover, .cf-devtools-source-result.is-selected { border-color: #c7d2fe; background: #eef2ff; }
+    .cf-devtools-source-empty { padding: 4px 6px; color: #6b7280; font-size: 12px; }
+    .cf-devtools-tree { min-height: 0; overflow: auto; min-width: 0; }
     .cf-devtools-timings { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-variant-numeric: tabular-nums; font-size: 11px; line-height: 1.15; }
     .cf-devtools-timing { white-space: nowrap; }
     .cf-devtools-timing.is-render { color: #047857; }
@@ -337,7 +384,7 @@ function ensureStyle() {
     .cf-devtools-open { width: 24px; height: 24px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; cursor: pointer; }
     .cf-devtools-open:disabled { opacity: .35; cursor: not-allowed; }
     .cf-devtools-highlight { position: fixed; display: none; box-sizing: border-box; border: 2px solid #38bdf8; background: rgba(56,189,248,.12); box-shadow: 0 0 0 9999px rgba(15,23,42,.08); pointer-events: none; border-radius: 4px; }
-    .cf-devtools-error { padding: 0 12px 10px; color: #b91c1c; font-size: 12px; }
+    .cf-devtools-error { flex: 0 0 auto; padding: 0 12px 10px; background: #fff; color: #b91c1c; font-size: 12px; }
   `
   document.head.append(style)
 }
@@ -578,6 +625,36 @@ function scrollSelectedNodeIntoView(container: HTMLElement, selectedNodeId: stri
   row?.scrollIntoView({ block: 'nearest' })
 }
 
+function activateSourceNode(
+  node: StoredNode,
+  getContainer: () => HTMLElement,
+  state: DevtoolsRenderState,
+  render: () => void,
+  highlight: (element: HTMLElement | null) => void,
+  setError: (message: string) => void,
+) {
+  state.activeFormId = node.formId
+  state.activeFormSelectedByUser = true
+  state.selectedNodeId = node.id
+  render()
+  const container = getContainer()
+  highlight(node.element)
+  scrollSelectedNodeIntoView(container, node.id)
+  void openNodeSource(node, setError)
+}
+
+function resolveEventNode(store: DevtoolsStore, container: HTMLElement, target: EventTarget | null): StoredNode | undefined {
+  if (!(target instanceof Element))
+    return undefined
+
+  const row = target.closest<HTMLElement>('[data-cf-devtools-node-id]')
+  if (!row || !container.contains(row))
+    return undefined
+
+  const id = row?.dataset.cfDevtoolsNodeId
+  return id ? store.nodes.get(id) : undefined
+}
+
 function groupIsDisabled(group: RootGroup): boolean {
   return group.hasInspectableElement && !group.hasEnabledElement
 }
@@ -629,7 +706,6 @@ function createFormNavItem(
   index: number,
   active: boolean,
   disabled: boolean,
-  onSelect: () => void,
 ): HTMLElement {
   const button = document.createElement('button')
   button.className = `cf-devtools-nav-item${active ? ' is-active' : ''}${disabled ? ' is-disabled' : ''}`
@@ -647,9 +723,114 @@ function createFormNavItem(
   meta.className = 'cf-devtools-nav-meta'
   meta.textContent = disabled ? `${resolveGroupMeta(group)} · hidden` : resolveGroupMeta(group)
 
-  button.addEventListener('click', onSelect)
   button.append(title, meta)
   return button
+}
+
+function collectOrderedTreeNodes(store: DevtoolsStore, roots: StoredNode[]): StoredNode[] {
+  const nodes: StoredNode[] = []
+
+  function visit(node: StoredNode) {
+    nodes.push(node)
+    const children = [...store.nodes.values()]
+      .filter(item => item.parentId === node.id)
+      .sort((a, b) => a.order - b.order)
+    for (const child of children)
+      visit(child)
+  }
+
+  for (const root of roots)
+    visit(root)
+
+  return nodes
+}
+
+function collectSourceNodes(store: DevtoolsStore, roots: StoredNode[]): StoredNode[] {
+  return collectOrderedTreeNodes(store, roots).filter(node => node.source)
+}
+
+function resolveNodeSelectorLabel(node: StoredNode): string {
+  const detail = [node.label, node.slotName ? `slot:${node.slotName}` : undefined].filter(Boolean).join(' · ')
+  return `${resolveNodeKindIcon(node)} ${resolveNodeDisplayName(node)}${detail ? ` · ${detail}` : ''}`
+}
+
+function normalizeSearchText(value: string): string {
+  return value.trim().toLowerCase()
+}
+
+function resolveNodeSearchText(node: StoredNode): string {
+  return [
+    node.kind,
+    resolveNodeKindIcon(node),
+    resolveNodeDisplayName(node),
+    node.field,
+    node.component,
+    node.label,
+    node.formId,
+    node.formLabel,
+    node.slotName,
+    node.slotName ? `slot:${node.slotName}` : undefined,
+    node.source?.file,
+    node.source?.line,
+    node.source?.column,
+  ]
+    .filter(value => value !== undefined && value !== null)
+    .join(' ')
+}
+
+function filterSourceNodes(nodes: StoredNode[], query: string): StoredNode[] {
+  const tokens = normalizeSearchText(query).split(/\s+/).filter(Boolean)
+  if (tokens.length === 0)
+    return []
+
+  return nodes.filter((node) => {
+    const text = normalizeSearchText(resolveNodeSearchText(node))
+    return tokens.every(token => text.includes(token))
+  })
+}
+
+function createSourceSearch(
+  nodes: StoredNode[],
+  selectedNodeId: string | undefined,
+  query: string | undefined,
+): HTMLElement {
+  const wrapper = document.createElement('div')
+  wrapper.className = 'cf-devtools-source-search-box'
+
+  const input = document.createElement('input')
+  input.className = 'cf-devtools-source-search'
+  input.dataset.cfDevtoolsSourceSearch = 'true'
+  input.type = 'search'
+  input.placeholder = nodes.length > 0 ? 'Search field/component, label, slot, source' : 'No source locations'
+  input.disabled = nodes.length === 0
+  input.value = query ?? ''
+  wrapper.append(input)
+
+  const matches = filterSourceNodes(nodes, query ?? '').slice(0, 8)
+  if (normalizeSearchText(query ?? '') && matches.length === 0) {
+    const empty = document.createElement('div')
+    empty.className = 'cf-devtools-source-empty'
+    empty.textContent = 'No matching source'
+    wrapper.append(empty)
+    return wrapper
+  }
+
+  if (matches.length > 0) {
+    const results = document.createElement('div')
+    results.className = 'cf-devtools-source-results'
+    for (const node of matches) {
+      const item = document.createElement('button')
+      item.className = `cf-devtools-source-result${selectedNodeId === node.id ? ' is-selected' : ''}`
+      item.dataset.cfDevtoolsSourceResultId = node.id
+      item.type = 'button'
+      item.textContent = resolveNodeSelectorLabel(node)
+      item.title = resolveNodeSearchText(node)
+      results.append(item)
+    }
+    wrapper.append(results)
+  }
+
+  return wrapper
 }
 
 function createTimingRow(
@@ -673,8 +854,6 @@ function createNodeRow(
   store: DevtoolsStore,
   level: number,
   selectedNodeId: string | undefined,
-  highlight: (element: HTMLElement | null) => void,
-  setError: (message: string) => void,
 ): HTMLElement {
   const row = document.createElement('div')
   row.className = `cf-devtools-node${selectedNodeId === node.id ? ' is-selected' : ''}`
@@ -713,46 +892,8 @@ function createNodeRow(
   open.textContent = '↗'
   open.title = 'Open source'
   open.disabled = true
-  if (node.source) {
-    const source = node.source
+  if (node.source)
     open.disabled = false
-    open.addEventListener('click', async (event) => {
-      event.stopPropagation()
-
-      const response = await fetch('/__config-form-devtools/open', {
-        body: JSON.stringify({
-          column: source.column,
-          file: source.file,
-          line: source.line,
-        }),
-        headers: { 'content-type': 'application/json' },
-        method: 'POST',
-      })
-      const text = await response.text()
-
-      if (!response.ok) {
-        try {
-          const payload = JSON.parse(text) as { error?: unknown }
-          setError(typeof payload.error === 'string' ? payload.error : text)
-        }
-        catch {
-          setError(text)
-        }
-        return
-      }
-
-      try {
-        const command = formatOpenSourceCommand(JSON.parse(text))
-        setError(command ? `Opened source: ${command}` : '')
-      }
-      catch {
-        setError('')
-      }
-    })
-  }
-
-  row.addEventListener('mouseenter', () => highlight(node.element))
-  row.addEventListener('mouseleave', () => highlight(null))
 
   text.append(key, meta)
   main.append(kind, text)
@@ -765,7 +906,7 @@ function createNodeRow(
   const wrapper = document.createElement('div')
   wrapper.append(row)
   for (const child of children)
-    wrapper.append(createNodeRow(child, store, level + 1, selectedNodeId, highlight, setError))
+    wrapper.append(createNodeRow(child, store, level + 1, selectedNodeId))
 
   return wrapper
 }
@@ -798,9 +939,16 @@ function renderTree(
   if (groups.length === 1 && !groupIsDisabled(groups[0])) {
     state.activeFormId = groups[0]?.formId
     state.activeFormSelectedByUser = false
+    container.append(createSourceSearch(collectSourceNodes(store, roots), state.selectedNodeId, state.sourceSearchQuery))
+    const layout = document.createElement('div')
+    layout.className = 'cf-devtools-layout is-single'
+    const tree = document.createElement('div')
+    tree.className = 'cf-devtools-tree'
     for (const node of roots)
-      container.append(createNodeRow(node, store, 0, state.selectedNodeId, highlight, setError))
-    scrollSelectedNodeIntoView(container, state.selectedNodeId)
+      tree.append(createNodeRow(node, store, 0, state.selectedNodeId))
+    layout.append(tree)
+    container.append(layout)
+    scrollSelectedNodeIntoView(tree, state.selectedNodeId)
     return
   }
 
@@ -823,20 +971,13 @@ function renderTree(
       index,
       group.formId === activeGroup?.formId,
       disabled,
-      () => {
-        if (disabled)
-          return
-        state.activeFormId = group.formId
-        state.activeFormSelectedByUser = true
-        state.selectedNodeId = undefined
-        renderTree(container, store, highlight, setError, state)
-      },
     ))
   })
 
   if (activeGroup) {
+    container.append(createSourceSearch(collectSourceNodes(store, activeGroup.nodes), state.selectedNodeId, state.sourceSearchQuery))
     for (const node of activeGroup.nodes)
-      tree.append(createNodeRow(node, store, 0, state.selectedNodeId, highlight, setError))
+      tree.append(createNodeRow(node, store, 0, state.selectedNodeId))
   }
   else {
     const empty = document.createElement('div')
@@ -847,7 +988,7 @@ function renderTree(
 
   layout.append(nav, tree)
   container.append(layout)
-  scrollSelectedNodeIntoView(container, state.selectedNodeId)
+  scrollSelectedNodeIntoView(tree, state.selectedNodeId)
 }
 
 function updateBubblePosition(bubble: HTMLElement, panel: HTMLElement, position: BubblePosition) {
@@ -1008,7 +1149,6 @@ function installPanelDrag(panel: HTMLElement, handle: HTMLElement) {
 function installPagePicker(
   root: HTMLElement,
   panel: HTMLElement,
-  body: HTMLElement,
   pickButton: HTMLElement,
   store: DevtoolsStore,
   state: DevtoolsRenderState,
@@ -1040,7 +1180,23 @@ function installPagePicker(
     event.stopPropagation()
     setPicking(!state.pickingNode)
     setError(state.pickingNode ? 'Click a ConfigForm field or component in the page' : '')
+    if (!state.pickingNode)
+      highlight(null)
   })
+
+  document.addEventListener('mousemove', (event) => {
+    if (!state.pickingNode)
+      return
+
+    const target = event.target
+    if (!(target instanceof Node) || root.contains(target)) {
+      highlight(null)
+      return
+    }
+
+    const node = resolvePickedNode(store, target)
+    highlight(node?.element ?? null)
+  }, { capture: true })
 
   document.addEventListener('keydown', (event) => {
     if (!state.pickingNode || event.key !== 'Escape')
@@ -1079,16 +1235,109 @@ function installPagePicker(
     }
 
     panel.classList.add('is-open')
-    state.activeFormId = node.formId
-    state.activeFormSelectedByUser = true
-    state.selectedNodeId = node.id
     setError('')
-    render()
-    highlight(node.element)
-    scrollSelectedNodeIntoView(body, node.id)
+    activateSourceNode(node, () => panel, state, render, highlight, setError)
   }, { capture: true })
 
   return () => setPicking(false)
+}
+
+function installTreeInteractions(
+  eventHost: HTMLElement,
+  getBody: () => HTMLElement,
+  getScrollContainer: () => HTMLElement,
+  store: DevtoolsStore,
+  state: DevtoolsRenderState,
+  render: () => void,
+  highlight: (element: HTMLElement | null) => void,
+  setError: (message: string) => void,
+) {
+  eventHost.addEventListener('mouseover', (event) => {
+    const body = getBody()
+    const node = resolveEventNode(store, body, event.target)
+    if (node)
+      highlight(node.element)
+  })
+
+  eventHost.addEventListener('mouseout', (event) => {
+    const body = getBody()
+    const target = event.target
+    if (!(target instanceof Element))
+      return
+
+    const row = target.closest('[data-cf-devtools-node-id]')
+    if (!row || !body.contains(row))
+      return
+
+    const relatedTarget = event.relatedTarget
+    if (relatedTarget instanceof Node && row.contains(relatedTarget))
+      return
+
+    highlight(null)
+  })
+
+  eventHost.addEventListener('click', (event) => {
+    const target = event.target
+    if (target instanceof Element) {
+      const sourceResult = target.closest<HTMLButtonElement>('[data-cf-devtools-source-result-id]')
+      if (sourceResult && eventHost.contains(sourceResult)) {
+        const node = store.nodes.get(sourceResult.dataset.cfDevtoolsSourceResultId ?? '')
+        if (node)
+          activateSourceNode(node, getScrollContainer, state, render, highlight, setError)
+        return
+      }
+
+      const navItem = target.closest<HTMLButtonElement>('[data-cf-devtools-nav-form-id]')
+      if (navItem && !navItem.disabled) {
+        state.activeFormId = navItem.dataset.cfDevtoolsNavFormId
+        state.activeFormSelectedByUser = true
+        state.selectedNodeId = undefined
+        render()
+        return
+      }
+    }
+
+    const body = getBody()
+    const node = resolveEventNode(store, body, event.target)
+    if (node)
+      activateSourceNode(node, getScrollContainer, state, render, highlight, setError)
+  })
+
+  eventHost.addEventListener('input', (event) => {
+    const target = event.target
+    if (!(target instanceof HTMLInputElement) || !target.dataset.cfDevtoolsSourceSearch)
+      return
+
+    state.sourceSearchQuery = target.value
+    render()
+
+    const nextSearch = getBody().querySelector<HTMLInputElement>('[data-cf-devtools-source-search]')
+    if (!nextSearch)
+      return
+
+    nextSearch.focus()
+    const cursor = nextSearch.value.length
+    nextSearch.setSelectionRange(cursor, cursor)
+  })
+
+  eventHost.addEventListener('keydown', (event) => {
+    const target = event.target
+    if (!(target instanceof HTMLInputElement) || !target.dataset.cfDevtoolsSourceSearch || event.key !== 'Enter')
+      return
+
+    const firstResult = getBody().querySelector<HTMLButtonElement>('[data-cf-devtools-source-result-id]')
+    const node = firstResult ? store.nodes.get(firstResult.dataset.cfDevtoolsSourceResultId ?? '') : undefined
+    if (!node)
+      return
+
+    event.preventDefault()
+    target.blur()
+    if (state.sourceSearchQuery !== target.value)
+      state.sourceSearchQuery = target.value
+
+    if (node)
+      activateSourceNode(node, getScrollContainer, state, render, highlight, setError)
+  })
 }
 
 function installOutsidePanelClose(bubble: HTMLElement, panel: HTMLElement, closePanel: () => void) {
@@ -1131,10 +1380,26 @@ function createAsyncRenderScheduler(render: () => void): () => void {
 
 function installExternalContextSync(root: HTMLElement, render: () => void, resetManualSelection: () => void) {
   const scheduleRender = createAsyncRenderScheduler(render)
+  let internalScrollInputUntil = 0
   const scheduleAutoRender = () => {
     resetManualSelection()
     scheduleRender()
   }
+  const markInternalScrollInput = () => {
+    internalScrollInputUntil = Date.now() + 250
+  }
+  const scheduleAutoRenderForScroll = (event: Event) => {
+    const target = event.target
+    if (target instanceof Node && root.contains(target))
+      return
+    // Chrome 会把调试器面板的 wheel 同步成 window scroll；这里仅隔离自动同步，不阻止原生滚动。
+    if (Date.now() <= internalScrollInputUntil)
+      return
+
+    scheduleAutoRender()
+  }
+
+  root.addEventListener('wheel', markInternalScrollInput, { capture: true, passive: true })
 
   document.addEventListener('click', (event) => {
     const target = event.target
@@ -1152,7 +1417,7 @@ function installExternalContextSync(root: HTMLElement, render: () => void, reset
     scheduleAutoRender()
   }, { capture: true })
 
-  window.addEventListener('scroll', scheduleAutoRender, { capture: true, passive: true })
+  window.addEventListener('scroll', scheduleAutoRenderForScroll, { capture: true, passive: true })
   window.addEventListener('resize', scheduleAutoRender, { passive: true })
 
   if (typeof MutationObserver === 'undefined')
@@ -1254,8 +1519,13 @@ export function installConfigFormDevtools(): FormDevtoolsBridge {
   }
 
   const renderState: DevtoolsRenderState = {}
-  const store = createStore(() => renderTree(body, store, highlight, setError, renderState))
-  const render = () => renderTree(body, store, highlight, setError, renderState)
+  let store!: DevtoolsStore
+
+  function render() {
+    renderTree(body, store, highlight, setError, renderState)
+  }
+
+  store = createStore(render)
   const bridge: FormDevtoolsBridge = {
     recordRender: store.recordRender,
     recordSync: store.recordSync,
@@ -1279,7 +1549,8 @@ export function installConfigFormDevtools(): FormDevtoolsBridge {
   document.body.append(root)
   installBubbleDrag(bubble, panel)
   installPanelDrag(panel, header)
-  cancelPagePicker = installPagePicker(root, panel, body, pickButton, store, renderState, render, highlight, setError)
+  installTreeInteractions(body, () => body, () => panel, store, renderState, render, highlight, setError)
+  cancelPagePicker = installPagePicker(root, panel, pickButton, store, renderState, render, highlight, setError)
   installOutsidePanelClose(bubble, panel, closePanel)
   installExternalContextSync(
     root,
