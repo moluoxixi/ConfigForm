@@ -1638,6 +1638,11 @@ describe('client overlay', () => {
       .toEqual(['F email · 邮箱'])
 
     search = document.querySelector<HTMLInputElement>('[data-cf-devtools-source-search]')
+    search!.value = 'not-found'
+    search!.dispatchEvent(new Event('input', { bubbles: true }))
+    expect(document.querySelector<HTMLElement>('.cf-devtools-source-empty')?.textContent).toBe('No matching source')
+
+    search = document.querySelector<HTMLInputElement>('[data-cf-devtools-source-search]')
     search!.value = 'slot:default'
     search!.dispatchEvent(new Event('input', { bubbles: true }))
 

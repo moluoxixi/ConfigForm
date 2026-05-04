@@ -268,6 +268,7 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
       const hostRef = ref<HTMLElement | null>(null)
       const registeredIds = new Set<string>()
       const renderStarts = new Map<string, number>()
+      let syncQueued = false
 
       function startRenderTiming(id: string) {
         renderStarts.set(id, now())
@@ -481,7 +482,15 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
       }
 
       function queueSyncBridge() {
-        void nextTick().then(syncBridge)
+        if (syncQueued)
+          return
+
+        // mount/update/ready 可能在同一轮事件里连续触发；bridge 只需要同步最新字段快照。
+        syncQueued = true
+        void nextTick().then(() => {
+          syncQueued = false
+          syncBridge()
+        })
       }
 
       function unregisterNodes() {
