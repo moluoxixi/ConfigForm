@@ -98,9 +98,6 @@ export interface SourceInjectionOptions {
   packageNames?: string[]
 }
 
-/** launch-editor 已验证支持的常用编辑器预设。 */
-export type EditorPreset = 'code' | 'cursor' | 'webstorm'
-
 /** 已解析完成的编辑器命令。 */
 export interface EditorCommand {
   /** 可执行文件名或 shell 命令名。 */
@@ -123,7 +120,7 @@ export interface OpenInEditorPayload {
 
 /** 基于源码位置构造编辑器命令的输入。 */
 export interface EditorCommandInput extends OpenInEditorPayload {
-  editor?: EditorPreset | string | EditorCommand
+  editor?: string | EditorCommand
 }
 
 /** 测试和编辑器启动逻辑共用的 spawn 抽象。 */
@@ -140,7 +137,7 @@ export interface OpenInEditorOptions {
   /** monorepo 或 linked package 源码允许访问的额外根目录。 */
   allowRoots?: string[]
   /** 编辑器预设、可执行文件名或完整命令覆盖；字符串会交给 launch-editor 解析。 */
-  editor?: EditorPreset | string | EditorCommand
+  editor?: string | EditorCommand
   /** 测试可注入的 spawn 实现。 */
   spawn?: SpawnEditorProcess
 }
@@ -152,7 +149,7 @@ export interface ConfigFormDevtoolsPluginOptions {
   /** open-in-editor endpoint 允许访问的额外文件系统根目录。 */
   allowRoots?: string[]
   /** source-open 使用的编辑器预设、可执行文件名或命令覆盖；字符串会交给 launch-editor 解析。 */
-  editor?: EditorPreset | string | EditorCommand
+  editor?: string | EditorCommand
 }
 
 /** transform 阶段失败时抛出的错误，供 Vite 直接展示。 */

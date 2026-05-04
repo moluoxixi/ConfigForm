@@ -33,8 +33,6 @@ const require = createRequire(import.meta.url)
 const getArgumentsForPosition = require('launch-editor/get-args') as LaunchEditorArgumentResolver
 const guessEditorCommand = require('launch-editor/guess') as LaunchEditorCommandResolver
 
-const WINDOWS_WEBSTORM_COMMAND = 'webstorm64.exe'
-
 /** 将文件路径规范化为前端可展示的 POSIX 形式。 */
 function normalizePath(input: string): string {
   return input.replace(/\\/g, '/')
@@ -50,13 +48,22 @@ function isInsideRoot(file: string, root: string): boolean {
   return relativePath === '' || (!relativePath.startsWith('..') && !isAbsolute(relativePath))
 }
 
+/** 判断用户传入的编辑器字符串是否已经是具体 launcher 路径或文件名。 */
+function isEditorLauncher(editor: string): boolean {
+  return editor.includes('\\')
+    || editor.includes('/')
+    || /\.(?:exe|cmd|bat)$/i.test(basename(editor))
+}
+
 /**
  * 解析编辑器命令名和 shell 策略。
  *
  * 未显式传入编辑器时交给 launch-editor 根据运行进程和环境变量推导。
  */
 function resolveEditorExecutable(editor?: string): Pick<EditorCommand, 'args' | 'command' | 'shell'> {
-  const [command, ...args] = guessEditorCommand(editor)
+  const [command, ...args] = editor && isEditorLauncher(editor)
+    ? [editor]
+    : guessEditorCommand(editor)
 
   if (!command) {
     throw new ConfigFormDevtoolsHttpError(
@@ -77,11 +84,6 @@ function formatEditorCommand(command: EditorCommand): string {
   return [command.command, ...command.args].join(' ')
 }
 
-/** 读取编辑器命令的基础名称，用于识别带扩展名或绝对路径的 launcher。 */
-function getEditorBasename(editor: string): string {
-  return basename(editor).replace(/\.(?:exe|cmd|bat|sh)$/i, '').toLowerCase()
-}
-
 /**
  * 判断编辑器命令是否必须通过 shell 解析。
  *
@@ -93,37 +95,6 @@ function shouldUseShell(command: string): boolean {
     return false
 
   return !basename(command).toLowerCase().endsWith('.exe')
-}
-
-/** 判断用户传入的编辑器字符串是否已经是具体 launcher。 */
-function isExplicitLauncher(editor: string): boolean {
-  return editor.includes('\\')
-    || editor.includes('/')
-    || /\.(?:exe|cmd|bat)$/i.test(basename(editor))
-}
-
-/**
- * 为 Windows WebStorm 使用官方 launcher 参数格式。
- *
- * launch-editor 的自动识别会在 WebStorm 运行时解析到 webstorm64.exe；
- * 显式 `editor: 'webstorm'` 时也直接使用 exe，避免 batch/shell 转发影响行列跳转。
- */
-function createWindowsWebStormCommand(input: EditorCommandInput): EditorCommand | undefined {
-  if (process.platform !== 'win32' || typeof input.editor !== 'string')
-    return undefined
-  const editorBasename = getEditorBasename(input.editor)
-  if (!['webstorm', 'webstorm64'].includes(editorBasename))
-    return undefined
-
-  const command = isExplicitLauncher(input.editor)
-    ? input.editor
-    : WINDOWS_WEBSTORM_COMMAND
-
-  return {
-    args: ['--line', String(input.line), '--column', String(input.column), input.file],
-    command,
-    ...(shouldUseShell(command) ? { shell: true } : {}),
-  }
 }
 
 /** 校验并规范化浏览器 devtools client 发送的 JSON payload。 */
@@ -168,10 +139,6 @@ export function resolveAllowedFile(input: ResolveAllowedFileInput): string {
 export function createEditorCommand(input: EditorCommandInput): EditorCommand {
   if (input.editor && typeof input.editor === 'object')
     return input.editor
-
-  const windowsWebStormCommand = createWindowsWebStormCommand(input)
-  if (windowsWebStormCommand)
-    return windowsWebStormCommand
 
   const executable = resolveEditorExecutable(input.editor)
   const locationArgs = getArgumentsForPosition(
@@ -248,7 +215,7 @@ export function launchEditor(
 }
 
 /** 在配置的编辑器中打开已经校验过的源码位置。 */
-export async function openInEditor(payload: unknown, options: OpenInEditorOptions): Promise<EditorCommand> {
+export async function openInEditor(payload: unknown, options: OpenInEditorOptions): Promise<void> {
   const parsed = parseOpenInEditorPayload(payload)
   const file = resolveAllowedFile({
     allowRoots: options.allowRoots,
@@ -265,7 +232,6 @@ export async function openInEditor(payload: unknown, options: OpenInEditorOption
     file,
   })
   await launchEditor(command, options.spawn)
-  return command
 }
 
 /**
@@ -304,8 +270,8 @@ export function createOpenInEditorMiddleware(options: OpenInEditorOptions) {
     try {
       const rawBody = await readRequestBody(req)
       const payload = rawBody ? JSON.parse(rawBody) : {}
-      const command = await openInEditor(payload, options)
-      sendJson(res, 200, { command })
+      await openInEditor(payload, options)
+      sendJson(res, 200, { ok: true })
     }
     catch (error) {
       if (error instanceof ConfigFormDevtoolsHttpError) {

@@ -180,12 +180,7 @@ describe('client overlay', () => {
   })
 
   it('highlights picker candidates on hover and opens source by clicking the page element', async () => {
-    const fetchMock = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({
-      command: {
-        args: ['--reuse-window', '-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:32:5'],
-        command: 'code.cmd',
-      },
-    }), { status: 200 }))
+    const fetchMock = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({ ok: true }), { status: 200 }))
     vi.stubGlobal('fetch', fetchMock)
     installConfigFormDevtools()
 
@@ -239,9 +234,7 @@ describe('client overlay', () => {
       }))
     })
     expect(String(fetchMock.mock.calls[0]?.[1]?.body)).toContain('"line":32')
-    await vi.waitFor(() => {
-      expect(document.body.textContent).toContain('Opened source: code.cmd --reuse-window -g D:/project-new/ConfigForm/playgrounds/demo.vue:32:5')
-    })
+    expect(document.body.textContent).not.toContain('Opened source:')
   })
 
   it('selects the innermost component or field when picker candidates are nested', () => {
@@ -1516,13 +1509,8 @@ describe('client overlay', () => {
     })
   })
 
-  it('shows the returned editor command after opening source', async () => {
-    const fetchMock = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({
-      command: {
-        args: ['--reuse-window', '-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
-        command: 'code.cmd',
-      },
-    }), { status: 200 }))
+  it('keeps source open success silent after opening source', async () => {
+    const fetchMock = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({ ok: true }), { status: 200 }))
     vi.stubGlobal('fetch', fetchMock)
     installConfigFormDevtools()
 
@@ -1543,17 +1531,13 @@ describe('client overlay', () => {
     document.querySelector<HTMLButtonElement>('[data-cf-devtools-open="node-1"]')?.click()
 
     await vi.waitFor(() => {
-      expect(document.body.textContent).toContain('Opened source: code.cmd --reuse-window -g D:/project-new/ConfigForm/playgrounds/demo.vue:12:7')
+      expect(fetchMock).toHaveBeenCalled()
     })
+    expect(document.body.textContent).not.toContain('Opened source:')
   })
 
   it('opens source directly when clicking a field row', async () => {
-    const fetchMock = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({
-      command: {
-        args: ['--reuse-window', '-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
-        command: 'code.cmd',
-      },
-    }), { status: 200 }))
+    const fetchMock = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({ ok: true }), { status: 200 }))
     vi.stubGlobal('fetch', fetchMock)
     installConfigFormDevtools()
 
@@ -1579,18 +1563,11 @@ describe('client overlay', () => {
       }))
     })
     expect(document.querySelector<HTMLElement>('[data-cf-devtools-node-id="node-1"]')?.classList.contains('is-selected')).toBe(true)
-    await vi.waitFor(() => {
-      expect(document.body.textContent).toContain('Opened source: code.cmd --reuse-window -g D:/project-new/ConfigForm/playgrounds/demo.vue:12:7')
-    })
+    expect(document.body.textContent).not.toContain('Opened source:')
   })
 
   it('opens source directly from the search input by label or component metadata', async () => {
-    const fetchMock = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({
-      command: {
-        args: ['--reuse-window', '-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:24:9'],
-        command: 'code.cmd',
-      },
-    }), { status: 200 }))
+    const fetchMock = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({ ok: true }), { status: 200 }))
     vi.stubGlobal('fetch', fetchMock)
     installConfigFormDevtools()
 
@@ -1658,40 +1635,8 @@ describe('client overlay', () => {
 
     expect(String(fetchMock.mock.calls[0]?.[1]?.body)).toContain('"line":24')
     expect(String(fetchMock.mock.calls[0]?.[1]?.body)).toContain('"column":9')
-    await vi.waitFor(() => {
-      expect(document.body.textContent).toContain('Opened source: code.cmd --reuse-window -g D:/project-new/ConfigForm/playgrounds/demo.vue:24:9')
-    })
+    expect(document.body.textContent).not.toContain('Opened source:')
     expect(document.querySelector<HTMLElement>('[data-cf-devtools-node-id="node-component"]')?.classList.contains('is-selected')).toBe(true)
-  })
-
-  it('shows source open success when the editor command has no args', async () => {
-    const fetchMock = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({
-      command: {
-        command: 'custom-editor',
-      },
-    }), { status: 200 }))
-    vi.stubGlobal('fetch', fetchMock)
-    installConfigFormDevtools()
-
-    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__?.registerField({
-      kind: 'field',
-      field: 'email',
-      formId: 'form-1',
-      id: 'node-1',
-      source: {
-        column: 7,
-        file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
-        id: 'source-1',
-        line: 12,
-      },
-    }, null)
-
-    document.querySelector<HTMLButtonElement>('[data-cf-devtools="bubble"]')?.click()
-    document.querySelector<HTMLButtonElement>('[data-cf-devtools-open="node-1"]')?.click()
-
-    await vi.waitFor(() => {
-      expect(document.body.textContent).toContain('Opened source: custom-editor')
-    })
   })
 
   it('clears source open status when a successful response is not JSON', async () => {

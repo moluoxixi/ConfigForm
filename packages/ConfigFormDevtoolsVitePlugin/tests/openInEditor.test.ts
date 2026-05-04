@@ -82,11 +82,32 @@ function createResponse() {
   return response as unknown as ServerResponse & typeof response
 }
 
+/**
+ * 在指定平台值下执行断言。
+ *
+ * 同步和异步回调都会恢复 process.platform mock，避免平台分支污染后续用例。
+ */
+function withPlatform<T>(platform: NodeJS.Platform, callback: () => T): T {
+  const platformSpy = vi.spyOn(process, 'platform', 'get').mockReturnValue(platform)
+  const restore = () => platformSpy.mockRestore()
+
+  try {
+    const result = callback()
+    if (result instanceof Promise)
+      return result.finally(restore) as T
+
+    restore()
+    return result
+  }
+  catch (error) {
+    restore()
+    throw error
+  }
+}
+
 describe('open in editor helpers', () => {
   it('creates non-Windows code-compatible editor commands through launch-editor mappings', () => {
-    const platform = vi.spyOn(process, 'platform', 'get').mockReturnValue('linux')
-
-    try {
+    withPlatform('linux', () => {
       const command = createEditorCommand({
         column: 7,
         editor: 'code',
@@ -98,16 +119,11 @@ describe('open in editor helpers', () => {
         args: ['-r', '-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
         command: 'code',
       })
-    }
-    finally {
-      platform.mockRestore()
-    }
+    })
   })
 
-  it('creates Windows preset editor commands and direct WebStorm exe launches', () => {
-    const platform = vi.spyOn(process, 'platform', 'get').mockReturnValue('win32')
-
-    try {
+  it('creates Windows preset editor commands through launch-editor mappings', () => {
+    withPlatform('win32', () => {
       expect(createEditorCommand({
         column: 7,
         editor: 'code',
@@ -137,7 +153,8 @@ describe('open in editor helpers', () => {
         line: 12,
       })).toEqual({
         args: ['--line', '12', '--column', '7', 'D:/project-new/ConfigForm/playgrounds/demo.vue'],
-        command: 'webstorm64.exe',
+        command: 'webstorm',
+        shell: true,
       })
 
       expect(createEditorCommand({
@@ -149,16 +166,11 @@ describe('open in editor helpers', () => {
         args: ['--line', '12', '--column', '7', 'D:\\project-new\\ConfigForm\\playgrounds\\demo.vue'],
         command: 'D:\\code\\WebStorm 2025.3.2\\bin\\webstorm64.exe',
       })
-    }
-    finally {
-      platform.mockRestore()
-    }
+    })
   })
 
   it('keeps preset editor commands direct outside Windows', () => {
-    const platform = vi.spyOn(process, 'platform', 'get').mockReturnValue('linux')
-
-    try {
+    withPlatform('linux', () => {
       expect(createEditorCommand({
         column: 7,
         editor: 'cursor',
@@ -168,10 +180,7 @@ describe('open in editor helpers', () => {
         args: ['-r', '-g', '/project/ConfigForm/playgrounds/demo.vue:12:7'],
         command: 'cursor',
       })
-    }
-    finally {
-      platform.mockRestore()
-    }
+    })
   })
 
   it('rejects invalid open payloads', () => {
@@ -202,9 +211,7 @@ describe('open in editor helpers', () => {
   })
 
   it('creates webstorm and custom editor commands', () => {
-    const platform = vi.spyOn(process, 'platform', 'get').mockReturnValue('linux')
-
-    try {
+    withPlatform('linux', () => {
       expect(createEditorCommand({
         column: 7,
         editor: 'sublime',
@@ -231,10 +238,7 @@ describe('open in editor helpers', () => {
         file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
         line: 12,
       })).toEqual({ args: ['open'], command: 'custom-editor' })
-    }
-    finally {
-      platform.mockRestore()
-    }
+    })
   })
 
   it('launches editor commands and reports spawn failures', async () => {
@@ -267,51 +271,39 @@ describe('open in editor helpers', () => {
   })
 
   it('opens existing files with injected spawn implementation', async () => {
-    const platform = vi.spyOn(process, 'platform', 'get').mockReturnValue('linux')
     const root = mkdtempSync(join(tmpdir(), 'cf-devtools-'))
     const file = join(root, 'demo.vue')
     writeFileSync(file, '<template />')
 
-    try {
+    await withPlatform('linux', async () => {
       await expect(openInEditor(
         { column: 1, file, line: 1 },
         { editor: 'code', root, spawn: createSpawnMock('spawn') },
-      )).resolves.toMatchObject({
-        command: 'code',
-      })
-    }
-    finally {
-      platform.mockRestore()
-    }
+      )).resolves.toBeUndefined()
+    })
   })
 
-  it('opens WebStorm on Windows through the exe launcher without shell splitting', async () => {
-    const platform = vi.spyOn(process, 'platform', 'get').mockReturnValue('win32')
+  it('opens an explicit WebStorm preset on Windows through launch-editor mappings', async () => {
     const root = mkdtempSync(join(tmpdir(), 'cf-devtools-'))
     const file = join(root, 'demo.vue')
     const spawnEditor = createSpawnMock('spawn')
     writeFileSync(file, '<template />')
 
-    try {
+    await withPlatform('win32', async () => {
       await expect(openInEditor(
         { column: 3, file, line: 2 },
         { editor: 'webstorm', root, spawn: spawnEditor },
-      )).resolves.toMatchObject({
-        command: 'webstorm64.exe',
-      })
+      )).resolves.toBeUndefined()
 
-      expect(spawnEditor).toHaveBeenCalledWith('webstorm64.exe', ['--line', '2', '--column', '3', file], {
+      expect(spawnEditor).toHaveBeenCalledWith('webstorm', ['--line', '2', '--column', '3', file], {
         detached: true,
+        shell: true,
         stdio: 'ignore',
       })
-    }
-    finally {
-      platform.mockRestore()
-    }
+    })
   })
 
   it('opens auto-detected WebStorm on Windows without requiring an editor option', async () => {
-    const platform = vi.spyOn(process, 'platform', 'get').mockReturnValue('win32')
     const previousLaunchEditor = process.env.LAUNCH_EDITOR
     const root = mkdtempSync(join(tmpdir(), 'cf-devtools-'))
     const file = join(root, 'demo.vue')
@@ -321,16 +313,16 @@ describe('open in editor helpers', () => {
     writeFileSync(file, '<template />')
 
     try {
-      await expect(openInEditor(
-        { column: 5, file, line: 4 },
-        { root, spawn: spawnEditor },
-      )).resolves.toMatchObject({
-        command: webstorm,
-      })
+      await withPlatform('win32', async () => {
+        await expect(openInEditor(
+          { column: 5, file, line: 4 },
+          { root, spawn: spawnEditor },
+        )).resolves.toBeUndefined()
 
-      expect(spawnEditor).toHaveBeenCalledWith(webstorm, ['--line', '4', '--column', '5', file], {
-        detached: true,
-        stdio: 'ignore',
+        expect(spawnEditor).toHaveBeenCalledWith(webstorm, ['--line', '4', '--column', '5', file], {
+          detached: true,
+          stdio: 'ignore',
+        })
       })
     }
     finally {
@@ -338,7 +330,6 @@ describe('open in editor helpers', () => {
         delete process.env.LAUNCH_EDITOR
       else
         process.env.LAUNCH_EDITOR = previousLaunchEditor
-      platform.mockRestore()
     }
   })
 
@@ -374,7 +365,7 @@ describe('open in editor helpers', () => {
       successResponse,
     )
     expect(successResponse.statusCode).toBe(200)
-    expect(successResponse.body).toContain('"command"')
+    expect(successResponse.body).toBe('{"ok":true}')
 
     const failureResponse = createResponse()
     await createOpenInEditorMiddleware({ editor: 'code', root })(createRequest('POST', '{'), failureResponse)
