@@ -11,6 +11,7 @@ import {
   i18n,
   type I18nMessages,
 } from '@moluoxixi/config-form-plugin-i18n'
+import { createAntdVuePlugin } from '@moluoxixi/config-form-plugin-antd-vue'
 import Input from 'ant-design-vue/es/input'
 import Radio, { RadioGroup } from 'ant-design-vue/es/radio'
 import Select from 'ant-design-vue/es/select'
@@ -20,8 +21,6 @@ type Locale = 'zh-CN' | 'en-US'
 const formRef = ref()
 const formValues = reactive<Record<string, unknown>>({})
 const locale = ref<Locale>('zh-CN')
-
-const v = { valueProp: 'value', trigger: 'update:value' } as const
 
 const messages: I18nMessages = {
   'zh-CN': {
@@ -157,6 +156,7 @@ function optionalText(schema: z.ZodString = z.string()) {
 
 const runtimeOptions = {
   plugins: [
+    createAntdVuePlugin(),
     createI18nPlugin({
       /** 每次解析 i18n token 时读取当前 playground locale。 */
       locale: () => locale.value,
@@ -194,7 +194,6 @@ const fields = computed(() => [
       .max(20, t('i18n.username.max', { max: 20 })),
     span: 12,
     component: Input,
-    ...v,
     label: i18n('i18n.username.label', {
       defaultMessage: '用户名',
       params: { max: 20, min: 2 },
@@ -223,7 +222,6 @@ const fields = computed(() => [
     schema: optionalText(z.string().email(t('i18n.email.invalid'))),
     span: 12,
     component: Input,
-    ...v,
     label: i18n('i18n.email.label', { defaultMessage: '邮箱' }),
     props: {
       allowClear: true,
@@ -236,7 +234,6 @@ const fields = computed(() => [
     schema: z.preprocess(emptyStringToUndefined, z.string().min(1, t('i18n.role.required')).optional()),
     span: 12,
     component: Select,
-    ...v,
     label: i18n('i18n.role.label', { defaultMessage: '角色' }),
     props: {
       allowClear: true,
@@ -253,7 +250,6 @@ const fields = computed(() => [
     schema: optionalText(),
     span: 12,
     component: Input,
-    ...v,
     label: i18n('i18n.phone.label', { defaultMessage: '手机号' }),
     props: {
       allowClear: true,
@@ -266,7 +262,6 @@ const fields = computed(() => [
     schema: z.preprocess(emptyStringToUndefined, z.string().optional()),
     span: 12,
     component: RadioGroup,
-    ...v,
     label: i18n('i18n.gender.label', { defaultMessage: '性别' }),
     slots: {
       default: [
@@ -292,7 +287,6 @@ const fields = computed(() => [
     schema: optionalText(),
     span: 12,
     component: Input,
-    ...v,
     label: i18n('i18n.suggestion.label', { defaultMessage: '建议' }),
     props: {
       allowClear: true,
@@ -305,7 +299,6 @@ const fields = computed(() => [
     schema: optionalText(),
     span: 12,
     component: Input,
-    ...v,
     label: i18n('i18n.custom.label', {
       defaultMessage: '自定义字段',
       params: { field: 'custom' },

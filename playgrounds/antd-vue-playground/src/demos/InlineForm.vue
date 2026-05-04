@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import type { FormRuntimeOptions } from '@moluoxixi/config-form'
 import { reactive, ref } from 'vue'
 import { z } from 'zod'
 import { ConfigForm, defineField } from '@moluoxixi/config-form'
+import { createAntdVuePlugin } from '@moluoxixi/config-form-plugin-antd-vue'
 import AutoComplete from 'ant-design-vue/es/auto-complete'
 import Cascader from 'ant-design-vue/es/cascader'
 import Checkbox, { CheckboxGroup } from 'ant-design-vue/es/checkbox'
@@ -19,8 +21,9 @@ import TreeSelect from 'ant-design-vue/es/tree-select'
 const formRef = ref()
 const formValues = reactive<Record<string, unknown>>({})
 
-/** Ant Design Vue 组件统一使用 value/update:value 作为 ConfigForm 双向绑定协议。 */
-const v = { valueProp: 'value', trigger: 'update:value' } as const
+const runtimeOptions = {
+  plugins: [createAntdVuePlugin()],
+} satisfies FormRuntimeOptions
 
 interface DayjsLike {
   format: (template: string) => string
@@ -69,21 +72,18 @@ const fields = [
     label: '关键词',
     schema: z.string().min(1, '请输入关键词'),
     component: Input,
-    ...v,
     props: { placeholder: '搜索...', allowClear: true },
   }),
   defineField({
     field: 'password',
     label: '密码',
     component: Input.Password,
-    ...v,
     props: { placeholder: '密码' },
   }),
   defineField({
     field: 'status',
     label: '状态',
     component: Select,
-    ...v,
     props: {
       placeholder: '状态筛选',
       allowClear: true,
@@ -97,7 +97,6 @@ const fields = [
     field: 'role',
     label: '角色',
     component: Select,
-    ...v,
     props: {
       placeholder: '角色筛选',
       allowClear: true,
@@ -112,7 +111,6 @@ const fields = [
     field: 'tags',
     label: '标签',
     component: Select,
-    ...v,
     props: {
       mode: 'multiple',
       placeholder: '多选标签',
@@ -129,14 +127,12 @@ const fields = [
     field: 'age',
     label: '年龄',
     component: InputNumber,
-    ...v,
     props: { min: 1, max: 150, placeholder: '年龄' },
   }),
   defineField({
     field: 'department',
     label: '部门',
     component: Cascader,
-    ...v,
     props: {
       placeholder: '部门',
       allowClear: true,
@@ -150,7 +146,6 @@ const fields = [
     field: 'manager',
     label: '上级',
     component: TreeSelect,
-    ...v,
     props: {
       placeholder: '上级',
       allowClear: true,
@@ -163,7 +158,6 @@ const fields = [
     field: 'gender',
     label: '性别',
     component: RadioGroup,
-    ...v,
     slots: {
       default: [
         defineField({
@@ -188,7 +182,6 @@ const fields = [
     field: 'hobbies',
     label: '爱好',
     component: CheckboxGroup,
-    ...v,
     defaultValue: [],
     slots: {
       default: [
@@ -214,7 +207,6 @@ const fields = [
     field: 'date',
     label: '日期',
     component: DatePicker,
-    ...v,
     props: { placeholder: '选择日期', allowClear: true },
     /** 将 DatePicker 的 Dayjs 值转换为 YYYY-MM-DD 提交值。 */
     transform: val => formatDateValue(val, 'YYYY-MM-DD'),
@@ -223,7 +215,6 @@ const fields = [
     field: 'dateRange',
     label: '有效期',
     component: DatePicker.RangePicker,
-    ...v,
     props: { placeholder: ['开始', '结束'], allowClear: true },
     /** 将 RangePicker 的 Dayjs 数组转换为日期字符串数组。 */
     transform: val => formatDateRange(val, 'YYYY-MM-DD'),
@@ -232,7 +223,6 @@ const fields = [
     field: 'time',
     label: '时间',
     component: TimePicker,
-    ...v,
     props: { placeholder: '选择时间', allowClear: true, format: 'HH:mm' },
     /** 将 TimePicker 的 Dayjs 值转换为 HH:mm 提交值。 */
     transform: val => formatDateValue(val, 'HH:mm'),
@@ -241,7 +231,6 @@ const fields = [
     field: 'priority',
     label: '优先级',
     component: Rate,
-    ...v,
     props: { allowHalf: true },
     defaultValue: 0,
   }),
@@ -249,22 +238,18 @@ const fields = [
     field: 'active',
     label: '启用',
     component: Switch,
-    valueProp: 'checked',
-    trigger: 'update:checked',
     defaultValue: true,
   }),
   defineField({
     field: 'progress',
     label: '进度',
     component: Slider,
-    ...v,
     defaultValue: 0,
   }),
   defineField({
     field: 'city',
     label: '城市',
     component: AutoComplete,
-    ...v,
     props: {
       placeholder: '城市',
       allowClear: true,
@@ -277,7 +262,6 @@ const fields = [
     field: 'genderOther',
     label: '说明',
     component: Input,
-    ...v,
     props: { placeholder: '请说明', allowClear: true },
     /** 仅在性别选择“其他”时展示补充说明字段。 */
     visible: (values) => values.gender === 'other',
@@ -287,7 +271,6 @@ const fields = [
     field: 'remark',
     label: '备注',
     component: Input,
-    ...v,
     props: { placeholder: '访客不可编辑', allowClear: true },
     /** 访客角色不可编辑备注。 */
     disabled: (values) => values.role === 'guest',
@@ -321,6 +304,7 @@ function onError(errors: Record<string, string[]>) {
       namespace="moluoxixi"
       :fields="fields"
       :inline="true"
+      :runtime="runtimeOptions"
       @submit="onSubmit"
       @error="onError"
       @update:model-value="(vals: Record<string, unknown>) => Object.assign(formValues, vals)"

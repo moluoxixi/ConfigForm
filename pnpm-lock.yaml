@@ -193,6 +193,27 @@ importers:
         specifier: catalog:dev
         version: 2.2.12(typescript@5.9.3)
 
+  packages/ConfigFormPluginAntdVue:
+    devDependencies:
+      '@moluoxixi/config-form':
+        specifier: workspace:*
+        version: link:../ConfigForm
+      '@vitest/coverage-v8':
+        specifier: catalog:dev
+        version: 3.2.4(vitest@3.2.4(@types/debug@4.1.13)(@types/node@25.6.0)(happy-dom@20.9.0)(jiti@2.6.1)(sass@1.99.0)(yaml@2.8.3))
+      ant-design-vue:
+        specifier: catalog:ui
+        version: 4.2.6(vue@3.5.33(typescript@5.9.3))
+      vite:
+        specifier: catalog:dev
+        version: 6.4.2(@types/node@25.6.0)(jiti@2.6.1)(sass@1.99.0)(yaml@2.8.3)
+      vitest:
+        specifier: catalog:dev
+        version: 3.2.4(@types/debug@4.1.13)(@types/node@25.6.0)(happy-dom@20.9.0)(jiti@2.6.1)(sass@1.99.0)(yaml@2.8.3)
+      vue-tsc:
+        specifier: catalog:dev
+        version: 2.2.12(typescript@5.9.3)
+
   packages/ConfigFormPluginI18n:
     devDependencies:
       '@moluoxixi/config-form':
@@ -216,6 +237,9 @@ importers:
       '@moluoxixi/config-form':
         specifier: workspace:*
         version: link:../../packages/ConfigForm
+      '@moluoxixi/config-form-plugin-antd-vue':
+        specifier: workspace:*
+        version: link:../../packages/ConfigFormPluginAntdVue
       '@moluoxixi/config-form-plugin-i18n':
         specifier: workspace:*
         version: link:../../packages/ConfigFormPluginI18n

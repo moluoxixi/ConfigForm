@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import type { FormRuntimeOptions } from '@moluoxixi/config-form'
 import { reactive, ref } from 'vue'
 import { z } from 'zod'
 import { ConfigForm, defineField } from '@moluoxixi/config-form'
+import { createAntdVuePlugin } from '@moluoxixi/config-form-plugin-antd-vue'
 import Card from 'ant-design-vue/es/card'
 import DatePicker from 'ant-design-vue/es/date-picker'
 import Input from 'ant-design-vue/es/input'
@@ -18,7 +20,9 @@ const formValues = reactive<Record<string, Record<string, unknown>>>({
   risk: {},
 })
 
-const v = { valueProp: 'value', trigger: 'update:value' } as const
+const runtimeOptions = {
+  plugins: [createAntdVuePlugin()],
+} satisfies FormRuntimeOptions
 
 const statusOptions = [
   { label: '启用', value: 'enabled' },
@@ -65,7 +69,6 @@ const sections = [
         schema: z.string().min(2, '账户名至少 2 个字符'),
         span: 12,
         component: Input,
-        ...v,
         props: { allowClear: true, placeholder: '请输入账户名' },
       }),
       defineField({
@@ -73,7 +76,6 @@ const sections = [
         label: '负责人',
         span: 12,
         component: Input,
-        ...v,
         props: { allowClear: true, placeholder: '请输入负责人' },
       }),
       defineField({
@@ -81,7 +83,6 @@ const sections = [
         label: '状态',
         span: 12,
         component: Select,
-        ...v,
         props: { allowClear: true, options: statusOptions, placeholder: '请选择状态' },
       }),
       defineField({
@@ -89,8 +90,6 @@ const sections = [
         label: '启用',
         span: 12,
         component: Switch,
-        valueProp: 'checked',
-        trigger: 'update:checked',
         defaultValue: true,
       }),
     ],
@@ -106,7 +105,6 @@ const sections = [
         schema: z.string().min(1, '请输入套餐名'),
         span: 12,
         component: Input,
-        ...v,
         props: { allowClear: true, placeholder: '请输入套餐名' },
       }),
       defineField({
@@ -115,7 +113,6 @@ const sections = [
         schema: z.number().min(0).optional(),
         span: 12,
         component: InputNumber,
-        ...v,
         props: { min: 0, placeholder: '额度' },
       }),
       defineField({
@@ -123,7 +120,6 @@ const sections = [
         label: '续费日期',
         span: 12,
         component: DatePicker,
-        ...v,
         props: { allowClear: true, placeholder: '选择日期' },
         transform: formatDateValue,
       }),
@@ -132,7 +128,6 @@ const sections = [
         label: '优先级',
         span: 12,
         component: Select,
-        ...v,
         props: { allowClear: true, options: priorityOptions, placeholder: '请选择优先级' },
       }),
     ],
@@ -147,7 +142,6 @@ const sections = [
         label: '区域',
         span: 12,
         component: Select,
-        ...v,
         props: {
           allowClear: true,
           options: [
@@ -163,7 +157,6 @@ const sections = [
         label: 'Endpoint',
         span: 12,
         component: Input,
-        ...v,
         props: { allowClear: true, placeholder: 'https://example.com' },
       }),
       defineField({
@@ -171,7 +164,6 @@ const sections = [
         label: '重试次数',
         span: 12,
         component: InputNumber,
-        ...v,
         props: { max: 10, min: 0, placeholder: '次数' },
       }),
       defineField({
@@ -179,7 +171,6 @@ const sections = [
         label: '备注',
         span: 12,
         component: Input,
-        ...v,
         props: { allowClear: true, placeholder: '请输入备注' },
       }),
     ],
@@ -195,7 +186,6 @@ const sections = [
         schema: z.string().min(1, '请输入规则名'),
         span: 12,
         component: Input,
-        ...v,
         props: { allowClear: true, placeholder: '请输入规则名' },
       }),
       defineField({
@@ -204,7 +194,6 @@ const sections = [
         schema: z.number().min(1).optional(),
         span: 12,
         component: InputNumber,
-        ...v,
         props: { min: 1, placeholder: '天数' },
       }),
       defineField({
@@ -212,8 +201,6 @@ const sections = [
         label: '通知负责人',
         span: 12,
         component: Switch,
-        valueProp: 'checked',
-        trigger: 'update:checked',
         defaultValue: true,
       }),
       defineField({
@@ -221,7 +208,6 @@ const sections = [
         label: '级别',
         span: 12,
         component: Select,
-        ...v,
         props: { allowClear: true, options: priorityOptions, placeholder: '请选择级别' },
       }),
     ],
@@ -237,7 +223,6 @@ const sections = [
         schema: z.number().min(0).max(100).optional(),
         span: 12,
         component: InputNumber,
-        ...v,
         props: { max: 100, min: 0, placeholder: '0-100' },
       }),
       defineField({
@@ -245,7 +230,6 @@ const sections = [
         label: '策略',
         span: 12,
         component: Select,
-        ...v,
         props: {
           allowClear: true,
           options: [
@@ -261,7 +245,6 @@ const sections = [
         label: '复核人',
         span: 12,
         component: Input,
-        ...v,
         props: { allowClear: true, placeholder: '请输入复核人' },
       }),
       defineField({
@@ -269,8 +252,6 @@ const sections = [
         label: '生效',
         span: 12,
         component: Switch,
-        valueProp: 'checked',
-        trigger: 'update:checked',
         defaultValue: true,
       }),
     ],
@@ -319,6 +300,7 @@ function onModelUpdate(key: string, values: Record<string, unknown>) {
         :model-value="formValues[section.key]"
         :namespace="section.namespace"
         :fields="section.fields"
+        :runtime="runtimeOptions"
         label-width="96px"
         @update:model-value="(values: Record<string, unknown>) => onModelUpdate(section.key, values)"
       />

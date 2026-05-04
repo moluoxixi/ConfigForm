@@ -1,14 +1,18 @@
 <script setup lang="ts">
+import type { FormRuntimeOptions } from '@moluoxixi/config-form'
 import { reactive, ref } from 'vue'
 import { z } from 'zod'
 import { ConfigForm, defineField } from '@moluoxixi/config-form'
+import { createAntdVuePlugin } from '@moluoxixi/config-form-plugin-antd-vue'
 import Card from 'ant-design-vue/es/card'
 import Checkbox, { CheckboxGroup } from 'ant-design-vue/es/checkbox'
 
 const formRef = ref()
 const formValues = reactive<Record<string, unknown>>({})
 
-const v = { valueProp: 'value', trigger: 'update:value' } as const
+const runtimeOptions = {
+  plugins: [createAntdVuePlugin()],
+} satisfies FormRuntimeOptions
 
 const fields = [
   defineField({
@@ -35,7 +39,6 @@ const fields = [
                 schema: z.array(z.string()).min(1, '请至少选择一个权限范围'),
                 span: 24,
                 component: CheckboxGroup,
-                ...v,
                 defaultValue: [],
                 slots: {
                   default: [
@@ -91,6 +94,7 @@ function onModelUpdate(vals: Record<string, unknown>) {
       :model-value="formValues"
       namespace="nested-card"
       :fields="fields"
+      :runtime="runtimeOptions"
       label-width="96px"
       @submit="onSubmit"
       @update:model-value="onModelUpdate"

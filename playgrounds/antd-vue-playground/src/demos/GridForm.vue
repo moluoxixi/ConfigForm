@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import type { FormRuntimeOptions } from '@moluoxixi/config-form'
 import { reactive, ref } from 'vue'
 import { z } from 'zod'
 import { ConfigForm, defineField } from '@moluoxixi/config-form'
+import { createAntdVuePlugin } from '@moluoxixi/config-form-plugin-antd-vue'
 import AutoComplete from 'ant-design-vue/es/auto-complete'
 import Cascader from 'ant-design-vue/es/cascader'
 import Checkbox, { CheckboxGroup } from 'ant-design-vue/es/checkbox'
@@ -19,8 +21,9 @@ import TreeSelect from 'ant-design-vue/es/tree-select'
 const formRef = ref()
 const formValues = reactive<Record<string, unknown>>({})
 
-/** Ant Design Vue 组件统一使用 value/update:value 作为 ConfigForm 双向绑定协议。 */
-const v = { valueProp: 'value', trigger: 'update:value' } as const
+const runtimeOptions = {
+  plugins: [createAntdVuePlugin()],
+} satisfies FormRuntimeOptions
 
 interface DayjsLike {
   format: (template: string) => string
@@ -72,7 +75,6 @@ const fields = [
     schema: z.string().min(2, '用户名至少 2 个字符').max(20, '用户名最多 20 个字符'),
     span: 12,
     component: Input,
-    ...v,
     props: { placeholder: '请输入用户名', allowClear: true },
     /**
      * 校验用户名与角色组合。
@@ -99,7 +101,6 @@ const fields = [
     schema: z.string().min(6, '密码至少 6 个字符'),
     span: 12,
     component: Input.Password,
-    ...v,
     props: { placeholder: '请输入密码' },
     /**
      * 校验密码不能包含当前用户名。
@@ -124,7 +125,6 @@ const fields = [
     schema: z.string().optional(),
     span: 12,
     component: Input.Search,
-    ...v,
     props: { placeholder: '输入关键词搜索', allowClear: true },
     /**
      * 校验搜索关键词长度。
@@ -148,7 +148,6 @@ const fields = [
     schema: z.string().email('请输入有效的邮箱地址').optional(),
     span: 12,
     component: Input,
-    ...v,
     props: { placeholder: '请输入邮箱', allowClear: true },
     /**
      * 校验管理员邮箱要求。
@@ -171,7 +170,6 @@ const fields = [
     schema: z.string().regex(/^1[3-9]\d{9}$/, '请输入有效的手机号').optional(),
     span: 12,
     component: Input,
-    ...v,
     props: { placeholder: '请输入手机号', allowClear: true },
     /**
      * 校验普通用户手机号要求。
@@ -196,7 +194,6 @@ const fields = [
     schema: z.number().min(1).max(150).optional(),
     span: 8,
     component: InputNumber,
-    ...v,
     props: { min: 1, max: 150, placeholder: '年龄', style: { width: '100%' } },
   }),
   defineField({
@@ -205,7 +202,6 @@ const fields = [
     schema: z.number().min(0).optional(),
     span: 8,
     component: InputNumber,
-    ...v,
     props: { min: 0, step: 1000, placeholder: '薪资', style: { width: '100%' } },
   }),
   defineField({
@@ -214,7 +210,6 @@ const fields = [
     schema: z.number().int().min(0).optional(),
     span: 8,
     component: InputNumber,
-    ...v,
     props: { min: 0, step: 1, precision: 0, placeholder: '数量', style: { width: '100%' } },
   }),
 
@@ -225,7 +220,6 @@ const fields = [
     schema: z.string().min(1, '请选择角色').optional(),
     span: 12,
     component: Select,
-    ...v,
     props: {
       placeholder: '请选择角色',
       allowClear: true,
@@ -242,7 +236,6 @@ const fields = [
     schema: z.array(z.string()).min(1, '请至少选择一个标签').optional(),
     span: 12,
     component: Select,
-    ...v,
     props: {
       mode: 'multiple',
       placeholder: '请选择标签',
@@ -262,7 +255,6 @@ const fields = [
     schema: z.array(z.string()).min(1, '请选择部门').optional(),
     span: 12,
     component: Cascader,
-    ...v,
     props: {
       placeholder: '请选择部门',
       allowClear: true,
@@ -289,7 +281,6 @@ const fields = [
     schema: z.string().optional(),
     span: 12,
     component: TreeSelect,
-    ...v,
     props: {
       placeholder: '请选择上级',
       allowClear: true,
@@ -321,7 +312,6 @@ const fields = [
     schema: z.string().optional(),
     span: 12,
     component: RadioGroup,
-    ...v,
     slots: {
       default: [
         defineField({
@@ -348,7 +338,6 @@ const fields = [
     schema: z.array(z.string()).min(1, '请至少选择一项').optional(),
     span: 12,
     component: CheckboxGroup,
-    ...v,
     defaultValue: [],
     slots: {
       default: [
@@ -383,7 +372,6 @@ const fields = [
     schema: z.unknown().optional(),
     span: 8,
     component: DatePicker,
-    ...v,
     props: { placeholder: '选择日期', allowClear: true, style: { width: '100%' } },
     /** 将 DatePicker 的 Dayjs 值转换为 YYYY-MM-DD 提交值。 */
     transform: val => formatDateValue(val, 'YYYY-MM-DD'),
@@ -394,7 +382,6 @@ const fields = [
     schema: z.unknown().optional(),
     span: 8,
     component: TimePicker,
-    ...v,
     props: { placeholder: '选择时间', allowClear: true, format: 'HH:mm', style: { width: '100%' } },
     /** 将 TimePicker 的 Dayjs 值转换为 HH:mm 提交值。 */
     transform: val => formatDateValue(val, 'HH:mm'),
@@ -405,7 +392,6 @@ const fields = [
     schema: z.unknown().optional(),
     span: 8,
     component: DatePicker.RangePicker,
-    ...v,
     props: { placeholder: ['开始日期', '结束日期'], allowClear: true, style: { width: '100%' } },
     /** 将 RangePicker 的 Dayjs 数组转换为日期字符串数组。 */
     transform: val => formatDateRange(val, 'YYYY-MM-DD'),
@@ -418,8 +404,6 @@ const fields = [
     schema: z.boolean().optional(),
     span: 8,
     component: Switch,
-    valueProp: 'checked',
-    trigger: 'update:checked',
     defaultValue: true,
   }),
 
@@ -430,7 +414,6 @@ const fields = [
     schema: z.number().min(1, '请评分').max(5).optional(),
     span: 8,
     component: Rate,
-    ...v,
     props: { allowHalf: true },
     defaultValue: 0,
   }),
@@ -440,7 +423,6 @@ const fields = [
     schema: z.number().min(0).max(100).optional(),
     span: 8,
     component: Slider,
-    ...v,
     defaultValue: 0,
   }),
 
@@ -451,7 +433,6 @@ const fields = [
     schema: z.string().optional(),
     span: 12,
     component: AutoComplete,
-    ...v,
     props: {
       placeholder: '输入城市名',
       allowClear: true,
@@ -467,7 +448,6 @@ const fields = [
     schema: z.string().min(1, '请说明您的性别').optional(),
     span: 12,
     component: Input,
-    ...v,
     props: { placeholder: '请说明您的性别', allowClear: true },
     /** 仅在性别选择“其他”时展示补充说明字段。 */
     visible: (values) => values.gender === 'other',
@@ -480,7 +460,6 @@ const fields = [
     schema: z.unknown().optional(),
     span: 12,
     component: DatePicker,
-    ...v,
     props: { placeholder: '选择生效日期', allowClear: true, style: { width: '100%' } },
     /** 将生效日期转换为 YYYY-MM-DD 提交值。 */
     transform: val => formatDateValue(val, 'YYYY-MM-DD'),
@@ -495,7 +474,6 @@ const fields = [
     schema: z.string().max(100, '备注最多 100 个字符').optional(),
     span: 24,
     component: Input,
-    ...v,
     props: { placeholder: '访客不可编辑备注', allowClear: true },
     /** 访客角色不可编辑备注。 */
     disabled: (values) => values.role === 'guest',
@@ -508,7 +486,6 @@ const fields = [
     schema: z.string().max(200, '建议最多 200 个字符').optional(),
     span: 24,
     component: Textarea,
-    ...v,
     props: { placeholder: '评分达到 3 分后可填写建议', rows: 2, allowClear: true },
     /**
      * 评分低于 3 分时禁用建议字段。
@@ -528,7 +505,6 @@ const fields = [
     schema: z.string().max(200, '简介最多 200 个字符').optional(),
     span: 24,
     component: Textarea,
-    ...v,
     props: { placeholder: '请输入个人简介', rows: 3, showCount: true, maxlength: 200 },
   }),
 ]
@@ -559,6 +535,7 @@ function onError(errors: Record<string, string[]>) {
       :model-value="formValues"
       namespace="moluoxixi"
       :fields="fields"
+      :runtime="runtimeOptions"
       label-width="80px"
       @submit="onSubmit"
       @error="onError"
