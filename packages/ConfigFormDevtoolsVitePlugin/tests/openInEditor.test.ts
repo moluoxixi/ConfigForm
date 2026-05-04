@@ -16,6 +16,11 @@ import {
   resolveAllowedFile,
 } from '../src/openInEditor'
 
+/**
+ * 创建可控的编辑器进程启动 mock。
+ *
+ * 通过微任务触发 spawn/error/exit，模拟 child_process 在不同平台上的异步事件顺序。
+ */
 function createSpawnMock(event: 'error' | 'exit' | 'spawn', result: unknown = new Error('spawn failed')) {
   return vi.fn(() => {
     const child = new EventEmitter() as ChildProcess
@@ -39,6 +44,11 @@ function createSpawnMock(event: 'error' | 'exit' | 'spawn', result: unknown = ne
   })
 }
 
+/**
+ * 创建 middleware 测试用请求流。
+ *
+ * body 会被一次性推入 Readable，便于覆盖空请求体和非法 JSON。
+ */
 function createRequest(method: string, body = ''): IncomingMessage {
   const req = new Readable({
     read() {
@@ -50,6 +60,11 @@ function createRequest(method: string, body = ''): IncomingMessage {
   return req
 }
 
+/**
+ * 创建可观察的 ServerResponse mock。
+ *
+ * 记录 statusCode、headers 和 body，避免测试依赖真实 HTTP server。
+ */
 function createResponse() {
   const response = {
     body: '',

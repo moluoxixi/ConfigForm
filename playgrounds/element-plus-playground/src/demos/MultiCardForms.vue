@@ -231,10 +231,20 @@ const sections = [
   },
 ]
 
+/**
+ * 判断多表单示例中的分组是否可见。
+ *
+ * 当前只允许审计表单被开关控制，其余分组始终展示以保持多表单导航稳定。
+ */
 function isSectionVisible(key: string): boolean {
   return key !== 'audit' || showAuditForm.value
 }
 
+/**
+ * 同步指定分组的表单值。
+ *
+ * 每个 ConfigForm 独立写入自己的 key，避免多个表单共享同一值对象。
+ */
 function onModelUpdate(key: string, values: Record<string, unknown>) {
   formValues[key] = values
 }

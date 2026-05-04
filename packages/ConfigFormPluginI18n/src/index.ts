@@ -90,16 +90,31 @@ export function isI18nToken(value: unknown): value is I18nToken {
   )
 }
 
+/**
+ * 解析当前 locale。
+ *
+ * getter 形式会在每次 token 解析时执行，异常保持向上传递给 runtime。
+ */
 function resolveLocale(locale?: I18nLocale): string | undefined {
   return typeof locale === 'function' ? locale() : locale
 }
 
+/**
+ * 断言未知值是对象记录。
+ *
+ * 仅用于 i18n params 等外部输入校验，失败时抛出带路径的 TypeError。
+ */
 function assertRecord(value: unknown, path: string): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value))
     throw new TypeError(`${path} must be an object`)
   return value as Record<string, unknown>
 }
 
+/**
+ * 校验 runtime 传入的 token 确实属于 i18n 插件。
+ *
+ * key、defaultMessage 和 params 不合法时直接抛错，避免解析为错误文案。
+ */
 function assertI18nToken(token: RuntimeToken): asserts token is I18nToken {
   if (!isI18nToken(token))
     throw new Error('Invalid i18n token')
@@ -111,6 +126,11 @@ function assertI18nToken(token: RuntimeToken): asserts token is I18nToken {
     assertRecord(token.params, 'i18n params')
 }
 
+/**
+ * 渲染语言包文案。
+ *
+ * 函数文案接收完整 resolveSnap；字符串文案只处理 `{name}` 形式的浅层 params 插值。
+ */
 function renderMessage(
   message: I18nMessage,
   params: Record<string, unknown> | undefined,
@@ -126,6 +146,11 @@ function renderMessage(
   })
 }
 
+/**
+ * 从语言包中查找指定 locale 和 key 的文案。
+ *
+ * locale 缺失时返回 undefined，让调用方继续 fallback 或抛错。
+ */
 function findMessage(
   messages: I18nMessages | undefined,
   locale: string | undefined,
@@ -146,6 +171,11 @@ export function createI18nPlugin(options: I18nPluginOptions = {}): FormRuntimePl
   return {
     name: options.name ?? 'i18n',
     tokens: {
+      /**
+       * 解析 i18n runtime token。
+       *
+       * params 会先经过 runtime.resolveValue 处理，缺失文案最终抛错而不是返回 key。
+       */
       i18n: (token, resolveSnap, path, helpers) => {
         assertI18nToken(token)
 

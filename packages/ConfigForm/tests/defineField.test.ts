@@ -4,6 +4,11 @@ import { z } from 'zod'
 import { defineField } from '../src/models/field'
 import { createRuntimeToken } from '../src/runtime'
 
+/**
+ * 创建类型推导测试用文本 token。
+ *
+ * 该 token 只验证 props 可接收 runtime token，不参与实际 runtime 解析。
+ */
 function textToken(key: string) {
   return createRuntimeToken<string, 'text'>('text', { key })
 }
@@ -102,6 +107,11 @@ describe('defineField typing', () => {
   })
 
   it('allows runtime tokens inside inferred component props', () => {
+    /**
+     * 模拟带 options/placeholder props 的选择组件。
+     *
+     * 只用于 defineField 的 props 类型推导，不执行真实渲染。
+     */
     const selectComponent = (
       _props: {
         options?: Array<{ label: string, value: string }>
@@ -126,6 +136,11 @@ describe('defineField typing', () => {
   })
 
   it('accepts known props when component props are inferable', () => {
+    /**
+     * 模拟带 placeholder prop 的输入组件。
+     *
+     * 只用于验证组件 props 可被 defineField 正确推导。
+     */
     const inputComponent = (
       _props: {
         placeholder?: string
@@ -153,6 +168,7 @@ describe('defineField typing', () => {
   })
 
   it('returns plain field configs and leaves runtime behavior outside the model', () => {
+    /** 保留字段可见性函数引用，用于断言 defineField 不包装运行时行为。 */
     const visible = (values: Record<string, unknown>) => values.role === 'admin'
     const field = defineField({
       disabled: false,
@@ -247,6 +263,11 @@ describe('defineField typing', () => {
       },
     })
 
+    /**
+     * 模拟登录表单输入组件。
+     *
+     * 只用于验证 defineField<TValues> 能把组件 props 和字段模型一起推导。
+     */
     const inputComponent = (
       _props: {
         placeholder?: string

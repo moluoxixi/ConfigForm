@@ -3,6 +3,11 @@ import type { DevtoolsStore, StoredNode } from '../src/client/types'
 import { describe, expect, it } from 'vitest'
 import { comparePickNodes, resolvePickedNode } from '../src/client/tree'
 
+/**
+ * 创建树工具测试用节点。
+ *
+ * 默认值覆盖最小 StoredNode 结构，调用方只传入要参与排序的字段。
+ */
 function createNode(overrides: Partial<StoredNode> & Pick<StoredNode, 'id'>): StoredNode {
   const { id, ...rest } = overrides
 
@@ -20,6 +25,11 @@ function createNode(overrides: Partial<StoredNode> & Pick<StoredNode, 'id'>): St
   }
 }
 
+/**
+ * 创建只包含节点集合的 store mock。
+ *
+ * 操作方法为空实现，因为本文件只验证 tree helper 的读取逻辑。
+ */
 function createStore(nodes: StoredNode[]): DevtoolsStore {
   return {
     nodes: new Map(nodes.map(node => [node.id, node])),
@@ -31,6 +41,11 @@ function createStore(nodes: StoredNode[]): DevtoolsStore {
   }
 }
 
+/**
+ * 覆盖元素 rect 以稳定可见面积断言。
+ *
+ * 只设置当前测试需要的宽高和边界字段。
+ */
 function setRect(element: HTMLElement, width: number, height: number) {
   element.getBoundingClientRect = () => ({
     bottom: height,

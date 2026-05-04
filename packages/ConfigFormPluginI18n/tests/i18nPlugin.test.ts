@@ -8,6 +8,11 @@ interface FormValueToken<TValue = unknown> extends RuntimeToken<TValue, 'form-va
   field: string
 }
 
+/**
+ * 创建从表单值读取参数的测试 token。
+ *
+ * 该 token 用于验证 i18n params 会先经过 runtime.resolveValue 解析。
+ */
 function formValue<TValue = unknown>(field: string): FormValueToken<TValue> {
   return createRuntimeToken<TValue, 'form-value', { field: string }>('form-value', { field })
 }

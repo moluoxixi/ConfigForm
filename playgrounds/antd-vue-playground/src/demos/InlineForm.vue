@@ -26,18 +26,38 @@ interface DayjsLike {
   format: (template: string) => string
 }
 
+/**
+ * 判断值是否是 Ant Design Vue 日期组件返回的 Dayjs 类对象。
+ *
+ * 仅依赖 format 函数存在性，避免 playground 引入具体 Dayjs 类型。
+ */
 function isDayjsLike(value: unknown): value is DayjsLike {
   return Boolean(value && typeof value === 'object' && typeof (value as Partial<DayjsLike>).format === 'function')
 }
 
+/**
+ * 将单个日期值格式化为提交值。
+ *
+ * 非 Dayjs 类对象保持原值，用于兼容清空或外部手动写入的值。
+ */
 function formatDateValue(value: unknown, template: string): unknown {
   return isDayjsLike(value) ? value.format(template) : value
 }
 
+/**
+ * 格式化日期范围提交值。
+ *
+ * 仅数组会逐项格式化，其他值保持原样交给上层 schema 或展示逻辑处理。
+ */
 function formatDateRange(value: unknown, template: string): unknown {
   return Array.isArray(value) ? value.map(item => formatDateValue(item, template)) : value
 }
 
+/**
+ * 过滤 AutoComplete 选项。
+ *
+ * 只匹配字符串 value，未知选项结构不会参与候选展示。
+ */
 function optionIncludes(input: string, option: unknown): boolean {
   const value = option && typeof option === 'object' ? (option as { value?: unknown }).value : undefined
   return typeof value === 'string' && value.includes(input)
@@ -196,6 +216,7 @@ const fields = [
     component: DatePicker,
     ...v,
     props: { placeholder: '选择日期', allowClear: true },
+    /** 将 DatePicker 的 Dayjs 值转换为 YYYY-MM-DD 提交值。 */
     transform: val => formatDateValue(val, 'YYYY-MM-DD'),
   }),
   defineField({
@@ -204,6 +225,7 @@ const fields = [
     component: DatePicker.RangePicker,
     ...v,
     props: { placeholder: ['开始', '结束'], allowClear: true },
+    /** 将 RangePicker 的 Dayjs 数组转换为日期字符串数组。 */
     transform: val => formatDateRange(val, 'YYYY-MM-DD'),
   }),
   defineField({
@@ -212,6 +234,7 @@ const fields = [
     component: TimePicker,
     ...v,
     props: { placeholder: '选择时间', allowClear: true, format: 'HH:mm' },
+    /** 将 TimePicker 的 Dayjs 值转换为 HH:mm 提交值。 */
     transform: val => formatDateValue(val, 'HH:mm'),
   }),
   defineField({
@@ -256,6 +279,7 @@ const fields = [
     component: Input,
     ...v,
     props: { placeholder: '请说明', allowClear: true },
+    /** 仅在性别选择“其他”时展示补充说明字段。 */
     visible: (values) => values.gender === 'other',
   }),
   // 条件禁用
@@ -265,14 +289,25 @@ const fields = [
     component: Input,
     ...v,
     props: { placeholder: '访客不可编辑', allowClear: true },
+    /** 访客角色不可编辑备注。 */
     disabled: (values) => values.role === 'guest',
   }),
 ]
 
+/**
+ * 展示内联表单提交结果。
+ *
+ * playground 通过 alert 直接反馈提交值，不向远端接口发送数据。
+ */
 function onSubmit(values: Record<string, unknown>) {
   alert(`搜索提交！\n${JSON.stringify(values, null, 2)}`)
 }
 
+/**
+ * 输出内联表单校验失败结果。
+ *
+ * 示例只写入控制台，实际业务可在这里接入消息提示或埋点。
+ */
 function onError(errors: Record<string, string[]>) {
   console.error('校验失败：', errors)
 }

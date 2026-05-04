@@ -14,6 +14,11 @@ interface MessageToken extends RuntimeToken<string, 'message'> {
   fallback?: string
 }
 
+/**
+ * 创建测试用 message runtime token。
+ *
+ * token resolver 在对应用例内注册，缺失 resolver 时应保持 runtime 抛错语义。
+ */
 function message(key: string, fallback?: string): MessageToken {
   return createRuntimeToken<string, 'message', Omit<MessageToken, '__configFormToken'>>('message', { fallback, key })
 }
@@ -95,6 +100,11 @@ const CardContainer = markRaw(defineComponent({
   },
 }))
 
+/**
+ * 使用默认 runtime 解析测试字段。
+ *
+ * 只为 FormField 单测提供最小 ResolvedField，不包含外部插件和动态表单值。
+ */
 function resolveTestField(field: FieldConfig) {
   const runtime = createFormRuntime()
   return runtime.resolveField(field, runtime.createResolveSnap({ errors: {}, values: {} }))

@@ -16,6 +16,11 @@ const SlotRender = defineComponent({
     fn: { type: Function, required: true },
     scope: { type: Object, default: undefined },
   },
+  /**
+   * 将传入的 slot 函数包装为可渲染组件。
+   *
+   * 该组件只负责转发当前 slot scope，不参与字段解析和表单状态写入。
+   */
   setup(props: { fn: (scope?: Record<string, unknown>) => unknown, scope?: Record<string, unknown> }) {
     return () => props.fn(props.scope)
   },
@@ -72,12 +77,22 @@ function normalizeResolvedSlotValue(value: SlotContent, resolveSnap: SlotResolve
   }
 
   return [{
+    /**
+     * 延迟渲染普通 slot 内容。
+     *
+     * 该函数只把已解析内容交给 Vue 渲染，不再参与节点拓扑收集。
+     */
     fn: () => value,
     key: `render-${slotName}-${path}`,
     kind: 'render',
   }]
 }
 
+/**
+ * 将单个 slot 配置转换为递归层可消费的渲染节点列表。
+ *
+ * 函数 slot 会在当前 scope 下执行；返回的字段节点继续携带同一 slot resolveSnap。
+ */
 function normalizeSlotValue(slotValue: SlotContent, scope: Record<string, unknown> | undefined, slotName: string): NormalizedSlotNode[] {
   const resolveSnap: SlotResolveSnap = {
     ...currentResolveSnap.value,

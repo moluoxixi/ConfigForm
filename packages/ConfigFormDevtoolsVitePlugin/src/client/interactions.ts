@@ -25,6 +25,11 @@ import { resolveEventNode, scrollSelectedNodeIntoView } from './render'
 import { openNodeSource } from './sourceOpen'
 import { resolvePickedNode } from './tree'
 
+/**
+ * 激活并定位一个源码节点。
+ *
+ * 该函数会更新面板选择态、执行高亮、滚动到树节点，并请求编辑器打开源码。
+ */
 function activateSourceNode(
   node: StoredNode,
   getNodeLookupRoot: () => HTMLElement,
@@ -43,6 +48,11 @@ function activateSourceNode(
   void openNodeSource(node, setMessage)
 }
 
+/**
+ * 同步浮层按钮和面板位置。
+ *
+ * 按左右停靠边界写入样式，不保存持久化位置。
+ */
 export function updateBubblePosition(bubble: HTMLElement, panel: HTMLElement, position: BubblePosition) {
   bubble.style.left = `${position.left}px`
   bubble.style.top = `${position.top}px`
@@ -62,8 +72,15 @@ export function updateBubblePosition(bubble: HTMLElement, panel: HTMLElement, po
   panel.style.right = `${BUBBLE_MARGIN + rightDockScrollbarWidth()}px`
 }
 
+/**
+ * 安装浮层按钮拖拽交互。
+ *
+ * 拖拽结束后按钮吸附到左右边缘；内部状态只保存在当前页面会话。
+ */
 export function installBubbleDrag(bubble: HTMLElement, panel: HTMLElement) {
+  /** 计算按钮在当前视口内允许的最大 left。 */
   const maxLeft = () => Math.max(0, rightDockViewportEdge() - BUBBLE_SIZE)
+  /** 计算按钮在当前视口内允许的最大 top。 */
   const maxTop = () => viewportHeight() - BUBBLE_SIZE
   const position: BubblePosition = {
     edge: 'right',
@@ -78,6 +95,11 @@ export function installBubbleDrag(bubble: HTMLElement, panel: HTMLElement) {
   let moved = false
   let suppressNextClick = false
 
+  /**
+   * 将拖拽后的按钮吸附到最近水平边缘。
+   *
+   * 吸附后同步面板位置，避免面板和按钮分离。
+   */
   function snapToEdge() {
     position.edge = position.left + BUBBLE_SIZE / 2 < viewportWidth() / 2 ? 'left' : 'right'
     position.left = position.edge === 'left' ? 0 : maxLeft()
@@ -142,6 +164,11 @@ export function installBubbleDrag(bubble: HTMLElement, panel: HTMLElement) {
   updateBubblePosition(bubble, panel, position)
 }
 
+/**
+ * 安装 devtools 面板拖拽交互。
+ *
+ * 只允许通过 header 拖拽，点击 header 内按钮时不会启动拖动。
+ */
 export function installPanelDrag(panel: HTMLElement, handle: HTMLElement) {
   let dragStartX = 0
   let dragStartY = 0
@@ -151,14 +178,21 @@ export function installPanelDrag(panel: HTMLElement, handle: HTMLElement) {
   let panelHeight = 0
   let dragging = false
 
+  /** 计算面板在当前视口内允许的最大 left。 */
   function maxLeft() {
     return Math.max(BUBBLE_MARGIN, rightDockViewportEdge() - BUBBLE_MARGIN - panelWidth)
   }
 
+  /** 计算面板在当前视口内允许的最大 top。 */
   function maxTop() {
     return Math.max(BUBBLE_MARGIN, viewportHeight() - BUBBLE_MARGIN - panelHeight)
   }
 
+  /**
+   * 移动面板到指定位置。
+   *
+   * 坐标会被限制在视口安全边界内，并切换为 left/top 定位。
+   */
   function movePanel(left: number, top: number) {
     panel.style.bottom = 'auto'
     panel.style.left = `${clamp(left, BUBBLE_MARGIN, maxLeft())}px`
@@ -198,6 +232,11 @@ export function installPanelDrag(panel: HTMLElement, handle: HTMLElement) {
   })
 }
 
+/**
+ * 安装页面拾取模式。
+ *
+ * 用户点击页面元素后解析最匹配的 ConfigForm 节点，并打开对应源码位置。
+ */
 export function installPagePicker(
   root: HTMLElement,
   panel: HTMLElement,
@@ -210,6 +249,11 @@ export function installPagePicker(
 ) {
   let previousCursor = ''
 
+  /**
+   * 切换页面拾取状态。
+   *
+   * 激活时保存原始 cursor，关闭时必须恢复，避免污染页面全局样式。
+   */
   function setPicking(active: boolean) {
     if (state.pickingNode === active)
       return
@@ -294,6 +338,11 @@ export function installPagePicker(
   return () => setPicking(false)
 }
 
+/**
+ * 安装调试面板树、导航和源码搜索交互。
+ *
+ * 事件代理只处理 eventHost 内部元素，页面选择逻辑由 installPagePicker 负责。
+ */
 export function installTreeInteractions(
   eventHost: HTMLElement,
   getBody: () => HTMLElement,
@@ -391,6 +440,11 @@ export function installTreeInteractions(
   })
 }
 
+/**
+ * 安装点击外部关闭面板的行为。
+ *
+ * 点击浮层按钮或面板内部不会触发关闭，避免和内部按钮交互冲突。
+ */
 export function installOutsidePanelClose(bubble: HTMLElement, panel: HTMLElement, closePanel: () => void) {
   document.addEventListener('click', (event) => {
     if (!panel.classList.contains('is-open'))
@@ -407,6 +461,11 @@ export function installOutsidePanelClose(bubble: HTMLElement, panel: HTMLElement
   }, { capture: true })
 }
 
+/**
+ * 创建异步渲染调度器。
+ *
+ * 同一帧内多次触发只执行一次 render；缺少 requestAnimationFrame 时使用宏任务调度。
+ */
 function createAsyncRenderScheduler(render: RenderDevtools): RenderDevtools {
   let pending = false
 
@@ -415,6 +474,7 @@ function createAsyncRenderScheduler(render: RenderDevtools): RenderDevtools {
       return
 
     pending = true
+    /** 刷新一次待处理渲染任务。 */
     const flush = () => {
       pending = false
       render()
@@ -429,16 +489,32 @@ function createAsyncRenderScheduler(render: RenderDevtools): RenderDevtools {
   }
 }
 
+/**
+ * 安装外部页面上下文变更同步。
+ *
+ * 页面点击、键盘、滚动、尺寸和可见性属性变化会重新计算当前活跃表单。
+ */
 export function installExternalContextSync(root: HTMLElement, render: RenderDevtools, resetManualSelection: () => void) {
   const scheduleRender = createAsyncRenderScheduler(render)
   let internalScrollInputUntil = 0
+  /**
+   * 重置用户手动选择并调度一次自动渲染。
+   *
+   * 仅用于外部页面上下文变化，面板内部操作不调用该路径。
+   */
   const scheduleAutoRender = () => {
     resetManualSelection()
     scheduleRender()
   }
+  /** 标记面板内部滚动输入的短暂隔离窗口。 */
   const markInternalScrollInput = () => {
     internalScrollInputUntil = Date.now() + 250
   }
+  /**
+   * 处理页面滚动触发的自动渲染。
+   *
+   * 面板内部滚动和短窗口内的 wheel 连带 scroll 不会重置用户选择。
+   */
   const scheduleAutoRenderForScroll = (event: Event) => {
     const target = event.target
     if (target instanceof Node && root.contains(target))

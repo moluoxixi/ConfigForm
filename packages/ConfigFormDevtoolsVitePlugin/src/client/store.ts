@@ -1,6 +1,11 @@
 import type { FormDevtoolsNode, FormNodeRenderMetric, FormNodeSyncMetric } from '../types'
 import type { DevtoolsStore, StoredNode } from './types'
 
+/**
+ * 校验同一 devtools node id 的稳定身份字段。
+ *
+ * id 复用但字段、组件、父级或源码来源变化时直接抛错，避免调试面板展示错位节点。
+ */
 function assertCompatibleNode(existing: FormDevtoolsNode | undefined, next: FormDevtoolsNode) {
   if (!existing)
     return
@@ -21,6 +26,11 @@ function assertCompatibleNode(existing: FormDevtoolsNode | undefined, next: Form
   }
 }
 
+/**
+ * 创建 devtools 客户端内存 store。
+ *
+ * store 负责节点注册、性能指标累积和渲染通知，不直接访问页面 DOM。
+ */
 export function createStore(render: () => void): DevtoolsStore {
   const nodes = new Map<string, StoredNode>()
   const formRegistrationOrders = new Map<string, number>()
@@ -29,6 +39,11 @@ export function createStore(render: () => void): DevtoolsStore {
   let orderSeed = 0
   let formRegistrationOrderSeed = 0
 
+  /**
+   * 解析表单注册顺序。
+   *
+   * 同一个 formId 在生命周期内保持首次注册顺序，用于多表单导航稳定排序。
+   */
   function resolveFormRegistrationOrder(formId: string): number {
     const existing = formRegistrationOrders.get(formId)
     if (existing !== undefined)
@@ -39,6 +54,11 @@ export function createStore(render: () => void): DevtoolsStore {
     return next
   }
 
+  /**
+   * 清理没有任何节点引用的表单注册顺序。
+   *
+   * 仅在表单所有节点都注销后删除，避免部分字段更新时导航顺序抖动。
+   */
   function dropUnusedFormRegistrationOrder(formId: string) {
     for (const node of nodes.values()) {
       if (node.formId === formId)
@@ -47,6 +67,11 @@ export function createStore(render: () => void): DevtoolsStore {
     formRegistrationOrders.delete(formId)
   }
 
+  /**
+   * 将一次渲染耗时样本写入节点统计。
+   *
+   * 统计为增量平均值，不保留全量历史样本。
+   */
   function applyRenderMetric(node: StoredNode, metric: FormNodeRenderMetric) {
     const total = (node.avgRenderMs ?? 0) * node.renderSamples + metric.duration
     node.renderSamples += 1
@@ -56,6 +81,11 @@ export function createStore(render: () => void): DevtoolsStore {
     node.avgRenderMs = total / node.renderSamples
   }
 
+  /**
+   * 将一次 DOM 同步耗时样本写入节点统计。
+   *
+   * 统计只描述 adapter 到 bridge 的同步成本，不代表组件业务渲染耗时。
+   */
   function applySyncMetric(node: StoredNode, metric: FormNodeSyncMetric) {
     const total = (node.avgSyncMs ?? 0) * node.syncSamples + metric.duration
     node.syncSamples += 1
@@ -64,6 +94,11 @@ export function createStore(render: () => void): DevtoolsStore {
     node.avgSyncMs = total / node.syncSamples
   }
 
+  /**
+   * 暂存先于节点注册到达的性能样本。
+   *
+   * 样本按 node id 分组，节点注册后由 flushPendingMetrics 一次性补写。
+   */
   function pushPendingMetric<TMetric>(pending: Map<string, TMetric[]>, metric: TMetric & { id: string }) {
     const existing = pending.get(metric.id)
     if (existing) {
@@ -74,6 +109,11 @@ export function createStore(render: () => void): DevtoolsStore {
     pending.set(metric.id, [metric])
   }
 
+  /**
+   * 将暂存性能样本刷新到已注册节点。
+   *
+   * 刷新完成后删除暂存项，避免同一批样本重复计入平均值。
+   */
   function flushPendingMetrics(node: StoredNode) {
     // render/sync 指标可能早于节点注册到达，注册时必须补记，避免刷新时丢样本。
     const renderMetrics = pendingRenderMetrics.get(node.id)
@@ -91,6 +131,11 @@ export function createStore(render: () => void): DevtoolsStore {
     }
   }
 
+  /**
+   * 注册或更新节点快照。
+   *
+   * 会保留已有统计信息和注册顺序；身份字段冲突时抛错暴露 adapter id 问题。
+   */
   function upsertNode(node: FormDevtoolsNode, element: HTMLElement | null) {
     const existing = nodes.get(node.id)
     assertCompatibleNode(existing, node)
@@ -110,6 +155,11 @@ export function createStore(render: () => void): DevtoolsStore {
 
   return {
     nodes,
+    /**
+     * 记录字段节点的 Vue 渲染耗时。
+     *
+     * 节点未注册时先暂存，后续注册会补齐样本。
+     */
     recordRender(metric: FormNodeRenderMetric) {
       const node = nodes.get(metric.id)
       if (!node) {
@@ -120,6 +170,11 @@ export function createStore(render: () => void): DevtoolsStore {
       applyRenderMetric(node, metric)
       render()
     },
+    /**
+     * 记录字段节点同步到 bridge 的耗时。
+     *
+     * 节点未注册时先暂存，避免 mount 阶段事件顺序导致样本丢失。
+     */
     recordSync(metric: FormNodeSyncMetric) {
       const node = nodes.get(metric.id)
       if (!node) {
@@ -130,9 +185,15 @@ export function createStore(render: () => void): DevtoolsStore {
       applySyncMetric(node, metric)
       render()
     },
+    /** 注册新节点或刷新同 id 节点快照。 */
     registerField(node: FormDevtoolsNode, element: HTMLElement | null) {
       upsertNode(node, element)
     },
+    /**
+     * 注销节点并清理关联暂存指标。
+     *
+     * 如果该节点是表单最后一个节点，会释放对应表单注册顺序。
+     */
     unregisterField(id: string) {
       const existing = nodes.get(id)
       nodes.delete(id)
@@ -142,6 +203,7 @@ export function createStore(render: () => void): DevtoolsStore {
         dropUnusedFormRegistrationOrder(existing.formId)
       render()
     },
+    /** 更新已存在节点；行为与 registerField 保持一致以支持完整快照同步。 */
     updateField(node: FormDevtoolsNode, element: HTMLElement | null) {
       upsertNode(node, element)
     },

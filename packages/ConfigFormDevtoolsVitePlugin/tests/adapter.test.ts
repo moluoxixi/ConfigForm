@@ -20,6 +20,11 @@ interface FieldStub {
   __source?: typeof source
 }
 
+/**
+ * 创建 devtools bridge mock。
+ *
+ * 每个方法都是 vi.fn，便于断言 adapter 注册、更新、注销和指标上报顺序。
+ */
 function createBridge() {
   return {
     recordRender: vi.fn(),
@@ -52,6 +57,11 @@ const CoreConfigForm = defineComponent({
   },
 })
 
+/**
+ * 挂载带默认核心组件的 adapter。
+ *
+ * 只传入字段树和固定 namespace，测试结束由 afterEach 清理 DOM。
+ */
 function mountAdapter(fields: FieldStub[]) {
   const Adapter = createDevtoolsConfigFormAdapter({
     ConfigForm: CoreConfigForm as Component,
@@ -70,6 +80,11 @@ function mountAdapter(fields: FieldStub[]) {
   return { app, root }
 }
 
+/**
+ * 创建使用默认核心组件的 devtools adapter。
+ *
+ * 用于需要自定义挂载方式或响应式 fields 的测试用例。
+ */
 function createAdapter() {
   return createDevtoolsConfigFormAdapter({
     ConfigForm: CoreConfigForm as Component,
@@ -259,6 +274,11 @@ describe('configForm devtools adapter', () => {
         namespace: { type: String, default: 'cf' },
       },
       setup(props) {
+        /**
+         * 渲染 slot 函数返回的测试节点。
+         *
+         * 只识别带 component 的对象配置，其余内容按 VNodeChild 原样返回。
+         */
         function renderConfigNode(value: unknown): VNodeChild {
           if (!value || typeof value !== 'object' || !('component' in value))
             return value as VNodeChild
@@ -720,6 +740,11 @@ describe('configForm devtools adapter', () => {
     bridge.updateField.mockClear()
     bridge.unregisterField.mockClear()
 
+    /**
+     * 提供具名函数组件以验证 devtools 能解析函数名。
+     *
+     * 该测试组件不需要真实渲染，只检查 component 元数据。
+     */
     function NamedInput() {}
     fields.value = [
       {

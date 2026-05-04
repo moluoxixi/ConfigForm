@@ -34,6 +34,11 @@ const emit = defineEmits<{
 
 const fieldNode = computed(() => isResolvedFieldConfig(props.node) ? props.node : undefined)
 
+/**
+ * 将当前字段节点的模型值变更转发给父级表单。
+ *
+ * 组件节点没有 field 绑定，若误触发该路径会直接抛错暴露递归边界问题。
+ */
 function emitCurrentFieldValue(value: unknown) {
   if (!fieldNode.value)
     throw new Error('Cannot update a component node without field')

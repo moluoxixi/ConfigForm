@@ -48,6 +48,11 @@ const messages: I18nMessages = {
     'i18n.role.placeholder': '请选择角色',
     'i18n.role.required': '请选择角色',
     'i18n.role.user': '用户',
+    /**
+     * 演示语言包函数消息。
+     *
+     * 只依赖当前 locale 返回 label，不读取外部表单状态。
+     */
     'i18n.suggestion.label': (_params, _resolveSnap, currentLocale) => currentLocale === 'en-US' ? 'Suggestion' : '建议',
     'i18n.suggestion.placeholder': '函数消息 label + token placeholder',
     'i18n.username.guestMin': '访客用户名至少 {min} 个字符',
@@ -83,6 +88,11 @@ const messages: I18nMessages = {
     'i18n.role.placeholder': 'Select role',
     'i18n.role.required': 'Select a role',
     'i18n.role.user': 'User',
+    /**
+     * 演示语言包函数消息。
+     *
+     * 只依赖当前 locale 返回 label，不读取外部表单状态。
+     */
     'i18n.suggestion.label': (_params, _resolveSnap, currentLocale) => currentLocale === 'en-US' ? 'Suggestion' : '建议',
     'i18n.suggestion.placeholder': 'Function message label + token placeholder',
     'i18n.username.guestMin': 'Guest username must be at least {min} characters',
@@ -94,6 +104,11 @@ const messages: I18nMessages = {
   },
 }
 
+/**
+ * 渲染 playground 本地按钮文案模板。
+ *
+ * 只处理 `{key}` 形式的浅层 params，不覆盖插件自身的 i18n token 解析。
+ */
 function renderTemplate(template: string, params?: Record<string, unknown>) {
   return template.replace(/\{([^}]+)\}/g, (_, key: string) => {
     const value = params?.[key.trim()]
@@ -101,6 +116,11 @@ function renderTemplate(template: string, params?: Record<string, unknown>) {
   })
 }
 
+/**
+ * 读取当前 locale 的本地文案。
+ *
+ * 缺失 key 或非字符串消息会直接抛错，避免按钮文案静默退回错误内容。
+ */
 function t(key: string, params?: Record<string, unknown>) {
   const message = messages[locale.value]?.[key]
   if (message === undefined)
@@ -111,6 +131,11 @@ function t(key: string, params?: Record<string, unknown>) {
   return renderTemplate(message, params)
 }
 
+/**
+ * 将空字符串归一化为 undefined。
+ *
+ * 仅用于示例中的可选文本字段，非字符串值保持原样交给 schema。
+ */
 function emptyStringToUndefined(value: unknown) {
   if (typeof value !== 'string')
     return value
@@ -119,6 +144,11 @@ function emptyStringToUndefined(value: unknown) {
   return trimmed.length === 0 ? undefined : trimmed
 }
 
+/**
+ * 创建可选文本 schema。
+ *
+ * 先把空字符串转为 undefined，再执行传入字符串 schema 的校验。
+ */
 function optionalText(schema: z.ZodString = z.string()) {
   return z.preprocess(emptyStringToUndefined, schema.optional())
 }
@@ -126,8 +156,14 @@ function optionalText(schema: z.ZodString = z.string()) {
 const runtimeOptions = {
   plugins: [
     createI18nPlugin({
+      /** 每次解析 i18n token 时读取当前 playground locale。 */
       locale: () => locale.value,
       messages,
+      /**
+       * 演示自定义 translate hook。
+       *
+       * 仅接管 i18n.custom.label，其余 key 返回 undefined 继续走 messages 查找。
+       */
       translate: (key, params, defaultMessage, resolveSnap, currentLocale) => {
         if (key === 'i18n.custom.label') {
           const prefix = currentLocale === 'en-US' ? 'Custom field' : '自定义字段'
@@ -164,12 +200,18 @@ const fields = computed(() => [
       clearable: true,
       placeholder: i18n('i18n.username.placeholder', { defaultMessage: '请输入用户名' }),
     },
+    /**
+     * 校验用户名与角色组合。
+     *
+     * 错误消息通过当前 locale 的本地文案生成。
+     */
     validator: (value, values) => {
       if (values.role === 'guest' && value.length < 4)
         return t('i18n.username.guestMin', { min: 4 })
 
       return value.includes(' ') ? t('i18n.username.noSpace') : undefined
     },
+    /** 提交前裁剪用户名空白，实时输入值保持不变。 */
     transform: value => value.trim(),
   }),
   defineField({
@@ -223,7 +265,18 @@ const fields = computed(() => [
       default: [
         defineField({ component: ElRadio, props: { value: 'male' }, slots: { default: i18n('i18n.gender.male', { defaultMessage: '男' }) } }),
         defineField({ component: ElRadio, props: { value: 'female' }, slots: { default: i18n('i18n.gender.female', { defaultMessage: '女' }) } }),
-        defineField({ component: ElRadio, props: { value: 'other' }, slots: { default: () => i18n('i18n.gender.other', { defaultMessage: '其他' }) } }),
+        defineField({
+          component: ElRadio,
+          props: { value: 'other' },
+          slots: {
+            /**
+             * 演示 slot 函数中返回 i18n token。
+             *
+             * runtime 会在渲染 slot 时解析该 token。
+             */
+            default: () => i18n('i18n.gender.other', { defaultMessage: '其他' }),
+          },
+        }),
       ],
     },
   }),
@@ -256,18 +309,38 @@ const fields = computed(() => [
   }),
 ])
 
+/**
+ * 切换 playground 当前语言。
+ *
+ * locale 变化会触发表单字段 computed 重建并重新解析 i18n token。
+ */
 function toggleLocale() {
   locale.value = locale.value === 'zh-CN' ? 'en-US' : 'zh-CN'
 }
 
+/**
+ * 展示 i18n 表单提交结果。
+ *
+ * 提交反馈文案使用当前 locale 的本地文案，不发起远端请求。
+ */
 function onSubmit(values: Record<string, unknown>) {
   alert(`${t('i18n.feedback.submitSuccess')}\n${JSON.stringify(values, null, 2)}`)
 }
 
+/**
+ * 输出 i18n 表单校验失败结果。
+ *
+ * 错误前缀使用当前 locale，本体保持 ConfigForm 的字段错误结构。
+ */
 function onError(errors: Record<string, string[]>) {
   console.error(t('i18n.feedback.validationFailed'), errors)
 }
 
+/**
+ * 同步 ConfigForm 的 v-model 更新。
+ *
+ * 使用 Object.assign 保留 reactive 引用，便于实时预览持续响应。
+ */
 function onModelUpdate(vals: Record<string, unknown>) {
   Object.assign(formValues, vals)
 }

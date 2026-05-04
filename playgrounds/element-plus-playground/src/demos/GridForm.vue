@@ -18,14 +18,22 @@ const fields = [
     span: 12,
     component: ElInput,
     props: { placeholder: '请输入用户名', clearable: true },
+    /**
+     * 校验用户名与角色组合。
+     *
+     * 访客账号需要更长用户名；空格作为示例业务禁用字符处理。
+     */
     validator: (value, values) => {
       if (values.role === 'guest' && value.length < 4)
         return '访客用户名至少 4 个字符'
 
       return value.includes(' ') ? '用户名不能包含空格' : undefined
     },
+    /** 提交前裁剪用户名空白，不改写输入框的实时显示值。 */
     transform: value => value.trim(),
+    /** 启用状态关闭时隐藏用户名字段，示例 active 对字段树的控制能力。 */
     visible: values => values.active !== false,
+    /** 访客角色不可编辑用户名，示例角色驱动的禁用规则。 */
     disabled: values => values.role === 'guest',
   }),
   defineField({
@@ -36,13 +44,21 @@ const fields = [
     span: 12,
     component: ElInput,
     props: { type: 'password', placeholder: '请输入密码', showPassword: true },
+    /**
+     * 校验密码不能包含当前用户名。
+     *
+     * 用户名缺失时只保留 schema 的基础长度校验。
+     */
     validator: (value, values) => {
       const username = typeof values.username === 'string' ? values.username.trim() : ''
 
       return username && value.includes(username) ? '密码不能包含用户名' : undefined
     },
+    /** 提交前裁剪密码空白，用于展示字段 transform 的提交边界。 */
     transform: value => value.trim(),
+    /** 启用状态关闭时隐藏密码字段。 */
     visible: values => values.active !== false,
+    /** 访客角色不可编辑密码字段。 */
     disabled: values => values.role === 'guest',
   }),
   defineField({
@@ -53,11 +69,19 @@ const fields = [
     span: 12,
     component: ElInput,
     props: { placeholder: '请输入邮箱', clearable: true },
+    /**
+     * 校验管理员邮箱要求。
+     *
+     * 非管理员角色允许邮箱为空，邮箱格式仍由 schema 处理。
+     */
     validator: (value, values) => {
       return values.role === 'admin' && !value ? '管理员需要填写邮箱' : undefined
     },
+    /** 提交前裁剪可选邮箱，空值保持 undefined。 */
     transform: value => value?.trim(),
+    /** 启用状态关闭时隐藏邮箱字段。 */
     visible: values => values.active !== false,
+    /** 访客角色不可编辑邮箱字段。 */
     disabled: values => values.role === 'guest',
   }),
   defineField({
@@ -67,11 +91,19 @@ const fields = [
     span: 12,
     component: ElInput,
     props: { placeholder: '请输入手机号', clearable: true },
+    /**
+     * 校验普通用户手机号要求。
+     *
+     * 非 user 角色允许手机号为空，号码格式由 schema 处理。
+     */
     validator: (value, values) => {
       return values.role === 'user' && !value ? '用户需要填写手机号' : undefined
     },
+    /** 提交前裁剪可选手机号，空值保持 undefined。 */
     transform: value => value?.trim(),
+    /** 启用状态关闭时隐藏手机号字段。 */
     visible: values => values.active !== false,
+    /** 访客角色不可编辑手机号字段。 */
     disabled: values => values.role === 'guest',
   }),
 
@@ -378,6 +410,11 @@ const fields = [
     props: {
       placeholder: '输入城市名',
       clearable: true,
+      /**
+       * 为 Element Plus 自动补全提供城市候选项。
+       *
+       * 只在本地示例数据中筛选，结果通过组件要求的回调返回。
+       */
       fetchSuggestions: (queryString: string, cb: (items: Array<{ value: string }>) => void) => {
         const cities = ['北京', '上海', '广州', '深圳', '杭州', '成都', '武汉', '南京', '西安', '重庆']
         const results = queryString
@@ -396,6 +433,7 @@ const fields = [
     span: 12,
     component: ElInput,
     props: { placeholder: '请说明您的性别', clearable: true },
+    /** 仅在性别选择“其他”时展示补充说明字段。 */
     visible: values => values.gender === 'other',
   }),
 
@@ -407,6 +445,7 @@ const fields = [
     span: 12,
     component: ElDatePicker,
     props: { type: 'date', placeholder: '选择生效日期', valueFormat: 'YYYY-MM-DD', clearable: true },
+    /** 仅在表单启用时展示生效日期。 */
     visible: values => values.active === true,
   }),
 
@@ -418,6 +457,7 @@ const fields = [
     span: 24,
     component: ElInput,
     props: { placeholder: '访客不可编辑备注', clearable: true },
+    /** 访客角色不可编辑备注。 */
     disabled: values => values.role === 'guest',
   }),
 
@@ -429,6 +469,11 @@ const fields = [
     span: 24,
     component: ElInput,
     props: { type: 'textarea', placeholder: '评分达到 3 分后可填写建议', rows: 2, clearable: true },
+    /**
+     * 评分低于 3 分时禁用建议字段。
+     *
+     * 非数字评分按 0 处理，保持示例在初始态下不可编辑。
+     */
     disabled: (values) => {
       const rating = typeof values.rating === 'number' ? values.rating : 0
       return rating < 3
@@ -446,14 +491,29 @@ const fields = [
   }),
 ]
 
+/**
+ * 展示表单提交结果。
+ *
+ * playground 通过 alert 直接反馈提交值，不向远端接口发送数据。
+ */
 function onSubmit(values: Record<string, unknown>) {
   alert(`提交成功！\n${JSON.stringify(values, null, 2)}`)
 }
 
+/**
+ * 输出表单校验失败结果。
+ *
+ * 示例只写入控制台，实际业务可在这里接入消息提示或埋点。
+ */
 function onError(errors: Record<string, string[]>) {
   console.error('校验失败：', errors)
 }
 
+/**
+ * 同步 ConfigForm 的 v-model 更新。
+ *
+ * 使用 Object.assign 保留 reactive 引用，便于实时预览区域持续响应。
+ */
 function onModelUpdate(vals: Record<string, unknown>) {
   Object.assign(formValues, vals)
 }

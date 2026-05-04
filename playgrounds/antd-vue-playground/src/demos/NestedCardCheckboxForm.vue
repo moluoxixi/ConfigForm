@@ -65,10 +65,20 @@ const fields = [
   }),
 ]
 
+/**
+ * 展示嵌套容器表单的提交结果。
+ *
+ * 示例只验证容器节点不会绑定值，提交内容只包含真实字段。
+ */
 function onSubmit(values: Record<string, unknown>) {
   alert(JSON.stringify(values, null, 2))
 }
 
+/**
+ * 同步嵌套容器表单的 v-model 更新。
+ *
+ * 使用 Object.assign 保留 reactive 引用，便于实时值预览响应。
+ */
 function onModelUpdate(vals: Record<string, unknown>) {
   Object.assign(formValues, vals)
 }

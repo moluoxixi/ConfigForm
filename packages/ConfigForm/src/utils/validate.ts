@@ -16,6 +16,11 @@ export function validateField(
   return result.error.issues.map(i => i.message || `Validation failed: ${i.path.join('.')}`)
 }
 
+/**
+ * 归一化自定义 validator 的返回值。
+ *
+ * falsy 值表示校验通过；数组会过滤空消息，字符串会作为单条错误消息返回。
+ */
 function normalizeValidatorResult(result: Awaited<ReturnType<FieldValidator>>): string[] {
   if (!result)
     return []

@@ -44,7 +44,17 @@ const {
   fields: rawNodes,
   initialValues,
   runtime: runtimeOptions,
+  /**
+   * 将无头控制器的提交结果转为组件 submit 事件。
+   *
+   * 事件值已经经过字段 transform，组件层不再二次处理。
+   */
   onSubmit: vals => emit('submit', vals as T),
+  /**
+   * 将无头控制器的校验失败结果转为组件 error 事件。
+   *
+   * 错误对象保持字段维度结构，供调用方或 slot 自行展示。
+   */
   onError: errs => emit('error', errs),
 })
 
@@ -57,6 +67,11 @@ const resolvedNodes = computed(() =>
   rawNodes.value.map((node, index) => runtimeRef.value.resolveNode(node, resolveSnap.value, `fields.${index}`)),
 )
 
+/**
+ * 生成递归节点列表的稳定 key。
+ *
+ * 字段节点优先使用 field；容器节点没有业务 key 时退回组件名和声明顺序。
+ */
 function nodeKey(node: typeof resolvedNodes.value[number], index: number): string {
   if ('field' in node)
     return node.field
@@ -79,6 +94,11 @@ watch(values, (newVals) => {
 defineExpose<ConfigFormExpose<T>>({
   submit,
   validate,
+  /**
+   * 暴露单字段校验入口。
+   *
+   * 默认按 submit 语义校验，调用方可显式传入 blur/change 复用字段触发规则。
+   */
   validateField: (field, trigger = 'submit') => validateSingleField(field, trigger),
   reset,
   setValue,

@@ -28,6 +28,11 @@ const FIELD_ONLY_NODE_KEYS = [
   'visible',
 ] as const
 
+/**
+ * 判断未知值是否可按普通对象读取。
+ *
+ * 该守卫仅排除空值和数组，VNode 等更具体的边界由上层节点判断负责。
+ */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value))
 }
@@ -124,6 +129,11 @@ export function assertDefinedSlotNodeConfig(value: FormNodeConfig, path = 'slot 
     throw new Error(`Slot node config at ${path} must be created with defineField(...)`)
 }
 
+/**
+ * 从 slot 内容中收集真实字段节点。
+ *
+ * 函数 slot 只执行一层静态解析；若返回函数则视为运行时渲染内容，不提前推断字段拓扑。
+ */
 function collectSlotFields(slot: SlotContent | undefined, path = 'slot'): FieldConfig[] {
   if (slot == null || slot === false)
     return []
@@ -145,6 +155,11 @@ function collectSlotFields(slot: SlotContent | undefined, path = 'slot'): FieldC
   return collectFieldConfigsRaw([slot])
 }
 
+/**
+ * 递归收集节点树中的真实字段配置。
+ *
+ * 该函数只负责拓扑遍历和容器字段边界校验，重复 field key 由外层统一处理。
+ */
 function collectFieldConfigsRaw(nodes: readonly FormNodeConfig[]): FieldConfig[] {
   return nodes.flatMap((node) => {
     assertComponentNodeConfig(node)
@@ -179,6 +194,11 @@ export function collectFieldConfigs(nodes: readonly FormNodeConfig[]): FieldConf
   return assertUniqueFieldConfigs(collectFieldConfigsRaw(nodes))
 }
 
+/**
+ * 生成节点错误定位路径。
+ *
+ * 字段节点使用 field 作为稳定路径，容器节点使用通用名称避免伪造不存在的字段 key。
+ */
 function nodePath(node: FormNodeConfig): string {
   return isFieldConfig(node) ? node.field : 'component node'
 }

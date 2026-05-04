@@ -18,10 +18,16 @@ import {
   resolveNodeKindIcon,
 } from './tree'
 
+/** 格式化性能指标数值，缺失样本使用占位符展示。 */
 function formatTiming(value: number | undefined): string {
   return typeof value === 'number' ? value.toFixed(2) : '--'
 }
 
+/**
+ * 将当前选中的节点行滚动到调试面板可见区域。
+ *
+ * 只操作面板内部滚动位置，不改写页面滚动状态。
+ */
 export function scrollSelectedNodeIntoView(container: HTMLElement, selectedNodeId: string | undefined) {
   if (!selectedNodeId)
     return
@@ -32,6 +38,11 @@ export function scrollSelectedNodeIntoView(container: HTMLElement, selectedNodeI
   row?.scrollIntoView({ block: 'nearest' })
 }
 
+/**
+ * 从调试面板事件目标解析对应节点。
+ *
+ * 仅接受 container 内部的节点行，外部点击不会误选中页面元素。
+ */
 export function resolveEventNode(store: DevtoolsStore, container: HTMLElement, target: EventTarget | null): StoredNode | undefined {
   if (!(target instanceof Element))
     return undefined
@@ -44,6 +55,11 @@ export function resolveEventNode(store: DevtoolsStore, container: HTMLElement, t
   return id ? store.nodes.get(id) : undefined
 }
 
+/**
+ * 生成表单导航项的辅助描述。
+ *
+ * 优先展示前两个根节点名称，没有可读节点时退回 formId。
+ */
 function resolveGroupMeta(group: RootGroup): string {
   return group.nodes
     .slice(0, 2)
@@ -51,6 +67,11 @@ function resolveGroupMeta(group: RootGroup): string {
     .join(', ') || group.formId
 }
 
+/**
+ * 创建多表单导航按钮。
+ *
+ * disabled 表示该表单当前不可检查，只影响导航交互和提示，不删除节点数据。
+ */
 function createFormNavItem(
   group: RootGroup,
   index: number,
@@ -77,15 +98,26 @@ function createFormNavItem(
   return button
 }
 
+/**
+ * 生成 source 搜索结果的可读标签。
+ *
+ * 标签合并节点类型、字段/组件名、label 和 slot 信息，便于键盘搜索后确认目标。
+ */
 function resolveNodeSelectorLabel(node: StoredNode): string {
   const detail = [node.label, node.slotName ? `slot:${node.slotName}` : undefined].filter(Boolean).join(' · ')
   return `${resolveNodeKindIcon(node)} ${resolveNodeDisplayName(node)}${detail ? ` · ${detail}` : ''}`
 }
 
+/** 标准化搜索文本，限定为大小写不敏感的空白裁剪匹配。 */
 function normalizeSearchText(value: string): string {
   return value.trim().toLowerCase()
 }
 
+/**
+ * 汇总节点可搜索字段。
+ *
+ * 包含源码位置和表单元数据，但不读取 DOM 文本，避免搜索依赖页面当前渲染内容。
+ */
 function resolveNodeSearchText(node: StoredNode): string {
   return [
     node.kind,
@@ -106,6 +138,11 @@ function resolveNodeSearchText(node: StoredNode): string {
     .join(' ')
 }
 
+/**
+ * 按用户输入过滤带源码位置的节点。
+ *
+ * 多个 token 必须全部命中同一节点搜索文本，空查询不返回结果列表。
+ */
 function filterSourceNodes(nodes: StoredNode[], query: string): StoredNode[] {
   const tokens = normalizeSearchText(query).split(/\s+/).filter(Boolean)
   if (tokens.length === 0)
@@ -117,6 +154,11 @@ function filterSourceNodes(nodes: StoredNode[], query: string): StoredNode[] {
   })
 }
 
+/**
+ * 创建源码搜索输入和结果列表。
+ *
+ * 该函数只生成面板 DOM；输入事件由 interactions 模块统一绑定处理。
+ */
 function createSourceSearch(
   nodes: StoredNode[],
   selectedNodeId: string | undefined,
@@ -161,6 +203,11 @@ function createSourceSearch(
   return wrapper
 }
 
+/**
+ * 创建单个性能指标展示行。
+ *
+ * title 中保留平均值、最大值和样本数，便于定位渲染或同步异常耗时。
+ */
 function createTimingRow(
   label: 'render' | 'sync',
   value: number | undefined,
@@ -177,6 +224,11 @@ function createTimingRow(
   return item
 }
 
+/**
+ * 创建树节点行及其子节点 DOM。
+ *
+ * childNodesByParentId 必须来自同一次 store 快照，避免渲染期间重复扫描全量节点。
+ */
 function createNodeRow(
   node: StoredNode,
   childNodesByParentId: ChildNodesByParentId,
@@ -235,6 +287,11 @@ function createNodeRow(
   return wrapper
 }
 
+/**
+ * 渲染 devtools 树面板。
+ *
+ * 该函数会重建容器内容并同步选中状态；缺失节点会清理过期 selectedNodeId。
+ */
 export function renderTree(
   container: HTMLElement,
   store: DevtoolsStore,

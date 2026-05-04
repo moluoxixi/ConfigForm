@@ -28,6 +28,11 @@ export default defineConfig({
         client: resolve(__dirname, 'src/client.ts'),
         index: resolve(__dirname, 'index.ts'),
       },
+      /**
+       * 固定 devtools 多入口构建产物名称。
+       *
+       * 入口名直接映射到文件名，方便虚拟模块按 adapter/client/index 精确引用。
+       */
       fileName: (_, entryName) => `${entryName}.js`,
       formats: ['es'],
     },

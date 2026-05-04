@@ -15,10 +15,20 @@ const IGNORED_DIRS = new Set([
 ])
 const FORBIDDEN_PREFIX = 'element-plus/' + 'es'
 
+/**
+ * 判断文件是否属于 Element Plus 深层导入检查范围。
+ *
+ * 只扫描源码类扩展名，构建产物和依赖目录由 collectFiles 的目录边界排除。
+ */
 function shouldScanFile(path) {
   return [...SOURCE_EXTENSIONS].some(extension => path.endsWith(extension))
 }
 
+/**
+ * 递归收集需要扫描的项目文件。
+ *
+ * 会跳过依赖、构建产物和框架缓存目录；读取失败保持原始异常以暴露环境问题。
+ */
 function collectFiles(dir, files = []) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     if (entry.isDirectory()) {

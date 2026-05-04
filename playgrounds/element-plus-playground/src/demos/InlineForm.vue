@@ -233,6 +233,11 @@ const fields = [
     props: {
       placeholder: '输入城市名',
       clearable: true,
+      /**
+       * 为 Element Plus 自动补全提供城市候选项。
+       *
+       * 只在本地示例数据中筛选，结果通过组件要求的回调返回。
+       */
       fetchSuggestions: (qs: string, cb: (items: Array<{ value: string }>) => void) => {
         const cities = ['北京', '上海', '广州', '深圳', '杭州', '成都']
         const results = qs ? cities.filter(c => c.includes(qs)).map(c => ({ value: c })) : cities.map(c => ({ value: c }))
@@ -246,6 +251,7 @@ const fields = [
     label: '说明',
     component: ElInput,
     props: { placeholder: '请说明', clearable: true },
+    /** 仅在性别选择“其他”时展示补充说明字段。 */
     visible: (values) => values.gender === 'other',
   }),
   // 条件禁用
@@ -254,14 +260,25 @@ const fields = [
     label: '备注',
     component: ElInput,
     props: { placeholder: '访客不可编辑', clearable: true },
+    /** 访客角色不可编辑备注。 */
     disabled: (values) => values.role === 'guest',
   }),
 ]
 
+/**
+ * 展示内联表单提交结果。
+ *
+ * playground 通过 alert 直接反馈提交值，不向远端接口发送数据。
+ */
 function onSubmit(values: Record<string, unknown>) {
   alert(`搜索提交！\n${JSON.stringify(values, null, 2)}`)
 }
 
+/**
+ * 输出内联表单校验失败结果。
+ *
+ * 示例只写入控制台，实际业务可在这里接入消息提示或埋点。
+ */
 function onError(errors: Record<string, string[]>) {
   console.error('校验失败：', errors)
 }

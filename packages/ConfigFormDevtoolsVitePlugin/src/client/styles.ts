@@ -5,6 +5,11 @@ import {
   STYLE_ID,
 } from './constants'
 
+/**
+ * 确保 devtools overlay 样式只注入一次。
+ *
+ * 已存在 STYLE_ID 时直接复用页面样式，避免热更新重复插入样式标签。
+ */
 export function ensureStyle() {
   if (document.getElementById(STYLE_ID))
     return

@@ -41,6 +41,11 @@ export default defineConfig({
         plugins: resolve(__dirname, 'src/plugins/index.ts'),
       },
       name: 'ConfigForm',
+      /**
+       * 固定库构建入口的文件名。
+       *
+       * 多入口产物直接使用入口名，避免生成带 package 名的额外层级。
+       */
       fileName: (_, entryName) => `${entryName}.js`,
       formats: ['es'],
     },

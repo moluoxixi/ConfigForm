@@ -36,13 +36,28 @@ export function installConfigFormDevtools(): FormDevtoolsBridge {
   const highlight = createHighlighter(shell.highlightBox)
   const setMessage = createMessageSetter(shell.errorBox)
   const renderState: DevtoolsRenderState = {}
+  /**
+   * 取消页面拾取模式。
+   *
+   * 初始空函数只覆盖安装前的本地状态，installPagePicker 完成后会被真实取消函数替换。
+   */
   let cancelPagePicker = () => {}
   let store!: DevtoolsStore
 
+  /**
+   * 渲染 devtools 面板主体。
+   *
+   * 只读取当前 store 和 renderState，不直接修改页面业务 DOM。
+   */
   function render() {
     renderTree(shell.body, store, renderState)
   }
 
+  /**
+   * 关闭面板并清理交互态。
+   *
+   * 会取消页面拾取、高亮和消息，避免隐藏面板继续影响页面。
+   */
   function closePanel() {
     shell.panel.classList.remove('is-open')
     cancelPagePicker()

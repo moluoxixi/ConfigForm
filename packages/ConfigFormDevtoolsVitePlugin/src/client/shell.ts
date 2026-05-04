@@ -12,6 +12,11 @@ export interface DevtoolsShell {
   pickButton: HTMLButtonElement
 }
 
+/**
+ * 创建 devtools overlay 的静态 DOM 结构。
+ *
+ * 该函数只创建节点并返回引用，事件绑定和状态渲染由上层模块完成。
+ */
 export function createDevtoolsShell(): DevtoolsShell {
   const root = document.createElement('div')
   root.id = ROOT_ID
@@ -69,6 +74,11 @@ export function createDevtoolsShell(): DevtoolsShell {
   }
 }
 
+/**
+ * 创建页面元素高亮器。
+ *
+ * 传入 null 会隐藏高亮框；传入元素时按当前视口 rect 定位。
+ */
 export function createHighlighter(highlightBox: HTMLElement): HighlightElement {
   return (element) => {
     if (!element) {
@@ -85,6 +95,11 @@ export function createHighlighter(highlightBox: HTMLElement): HighlightElement {
   }
 }
 
+/**
+ * 创建面板消息写入函数。
+ *
+ * 只写入 textContent，避免 source-open 错误文本被当作 HTML 渲染。
+ */
 export function createMessageSetter(errorBox: HTMLElement): SetDevtoolsMessage {
   return (message) => {
     errorBox.textContent = message

@@ -35,10 +35,20 @@ interface DayjsLike {
   format: (template: string) => string
 }
 
+/**
+ * 判断值是否是 Ant Design Vue 日期组件返回的 Dayjs 类对象。
+ *
+ * 仅依赖 format 函数存在性，避免 playground 引入具体 Dayjs 类型。
+ */
 function isDayjsLike(value: unknown): value is DayjsLike {
   return Boolean(value && typeof value === 'object' && typeof (value as Partial<DayjsLike>).format === 'function')
 }
 
+/**
+ * 将续费日期转换为 YYYY-MM-DD 提交值。
+ *
+ * 非 Dayjs 类对象保持原样，方便清空值和外部写入值通过。
+ */
 function formatDateValue(value: unknown): unknown {
   return isDayjsLike(value) ? value.format('YYYY-MM-DD') : value
 }
@@ -267,10 +277,20 @@ const sections = [
   },
 ]
 
+/**
+ * 判断多表单示例中的分组是否可见。
+ *
+ * 当前只允许审计表单被开关控制，其余分组始终展示以保持多表单导航稳定。
+ */
 function isSectionVisible(key: string): boolean {
   return key !== 'audit' || showAuditForm.value
 }
 
+/**
+ * 同步指定分组的表单值。
+ *
+ * 每个 ConfigForm 独立写入自己的 key，避免多个表单共享同一值对象。
+ */
 function onModelUpdate(key: string, values: Record<string, unknown>) {
   formValues[key] = values
 }

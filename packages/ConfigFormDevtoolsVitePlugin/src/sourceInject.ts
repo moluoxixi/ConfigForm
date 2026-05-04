@@ -53,14 +53,21 @@ interface ObjectExpressionNode extends AstNode {
   properties?: AstNode[]
 }
 
+/** 清理 Vite 模块 id 的 query，并统一路径分隔符。 */
 function cleanId(id: string): string {
   return id.split('?')[0].replace(/\\/g, '/')
 }
 
+/** 生成写入 __source.file 的稳定文件路径。 */
 function normalizeFilePath(id: string): string {
   return cleanId(id)
 }
 
+/**
+ * 基于源码位置创建短 source id。
+ *
+ * id 只用于 devtools DOM 关联，不作为安全凭证或跨版本稳定标识。
+ */
 function createSourceId(file: string, line: number, column: number): string {
   return createHash('sha1')
     .update(`${file}:${line}:${column}`)
@@ -68,6 +75,11 @@ function createSourceId(file: string, line: number, column: number): string {
     .slice(0, 12)
 }
 
+/**
+ * 解析 JS/TS/JSX/TSX 脚本内容。
+ *
+ * 解析失败会转换为插件错误并中断 Vite transform，避免源码位置注入静默失效。
+ */
 function parseScript(content: string, id: string): AstNode {
   try {
     return parse(content, {
@@ -83,6 +95,7 @@ function parseScript(content: string, id: string): AstNode {
   }
 }
 
+/** 判断 import specifier 是否导入了 defineField。 */
 function isImportedDefineField(node: AstNode): node is ImportSpecifierNode {
   return node.type === 'ImportSpecifier'
     && (node as ImportSpecifierNode).imported?.type === 'Identifier'
@@ -90,6 +103,11 @@ function isImportedDefineField(node: AstNode): node is ImportSpecifierNode {
     && typeof (node as ImportSpecifierNode).local?.name === 'string'
 }
 
+/**
+ * 收集从目标 ConfigForm 包导入的 defineField 本地名称。
+ *
+ * 支持别名导入；非目标包的同名函数不会参与源码注入。
+ */
 function collectDefineFieldLocals(ast: AstNode, packageNames: string[]): Set<string> {
   const locals = new Set<string>()
   const body = (ast as { program?: { body?: AstNode[] } }).program?.body ?? []
@@ -113,6 +131,11 @@ function collectDefineFieldLocals(ast: AstNode, packageNames: string[]): Set<str
   return locals
 }
 
+/**
+ * 收集 ConfigForm import source 的重写编辑。
+ *
+ * 仅在 adapterModuleId 存在时执行，用于把业务导入改到 devtools adapter 虚拟模块。
+ */
 function collectImportSourceEdits(
   segment: ScriptSegment,
   id: string,
@@ -151,6 +174,7 @@ function collectImportSourceEdits(
   return edits
 }
 
+/** 读取对象属性 key 的静态名称，仅支持 identifier 和字符串字面量。 */
 function getObjectKeyName(node: AstNode): string | undefined {
   if (node.type === 'Identifier' && typeof (node as { name?: unknown }).name === 'string')
     return (node as unknown as { name: string }).name
@@ -159,6 +183,7 @@ function getObjectKeyName(node: AstNode): string | undefined {
   return undefined
 }
 
+/** 判断 defineField 对象是否已经显式包含 __source 配置。 */
 function hasSourceProperty(node: ObjectExpressionNode): boolean {
   return (node.properties ?? []).some((property) => {
     if (property.type !== 'ObjectProperty' && property.type !== 'ObjectMethod')
@@ -168,6 +193,11 @@ function hasSourceProperty(node: ObjectExpressionNode): boolean {
   })
 }
 
+/**
+ * 深度遍历 Babel AST。
+ *
+ * 跳过位置和注释元数据，避免递归进入非节点对象造成无意义扫描。
+ */
 function walkAst(node: AstNode, visitor: (node: AstNode) => void) {
   visitor(node)
 
@@ -197,6 +227,11 @@ function walkAst(node: AstNode, visitor: (node: AstNode) => void) {
   }
 }
 
+/**
+ * 将脚本分段内的位置转换为原始文件位置。
+ *
+ * Vue SFC 的 script/script setup 会带有 offset，首行列号需要额外叠加分段 column。
+ */
 function toAbsolutePosition(segment: ScriptSegment, loc: NonNullable<AstNode['loc']>['start']) {
   const line = segment.line + loc.line - 1
   const column = loc.line === 1
@@ -205,11 +240,17 @@ function toAbsolutePosition(segment: ScriptSegment, loc: NonNullable<AstNode['lo
   return { column, line }
 }
 
+/** 创建要插入到 defineField 对象中的 __source 字面量文本。 */
 function createSourceText(file: string, line: number, column: number): string {
   const id = createSourceId(file, line, column)
   return `__source: { id: ${JSON.stringify(id)}, file: ${JSON.stringify(file)}, line: ${line}, column: ${column} }`
 }
 
+/**
+ * 计算 __source 插入前缀。
+ *
+ * 根据对象末尾前一个非空字符决定是否补逗号，避免破坏现有对象字面量语法。
+ */
 function getInjectionPrefix(content: string, insertionIndex: number): string {
   const previous = content.slice(0, insertionIndex).match(/\S(?=\s*$)/)?.[0]
   if (previous === '{' || previous === ',')
@@ -217,6 +258,11 @@ function getInjectionPrefix(content: string, insertionIndex: number): string {
   return ', '
 }
 
+/**
+ * 收集 defineField(...) 对象的 __source 注入编辑。
+ *
+ * 只处理第一个参数为对象字面量的调用；缺失位置信息或已有 __source 会显式抛错。
+ */
 function collectInjectionEdits(segment: ScriptSegment, id: string, packageNames: string[]): InjectionEdit[] {
   const ast = parseScript(segment.content, id)
   const defineFieldLocals = collectDefineFieldLocals(ast, packageNames)
@@ -257,6 +303,11 @@ function collectInjectionEdits(segment: ScriptSegment, id: string, packageNames:
   return edits
 }
 
+/**
+ * 将普通模块或 Vue SFC 拆成可转换脚本分段。
+ *
+ * 普通模块只有一个分段；Vue 文件只处理 script 和 script setup，模板不注入。
+ */
 function createScriptSegments(code: string, id: string): ScriptSegment[] {
   if (!cleanId(id).endsWith('.vue')) {
     return [{

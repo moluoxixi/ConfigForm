@@ -11,6 +11,11 @@ interface MessageToken extends RuntimeToken<string, 'message'> {
   params?: Record<string, unknown>
 }
 
+/**
+ * 创建 runtime message token。
+ *
+ * 参数允许嵌套 token，用于验证 resolver helpers.resolveValue 的递归解析边界。
+ */
 function message(key: string, fallback?: string, params?: Record<string, unknown>): MessageToken {
   return createRuntimeToken<string, 'message', Omit<MessageToken, '__configFormToken'>>('message', { fallback, key, params })
 }
@@ -22,6 +27,11 @@ type PathTokenPayload<TValue = unknown> = Record<string, unknown> & {
 
 interface PathToken<TValue = unknown> extends RuntimeToken<TValue, 'path'>, PathTokenPayload<TValue> {}
 
+/**
+ * 创建按 resolveSnap 路径取值的测试 token。
+ *
+ * fallback 只在路径结果为 undefined 时生效，用于区分空值和缺失值。
+ */
 function pathValue<TValue = unknown>(path: string, fallback?: TValue): PathToken<TValue> {
   const payload: PathTokenPayload<TValue> = { path }
   if (fallback !== undefined)
@@ -33,10 +43,16 @@ interface RoleIsToken extends RuntimeToken<boolean, 'roleIs'> {
   role: string
 }
 
+/** 创建 role 条件 token，用于验证 visible/disabled 可接收 runtime token。 */
 function roleIs(role: string): RoleIsToken {
   return createRuntimeToken<boolean, 'roleIs', { role: string }>('roleIs', { role })
 }
 
+/**
+ * 从普通对象中按点路径读取测试值。
+ *
+ * 读取过程中遇到空值或非对象会返回 undefined，不抛出路径错误。
+ */
 function getByPath(source: unknown, path: string): unknown {
   if (!path)
     return source
@@ -50,6 +66,11 @@ function getByPath(source: unknown, path: string): unknown {
   }, source)
 }
 
+/**
+ * 从 resolveSnap 或 values 中读取测试路径。
+ *
+ * 以 errors/field/slotName/slotScope/values 开头时从 resolveSnap 根读取，否则默认从 values 读取。
+ */
 function resolveSnapPath(path: string, resolveSnap: FormRuntimeResolveSnap): unknown {
   const roots: Record<string, unknown> = {
     errors: resolveSnap.errors,

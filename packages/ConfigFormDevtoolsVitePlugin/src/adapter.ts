@@ -50,29 +50,43 @@ const EXPOSED_METHODS = [
 
 let formSeed = 0
 
+/** 读取高精度时间戳，非浏览器性能 API 环境下退回 Date.now。 */
 function now(): number {
   return typeof performance === 'undefined' ? Date.now() : performance.now()
 }
 
+/** 将字段名转换为 ConfigForm DOM id 可使用的片段。 */
 function sanitizeFieldName(field: string): string {
   return field.replace(/[^\w-]/g, '-')
 }
 
+/** 转义属性选择器中的源码 id，避免 querySelector 语法被用户路径破坏。 */
 function escapeAttributeValue(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
 }
 
+/**
+ * 读取浏览器全局 devtools bridge。
+ *
+ * 服务端渲染或 client 尚未安装时返回 undefined，调用方据此跳过同步。
+ */
 function getBridge(): FormDevtoolsBridge | undefined {
   if (typeof window === 'undefined')
     return undefined
   return window.__CONFIG_FORM_DEVTOOLS_BRIDGE__
 }
 
+/** 计算源码标记元素面积，用于在多个候选中选择可见度最高的元素。 */
 function resolveSourceElementArea(element: HTMLElement): number {
   const rect = element.getBoundingClientRect()
   return rect.width * rect.height
 }
 
+/**
+ * 从同一 source id 的 DOM 候选中选择最佳元素。
+ *
+ * 优先选择有面积的最大元素；全不可见时保留第一个候选便于后续显式定位。
+ */
 function selectBestSourceElement(candidates: HTMLElement[]): HTMLElement | null {
   if (candidates.length === 0)
     return null
@@ -88,12 +102,18 @@ function selectBestSourceElement(candidates: HTMLElement[]): HTMLElement | null 
   return visibleCandidates[0]?.element ?? candidates[0]
 }
 
+/** 在指定根节点内查询带源码 id 的元素。 */
 function querySourceElements(root: ParentNode, sourceId: string): HTMLElement[] {
   return [...root.querySelectorAll<HTMLElement>(
     `[${SOURCE_ID_ATTRIBUTE}="${escapeAttributeValue(sourceId)}"]`,
   )]
 }
 
+/**
+ * 根据源码元信息解析页面元素。
+ *
+ * 优先在当前表单宿主内查找，找不到时再全局查找，避免多表单同源节点互相抢占。
+ */
 function resolveSourceElement(source: FieldSourceMeta | undefined, root: ParentNode | null): HTMLElement | null {
   if (typeof document === 'undefined' || !source)
     return null
@@ -105,6 +125,11 @@ function resolveSourceElement(source: FieldSourceMeta | undefined, root: ParentN
   return selectBestSourceElement(querySourceElements(document, source.id))
 }
 
+/**
+ * 解析 devtools 节点对应的可高亮 DOM 元素。
+ *
+ * 源码标记优先；没有源码标记的字段节点退回 ConfigForm 字段 id。
+ */
 function resolveElement(namespace: string, node: FormDevtoolsNode, root: ParentNode | null): HTMLElement | null {
   if (typeof document === 'undefined')
     return null
@@ -119,6 +144,11 @@ function resolveElement(namespace: string, node: FormDevtoolsNode, root: ParentN
   return document.getElementById(`${namespace}-${sanitizeFieldName(node.field)}-field`)
 }
 
+/**
+ * 解析组件配置的可读名称。
+ *
+ * 支持字符串组件、函数组件和 Vue SFC 编译后的 name/__name 字段。
+ */
 function resolveComponentName(component: unknown): string | undefined {
   if (typeof component === 'string')
     return component
@@ -135,20 +165,28 @@ function resolveComponentName(component: unknown): string | undefined {
   return undefined
 }
 
+/** 只接受字符串 label 进入 devtools 展示，动态 label 由 runtime 解析后再传入。 */
 function resolveLabel(label: unknown): string | undefined {
   return typeof label === 'string' ? label : undefined
 }
 
+/** 从节点配置中读取有效源码 id，空字符串按缺失处理。 */
 function resolveDevtoolsSourceId(node: DevtoolsFormNodeConfig): string | undefined {
   const id = node.__source?.id
   return typeof id === 'string' && id.length > 0 ? id : undefined
 }
 
+/** 压缩 DOM 文本空白并过滤空结果，用于表单导航标签解析。 */
 function normalizeTextContent(value: string | null | undefined): string | undefined {
   const text = value?.replace(/\s+/g, ' ').trim()
   return text && text.length > 0 ? text : undefined
 }
 
+/**
+ * 解析 aria-labelledby 指向的第一个有效文本。
+ *
+ * 缺少 document 或引用元素不存在时返回 undefined，不伪造导航标签。
+ */
 function resolveLabelledByText(labelledBy: string | null): string | undefined {
   if (typeof document === 'undefined' || !labelledBy)
     return undefined
@@ -162,6 +200,7 @@ function resolveLabelledByText(labelledBy: string | null): string | undefined {
   return undefined
 }
 
+/** 查找表单宿主所在的 tabpanel 容器，用于多表单导航标签推导。 */
 function resolveTabPanel(host: HTMLElement | null): HTMLElement | null {
   return host?.closest<HTMLElement>('[role="tabpanel"]') ?? null
 }
@@ -185,6 +224,11 @@ function resolveFormLabel(host: HTMLElement | null): string | undefined {
     ?? resolveLabelledByText(tabPanel?.getAttribute('aria-labelledby') ?? null)
 }
 
+/**
+ * 判断未知值是否是 devtools 可采集的节点配置。
+ *
+ * VNode 和数组不会被当作字段/容器节点，避免 slot 渲染内容污染拓扑。
+ */
 function isFormNodeConfig(value: unknown): value is DevtoolsFormNodeConfig {
   return Boolean(
     value
@@ -195,10 +239,16 @@ function isFormNodeConfig(value: unknown): value is DevtoolsFormNodeConfig {
   )
 }
 
+/** 判断节点配置是否是绑定表单值的真实字段节点。 */
 function isFieldNodeConfig(value: DevtoolsFormNodeConfig): value is DevtoolsFormNodeConfig & { field: string } {
   return typeof value.field === 'string'
 }
 
+/**
+ * 静态解析 slot 内容用于 devtools 树采集。
+ *
+ * 函数 slot 仅以 undefined scope 执行一次，运行时 scope 相关内容不提前推断。
+ */
 function resolveSlotContent(slot: unknown): unknown {
   return typeof slot === 'function' ? (slot as (scope?: Record<string, unknown>) => unknown)(undefined) : slot
 }
@@ -212,6 +262,11 @@ function cloneFormNodeConfig<TNode extends DevtoolsFormNodeConfig>(node: TNode):
   return clone
 }
 
+/**
+ * 调用 Vue VNode 生命周期 hook。
+ *
+ * 支持 Vue 合并后的 hook 数组；hook 抛错时保持原始异常向上传递。
+ */
 function callVNodeHook(hook: unknown, args: unknown[]) {
   if (Array.isArray(hook)) {
     for (const item of hook)
@@ -261,6 +316,11 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
       fields: { type: Array, required: true },
       namespace: { type: String, default: 'cf' },
     },
+    /**
+     * 建立 adapter 与核心 ConfigForm 的桥接。
+     *
+     * setup 内只代理 props、ref API 和 devtools 采集，不改写核心表单控制器行为。
+     */
     setup(props, { expose, slots }) {
       const attrs = useAttrs()
       const formId = `cf-form-${++formSeed}`
@@ -270,10 +330,16 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
       const renderStarts = new Map<string, number>()
       let syncQueued = false
 
+      /** 记录节点一次 Vue 渲染阶段的开始时间。 */
       function startRenderTiming(id: string) {
         renderStarts.set(id, now())
       }
 
+      /**
+       * 完成节点渲染耗时采样并写入 bridge。
+       *
+       * 缺少开始时间时说明 hook 顺序不完整，本次样本会被跳过。
+       */
       function finishRenderTiming(id: string, phase: FormNodeRenderPhase) {
         const start = renderStarts.get(id)
         if (start === undefined)
@@ -289,6 +355,11 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         })
       }
 
+      /**
+       * 给节点 props 注入 VNode 生命周期计时 hook。
+       *
+       * 会合并用户已有 hook，避免覆盖调用方自定义生命周期逻辑。
+       */
       function withRenderTimingProps(id: string, props: Record<string, unknown> | undefined): Record<string, unknown> {
         const next = { ...(props ?? {}) }
 
@@ -316,6 +387,11 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         return next
       }
 
+      /**
+       * 给节点 props 注入源码定位属性。
+       *
+       * 已存在冲突属性时直接抛错，避免页面 DOM 指向错误源码位置。
+       */
       function withDevtoolsSourceProps(
         node: DevtoolsFormNodeConfig,
         props: Record<string, unknown>,
@@ -337,10 +413,16 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         }
       }
 
+      /** 合并节点计时属性和源码定位属性。 */
       function withDevtoolsNodeProps(id: string, node: DevtoolsFormNodeConfig): Record<string, unknown> {
         return withDevtoolsSourceProps(node, withRenderTimingProps(id, node.props))
       }
 
+      /**
+       * 调用核心 ConfigForm 暴露的方法。
+       *
+       * 表单未挂载或方法不存在时抛错，避免 devtools adapter 返回伪成功。
+       */
       function callExposed(methodName: string, args: unknown[]) {
         const method = coreRef.value?.[methodName]
         if (typeof method !== 'function')
@@ -353,6 +435,11 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         (...args: unknown[]) => callExposed(methodName, args),
       ])))
 
+      /**
+       * 从声明式字段树收集 devtools 节点快照。
+       *
+       * 容器和字段都会进入树；slot 子节点沿用父节点 id 作为 parentId。
+       */
       function collectNodeTree(
         nodes: readonly unknown[],
         formLabel: string | undefined,
@@ -422,10 +509,16 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         return next
       }
 
+      /** 为一组声明式节点注入 devtools props，返回克隆后的节点数组。 */
       function instrumentNodeTree(nodes: readonly unknown[], path: string): unknown[] {
         return nodes.map((node, index) => instrumentNode(node, path, index))
       }
 
+      /**
+       * 给 slot 返回内容注入 devtools 采集属性。
+       *
+       * 数组内容逐项处理，非节点内容保持原值。
+       */
       function instrumentSlotContent(content: unknown, path: string): unknown {
         if (Array.isArray(content))
           return content.map((node, index) => instrumentNode(node, path, index))
@@ -433,6 +526,11 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         return instrumentNode(content, path, 0)
       }
 
+      /**
+       * 包裹 slot 配置以注入源码与计时信息。
+       *
+       * 函数 slot 会保留 this 和 scope 透传，只改写返回内容。
+       */
       function instrumentSlot(slot: unknown, path: string): unknown {
         if (typeof slot !== 'function')
           return instrumentSlotContent(slot, path)
@@ -445,12 +543,18 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         }
       }
 
+      /** 基于当前 props.fields 和宿主 DOM 收集完整节点快照。 */
       function collectNodes(): FormDevtoolsNode[] {
         return collectNodeTree(props.fields, resolveFormLabel(hostRef.value), undefined, 'fields')
       }
 
       const instrumentedFields = computed(() => instrumentNodeTree(props.fields, 'fields'))
 
+      /**
+       * 将当前节点快照同步到浏览器 bridge。
+       *
+       * 每次同步都是完整快照，会注销已经不存在的节点 id。
+       */
       function syncBridge() {
         const bridge = getBridge()
         if (!bridge)
@@ -481,6 +585,11 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         }
       }
 
+      /**
+       * 合并同一事件轮内的 bridge 同步请求。
+       *
+       * mount、update 和 ready 连续触发时只同步最新字段快照。
+       */
       function queueSyncBridge() {
         if (syncQueued)
           return
@@ -493,6 +602,11 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         })
       }
 
+      /**
+       * 注销当前 adapter 注册过的所有节点。
+       *
+       * bridge 缺失时直接跳过，组件卸载流程不伪造同步成功。
+       */
       function unregisterNodes() {
         const bridge = getBridge()
         if (!bridge)

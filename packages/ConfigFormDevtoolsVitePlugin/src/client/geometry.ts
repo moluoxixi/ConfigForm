@@ -6,18 +6,34 @@ import {
   RIGHT_DOCK_SCROLLBAR_FALLBACK,
 } from './constants'
 
+/** 将数值限制在闭区间内，供拖拽定位和面板布局共享。 */
 export function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
 }
 
+/**
+ * 读取当前视口宽度。
+ *
+ * 返回值至少为浮层按钮尺寸，避免无效浏览器环境下计算出负布局空间。
+ */
 export function viewportWidth(): number {
   return Math.max(BUBBLE_SIZE, window.innerWidth || document.documentElement.clientWidth || BUBBLE_SIZE)
 }
 
+/**
+ * 读取当前视口高度。
+ *
+ * 返回值至少为浮层按钮尺寸，供拖拽和面板定位逻辑使用。
+ */
 export function viewportHeight(): number {
   return Math.max(BUBBLE_SIZE, window.innerHeight || document.documentElement.clientHeight || BUBBLE_SIZE)
 }
 
+/**
+ * 估算右侧停靠时需要避让的滚动条宽度。
+ *
+ * 浏览器未暴露有效差值时用固定兜底宽度，只影响 UI 位置，不伪造测量成功。
+ */
 export function rightDockScrollbarWidth(): number {
   const width = window.innerWidth || 0
   const clientWidth = document.documentElement.clientWidth || 0
@@ -32,14 +48,21 @@ export function rightDockScrollbarWidth(): number {
   return 0
 }
 
+/** 计算右侧停靠边界，已扣除可能存在的页面滚动条。 */
 export function rightDockViewportEdge(): number {
   return viewportWidth() - rightDockScrollbarWidth()
 }
 
+/** 计算面板可使用的最大视口高度，保留浮层外边距。 */
 export function panelViewportHeight(): number {
   return Math.max(BUBBLE_SIZE, viewportHeight() - BUBBLE_MARGIN * 2)
 }
 
+/**
+ * 解析面板当前高度。
+ *
+ * 已渲染面板使用真实尺寸；隐藏面板使用最大高度约束，避免展开时越界。
+ */
 export function resolvePanelHeight(panel: HTMLElement): number {
   const height = panel.getBoundingClientRect().height
   if (height > 0)
@@ -48,6 +71,11 @@ export function resolvePanelHeight(panel: HTMLElement): number {
   return Math.min(PANEL_MAX_HEIGHT, panelViewportHeight())
 }
 
+/**
+ * 根据浮层按钮位置计算面板顶部坐标。
+ *
+ * 优先在按钮上方或下方展开，空间不足时仍限制在当前视口可见范围内。
+ */
 export function resolvePanelTop(panel: HTMLElement, position: BubblePosition): number {
   const panelHeight = resolvePanelHeight(panel)
   const minTop = BUBBLE_MARGIN
@@ -68,6 +96,11 @@ export function resolvePanelTop(panel: HTMLElement, position: BubblePosition): n
   return clamp(position.top - 300, minTop, maxTop)
 }
 
+/**
+ * 按 DOM 文档顺序比较两个元素。
+ *
+ * 返回值仅用于排序，不处理跨文档或 Shadow DOM 的特殊排序语义。
+ */
 export function compareElementsByDocumentPosition(first: HTMLElement, second: HTMLElement): number {
   if (first === second)
     return 0
@@ -80,6 +113,11 @@ export function compareElementsByDocumentPosition(first: HTMLElement, second: HT
   return 0
 }
 
+/**
+ * 在两个候选元素中保留文档顺序更靠前的元素。
+ *
+ * 空候选不会覆盖已有元素，用于多节点表单定位根元素。
+ */
 export function selectEarlierElement(current: HTMLElement | undefined, next: HTMLElement | null): HTMLElement | undefined {
   if (!next)
     return current
@@ -112,6 +150,11 @@ export function elementIsHiddenByState(element: HTMLElement): boolean {
   return false
 }
 
+/**
+ * 判断元素是否拥有可检查的可见盒模型。
+ *
+ * 隐藏态或零面积元素不会参与自动选中和页面拾取。
+ */
 export function elementHasEnabledBox(element: HTMLElement): boolean {
   if (elementIsHiddenByState(element))
     return false
@@ -148,6 +191,7 @@ export function elementViewportScore(element: HTMLElement): number {
   return visibleArea * 1000 - distanceFromViewportTop
 }
 
+/** 计算元素盒模型面积，负尺寸按 0 处理。 */
 export function elementArea(element: HTMLElement): number {
   const rect = element.getBoundingClientRect()
   return Math.max(0, rect.width) * Math.max(0, rect.height)

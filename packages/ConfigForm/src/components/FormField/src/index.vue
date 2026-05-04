@@ -73,10 +73,25 @@ const componentAttrs = computed(() => ({
 }))
 
 const componentListeners = computed<Record<string, (...args: unknown[]) => void>>(() => ({
+  /**
+   * 将组件 blur 类事件映射为字段级校验触发点。
+   *
+   * 事件参数不参与字段名推导，字段来源固定为当前 ResolvedField。
+   */
   [props.field.blurTrigger]: () => onBlur(),
+  /**
+   * 将组件值变更事件映射为 ConfigForm 模型更新。
+   *
+   * 参数保持原样交给 getValueFromEvent 或默认取第一个事件参数。
+   */
   [props.field.trigger]: (...args: unknown[]) => onChange(...args),
 }))
 
+/**
+ * 响应字段组件的值变更事件。
+ *
+ * 只更新当前字段模型值并触发 change 校验事件，不直接执行校验或提交。
+ */
 function onChange(...args: unknown[]) {
   const value = props.field.getValueFromEvent
     ? props.field.getValueFromEvent(...args)
@@ -86,6 +101,11 @@ function onChange(...args: unknown[]) {
   emit('change', props.field.field)
 }
 
+/**
+ * 响应字段组件的失焦事件。
+ *
+ * 仅向上通知当前字段名，具体校验时机由父级表单控制器决定。
+ */
 function onBlur() {
   emit('blur', props.field.field)
 }

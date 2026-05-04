@@ -19,15 +19,26 @@ interface ResolveAllowedFileInput {
   allowRoots?: string[]
 }
 
+/** 将文件路径规范化为前端可展示的 POSIX 形式。 */
 function normalizePath(input: string): string {
   return input.replace(/\\/g, '/')
 }
 
+/**
+ * 判断文件是否位于允许根目录内。
+ *
+ * 使用 path.relative 判断边界，避免简单前缀匹配误放行相邻目录。
+ */
 function isInsideRoot(file: string, root: string): boolean {
   const relativePath = relative(root, file)
   return relativePath === '' || (!relativePath.startsWith('..') && !isAbsolute(relativePath))
 }
 
+/**
+ * 解析编辑器命令名和 shell 策略。
+ *
+ * Windows 下 code/cursor/webstorm 走对应命令包装器，其他平台保留用户传入命令。
+ */
 function resolveEditorExecutable(editor: string): Pick<EditorCommand, 'command' | 'shell'> {
   if (process.platform === 'win32') {
     if (editor === 'code')
@@ -41,6 +52,7 @@ function resolveEditorExecutable(editor: string): Pick<EditorCommand, 'command' 
   return { command: editor }
 }
 
+/** 格式化编辑器命令用于错误信息展示，不参与实际 shell 拼接。 */
 function formatEditorCommand(command: EditorCommand): string {
   return [command.command, ...command.args].join(' ')
 }
@@ -120,6 +132,11 @@ export function launchEditor(
       stdio: 'ignore',
     })
 
+    /**
+     * 结束一次编辑器启动 Promise。
+     *
+     * 只允许结算一次，避免 error/exit/spawn 多事件竞态导致重复回调。
+     */
     function settle(error?: Error) {
       if (settled)
         return
@@ -183,6 +200,11 @@ export async function openInEditor(payload: unknown, options: OpenInEditorOption
   return command
 }
 
+/**
+ * 读取 open-in-editor HTTP 请求体。
+ *
+ * 流错误会拒绝 Promise，由 middleware 统一转成显式 JSON 错误响应。
+ */
 function readRequestBody(req: IncomingMessage): Promise<string> {
   return new Promise((resolveBody, rejectBody) => {
     const chunks: Buffer[] = []
@@ -192,6 +214,11 @@ function readRequestBody(req: IncomingMessage): Promise<string> {
   })
 }
 
+/**
+ * 发送 JSON 响应。
+ *
+ * payload 必须是可序列化对象；该函数不吞掉 JSON.stringify 抛错。
+ */
 function sendJson(res: ServerResponse, statusCode: number, payload: Record<string, unknown>) {
   res.statusCode = statusCode
   res.setHeader('content-type', 'application/json')
