@@ -55,11 +55,6 @@ function now(): number {
   return typeof performance === 'undefined' ? Date.now() : performance.now()
 }
 
-/** 将字段名转换为 ConfigForm DOM id 可使用的片段。 */
-function sanitizeFieldName(field: string): string {
-  return field.replace(/[^\w-]/g, '-')
-}
-
 /** 转义属性选择器中的源码 id，避免 querySelector 语法被用户路径破坏。 */
 function escapeAttributeValue(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
@@ -128,20 +123,16 @@ function resolveSourceElement(source: FieldSourceMeta | undefined, root: ParentN
 /**
  * 解析 devtools 节点对应的可高亮 DOM 元素。
  *
- * 源码标记优先；没有源码标记的字段节点退回 ConfigForm 字段 id。
+ * 高亮定位只接受源码标记；字段节点必须把该标记绑定到实际字段 DOM 上。
  */
-function resolveElement(namespace: string, node: FormDevtoolsNode, root: ParentNode | null): HTMLElement | null {
+function resolveElement(node: FormDevtoolsNode, root: ParentNode | null): HTMLElement | null {
   if (typeof document === 'undefined')
     return null
 
   const sourceElement = resolveSourceElement(node.source, root)
   if (sourceElement)
     return sourceElement
-
-  if (!node.field)
-    return null
-
-  return document.getElementById(`${namespace}-${sanitizeFieldName(node.field)}-field`)
+  return null
 }
 
 /**
@@ -413,9 +404,14 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         }
       }
 
-      /** 合并节点计时属性和源码定位属性。 */
+      /**
+       * 合并节点计时属性和源码定位属性。
+       *
+       * 字段节点的源码属性由 FormField 根节点消费，避免落到内部输入组件上。
+       */
       function withDevtoolsNodeProps(id: string, node: DevtoolsFormNodeConfig): Record<string, unknown> {
-        return withDevtoolsSourceProps(node, withRenderTimingProps(id, node.props))
+        const props = withRenderTimingProps(id, node.props)
+        return isFieldNodeConfig(node) ? props : withDevtoolsSourceProps(node, props)
       }
 
       /**
@@ -573,7 +569,7 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
 
         for (const node of nodes) {
           const syncStart = now()
-          const element = resolveElement(props.namespace, node, hostRef.value)
+          const element = resolveElement(node, hostRef.value)
           const action = registeredIds.has(node.id) ? bridge.updateField : bridge.registerField
           action(node, element)
           registeredIds.add(node.id)

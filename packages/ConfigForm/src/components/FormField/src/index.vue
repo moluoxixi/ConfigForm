@@ -6,6 +6,16 @@ import { useBem, useNamespace } from '@/composables/useNamespace'
 import { useRuntime } from '@/composables/useRuntime'
 import { resolveLabelWidth } from '@/utils/style'
 
+interface InternalFieldSourceMeta {
+  readonly id?: unknown
+}
+
+type ResolvedFieldWithDevtoolsSource = ResolvedField & {
+  readonly __source?: InternalFieldSourceMeta
+}
+
+const DEVTOOLS_SOURCE_ID_ATTRIBUTE = 'data-cf-devtools-source-id'
+
 /**
  * FormField 负责单个真实字段的布局、组件事件适配和校验错误展示。
  */
@@ -49,6 +59,19 @@ const fieldId = computed(() => {
 })
 
 const errorId = computed(() => `${fieldId.value}-error`)
+
+/**
+ * 生成字段根节点的 devtools 源码定位属性。
+ *
+ * `__source` 是 Vite devtools 插件注入的内部元信息，不属于公开 FieldConfig 输入。
+ */
+const fieldSourceAttrs = computed<Record<string, string>>(() => {
+  const sourceId = (props.field as ResolvedFieldWithDevtoolsSource).__source?.id
+  const attrs: Record<string, string> = {}
+  if (typeof sourceId === 'string' && sourceId.length > 0)
+    attrs[DEVTOOLS_SOURCE_ID_ATTRIBUTE] = sourceId
+  return attrs
+})
 
 const componentProps = computed(() => {
   const next = { ...(props.field.props ?? {}) }
@@ -114,6 +137,7 @@ function onBlur() {
 <template>
   <div
     v-if="visible !== false"
+    v-bind="fieldSourceAttrs"
     :class="[b('field'), { [m('field', 'inline')]: inline }]"
     :style="!inline && field.span ? { gridColumn: `span ${field.span}` } : undefined"
   >

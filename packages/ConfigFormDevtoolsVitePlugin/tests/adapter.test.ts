@@ -48,11 +48,16 @@ const CoreConfigForm = defineComponent({
 
     return () => h('form', props.fields.map((field) => {
       const config = field as FieldStub
-      return h('input', {
-        ...(config.props ?? {}),
-        id: `${props.namespace}-${config.field}-field`,
-        value: '',
-      })
+      return h('div', {
+        'class': `${props.namespace}-field`,
+        'data-cf-devtools-source-id': config.__source?.id,
+      }, [
+        h('input', {
+          ...(config.props ?? {}),
+          id: `${props.namespace}-${config.field}-field`,
+          value: '',
+        }),
+      ])
     }))
   },
 })
@@ -120,15 +125,38 @@ describe('configForm devtools adapter', () => {
       kind: 'field',
       label: 'Name',
       source,
-    }), expect.any(HTMLInputElement))
-    expect(document.querySelector('[data-cf-devtools-source-id="source-1"]')).toBeInstanceOf(HTMLInputElement)
+    }), expect.any(HTMLDivElement))
+    const sourceElement = document.querySelector('[data-cf-devtools-source-id="source-1"]')
+    expect(sourceElement).toBeInstanceOf(HTMLDivElement)
+    expect(sourceElement?.classList.contains('demo-field')).toBe(true)
+    expect(sourceElement?.querySelector('input')).toBe(document.getElementById('demo-name-field'))
     expect(bridge.recordSync).toHaveBeenCalledWith(expect.objectContaining({
       duration: expect.any(Number),
       timestamp: expect.any(Number),
     }))
   })
 
-  it('throws when user props conflict with the injected devtools source id', () => {
+  it('does not resolve field id elements without a source marker', async () => {
+    const bridge = createBridge()
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
+
+    const { app } = mountAdapter([{
+      component: 'input',
+      field: 'email',
+    }])
+    await nextTick()
+    await nextTick()
+
+    expect(document.getElementById('demo-email-field')).toBeInstanceOf(HTMLInputElement)
+    expect(bridge.registerField).toHaveBeenCalledWith(expect.objectContaining({
+      field: 'email',
+      kind: 'field',
+    }), null)
+
+    app.unmount()
+  })
+
+  it('throws when container props conflict with the injected devtools source id', () => {
     const bridge = createBridge()
     vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
@@ -136,8 +164,7 @@ describe('configForm devtools adapter', () => {
     expect(() => mountAdapter([
       {
         __source: source,
-        component: 'input',
-        field: 'name',
+        component: 'section',
         props: {
           'data-cf-devtools-source-id': 'different-source',
         },
@@ -638,7 +665,7 @@ describe('configForm devtools adapter', () => {
     expect(bridge.registerField).toHaveBeenCalledWith(expect.objectContaining({
       field: 'permissionScopes',
       formLabel: 'element Card 嵌套 Checkbox',
-    }), expect.any(HTMLInputElement))
+    }), null)
 
     app.unmount()
   })
@@ -663,7 +690,7 @@ describe('configForm devtools adapter', () => {
     expect(bridge.registerField).toHaveBeenCalledWith(expect.objectContaining({
       field: 'account',
       kind: 'field',
-    }), expect.any(HTMLInputElement))
+    }), null)
   })
 
   it('unregisters devtools nodes when the wrapped form unmounts', async () => {
@@ -705,7 +732,7 @@ describe('configForm devtools adapter', () => {
 
     expect(bridge.registerField).toHaveBeenCalledWith(expect.objectContaining({
       field: 'late',
-    }), expect.any(HTMLInputElement))
+    }), null)
   })
 
   it('updates existing nodes and unregisters removed fields', async () => {
@@ -764,11 +791,11 @@ describe('configForm devtools adapter', () => {
       component: 'NamedInput',
       field: 'name',
       label: undefined,
-    }), expect.any(HTMLInputElement))
+    }), null)
     expect(bridge.registerField).toHaveBeenCalledWith(expect.objectContaining({
       component: 'ObjectInput',
       field: 'email',
-    }), expect.any(HTMLInputElement))
+    }), null)
 
     app.unmount()
   })
@@ -796,11 +823,11 @@ describe('configForm devtools adapter', () => {
       component: undefined,
       field: 'plain',
       label: undefined,
-    }), expect.any(HTMLInputElement))
+    }), null)
     expect(bridge.registerField).toHaveBeenCalledWith(expect.objectContaining({
       component: undefined,
       field: 'anonymous',
-    }), expect.any(HTMLInputElement))
+    }), null)
   })
 
   it('reads object component names when Vue exposes a public name', async () => {
@@ -819,7 +846,7 @@ describe('configForm devtools adapter', () => {
     expect(bridge.registerField).toHaveBeenCalledWith(expect.objectContaining({
       component: 'NamedObjectInput',
       field: 'named',
-    }), expect.any(HTMLInputElement))
+    }), null)
   })
 
   it('proxies exposed ConfigForm methods and throws when the wrapped method is missing', async () => {

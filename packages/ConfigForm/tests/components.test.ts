@@ -149,6 +149,37 @@ describe('config form component', () => {
     expect(card.attributes('data-cf-devtools-source-id')).toBeUndefined()
   })
 
+  it('binds devtools source ids on the field root element', () => {
+    const source = {
+      column: 5,
+      file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
+      id: 'source-username',
+      line: 32,
+    }
+    const fields: FormNodeConfig[] = [
+      {
+        ...defineField({
+          component: TextInput,
+          field: 'username',
+          label: '用户名',
+        }),
+        __source: source,
+      } as FormNodeConfig,
+    ]
+
+    const wrapper = mount(ConfigForm, {
+      props: {
+        fields,
+        modelValue: {},
+        namespace: 'moluoxixi',
+      },
+    })
+
+    const field = wrapper.get('.moluoxixi-field')
+    expect(field.attributes('data-cf-devtools-source-id')).toBe('source-username')
+    expect(wrapper.get('#moluoxixi-username-field').attributes('data-cf-devtools-source-id')).toBeUndefined()
+  })
+
   it('renders component containers around real fields without binding container values', async () => {
     const fields = [
       {
