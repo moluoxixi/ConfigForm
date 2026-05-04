@@ -68,34 +68,86 @@ function createResponse() {
 }
 
 describe('open in editor helpers', () => {
-  it('creates code-compatible editor commands that reuse the current window', () => {
-    const command = createEditorCommand({
-      column: 7,
-      editor: 'code',
-      file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
-      line: 12,
-    })
+  it('creates non-Windows code-compatible editor commands that reuse the current window', () => {
+    const platform = vi.spyOn(process, 'platform', 'get').mockReturnValue('linux')
 
-    expect(command).toEqual({
-      args: ['--reuse-window', '-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
-      command: 'code',
-    })
+    try {
+      const command = createEditorCommand({
+        column: 7,
+        editor: 'code',
+        file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
+        line: 12,
+      })
+
+      expect(command).toEqual({
+        args: ['--reuse-window', '-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
+        command: 'code',
+      })
+    }
+    finally {
+      platform.mockRestore()
+    }
+  })
+
+  it('creates Windows preset editor commands through shell-compatible launchers', () => {
+    const platform = vi.spyOn(process, 'platform', 'get').mockReturnValue('win32')
+
+    try {
+      expect(createEditorCommand({
+        column: 7,
+        editor: 'code',
+        file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
+        line: 12,
+      })).toEqual({
+        args: ['--reuse-window', '-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
+        command: 'code.cmd',
+        shell: true,
+      })
+
+      expect(createEditorCommand({
+        column: 7,
+        editor: 'cursor',
+        file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
+        line: 12,
+      })).toEqual({
+        args: ['--reuse-window', '-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
+        command: 'cursor.cmd',
+        shell: true,
+      })
+
+      expect(createEditorCommand({
+        column: 7,
+        editor: 'webstorm',
+        file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
+        line: 12,
+      })).toEqual({
+        args: ['D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
+        command: 'webstorm.bat',
+        shell: true,
+      })
+    }
+    finally {
+      platform.mockRestore()
+    }
   })
 
   it('keeps preset editor commands direct outside Windows', () => {
     const platform = vi.spyOn(process, 'platform', 'get').mockReturnValue('linux')
 
-    expect(createEditorCommand({
-      column: 7,
-      editor: 'cursor',
-      file: '/project/ConfigForm/playgrounds/demo.vue',
-      line: 12,
-    })).toEqual({
-      args: ['--reuse-window', '-g', '/project/ConfigForm/playgrounds/demo.vue:12:7'],
-      command: 'cursor',
-    })
-
-    platform.mockRestore()
+    try {
+      expect(createEditorCommand({
+        column: 7,
+        editor: 'cursor',
+        file: '/project/ConfigForm/playgrounds/demo.vue',
+        line: 12,
+      })).toEqual({
+        args: ['--reuse-window', '-g', '/project/ConfigForm/playgrounds/demo.vue:12:7'],
+        command: 'cursor',
+      })
+    }
+    finally {
+      platform.mockRestore()
+    }
   })
 
   it('rejects invalid open payloads', () => {
@@ -126,32 +178,39 @@ describe('open in editor helpers', () => {
   })
 
   it('creates webstorm and custom editor commands', () => {
-    expect(createEditorCommand({
-      column: 7,
-      editor: 'sublime',
-      file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
-      line: 12,
-    })).toEqual({
-      args: ['-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
-      command: 'sublime',
-    })
+    const platform = vi.spyOn(process, 'platform', 'get').mockReturnValue('linux')
 
-    expect(createEditorCommand({
-      column: 7,
-      editor: 'webstorm',
-      file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
-      line: 12,
-    })).toEqual({
-      args: ['D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
-      command: 'webstorm',
-    })
+    try {
+      expect(createEditorCommand({
+        column: 7,
+        editor: 'sublime',
+        file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
+        line: 12,
+      })).toEqual({
+        args: ['-g', 'D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
+        command: 'sublime',
+      })
 
-    expect(createEditorCommand({
-      column: 7,
-      editor: { args: ['open'], command: 'custom-editor' },
-      file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
-      line: 12,
-    })).toEqual({ args: ['open'], command: 'custom-editor' })
+      expect(createEditorCommand({
+        column: 7,
+        editor: 'webstorm',
+        file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
+        line: 12,
+      })).toEqual({
+        args: ['D:/project-new/ConfigForm/playgrounds/demo.vue:12:7'],
+        command: 'webstorm',
+      })
+
+      expect(createEditorCommand({
+        column: 7,
+        editor: { args: ['open'], command: 'custom-editor' },
+        file: 'D:/project-new/ConfigForm/playgrounds/demo.vue',
+        line: 12,
+      })).toEqual({ args: ['open'], command: 'custom-editor' })
+    }
+    finally {
+      platform.mockRestore()
+    }
   })
 
   it('launches editor commands and reports spawn failures', async () => {
@@ -184,16 +243,22 @@ describe('open in editor helpers', () => {
   })
 
   it('opens existing files with injected spawn implementation', async () => {
+    const platform = vi.spyOn(process, 'platform', 'get').mockReturnValue('linux')
     const root = mkdtempSync(join(tmpdir(), 'cf-devtools-'))
     const file = join(root, 'demo.vue')
     writeFileSync(file, '<template />')
 
-    await expect(openInEditor(
-      { column: 1, file, line: 1 },
-      { root, spawn: createSpawnMock('spawn') },
-    )).resolves.toMatchObject({
-      command: 'code',
-    })
+    try {
+      await expect(openInEditor(
+        { column: 1, file, line: 1 },
+        { root, spawn: createSpawnMock('spawn') },
+      )).resolves.toMatchObject({
+        command: 'code',
+      })
+    }
+    finally {
+      platform.mockRestore()
+    }
   })
 
   it('rejects missing files during open', async () => {

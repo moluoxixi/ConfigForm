@@ -2,8 +2,7 @@
 import { reactive, ref } from 'vue'
 import { z } from 'zod'
 import { ConfigForm, defineField } from '@moluoxixi/config-form'
-import { ElCard } from 'element-plus/es/components/card/index.mjs'
-import { ElCheckbox, ElCheckboxGroup } from 'element-plus/es/components/checkbox/index.mjs'
+import { ElCard, ElCheckbox, ElCheckboxGroup } from 'element-plus'
 
 const formRef = ref()
 const formValues = reactive<Record<string, unknown>>({})

@@ -1,22 +1,9 @@
 <script setup lang="ts">
+import { ConfigForm, defineField } from '@moluoxixi/config-form'
+import { ElAutocomplete, ElCascader, ElCheckbox, ElCheckboxGroup, ElColorPicker, ElDatePicker, ElInput, ElInputNumber, ElRadio, ElRadioGroup, ElRate, ElSelectV2, ElSlider, ElSwitch, ElTimePicker, ElTimeSelect, ElTreeSelect } from 'element-plus'
+
 import { reactive, ref } from 'vue'
 import { z } from 'zod'
-import { ConfigForm, defineField } from '@moluoxixi/config-form'
-import { ElAutocomplete } from 'element-plus/es/components/autocomplete/index.mjs'
-import { ElCascader } from 'element-plus/es/components/cascader/index.mjs'
-import { ElCheckbox, ElCheckboxGroup } from 'element-plus/es/components/checkbox/index.mjs'
-import { ElColorPicker } from 'element-plus/es/components/color-picker/index.mjs'
-import { ElDatePicker } from 'element-plus/es/components/date-picker/index.mjs'
-import { ElInput } from 'element-plus/es/components/input/index.mjs'
-import { ElInputNumber } from 'element-plus/es/components/input-number/index.mjs'
-import { ElRadio, ElRadioGroup } from 'element-plus/es/components/radio/index.mjs'
-import { ElRate } from 'element-plus/es/components/rate/index.mjs'
-import { ElSelectV2 } from 'element-plus/es/components/select-v2/index.mjs'
-import { ElSlider } from 'element-plus/es/components/slider/index.mjs'
-import { ElSwitch } from 'element-plus/es/components/switch/index.mjs'
-import { ElTimePicker } from 'element-plus/es/components/time-picker/index.mjs'
-import { ElTimeSelect } from 'element-plus/es/components/time-select/index.mjs'
-import { ElTreeSelect } from 'element-plus/es/components/tree-select/index.mjs'
 
 const formRef = ref()
 const formValues = reactive<Record<string, unknown>>({})
@@ -181,14 +168,18 @@ const fields = [
       clearable: true,
       options: [
         {
-          value: 'tech', label: '技术部', children: [
+          value: 'tech',
+          label: '技术部',
+          children: [
             { value: 'frontend', label: '前端组' },
             { value: 'backend', label: '后端组' },
             { value: 'devops', label: '运维组' },
           ],
         },
         {
-          value: 'product', label: '产品部', children: [
+          value: 'product',
+          label: '产品部',
+          children: [
             { value: 'design', label: '设计组' },
             { value: 'pm', label: '产品组' },
           ],
@@ -208,15 +199,21 @@ const fields = [
       checkStrictly: true,
       data: [
         {
-          value: 'ceo', label: 'CEO', children: [
+          value: 'ceo',
+          label: 'CEO',
+          children: [
             {
-              value: 'cto', label: 'CTO', children: [
+              value: 'cto',
+              label: 'CTO',
+              children: [
                 { value: 'lead-fe', label: '前端负责人' },
                 { value: 'lead-be', label: '后端负责人' },
               ],
             },
             {
-              value: 'cpo', label: 'CPO', children: [
+              value: 'cpo',
+              label: 'CPO',
+              children: [
                 { value: 'lead-design', label: '设计负责人' },
               ],
             },
@@ -399,7 +396,7 @@ const fields = [
     span: 12,
     component: ElInput,
     props: { placeholder: '请说明您的性别', clearable: true },
-    visible: (values) => values.gender === 'other',
+    visible: values => values.gender === 'other',
   }),
 
   // 条件显隐：启用状态下显示生效日期
@@ -410,7 +407,7 @@ const fields = [
     span: 12,
     component: ElDatePicker,
     props: { type: 'date', placeholder: '选择生效日期', valueFormat: 'YYYY-MM-DD', clearable: true },
-    visible: (values) => values.active === true,
+    visible: values => values.active === true,
   }),
 
   // 条件禁用：角色为"访客"时禁用
@@ -421,7 +418,7 @@ const fields = [
     span: 24,
     component: ElInput,
     props: { placeholder: '访客不可编辑备注', clearable: true },
-    disabled: (values) => values.role === 'guest',
+    disabled: values => values.role === 'guest',
   }),
 
   // 条件禁用：评分低于3时禁用提交建议

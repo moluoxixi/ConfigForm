@@ -10,6 +10,7 @@ import { Buffer } from 'node:buffer'
 import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { isAbsolute, relative, resolve } from 'node:path'
+import process from 'node:process'
 import { ConfigFormDevtoolsHttpError } from './types'
 
 interface ResolveAllowedFileInput {
@@ -28,6 +29,15 @@ function isInsideRoot(file: string, root: string): boolean {
 }
 
 function resolveEditorExecutable(editor: string): Pick<EditorCommand, 'command' | 'shell'> {
+  if (process.platform === 'win32') {
+    if (editor === 'code')
+      return { command: 'code.cmd', shell: true }
+    if (editor === 'cursor')
+      return { command: 'cursor.cmd', shell: true }
+    if (editor === 'webstorm')
+      return { command: 'webstorm.bat', shell: true }
+  }
+
   return { command: editor }
 }
 

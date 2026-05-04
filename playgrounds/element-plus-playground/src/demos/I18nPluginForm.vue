@@ -11,9 +11,9 @@ import {
   i18n,
   type I18nMessages,
 } from '@moluoxixi/config-form-plugin-i18n'
-import { ElInput } from 'element-plus/es/components/input/index.mjs'
-import { ElRadio, ElRadioGroup } from 'element-plus/es/components/radio/index.mjs'
-import { ElSelectV2 } from 'element-plus/es/components/select-v2/index.mjs'
+import { ElInput } from 'element-plus'
+import { ElRadio, ElRadioGroup } from 'element-plus'
+import { ElSelectV2 } from 'element-plus'
 
 type Locale = 'zh-CN' | 'en-US'
 

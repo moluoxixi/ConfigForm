@@ -2,12 +2,14 @@
 import { reactive, ref } from 'vue'
 import { z } from 'zod'
 import { ConfigForm, defineField } from '@moluoxixi/config-form'
-import { ElCard } from 'element-plus/es/components/card/index.mjs'
-import { ElDatePicker } from 'element-plus/es/components/date-picker/index.mjs'
-import { ElInput } from 'element-plus/es/components/input/index.mjs'
-import { ElInputNumber } from 'element-plus/es/components/input-number/index.mjs'
-import { ElSelectV2 } from 'element-plus/es/components/select-v2/index.mjs'
-import { ElSwitch } from 'element-plus/es/components/switch/index.mjs'
+import {
+  ElCard,
+  ElDatePicker,
+  ElInput,
+  ElInputNumber,
+  ElSelectV2,
+  ElSwitch,
+} from 'element-plus'
 
 const showAuditForm = ref(true)
 const formValues = reactive<Record<string, Record<string, unknown>>>({
