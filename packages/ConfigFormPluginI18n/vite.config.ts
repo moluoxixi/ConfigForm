@@ -28,7 +28,7 @@ export default defineConfig({
       fileName: 'index',
     },
     rollupOptions: {
-      external: ['@moluoxixi/config-form'],
+      external: ['@moluoxixi/config-form', '@moluoxixi/config-form/plugins'],
     },
   },
 })

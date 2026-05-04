@@ -1,5 +1,6 @@
-import type { RuntimeToken } from '@moluoxixi/config-form'
-import { createFormRuntime, createRuntimeToken, defineField } from '@moluoxixi/config-form'
+import type { RuntimeToken } from '@moluoxixi/config-form/plugins'
+import { defineField } from '@moluoxixi/config-form'
+import { createFormRuntime, createRuntimeToken } from '@moluoxixi/config-form/plugins'
 import { describe, expect, it } from 'vitest'
 import { createI18nPlugin, i18n } from '../src'
 

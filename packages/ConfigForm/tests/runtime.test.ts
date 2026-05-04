@@ -460,7 +460,7 @@ describe('form runtime', () => {
     expect(seenArgCounts).toEqual([1])
   })
 
-  it('rejects legacy field plugins config instead of silently ignoring it', () => {
+  it('does not keep legacy field plugins as a runtime compatibility branch', () => {
     const runtime = createFormRuntime()
 
     expect(() => runtime.resolveField({
@@ -471,6 +471,6 @@ describe('form runtime', () => {
           label: 'field.name',
         },
       },
-    } as never, runtime.createResolveSnap())).toThrow(/field\.plugins is no longer supported/)
+    } as never, runtime.createResolveSnap())).not.toThrow()
   })
 })

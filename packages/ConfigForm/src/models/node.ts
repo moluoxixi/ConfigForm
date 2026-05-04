@@ -32,11 +32,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value))
 }
 
-function assertNoLegacyNodePlugins(value: FormNodeConfig, path: string): void {
-  if (Object.hasOwn(value, 'plugins'))
-    throw new Error(`${path}.plugins is no longer supported. Use runtime plugins and runtime tokens instead.`)
-}
-
 /** 判断未知值是否是 ConfigForm 节点声明。 */
 export function isFormNodeConfig(value: unknown): value is FormNodeConfig {
   return Boolean(
@@ -114,12 +109,8 @@ export function isResolvedFieldConfig(value: unknown): value is ResolvedField {
  * 不能使用 label、schema 等仅字段节点可用的配置。
  */
 export function assertComponentNodeConfig(value: FormNodeConfig, path = 'component node') {
-  if (isFieldConfig(value)) {
-    assertNoLegacyNodePlugins(value, 'field')
+  if (isFieldConfig(value))
     return
-  }
-
-  assertNoLegacyNodePlugins(value, path)
 
   for (const key of FIELD_ONLY_NODE_KEYS) {
     if (key in value)

@@ -36,9 +36,13 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: resolve(__dirname, 'index.ts'),
+      entry: {
+        index: resolve(__dirname, 'index.ts'),
+        plugins: resolve(__dirname, 'src/plugins/index.ts'),
+      },
       name: 'ConfigForm',
-      fileName: 'index',
+      fileName: (_, entryName) => `${entryName}.js`,
+      formats: ['es'],
     },
     rollupOptions: {
       external: ['vue', 'zod'],

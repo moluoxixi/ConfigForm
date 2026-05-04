@@ -236,12 +236,12 @@ const fields = [
 </template>
 ```
 
-`<ConfigForm>` 的 `runtime` prop 只接收 `FormRuntimeOptions`，组件内部会创建实际 runtime 实例。`createFormRuntime(options)` 仍然导出给插件测试、底层解析和非组件场景使用。
+`<ConfigForm>` 的 `runtime` prop 只接收 `FormRuntimeOptions`，组件内部会创建实际 runtime 实例。插件测试、底层解析和非组件场景应从 `@moluoxixi/config-form/plugins` 使用 `createFormRuntime(options)`，避免把插件专用能力混入根入口。
 
 Token：
 
-- `createRuntimeToken(type, payload?)`：创建插件自定义 token；core 只负责按 token type 找 resolver，不内置条件语言或业务语义。
-- `FormRuntimeResolveSnap`：单次解析快照，包含当前 `values`、`errors`、`field`、`slotName`、`slotScope`；低层解析场景可用 `runtime.createResolveSnap(input?)` 创建。
+- `createRuntimeToken(type, payload?)`：从 `@moluoxixi/config-form/plugins` 导入，用于创建插件自定义 token；core 只负责按 token type 找 resolver，不内置条件语言或业务语义。
+- `FormRuntimeResolveSnap`：从 `@moluoxixi/config-form/plugins` 导入，表示单次解析快照，包含当前 `values`、`errors`、`field`、`slotName`、`slotScope`；低层解析场景可用 `runtime.createResolveSnap(input?)` 创建。
 - `i18n(key, options?)`：由 `@moluoxixi/config-form-plugin-i18n` 提供，用于 `label`、`props`、`slots` 等位置的文案 token；`options.defaultMessage` 是显式默认文案，`options.params` 是模板插值参数。
 
 扩展点：

@@ -12,6 +12,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./plugins": {
+      "source": "./src/plugins/index.ts",
+      "types": "./dist/src/plugins/index.d.ts",
+      "import": "./dist/plugins.js"
+    },
     "./styles": "./src/styles/index.scss",
     "./styles/*": "./src/styles/*"
   },

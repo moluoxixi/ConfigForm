@@ -63,7 +63,8 @@ export function configFormDevtools(options: ConfigFormDevtoolsPluginOptions = {}
 
       if (id === RESOLVED_VIRTUAL_CONFIG_FORM_ID) {
         return [
-          `import { ConfigForm as CoreConfigForm, collectFieldConfigs } from ${JSON.stringify(corePackageName)};`,
+          `import { ConfigForm as CoreConfigForm } from ${JSON.stringify(corePackageName)};`,
+          `import { collectFieldConfigs } from ${JSON.stringify(`${corePackageName}/plugins`)};`,
           `import { createDevtoolsConfigFormAdapter } from ${JSON.stringify(ADAPTER_ENTRY)};`,
           `export * from ${JSON.stringify(corePackageName)};`,
           'export const ConfigForm = createDevtoolsConfigFormAdapter({',

@@ -2,7 +2,7 @@ import type {
   FormRuntimePlugin,
   FormRuntimeResolveSnap,
   RuntimeToken,
-} from '@moluoxixi/config-form'
+} from '@moluoxixi/config-form/plugins'
 
 /** i18n runtime token；由本插件的 token resolver 解析为当前语言文案。 */
 export interface I18nToken extends RuntimeToken<string, 'i18n'> {

@@ -124,11 +124,6 @@ function cloneNormalizedField(field: NormalizedFieldConfig): NormalizedFieldConf
   }
 }
 
-function assertNoLegacyFieldPlugins(value: unknown, path: string): void {
-  if (value && typeof value === 'object' && Object.hasOwn(value, 'plugins'))
-    throw new Error(`${path}.plugins is no longer supported. Use runtime plugins and runtime tokens instead.`)
-}
-
 function normalizeObjectHook<THandler extends (...args: never[]) => unknown>(
   pluginName: string,
   hookName: string,
@@ -353,10 +348,7 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
     if (isResolvedFieldConfig(field) || isTransformedFieldConfig(field))
       return field
 
-    assertNoLegacyFieldPlugins(field, 'field')
-
     let config = normalizeField(field)
-    assertNoLegacyFieldPlugins(config, 'field')
 
     for (const hook of orderedFieldTransformHooks) {
       const hookField = cloneNormalizedField(config)
@@ -367,10 +359,7 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
       if (!next || typeof next !== 'object' || Array.isArray(next))
         throw new TypeError(`Plugin ${hook.pluginName} transformField must return a field object or undefined`)
 
-      assertNoLegacyFieldPlugins(next, `plugin ${hook.pluginName} transformField result`)
-
       const normalized = normalizeField(next as FieldConfig)
-      assertNoLegacyFieldPlugins(normalized, `plugin ${hook.pluginName} transformField result`)
       if (normalized.field !== config.field) {
         throw new Error(
           `Plugin ${hook.pluginName} transformField cannot change field key from "${config.field}" to "${normalized.field}"`,

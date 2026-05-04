@@ -1,37 +1,9 @@
 export { useForm } from './src/composables/useForm'
 export type { UseFormOptions } from './src/composables/useForm'
-export { useBem, useNamespace } from './src/composables/useNamespace'
 export { default as ConfigForm } from './src/index.vue'
-export {
-  applyFieldTransform,
-  defineField,
-  normalizeField,
-  normalizeValidateOn,
-  shouldValidateOn,
-} from './src/models/field'
-export {
-  assertComponentNodeConfig,
-  collectFieldConfigs,
-  isFieldConfig,
-  isFormNodeConfig,
-} from './src/models/node'
-export {
-  createFormRuntime,
-  createRuntimeToken,
-  isRuntimeToken,
-} from './src/runtime'
+export { defineField } from './src/models/field'
 export type {
-  ComponentRegistry,
-  CreateRuntimeResolveSnapInput,
-  FormFieldTransform,
-  FormRuntime,
-  FormRuntimeHookOrder,
-  FormRuntimeObjectHook,
   FormRuntimeOptions,
-  FormRuntimePlugin,
-  FormRuntimeResolveHelpers,
-  FormRuntimeResolveSnap,
-  FormRuntimeTokenResolver,
 } from './src/runtime'
 export type {
   ConfigFormEmits,
