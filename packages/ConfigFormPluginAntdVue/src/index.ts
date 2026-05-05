@@ -6,20 +6,13 @@ const CORE_VALUE_PROP = 'modelValue'
 /** ConfigForm core 未适配组件库时使用的值更新事件。 */
 const CORE_TRIGGER = 'update:modelValue'
 
-/** Ant Design Vue 字段组件的双向绑定协议。 */
-export interface AntdVueFieldBinding {
-  /** 组件接收字段值的 prop 名称。 */
-  valueProp: string
-  /** 组件向外发出字段值变化的事件名。 */
-  trigger: string
-  /**
-   * 组件的默认 props，在 transformField 阶段以深合并方式注入。
-   *
-   * 深合并规则：两端均为普通对象时递归合并，其他情况（原始值、数组等）字段配置中
-   * 用户声明的 props 优先覆盖。
-   */
-  defaultProps?: Record<string, unknown>
-}
+/**
+ * Ant Design Vue 字段组件的双向绑定协议。
+ *
+ * 直接复用 `FieldConfig` 中的同名字段：`valueProp`、`trigger` 必填，`props` 可选，
+ * 语义与 `defineField` 参数保持一致。
+ */
+export type AntdVueFieldBinding = Required<Pick<FieldConfig, 'valueProp' | 'trigger'>> & Pick<FieldConfig, 'props'>
 
 /** Ant Design Vue 插件配置。 */
 export interface AntdVuePluginOptions {
@@ -29,15 +22,6 @@ export interface AntdVuePluginOptions {
   bindings?: Record<string, AntdVueFieldBinding>
   /** 字段组件名形如 Ant Design Vue 组件但没有映射时是否直接抛错，默认 true。 */
   strict?: boolean
-}
-
-interface ComponentNameSource {
-  __name?: unknown
-  __vccOpts?: {
-    name?: unknown
-  }
-  displayName?: unknown
-  name?: unknown
 }
 
 // ===== 深合并工具 =====
@@ -89,7 +73,7 @@ export const ANTD_VUE_FIELD_BINDINGS: Readonly<Record<string, AntdVueFieldBindin
   ASwitch: {
     valueProp: 'checked',
     trigger: 'update:checked',
-    defaultProps: { style: { width: '44px' } },
+    props: { style: { width: '44px' } },
   },
   ATextarea: { valueProp: 'value', trigger: 'update:value' },
   ATimePicker: { valueProp: 'value', trigger: 'update:value' },
@@ -98,26 +82,21 @@ export const ANTD_VUE_FIELD_BINDINGS: Readonly<Record<string, AntdVueFieldBindin
 })
 
 /**
- * 读取 Vue 组件对象暴露的稳定名称。
+ * 读取组件的名称。
  *
- * 插件只依赖组件元信息，不直接引入 ant-design-vue，避免把 UI 库绑定进 core。
+ * - 字符串组件直接返回
+ * - 对象/函数组件统一读 `.name`：对象组件应显式声明 `name`，
+ *   函数组件的 `.name` 由 JS 引擎根据函数声明或变量赋值自动注入，无需调用
  */
 function resolveComponentName(component: FieldConfig['component']): string | undefined {
   if (typeof component === 'string')
     return component
 
-  if (!component || (typeof component !== 'object' && typeof component !== 'function'))
+  if (!component)
     return undefined
 
-  const source = component as ComponentNameSource
-  const candidates = [
-    source.name,
-    source.displayName,
-    source.__name,
-    source.__vccOpts?.name,
-  ]
-
-  return candidates.find((item): item is string => typeof item === 'string' && item.length > 0)
+  const name = (component as { name?: unknown }).name
+  return typeof name === 'string' && name.length > 0 ? name : undefined
 }
 
 /**
@@ -143,7 +122,7 @@ function isAntdVueLikeComponentName(name: string): boolean {
  *
  * 插件只补齐仍处于 core 默认协议的字段；字段已声明自定义协议时保持原样。
  *
- * 若绑定表中存在 `defaultProps`，则以深合并方式注入到字段 props 中，
+ * 若绑定项中声明了 `props`，则以深合并方式注入到字段 props 中，
  * 用户在字段配置中声明的同名 props 具有更高优先级。
  */
 export function createAntdVuePlugin(options: AntdVuePluginOptions = {}): FormRuntimePlugin {
@@ -170,9 +149,9 @@ export function createAntdVuePlugin(options: AntdVuePluginOptions = {}): FormRun
       if (!usesCoreBinding(field))
         return undefined
 
-      // 深合并 defaultProps（绑定表默认）与字段声明的 props（用户优先）
-      const mergedProps = binding.defaultProps
-        ? deepMergeProps(binding.defaultProps, field.props)
+      // 深合并 binding.props（绑定表默认）与字段声明的 props（用户优先）
+      const mergedProps = binding.props
+        ? deepMergeProps(binding.props, field.props)
         : field.props
 
       return {

@@ -6,9 +6,9 @@ import { createAntdVuePlugin } from '../src'
 const AInput = { name: 'AInput' }
 const ASwitch = { name: 'ASwitch' }
 const ACheckbox = { name: 'ACheckbox' }
-const ATextareaByDisplayName = { displayName: 'ATextarea' }
-const ASelectByCompiledName = { __name: 'ASelect' }
-const ASliderByOptionsName = { __vccOpts: { name: 'ASlider' } }
+const ATextarea = { name: 'ATextarea' }
+const ASelect = { name: 'ASelect' }
+const ASlider = { name: 'ASlider' }
 const AUnknown = { name: 'AUnknown' }
 const CustomInput = { name: 'CustomInput' }
 
@@ -20,9 +20,9 @@ describe('antd vue plugin package', () => {
     const resolveSnap = runtime.createResolveSnap()
 
     const input = runtime.resolveField(defineField({ component: AInput, field: 'name' }), resolveSnap)
-    const textarea = runtime.resolveField(defineField({ component: ATextareaByDisplayName, field: 'bio' }), resolveSnap)
-    const select = runtime.resolveField(defineField({ component: ASelectByCompiledName, field: 'role' }), resolveSnap)
-    const slider = runtime.resolveField(defineField({ component: ASliderByOptionsName, field: 'progress' }), resolveSnap)
+    const textarea = runtime.resolveField(defineField({ component: ATextarea, field: 'bio' }), resolveSnap)
+    const select = runtime.resolveField(defineField({ component: ASelect, field: 'role' }), resolveSnap)
+    const slider = runtime.resolveField(defineField({ component: ASlider, field: 'progress' }), resolveSnap)
 
     expect(input.valueProp).toBe('value')
     expect(input.trigger).toBe('update:value')
@@ -119,7 +119,7 @@ describe('antd vue plugin package', () => {
       .toThrow(/Unknown Ant Design Vue component binding: AUnknown/)
   })
 
-  it('injects ASwitch defaultProps style width 44px when no user style is declared', () => {
+  it('injects ASwitch props style width 44px when no user style is declared', () => {
     const runtime = createFormRuntime({
       plugins: [createAntdVuePlugin()],
     })
@@ -133,7 +133,7 @@ describe('antd vue plugin package', () => {
     expect((switchField.props.style as Record<string, unknown>)?.width).toBe('44px')
   })
 
-  it('deep merges ASwitch defaultProps with user props, user values take priority', () => {
+  it('deep merges ASwitch props with user props, user values take priority', () => {
     const runtime = createFormRuntime({
       plugins: [createAntdVuePlugin()],
     })
