@@ -12,6 +12,13 @@ export interface AntdVueFieldBinding {
   valueProp: string
   /** 组件向外发出字段值变化的事件名。 */
   trigger: string
+  /**
+   * 组件的默认 props，在 transformField 阶段以深合并方式注入。
+   *
+   * 深合并规则：两端均为普通对象时递归合并，其他情况（原始值、数组等）字段配置中
+   * 用户声明的 props 优先覆盖。
+   */
+  defaultProps?: Record<string, unknown>
 }
 
 /** Ant Design Vue 插件配置。 */
@@ -33,6 +40,36 @@ interface ComponentNameSource {
   name?: unknown
 }
 
+// ===== 深合并工具 =====
+
+type PlainObject = Record<string, unknown>
+
+function isPlainObject(val: unknown): val is PlainObject {
+  return val !== null && typeof val === 'object' && !Array.isArray(val)
+}
+
+/**
+ * 深合并多个普通对象，后面的对象优先级更高。
+ *
+ * - 两端均为普通对象时递归合并
+ * - 其他情况（原始值、数组、null 等）直接用后者值覆盖
+ */
+function deepMergeProps(...sources: Array<PlainObject | undefined>): PlainObject {
+  const result: PlainObject = {}
+  for (const source of sources) {
+    if (!source)
+      continue
+    for (const key of Object.keys(source)) {
+      const srcVal = source[key]
+      const resVal = result[key]
+      result[key] = isPlainObject(srcVal) && isPlainObject(resVal)
+        ? deepMergeProps(resVal, srcVal)
+        : srcVal
+    }
+  }
+  return result
+}
+
 /** 当前插件内置支持的 Ant Design Vue 字段组件绑定表。 */
 export const ANTD_VUE_FIELD_BINDINGS: Readonly<Record<string, AntdVueFieldBinding>> = Object.freeze({
   AAutoComplete: { valueProp: 'value', trigger: 'update:value' },
@@ -49,7 +86,11 @@ export const ANTD_VUE_FIELD_BINDINGS: Readonly<Record<string, AntdVueFieldBindin
   ARadioGroup: { valueProp: 'value', trigger: 'update:value' },
   ASelect: { valueProp: 'value', trigger: 'update:value' },
   ASlider: { valueProp: 'value', trigger: 'update:value' },
-  ASwitch: { valueProp: 'checked', trigger: 'update:checked' },
+  ASwitch: {
+    valueProp: 'checked',
+    trigger: 'update:checked',
+    defaultProps: { style: { width: '44px' } },
+  },
   ATextarea: { valueProp: 'value', trigger: 'update:value' },
   ATimePicker: { valueProp: 'value', trigger: 'update:value' },
   ATimeRangePicker: { valueProp: 'value', trigger: 'update:value' },
@@ -101,9 +142,12 @@ function isAntdVueLikeComponentName(name: string): boolean {
  * 创建 Ant Design Vue 字段绑定适配插件。
  *
  * 插件只补齐仍处于 core 默认协议的字段；字段已声明自定义协议时保持原样。
+ *
+ * 若绑定表中存在 `defaultProps`，则以深合并方式注入到字段 props 中，
+ * 用户在字段配置中声明的同名 props 具有更高优先级。
  */
 export function createAntdVuePlugin(options: AntdVuePluginOptions = {}): FormRuntimePlugin {
-  const bindings = {
+  const bindings: Record<string, AntdVueFieldBinding> = {
     ...ANTD_VUE_FIELD_BINDINGS,
     ...(options.bindings ?? {}),
   }
@@ -126,10 +170,16 @@ export function createAntdVuePlugin(options: AntdVuePluginOptions = {}): FormRun
       if (!usesCoreBinding(field))
         return undefined
 
+      // 深合并 defaultProps（绑定表默认）与字段声明的 props（用户优先）
+      const mergedProps = binding.defaultProps
+        ? deepMergeProps(binding.defaultProps, field.props)
+        : field.props
+
       return {
         ...field,
         trigger: binding.trigger,
         valueProp: binding.valueProp,
+        props: mergedProps,
       }
     },
   }

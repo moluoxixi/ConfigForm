@@ -118,4 +118,38 @@ describe('antd vue plugin package', () => {
     expect(() => strictRuntime.resolveField(defineField({ component: AUnknown, field: 'unknown' }), resolveSnap))
       .toThrow(/Unknown Ant Design Vue component binding: AUnknown/)
   })
+
+  it('injects ASwitch defaultProps style width 44px when no user style is declared', () => {
+    const runtime = createFormRuntime({
+      plugins: [createAntdVuePlugin()],
+    })
+    const resolveSnap = runtime.createResolveSnap()
+
+    const switchField = runtime.resolveField(
+      defineField({ component: ASwitch, field: 'enabled' }),
+      resolveSnap,
+    )
+
+    expect((switchField.props.style as Record<string, unknown>)?.width).toBe('44px')
+  })
+
+  it('deep merges ASwitch defaultProps with user props, user values take priority', () => {
+    const runtime = createFormRuntime({
+      plugins: [createAntdVuePlugin()],
+    })
+    const resolveSnap = runtime.createResolveSnap()
+
+    const switchField = runtime.resolveField(
+      defineField({
+        component: ASwitch,
+        field: 'enabled',
+        props: { style: { width: '60px', color: 'red' } },
+      }),
+      resolveSnap,
+    )
+
+    // 用户声明的 width 覆盖默认值，用户声明的 color 保留
+    expect((switchField.props.style as Record<string, unknown>)?.width).toBe('60px')
+    expect((switchField.props.style as Record<string, unknown>)?.color).toBe('red')
+  })
 })
