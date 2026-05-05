@@ -72,28 +72,12 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
   }
 
   /**
-   * 用浅层快照同步 reactive 表单值。
+   * 初始化或重建内部表单值。
    *
-   * 该函数只增删改顶层字段，保留 Date、Dayjs 等实例引用，不做深层 normalize。
+   * 根据当前字段拓扑补全默认值并浅层同步到 reactive 存储。
+   * pruneToFields 为 true 时移除不属于当前真实字段拓扑的值，用于字段树变化后的状态收敛。
    */
-  function syncValues(next: FormValues) {
-    for (const key of Object.keys(values)) {
-      if (!Object.hasOwn(next, key))
-        delete valueStore[key]
-    }
-
-    for (const [key, val] of Object.entries(next)) {
-      if (valueStore[key] !== val)
-        valueStore[key] = val
-    }
-  }
-
-  /**
-   * 创建带字段默认值的表单值快照。
-   *
-   * pruneToFields 为 true 时会移除不属于当前真实字段拓扑的值，用于字段树变化后的状态收敛。
-   */
-  function createValuesWithDefaults(source: FormValues, pruneToFields: boolean): FormValues {
+  function initValues(source: FormValues = (initialValues?.value ?? {}) as FormValues, pruneToFields = false) {
     const runtime = runtimeRef.value
     const transformedFields = fieldConfigs.value.map(config => runtime.transformField(config))
     const fieldNames = new Set(transformedFields.map(field => field.field))
@@ -106,27 +90,15 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
         next[field.field] = field.defaultValue !== undefined ? field.defaultValue : undefined
     }
 
-    return next
-  }
-
-  /**
-   * 初始化或重建内部表单值。
-   *
-   * 默认读取外部 initialValues；调用时不会吞掉 runtime.transformField 抛出的配置错误。
-   */
-  function initValues(source: FormValues = (initialValues?.value ?? {}) as FormValues, pruneToFields = false) {
-    const next = createValuesWithDefaults(source, pruneToFields)
-    syncValues(next)
-  }
-
-  /**
-   * 响应字段拓扑变化并同步值与错误边界。
-   *
-   * 只保留当前真实字段的值和错误，避免容器节点或已卸载字段参与提交。
-   */
-  function syncFieldTopology() {
-    initValues({ ...toRaw(values) }, true)
-    syncErrorsToFields(fieldConfigs.value)
+    // 浅层同步 reactive 表单值：只增删改顶层字段，保留 Date、Dayjs 等实例引用。
+    for (const key of Object.keys(values)) {
+      if (!Object.hasOwn(next, key))
+        delete valueStore[key]
+    }
+    for (const [key, val] of Object.entries(next)) {
+      if (valueStore[key] !== val)
+        valueStore[key] = val
+    }
   }
 
   watch(
@@ -135,32 +107,24 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     { immediate: true, deep: true },
   )
 
+  // 字段拓扑变化时裁剪值和错误到当前真实字段集合。
   watch(
     fieldTopologyKey,
-    () => syncFieldTopology(),
+    () => {
+      initValues({ ...toRaw(values) }, true)
+      syncErrorsToFields(fieldConfigs.value)
+    },
   )
-
-  /**
-   * 基于当前错误和指定值快照创建 runtime 解析上下文。
-   *
-   * 调用方传入的 snapshot 是一次性读快照，后续 reactive values 变化不会反向更新该上下文。
-   */
-  function createResolveSnap(snapshot: FormValues) {
-    return runtimeRef.value.createResolveSnap({
-      errors: errors.value,
-      values: snapshot,
-    })
-  }
 
   const visibilityMap = computed<Record<string, boolean>>(() => {
     const snap = { ...values }
-    const resolveSnap = createResolveSnap(snap)
+    const resolveSnap = runtimeRef.value.createResolveSnap({ errors: errors.value, values: snap })
     return Object.fromEntries(fieldConfigs.value.map(f => [f.field, runtimeRef.value.resolveVisible(f, resolveSnap)]))
   })
 
   const disabledMap = computed<Record<string, boolean>>(() => {
     const snap = { ...values }
-    const resolveSnap = createResolveSnap(snap)
+    const resolveSnap = runtimeRef.value.createResolveSnap({ errors: errors.value, values: snap })
     return Object.fromEntries(fieldConfigs.value.map(f => [f.field, runtimeRef.value.resolveDisabled(f, resolveSnap)]))
   })
 
@@ -227,7 +191,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     }
 
     const snap = { ...values }
-    const resolveSnap = createResolveSnap(snap)
+    const resolveSnap = runtimeRef.value.createResolveSnap({ errors: errors.value, values: snap })
 
     const shouldValidateHidden = trigger === 'submit' && field.submitWhenHidden
     const shouldValidateDisabled = trigger === 'submit' && field.submitWhenDisabled
@@ -279,7 +243,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
       return false
 
     const snap = { ...values }
-    const resolveSnap = createResolveSnap(snap)
+    const resolveSnap = runtimeRef.value.createResolveSnap({ errors: errors.value, values: snap })
     const submitValues: FormValues = {}
     for (const config of fieldConfigs.value) {
       const field = runtimeRef.value.transformField(config)

@@ -4,19 +4,16 @@ import type {
   FormFieldTransform,
   FormRuntime,
   FormRuntimeHookOrder,
-  FormRuntimeObjectHook,
   FormRuntimeOptions,
   FormRuntimePlugin,
   FormRuntimeResolveSnap,
   FormRuntimeTokenResolver,
 } from './types'
 import type {
-  FieldCondition,
   FieldConfig,
   FormNodeConfig,
   FormValues,
   NormalizedFieldConfig,
-  ResolvedComponentNode,
   ResolvedField,
   ResolvedFormNode,
   RuntimeToken,
@@ -101,121 +98,7 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
   return proto === Object.prototype || proto === null
 }
 
-/**
- * 判断普通记录是否更像 Vue 组件定义。
- *
- * 命中时 runtime 会把它当作组件值保留，不继续递归解析内部字段。
- */
-function isComponentLikeRecord(value: Record<string, unknown>): boolean {
-  return Boolean(
-    value.__v_skip
-    || value.setup
-    || value.render
-    || value.template
-    || value.__vccOpts,
-  )
-}
 
-/**
- * 判断字段配置是否已经经过 transformField 标准化。
- *
- * 该 brand 用于避免重复执行插件 hook，同时不暴露到枚举结果中。
- */
-function isTransformedFieldConfig(value: unknown): value is NormalizedFieldConfig {
-  return Boolean(
-    value
-    && typeof value === 'object'
-    && (value as Record<symbol, unknown>)[CONFIG_FORM_TRANSFORMED_FIELD] === true,
-  )
-}
-
-/**
- * 标记已标准化字段配置。
- *
- * 该函数会原地写入不可枚举 brand，调用方必须传入当前 runtime 拥有的字段副本。
- */
-function markTransformedFieldConfig<TField extends NormalizedFieldConfig>(field: TField): TField {
-  Object.defineProperty(field, CONFIG_FORM_TRANSFORMED_FIELD, {
-    configurable: false,
-    enumerable: false,
-    value: true,
-    writable: false,
-  })
-
-  return field
-}
-
-/**
- * 克隆传给插件 hook 的标准化字段。
- *
- * 仅浅拷贝 props 和 slots，避免插件直接改写当前 runtime 已缓存的字段对象。
- */
-function cloneNormalizedField(field: NormalizedFieldConfig): NormalizedFieldConfig {
-  return {
-    ...field,
-    props: { ...field.props },
-    slots: field.slots ? { ...field.slots } : field.slots,
-  }
-}
-
-/**
- * 规范化插件 hook 配置。
- *
- * 支持函数式和带 order 的对象式 hook；非法结构直接抛错以暴露插件配置问题。
- */
-function normalizeObjectHook<THandler extends (...args: never[]) => unknown>(
-  pluginName: string,
-  hookName: string,
-  hook: FormRuntimeObjectHook<THandler>,
-): RuntimeHook<THandler> {
-  if (typeof hook === 'function') {
-    return {
-      handler: hook,
-      pluginName,
-    }
-  }
-
-  if (!hook || typeof hook !== 'object' || typeof hook.handler !== 'function')
-    throw new TypeError(`Plugin ${pluginName} hook ${hookName} must be a function or an object hook`)
-
-  if (hook.order !== undefined && hook.order !== 'pre' && hook.order !== 'post')
-    throw new TypeError(`Plugin ${pluginName} hook ${hookName}.order must be "pre" or "post"`)
-
-  return {
-    handler: hook.handler,
-    order: hook.order,
-    pluginName,
-  }
-}
-
-/**
- * 按 pre、默认、post 顺序排列同类 hook。
- *
- * 同一 order 内保持插件声明顺序，避免跨插件执行顺序出现隐式重排。
- */
-function orderHooks<THandler extends (...args: never[]) => unknown>(
-  hooks: RuntimeHook<THandler>[],
-): RuntimeHook<THandler>[] {
-  const pre = hooks.filter(hook => hook.order === 'pre')
-  const normal = hooks.filter(hook => hook.order === undefined)
-  const post = hooks.filter(hook => hook.order === 'post')
-  return [...pre, ...normal, ...post]
-}
-
-/**
- * 为 slot 解析派生一次性上下文。
- *
- * 只补充当前 slotName，不修改父级 resolveSnap 的其他字段。
- */
-function createSlotResolveSnap(
-  resolveSnap: FormRuntimeResolveSnap,
-  slotName: string,
-): FormRuntimeResolveSnap & { slotName: string } {
-  return {
-    ...resolveSnap,
-    slotName,
-  }
-}
 
 /** 创建表单运行时实例，合并组件注册、插件 hook 和 token resolver。 */
 export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime {
@@ -243,11 +126,27 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
       tokenResolvers[type] = resolver
     }
 
-    if (plugin.transformField)
-      fieldTransformHooks.push(normalizeObjectHook(plugin.name, 'transformField', plugin.transformField))
+    if (plugin.transformField) {
+      const hook = plugin.transformField
+      if (typeof hook === 'function') {
+        fieldTransformHooks.push({ handler: hook, pluginName: plugin.name })
+      }
+      else if (hook && typeof hook === 'object' && typeof hook.handler === 'function') {
+        if (hook.order !== undefined && hook.order !== 'pre' && hook.order !== 'post')
+          throw new TypeError(`Plugin ${plugin.name} hook transformField.order must be "pre" or "post"`)
+        fieldTransformHooks.push({ handler: hook.handler, order: hook.order, pluginName: plugin.name })
+      }
+      else {
+        throw new TypeError(`Plugin ${plugin.name} hook transformField must be a function or an object hook`)
+      }
+    }
   }
 
-  const orderedFieldTransformHooks = orderHooks(fieldTransformHooks)
+  const orderedFieldTransformHooks = [
+    ...fieldTransformHooks.filter(hook => hook.order === 'pre'),
+    ...fieldTransformHooks.filter(hook => hook.order === undefined),
+    ...fieldTransformHooks.filter(hook => hook.order === 'post'),
+  ]
 
   /**
    * 创建 runtime 解析快照。
@@ -278,38 +177,6 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
       throw new Error(`Unknown component key: ${component}`)
     return component
   }
-
-  /**
-   * 通过已注册 resolver 解析 runtime token。
-   *
-   * 未注册 token type 会直接抛错；resolver 抛出的错误保持原始失败语义。
-   */
-  function resolveToken(value: RuntimeToken, resolveSnap: FormRuntimeResolveSnap, path: string): unknown {
-    const resolver = tokenResolvers[value.__configFormToken]
-    if (!resolver)
-      throw new Error(`No token resolver registered for token type: ${value.__configFormToken}`)
-
-    return resolver(value, resolveSnap, path, { resolveValue })
-  }
-
-  /**
-   * 递归解析普通对象的每个字段。
-   *
-   * path 会随着属性名扩展，用于 token resolver 或错误消息定位。
-   */
-  function resolveRecord(
-    value: Record<string, unknown>,
-    resolveSnap: FormRuntimeResolveSnap,
-    path: string,
-  ): Record<string, unknown> {
-    return Object.fromEntries(
-      Object.entries(value).map(([key, item]) => [
-        key,
-        resolveValue(item, resolveSnap, `${path}.${key}`),
-      ]),
-    )
-  }
-
   /**
    * 解析 runtime token、数组和普通对象中的动态值。
    *
@@ -323,43 +190,28 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
     let resolved: unknown = value
 
     if (isRuntimeToken(resolved)) {
-      resolved = resolveToken(resolved, resolveSnap, path)
+      const resolver = tokenResolvers[resolved.__configFormToken]
+      if (!resolver)
+        throw new Error(`No token resolver registered for token type: ${resolved.__configFormToken}`)
+      resolved = resolver(resolved, resolveSnap, path, { resolveValue })
     }
     else if (Array.isArray(resolved)) {
       resolved = resolved.map((item, index) => resolveValue(item, resolveSnap, `${path}.${index}`))
     }
-    else if (isPlainRecord(resolved) && !isVNode(resolved) && !isComponentLikeRecord(resolved)) {
-      resolved = resolveRecord(resolved, resolveSnap, path)
+    else if (
+      isPlainRecord(resolved)
+      && !isVNode(resolved)
+      && !(resolved.__v_skip || resolved.setup || resolved.render || resolved.template || resolved.__vccOpts)
+    ) {
+      resolved = Object.fromEntries(
+        Object.entries(resolved).map(([key, item]) => [
+          key,
+          resolveValue(item, resolveSnap, `${path}.${key}`),
+        ]),
+      )
     }
 
     return resolved
-  }
-
-  /**
-   * 解析容器节点的组件、props 和 slots。
-   *
-   * 调用前不要求节点已标准化，但会校验无 field 容器不能使用字段专属配置。
-   */
-  function resolveComponentNodeBase(
-    config: FormNodeConfig,
-    resolveSnap: FormRuntimeResolveSnap,
-    path: string,
-  ): ResolvedComponentNode {
-    assertComponentNodeConfig(config, path)
-
-    return markResolvedFormNodeConfig({
-      ...config,
-      component: resolveComponent(config.component),
-      props: resolveRecord(config.props ?? {}, resolveSnap, `${path}.props`),
-      slots: config.slots
-        ? Object.fromEntries(
-            Object.entries(config.slots).map(([key, slot]) => [
-              key,
-              resolveSlot(slot, createSlotResolveSnap(resolveSnap, key), `${path}.slots.${key}`),
-            ]),
-          )
-        : config.slots,
-    })
   }
 
   /**
@@ -374,7 +226,26 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
     if (isFieldConfig(node))
       return resolveField(node, resolveSnap)
 
-    return resolveComponentNodeBase(node, resolveSnap, path)
+    assertComponentNodeConfig(node, path)
+
+    return markResolvedFormNodeConfig({
+      ...node,
+      component: resolveComponent(node.component),
+      props: Object.fromEntries(
+        Object.entries(node.props ?? {}).map(([key, item]) => [
+          key,
+          resolveValue(item, resolveSnap, `${path}.props.${key}`),
+        ]),
+      ),
+      slots: node.slots
+        ? Object.fromEntries(
+          Object.entries(node.slots).map(([key, slot]) => [
+            key,
+            resolveSlot(slot, { ...resolveSnap, slotName: key }, `${path}.slots.${key}`),
+          ]),
+        )
+        : node.slots,
+    })
   }
 
   /**
@@ -382,9 +253,9 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
    *
    * slot 返回节点配置时必须由 defineField 创建；非法节点会抛错而不是静默忽略。
    */
-  function resolveSlotBase(slot: SlotContent, resolveSnap: FormRuntimeResolveSnap, path: string): SlotContent {
+  function resolveSlot(slot: SlotContent, resolveSnap: FormRuntimeResolveSnap, path = 'slot'): SlotContent {
     if (typeof slot === 'function') {
-      return (scope?: Record<string, unknown>) => resolveSlotBase(
+      return (scope?: Record<string, unknown>) => resolveSlot(
         slot(scope),
         {
           ...resolveSnap,
@@ -395,7 +266,7 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
     }
 
     if (Array.isArray(slot))
-      return slot.map((item, index) => resolveSlotBase(item as SlotContent, resolveSnap, `${path}.${index}`)) as SlotContent
+      return slot.map((item, index) => resolveSlot(item as SlotContent, resolveSnap, `${path}.${index}`)) as SlotContent
 
     if (isFormNodeConfig(slot)) {
       if (isResolvedFormNodeConfig(slot))
@@ -409,39 +280,6 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
   }
 
   /**
-   * 解析公开 slot 内容入口。
-   *
-   * path 默认指向 slot 根，用于递归解析时拼接错误定位信息。
-   */
-  function resolveSlot(slot: SlotContent, resolveSnap: FormRuntimeResolveSnap, path = 'slot'): SlotContent {
-    return resolveSlotBase(slot, resolveSnap, path)
-  }
-
-  /**
-   * 解析已标准化字段的组件、label、props 和 slots。
-   *
-   * 该函数不执行插件 transform，调用方必须先传入当前 runtime 的标准化字段。
-   */
-  function resolveFieldBase(config: NormalizedFieldConfig, resolveSnap: FormRuntimeResolveSnap): ResolvedField {
-    return markResolvedFormNodeConfig({
-      ...config,
-      component: resolveComponent(config.component),
-      label: config.label == null
-        ? config.label
-        : String(resolveValue(config.label, resolveSnap, `${config.field}.label`)),
-      props: resolveRecord(config.props, resolveSnap, `${config.field}.props`),
-      slots: config.slots
-        ? Object.fromEntries(
-            Object.entries(config.slots).map(([key, slot]) => [
-              key,
-              resolveSlot(slot, createSlotResolveSnap(resolveSnap, key), `${config.field}.slots.${key}`),
-            ]),
-          )
-        : config.slots,
-    })
-  }
-
-  /**
    * 标准化字段并按顺序执行插件 transformField hook。
    *
    * 插件只能返回同一 field key 的字段对象或 undefined；改变 field key 会直接抛错。
@@ -449,13 +287,22 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
   function transformField(
     field: FieldConfig | NormalizedFieldConfig,
   ): NormalizedFieldConfig {
-    if (isResolvedFieldConfig(field) || isTransformedFieldConfig(field))
-      return field
+    if (
+      isResolvedFieldConfig(field)
+      || (field && typeof field === 'object' && (field as unknown as Record<symbol, unknown>)[CONFIG_FORM_TRANSFORMED_FIELD] === true)
+    ) {
+      return field as NormalizedFieldConfig
+    }
 
     let config = normalizeField(field)
 
     for (const hook of orderedFieldTransformHooks) {
-      const hookField = cloneNormalizedField(config)
+      const hookField = {
+        ...config,
+        props: { ...config.props },
+        slots: config.slots ? { ...config.slots } : config.slots,
+      }
+
       const next = hook.handler(hookField)
       if (next === undefined)
         continue
@@ -473,13 +320,20 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
       config = normalized
     }
 
-    return markTransformedFieldConfig(config)
+    Object.defineProperty(config, CONFIG_FORM_TRANSFORMED_FIELD, {
+      configurable: false,
+      enumerable: false,
+      value: true,
+      writable: false,
+    })
+
+    return config as NormalizedFieldConfig
   }
 
   /**
    * 解析真实字段节点。
    *
-   * 已解析字段直接返回；未解析字段会先执行 transformField，再带 field 上下文解析动态配置。
+   * 已解析字段直接返回；未解析字段会先执行 transformField，再解析组件、label、props 和 slots。
    */
   function resolveField(field: FieldConfig, resolveSnap: FormRuntimeResolveSnap): ResolvedField {
     if (isResolvedFieldConfig(field))
@@ -487,27 +341,27 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
 
     const transformed = transformField(field)
     const fieldResolveSnap = { ...resolveSnap, field: transformed }
-    return resolveFieldBase(transformed, fieldResolveSnap)
-  }
-
-  /**
-   * 解析 visible/disabled 条件。
-   *
-   * fallback 只表示业务默认值，runtime token 或条件函数抛错时保持失败可见。
-   */
-  function resolveConditionBase(
-    condition: FieldCondition<FormValues> | undefined,
-    resolveSnap: FormRuntimeResolveSnap,
-    fallback: boolean,
-  ): boolean {
-    // fallback 只表示 visible/disabled 的业务默认值，不能吞掉 resolver 或条件函数抛出的错误。
-    if (condition == null)
-      return fallback
-    if (typeof condition === 'boolean')
-      return condition
-    if (isRuntimeToken<boolean>(condition))
-      return Boolean(resolveValue(condition, resolveSnap, 'condition'))
-    return condition(resolveSnap.values)
+    return markResolvedFormNodeConfig({
+      ...transformed,
+      component: resolveComponent(transformed.component),
+      label: transformed.label == null
+        ? transformed.label
+        : String(resolveValue(transformed.label, fieldResolveSnap, `${transformed.field}.label`)),
+      props: Object.fromEntries(
+        Object.entries(transformed.props).map(([key, item]) => [
+          key,
+          resolveValue(item, fieldResolveSnap, `${transformed.field}.props.${key}`),
+        ]),
+      ),
+      slots: transformed.slots
+        ? Object.fromEntries(
+          Object.entries(transformed.slots).map(([key, slot]) => [
+            key,
+            resolveSlot(slot, { ...fieldResolveSnap, slotName: key }, `${transformed.field}.slots.${key}`),
+          ]),
+        )
+        : transformed.slots,
+    })
   }
 
   /**
@@ -518,7 +372,12 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
   function resolveVisible(field: FieldConfig | NormalizedFieldConfig, resolveSnap: FormRuntimeResolveSnap): boolean {
     const transformed = transformField(field)
     const fieldResolveSnap = { ...resolveSnap, field: transformed }
-    return resolveConditionBase(transformed.visible, fieldResolveSnap, true)
+    const condition = transformed.visible
+    if (condition == null) return true
+    if (typeof condition === 'boolean') return condition
+    if (isRuntimeToken<boolean>(condition))
+      return Boolean(resolveValue(condition, fieldResolveSnap, 'condition'))
+    return condition(fieldResolveSnap.values)
   }
 
   /**
@@ -529,7 +388,12 @@ export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime
   function resolveDisabled(field: FieldConfig | NormalizedFieldConfig, resolveSnap: FormRuntimeResolveSnap): boolean {
     const transformed = transformField(field)
     const fieldResolveSnap = { ...resolveSnap, field: transformed }
-    return resolveConditionBase(transformed.disabled, fieldResolveSnap, false)
+    const condition = transformed.disabled
+    if (condition == null) return false
+    if (typeof condition === 'boolean') return condition
+    if (isRuntimeToken<boolean>(condition))
+      return Boolean(resolveValue(condition, fieldResolveSnap, 'condition'))
+    return condition(fieldResolveSnap.values)
   }
 
   const runtime: FormRuntime = {
