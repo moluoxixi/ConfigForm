@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, markRaw, nextTick } from 'vue'
 import { z } from 'zod'
 import FormField from '../src/components/FormField/src/index.vue'
+import FormLayout from '../src/components/FormLayout/src/index.vue'
 import { FORM_CONTEXT_KEY } from '../src/composables/useFormContext'
 import ConfigForm from '../src/index.vue'
 import { defineField } from '../src/models/field'
@@ -344,7 +345,7 @@ describe('config form component', () => {
     const api = wrapper.vm as unknown as ConfigFormExpose<Record<string, unknown>>
 
     await expect(api.validateField('name')).resolves.toBe(false)
-    expect(wrapper.get('form').classes()).toContain('cf-form--inline')
+    expect(wrapper.get('form').attributes('style')).toContain('flex')
 
     api.setValue('name', 'Ada')
     await nextTick()
@@ -669,5 +670,175 @@ describe('form field component', () => {
     expect(wrapper.text()).toContain('嵌入选项')
     expect(wrapper.find('[data-role="slot-child"]').exists()).toBe(true)
     expect(wrapper.find('.cf-field').exists()).toBe(false)
+  })
+})
+
+describe('FormLayout', () => {
+  it('renders grid layout by default and applies flex style when inline=true', () => {
+    const gridWrapper = mount(FormLayout, {
+      props: { inline: false },
+      global: {
+        provide: {
+          [FORM_CONTEXT_KEY]: {
+            values: {},
+            errors: {},
+            visibilityMap: {},
+            disabledMap: {},
+            setValue: vi.fn(),
+            validateField: vi.fn(),
+            inline: false,
+          },
+        },
+      },
+      slots: { default: 'grid content' },
+    })
+
+    expect(gridWrapper.classes()).toContain('cf-layout')
+    expect(gridWrapper.attributes('style')).toContain('grid')
+    expect(gridWrapper.find('.cf-layout').exists()).toBe(true)
+
+    const inlineWrapper = mount(FormLayout, {
+      props: { inline: true },
+      global: {
+        provide: {
+          [FORM_CONTEXT_KEY]: {
+            values: {},
+            errors: {},
+            visibilityMap: {},
+            disabledMap: {},
+            setValue: vi.fn(),
+            validateField: vi.fn(),
+            inline: false,
+          },
+        },
+      },
+      slots: { default: 'inline content' },
+    })
+
+    expect(inlineWrapper.attributes('style')).toContain('flex')
+  })
+
+  it('inherits inline from parent context when inline prop is not set', () => {
+    const wrapper = mount(FormLayout, {
+      global: {
+        provide: {
+          [FORM_CONTEXT_KEY]: {
+            values: {},
+            errors: {},
+            visibilityMap: {},
+            disabledMap: {},
+            setValue: vi.fn(),
+            validateField: vi.fn(),
+            inline: true,
+          },
+        },
+      },
+      slots: { default: 'inherited' },
+    })
+
+    expect(wrapper.attributes('style')).toContain('flex')
+  })
+
+  it('overrides parent context inline for child fields', () => {
+    const fields = [
+      defineField({
+        field: 'name',
+        component: TextInput,
+        label: '姓名',
+      }),
+      defineField({
+        component: 'FormLayout',
+        props: { inline: true },
+        slots: {
+          default: [
+            defineField({
+              field: 'city',
+              component: TextInput,
+              label: '城市',
+            }),
+            defineField({
+              field: 'district',
+              component: TextInput,
+              label: '区域',
+            }),
+          ],
+        },
+      }),
+      defineField({
+        field: 'email',
+        component: TextInput,
+        label: '邮箱',
+      }),
+    ]
+
+    const wrapper = mount(ConfigForm, {
+      props: {
+        fields,
+        modelValue: {},
+      },
+    })
+
+    // 顶层 form 不是 inline → grid 样式
+    expect(wrapper.get('form').attributes('style')).toContain('grid')
+
+    // FormLayout 内的字段应该是 inline 模式 → flex 样式
+    const layoutEl = wrapper.find('.cf-layout')
+    expect(layoutEl.exists()).toBe(true)
+    expect(layoutEl.attributes('style')).toContain('flex')
+
+    // FormLayout 外的字段不受影响
+    const fieldDivs = wrapper.findAll('.cf-field')
+    expect(fieldDivs.length).toBeGreaterThanOrEqual(3)
+  })
+
+  it('supports nested FormLayout with different layout modes', () => {
+    const fields = [
+      defineField({
+        field: 'top',
+        component: TextInput,
+        label: '顶层字段',
+      }),
+      defineField({
+        component: 'FormLayout',
+        props: { inline: true },
+        slots: {
+          default: [
+            defineField({
+              field: 'inlineA',
+              component: TextInput,
+              label: '行内A',
+            }),
+            // 嵌套 FormLayout 切回 grid
+            defineField({
+              component: 'FormLayout',
+              props: { inline: false, columns: 3 },
+              slots: {
+                default: [
+                  defineField({
+                    field: 'gridB',
+                    component: TextInput,
+                    label: '网格B',
+                  }),
+                ],
+              },
+            }),
+          ],
+        },
+      }),
+    ]
+
+    const wrapper = mount(ConfigForm, {
+      props: { fields, modelValue: {} },
+    })
+
+    // 外层 FormLayout 是 inline → flex 样式
+    const layoutEls = wrapper.findAll('.cf-layout')
+    const inlineLayout = layoutEls.find(el => el.attributes('style')?.includes('flex'))
+    expect(inlineLayout).toBeDefined()
+
+    // 内层 FormLayout 是 grid → grid 样式
+    expect(layoutEls.length).toBeGreaterThanOrEqual(2)
+    const innerGrid = layoutEls.find(el => el.attributes('style')?.includes('grid') && !el.attributes('style')?.includes('flex'))
+    expect(innerGrid).toBeDefined()
   })
 })

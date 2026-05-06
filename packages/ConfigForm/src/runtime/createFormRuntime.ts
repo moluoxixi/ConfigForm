@@ -1,13 +1,19 @@
 import type { ComponentRegistry, FormRuntimeOptions, FormRuntimePlugin, FormRuntimeTokenResolver } from './types'
 import type { FormRuntime } from './types'
+import FormLayout from '@/components/FormLayout'
 import { createResolvers } from './resolve'
 import { createResolveSnap } from './snap'
 import { createTransform } from './transform'
 
+/** 内置组件：FormLayout 布局容器，始终注册，用户无需手动注册即可用字符串引用。 */
+const BUILT_IN_COMPONENTS: ComponentRegistry = {
+  FormLayout,
+}
+
 /** 创建表单运行时实例，合并组件注册、插件 hook 和 token resolver。 */
 export function createFormRuntime(options: FormRuntimeOptions = {}): FormRuntime {
   const plugins: FormRuntimePlugin[] = [...(options.plugins ?? [])]
-  const components: ComponentRegistry = { ...(options.components ?? {}) }
+  const components: ComponentRegistry = { ...BUILT_IN_COMPONENTS, ...(options.components ?? {}) }
   const tokenResolvers: Record<string, FormRuntimeTokenResolver> = {}
 
   const seenPluginNames = new Set<string>()

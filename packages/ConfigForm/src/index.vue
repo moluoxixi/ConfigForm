@@ -1,5 +1,6 @@
 <script setup lang="ts" generic="T extends object = Record<string, unknown>">
 import { computed, watch } from 'vue'
+import type { CSSProperties } from 'vue'
 import type { ConfigFormEmits, ConfigFormExpose, ConfigFormProps } from '@/types'
 import RecursiveField from '@/components/RecursiveField'
 import { useForm } from '@/composables/useForm'
@@ -13,13 +14,15 @@ import { resolveLabelWidth } from '@/utils/style'
  */
 const props = withDefaults(defineProps<ConfigFormProps<T>>(), {
   namespace: 'cf',
+  columns: 24,
+  gap: '8px 8px',
 })
 
 const emit = defineEmits<ConfigFormEmits<T>>()
 
 const namespaceRef = computed(() => props.namespace)
 provideNamespace(namespaceRef)
-const { b, m } = useBem(namespaceRef)
+const { b } = useBem(namespaceRef)
 
 const rawNodes = computed(() => props.fields)
 const initialValues = computed(() => props.modelValue)
@@ -98,6 +101,23 @@ const keyedResolvedNodes = computed(() =>
   })),
 )
 
+/** 动态生成 form 布局样式，替代 SCSS 硬编码。 */
+const formStyle = computed<CSSProperties>(() => {
+  if (props.inline) {
+    return {
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: props.gap,
+      alignItems: 'center',
+    }
+  }
+  return {
+    display: 'grid',
+    gridTemplateColumns: `repeat(${props.columns}, 1fr)`,
+    gap: props.gap,
+  }
+})
+
 // values 是 reactive 对象，需监听内部字段变化以同步 v-model。
 watch(values, (newVals) => {
   emit('update:modelValue', { ...newVals } as T)
@@ -123,7 +143,8 @@ defineExpose<ConfigFormExpose<T>>({
 
 <template>
   <form
-    :class="[b('form'), { [m('form', 'inline')]: inline }]"
+    :class="b('form')"
+    :style="formStyle"
     @submit.prevent="submit()"
   >
     <template v-for="item in keyedResolvedNodes" :key="item.key">

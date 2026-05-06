@@ -152,6 +152,10 @@ export interface ConfigFormProps<T extends object = FormValues> {
   namespace?: string
   /** 在适配样式支持时以内联模式渲染字段。 */
   inline?: boolean
+  /** grid 列数（仅非 inline 模式生效），默认 24。 */
+  columns?: number
+  /** 网格间距，默认 "16px 8px"。 */
+  gap?: string
   /** 表单字段配置。 */
   fields: FormNodeConfig[]
   /** 传递给字段布局的 label 宽度。 */

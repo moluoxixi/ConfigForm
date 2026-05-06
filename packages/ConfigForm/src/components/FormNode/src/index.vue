@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CSSProperties } from 'vue'
 import type { FormRuntimeResolveSnap } from '@/runtime'
 import type { ResolvedField, ResolvedFormNode, SlotContent } from '@/types'
 import { computed, defineComponent } from 'vue'
@@ -37,16 +38,28 @@ const currentResolveSnap = computed<FormRuntimeResolveSnap>(() =>
   props.resolveSnap ?? runtimeRef.value.createResolveSnap(),
 )
 
+/** 容器节点在 grid 模式下默认 span: 24，占满整行 */
+const containerStyle = computed<CSSProperties | undefined>(() => {
+  if (ctx.inline) return undefined
+  if ('field' in props.node) return undefined
+  return { gridColumn: 'span 24' }
+})
+
 /** 有 field 的节点从 visibilityMap 读取可见性，容器节点始终可见 */
 const visible = computed(() => {
   if (!('field' in props.node)) return true
   return ctx.visibilityMap[(props.node as ResolvedField).field] !== false
 })
 
-const attrs = computed(() => ({
-  ...props.node.props,
-  ...(props.componentAttrs ?? {}),
-}))
+const attrs = computed(() => {
+  const baseStyle = containerStyle.value
+  const existingStyle = props.node.props?.style as CSSProperties | undefined
+  return {
+    ...props.node.props,
+    ...(props.componentAttrs ?? {}),
+    style: baseStyle ? { ...baseStyle, ...existingStyle } : existingStyle,
+  }
+})
 
 type NormalizedSlotNode =
   | { key: string, kind: 'node', node: ResolvedFormNode, resolveSnap: FormRuntimeResolveSnap }

@@ -1,7 +1,7 @@
 @use './variables' as *;
 
 @media (max-width: 640px) {
-  .#{$namespace}-form {
+  .#{$namespace}-layout {
     display: flex !important;
     flex-direction: column !important;
   }
