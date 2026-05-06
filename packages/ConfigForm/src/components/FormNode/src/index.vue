@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { FormRuntimeResolveSnap } from '@/runtime'
-import type { ResolvedFormNode, SlotContent } from '@/types'
+import type { ResolvedField, ResolvedFormNode, SlotContent } from '@/types'
 import { computed, defineComponent } from 'vue'
 import RecursiveField from '@/components/RecursiveField'
+import { useFormContext } from '@/composables/useFormContext'
 import { useRuntime } from '@/composables/useRuntime'
 import { isFormNodeConfig } from '@/models/node'
 
@@ -30,10 +31,17 @@ const props = defineProps<{
 }>()
 
 const runtimeRef = useRuntime()
+const ctx = useFormContext()
 
 const currentResolveSnap = computed<FormRuntimeResolveSnap>(() =>
   props.resolveSnap ?? runtimeRef.value.createResolveSnap(),
 )
+
+/** 有 field 的节点从 visibilityMap 读取可见性，容器节点始终可见 */
+const visible = computed(() => {
+  if (!('field' in props.node)) return true
+  return ctx.visibilityMap[(props.node as ResolvedField).field] !== false
+})
 
 const attrs = computed(() => ({
   ...props.node.props,
@@ -101,6 +109,7 @@ function normalizeSlotValue(slotValue: SlotContent, scope: Record<string, unknow
 
 <template>
   <component
+    v-if="visible"
     :is="node.component"
     v-bind="attrs"
     v-on="componentListeners ?? {}"
