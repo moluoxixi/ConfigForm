@@ -1,5 +1,5 @@
 import type { FormRuntimeOptions } from '../src/runtime'
-import type { FormNodeConfig } from '../src/types'
+import type { FormNodeConfig, NormalizedFieldConfig } from '../src/types'
 import { describe, expect, it, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
 import { z } from 'zod'
@@ -136,7 +136,7 @@ describe('useForm', () => {
     const fields = ref([
       defineField({ field: 'visible', component: 'input', defaultValue: 'ok' }),
       defineField({ field: 'hidden', component: 'input', defaultValue: 'skip', visible: () => false }),
-      defineField({ field: 'disabled', component: 'input', defaultValue: 'skip', disabled: () => true }),
+      defineField({ field: 'disabled', component: 'input', defaultValue: 'skip', disabled: () => true, submitWhenDisabled: false }),
       defineField({
         field: 'hiddenKept',
         component: 'input',
@@ -149,7 +149,6 @@ describe('useForm', () => {
         component: 'input',
         defaultValue: 'keep',
         disabled: () => true,
-        submitWhenDisabled: true,
       }),
     ])
 
@@ -325,6 +324,7 @@ describe('useForm', () => {
         component: 'input',
         defaultValue: 'disabled',
         disabled: () => true,
+        submitWhenDisabled: false,
         validator: () => '禁用字段默认跳过',
       }),
       defineField({
@@ -377,6 +377,7 @@ describe('useForm', () => {
         component: 'input',
         defaultValue: 'disabled for guests',
         disabled: values => values.role === 'guest',
+        submitWhenDisabled: false,
         validator: () => '禁用时不应校验',
       }),
     ])
@@ -406,17 +407,17 @@ describe('useForm', () => {
       plugins: [
         {
           name: 'submit-policy',
-          transformField: (field) => {
-            if (field.field === 'dynamicHidden') {
+          transformNode: (field) => {
+            if ((field as NormalizedFieldConfig).field === 'dynamicHidden') {
               return {
                 ...field,
                 submitWhenHidden: true,
-                transform: value => `kept:${String(value)}`,
+                transform: (value: unknown) => `kept:${String(value)}`,
                 visible: false,
               }
             }
 
-            if (field.field === 'dynamicDisabled') {
+            if ((field as NormalizedFieldConfig).field === 'dynamicDisabled') {
               return {
                 ...field,
                 disabled: true,

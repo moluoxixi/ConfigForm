@@ -1,5 +1,5 @@
 import type { FormRuntimeResolveSnap } from '../src/runtime'
-import type { RuntimeToken } from '../src/types'
+import type { NormalizedFieldConfig, RuntimeToken } from '../src/types'
 import { describe, expect, it } from 'vitest'
 import { defineComponent, h, markRaw } from 'vue'
 import { defineField } from '../src/models/field'
@@ -134,7 +134,7 @@ describe('form runtime', () => {
         },
         {
           name: 'normal-props',
-          transformField: field => ({
+          transformNode: field => ({
             ...field,
             props: {
               ...field.props,
@@ -144,7 +144,7 @@ describe('form runtime', () => {
         },
         {
           name: 'pre-props',
-          transformField: {
+          transformNode: {
             order: 'pre',
             handler: field => ({
               ...field,
@@ -157,7 +157,7 @@ describe('form runtime', () => {
         },
         {
           name: 'post-props',
-          transformField: {
+          transformNode: {
             order: 'post',
             handler: field => ({
               ...field,
@@ -170,7 +170,7 @@ describe('form runtime', () => {
         },
         {
           name: 'normal-props-2',
-          transformField: field => ({
+          transformNode: field => ({
             ...field,
             props: {
               ...field.props,
@@ -196,10 +196,10 @@ describe('form runtime', () => {
     })
 
     const resolveSnap = runtime.createResolveSnap({ errors: {}, values: { role: 'admin' } })
-    const resolved = runtime.resolveField(field, resolveSnap)
+    const resolved = runtime.resolveNode(field, resolveSnap)
 
     expect(resolved.component).toBe(RuntimeInput)
-    expect(resolved.label).toBe('用户名-Ada')
+    expect((resolved as any).label).toBe('用户名-Ada')
     expect(resolved.props).toMatchObject({
       disabled: false,
       order: ['pre', 'normal', 'normal-2', 'post'],
@@ -218,18 +218,8 @@ describe('form runtime', () => {
       label: message('field.name', 'Name'),
     })
 
-    expect(() => runtime.resolveField(field, runtime.createResolveSnap({ errors: {}, values: {} })))
+    expect(() => runtime.resolveNode(field, runtime.createResolveSnap({ errors: {}, values: {} })))
       .toThrow(/No token resolver registered/)
-  })
-
-  it('rejects runtime token payloads that try to overwrite reserved metadata', () => {
-    expect(() => createRuntimeToken('message', {
-      __configFormToken: 'other',
-    } as never)).toThrow(/reserved runtime token key: __configFormToken/)
-
-    expect(() => createRuntimeToken('message', {
-      __configFormValue: 'phantom',
-    } as never)).toThrow(/reserved runtime token key: __configFormValue/)
   })
 
   it('rejects fields that use the same event for value and blur triggers', () => {
@@ -241,7 +231,7 @@ describe('form runtime', () => {
       trigger: 'commit',
     })
 
-    expect(() => runtime.resolveField(field, runtime.createResolveSnap({ errors: {}, values: {} })))
+    expect(() => runtime.resolveNode(field, runtime.createResolveSnap({ errors: {}, values: {} })))
       .toThrow(/cannot use the same event for trigger and blurTrigger/)
   })
 
@@ -267,7 +257,7 @@ describe('form runtime', () => {
     const runtime = createFormRuntime()
     const field = defineField({ component: 'MissingInput', field: 'name' })
 
-    expect(() => runtime.resolveField(field, runtime.createResolveSnap({ errors: {}, values: {} })))
+    expect(() => runtime.resolveNode(field, runtime.createResolveSnap({ errors: {}, values: {} })))
       .toThrow(/Unknown component key: MissingInput/)
   })
 
@@ -295,7 +285,7 @@ describe('form runtime', () => {
       visible: false,
     })
     const resolveSnap = runtime.createResolveSnap({ errors: {}, values: { flag: 'from-values' } })
-    const resolved = runtime.resolveField(field, resolveSnap)
+    const resolved = runtime.resolveNode(field, resolveSnap)
     const vnode = h('span', 'kept')
 
     expect(resolved.props?.flag).toBe('from-values')
@@ -335,7 +325,7 @@ describe('form runtime', () => {
       },
     })
 
-    const resolved = runtime.resolveField(field, runtime.createResolveSnap({ errors: {}, values: {} }))
+    const resolved = runtime.resolveNode(field, runtime.createResolveSnap({ errors: {}, values: {} }))
 
     expect(seenSlotNames).toEqual(['default', 'suffix'])
     expect(resolved.slots?.default).toBe('default')
@@ -373,8 +363,8 @@ describe('form runtime', () => {
       plugins: [
         {
           name: 'count-resolve-field',
-          transformField: (field) => {
-            resolvedFields.push(field.field)
+          transformNode: (field) => {
+            resolvedFields.push((field as NormalizedFieldConfig).field)
             return field
           },
         },
@@ -392,12 +382,12 @@ describe('form runtime', () => {
     })
     const resolveSnap = runtime.createResolveSnap({ errors: {}, values: {} })
 
-    const resolved = runtime.resolveField(field, resolveSnap)
+    const resolved = runtime.resolveNode(field, resolveSnap)
 
     expect(resolvedFields).toEqual(['host', 'child'])
 
     resolvedFields.length = 0
-    expect(runtime.resolveField(resolved, resolveSnap)).toBe(resolved)
+    expect(runtime.resolveNode(resolved as any, resolveSnap)).toBe(resolved)
     expect(resolvedFields).toEqual([])
 
     resolvedFields.length = 0
@@ -426,7 +416,7 @@ describe('form runtime', () => {
           }),
         ],
       },
-    }, resolveSnap)
+    } as never, resolveSnap)
 
     expect(resolved).toMatchObject({
       component: RuntimeInput,
@@ -441,14 +431,15 @@ describe('form runtime', () => {
     })
   })
 
-  it('throws when field-only options are used on component containers', () => {
+  it('resolves container nodes without field binding', () => {
     const runtime = createFormRuntime()
     const resolveSnap = runtime.createResolveSnap({ errors: {}, values: {} })
 
-    expect(() => runtime.resolveNode({
+    const resolved = runtime.resolveNode(defineField({
       component: 'section',
-      label: '错误的容器 label',
-    } as never, resolveSnap)).toThrow(/Component node without field cannot use field-only option "label"/)
+    }), resolveSnap)
+
+    expect('field' in resolved).toBe(false)
   })
 
   it('runs field transforms without exposing form values or errors', () => {
@@ -457,7 +448,7 @@ describe('form runtime', () => {
       plugins: [
         {
           name: 'static-transform',
-          transformField: (...args) => {
+          transformNode: (...args) => {
             seenArgCounts.push(args.length)
             const [field] = args
             return {
@@ -472,7 +463,7 @@ describe('form runtime', () => {
       ],
     })
 
-    const resolved = runtime.resolveField(
+    const resolved = runtime.resolveNode(
       defineField({ component: 'input', field: 'name' }),
       runtime.createResolveSnap({ errors: { name: ['error'] }, values: { name: 'Ada' } }),
     )
@@ -484,7 +475,7 @@ describe('form runtime', () => {
   it('does not keep legacy field plugins as a runtime compatibility branch', () => {
     const runtime = createFormRuntime()
 
-    expect(() => runtime.resolveField({
+    expect(() => runtime.resolveNode({
       component: 'input',
       field: 'name',
       plugins: {

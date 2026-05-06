@@ -1,6 +1,6 @@
 import type { MaybeRef, Ref } from 'vue'
 import type { FormRuntimeOptions } from '@/runtime'
-import type { FieldConfig, FieldKey, FormErrors, FormNodeConfig, FormValues, ValidateTrigger } from '@/types'
+import type { DefinedFormNodeConfig, FieldConfig, FieldKey, FormErrors, FormNodeConfig, FormValues, NormalizedFieldConfig, ValidateTrigger } from '@/types'
 import { computed, reactive, ref, toRaw, toValue, watch } from 'vue'
 import { normalizeFormRuntime } from '@/composables/useRuntime'
 import { applyFieldTransform, shouldValidateOn } from '@/models/field'
@@ -79,7 +79,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
    */
   function initValues(source: FormValues = (initialValues?.value ?? {}) as FormValues, pruneToFields = false) {
     const runtime = runtimeRef.value
-    const transformedFields = fieldConfigs.value.map(config => runtime.transformField(config))
+    const transformedFields = fieldConfigs.value.map(config => runtime.transformNode(config as DefinedFormNodeConfig) as NormalizedFieldConfig)
     const fieldNames = new Set(transformedFields.map(field => field.field))
     const next: FormValues = pruneToFields
       ? Object.fromEntries(Object.entries(source).filter(([key]) => fieldNames.has(key)))
@@ -119,13 +119,13 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
   const visibilityMap = computed<Record<string, boolean>>(() => {
     const snap = { ...values }
     const resolveSnap = runtimeRef.value.createResolveSnap({ errors: errors.value, values: snap })
-    return Object.fromEntries(fieldConfigs.value.map(f => [f.field, runtimeRef.value.resolveVisible(f, resolveSnap)]))
+    return Object.fromEntries(fieldConfigs.value.map(f => [f.field, runtimeRef.value.resolveVisible(f as DefinedFormNodeConfig, resolveSnap)]))
   })
 
   const disabledMap = computed<Record<string, boolean>>(() => {
     const snap = { ...values }
     const resolveSnap = runtimeRef.value.createResolveSnap({ errors: errors.value, values: snap })
-    return Object.fromEntries(fieldConfigs.value.map(f => [f.field, runtimeRef.value.resolveDisabled(f, resolveSnap)]))
+    return Object.fromEntries(fieldConfigs.value.map(f => [f.field, runtimeRef.value.resolveDisabled(f as DefinedFormNodeConfig, resolveSnap)]))
   })
 
   /** 写入单个模型字段，并清除该字段已有校验错误。 */
@@ -184,7 +184,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
    */
   async function validateSingleField(fieldName: string, trigger: ValidateTrigger): Promise<boolean> {
     const config = fieldConfigs.value.find(f => f.field === fieldName)
-    const field = config ? runtimeRef.value.transformField(config) : undefined
+    const field = config ? runtimeRef.value.transformNode(config as DefinedFormNodeConfig) as NormalizedFieldConfig : undefined
     if (!field?.schema && !field?.validator) {
       clearFieldError(fieldName)
       return true
@@ -197,8 +197,8 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     const shouldValidateDisabled = trigger === 'submit' && field.submitWhenDisabled
 
     if (
-      (!runtimeRef.value.resolveVisible(field, resolveSnap) && !shouldValidateHidden)
-      || (runtimeRef.value.resolveDisabled(field, resolveSnap) && !shouldValidateDisabled)
+      (!runtimeRef.value.resolveVisible(field as unknown as DefinedFormNodeConfig, resolveSnap) && !shouldValidateHidden)
+      || (runtimeRef.value.resolveDisabled(field as unknown as DefinedFormNodeConfig, resolveSnap) && !shouldValidateDisabled)
     ) {
       clearFieldError(fieldName)
       return true
@@ -246,10 +246,10 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     const resolveSnap = runtimeRef.value.createResolveSnap({ errors: errors.value, values: snap })
     const submitValues: FormValues = {}
     for (const config of fieldConfigs.value) {
-      const field = runtimeRef.value.transformField(config)
-      if (!runtimeRef.value.resolveVisible(field, resolveSnap) && !field.submitWhenHidden)
+      const field = runtimeRef.value.transformNode(config as DefinedFormNodeConfig) as NormalizedFieldConfig
+      if (!runtimeRef.value.resolveVisible(field as unknown as DefinedFormNodeConfig, resolveSnap) && !field.submitWhenHidden)
         continue
-      if (runtimeRef.value.resolveDisabled(field, resolveSnap) && !field.submitWhenDisabled)
+      if (runtimeRef.value.resolveDisabled(field as unknown as DefinedFormNodeConfig, resolveSnap) && !field.submitWhenDisabled)
         continue
       submitValues[field.field] = applyFieldTransform(field, snap[field.field], snap)
     }

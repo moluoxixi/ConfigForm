@@ -54,13 +54,13 @@ describe('validate utils', () => {
         field: 'disabledSkipped',
         component: 'input',
         disabled: () => true,
+        submitWhenDisabled: false,
         validator: () => '禁用字段默认跳过',
       }),
       defineField({
         field: 'disabledKept',
         component: 'input',
         disabled: () => true,
-        submitWhenDisabled: true,
         validator: () => '禁用字段参与提交校验',
       }),
     ]

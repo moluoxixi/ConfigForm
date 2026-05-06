@@ -1,6 +1,6 @@
 import type { ZodTypeAny } from 'zod'
 import type { FormRuntime } from '@/runtime'
-import type { FieldConfig, FieldValidator, FormErrors, FormValues, ValidateTrigger } from '@/types'
+import type { DefinedFormNodeConfig, FieldConfig, FieldValidator, FormErrors, FormValues, NormalizedFieldConfig, ValidateTrigger } from '@/types'
 import { shouldValidateOn } from '@/models/field'
 import { createFormRuntime } from '@/runtime'
 
@@ -56,15 +56,15 @@ export async function validateForm(
   const errors: FormErrors = {}
   const resolveSnap = runtime.createResolveSnap({ errors, values })
   for (const config of fields) {
-    const field = runtime.transformField(config)
+    const field = runtime.transformNode(config as DefinedFormNodeConfig) as NormalizedFieldConfig
     if (!field.schema && !field.validator)
       continue
     const shouldValidateHidden = trigger === 'submit' && field.submitWhenHidden
     const shouldValidateDisabled = trigger === 'submit' && field.submitWhenDisabled
 
-    if (!runtime.resolveVisible(field, resolveSnap) && !shouldValidateHidden)
+    if (!runtime.resolveVisible(field as unknown as DefinedFormNodeConfig, resolveSnap) && !shouldValidateHidden)
       continue
-    if (runtime.resolveDisabled(field, resolveSnap) && !shouldValidateDisabled)
+    if (runtime.resolveDisabled(field as unknown as DefinedFormNodeConfig, resolveSnap) && !shouldValidateDisabled)
       continue
     if (!shouldValidateOn(field, trigger))
       continue

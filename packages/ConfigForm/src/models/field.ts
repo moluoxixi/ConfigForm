@@ -82,7 +82,7 @@ export function normalizeField(input: FieldConfig): NormalizedFieldConfig {
     blurTrigger,
     props: input.props ?? {},
     span: input.span ?? 24,
-    submitWhenDisabled: input.submitWhenDisabled ?? false,
+    submitWhenDisabled: input.submitWhenDisabled ?? true,
     submitWhenHidden: input.submitWhenHidden ?? false,
     trigger,
     validateOn: normalizeValidateOn(input.validateOn),

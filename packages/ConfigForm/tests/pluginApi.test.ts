@@ -13,10 +13,10 @@ describe('plugin api', () => {
     type HasRuntimeResolveSnap = 'values' extends keyof PluginApi.FormRuntimeResolveSnap ? true : false
     type HasRuntimeTokenType = PluginApi.RuntimeToken<string> extends { readonly __configFormToken: string } ? true : false
     type HasRuntimeCreateResolveSnap = 'createResolveSnap' extends keyof PluginApi.FormRuntime ? true : false
-    type HasRuntimeTransformField = 'transformField' extends keyof PluginApi.FormRuntime ? true : false
+    type HasRuntimeTransformNode = 'transformNode' extends keyof PluginApi.FormRuntime ? true : false
     type HasRuntimeResolveSnapPlugins = 'plugins' extends keyof PluginApi.FormRuntimeResolveSnap ? true : false
-    type TransformHookHasContext = Parameters<PluginApi.FormFieldTransform> extends [unknown, unknown, ...unknown[]] ? true : false
-    type RuntimeTransformHasContext = Parameters<PluginApi.FormRuntime['transformField']> extends [unknown, unknown, ...unknown[]] ? true : false
+    type TransformHookHasContext = Parameters<PluginApi.FormNodeTransform> extends [unknown, unknown, ...unknown[]] ? true : false
+    type RuntimeTransformHasContext = Parameters<PluginApi.FormRuntime['transformNode']> extends [unknown, unknown, ...unknown[]] ? true : false
 
     expectTypeOf<HasNormalizeField>().toEqualTypeOf<true>()
     expectTypeOf<HasCollectFieldConfigs>().toEqualTypeOf<true>()
@@ -27,7 +27,7 @@ describe('plugin api', () => {
     expectTypeOf<HasRuntimeResolveSnap>().toEqualTypeOf<true>()
     expectTypeOf<HasRuntimeTokenType>().toEqualTypeOf<true>()
     expectTypeOf<HasRuntimeCreateResolveSnap>().toEqualTypeOf<true>()
-    expectTypeOf<HasRuntimeTransformField>().toEqualTypeOf<true>()
+    expectTypeOf<HasRuntimeTransformNode>().toEqualTypeOf<true>()
     expectTypeOf<HasRuntimeResolveSnapPlugins>().toEqualTypeOf<false>()
     expectTypeOf<TransformHookHasContext>().toEqualTypeOf<false>()
     expectTypeOf<RuntimeTransformHasContext>().toEqualTypeOf<false>()

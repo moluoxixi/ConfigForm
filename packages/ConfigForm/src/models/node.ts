@@ -11,23 +11,6 @@ import { CONFIG_FORM_DEFINED_NODE } from '@/types'
 
 const CONFIG_FORM_RESOLVED_NODE = Symbol.for('moluoxixi.config-form.resolved-node')
 
-const FIELD_ONLY_NODE_KEYS = [
-  'blurTrigger',
-  'defaultValue',
-  'disabled',
-  'label',
-  'schema',
-  'span',
-  'submitWhenDisabled',
-  'submitWhenHidden',
-  'transform',
-  'trigger',
-  'validateOn',
-  'validator',
-  'valueProp',
-  'visible',
-] as const
-
 /**
  * 判断未知值是否可按普通对象读取。
  *
@@ -108,28 +91,6 @@ export function isResolvedFieldConfig(value: unknown): value is ResolvedField {
 }
 
 /**
- * 校验节点层面的不变量。
- *
- * 有 `field` 的节点是真实表单字段；无 `field` 的节点是容器节点，
- * 不能使用 label、schema 等仅字段节点可用的配置。
- */
-export function assertComponentNodeConfig(value: FormNodeConfig, path = 'component node') {
-  if (isFieldConfig(value))
-    return
-
-  for (const key of FIELD_ONLY_NODE_KEYS) {
-    if (key in value)
-      throw new Error(`Component node without field cannot use field-only option "${key}" at ${path}`)
-  }
-}
-
-/** 强制 slot 返回的对象节点配置必须由 defineField(...) 创建。 */
-export function assertDefinedSlotNodeConfig(value: FormNodeConfig, path = 'slot node') {
-  if (!isDefinedFormNodeConfig(value))
-    throw new Error(`Slot node config at ${path} must be created with defineField(...)`)
-}
-
-/**
  * 从 slot 内容中收集真实字段节点。
  *
  * 函数 slot 只执行一层静态解析；若返回函数则视为运行时渲染内容，不提前推断字段拓扑。
@@ -151,7 +112,6 @@ function collectSlotFields(slot: SlotContent | undefined, path = 'slot'): FieldC
   if (!isFormNodeConfig(slot))
     return []
 
-  assertDefinedSlotNodeConfig(slot, path)
   return collectFieldConfigsRaw([slot])
 }
 
@@ -162,8 +122,6 @@ function collectSlotFields(slot: SlotContent | undefined, path = 'slot'): FieldC
  */
 function collectFieldConfigsRaw(nodes: readonly FormNodeConfig[]): FieldConfig[] {
   return nodes.flatMap((node) => {
-    assertComponentNodeConfig(node)
-
     const nested = Object.entries(node.slots ?? {}).flatMap(([key, slot]) => collectSlotFields(slot, `${nodePath(node)}.slots.${key}`))
     return isFieldConfig(node) ? [node, ...nested] : nested
   })

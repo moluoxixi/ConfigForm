@@ -5,7 +5,6 @@ export {
   shouldValidateOn,
 } from '../models/field'
 export {
-  assertComponentNodeConfig,
   collectFieldConfigs,
   isFieldConfig,
   isFormNodeConfig,
@@ -18,7 +17,7 @@ export {
 export type {
   ComponentRegistry,
   CreateRuntimeResolveSnapInput,
-  FormFieldTransform,
+  FormNodeTransform,
   FormRuntime,
   FormRuntimeHookOrder,
   FormRuntimeObjectHook,
@@ -28,10 +27,21 @@ export type {
   FormRuntimeResolveSnap,
   FormRuntimeTokenResolver,
 } from '../runtime'
+export {
+  hasFieldBinding,
+  isComponent,
+  isContainer,
+  isField,
+} from '../runtime/guards'
+export {
+  normalizeFieldBinding,
+  normalizeNode,
+} from '../runtime/normalize'
 export type {
   FieldConfig,
   FormNodeConfig,
   NormalizedFieldConfig,
+  NormalizedNodeConfig,
   ResolvedComponentNode,
   ResolvedField,
   ResolvedFormNode,

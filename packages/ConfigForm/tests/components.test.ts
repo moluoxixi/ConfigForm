@@ -1,5 +1,5 @@
 import type { FormRuntimeOptions } from '../src/runtime'
-import type { ConfigFormExpose, FieldConfig, FormNodeConfig, RuntimeToken } from '../src/types'
+import type { ConfigFormExpose, DefinedFormNodeConfig, FormNodeConfig, ResolvedField, RuntimeToken } from '../src/types'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { defineComponent, h, markRaw, nextTick } from 'vue'
@@ -105,9 +105,9 @@ const CardContainer = markRaw(defineComponent({
  *
  * 只为 FormField 单测提供最小 ResolvedField，不包含外部插件和动态表单值。
  */
-function resolveTestField(field: FieldConfig) {
+function resolveTestField(field: DefinedFormNodeConfig): ResolvedField {
   const runtime = createFormRuntime()
-  return runtime.resolveField(field, runtime.createResolveSnap({ errors: {}, values: {} }))
+  return runtime.resolveNode(field, runtime.createResolveSnap({ errors: {}, values: {} })) as ResolvedField
 }
 
 describe('config form component', () => {
@@ -287,6 +287,7 @@ describe('config form component', () => {
         component: TextInput,
         defaultValue: 'skip',
         disabled: () => true,
+        submitWhenDisabled: false,
       }),
       defineField({
         field: 'hiddenKept',
@@ -300,7 +301,6 @@ describe('config form component', () => {
         component: TextInput,
         defaultValue: 'keep-disabled',
         disabled: () => true,
-        submitWhenDisabled: true,
       }),
     ]
 

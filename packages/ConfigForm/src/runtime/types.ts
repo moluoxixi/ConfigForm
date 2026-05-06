@@ -1,10 +1,10 @@
 import type {
+  DefinedFormNodeConfig,
   FieldConfig,
   FormErrors,
-  FormNodeConfig,
   FormValues,
   NormalizedFieldConfig,
-  ResolvedField,
+  NormalizedNodeConfig,
   ResolvedFormNode,
   RuntimeToken,
   SlotContent,
@@ -59,10 +59,10 @@ export type FormRuntimeObjectHook<THandler extends (...args: never[]) => unknown
     }
 
 /** 字段转换 hook：在 core normalize 后、resolve 前顺序执行。 */
-export type FormFieldTransform = (
-  /** 当前已标准化字段；插件不得原地修改，不接收 values/errors/slot scope。 */
-  field: NormalizedFieldConfig,
-) => FieldConfig | NormalizedFieldConfig | void
+export type FormNodeTransform = (
+  /** 当前已标准化节点；插件不得原地修改，不接收 values/errors/slot scope。 */
+  node: NormalizedNodeConfig,
+) => DefinedFormNodeConfig | NormalizedNodeConfig | void
 
 /** runtime 插件：用于注册组件、token resolver，或通过生命周期转换字段声明。 */
 export interface FormRuntimePlugin {
@@ -72,8 +72,8 @@ export interface FormRuntimePlugin {
   components?: ComponentRegistry
   /** 本插件注册的 token resolver。 */
   tokens?: Record<string, FormRuntimeTokenResolver>
-  /** 字段标准化之后、正式解析之前调用；同 hook 先 pre、再普通、最后 post。 */
-  transformField?: FormRuntimeObjectHook<FormFieldTransform>
+  /** 节点标准化之后、正式解析之前调用；同 hook 先 pre、再普通、最后 post。 */
+  transformNode?: FormRuntimeObjectHook<FormNodeTransform>
 }
 
 /** 创建 FormRuntime 时可配置的选项。 */
@@ -106,16 +106,14 @@ export interface FormRuntime {
   ) => FormRuntimeResolveSnap<TValues>
   /** 解析 RuntimeToken、数组和普通对象中的嵌套运行时值。 */
   resolveValue: <TValue = unknown>(value: TValue, resolveSnap: FormRuntimeResolveSnap, path?: string) => unknown
-  /** 执行 core normalize 和插件 transformField 生命周期，得到后续渲染、校验、提交共享的字段。 */
-  transformField: (field: FieldConfig | NormalizedFieldConfig) => NormalizedFieldConfig
-  /** 解析 slot 内容，包括 slot 函数、slot 节点配置、数组和 token。 */
+  /** 执行 normalize 和插件 transformNode 生命周期，得到后续渲染、校验、提交共享的节点。 */
+  transformNode: (node: DefinedFormNodeConfig) => NormalizedNodeConfig
+  /** 解析任意节点：字段节点或容器节点。 */
+  resolveNode: (node: DefinedFormNodeConfig, resolveSnap: FormRuntimeResolveSnap, path?: string) => ResolvedFormNode
+  /** 解析 slot 内容：函数 slot 延迟执行，对象节点走 resolveNode，其余走 resolveValue。 */
   resolveSlot: (slot: SlotContent, resolveSnap: FormRuntimeResolveSnap, path?: string) => SlotContent
-  /** 解析字段节点或组件容器节点。 */
-  resolveNode: (node: FormNodeConfig, resolveSnap: FormRuntimeResolveSnap, path?: string) => ResolvedFormNode
-  /** 解析字段配置，得到已补全默认项且组件/props/slots 已解析的字段。 */
-  resolveField: (field: FieldConfig, resolveSnap: FormRuntimeResolveSnap) => ResolvedField
-  /** 解析字段 visible 条件，缺省为 true。 */
-  resolveVisible: (field: FieldConfig | NormalizedFieldConfig, resolveSnap: FormRuntimeResolveSnap) => boolean
-  /** 解析字段 disabled 条件，缺省为 false。 */
-  resolveDisabled: (field: FieldConfig | NormalizedFieldConfig, resolveSnap: FormRuntimeResolveSnap) => boolean
+  /** 解析字段可见性，缺省为 true。 */
+  resolveVisible: (node: DefinedFormNodeConfig, resolveSnap: FormRuntimeResolveSnap) => boolean
+  /** 解析字段禁用状态，缺省为 false。 */
+  resolveDisabled: (node: DefinedFormNodeConfig, resolveSnap: FormRuntimeResolveSnap) => boolean
 }

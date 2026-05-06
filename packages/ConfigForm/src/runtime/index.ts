@@ -3,10 +3,22 @@ export {
   createRuntimeToken,
   isRuntimeToken,
 } from './createFormRuntime'
+export {
+  hasFieldBinding,
+  isComponent,
+  isContainer,
+  isField,
+} from './guards'
+export {
+  normalizeFieldBinding,
+  normalizeNode,
+  normalizeValidateOn,
+} from './normalize'
+export { createResolveSnap } from './snap'
 export type {
   ComponentRegistry,
   CreateRuntimeResolveSnapInput,
-  FormFieldTransform,
+  FormNodeTransform,
   FormRuntime,
   FormRuntimeHookOrder,
   FormRuntimeObjectHook,

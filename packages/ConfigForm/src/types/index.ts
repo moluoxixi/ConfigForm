@@ -29,12 +29,10 @@ export type FieldValidator<T extends object = FormValues, TValue = unknown> = (
   allValues: T,
 ) => FieldValidatorResult | Promise<FieldValidatorResult>
 
-/** FormRuntime 会在渲染、校验和提交前解析的 runtime token。 */
+/** 插件 resolve 生命周期的分发标记；resolveValue 靠 __configFormToken 查表分发到对应 resolver。 */
 export interface RuntimeToken<TValue = unknown, TType extends string = string> {
-  /** token resolver 的匹配 key。 */
+  /** resolver 匹配 key，对应插件 tokens 注册表中的同名键。 */
   readonly __configFormToken: TType
-  /** 仅用于 TypeScript 推导的 phantom 类型字段。 */
-  readonly __configFormValue?: TValue
 }
 
 /** 可直接提供，也可延迟到 runtime token 中解析的文本。 */
@@ -112,13 +110,18 @@ export interface DefinedFormNodeBrand {
 /** 已经过 defineField(...) 的表单节点配置。 */
 export type DefinedFormNodeConfig<TConfig extends FormNodeConfig = FormNodeConfig> = TConfig & DefinedFormNodeBrand
 
+/** 所有节点标准化后的公共基类；props 保证非空。 */
+export interface NormalizedNodeConfig extends Omit<ComponentNodeConfig, 'props'> {
+  props: Record<string, unknown>
+}
+
 /** 已补全默认值并规范化标量选项后的字段配置。 */
 export interface NormalizedFieldConfig extends Omit<
   FieldConfig,
   'blurTrigger' | 'props' | 'span' | 'submitWhenDisabled' | 'submitWhenHidden' | 'trigger' | 'validateOn' | 'valueProp'
-> {
+>, NormalizedNodeConfig {
+  field: string
   span: number
-  props: Record<string, unknown>
   valueProp: string
   trigger: string
   blurTrigger: string

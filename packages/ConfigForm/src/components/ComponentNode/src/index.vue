@@ -71,7 +71,7 @@ function normalizeResolvedSlotValue(value: SlotContent, resolveSnap: SlotResolve
     return [{
       key: `node-${slotName}-${path}`,
       kind: 'node',
-      node: runtimeRef.value.resolveNode(value, resolveSnap, `${slotName}.${path}`),
+      node: runtimeRef.value.resolveNode(value as any, resolveSnap, `${slotName}.${path}`),
       resolveSnap,
     }]
   }

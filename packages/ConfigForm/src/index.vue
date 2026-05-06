@@ -64,7 +64,7 @@ const resolveSnap = computed(() => runtimeRef.value.createResolveSnap({
 }))
 
 const resolvedNodes = computed(() =>
-  rawNodes.value.map((node, index) => runtimeRef.value.resolveNode(node, resolveSnap.value, `fields.${index}`)),
+  rawNodes.value.map((node, index) => runtimeRef.value.resolveNode(node as any, resolveSnap.value, `fields.${index}`)),
 )
 
 /**
