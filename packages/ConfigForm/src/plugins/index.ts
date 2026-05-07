@@ -3,12 +3,12 @@ export {
   normalizeField,
   normalizeValidateOn,
   shouldValidateOn,
-} from '../models/field'
+} from '../utils/field'
 export {
   collectFieldConfigs,
   isFieldConfig,
   isFormNodeConfig,
-} from '../models/node'
+} from '../utils/node'
 export {
   createFormRuntime,
   createRuntimeToken,
@@ -32,7 +32,7 @@ export {
   isComponent,
   isContainer,
   isField,
-} from '../runtime/guards'
+} from '../runtime/utils'
 export {
   normalizeFieldBinding,
   normalizeNode,

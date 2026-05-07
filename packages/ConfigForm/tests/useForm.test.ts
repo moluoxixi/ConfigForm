@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
 import { z } from 'zod'
 import { useForm } from '../src/composables/useForm'
-import { defineField } from '../src/models/field'
+import { defineField } from '../src/utils/field'
 
 describe('useForm', () => {
   it('throws when multiple real fields use the same field key', () => {

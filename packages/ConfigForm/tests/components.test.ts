@@ -8,7 +8,7 @@ import FormField from '../src/components/FormField/src/index.vue'
 import FormLayout from '../src/components/FormLayout/src/index.vue'
 import { FORM_CONTEXT_KEY } from '../src/composables/useFormContext'
 import ConfigForm from '../src/index.vue'
-import { defineField } from '../src/models/field'
+import { defineField } from '../src/utils/field'
 import { createFormRuntime, createRuntimeToken } from '../src/runtime'
 
 interface MessageToken extends RuntimeToken<string, 'message'> {

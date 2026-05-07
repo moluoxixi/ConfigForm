@@ -3,8 +3,8 @@ import type { FormRuntimeOptions } from '@/runtime'
 import type { DefinedFormNodeConfig, FieldConfig, FieldKey, FormErrors, FormNodeConfig, FormValues, NormalizedFieldConfig, ValidateTrigger } from '@/types'
 import { computed, reactive, ref, toRaw, toValue, watch } from 'vue'
 import { normalizeFormRuntime } from '@/composables/useRuntime'
-import { applyFieldTransform, shouldValidateOn } from '@/models/field'
-import { collectFieldConfigs } from '@/models/node'
+import { applyFieldTransform, shouldValidateOn } from '@/utils/field'
+import { collectFieldConfigs } from '@/utils/node'
 import { validateFieldRules, validateForm } from '@/utils/validate'
 
 /** 无头表单控制器选项，驱动值状态、校验和提交流程。 */

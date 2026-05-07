@@ -14,7 +14,7 @@ import type {
   SlotContent,
   ValidateTrigger,
 } from '@/types'
-import { markDefinedFormNodeConfig } from '@/models/node'
+import { markDefinedFormNodeConfig } from '@/utils/node'
 
 /** 从 Vue 组件中提取 props 类型，支持 class component 和 function component。 */
 export type ExtractComponentProps<C> = C extends abstract new (...args: unknown[]) => { $props: infer P }

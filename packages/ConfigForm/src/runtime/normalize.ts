@@ -1,4 +1,5 @@
-import type { FormNodeConfig, NormalizedFieldConfig, NormalizedNodeConfig, ValidateTrigger } from '@/types'
+import type { FormNodeConfig, NormalizedFieldConfig, NormalizedNodeConfig } from '@/types'
+import { normalizeValidateOn } from '@/utils/field'
 
 /** 所有节点共用的标准化：props 保证非空。 */
 export function normalizeNode(node: FormNodeConfig): NormalizedNodeConfig {
@@ -28,12 +29,4 @@ export function normalizeFieldBinding(
     submitWhenHidden: (node as Partial<NormalizedFieldConfig>).submitWhenHidden ?? false,
     submitWhenDisabled: (node as Partial<NormalizedFieldConfig>).submitWhenDisabled ?? true,
   }
-}
-
-/** 规范化字段校验触发时机，并保证 submit 校验始终存在。 */
-export function normalizeValidateOn(on?: ValidateTrigger | ValidateTrigger[]): ValidateTrigger[] {
-  if (!on)
-    return ['submit']
-  const arr = Array.isArray(on) ? on : [on]
-  return arr.includes('submit') ? arr : [...arr, 'submit']
 }

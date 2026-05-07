@@ -1,6 +1,6 @@
 import type { FormRuntimeHookOrder, FormRuntimePlugin, FormNodeTransform } from './types'
 import type { DefinedFormNodeConfig, NormalizedFieldConfig, NormalizedNodeConfig } from '@/types'
-import { hasFieldBinding } from './guards'
+import { hasFieldBinding } from './utils'
 import { normalizeFieldBinding, normalizeNode } from './normalize'
 
 interface RuntimeHook<THandler extends (...args: never[]) => unknown> {

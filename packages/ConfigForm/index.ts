@@ -2,7 +2,7 @@ export { useForm } from './src/composables/useForm'
 export type { UseFormOptions } from './src/composables/useForm'
 export { default as ConfigForm } from './src/index.vue'
 export { FormLayout } from './src/components/FormLayout'
-export { defineField } from './src/models/field'
+export { defineField } from './src/utils/field'
 export type {
   FormRuntimeOptions,
 } from './src/runtime'

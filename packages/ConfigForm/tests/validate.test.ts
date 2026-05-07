@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { defineField } from '../src/models/field'
+import { defineField } from '../src/utils/field'
 import { validateField, validateFieldRules, validateForm } from '../src/utils/validate'
 
 describe('validate utils', () => {

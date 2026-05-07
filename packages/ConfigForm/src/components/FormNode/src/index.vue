@@ -6,7 +6,7 @@ import { computed, defineComponent } from 'vue'
 import RecursiveField from '@/components/RecursiveField'
 import { useFormContext } from '@/composables/useFormContext'
 import { useRuntime } from '@/composables/useRuntime'
-import { isFormNodeConfig } from '@/models/node'
+import { isFormNodeConfig } from '@/utils/node'
 
 /**
  * FormNode 渲染已经解析过的节点组件，slot 中的 defineField 节点交给 RecursiveField 递归处理。

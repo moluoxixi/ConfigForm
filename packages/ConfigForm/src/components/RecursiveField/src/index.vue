@@ -5,7 +5,7 @@ import { computed } from 'vue'
 import FormComponent from '@/components/FormComponent'
 import FormField from '@/components/FormField'
 import FormNode from '@/components/FormNode'
-import { isResolvedComponent, isResolvedField } from '@/models/node'
+import { isResolvedComponent, isResolvedField } from '@/utils/node'
 
 /**
  * RecursiveField 基于 runtime 守卫做三路分派，递归渲染子节点。

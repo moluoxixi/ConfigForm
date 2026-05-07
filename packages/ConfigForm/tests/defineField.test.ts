@@ -1,7 +1,7 @@
 import type { FieldConfig, FieldKey } from '../src/types'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { z } from 'zod'
-import { defineField } from '../src/models/field'
+import { defineField } from '../src/utils/field'
 import { createRuntimeToken } from '../src/runtime'
 
 /**

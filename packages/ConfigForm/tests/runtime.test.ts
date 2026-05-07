@@ -2,7 +2,7 @@ import type { FormRuntimeResolveSnap } from '../src/runtime'
 import type { NormalizedFieldConfig, RuntimeToken } from '../src/types'
 import { describe, expect, it } from 'vitest'
 import { defineComponent, h, markRaw } from 'vue'
-import { defineField } from '../src/models/field'
+import { defineField } from '../src/utils/field'
 import { createFormRuntime, createRuntimeToken } from '../src/runtime'
 
 interface MessageToken extends RuntimeToken<string, 'message'> {

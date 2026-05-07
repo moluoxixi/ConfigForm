@@ -1,7 +1,7 @@
 import type { ZodTypeAny } from 'zod'
 import type { FormRuntime } from '@/runtime'
 import type { DefinedFormNodeConfig, FieldConfig, FieldValidator, FormErrors, FormValues, NormalizedFieldConfig, ValidateTrigger } from '@/types'
-import { shouldValidateOn } from '@/models/field'
+import { shouldValidateOn } from '@/utils/field'
 import { createFormRuntime } from '@/runtime'
 
 /** 校验单个字段值（纯 Zod 调用）。 */

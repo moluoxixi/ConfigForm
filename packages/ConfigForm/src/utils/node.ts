@@ -98,7 +98,7 @@ export function isResolvedField(value: ResolvedFormNode): value is ResolvedField
 
 /** 已解析节点：有 field 绑定 + 无 label → Component 类型。 */
 export function isResolvedComponent(value: ResolvedFormNode): value is ResolvedField {
-  return isFieldConfig(value) && (value as ResolvedField).label == null
+  return isFieldConfig(value) && !(value as ResolvedField).label
 }
 
 /** 已解析节点：无 field 绑定 → Container 类型。 */

@@ -8,12 +8,12 @@ export {
   isComponent,
   isContainer,
   isField,
-} from './guards'
+} from './utils'
 export {
   normalizeFieldBinding,
   normalizeNode,
-  normalizeValidateOn,
 } from './normalize'
+export { normalizeValidateOn } from '@/utils/field'
 export { createResolveSnap } from './snap'
 export type {
   ComponentRegistry,

@@ -2,9 +2,9 @@ import type { DefinedFormNodeConfig, NormalizedFieldConfig, NormalizedNodeConfig
 import type { ComponentRegistry, FormRuntimeResolveSnap, FormRuntimeResolveHelpers, FormRuntimeTokenResolver } from './types'
 import type { TransformContext } from './transform'
 import { isVNode } from 'vue'
-import { hasFieldBinding } from './guards'
+import { hasFieldBinding } from './utils'
 import { isRuntimeToken } from './token'
-import { isDefinedFormNodeConfig, isFormNodeConfig, isResolvedFormNodeConfig, markResolvedFormNodeConfig } from '@/models/node'
+import { isDefinedFormNodeConfig, isFormNodeConfig, isResolvedFormNodeConfig, markResolvedFormNodeConfig } from '@/utils/node'
 
 export interface ResolveContext {
   resolveNode: (node: DefinedFormNodeConfig, snap: FormRuntimeResolveSnap, path?: string) => ResolvedFormNode
