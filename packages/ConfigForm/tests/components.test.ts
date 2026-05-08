@@ -536,6 +536,16 @@ describe('form field component', () => {
     expect(source).not.toContain('<FormNode')
   })
 
+  it('keeps shared component attrs and listeners in the field binding composable', () => {
+    const formFieldSource = readFileSync('src/components/FormField/src/index.vue', 'utf8')
+    const formComponentSource = readFileSync('src/components/FormComponent/src/index.vue', 'utf8')
+
+    expect(formFieldSource).toContain('@/composables/useFieldBinding')
+    expect(formComponentSource).toContain('@/composables/useFieldBinding')
+    expect(formFieldSource).not.toContain('getValueFromEvent')
+    expect(formComponentSource).not.toContain('getValueFromEvent')
+  })
+
   it('emits custom value and blur triggers through the public field contract', async () => {
     const field = defineField({
       blurTrigger: 'focusout',

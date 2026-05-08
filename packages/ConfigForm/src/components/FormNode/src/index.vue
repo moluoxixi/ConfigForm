@@ -14,7 +14,7 @@ defineOptions({ name: 'FormNode' })
 const props = defineProps<{
   field: ResolvedFormNode
   componentAttrs?: Record<string, unknown>
-  componentListeners?: Record<string, (...args: unknown[]) => void>
+  componentListeners?: Record<string, (...args: unknown[]) => Promise<boolean> | void>
 }>()
 
 const ctx = useFormContext()

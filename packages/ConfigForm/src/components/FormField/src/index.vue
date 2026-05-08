@@ -2,6 +2,7 @@
 import type { ResolvedField } from '@/types'
 import { computed } from 'vue'
 import RecursiveField from '@/components/RecursiveField'
+import { useFieldBinding } from '@/composables/useFieldBinding'
 import { useFormContext } from '@/composables/useFormContext'
 import { useBem, useNamespace } from '@/composables/useNamespace'
 import { resolveSlotNodes } from '@/utils/slot'
@@ -39,10 +40,8 @@ const { b, e, m } = useBem(ns)
 /** 当前真实字段配置；RecursiveField 只会把 ResolvedField 分派到本组件。 */
 const resolvedField = computed(() => props.field)
 
-const modelValue = computed(() => ctx.getValue(resolvedField.value.field))
 const error = computed(() => ctx.errors[resolvedField.value.field])
 const visible = computed(() => ctx.isVisible(resolvedField.value))
-const disabled = computed(() => ctx.isDisabled(resolvedField.value))
 
 const fieldId = computed(() => {
   const safeFieldName = resolvedField.value.field.replace(/[^\w-]/g, '-')
@@ -59,10 +58,10 @@ const fieldSourceAttrs = computed<Record<string, string>>(() => {
   return attrs
 })
 
-const componentProps = computed(() => {
-  const next = { ...(resolvedField.value.props ?? {}) }
+const fieldAttrs = computed<Record<string, unknown>>(() => {
+  const next: Record<string, unknown> = {}
 
-  if (next.id == null)
+  if (resolvedField.value.props.id == null)
     next.id = fieldId.value
 
   if (error.value?.length) {
@@ -70,27 +69,10 @@ const componentProps = computed(() => {
     next['aria-describedby'] = errorId.value
   }
 
-  if (disabled.value)
-    next.disabled = true
-
   return next
 })
 
-const componentAttrs = computed(() => ({
-  ...componentProps.value,
-  [resolvedField.value.valueProp]: modelValue.value,
-}))
-
-const componentListeners = computed<Record<string, (...args: unknown[]) => Promise<boolean> | void>>(() => ({
-  [resolvedField.value.blurTrigger]: () => ctx.validateField(resolvedField.value.field, 'blur'),
-  [resolvedField.value.trigger]: (...args: unknown[]) => {
-    const value = resolvedField.value.getValueFromEvent
-      ? resolvedField.value.getValueFromEvent(...args)
-      : args[0]
-    ctx.setValue(resolvedField.value.field, value)
-    return ctx.validateField(resolvedField.value.field, 'change')
-  },
-}))
+const { attrs: componentAttrs, listeners: componentListeners } = useFieldBinding(resolvedField, fieldAttrs)
 </script>
 
 <template>
