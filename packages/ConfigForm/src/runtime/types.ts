@@ -4,6 +4,7 @@ import type {
   FieldConfig,
   FormNodeConfig,
   NormalizedNodeConfig,
+  ResolvedFormNode,
 } from '@/types'
 
 /** 运行时可按字符串 key 解析的组件注册表。 */
@@ -37,5 +38,5 @@ export interface FormRuntime {
   /** 返回单个节点的内置默认配置片段，不合并用户声明，也不执行用户插件。 */
   resolveField: (field: FormNodeConfig) => FieldDefaultConfig
   /** 应用内置默认片段、执行用户插件、恢复用户优先级、解析组件并递归处理 slot。 */
-  transformField: (field: FormNodeConfig) => NormalizedNodeConfig
+  transformField: (field: FormNodeConfig) => ResolvedFormNode
 }

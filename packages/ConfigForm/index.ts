@@ -23,6 +23,7 @@ export type {
   ResolvedComponentNode,
   ResolvedField,
   ResolvedFormNode,
+  ResolvedSlotContent,
   RuntimeText,
   SlotContent,
   ValidateTrigger,

@@ -25,14 +25,9 @@ export type {
   ResolvedComponentNode,
   ResolvedField,
   ResolvedFormNode,
+  ResolvedSlotContent,
   SlotContent,
 } from '../types'
-export {
-  applyFieldTransform,
-  normalizeField,
-  normalizeValidateOn,
-  shouldValidateOn,
-} from '../utils/field'
 export {
   collectFieldConfigs,
   isFieldConfig,

@@ -109,15 +109,25 @@ export interface NormalizedFieldConfig extends Omit<
   submitWhenDisabled: boolean
 }
 
+/** runtime 处理完成后的 slot 内容，只包含可直接递归渲染的节点。 */
+export type ResolvedSlotContent = ResolvedFormNode | ResolvedFormNode[]
+
+/** 组件、props 和 slots 全部处理后的可渲染容器节点基类。 */
+export interface ResolvedNodeBase extends Omit<NormalizedNodeConfig, 'slots'> {
+  props: Record<string, unknown>
+  /** runtime 已递归处理完毕的 slot 节点。 */
+  slots?: Record<string, ResolvedSlotContent>
+}
+
 /** 组件、props、slots 和 label 全部处理后的可渲染字段节点。 */
-export interface ResolvedField extends Omit<NormalizedFieldConfig, 'label'> {
+export interface ResolvedField extends Omit<NormalizedFieldConfig, 'label' | 'slots'> {
   label?: string
+  /** runtime 已递归处理完毕的 slot 节点。 */
+  slots?: Record<string, ResolvedSlotContent>
 }
 
 /** 组件、props 和 slots 全部处理后的可渲染容器节点。 */
-export interface ResolvedComponentNode extends Omit<ComponentNodeConfig, 'props'> {
-  props: Record<string, unknown>
-}
+export interface ResolvedComponentNode extends ResolvedNodeBase {}
 
 /** FormRuntime.transformField(...) 返回的节点类型。 */
 export type ResolvedFormNode = ResolvedField | ResolvedComponentNode

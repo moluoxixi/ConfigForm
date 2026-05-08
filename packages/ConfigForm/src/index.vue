@@ -63,8 +63,8 @@ const {
 provideFormContext({
   get values() { return values },
   get errors() { return errors.value },
-  inline: props.inline,
-  labelWidth: resolveLabelWidth(props.labelWidth),
+  get inline() { return props.inline },
+  get labelWidth() { return resolveLabelWidth(props.labelWidth) },
   getValue,
   getValues,
   isVisible,

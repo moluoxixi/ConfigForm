@@ -5,9 +5,13 @@ import type {
   ResolvedComponentNode,
   ResolvedField,
   ResolvedFormNode,
+  ResolvedSlotContent,
   SlotContent,
 } from '@/types'
 import { isVNode } from 'vue'
+
+type TraversableFormNode = FormNodeConfig | ResolvedFormNode
+type TraversableSlotContent = SlotContent | ResolvedSlotContent
 
 /**
  * 判断未知值是否可按普通对象读取。
@@ -84,12 +88,12 @@ export function isResolvedContainer(value: ResolvedFormNode): value is ResolvedC
  *
  * slot 与顶层 fields 采用同一种声明模式；非节点配置会直接抛错，避免字段拓扑被静默漏收。
  */
-function collectSlotFields(slot: SlotContent | undefined, path = 'slot'): FieldConfig[] {
+function collectSlotFields(slot: TraversableSlotContent | undefined, path = 'slot'): FieldConfig[] {
   if (slot === undefined)
     return []
 
   if (Array.isArray(slot))
-    return slot.flatMap((item, index) => collectSlotFields(item as SlotContent, `${path}.${index}`))
+    return slot.flatMap((item, index) => collectSlotFields(item, `${path}.${index}`))
 
   if (!isFormNodeConfig(slot))
     throw new TypeError(`Slot "${path}" must be a field config or an array of field configs`)
@@ -102,7 +106,7 @@ function collectSlotFields(slot: SlotContent | undefined, path = 'slot'): FieldC
  *
  * 该函数只负责拓扑遍历和容器字段边界校验，重复 field key 由外层统一处理。
  */
-function collectFieldConfigsRaw(nodes: readonly FormNodeConfig[]): FieldConfig[] {
+function collectFieldConfigsRaw(nodes: readonly TraversableFormNode[]): FieldConfig[] {
   return nodes.flatMap((node) => {
     const nested = Object.entries(node.slots ?? {}).flatMap(([key, slot]) => collectSlotFields(slot, `${nodePath(node)}.slots.${key}`))
     return isFieldConfig(node) ? [node, ...nested] : nested
@@ -130,7 +134,7 @@ export function assertUniqueFieldConfigs<TField extends Pick<FieldConfig, 'field
  *
  * 容器节点会继续向下遍历，但自身不拥有值、校验和提交行为，因此不会返回。
  */
-export function collectFieldConfigs(nodes: readonly FormNodeConfig[]): FieldConfig[] {
+export function collectFieldConfigs(nodes: readonly TraversableFormNode[]): FieldConfig[] {
   return assertUniqueFieldConfigs(collectFieldConfigsRaw(nodes))
 }
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CSSProperties } from 'vue'
+import type { CSSProperties, StyleValue } from 'vue'
 import type { ResolvedFormNode } from '@/types'
 import { computed } from 'vue'
 import RecursiveField from '@/components/RecursiveField'
@@ -29,13 +29,40 @@ const containerStyle = computed<CSSProperties | undefined>(() => {
 /** 所有节点从无头控制器读取有效可见性，容器隐藏会同时隐藏整棵子树。 */
 const visible = computed(() => ctx.isVisible(props.field))
 
+/** 判断传入值是否是 Vue 可消费的 style 对象。 */
+function isStyleObject(value: unknown): value is CSSProperties {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value))
+}
+
+/** 校验并读取用户透传的 Vue style 值，非法 style 直接抛错暴露配置问题。 */
+function readStyleValue(value: unknown): StyleValue | undefined {
+  if (value == null || value === false)
+    return undefined
+
+  if (typeof value === 'string' || isStyleObject(value) || Array.isArray(value))
+    return value
+
+  throw new TypeError('FormNode props.style must be a Vue style value')
+}
+
+/** 合并容器 grid span 和用户 style；字符串/数组 style 交给 Vue 的数组 style 语义处理。 */
+function mergeStyleValue(baseStyle: CSSProperties | undefined, existingStyle: StyleValue | undefined): StyleValue | undefined {
+  if (!baseStyle)
+    return existingStyle
+  if (!existingStyle)
+    return baseStyle
+  if (isStyleObject(existingStyle))
+    return { ...baseStyle, ...existingStyle }
+  return [baseStyle, existingStyle]
+}
+
 const attrs = computed(() => {
   const baseStyle = containerStyle.value
-  const existingStyle = props.field.props?.style as CSSProperties | undefined
+  const existingStyle = readStyleValue(props.field.props?.style)
   return {
     ...props.field.props,
     ...(props.componentAttrs ?? {}),
-    style: baseStyle ? { ...baseStyle, ...existingStyle } : existingStyle,
+    style: mergeStyleValue(baseStyle, existingStyle),
   }
 })
 

@@ -1,5 +1,5 @@
 import type { Ref } from 'vue'
-import type { FieldCondition, FieldConfig, FieldKey, FormErrors, FormNodeConfig, FormValues, NormalizedFieldConfig, ResolvedFormNode, SlotContent, ValidateTrigger } from '@/types'
+import type { FieldCondition, FieldConfig, FieldKey, FormErrors, FormValues, NormalizedFieldConfig, ResolvedFormNode, ResolvedSlotContent, ValidateTrigger } from '@/types'
 import { computed, reactive, ref, toRaw, unref, watch } from 'vue'
 import { applyFieldTransform, shouldValidateOn } from '@/utils/field'
 import { collectFieldConfigs, isFieldConfig, isFormNodeConfig } from '@/utils/node'
@@ -45,11 +45,11 @@ interface FieldValidationState {
 
 interface NodeTopology {
   /** 当前字段树中的节点对象集合，用于区分未知外部节点和顶层节点。 */
-  nodes: WeakSet<FormNodeConfig>
+  nodes: WeakSet<ResolvedFormNode>
   /** 子节点到父节点的关系；顶层节点的父节点为 undefined。 */
-  parentMap: WeakMap<FormNodeConfig, FormNodeConfig | undefined>
+  parentMap: WeakMap<ResolvedFormNode, ResolvedFormNode | undefined>
   /** 真实字段名到节点对象的索引，供校验和提交按字段名定位父链。 */
-  fieldNodeMap: Map<string, FormNodeConfig>
+  fieldNodeMap: Map<string, ResolvedFormNode>
 }
 
 /**
@@ -195,7 +195,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
   }
 
   /** 读取当前字段树中任意节点的有效可见性；未知节点保持可见，避免误伤外部临时节点。 */
-  function isVisible(field: FormNodeConfig): boolean {
+  function isVisible(field: ResolvedFormNode): boolean {
     const topology = nodeTopology.value
     if (!topology.nodes.has(field))
       return true
@@ -204,7 +204,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
   }
 
   /** 即时解析字段禁用态；容器节点不拥有禁用语义，始终返回 false。 */
-  function isDisabled(field: FormNodeConfig): boolean {
+  function isDisabled(field: ResolvedFormNode): boolean {
     if (!isFieldConfig(field))
       return false
 
@@ -467,13 +467,13 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
 }
 
 /** 创建节点拓扑索引；只在字段树结构变化时重建，不依赖实时 values。 */
-function createNodeTopology(nodes: readonly FormNodeConfig[]): NodeTopology {
+function createNodeTopology(nodes: readonly ResolvedFormNode[]): NodeTopology {
   const topology: NodeTopology = {
-    fieldNodeMap: new Map<string, FormNodeConfig>(),
-    nodes: new WeakSet<FormNodeConfig>(),
-    parentMap: new WeakMap<FormNodeConfig, FormNodeConfig | undefined>(),
+    fieldNodeMap: new Map<string, ResolvedFormNode>(),
+    nodes: new WeakSet<ResolvedFormNode>(),
+    parentMap: new WeakMap<ResolvedFormNode, ResolvedFormNode | undefined>(),
   }
-  const stack = new Set<FormNodeConfig>()
+  const stack = new Set<ResolvedFormNode>()
 
   nodes.forEach((node, index) =>
     collectNodeTopology(node, undefined, `fields.${index}`, topology, stack),
@@ -488,11 +488,11 @@ function createNodeTopology(nodes: readonly FormNodeConfig[]): NodeTopology {
  * 重复对象引用或重复 field 会让父链和字段语义不唯一，因此直接抛错。
  */
 function collectNodeTopology(
-  node: FormNodeConfig,
-  parent: FormNodeConfig | undefined,
+  node: ResolvedFormNode,
+  parent: ResolvedFormNode | undefined,
   path: string,
   topology: NodeTopology,
-  stack: Set<FormNodeConfig>,
+  stack: Set<ResolvedFormNode>,
 ): void {
   if (stack.has(node))
     throw new Error(`Circular field node reference at ${path}`)
@@ -517,15 +517,15 @@ function collectNodeTopology(
 
 /** 递归记录 slot 内节点的父子关系；slot 协议与顶层 fields 保持一致。 */
 function collectSlotTopology(
-  slot: SlotContent,
-  parent: FormNodeConfig,
+  slot: ResolvedSlotContent,
+  parent: ResolvedFormNode,
   path: string,
   topology: NodeTopology,
-  stack: Set<FormNodeConfig>,
+  stack: Set<ResolvedFormNode>,
 ): void {
   if (Array.isArray(slot)) {
     for (const item of slot)
-      collectSlotTopology(item as SlotContent, parent, `${path}[]`, topology, stack)
+      collectSlotTopology(item, parent, `${path}[]`, topology, stack)
     return
   }
 
@@ -537,7 +537,7 @@ function collectSlotTopology(
 
 /** 沿父链即时解析节点可见性；父节点隐藏时不再执行后代 visible 条件。 */
 function resolveNodeVisibility(
-  node: FormNodeConfig,
+  node: ResolvedFormNode,
   values: FormValues,
   topology: NodeTopology,
 ): boolean {
@@ -552,9 +552,9 @@ function resolveNodeVisibility(
 }
 
 /** 读取节点从根到自身的父链，调用方必须确保 node 属于当前拓扑。 */
-function collectNodeChain(node: FormNodeConfig, topology: NodeTopology): FormNodeConfig[] {
-  const chain: FormNodeConfig[] = []
-  let current: FormNodeConfig | undefined = node
+function collectNodeChain(node: ResolvedFormNode, topology: NodeTopology): ResolvedFormNode[] {
+  const chain: ResolvedFormNode[] = []
+  let current: ResolvedFormNode | undefined = node
 
   while (current) {
     chain.push(current)

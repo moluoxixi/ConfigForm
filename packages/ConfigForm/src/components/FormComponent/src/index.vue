@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ResolvedField, ResolvedFormNode } from '@/types'
+import type { ResolvedField } from '@/types'
 import { computed } from 'vue'
 import FormNode from '@/components/FormNode'
 import { useFieldBinding } from '@/composables/useFieldBinding'
@@ -13,11 +13,11 @@ import { useFieldBinding } from '@/composables/useFieldBinding'
 defineOptions({ name: 'FormComponent' })
 
 const props = defineProps<{
-  field: ResolvedFormNode
+  field: ResolvedField
 }>()
 
-/** 内部断言：FormComponent 只接收 ResolvedField 类型的节点 */
-const resolvedField = computed(() => props.field as ResolvedField)
+/** 当前组件字段配置；RecursiveField 只会把无 label 的 ResolvedField 分派到本组件。 */
+const resolvedField = computed(() => props.field)
 
 const { attrs: componentAttrs, listeners: componentListeners } = useFieldBinding(resolvedField)
 </script>

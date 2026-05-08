@@ -1,7 +1,7 @@
 import type { VNode } from 'vue'
 import type { ComponentRegistry, FormFieldTransform, FormRuntimePlugin } from './types'
 import type { FieldDefaultConfig } from '@/plugins/builtInFieldDefaults'
-import type { FormNodeConfig, NormalizedFieldConfig, NormalizedNodeConfig, SlotContent } from '@/types'
+import type { FormNodeConfig, NormalizedFieldConfig, NormalizedNodeConfig, ResolvedFormNode, ResolvedSlotContent, SlotContent } from '@/types'
 import { isVNode } from 'vue'
 import { applyFieldDefaults, resolveField } from '@/plugins/builtInFieldDefaults'
 import { isFormNodeConfig } from '@/utils/node'
@@ -9,7 +9,7 @@ import { hasFieldBinding } from './utils'
 
 export interface FieldPipelineContext {
   resolveField: (field: FormNodeConfig) => FieldDefaultConfig
-  transformField: (field: FormNodeConfig) => NormalizedNodeConfig
+  transformField: (field: FormNodeConfig) => ResolvedFormNode
 }
 
 type PlainRecord = Record<string, unknown>
@@ -31,15 +31,15 @@ export function createFieldPipeline(
   }
 
   /** 递归处理 slot 节点配置，确保子节点在进入渲染组件前已完成转换。 */
-  function transformSlot(slot: SlotContent, path: string): SlotContent {
+  function transformSlot(slot: SlotContent, path: string): ResolvedSlotContent {
     if (Array.isArray(slot))
-      return slot.map((item, index) => transformSlotNode(item, `${path}[${index}]`)) as SlotContent
+      return slot.map((item, index) => transformSlotNode(item, `${path}[${index}]`))
 
     return transformSlotNode(slot, path)
   }
 
   /** 转换单个 slot 节点配置；遇到非配置值时直接抛错，避免旧 render slot 语义继续生效。 */
-  function transformSlotNode(value: unknown, path: string): NormalizedNodeConfig {
+  function transformSlotNode(value: unknown, path: string): ResolvedFormNode {
     if (!isTransformableNode(value))
       throw new TypeError(`Slot "${path}" must be a field config or an array of field configs`)
 
@@ -47,9 +47,9 @@ export function createFieldPipeline(
   }
 
   /** 对单个字段执行完整转换管线。 */
-  function transformField(field: FormNodeConfig): NormalizedNodeConfig {
+  function transformField(field: FormNodeConfig): ResolvedFormNode {
     const userField = field
-    let current = applyFieldDefaults(field)
+    let current: NormalizedNodeConfig = applyFieldDefaults(field)
 
     for (const hook of hooks) {
       const next = hook.handler(cloneFieldForPlugin(current))
@@ -65,7 +65,7 @@ export function createFieldPipeline(
       current = mergePluginField(current, next as FormNodeConfig, userField)
     }
 
-    const resolved = applyFieldDefaults({
+    const resolved = applyFieldDefaults<ResolvedSlotContent>({
       ...current,
       component: resolveComponent(current.component),
       slots: current.slots
@@ -73,7 +73,7 @@ export function createFieldPipeline(
             Object.entries(current.slots).map(([name, slot]) => [name, transformSlot(slot, name)]),
           )
         : current.slots,
-    } as FormNodeConfig)
+    })
 
     return resolved
   }
@@ -82,7 +82,7 @@ export function createFieldPipeline(
 }
 
 /** 无插件场景下的便捷转换函数。 */
-export function transformField(field: FormNodeConfig): NormalizedNodeConfig {
+export function transformField(field: FormNodeConfig): ResolvedFormNode {
   return createFieldPipeline().transformField(field)
 }
 

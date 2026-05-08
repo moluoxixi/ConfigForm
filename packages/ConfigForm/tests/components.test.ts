@@ -1,9 +1,10 @@
+import type { FormContext } from '../src/composables/useFormContext'
 import type { FormRuntimeOptions } from '../src/runtime'
 import type { ConfigFormExpose, DefinedFormNodeConfig, FormNodeConfig, ResolvedField } from '../src/types'
 import { readFileSync } from 'node:fs'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
-import { defineComponent, h, markRaw, nextTick } from 'vue'
+import { defineComponent, h, inject, markRaw, nextTick } from 'vue'
 import { z } from 'zod'
 import FormComponent from '../src/components/FormComponent/src/index.vue'
 import FormField from '../src/components/FormField/src/index.vue'
@@ -96,6 +97,22 @@ const LayoutProbe = markRaw(defineComponent({
   name: 'LayoutProbe',
   setup(_props, { attrs, slots }) {
     return () => h('section', { ...attrs, 'data-testid': 'layout-probe' }, slots.default?.())
+  },
+}))
+
+const ContextProbe = markRaw(defineComponent({
+  name: 'ContextProbe',
+  setup() {
+    const ctx = inject<FormContext>(FORM_CONTEXT_KEY)
+    if (!ctx)
+      throw new Error('FormContext not provided')
+
+    return () => h('span', { 'data-testid': 'context-probe' }, [
+      String(ctx.inline),
+      String(ctx.labelWidth),
+      String(ctx.values.name),
+      ctx.errors.name?.[0],
+    ].join('|'))
   },
 }))
 
@@ -304,6 +321,35 @@ describe('config form component', () => {
     expect(wrapper.get('[data-testid="layout-probe"]').attributes('style')).toContain('grid-column: span 12')
   })
 
+  it('preserves Vue string and array styles when adding container grid span', () => {
+    const fields = [
+      defineField({
+        component: LayoutProbe,
+        props: { style: 'color: red;' },
+        span: 12,
+      }),
+      defineField({
+        component: LayoutProbe,
+        props: { style: [{ color: 'blue' }, { backgroundColor: 'white' }] },
+        span: 6,
+      }),
+    ]
+
+    const wrapper = mount(ConfigForm, {
+      props: {
+        fields,
+        defaultValues: {},
+      },
+    })
+
+    const probes = wrapper.findAll('[data-testid="layout-probe"]')
+    expect(probes[0].attributes('style')).toContain('grid-column: span 12')
+    expect(probes[0].attributes('style')).toContain('color: red')
+    expect(probes[1].attributes('style')).toContain('grid-column: span 6')
+    expect(probes[1].attributes('style')).toContain('color: blue')
+    expect(probes[1].attributes('style')).toContain('background-color: white')
+  })
+
   it('uses built-in field defaults for container span instead of FormNode fallbacks', () => {
     const formNodeSource = readFileSync('src/components/FormNode/src/index.vue', 'utf8')
     const defaultsSource = readFileSync('src/plugins/builtInFieldDefaults.ts', 'utf8')
@@ -360,6 +406,34 @@ describe('config form component', () => {
 
     expect(wrapper.text()).not.toContain('用户名至少 2 个字符')
     expect(api.getValues()).toEqual({ username: 'Ada' })
+  })
+
+  it('keeps root form context inline and labelWidth reactive after prop updates', async () => {
+    const fields = [
+      defineField({
+        component: TextInput,
+        field: 'username',
+        label: '用户名',
+      }),
+    ]
+
+    const wrapper = mount(ConfigForm, {
+      props: {
+        fields,
+        defaultValues: {},
+        inline: false,
+        labelWidth: 88,
+      },
+    })
+
+    expect(wrapper.get('label').attributes('style')).toContain('width: 88px')
+    expect(wrapper.get('.cf-field').classes()).not.toContain('cf-field--inline')
+
+    await wrapper.setProps({ inline: true, labelWidth: 144 })
+    await nextTick()
+
+    expect(wrapper.get('label').attributes('style')).toContain('width: 144px')
+    expect(wrapper.get('.cf-field').classes()).toContain('cf-field--inline')
   })
 
   it('submits transformed visible values and respects hidden or disabled submit options', async () => {
@@ -544,6 +618,26 @@ describe('form field component', () => {
     expect(formComponentSource).toContain('@/composables/useFieldBinding')
     expect(formFieldSource).not.toContain('getValueFromEvent')
     expect(formComponentSource).not.toContain('getValueFromEvent')
+  })
+
+  it('keeps FormComponent props narrowed to resolved fields without local casts', () => {
+    const formComponentSource = readFileSync('src/components/FormComponent/src/index.vue', 'utf8')
+
+    expect(formComponentSource).toContain('field: ResolvedField')
+    expect(formComponentSource).not.toContain('ResolvedFormNode')
+    expect(formComponentSource).not.toContain('as ResolvedField')
+  })
+
+  it('uses resolved slot content types after runtime transforms', () => {
+    const typesSource = readFileSync('src/types/index.ts', 'utf8')
+    const slotSource = readFileSync('src/utils/slot.ts', 'utf8')
+    const transformSource = readFileSync('src/runtime/transform.ts', 'utf8')
+
+    expect(typesSource).toContain('ResolvedSlotContent')
+    expect(slotSource).toContain('ResolvedSlotContent')
+    expect(slotSource).not.toContain('as SlotContent')
+    expect(slotSource).not.toContain('as ResolvedFormNode')
+    expect(transformSource).toContain('ResolvedSlotContent')
   })
 
   it('emits custom value and blur triggers through the public field contract', async () => {
@@ -898,6 +992,32 @@ describe('form layout', () => {
     expect(wrapper.attributes('style')).toContain('flex')
   })
 
+  it('forwards parent context getters while overriding inline for children', () => {
+    const wrapper = mount(FormLayout, {
+      props: { inline: false },
+      global: {
+        provide: {
+          [FORM_CONTEXT_KEY]: {
+            values: { name: 'Ada' },
+            errors: { name: ['名称错误'] },
+            getValue: (field: string) => ({ name: 'Ada' } as Record<string, unknown>)[field],
+            getValues: () => ({ name: 'Ada' }),
+            isVisible: () => true,
+            isDisabled: () => false,
+            labelWidth: '96px',
+            setValue: vi.fn(),
+            setValues: vi.fn(),
+            validateField: vi.fn(),
+            inline: true,
+          },
+        },
+      },
+      slots: { default: () => h(ContextProbe) },
+    })
+
+    expect(wrapper.get('[data-testid="context-probe"]').text()).toBe('false|96px|Ada|名称错误')
+  })
+
   it('overrides parent context inline for child fields', () => {
     const fields = [
       defineField({
@@ -948,6 +1068,39 @@ describe('form layout', () => {
     // FormLayout 外的字段不受影响
     const fieldDivs = wrapper.findAll('.cf-field')
     expect(fieldDivs.length).toBeGreaterThanOrEqual(3)
+  })
+
+  it('keeps provided validation errors reactive for fields inside FormLayout', async () => {
+    const fields = [
+      defineField({
+        component: 'FormLayout',
+        props: { inline: true },
+        slots: {
+          default: [
+            defineField({
+              component: TextInput,
+              field: 'city',
+              label: '城市',
+              schema: z.string().min(2, '城市至少 2 个字符'),
+              validateOn: 'blur',
+            }),
+          ],
+        },
+      }),
+    ]
+
+    const wrapper = mount(ConfigForm, {
+      props: {
+        fields,
+        defaultValues: {},
+      },
+    })
+
+    await wrapper.get('input').setValue('A')
+    await wrapper.get('input').trigger('blur')
+    await flushValidation()
+
+    expect(wrapper.text()).toContain('城市至少 2 个字符')
   })
 
   it('supports nested FormLayout with different layout modes', () => {

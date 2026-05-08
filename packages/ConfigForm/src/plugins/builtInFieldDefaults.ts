@@ -1,4 +1,4 @@
-import type { FormNodeConfig, NormalizedFieldConfig, NormalizedNodeConfig, ValidateTrigger } from '@/types'
+import type { ComponentNodeConfig, FieldConfig, FormNodeConfig, NormalizedFieldConfig, NormalizedNodeConfig, ResolvedSlotContent, SlotContent, ValidateTrigger } from '@/types'
 import { hasFieldBinding } from '@/runtime/utils'
 
 export const BUILT_IN_FIELD_DEFAULTS_PLUGIN_NAME = 'config-form:built-in-field-defaults'
@@ -32,7 +32,34 @@ export interface BuiltInFieldDefaultsPlugin {
 }
 
 /** 已应用内置默认片段后，渲染层消费的节点一定具备 span。 */
-type DefaultedNodeConfig = NormalizedNodeConfig & { span: number }
+type DefaultedNodeConfig<TSlot extends SlotContent | ResolvedSlotContent = SlotContent> = Omit<NormalizedNodeConfig, 'slots'> & {
+  /** 已按当前处理阶段约束的 slot 内容。 */
+  slots?: Record<string, TSlot>
+  /** 字段和容器节点进入渲染层前一定具备 span。 */
+  span: number
+}
+
+type DefaultedFieldConfig<TSlot extends SlotContent | ResolvedSlotContent = SlotContent> = Omit<NormalizedFieldConfig, 'slots'> & {
+  /** 已按当前处理阶段约束的 slot 内容。 */
+  slots?: Record<string, TSlot>
+}
+
+/** 可应用默认值的节点配置；slot 类型由调用阶段决定，raw 和 resolved 阶段互不混用。 */
+export type DefaultableFormNodeConfig<TSlot extends SlotContent | ResolvedSlotContent = SlotContent>
+  = | (Omit<ComponentNodeConfig, 'slots'> & { slots?: Record<string, TSlot> })
+    | (Omit<FieldConfig, 'slots'> & { slots?: Record<string, TSlot> })
+
+/** 已应用默认值后的节点配置；slot 类型保持调用阶段传入的约束。 */
+export type DefaultedFormNodeConfig<TSlot extends SlotContent | ResolvedSlotContent = SlotContent>
+  = DefaultedNodeConfig<TSlot> | DefaultedFieldConfig<TSlot>
+
+type DefaultedFieldInput<TSlot extends SlotContent | ResolvedSlotContent = SlotContent>
+  = DefaultedNodeConfig<TSlot>
+    & { field: string }
+    & Partial<Pick<
+      FieldConfig,
+      'blurTrigger' | 'submitWhenDisabled' | 'submitWhenHidden' | 'trigger' | 'validateOn' | 'valueProp'
+    >>
 
 /** 返回字段的内置默认配置片段，不合并用户声明，也不执行用户插件。 */
 export function resolveField(field: FormNodeConfig): FieldDefaultConfig {
@@ -64,9 +91,11 @@ export function normalizeValidateOn(on?: ValidateTrigger | ValidateTrigger[]): V
 }
 
 /** 合并内置默认片段和当前字段配置，供 runtime 内部生成完整可消费字段。 */
-export function applyFieldDefaults(field: FormNodeConfig): NormalizedNodeConfig {
+export function applyFieldDefaults<TSlot extends SlotContent | ResolvedSlotContent = SlotContent>(
+  field: DefaultableFormNodeConfig<TSlot>,
+): DefaultedFormNodeConfig<TSlot> {
   const defaults = resolveField(field)
-  const normalizedNode = {
+  const normalizedNode: DefaultedNodeConfig<TSlot> = {
     ...defaults,
     ...field,
     span: field.span ?? defaults.span,
@@ -74,18 +103,20 @@ export function applyFieldDefaults(field: FormNodeConfig): NormalizedNodeConfig 
       ...defaults.props,
       ...(field.props ?? {}),
     },
-  } as DefaultedNodeConfig
+  }
 
-  if (!hasFieldBinding(normalizedNode))
+  if (!hasDefaultedFieldBinding(normalizedNode))
     return normalizedNode
 
-  return applyBindingDefaults(normalizedNode as DefaultedNodeConfig & { field: string })
+  return applyBindingDefaults(normalizedNode)
 }
 
 /** 对带 field 绑定的节点补齐绑定、校验和提交默认值，并校验事件配置冲突。 */
-function applyBindingDefaults(field: DefaultedNodeConfig & { field: string }): NormalizedFieldConfig {
-  const trigger = (field as Partial<NormalizedFieldConfig>).trigger ?? 'update:modelValue'
-  const blurTrigger = (field as Partial<NormalizedFieldConfig>).blurTrigger ?? 'blur'
+function applyBindingDefaults<TSlot extends SlotContent | ResolvedSlotContent>(
+  field: DefaultedFieldInput<TSlot>,
+): DefaultedFieldConfig<TSlot> {
+  const trigger = field.trigger ?? 'update:modelValue'
+  const blurTrigger = field.blurTrigger ?? 'blur'
 
   if (trigger === blurTrigger) {
     throw new Error(
@@ -96,12 +127,19 @@ function applyBindingDefaults(field: DefaultedNodeConfig & { field: string }): N
   return {
     ...field,
     blurTrigger,
-    submitWhenDisabled: (field as Partial<NormalizedFieldConfig>).submitWhenDisabled ?? true,
-    submitWhenHidden: (field as Partial<NormalizedFieldConfig>).submitWhenHidden ?? false,
+    submitWhenDisabled: field.submitWhenDisabled ?? true,
+    submitWhenHidden: field.submitWhenHidden ?? false,
     trigger,
-    validateOn: normalizeValidateOn((field as Partial<NormalizedFieldConfig>).validateOn),
-    valueProp: (field as Partial<NormalizedFieldConfig>).valueProp ?? 'modelValue',
+    validateOn: normalizeValidateOn(field.validateOn),
+    valueProp: field.valueProp ?? 'modelValue',
   }
+}
+
+/** 判断已补默认的节点是否携带真实字段绑定，同时保留 slot 阶段类型。 */
+function hasDefaultedFieldBinding<TSlot extends SlotContent | ResolvedSlotContent>(
+  node: DefaultedNodeConfig<TSlot>,
+): node is DefaultedFieldInput<TSlot> {
+  return hasFieldBinding(node)
 }
 
 /** 内置默认值插件优先级最低，由 runtime 在用户字段和用户插件之前读取。 */

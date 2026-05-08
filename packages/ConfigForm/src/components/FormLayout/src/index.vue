@@ -37,13 +37,22 @@ const { b } = useBem(ns)
 /** 最终生效的 inline 值：显式设置优先，否则继承父级。 */
 const effectiveInline = computed(() => props.inline ?? parentCtx.inline ?? false)
 
-// 合并父级 context 与当前节点的布局覆写，provide 给子树
-const mergedCtx = computed<FormContext>(() => ({
-  ...parentCtx,
-  inline: effectiveInline.value,
-}))
+/** 子树 context 只覆写布局状态，其余表单状态和行为实时转发父级。 */
+const layoutCtx: FormContext = {
+  get values() { return parentCtx.values },
+  get errors() { return parentCtx.errors },
+  get inline() { return effectiveInline.value },
+  get labelWidth() { return parentCtx.labelWidth },
+  getValue: parentCtx.getValue,
+  getValues: parentCtx.getValues,
+  isVisible: parentCtx.isVisible,
+  isDisabled: parentCtx.isDisabled,
+  setValue: parentCtx.setValue,
+  setValues: parentCtx.setValues,
+  validateField: parentCtx.validateField,
+}
 
-provide(FORM_CONTEXT_KEY, mergedCtx.value)
+provide(FORM_CONTEXT_KEY, layoutCtx)
 
 const layoutStyle = computed<CSSProperties>(() => {
   if (effectiveInline.value) {
