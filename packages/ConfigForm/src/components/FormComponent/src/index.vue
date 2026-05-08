@@ -22,7 +22,7 @@ const ctx = useFormContext()
 const resolvedField = computed(() => props.field as ResolvedField)
 
 const modelValue = computed(() => ctx.getValue(resolvedField.value.field))
-const disabled = computed(() => ctx.disabledMap[resolvedField.value.field])
+const disabled = computed(() => ctx.isDisabled(resolvedField.value))
 
 const componentAttrs = computed(() => ({
   ...resolvedField.value.props,

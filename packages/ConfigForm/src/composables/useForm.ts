@@ -1,15 +1,14 @@
 import type { Ref } from 'vue'
-import type { FieldCondition, FieldConfig, FieldKey, FormErrors, FormNodeConfig, FormValues, NormalizedFieldConfig, ValidateTrigger } from '@/types'
+import type { FieldCondition, FieldConfig, FieldKey, FormErrors, FormNodeConfig, FormValues, NormalizedFieldConfig, ResolvedFormNode, SlotContent, ValidateTrigger } from '@/types'
 import { computed, reactive, ref, toRaw, unref, watch } from 'vue'
-import { applyFieldDefaults } from '@/plugins/builtInFieldDefaults'
 import { applyFieldTransform, shouldValidateOn } from '@/utils/field'
-import { collectFieldConfigs } from '@/utils/node'
+import { collectFieldConfigs, isFieldConfig, isFormNodeConfig } from '@/utils/node'
 import { validateFieldRules } from '@/utils/validate'
 
 /** 无头表单控制器选项，驱动值状态、校验和提交流程。 */
 export interface UseFormOptions<T extends object = FormValues> {
-  /** 响应式节点树；只有真实字段节点会参与值、错误和提交。 */
-  fields: Ref<FormNodeConfig[]>
+  /** ConfigForm 已解析完成的响应式节点树；只有真实字段节点会参与值、错误和提交。 */
+  fields: Ref<ResolvedFormNode[]>
   /** 表单初始值；仅在创建控制器时读取一次，后续外部替换不会覆盖内部编辑态。 */
   defaultValues?: Partial<T> | Ref<Partial<T> | undefined>
   /** 校验通过后接收已执行 transform 的提交值。 */
@@ -44,10 +43,19 @@ interface FieldValidationState {
   pending?: FieldValidationRequest
 }
 
+interface NodeTopology {
+  /** 当前字段树中的节点对象集合，用于区分未知外部节点和顶层节点。 */
+  nodes: WeakSet<FormNodeConfig>
+  /** 子节点到父节点的关系；顶层节点的父节点为 undefined。 */
+  parentMap: WeakMap<FormNodeConfig, FormNodeConfig | undefined>
+  /** 真实字段名到节点对象的索引，供校验和提交按字段名定位父链。 */
+  fieldNodeMap: Map<string, FormNodeConfig>
+}
+
 /**
  * 创建 ConfigForm 的无头状态控制器。
  *
- * 负责字段值、校验错误、显隐/禁用映射、提交序列化、重置逻辑和组件 ref 暴露的方法。
+ * 负责字段值、校验错误、按需显隐/禁用判断、提交序列化、重置逻辑和组件 ref 暴露的方法。
  */
 export function useForm<T extends object = FormValues>(options: UseFormOptions<T>) {
   const { fields, defaultValues, onSubmit, onError } = options
@@ -58,13 +66,13 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
   const errors = ref<FormErrors>({})
   const initialDefaultValues = { ...((unref(defaultValues) ?? {}) as FormValues) }
   const validationStates = new Map<string, FieldValidationState>()
-  const fieldConfigs = computed(() =>
-    collectFieldConfigs(fields.value).map(field => applyFieldDefaults(field) as NormalizedFieldConfig),
-  )
+  const nodeTopology = computed(() => createNodeTopology(fields.value))
+  const fieldConfigs = computed(() => collectFieldConfigs(fields.value) as NormalizedFieldConfig[])
   const fieldTopologyKey = computed(() => fieldConfigs.value.map(field => field.field).join('\0'))
 
   // 先同步校验初始字段拓扑，避免 Vue watcher 注册后才暴露重复 field 等配置错误。
   collectFieldConfigs(fields.value)
+  createNodeTopology(fields.value)
 
   /**
    * 清理字段错误状态。
@@ -137,16 +145,6 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     },
   )
 
-  const visibilityMap = computed<Record<string, boolean>>(() => {
-    const valuesSnapshot = { ...values }
-    return Object.fromEntries(fieldConfigs.value.map(f => [f.field, resolveCondition(f.visible, valuesSnapshot, true)]))
-  })
-
-  const disabledMap = computed<Record<string, boolean>>(() => {
-    const valuesSnapshot = { ...values }
-    return Object.fromEntries(fieldConfigs.value.map(f => [f.field, resolveCondition(f.disabled, valuesSnapshot, false)]))
-  })
-
   /** 写入单个模型字段，并清除该字段已有校验错误。 */
   function setValue<K extends FieldKey<T>>(field: K, value: T[K]): void
   /** 写入运行时字符串字段，并清除该字段已有校验错误。 */
@@ -194,6 +192,32 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
   /** 获取表单值的浅拷贝快照，保留 Date/Dayjs 等实例。 */
   function getValues(): T & FormValues {
     return { ...toRaw(values) } as T & FormValues
+  }
+
+  /** 读取当前字段树中任意节点的有效可见性；未知节点保持可见，避免误伤外部临时节点。 */
+  function isVisible(field: FormNodeConfig): boolean {
+    const topology = nodeTopology.value
+    if (!topology.nodes.has(field))
+      return true
+
+    return resolveNodeVisibility(field, valueStore, topology)
+  }
+
+  /** 即时解析字段禁用态；容器节点不拥有禁用语义，始终返回 false。 */
+  function isDisabled(field: FormNodeConfig): boolean {
+    if (!isFieldConfig(field))
+      return false
+
+    return resolveCondition(field.disabled, valueStore, false)
+  }
+
+  /** 按字段名读取有效可见性，供校验和提交流程复用同一套父链规则。 */
+  function isFieldVisible(fieldName: string, valuesSnapshot: FormValues): boolean {
+    const node = nodeTopology.value.fieldNodeMap.get(fieldName)
+    if (!node)
+      return true
+
+    return resolveNodeVisibility(node, valuesSnapshot, nodeTopology.value)
   }
 
   /** 获取字段校验状态，没有状态时创建独立队列。 */
@@ -338,8 +362,10 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     const shouldValidateHidden = trigger === 'submit' && field.submitWhenHidden
     const shouldValidateDisabled = trigger === 'submit' && field.submitWhenDisabled
 
+    const fieldVisible = isFieldVisible(fieldName, valuesSnapshot)
+
     if (
-      (!resolveCondition(field.visible, valuesSnapshot, true) && !shouldValidateHidden)
+      (!fieldVisible && !shouldValidateHidden)
       || (resolveCondition(field.disabled, valuesSnapshot, false) && !shouldValidateDisabled)
     ) {
       clearFieldError(fieldName)
@@ -403,7 +429,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     const valuesSnapshot = { ...values }
     const submitValues: FormValues = {}
     for (const field of fieldConfigs.value) {
-      if (!resolveCondition(field.visible, valuesSnapshot, true) && !field.submitWhenHidden)
+      if (!isFieldVisible(field.field, valuesSnapshot) && !field.submitWhenHidden)
         continue
       if (resolveCondition(field.disabled, valuesSnapshot, false) && !field.submitWhenDisabled)
         continue
@@ -426,8 +452,8 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
   return {
     values,
     errors,
-    visibilityMap,
-    disabledMap,
+    isVisible,
+    isDisabled,
     validate,
     validateSingleField,
     submit,
@@ -438,6 +464,104 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     getValues,
     clearFieldError,
   }
+}
+
+/** 创建节点拓扑索引；只在字段树结构变化时重建，不依赖实时 values。 */
+function createNodeTopology(nodes: readonly FormNodeConfig[]): NodeTopology {
+  const topology: NodeTopology = {
+    fieldNodeMap: new Map<string, FormNodeConfig>(),
+    nodes: new WeakSet<FormNodeConfig>(),
+    parentMap: new WeakMap<FormNodeConfig, FormNodeConfig | undefined>(),
+  }
+  const stack = new Set<FormNodeConfig>()
+
+  nodes.forEach((node, index) =>
+    collectNodeTopology(node, undefined, `fields.${index}`, topology, stack),
+  )
+
+  return topology
+}
+
+/**
+ * 递归记录单个节点的父子关系和真实字段索引。
+ *
+ * 重复对象引用或重复 field 会让父链和字段语义不唯一，因此直接抛错。
+ */
+function collectNodeTopology(
+  node: FormNodeConfig,
+  parent: FormNodeConfig | undefined,
+  path: string,
+  topology: NodeTopology,
+  stack: Set<FormNodeConfig>,
+): void {
+  if (stack.has(node))
+    throw new Error(`Circular field node reference at ${path}`)
+  if (topology.nodes.has(node))
+    throw new Error(`Duplicate field node reference at ${path}`)
+
+  stack.add(node)
+  topology.nodes.add(node)
+  topology.parentMap.set(node, parent)
+
+  if (isFieldConfig(node)) {
+    if (topology.fieldNodeMap.has(node.field))
+      throw new Error(`Duplicate field key: ${node.field}`)
+    topology.fieldNodeMap.set(node.field, node)
+  }
+
+  for (const [slotName, slot] of Object.entries(node.slots ?? {}))
+    collectSlotTopology(slot, node, `${path}.slots.${slotName}`, topology, stack)
+
+  stack.delete(node)
+}
+
+/** 递归记录 slot 内节点的父子关系；slot 协议与顶层 fields 保持一致。 */
+function collectSlotTopology(
+  slot: SlotContent,
+  parent: FormNodeConfig,
+  path: string,
+  topology: NodeTopology,
+  stack: Set<FormNodeConfig>,
+): void {
+  if (Array.isArray(slot)) {
+    for (const item of slot)
+      collectSlotTopology(item as SlotContent, parent, `${path}[]`, topology, stack)
+    return
+  }
+
+  if (!isFormNodeConfig(slot))
+    throw new TypeError(`Slot "${path}" must be a field config or an array of field configs`)
+
+  collectNodeTopology(slot, parent, path, topology, stack)
+}
+
+/** 沿父链即时解析节点可见性；父节点隐藏时不再执行后代 visible 条件。 */
+function resolveNodeVisibility(
+  node: FormNodeConfig,
+  values: FormValues,
+  topology: NodeTopology,
+): boolean {
+  const chain = collectNodeChain(node, topology)
+
+  for (const current of chain) {
+    if (!resolveCondition(current.visible, values, true))
+      return false
+  }
+
+  return true
+}
+
+/** 读取节点从根到自身的父链，调用方必须确保 node 属于当前拓扑。 */
+function collectNodeChain(node: FormNodeConfig, topology: NodeTopology): FormNodeConfig[] {
+  const chain: FormNodeConfig[] = []
+  let current: FormNodeConfig | undefined = node
+
+  while (current) {
+    chain.push(current)
+    current = topology.parentMap.get(current)
+  }
+
+  return chain.reverse()
 }
 
 /** 解析字段显隐/禁用条件；函数条件的异常按原语义向调用方抛出。 */

@@ -38,6 +38,8 @@ export interface ComponentNodeConfig {
   component: Component | FunctionalFieldComponent | string
   /** 栅格跨度；容器节点默认占满 24 列。 */
   span?: number
+  /** 节点显隐条件；容器隐藏时其子树字段也按隐藏语义处理。 */
+  visible?: FieldCondition<FormValues>
   /** 传给渲染组件的 props。 */
   props?: Record<string, unknown>
   /** 子级 slots；其中的表单节点配置可以来自 defineField(...) 或普通 config。 */
@@ -71,8 +73,6 @@ export interface FieldConfig extends ComponentNodeConfig {
   validateOn?: ValidateTrigger | ValidateTrigger[]
   /** schema 校验后执行的自定义校验器。 */
   validator?: FieldValidator<FormValues, unknown>
-  /** 字段显隐条件；隐藏字段默认跳过校验和提交。 */
-  visible?: FieldCondition<FormValues>
   /** 字段禁用条件；禁用字段默认跳过校验和提交。 */
   disabled?: FieldCondition<FormValues>
   /** 提交校验通过后执行的字段值映射。 */

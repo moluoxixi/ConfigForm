@@ -32,8 +32,6 @@ const resolvedFields = computed(() => rawFields.value.map(field => runtimeRef.va
 const {
   values,
   errors,
-  visibilityMap,
-  disabledMap,
   validate,
   validateSingleField,
   submit,
@@ -42,6 +40,8 @@ const {
   setValues,
   getValue,
   getValues,
+  isVisible,
+  isDisabled,
   clearFieldError,
 } = useForm({
   fields: resolvedFields,
@@ -63,12 +63,12 @@ const {
 provideFormContext({
   get values() { return values },
   get errors() { return errors.value },
-  get visibilityMap() { return visibilityMap.value },
-  get disabledMap() { return disabledMap.value },
   inline: props.inline,
   labelWidth: resolveLabelWidth(props.labelWidth),
   getValue,
   getValues,
+  isVisible,
+  isDisabled,
   setValue,
   setValues: (nextValues, replace) => setValues(nextValues as Partial<T>, replace),
   validateField: (field, trigger) => validateSingleField(field, trigger as 'blur' | 'change' | 'submit'),

@@ -1,4 +1,5 @@
-import type { FormNodeConfig, NormalizedFieldConfig } from '../src/types'
+import type { FormNodeConfig, NormalizedFieldConfig, ResolvedFormNode } from '../src/types'
+import { readFileSync } from 'node:fs'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
 import { z } from 'zod'
@@ -6,13 +7,31 @@ import { useForm, VALIDATION_THROTTLE_MS } from '../src/composables/useForm'
 import { createFormRuntime } from '../src/runtime'
 import { defineField } from '../src/utils/field'
 
+const defaultRuntime = createFormRuntime()
+
+/** 使用默认 runtime 递归解析测试节点，保持 useForm 单测输入与 ConfigForm 真实入口一致。 */
+function resolveTestFields(fields: FormNodeConfig[]): ResolvedFormNode[] {
+  return fields.map(field => defaultRuntime.transformField(field) as ResolvedFormNode)
+}
+
+/** 创建已解析字段树的响应式引用，避免 useForm 单测绕过 ConfigForm 的字段处理边界。 */
+function createResolvedFieldRef(fields: FormNodeConfig[]) {
+  return ref<ResolvedFormNode[]>(resolveTestFields(fields))
+}
+
 describe('useForm', () => {
   afterEach(() => {
     vi.useRealTimers()
   })
 
+  it('does not apply field defaults inside the form controller', () => {
+    const source = readFileSync('src/composables/useForm.ts', 'utf8')
+
+    expect(source).not.toContain('applyFieldDefaults')
+  })
+
   it('throws when multiple real fields use the same field key', () => {
-    const fields = ref<FormNodeConfig[]>([
+    const fields = createResolvedFieldRef([
       defineField({ component: 'input', field: 'duplicate' }),
       defineField({ component: 'input', field: 'duplicate' }),
     ])
@@ -21,7 +40,7 @@ describe('useForm', () => {
   })
 
   it('collects real fields from nested component containers', async () => {
-    const fields = ref<FormNodeConfig[]>([
+    const fields = createResolvedFieldRef([
       {
         component: 'section',
         slots: {
@@ -58,7 +77,7 @@ describe('useForm', () => {
   })
 
   it('initializes from defaultValues without watching external replacements', async () => {
-    const fields = ref([
+    const fields = createResolvedFieldRef([
       defineField({ field: 'name', component: 'input', defaultValue: 'default name' }),
       defineField({ field: 'age', component: 'input', defaultValue: 18 }),
     ])
@@ -82,7 +101,7 @@ describe('useForm', () => {
   })
 
   it('preserves edited values when field metadata changes or fields are appended', async () => {
-    const fields = ref<FormNodeConfig[]>([
+    const fields = createResolvedFieldRef([
       defineField({
         field: 'name',
         component: 'input',
@@ -94,7 +113,7 @@ describe('useForm', () => {
     const form = useForm({ fields })
 
     form.setValue('name', 'Grace')
-    fields.value = [
+    fields.value = resolveTestFields([
       defineField({
         field: 'name',
         component: 'input',
@@ -106,7 +125,7 @@ describe('useForm', () => {
         component: 'input',
         defaultValue: 37,
       }),
-    ]
+    ])
     await nextTick()
 
     expect(form.getValues()).toEqual({
@@ -116,7 +135,7 @@ describe('useForm', () => {
   })
 
   it('supports validators that can inspect all field values', async () => {
-    const fields = ref([
+    const fields = createResolvedFieldRef([
       defineField({ field: 'password', component: 'input', defaultValue: 'secret' }),
       defineField({
         field: 'confirm',
@@ -139,7 +158,7 @@ describe('useForm', () => {
 
   it('lets fields opt into submitting hidden or disabled values', async () => {
     const onSubmit = vi.fn()
-    const fields = ref([
+    const fields = createResolvedFieldRef([
       defineField({ field: 'visible', component: 'input', defaultValue: 'ok' }),
       defineField({ field: 'hidden', component: 'input', defaultValue: 'skip', visible: () => false }),
       defineField({ field: 'disabled', component: 'input', defaultValue: 'skip', disabled: () => true, submitWhenDisabled: false }),
@@ -169,7 +188,7 @@ describe('useForm', () => {
   })
 
   it('validates hidden or disabled fields when they opt into submit output', async () => {
-    const fields = ref([
+    const fields = createResolvedFieldRef([
       defineField({
         field: 'hiddenSkipped',
         component: 'input',
@@ -201,7 +220,7 @@ describe('useForm', () => {
   })
 
   it('validates single fields by trigger and clears errors on value changes', async () => {
-    const fields = ref([
+    const fields = createResolvedFieldRef([
       defineField({
         field: 'name',
         component: 'input',
@@ -231,7 +250,7 @@ describe('useForm', () => {
     const calls: unknown[] = []
     let active = 0
     let maxActive = 0
-    const fields = ref([
+    const fields = createResolvedFieldRef([
       defineField({
         field: 'name',
         component: 'input',
@@ -271,7 +290,7 @@ describe('useForm', () => {
     const calls: unknown[] = []
     let active = 0
     let maxActive = 0
-    const fields = ref([
+    const fields = createResolvedFieldRef([
       defineField({
         field: 'name',
         component: 'input',
@@ -312,7 +331,7 @@ describe('useForm', () => {
 
   it('supports merge and replace value updates with explicit error clearing', async () => {
     const onError = vi.fn()
-    const fields = ref([
+    const fields = createResolvedFieldRef([
       defineField({
         field: 'name',
         component: 'input',
@@ -349,7 +368,7 @@ describe('useForm', () => {
   })
 
   it('clears stale errors when validation rules are removed from a field', async () => {
-    const fields = ref<FormNodeConfig[]>([
+    const fields = createResolvedFieldRef([
       defineField({
         component: 'input',
         field: 'name',
@@ -362,12 +381,12 @@ describe('useForm', () => {
     await expect(form.validateSingleField('name', 'submit')).resolves.toBe(false)
     expect(form.errors.value.name).toEqual(['Required'])
 
-    fields.value = [
+    fields.value = resolveTestFields([
       defineField({
         component: 'input',
         field: 'name',
       }),
-    ]
+    ])
     await nextTick()
 
     await expect(form.validateSingleField('name', 'submit')).resolves.toBe(true)
@@ -375,7 +394,7 @@ describe('useForm', () => {
   })
 
   it('prunes errors when fields are removed from the topology', async () => {
-    const fields = ref<FormNodeConfig[]>([
+    const fields = createResolvedFieldRef([
       defineField({
         component: 'input',
         field: 'name',
@@ -396,7 +415,7 @@ describe('useForm', () => {
   })
 
   it('skips inactive single-field validation unless the field opts into submit validation', async () => {
-    const fields = ref([
+    const fields = createResolvedFieldRef([
       defineField({
         field: 'missingValue',
         component: 'input',
@@ -447,8 +466,46 @@ describe('useForm', () => {
     expect(form.errors.value).toEqual({})
   })
 
+  it('computes visibility only for the requested node chain', () => {
+    let firstVisibleCalls = 0
+    let secondVisibleCalls = 0
+    const firstContainer = defineField({
+      component: 'section',
+      visible: () => {
+        firstVisibleCalls += 1
+        return true
+      },
+      slots: {
+        default: defineField({
+          component: 'input',
+          field: 'firstName',
+        }),
+      },
+    })
+    const secondContainer = defineField({
+      component: 'section',
+      visible: () => {
+        secondVisibleCalls += 1
+        return true
+      },
+      slots: {
+        default: defineField({
+          component: 'input',
+          field: 'secondName',
+        }),
+      },
+    })
+    const fields = createResolvedFieldRef([firstContainer, secondContainer])
+
+    const form = useForm({ fields })
+
+    expect(form.isVisible(fields.value[0])).toBe(true)
+    expect(firstVisibleCalls).toBe(1)
+    expect(secondVisibleCalls).toBe(0)
+  })
+
   it('uses field predicates for visibility, disabled, validation skips, and submit output', async () => {
-    const fields = ref([
+    const fields = createResolvedFieldRef([
       defineField({
         field: 'role',
         component: 'input',
@@ -475,16 +532,16 @@ describe('useForm', () => {
 
     const form = useForm({ fields, onSubmit })
 
-    expect(form.visibilityMap.value.adminNote).toBe(false)
-    expect(form.disabledMap.value.guestNote).toBe(true)
+    expect(form.isVisible(fields.value[1])).toBe(false)
+    expect(form.isDisabled(fields.value[2])).toBe(true)
 
     await expect(form.submit()).resolves.toBe(true)
     expect(onSubmit).toHaveBeenCalledWith({ role: 'guest' })
 
     form.setValue('role', 'admin')
 
-    expect(form.visibilityMap.value.adminNote).toBe(true)
-    expect(form.disabledMap.value.guestNote).toBe(false)
+    expect(form.isVisible(fields.value[1])).toBe(true)
+    expect(form.isDisabled(fields.value[2])).toBe(false)
 
     await expect(form.submit()).resolves.toBe(false)
     expect(form.errors.value.adminNote).toEqual(['隐藏时不应校验'])
@@ -533,12 +590,12 @@ describe('useForm', () => {
         field: 'dynamicDisabled',
       }),
     ]
-    const fields = ref<FormNodeConfig[]>(rawFields.map(field => runtime.transformField(field)) as FormNodeConfig[])
+    const fields = ref<ResolvedFormNode[]>(rawFields.map(field => runtime.transformField(field)) as ResolvedFormNode[])
 
     const form = useForm({ fields, onSubmit })
 
-    expect(form.visibilityMap.value.dynamicHidden).toBe(false)
-    expect(form.disabledMap.value.dynamicDisabled).toBe(true)
+    expect(form.isVisible(fields.value[0])).toBe(false)
+    expect(form.isDisabled(fields.value[1])).toBe(true)
 
     await expect(form.submit()).resolves.toBe(false)
     expect(form.errors.value.dynamicDisabled).toEqual(['transformed validator'])
@@ -550,7 +607,7 @@ describe('useForm', () => {
         defaultValue: 'active value',
         field: 'active',
       }),
-    ].map(field => runtime.transformField(field)) as FormNodeConfig[]
+    ].map(field => runtime.transformField(field)) as ResolvedFormNode[]
     await nextTick()
 
     await expect(form.submit()).resolves.toBe(true)

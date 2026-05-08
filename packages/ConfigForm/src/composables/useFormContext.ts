@@ -1,15 +1,15 @@
-import type { FormErrors, FormValues } from '@/types'
+import type { FormErrors, FormValues, ResolvedField, ResolvedFormNode } from '@/types'
 import { inject, provide } from 'vue'
 
 export interface FormContext {
   values: FormValues
   errors: FormErrors
-  visibilityMap: Record<string, boolean>
-  disabledMap: Record<string, boolean>
   inline?: boolean
   labelWidth?: string | number
   getValue: (field: string) => unknown
   getValues: () => FormValues
+  isVisible: (field: ResolvedFormNode) => boolean
+  isDisabled: (field: ResolvedField) => boolean
   setValue: (field: string, value: unknown) => void
   setValues: (values: FormValues, replace?: boolean) => void
   validateField: (field: string, trigger: string) => Promise<boolean>

@@ -5,6 +5,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, markRaw, nextTick } from 'vue'
 import { z } from 'zod'
+import FormComponent from '../src/components/FormComponent/src/index.vue'
 import FormField from '../src/components/FormField/src/index.vue'
 import FormLayout from '../src/components/FormLayout/src/index.vue'
 import { VALIDATION_THROTTLE_MS } from '../src/composables/useForm'
@@ -231,6 +232,58 @@ describe('config form component', () => {
 
     expect(api.getValues()).toEqual({ username: 'Ada' })
     expect(wrapper.text()).toContain('用户名至少 4 个字符')
+  })
+
+  it('applies container visibility to rendered subtrees and submit behavior', async () => {
+    const fields = [
+      defineField({
+        component: TextInput,
+        defaultValue: 'guest',
+        field: 'role',
+      }),
+      defineField({
+        component: CardContainer,
+        props: { title: '管理员区域' },
+        visible: values => values.role === 'admin',
+        slots: {
+          default: [
+            defineField({
+              component: TextInput,
+              defaultValue: 'token',
+              field: 'secret',
+              label: '密钥',
+              validator: () => '可见后需要校验',
+            }),
+          ],
+        },
+      }),
+    ]
+
+    const wrapper = mount(ConfigForm, {
+      props: {
+        fields,
+        defaultValues: {},
+      },
+    })
+    const api = wrapper.vm as unknown as ConfigFormExpose<Record<string, unknown>>
+
+    expect(wrapper.find('[data-card="管理员区域"]').exists()).toBe(false)
+
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+
+    expect(wrapper.emitted('submit')?.at(-1)).toEqual([{ role: 'guest' }])
+    expect(wrapper.emitted('error')).toBeUndefined()
+
+    api.setValue('role', 'admin')
+    await nextTick()
+
+    expect(wrapper.find('[data-card="管理员区域"]').exists()).toBe(true)
+
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+
+    expect(wrapper.emitted('error')?.at(-1)).toEqual([{ secret: ['可见后需要校验'] }])
   })
 
   it('applies explicit container span in grid layouts', () => {
@@ -504,10 +557,10 @@ describe('form field component', () => {
           [FORM_CONTEXT_KEY]: {
             values: { status: 'ready' },
             errors: {},
-            visibilityMap: { status: true },
-            disabledMap: {},
             getValue: (field: string) => ({ status: 'ready' } as Record<string, unknown>)[field],
             getValues: () => ({ status: 'ready' }),
+            isVisible: () => true,
+            isDisabled: () => false,
             setValue,
             setValues: vi.fn(),
             validateField,
@@ -546,10 +599,10 @@ describe('form field component', () => {
           [FORM_CONTEXT_KEY]: {
             values: { nativeInput: '' },
             errors: {},
-            visibilityMap: { nativeInput: true },
-            disabledMap: {},
             getValue: (field: string) => ({ nativeInput: '' } as Record<string, unknown>)[field],
             getValues: () => ({ nativeInput: '' }),
+            isVisible: () => true,
+            isDisabled: () => false,
             setValue,
             setValues: vi.fn(),
             validateField,
@@ -730,6 +783,51 @@ describe('form field component', () => {
   })
 })
 
+describe('form component component', () => {
+  it('binds component-only field values and events through form context actions', async () => {
+    const field = defineField({
+      blurTrigger: 'focusout',
+      component: CustomControl,
+      field: 'status',
+      trigger: 'commit',
+      valueProp: 'current',
+    })
+    const setValue = vi.fn()
+    const validateField = vi.fn()
+
+    const wrapper = mount(FormComponent, {
+      props: {
+        field: resolveTestField(field),
+      },
+      global: {
+        provide: {
+          [FORM_CONTEXT_KEY]: {
+            values: { status: 'ready' },
+            errors: {},
+            getValue: (field: string) => ({ status: 'ready' } as Record<string, unknown>)[field],
+            getValues: () => ({ status: 'ready' }),
+            isVisible: () => true,
+            isDisabled: () => false,
+            setValue,
+            setValues: vi.fn(),
+            validateField,
+          },
+        },
+      },
+    })
+
+    expect(wrapper.get('button').text()).toBe('ready')
+    expect(wrapper.find('.cf-field').exists()).toBe(false)
+
+    await wrapper.get('button').trigger('click')
+    await wrapper.get('button').trigger('focusout')
+
+    expect(setValue).toHaveBeenCalledWith('status', 'next')
+    expect(validateField).toHaveBeenCalledWith('status', 'change')
+    expect(validateField).toHaveBeenCalledWith('status', 'blur')
+  })
+})
+
 describe('form layout', () => {
   it('renders grid layout by default and applies flex style when inline=true', () => {
     const gridWrapper = mount(FormLayout, {
@@ -739,8 +837,6 @@ describe('form layout', () => {
           [FORM_CONTEXT_KEY]: {
             values: {},
             errors: {},
-            visibilityMap: {},
-            disabledMap: {},
             setValue: vi.fn(),
             validateField: vi.fn(),
             inline: false,
@@ -761,8 +857,6 @@ describe('form layout', () => {
           [FORM_CONTEXT_KEY]: {
             values: {},
             errors: {},
-            visibilityMap: {},
-            disabledMap: {},
             setValue: vi.fn(),
             validateField: vi.fn(),
             inline: false,
@@ -782,8 +876,6 @@ describe('form layout', () => {
           [FORM_CONTEXT_KEY]: {
             values: {},
             errors: {},
-            visibilityMap: {},
-            disabledMap: {},
             setValue: vi.fn(),
             validateField: vi.fn(),
             inline: true,

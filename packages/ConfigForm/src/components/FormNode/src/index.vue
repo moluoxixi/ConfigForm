@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { CSSProperties } from 'vue'
-import type { ResolvedField, ResolvedFormNode } from '@/types'
+import type { ResolvedFormNode } from '@/types'
 import { computed } from 'vue'
 import RecursiveField from '@/components/RecursiveField'
 import { useFormContext } from '@/composables/useFormContext'
@@ -26,11 +26,8 @@ const containerStyle = computed<CSSProperties | undefined>(() => {
   return { gridColumn: `span ${props.field.span}` }
 })
 
-/** 有 field 的节点从 visibilityMap 读取可见性，容器节点始终可见 */
-const visible = computed(() => {
-  if (!('field' in props.field)) return true
-  return ctx.visibilityMap[(props.field as ResolvedField).field] !== false
-})
+/** 所有节点从无头控制器读取有效可见性，容器隐藏会同时隐藏整棵子树。 */
+const visible = computed(() => ctx.isVisible(props.field))
 
 const attrs = computed(() => {
   const baseStyle = containerStyle.value

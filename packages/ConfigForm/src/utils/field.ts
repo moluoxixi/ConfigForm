@@ -40,8 +40,9 @@ interface ComponentFieldPart<C> {
   props?: RuntimeResolvable<ExtractComponentProps<NoInfer<C>>> & {}
 }
 
-interface ComponentNodeConfigCore<C> extends ComponentFieldPart<C> {
+interface ComponentNodeConfigCore<C, TValues extends object = FormValues> extends ComponentFieldPart<C> {
   span?: number
+  visible?: FieldCondition<TValues>
   slots?: Record<string, SlotContent>
 }
 
@@ -219,8 +220,8 @@ export function defineField<
 
 /** 传入表单模型泛型时定义容器节点；模型类型只用于保持调用形态一致。 */
 export function defineField<_TValues extends object, C = unknown>(
-  config: ComponentNodeConfigCore<C>,
-): DefinedComponentNodeConfig<ComponentNodeConfigCore<C>>
+  config: ComponentNodeConfigCore<C, _TValues>,
+): DefinedComponentNodeConfig<ComponentNodeConfigCore<C, _TValues>>
 
 /** 所有 defineField 重载共用的运行时实现，只负责复制配置，不写入隐藏标记。 */
 export function defineField(config: FormNodeInput): DefinedFormNodeConfig {

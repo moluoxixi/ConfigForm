@@ -41,8 +41,8 @@ const resolvedField = computed(() => props.field)
 
 const modelValue = computed(() => ctx.getValue(resolvedField.value.field))
 const error = computed(() => ctx.errors[resolvedField.value.field])
-const visible = computed(() => ctx.visibilityMap[resolvedField.value.field] !== false)
-const disabled = computed(() => ctx.disabledMap[resolvedField.value.field])
+const visible = computed(() => ctx.isVisible(resolvedField.value))
+const disabled = computed(() => ctx.isDisabled(resolvedField.value))
 
 const fieldId = computed(() => {
   const safeFieldName = resolvedField.value.field.replace(/[^\w-]/g, '-')
