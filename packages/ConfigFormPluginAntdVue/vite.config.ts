@@ -26,6 +26,7 @@ export default defineConfig({
       entry: resolve(__dirname, 'index.ts'),
       name: 'ConfigFormPluginAntdVue',
       fileName: 'index',
+      formats: ['es'],
     },
     rollupOptions: {
       external: ['@moluoxixi/config-form', '@moluoxixi/config-form/plugins', 'ant-design-vue'],
