@@ -6,6 +6,8 @@ export {
 export type {
   ComponentRegistry,
   FieldDefaultConfig,
+  FormFieldDefault,
+  FormFieldDefaultConfig,
   FormFieldTransform,
   FormRuntime,
   FormRuntimeOptions,
@@ -33,3 +35,9 @@ export {
   isFieldConfig,
   isFormNodeConfig,
 } from '../utils/node'
+export {
+  mergeRecords,
+} from '../utils/object'
+export type {
+  PlainRecord,
+} from '../utils/object'

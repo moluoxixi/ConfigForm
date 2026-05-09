@@ -19,6 +19,13 @@ function asField(node: unknown): NormalizedFieldConfig {
 }
 
 describe('antd vue plugin package', () => {
+  it('provides Ant Design Vue bindings through the default-field lifecycle', () => {
+    const plugin = createAntdVuePlugin()
+
+    expect(plugin).toHaveProperty('getDefaultField')
+    expect(plugin).not.toHaveProperty('transformField')
+  })
+
   it('maps Ant Design Vue value components to value/update:value', () => {
     const runtime = createFormRuntime({
       plugins: [createAntdVuePlugin()],

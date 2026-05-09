@@ -31,7 +31,7 @@ export interface BuiltInFieldDefaultsPlugin {
   /** 插件名称固定用于测试和调试识别，不进入用户插件冲突检测。 */
   readonly name: typeof BUILT_IN_FIELD_DEFAULTS_PLUGIN_NAME
   /** 根据节点形态返回默认配置片段；不会读取或复制用户声明的业务字段。 */
-  transformField: (field: FormNodeConfig) => FieldDefaultConfig
+  getDefaultField: (field: FormNodeConfig) => FieldDefaultConfig
 }
 
 /** 已应用内置默认片段后，渲染层消费的节点一定具备 span。 */
@@ -150,5 +150,5 @@ function hasDefaultedFieldBinding<TSlot extends SlotContent | ResolvedSlotConten
 /** 内置默认值插件优先级最低，由 runtime 在用户字段和用户插件之前读取。 */
 export const BUILT_IN_FIELD_DEFAULTS_PLUGIN: BuiltInFieldDefaultsPlugin = {
   name: BUILT_IN_FIELD_DEFAULTS_PLUGIN_NAME,
-  transformField: getFieldDefaults,
+  getDefaultField: getFieldDefaults,
 }

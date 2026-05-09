@@ -7,7 +7,7 @@ const BUILT_IN_COMPONENTS: ComponentRegistry = {
   FormLayout,
 }
 
-/** 创建表单运行时实例，合并组件注册和字段转换插件。 */
+/** 创建表单运行时实例，合并组件注册和字段生命周期插件。 */
 export function createFormRuntime(runtimeConfig: FormRuntimeOptions = {}): FormRuntime {
   const plugins: FormRuntimePlugin[] = [...(runtimeConfig.plugins ?? [])]
   const components: ComponentRegistry = { ...BUILT_IN_COMPONENTS, ...(runtimeConfig.components ?? {}) }
@@ -19,6 +19,7 @@ export function createFormRuntime(runtimeConfig: FormRuntimeOptions = {}): FormR
 
     seenPluginNames.add(plugin.name)
 
+    /** 运行时启动阶段先把插件组件并入注册表；这里专门拦截重复 key，避免后续解析时出现来源不明的覆盖关系。 */
     for (const [key, component] of Object.entries(plugin.components ?? {})) {
       if (Object.hasOwn(components, key))
         throw new Error(`Component key conflict: ${key}`)

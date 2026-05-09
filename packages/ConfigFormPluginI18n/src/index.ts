@@ -1,7 +1,7 @@
 import type {
+  FormFieldDefaultConfig,
+  FormNodeConfig,
   FormRuntimePlugin,
-  NormalizedFieldConfig,
-  NormalizedNodeConfig,
 } from '@moluoxixi/config-form/plugins'
 
 type PlainRecord = Record<string, unknown>
@@ -71,7 +71,7 @@ export type I18nMissingHandler = (
   locale: string | undefined,
 ) => void
 
-/** ConfigForm i18n 字段转换插件选项。 */
+/** ConfigForm i18n 字段默认值插件选项。 */
 export interface I18nPluginOptions {
   /** runtime 插件名称，默认 "i18n"。 */
   name?: string
@@ -87,11 +87,11 @@ export interface I18nPluginOptions {
   missing?: I18nMissingHandler
 }
 
-/** 创建基于 field key 的 ConfigForm i18n 转换插件。 */
+/** 创建基于 field key 的 ConfigForm i18n 默认值插件。 */
 export function createI18nPlugin(config: I18nPluginOptions = {}): FormRuntimePlugin {
   return {
     name: config.name ?? 'i18n',
-    transformField: (node: NormalizedNodeConfig): NormalizedNodeConfig | void => {
+    getDefaultField: (node: FormNodeConfig): FormFieldDefaultConfig | void => {
       if (!hasFieldBinding(node))
         return undefined
 
@@ -100,7 +100,7 @@ export function createI18nPlugin(config: I18nPluginOptions = {}): FormRuntimePlu
         return undefined
 
       const locale = resolveLocale(config.locale)
-      const translated: Partial<NormalizedFieldConfig> = {}
+      const translated: FormFieldDefaultConfig = {}
 
       if (fieldMessages.label)
         translated.label = translateMessageRef(fieldMessages.label, config, locale, `fields.${node.field}.label`)
@@ -108,16 +108,13 @@ export function createI18nPlugin(config: I18nPluginOptions = {}): FormRuntimePlu
       if (fieldMessages.props)
         translated.props = resolveI18nValue(fieldMessages.props, config, locale, `fields.${node.field}.props`) as Record<string, unknown>
 
-      return {
-        ...node,
-        ...translated,
-      }
+      return translated
     },
   }
 }
 
 /** 判断标准化节点是否是带表单值绑定的字段节点。 */
-function hasFieldBinding(node: NormalizedNodeConfig): node is NormalizedFieldConfig {
+function hasFieldBinding(node: FormNodeConfig): node is FormNodeConfig & { field: string } {
   return typeof (node as { field?: unknown }).field === 'string'
 }
 

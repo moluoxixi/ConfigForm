@@ -21,20 +21,41 @@ export function readPlainRecord(value: unknown, optionName: string): PlainRecord
 }
 
 /** 深合并普通对象；右侧对象优先，数组、VNode 和组件对象保持整体替换。 */
-export function mergeRecords(...sources: PlainRecord[]): PlainRecord {
+export function mergeRecords(...sources: Array<object | undefined>): PlainRecord {
   const result: PlainRecord = {}
   for (const source of sources) {
-    for (const [key, value] of Object.entries(source)) {
+    if (source === undefined)
+      continue
+
+    const record = readPlainRecord(source, 'mergeRecords source')
+    for (const [key, value] of Object.entries(record)) {
       const previous = result[key]
-      result[key] = isMergeableRecord(previous) && isMergeableRecord(value)
-        ? mergeRecords(previous, value)
-        : value
+      if (canMergeValue(key, previous, value)) {
+        result[key] = mergeRecords(previous, value as PlainRecord)
+        continue
+      }
+      result[key] = value
     }
   }
   return result
 }
 
-/** 判断值是否可安全递归合并；VNode 作为完整值替换，不能按普通对象拆开。 */
+/** 判断当前字段是否可以递归合并；组件入口必须保持引用整体替换。 */
+function canMergeValue(key: string, previous: unknown, value: unknown): previous is PlainRecord {
+  return key !== 'component' && isMergeableRecord(previous) && isMergeableRecord(value)
+}
+
+/** 判断值是否可安全递归合并；VNode 和 Vue 组件对象作为完整值替换，不能按普通对象拆开。 */
 function isMergeableRecord(value: unknown): value is PlainRecord {
-  return isPlainRecord(value) && !isVNode(value)
+  return isPlainRecord(value) && !isVNode(value) && !isVueComponentObject(value)
+}
+
+/** 判断普通对象是否具备 Vue 组件选项特征；命中时合并应直接替换整个组件对象。 */
+function isVueComponentObject(value: PlainRecord): boolean {
+  return typeof value.setup === 'function'
+    || typeof value.render === 'function'
+    || typeof value.template === 'string'
+    || typeof value.__name === 'string'
+    || typeof value.__file === 'string'
+    || isPlainRecord(value.__vccOpts)
 }

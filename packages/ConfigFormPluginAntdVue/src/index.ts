@@ -1,4 +1,5 @@
-import type { FieldConfig, FormRuntimePlugin, NormalizedFieldConfig, NormalizedNodeConfig } from '@moluoxixi/config-form/plugins'
+import type { FieldConfig, FormFieldDefaultConfig, FormNodeConfig, FormRuntimePlugin } from '@moluoxixi/config-form/plugins'
+import { hasFieldBinding } from '@moluoxixi/config-form/plugins'
 
 /**
  * Ant Design Vue 字段组件的双向绑定协议。
@@ -16,36 +17,6 @@ export interface AntdVuePluginOptions {
   bindings?: Record<string, AntdVueFieldBinding>
   /** 字段组件名形如 Ant Design Vue 组件但没有映射时是否直接抛错，默认 true。 */
   strict?: boolean
-}
-
-// ===== 深合并工具 =====
-
-type PlainObject = Record<string, unknown>
-
-function isPlainObject(val: unknown): val is PlainObject {
-  return val !== null && typeof val === 'object' && !Array.isArray(val)
-}
-
-/**
- * 深合并多个普通对象，后面的对象优先级更高。
- *
- * - 两端均为普通对象时递归合并
- * - 其他情况（原始值、数组、null 等）直接用后者值覆盖
- */
-function deepMergeProps(...sources: Array<PlainObject | undefined>): PlainObject {
-  const result: PlainObject = {}
-  for (const source of sources) {
-    if (!source)
-      continue
-    for (const key of Object.keys(source)) {
-      const srcVal = source[key]
-      const resVal = result[key]
-      result[key] = isPlainObject(srcVal) && isPlainObject(resVal)
-        ? deepMergeProps(resVal, srcVal)
-        : srcVal
-    }
-  }
-  return result
 }
 
 /** 当前插件内置支持的 Ant Design Vue 字段组件绑定表。 */
@@ -117,38 +88,32 @@ export function createAntdVuePlugin(config: AntdVuePluginOptions = {}): FormRunt
   }
   const strict = config.strict ?? true
 
+  /** 根据字段组件名返回 Ant Design Vue 绑定默认值；用户字段声明由 core 合并覆盖。 */
+  function getDefaultField(node: FormNodeConfig): FormFieldDefaultConfig | void {
+    if (!hasFieldBinding(node))
+      return undefined
+
+    const componentName = resolveComponentName(node.component)
+    if (!componentName)
+      return undefined
+
+    const binding = bindings[componentName]
+    if (!binding) {
+      if (strict && isAntdVueLikeComponentName(componentName))
+        throw new Error(`Unknown Ant Design Vue component binding: ${componentName}`)
+      return undefined
+    }
+
+    return {
+      ...(binding.props ? { props: binding.props } : {}),
+      trigger: binding.trigger,
+      valueProp: binding.valueProp,
+    }
+  }
+
   const plugin: FormRuntimePlugin = {
     name: config.name ?? 'antd-vue',
-    transformField: (node: NormalizedNodeConfig): NormalizedNodeConfig | void => {
-      // 只处理有 field 绑定的节点（跳过纯容器）
-      if (!('field' in node))
-        return undefined
-
-      const field = node as NormalizedFieldConfig
-      const componentName = resolveComponentName(field.component)
-      if (!componentName)
-        return undefined
-
-      const binding = bindings[componentName]
-      if (!binding) {
-        if (strict && isAntdVueLikeComponentName(componentName))
-          throw new Error(`Unknown Ant Design Vue component binding: ${componentName}`)
-        return undefined
-      }
-
-      // 深合并 binding.props（绑定表默认）与字段声明的 props（用户优先）
-      const mergedProps = binding.props
-        ? deepMergeProps(binding.props, field.props)
-        : field.props
-
-      const transformed: NormalizedFieldConfig = {
-        ...field,
-        trigger: binding.trigger,
-        valueProp: binding.valueProp,
-        props: mergedProps,
-      }
-      return transformed
-    },
+    getDefaultField,
   }
 
   return plugin

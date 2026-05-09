@@ -70,33 +70,51 @@ describe('runtime utilities', () => {
   })
 
   it('deep merges plain objects while replacing arrays and vnode-shaped values as whole units', () => {
+    const PluginComponent = { name: 'PluginComponent' }
+    const UserComponent = { name: 'UserComponent' }
+    const PluginIcon = { name: 'PluginIcon', setup: () => () => h('span', 'plugin') }
+    const UserIcon = { name: 'UserIcon', setup: () => () => h('span', 'user') }
     const merged = mergeRecords(
       {
+        component: PluginComponent,
         nested: {
           color: 'blue',
           list: ['left'],
         },
+        props: {
+          icon: PluginIcon,
+        },
         renderer: h('span', 'left'),
       },
       {
+        component: UserComponent,
         nested: {
           width: '80px',
           list: ['right'],
+        },
+        props: {
+          icon: UserIcon,
         },
         renderer: h('span', 'right'),
       },
     )
 
     expect(merged).toEqual({
+      component: UserComponent,
       nested: {
         color: 'blue',
         width: '80px',
         list: ['right'],
       },
+      props: {
+        icon: UserIcon,
+      },
       renderer: expect.objectContaining({
         children: 'right',
       }),
     })
+    expect(merged.component).toBe(UserComponent)
+    expect((merged.props as Record<string, unknown>).icon).toBe(UserIcon)
   })
 
   it('classifies runtime nodes by binding and label presence', () => {

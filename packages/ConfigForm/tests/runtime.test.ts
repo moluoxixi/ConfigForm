@@ -44,10 +44,8 @@ describe('form runtime', () => {
       plugins: [
         {
           name: 'ui-defaults',
-          transformField: field => ({
-            ...field,
+          getDefaultField: () => ({
             props: {
-              ...field.props,
               addon: 'plugin',
               style: {
                 color: 'blue',
@@ -103,13 +101,71 @@ describe('form runtime', () => {
     })
   })
 
+  it('runs default hooks before transform hooks with merged field input', () => {
+    const calls: string[] = []
+    const runtime = createFormRuntime({
+      plugins: [
+        {
+          name: 'defaults',
+          getDefaultField: () => {
+            calls.push('getDefaultField')
+            return {
+              props: {
+                addon: 'plugin',
+                style: {
+                  color: 'blue',
+                  width: '44px',
+                },
+              },
+              trigger: 'update:value',
+              valueProp: 'value',
+            }
+          },
+          transformField: (field) => {
+            const normalizedField = field as NormalizedFieldConfig
+            calls.push(`transformField:${normalizedField.valueProp}:${(normalizedField.props.style as Record<string, unknown>).width}`)
+            return {
+              ...normalizedField,
+              props: {
+                ...normalizedField.props,
+                transformed: true,
+              },
+            }
+          },
+        },
+      ],
+    })
+
+    const resolved = runtime.transformField(defineField({
+      component: 'input',
+      field: 'name',
+      props: {
+        style: {
+          width: '80px',
+        },
+      },
+      valueProp: 'customValue',
+    })) as NormalizedFieldConfig
+
+    expect(calls).toEqual(['getDefaultField', 'transformField:customValue:80px'])
+    expect(resolved.valueProp).toBe('customValue')
+    expect(resolved.trigger).toBe('update:value')
+    expect(resolved.props).toEqual({
+      addon: 'plugin',
+      style: {
+        color: 'blue',
+        width: '80px',
+      },
+      transformed: true,
+    })
+  })
+
   it('keeps built-in defaults in the runtime-local lowest-priority plugin', () => {
     const runtime = createFormRuntime({
       plugins: [
         {
           name: 'plugin-defaults',
-          transformField: field => ({
-            ...field,
+          getDefaultField: () => ({
             trigger: 'change',
             valueProp: 'value',
           }),
@@ -122,13 +178,37 @@ describe('form runtime', () => {
     })
 
     expect(BUILT_IN_FIELD_DEFAULTS_PLUGIN.name).toBe('config-form:built-in-field-defaults')
-    expect(runtime.getFieldDefaults(rawField)).toEqual(BUILT_IN_FIELD_DEFAULTS_PLUGIN.transformField(rawField))
+    expect(runtime.getFieldDefaults(rawField)).toEqual({
+      ...BUILT_IN_FIELD_DEFAULTS_PLUGIN.getDefaultField(rawField),
+      trigger: 'change',
+      valueProp: 'value',
+    })
 
     const transformed = runtime.transformField(rawField) as NormalizedFieldConfig
 
     expect(transformed.trigger).toBe('change')
     expect(transformed.valueProp).toBe('value')
     expect(transformed.blurTrigger).toBe('blur')
+  })
+
+  it('rejects default-field hooks that return node identity or topology fields', () => {
+    const cases = [
+      ['field', 'other'],
+      ['component', 'section'],
+      ['slots', { default: { component: 'input', field: 'child' } }],
+    ] as const
+
+    for (const [key, value] of cases) {
+      expect(() => createFormRuntime({
+        plugins: [
+          {
+            name: `bad-${key}`,
+            getDefaultField: () => ({ [key]: value } as never),
+          },
+        ],
+      }).transformField(defineField({ component: 'input', field: 'name' })))
+        .toThrow(`Plugin bad-${key} getDefaultField cannot return "${key}"`)
+    }
   })
 
   it('rejects FormItem root props that conflict with field semantics', () => {

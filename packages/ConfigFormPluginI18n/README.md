@@ -1,6 +1,6 @@
 # @moluoxixi/config-form-plugin-i18n
 
-ConfigForm 的官方 i18n 字段转换插件。本包不再提供 token API，也不会修改字段对象；它只在 runtime 的 `transformField(field)` 阶段，根据 `fields` 映射为对应字段补充 `label` 和 `props` 文案。
+ConfigForm 的官方 i18n 字段默认值插件。本包不再提供 token API，也不会修改字段对象；它通过 runtime 的 `getDefaultField(field)` 生命周期，根据 `fields` 映射为对应字段补充 `label` 和 `props` 文案。
 
 插件不会捕获 `locale`、`translate`、消息函数或 `missing` 里的异常。未解析到当前语言文案且没有 `defaultMessage` 时会直接抛错；`missing` 仅用于通知/诊断，返回值不会替代缺失文案。
 

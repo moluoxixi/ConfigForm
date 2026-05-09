@@ -6,7 +6,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 import { createI18nPlugin } from '../src'
 
 describe('i18n plugin package', () => {
-  it('translates field labels, props, and nested props during transformField', () => {
+  it('translates field labels, props, and nested props during default-field lifecycle', () => {
     const runtime = createFormRuntime({
       plugins: [
         createI18nPlugin({

@@ -29,6 +29,7 @@ describe('plugin api', () => {
     type HasRuntimeTransformField = 'transformField' extends keyof PluginApi.FormRuntime ? true : false
     type HasRuntimeTransformFields = 'transformFields' extends keyof PluginApi.FormRuntime ? true : false
     type HasPluginTokens = 'tokens' extends keyof PluginApi.FormRuntimePlugin ? true : false
+    type HasPluginGetDefaultField = 'getDefaultField' extends keyof PluginApi.FormRuntimePlugin ? true : false
     type HasPluginTransformNode = 'transformNode' extends keyof PluginApi.FormRuntimePlugin ? true : false
     type HasPluginTransformField = 'transformField' extends keyof PluginApi.FormRuntimePlugin ? true : false
     type TransformHookHasContext = Parameters<PluginApi.FormFieldTransform> extends [unknown, unknown, ...unknown[]] ? true : false
@@ -64,6 +65,7 @@ describe('plugin api', () => {
     expectTypeOf<HasRuntimeTransformField>().toEqualTypeOf<true>()
     expectTypeOf<HasRuntimeTransformFields>().toEqualTypeOf<false>()
     expectTypeOf<HasPluginTokens>().toEqualTypeOf<false>()
+    expectTypeOf<HasPluginGetDefaultField>().toEqualTypeOf<true>()
     expectTypeOf<HasPluginTransformNode>().toEqualTypeOf<false>()
     expectTypeOf<HasPluginTransformField>().toEqualTypeOf<true>()
     expectTypeOf<TransformHookHasContext>().toEqualTypeOf<false>()

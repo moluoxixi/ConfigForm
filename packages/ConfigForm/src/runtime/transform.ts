@@ -1,35 +1,60 @@
-import type { ComponentRegistry, FormFieldTransform, FormRuntimePlugin } from './types'
-import type { FieldDefaultConfig } from '@/plugins/builtInFieldDefaults'
-import type { DefinedFormNodeConfig, FormNodeConfig, NormalizedFieldConfig, NormalizedNodeConfig, ResolvedFormNode, ResolvedSlotContent, SlotContent } from '@/types'
+import type {
+  ComponentRegistry,
+  FormFieldDefault,
+  FormFieldDefaultConfig,
+  FormFieldTransform,
+  FormRuntimePlugin,
+} from './types'
+import type {
+  DefinedFormNodeConfig,
+  FormNodeConfig,
+  NormalizedFieldConfig,
+  NormalizedNodeConfig,
+  ResolvedFormNode,
+  ResolvedSlotContent,
+  SlotContent,
+} from '@/types'
 import type { PlainRecord } from '@/utils/object'
-import { applyFieldDefaults, getFieldDefaults } from '@/plugins/builtInFieldDefaults'
+import { applyFieldDefaults, BUILT_IN_FIELD_DEFAULTS_PLUGIN } from '@/plugins/builtInFieldDefaults'
 import { isFormNodeConfig } from '@/utils/node'
 import { mergeRecords, readPlainRecord } from '@/utils/object'
-import { readFormItemProps } from './formItem'
 import { hasFieldBinding } from './utils'
 
 export interface FieldPipelineContext {
-  getFieldDefaults: (field: FormNodeConfig) => FieldDefaultConfig
+  getFieldDefaults: (field: FormNodeConfig) => FormFieldDefaultConfig
   transformField: (field: FormNodeConfig) => ResolvedFormNode
 }
 
 type PipelineNode = NormalizedFieldConfig | NormalizedNodeConfig
 type PluginField = DefinedFormNodeConfig | NormalizedNodeConfig
+const FORBIDDEN_DEFAULT_FIELD_KEYS = new Set(['component', 'field', 'slots'])
 
 /** 创建字段配置管线，负责默认值、插件、用户优先级、组件解析和 slot 递归编排。 */
 export function createFieldPipeline(
   components: ComponentRegistry = {},
   plugins: FormRuntimePlugin[] = [],
 ): FieldPipelineContext {
-  const hooks = collectHooks(plugins)
+  const defaultHooks = collectDefaultHooks(plugins)
+  const transformHooks = collectTransformHooks(plugins)
 
-  /** 将字符串组件 key 转换为注册组件，缺失的大写 key 直接抛错。 */
+  /**
+   * 将字段里的字符串组件 key 解析成真实组件。
+   *
+   * 这里不再处理“谁能覆盖谁”的注册冲突，那件事已经在 createFormRuntime() 组装注册表时完成；
+   * 当前阶段只负责消费最终注册表，并在字段引用了不存在的大写组件 key 时给出明确错误。
+   */
   function resolveComponent(component: NormalizedNodeConfig['component']): NormalizedNodeConfig['component'] {
     if (typeof component === 'string' && Object.hasOwn(components, component))
       return components[component]
     if (typeof component === 'string' && /^[A-Z]/.test(component))
       throw new Error(`Unknown component key: ${component}`)
     return component
+  }
+
+  /** 收集内置和用户插件的默认字段片段；右侧片段在对象合并时具备更高优先级。 */
+  function getFieldDefaults(field: FormNodeConfig): FormFieldDefaultConfig {
+    const fragments = defaultHooks.map(hook => resolveDefaultField(hook, field))
+    return mergeRecords(...fragments) as FormFieldDefaultConfig
   }
 
   /** 递归处理 slot 节点配置，确保子节点在进入渲染组件前已完成转换。 */
@@ -50,34 +75,40 @@ export function createFieldPipeline(
 
   /** 对单个字段执行完整转换管线。 */
   function transformField(field: FormNodeConfig): ResolvedFormNode {
-    const userField = field
-    let current: PipelineNode = applyFieldDefaults(field)
+    let current = applyFieldDefaults(
+      mergeRecords(getFieldDefaults(field), field) as unknown as FormNodeConfig,
+    ) as PipelineNode
 
-    for (const hook of hooks) {
-      const next = hook.handler(cloneFieldForPlugin(current))
-      if (next === undefined)
-        continue
-      if (!next || typeof next !== 'object' || Array.isArray(next))
-        throw new TypeError(`Plugin ${hook.pluginName} transformField must return a field object or undefined`)
-      if (hasFieldBinding(current) && hasFieldBinding(next) && next.field !== current.field) {
-        throw new Error(
-          `Plugin ${hook.pluginName} cannot change field key from "${current.field}" to "${next.field}"`,
-        )
-      }
-      current = mergePluginField(current, next, userField)
-    }
+    for (const hook of transformHooks)
+      current = runTransformHook(hook, current)
 
-    const resolved = applyFieldDefaults<ResolvedSlotContent>({
-      ...current,
-      component: resolveComponent(current.component),
-      slots: current.slots
+    return resolveFinalField(current)
+  }
+
+  /** 执行单个 transformField hook，并在继续后续 hook 前重新规范化字段。 */
+  function runTransformHook(hook: RuntimeHook, current: PipelineNode): PipelineNode {
+    const next = hook.handler(cloneFieldForPlugin(current))
+    if (next === undefined)
+      return current
+    if (!isFormNodeConfig(next))
+      throw new TypeError(`Plugin ${hook.pluginName} transformField must return a field object or undefined`)
+
+    assertFieldKeyStable(hook.pluginName, current, next)
+
+    return applyFieldDefaults(next) as PipelineNode
+  }
+
+  /** 解析组件和 slot，产出渲染层可直接消费的最终节点。 */
+  function resolveFinalField(field: PipelineNode): ResolvedFormNode {
+    return applyFieldDefaults<ResolvedSlotContent>({
+      ...field,
+      component: resolveComponent(field.component),
+      slots: field.slots
         ? Object.fromEntries(
-            Object.entries(current.slots).map(([name, slot]) => [name, transformSlot(slot, name)]),
+            Object.entries(field.slots).map(([name, slot]) => [name, transformSlot(slot, name)]),
           )
-        : current.slots,
-    })
-
-    return resolved
+        : field.slots,
+    }) as ResolvedFormNode
   }
 
   return { getFieldDefaults, transformField }
@@ -88,13 +119,33 @@ export function transformField(field: FormNodeConfig): ResolvedFormNode {
   return createFieldPipeline().transformField(field)
 }
 
+interface DefaultHook {
+  handler: FormFieldDefault
+  pluginName: string
+}
+
 interface RuntimeHook {
   handler: FormFieldTransform
   pluginName: string
 }
 
+/** 收集内置默认值插件和用户插件的 getDefaultField hook，内置插件始终优先级最低。 */
+function collectDefaultHooks(plugins: FormRuntimePlugin[]): DefaultHook[] {
+  const sources: Array<{
+    getDefaultField?: FormFieldDefault
+    name: string
+  }> = [BUILT_IN_FIELD_DEFAULTS_PLUGIN, ...plugins]
+
+  return sources
+    .filter((plugin): plugin is { getDefaultField: FormFieldDefault, name: string } => typeof plugin.getDefaultField === 'function')
+    .map(plugin => ({
+      handler: plugin.getDefaultField,
+      pluginName: plugin.name,
+    }))
+}
+
 /** 收集插件 transformField hook，并按插件注册顺序执行。 */
-function collectHooks(plugins: FormRuntimePlugin[]): RuntimeHook[] {
+function collectTransformHooks(plugins: FormRuntimePlugin[]): RuntimeHook[] {
   return plugins
     .filter((plugin): plugin is FormRuntimePlugin & { transformField: FormFieldTransform } => typeof plugin.transformField === 'function')
     .map(plugin => ({
@@ -103,7 +154,43 @@ function collectHooks(plugins: FormRuntimePlugin[]): RuntimeHook[] {
     }))
 }
 
-/** 为插件提供浅复制字段，避免插件直接修改当前管线状态。 */
+/** 执行默认值 hook 并校验其返回普通对象片段，避免非法默认值被静默跳过。 */
+function resolveDefaultField(hook: DefaultHook, field: FormNodeConfig): FormFieldDefaultConfig | undefined {
+  const defaults = hook.handler(cloneRawFieldForPlugin(field))
+  if (defaults === undefined)
+    return undefined
+
+  if (!defaults || typeof defaults !== 'object' || Array.isArray(defaults)) {
+    throw new TypeError(
+      `Plugin ${hook.pluginName} getDefaultField must return a field object or undefined`,
+    )
+  }
+
+  const record = readPlainRecord(defaults, `Plugin ${hook.pluginName} getDefaultField return`)
+  assertDefaultFieldKeys(hook.pluginName, record)
+
+  return record as FormFieldDefaultConfig
+}
+
+/** 校验默认值 hook 不能返回会改变节点身份或子树拓扑的字段。 */
+function assertDefaultFieldKeys(pluginName: string, defaults: PlainRecord): void {
+  for (const key of Object.keys(defaults)) {
+    if (FORBIDDEN_DEFAULT_FIELD_KEYS.has(key))
+      throw new Error(`Plugin ${pluginName} getDefaultField cannot return "${key}"`)
+  }
+}
+
+/** 为默认值插件提供浅复制原始字段，避免插件直接修改用户声明对象。 */
+function cloneRawFieldForPlugin(field: FormNodeConfig): FormNodeConfig {
+  return {
+    ...field,
+    ...(field.props ? { props: { ...field.props } } : {}),
+    ...(hasFieldBinding(field) && field.formItemProps ? { formItemProps: { ...field.formItemProps } } : {}),
+    ...(field.slots ? { slots: { ...field.slots } } : {}),
+  }
+}
+
+/** 为转换插件提供浅复制字段，避免插件直接修改当前管线状态。 */
 function cloneFieldForPlugin(field: PipelineNode): PipelineNode {
   const clone: PipelineNode = {
     ...field,
@@ -115,80 +202,21 @@ function cloneFieldForPlugin(field: PipelineNode): PipelineNode {
   return clone
 }
 
-/** 合并插件返回值，并恢复用户显式声明的字段值优先级。 */
-function mergePluginField(
+/** 校验转换插件不能移除或改写已有字段 key，避免表单值拓扑被插件隐式重写。 */
+function assertFieldKeyStable(
+  pluginName: string,
   current: PipelineNode,
-  pluginField: PluginField,
-  userField: FormNodeConfig,
-): PipelineNode {
-  const pluginCandidate = {
-    ...current,
-    ...pluginField,
-    ...(hasFieldBinding(current) || hasFormItemProps(pluginField)
-      ? {
-          formItemProps: mergeRecords(
-            readOptionalPlainRecord(readRecordProperty(current, 'formItemProps'), 'formItemProps') ?? {},
-            readOptionalPlainRecord(readRecordProperty(pluginField, 'formItemProps'), 'formItemProps') ?? {},
-          ),
-        }
-      : {}),
-    props: mergeRecords(current.props, pluginField.props ?? {}),
+  next: PluginField,
+): void {
+  if (!hasFieldBinding(current))
+    return
+
+  if (!hasFieldBinding(next))
+    throw new Error(`Plugin ${pluginName} cannot remove field key "${current.field}"`)
+
+  if (next.field !== current.field) {
+    throw new Error(
+      `Plugin ${pluginName} cannot change field key from "${current.field}" to "${next.field}"`,
+    )
   }
-  const pluginResolved = applyFieldDefaults(
-    pluginCandidate,
-  )
-
-  return restoreUserPriority(pluginResolved, userField)
-}
-
-/** 将用户显式声明的顶层字段和 props 恢复到最高优先级。 */
-function restoreUserPriority(
-  field: PipelineNode,
-  userField: FormNodeConfig,
-): PipelineNode {
-  const restored = { ...field } as PipelineNode & PlainRecord
-
-  for (const [key, value] of Object.entries(userField)) {
-    if (key === 'props') {
-      restored.props = mergeRecords(restored.props, readPlainRecord(value, 'props'))
-      continue
-    }
-    if (key === 'formItemProps') {
-      if (!hasFieldBinding(restored))
-        throw new TypeError('formItemProps can only be used on field nodes')
-      restored.formItemProps = mergeRecords(
-        readPlainRecord(restored.formItemProps, 'formItemProps'),
-        readPlainRecord(value, 'formItemProps'),
-      )
-      continue
-    }
-    if (key === 'slots') {
-      restored.slots = value as NormalizedNodeConfig['slots']
-      continue
-    }
-    restored[key] = value
-  }
-
-  return applyFieldDefaults(restored)
-}
-
-/** 安全读取配置对象上的字段，避免为临时类型洞增加断言。 */
-function readRecordProperty(source: object, key: string): unknown {
-  return Object.hasOwn(source, key) ? Reflect.get(source, key) : undefined
-}
-
-/** 判断插件返回值是否显式携带 FormItem 根节点属性。 */
-function hasFormItemProps(source: object): boolean {
-  return readRecordProperty(source, 'formItemProps') !== undefined
-}
-
-/** 读取可选普通对象选项；缺省值保持缺省，由调用方决定默认片段。 */
-function readOptionalPlainRecord(value: unknown, optionName: string): PlainRecord | undefined {
-  if (value === undefined)
-    return undefined
-
-  if (optionName === 'formItemProps')
-    return readFormItemProps(value, optionName)
-
-  return readPlainRecord(value, optionName)
 }
