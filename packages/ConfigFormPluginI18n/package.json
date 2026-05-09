@@ -16,7 +16,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "vite build && node ../../scripts/remove-tsbuildinfo.mjs .tsbuildinfo/tsconfig.app.tsbuildinfo && vue-tsc -p tsconfig.app.json --declaration --emitDeclarationOnly --outDir dist",
+    "build": "vite build",
     "dev": "vite build --watch",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
@@ -28,6 +28,7 @@
   "devDependencies": {
     "@moluoxixi/config-form": "workspace:*",
     "@vitest/coverage-v8": "catalog:dev",
+    "unplugin-dts": "catalog:dev",
     "vite": "catalog:dev",
     "vitest": "catalog:dev",
     "vue-tsc": "catalog:dev"

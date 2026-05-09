@@ -9,6 +9,6 @@
   "vueCompilerOptions": {
     "plugins": []
   },
-  "include": ["src", "index.ts"],
+  "include": ["src/**/*.ts", "src/**/*.vue", "index.ts"],
   "exclude": ["vite.config.ts"]
 }

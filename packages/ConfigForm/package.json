@@ -29,7 +29,7 @@
     "styles"
   ],
   "scripts": {
-    "build": "vite build && node ../../scripts/remove-tsbuildinfo.mjs .tsbuildinfo/tsconfig.app.tsbuildinfo && vue-tsc -p tsconfig.app.json --declaration --emitDeclarationOnly --outDir dist && node scripts/rewrite-dts-aliases.mjs",
+    "build": "vite build",
     "dev": "vite build --watch",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
@@ -42,9 +42,11 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "catalog:dev",
     "@vitest/coverage-v8": "catalog:dev",
+    "@vue/language-core": "catalog:dev",
     "@vue/test-utils": "catalog:dev",
     "happy-dom": "catalog:dev",
     "sass": "catalog:dev",
+    "unplugin-dts": "catalog:dev",
     "vite": "catalog:dev",
     "vitest": "catalog:dev",
     "vue": "catalog:build",
