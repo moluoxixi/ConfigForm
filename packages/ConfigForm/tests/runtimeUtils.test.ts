@@ -7,8 +7,8 @@ import { computed, defineComponent, h } from 'vue'
 import { normalizeFormRuntime, provideRuntime, useRuntime } from '../src/composables/useRuntime'
 import { createFormRuntime } from '../src/runtime'
 import { hasFieldBinding, isComponent, isContainer, isField } from '../src/runtime/utils'
-import { canBindGeneratedIdToComponent, declaresComponentProp } from '../src/utils/component'
 import { applyFieldTransform, normalizeField, shouldValidateOn } from '../src/utils/field'
+import { readFormItemProps } from '../src/utils/formItem'
 import {
   assertUniqueFieldConfigs,
   collectFieldConfigs,
@@ -36,6 +36,7 @@ describe('runtime utilities', () => {
 
     expect(field).toMatchObject({
       blurTrigger: 'blur',
+      formItemProps: {},
       props: {},
       span: 24,
       submitWhenDisabled: true,
@@ -56,6 +57,17 @@ describe('runtime utilities', () => {
     })).toThrow(/cannot use the same event/)
   })
 
+  it('validates FormItem root props as plain non-conflicting objects', () => {
+    const nullProtoProps = Object.create(null)
+    nullProtoProps['data-root'] = 'field-root'
+
+    expect(readFormItemProps(undefined)).toEqual({})
+    expect(readFormItemProps(nullProtoProps)['data-root']).toBe('field-root')
+    expect(() => readFormItemProps([])).toThrow(/formItemProps must be a plain object/)
+    expect(() => readFormItemProps('invalid')).toThrow(/formItemProps must be a plain object/)
+    expect(() => readFormItemProps({ field: 'name' })).toThrow(/formItemProps\.field conflicts/)
+  })
+
   it('classifies runtime nodes by binding and label presence', () => {
     const labelled = { component: 'input', field: 'name', label: '姓名' }
     const unlabelled = { component: 'input', field: 'status' }
@@ -66,20 +78,6 @@ describe('runtime utilities', () => {
     expect(isComponent(unlabelled)).toBe(true)
     expect(isContainer(container)).toBe(true)
     expect(hasFieldBinding(container)).toBe(false)
-  })
-
-  it('detects whether generated ids can be safely passed to components', () => {
-    const FunctionalControl = () => h('input')
-    FunctionalControl.props = ['id']
-
-    expect(canBindGeneratedIdToComponent('input')).toBe(true)
-    expect(canBindGeneratedIdToComponent({ props: { modelValue: String } })).toBe(true)
-    expect(canBindGeneratedIdToComponent({ props: { id: Array } })).toBe(false)
-    expect(canBindGeneratedIdToComponent({ props: ['modelValue'] })).toBe(true)
-    expect(canBindGeneratedIdToComponent({ props: ['id'] })).toBe(false)
-    expect(canBindGeneratedIdToComponent(FunctionalControl)).toBe(false)
-    expect(declaresComponentProp({ props: null }, 'id')).toBe(false)
-    expect(declaresComponentProp(null, 'id')).toBe(false)
   })
 
   it('recognizes plain configs and resolved node shapes without hidden markers', () => {
@@ -185,8 +183,8 @@ describe('runtime utilities', () => {
     expect(createFormRuntime().getFieldDefaults({ component: 'input', field: 'plain' }))
       .toEqual({
         blurTrigger: 'blur',
+        formItemProps: {},
         props: {},
-        rootProps: {},
         span: 24,
         submitWhenDisabled: true,
         submitWhenHidden: false,

@@ -92,11 +92,11 @@ interface FieldConfigBase<
   blurTrigger?: string
   validateOn?: ValidateTrigger | ValidateTrigger[]
   validator?: FieldValidator<TValues, TValue>
-  rootProps?: Record<string, unknown>
   visible?: FieldCondition<TValues>
   disabled?: FieldCondition<TValues>
   transform?: (value: TValue, allValues: TValues) => unknown
   getValueFromEvent?: (...args: unknown[]) => TValue
+  formItemProps?: Record<string, unknown>
   submitWhenHidden?: boolean
   submitWhenDisabled?: boolean
   slots?: Record<string, SlotContent>

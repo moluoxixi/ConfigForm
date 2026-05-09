@@ -12,9 +12,9 @@ interface DevtoolsFieldConfig {
 interface DevtoolsFormNodeConfig {
   component?: unknown
   field?: unknown
+  formItemProps?: Record<string, unknown>
   label?: unknown
   props?: Record<string, unknown>
-  rootProps?: Record<string, unknown>
   slots?: Record<string, unknown>
   __source?: FieldSourceMeta
 }
@@ -408,16 +408,23 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
       /**
        * 合并节点计时属性和源码定位属性。
        *
-       * 字段节点的源码属性由 rootProps 消费，避免落到内部输入组件上。
+       * 字段节点不注入源码属性，避免落到内部输入组件上。
        */
       function withDevtoolsNodeProps(id: string, node: DevtoolsFormNodeConfig): Record<string, unknown> {
         const props = withRenderTimingProps(id, node.props)
         return isFieldNodeConfig(node) ? props : withDevtoolsSourceProps(node, props)
       }
 
-      /** 合并字段根节点源码定位属性，供核心 FormField 的 rootProps 消费。 */
-      function withDevtoolsFieldRootProps(node: DevtoolsFormNodeConfig): Record<string, unknown> {
-        return withDevtoolsSourceProps(node, node.rootProps ?? {})
+      /**
+       * 给字段外壳根节点属性注入源码定位标记。
+       *
+       * 真实控件仍只接收 node.props；source 标记通过 formItemProps 落到 FormItem 根节点。
+       */
+      function withDevtoolsFieldFormItemProps(node: DevtoolsFormNodeConfig): Record<string, unknown> | undefined {
+        if (!isFieldNodeConfig(node))
+          return node.formItemProps
+
+        return withDevtoolsSourceProps(node, node.formItemProps ?? {})
       }
 
       /**
@@ -498,8 +505,9 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         const id = isFieldNodeConfig(node) ? `${formId}:${node.field}` : `${formId}:${nodePath}`
         const next = cloneFormNodeConfig(node)
         next.props = withDevtoolsNodeProps(id, node)
-        if (isFieldNodeConfig(node))
-          next.rootProps = withDevtoolsFieldRootProps(node)
+        const formItemProps = withDevtoolsFieldFormItemProps(node)
+        if (formItemProps !== undefined)
+          next.formItemProps = formItemProps
 
         if (node.slots) {
           next.slots = Object.fromEntries(

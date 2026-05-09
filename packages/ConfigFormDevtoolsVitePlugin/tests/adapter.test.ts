@@ -14,9 +14,9 @@ const source = {
 interface FieldStub {
   component: unknown
   field?: string
+  formItemProps?: Record<string, unknown>
   label?: unknown
   props?: Record<string, unknown>
-  rootProps?: Record<string, unknown>
   slots?: Record<string, unknown>
   __source?: typeof source
 }
@@ -51,7 +51,7 @@ const CoreConfigForm = defineComponent({
       const config = field as FieldStub
       return h('div', {
         class: `${props.namespace}-field`,
-        ...(config.rootProps ?? {}),
+        ...(config.formItemProps ?? {}),
       }, [
         h('input', {
           ...(config.props ?? {}),
@@ -105,7 +105,7 @@ describe('configForm devtools adapter', () => {
     vi.restoreAllMocks()
   })
 
-  it('registers rendered ConfigForm fields with source metadata and DOM elements', async () => {
+  it('registers rendered ConfigForm fields with source metadata', async () => {
     const bridge = createBridge()
     window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
 
@@ -120,17 +120,18 @@ describe('configForm devtools adapter', () => {
     await nextTick()
     await nextTick()
 
+    const fieldRoot = document.querySelector('.demo-field')
+
     expect(bridge.registerField).toHaveBeenCalledWith(expect.objectContaining({
       field: 'name',
       formId: expect.stringMatching(/^cf-form-/),
       kind: 'field',
       label: 'Name',
       source,
-    }), expect.any(HTMLDivElement))
+    }), fieldRoot)
     const sourceElement = document.querySelector('[data-cf-devtools-source-id="source-1"]')
     expect(sourceElement).toBeInstanceOf(HTMLDivElement)
-    expect(sourceElement?.classList.contains('demo-field')).toBe(true)
-    expect(sourceElement?.querySelector('input')).toBe(document.getElementById('demo-name-field'))
+    expect(sourceElement).toBe(fieldRoot)
     expect(document.getElementById('demo-name-field')?.getAttribute('data-cf-devtools-source-id')).toBeNull()
     expect(bridge.recordSync).toHaveBeenCalledWith(expect.objectContaining({
       duration: expect.any(Number),
@@ -174,7 +175,7 @@ describe('configForm devtools adapter', () => {
     ])).toThrow(/Conflicting data-cf-devtools-source-id/)
   })
 
-  it('throws when field root props conflict with the injected devtools source id', () => {
+  it('throws when field FormItem props conflict with the injected devtools source id', () => {
     const bridge = createBridge()
     vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
@@ -184,11 +185,33 @@ describe('configForm devtools adapter', () => {
         __source: source,
         component: 'input',
         field: 'name',
-        rootProps: {
+        formItemProps: {
           'data-cf-devtools-source-id': 'different-source',
         },
       },
     ])).toThrow(/Conflicting data-cf-devtools-source-id/)
+  })
+
+  it('keeps field source markers out of control props', async () => {
+    const bridge = createBridge()
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
+
+    mountAdapter([
+      {
+        __source: source,
+        component: 'input',
+        field: 'name',
+        props: {
+          'data-control': 'name-input',
+        },
+      },
+    ])
+    await nextTick()
+    await nextTick()
+
+    expect(document.querySelector('.demo-field')?.getAttribute('data-cf-devtools-source-id')).toBe('source-1')
+    expect(document.getElementById('demo-name-field')?.getAttribute('data-control')).toBe('name-input')
+    expect(document.getElementById('demo-name-field')?.getAttribute('data-cf-devtools-source-id')).toBeNull()
   })
 
   it('records sync timing per node without including previous node work', async () => {

@@ -1,10 +1,12 @@
-import type { VNode } from 'vue'
 import type { ComponentRegistry, FormFieldTransform, FormRuntimePlugin } from './types'
 import type { FieldDefaultConfig } from '@/plugins/builtInFieldDefaults'
 import type { DefinedFormNodeConfig, FormNodeConfig, NormalizedFieldConfig, NormalizedNodeConfig, ResolvedFormNode, ResolvedSlotContent, SlotContent } from '@/types'
+import type { PlainRecord } from '@/utils/record'
 import { isVNode } from 'vue'
 import { applyFieldDefaults, getFieldDefaults } from '@/plugins/builtInFieldDefaults'
+import { readFormItemProps } from '@/utils/formItem'
 import { isFormNodeConfig } from '@/utils/node'
+import { isPlainRecord, readPlainRecord } from '@/utils/record'
 import { hasFieldBinding } from './utils'
 
 export interface FieldPipelineContext {
@@ -12,7 +14,6 @@ export interface FieldPipelineContext {
   transformField: (field: FormNodeConfig) => ResolvedFormNode
 }
 
-type PlainRecord = Record<string, unknown>
 type PipelineNode = NormalizedFieldConfig | NormalizedNodeConfig
 type PluginField = DefinedFormNodeConfig | NormalizedNodeConfig
 
@@ -108,16 +109,11 @@ function cloneFieldForPlugin(field: PipelineNode): PipelineNode {
   const clone: PipelineNode = {
     ...field,
     props: { ...field.props },
+    ...(hasFieldBinding(field) ? { formItemProps: { ...field.formItemProps } } : {}),
     slots: field.slots ? { ...field.slots } : field.slots,
   }
 
-  if (!hasFieldBinding(field))
-    return clone
-
-  return {
-    ...clone,
-    rootProps: { ...field.rootProps },
-  }
+  return clone
 }
 
 /** 合并插件返回值，并恢复用户显式声明的字段值优先级。 */
@@ -129,15 +125,18 @@ function mergePluginField(
   const pluginCandidate = {
     ...current,
     ...pluginField,
+    ...(hasFieldBinding(current) || hasFormItemProps(pluginField)
+      ? {
+          formItemProps: mergeRecords(
+            readOptionalPlainRecord(readRecordProperty(current, 'formItemProps'), 'formItemProps') ?? {},
+            readOptionalPlainRecord(readRecordProperty(pluginField, 'formItemProps'), 'formItemProps') ?? {},
+          ),
+        }
+      : {}),
     props: mergeRecords(current.props, pluginField.props ?? {}),
   }
   const pluginResolved = applyFieldDefaults(
-    hasFieldBinding(current) || hasFieldBinding(pluginField)
-      ? {
-          ...pluginCandidate,
-          rootProps: mergeRecords(readRootProps(current), readRootProps(pluginField)),
-        }
-      : pluginCandidate,
+    pluginCandidate,
   )
 
   return restoreUserPriority(pluginResolved, userField)
@@ -155,10 +154,13 @@ function restoreUserPriority(
       restored.props = mergeRecords(restored.props, readPlainRecord(value, 'props'))
       continue
     }
-    if (key === 'rootProps') {
+    if (key === 'formItemProps') {
       if (!hasFieldBinding(restored))
-        throw new TypeError('rootProps can only be used on field nodes')
-      restored.rootProps = mergeRecords(readRootProps(restored), readPlainRecord(value, 'rootProps'))
+        throw new TypeError('formItemProps can only be used on field nodes')
+      restored.formItemProps = mergeRecords(
+        readPlainRecord(restored.formItemProps, 'formItemProps'),
+        readPlainRecord(value, 'formItemProps'),
+      )
       continue
     }
     if (key === 'slots') {
@@ -171,13 +173,23 @@ function restoreUserPriority(
   return applyFieldDefaults(restored)
 }
 
+/** 安全读取配置对象上的字段，避免为临时类型洞增加断言。 */
+function readRecordProperty(source: object, key: string): unknown {
+  return Object.hasOwn(source, key) ? Reflect.get(source, key) : undefined
+}
+
+/** 判断插件返回值是否显式携带 FormItem 根节点属性。 */
+function hasFormItemProps(source: object): boolean {
+  return readRecordProperty(source, 'formItemProps') !== undefined
+}
+
 /** 深合并普通对象；右侧对象优先，数组、VNode 和组件对象保持整体替换。 */
 function mergeRecords(...sources: PlainRecord[]): PlainRecord {
   const result: PlainRecord = {}
   for (const source of sources) {
     for (const [key, value] of Object.entries(source)) {
       const previous = result[key]
-      result[key] = isPlainRecord(previous) && isPlainRecord(value)
+      result[key] = isMergeableRecord(previous) && isMergeableRecord(value)
         ? mergeRecords(previous, value)
         : value
     }
@@ -185,30 +197,20 @@ function mergeRecords(...sources: PlainRecord[]): PlainRecord {
   return result
 }
 
-/** 读取可合并的普通对象选项；非法值直接抛错暴露配置来源。 */
-function readPlainRecord(value: unknown, optionName: string): PlainRecord {
-  if (isPlainRecord(value))
-    return value
+/** 读取可选普通对象选项；缺省值保持缺省，由调用方决定默认片段。 */
+function readOptionalPlainRecord(value: unknown, optionName: string): PlainRecord | undefined {
+  if (value === undefined)
+    return undefined
 
-  throw new TypeError(`${optionName} must be a plain object`)
+  if (optionName === 'formItemProps')
+    return readFormItemProps(value, optionName)
+
+  return readPlainRecord(value, optionName)
 }
 
-/** 读取字段根节点 props；容器节点没有独立的字段根节点。 */
-function readRootProps(field: FormNodeConfig | PipelineNode | PluginField): PlainRecord {
-  if (!hasFieldBinding(field))
-    return {}
-
-  return field.rootProps ?? {}
-}
-
-/** 判断值是否可安全作为普通对象递归合并。 */
-function isPlainRecord(value: unknown): value is PlainRecord {
-  if (!value || typeof value !== 'object' || Array.isArray(value))
-    return false
-  if (isVNode(value as VNode))
-    return false
-  const proto = Object.getPrototypeOf(value)
-  return proto === Object.prototype || proto === null
+/** 判断值是否可安全递归合并；VNode 作为完整值替换，不能按普通对象拆开。 */
+function isMergeableRecord(value: unknown): value is PlainRecord {
+  return isPlainRecord(value) && !isVNode(value)
 }
 
 /** 判断 slot 值是否是需要继续递归转换的表单节点。 */

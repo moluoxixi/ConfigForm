@@ -147,21 +147,21 @@ describe('defineField typing', () => {
     })
   })
 
-  it('accepts field root props without mixing them into component props', () => {
+  it('accepts FormItem root props separately from control props', () => {
     const field = defineField({
       field: 'keyword',
       component: 'input',
-      rootProps: {
-        'data-root': 'keyword-root',
-        'class': 'keyword-field',
+      formItemProps: {
+        'data-cf-devtools-source-id': 'source-keyword',
+        'class': 'field-root',
+      },
+      props: {
+        placeholder: '请输入关键词',
       },
     })
 
-    expect(field.rootProps).toEqual({
-      'data-root': 'keyword-root',
-      'class': 'keyword-field',
-    })
-    expect(field.props).toBeUndefined()
+    expect(field.formItemProps?.['data-cf-devtools-source-id']).toBe('source-keyword')
+    expect(field.props?.placeholder).toBe('请输入关键词')
   })
 
   it('preserves validateOn arrays that already include submit', () => {

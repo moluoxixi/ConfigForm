@@ -1,7 +1,7 @@
 import type { FormContext } from '../src/composables/useFormContext'
 import type { FormRuntimeOptions } from '../src/runtime'
 import type { ConfigFormExpose, DefinedFormNodeConfig, FormNodeConfig, ResolvedField } from '../src/types'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, inject, markRaw, nextTick } from 'vue'
@@ -56,26 +56,6 @@ const CustomControl = markRaw(defineComponent({
       onClick: () => emit('commit', 'next'),
       onFocusout: () => emit('focusout'),
     }, props.current)
-  },
-}))
-
-const IdPropControl = markRaw(defineComponent({
-  name: 'IdPropControl',
-  props: {
-    id: Array,
-    modelValue: { type: String, default: '' },
-  },
-  emits: ['update:modelValue', 'blur'],
-  setup(props, { attrs, emit }) {
-    return () => h('input', {
-      ...attrs,
-      'data-prop-id': Array.isArray(props.id) ? props.id.join(',') : '',
-      'value': props.modelValue,
-      'onBlur': () => emit('blur'),
-      'onInput': (event: Event) => {
-        emit('update:modelValue', (event.target as HTMLInputElement).value)
-      },
-    })
   },
 }))
 
@@ -192,44 +172,20 @@ describe('config form component', () => {
     expect(card.attributes('data-cf-devtools-source-id')).toBeUndefined()
   })
 
-  it('binds devtools source ids on the field root element', () => {
+  it('passes FormItem root props without leaking them to controls', () => {
     const fields: FormNodeConfig[] = [
       {
         component: TextInput,
         field: 'username',
-        label: '用户名',
-        rootProps: {
+        formItemProps: {
           'data-cf-devtools-source-id': 'source-username',
+          'data-field-root': 'username-root',
+          'class': 'custom-field-root',
+          'style': { backgroundColor: 'white' },
         },
-      },
-    ]
-
-    const wrapper = mount(ConfigForm, {
-      props: {
-        fields,
-        defaultValues: {},
-        namespace: 'moluoxixi',
-      },
-    })
-
-    const field = wrapper.get('.moluoxixi-field')
-    expect(field.attributes('data-cf-devtools-source-id')).toBe('source-username')
-    expect(wrapper.get('#moluoxixi-username-field').attributes('data-cf-devtools-source-id')).toBeUndefined()
-  })
-
-  it('merges field root props style with the grid span style', () => {
-    const fields: FormNodeConfig[] = [
-      {
-        component: TextInput,
-        field: 'username',
         label: '用户名',
         props: {
           'data-control': 'username-input',
-        },
-        rootProps: {
-          'class': 'custom-field-root',
-          'data-root': 'username-root',
-          'style': 'color: red;',
         },
         span: 8,
       },
@@ -245,12 +201,14 @@ describe('config form component', () => {
     const field = wrapper.get('.cf-field')
     const input = wrapper.get('input')
 
-    expect(field.classes()).toContain('custom-field-root')
-    expect(field.attributes('data-root')).toBe('username-root')
     expect(field.attributes('style')).toContain('grid-column: span 8')
-    expect(field.attributes('style')).toContain('color: red')
+    expect(field.attributes('style')).toContain('background-color: white')
+    expect(field.attributes('data-cf-devtools-source-id')).toBe('source-username')
+    expect(field.attributes('data-field-root')).toBe('username-root')
+    expect(field.classes()).toContain('custom-field-root')
     expect(input.attributes('data-control')).toBe('username-input')
-    expect(input.attributes('data-root')).toBeUndefined()
+    expect(input.attributes('data-cf-devtools-source-id')).toBeUndefined()
+    expect(input.attributes('data-field-root')).toBeUndefined()
   })
 
   it('renders component containers around real fields without binding container values', async () => {
@@ -440,7 +398,6 @@ describe('config form component', () => {
     const api = wrapper.vm as unknown as ConfigFormExpose<Record<string, unknown>>
 
     const input = wrapper.get('input')
-    expect(wrapper.get('label').attributes('for')).toBe(input.attributes('id'))
     expect(wrapper.get('label').attributes('style')).toContain('width: 88px')
 
     await input.setValue('a')
@@ -448,7 +405,6 @@ describe('config form component', () => {
     await flushValidation()
 
     expect(wrapper.text()).toContain('用户名至少 2 个字符')
-    expect(wrapper.get('input').attributes('aria-invalid')).toBe('true')
     expect(api.getValues()).toEqual({ username: 'a' })
 
     await wrapper.get('input').setValue('Ada')
@@ -457,32 +413,6 @@ describe('config form component', () => {
 
     expect(wrapper.text()).not.toContain('用户名至少 2 个字符')
     expect(api.getValues()).toEqual({ username: 'Ada' })
-  })
-
-  it('keeps generated ids out of components that declare their own id prop', () => {
-    const fields = [
-      defineField({
-        field: 'dateRange',
-        label: '日期范围',
-        component: IdPropControl,
-      }),
-    ]
-
-    const wrapper = mount(ConfigForm, {
-      props: {
-        fields,
-        defaultValues: {},
-        namespace: 'moluoxixi',
-      },
-    })
-
-    const fieldRoot = wrapper.get('.moluoxixi-field')
-    const input = wrapper.get('input')
-
-    expect(fieldRoot.attributes('id')).toBe('moluoxixi-dateRange-field')
-    expect(input.attributes('id')).toBeUndefined()
-    expect(input.attributes('data-prop-id')).toBe('')
-    expect(wrapper.get('label').attributes('for')).toBe('moluoxixi-dateRange-field')
   })
 
   it('keeps root form context inline and labelWidth reactive after prop updates', async () => {
@@ -687,14 +617,47 @@ describe('form field component', () => {
     expect(source).not.toContain('<FormNode')
   })
 
-  it('keeps shared component attrs and listeners in the field binding composable', () => {
+  it('keeps shared component attrs and listeners in the component binding layer', () => {
     const formFieldSource = readFileSync('src/components/FormField/src/index.vue', 'utf8')
     const formComponentSource = readFileSync('src/components/FormComponent/src/index.vue', 'utf8')
 
-    expect(formFieldSource).toContain('@/composables/useFieldBinding')
     expect(formComponentSource).toContain('@/composables/useFieldBinding')
     expect(formFieldSource).not.toContain('getValueFromEvent')
     expect(formComponentSource).not.toContain('getValueFromEvent')
+  })
+
+  it('composes FormField from FormItem and FormComponent without binding or error slot duplication', () => {
+    const formFieldSource = readFileSync('src/components/FormField/src/index.vue', 'utf8')
+
+    expect(formFieldSource).toContain('@/components/FormItem')
+    expect(formFieldSource).toContain('@/components/FormComponent')
+    expect(formFieldSource).toContain('formItemComponentProps')
+    expect(formFieldSource).toContain('v-bind="formItemComponentProps"')
+    expect(formFieldSource).not.toContain('@/composables/useFieldBinding')
+    expect(formFieldSource).not.toContain('@/components/RecursiveField')
+    expect(formFieldSource).not.toContain('defineSlots')
+    expect(formFieldSource).not.toContain('$slots.error')
+    expect(formFieldSource).not.toContain('<component')
+    expect(formFieldSource).not.toContain('resolveSlotNodes')
+  })
+
+  it('keeps field chrome inside explicit FormItem props without control binding coupling', () => {
+    const formItemPath = 'src/components/FormItem/src/index.vue'
+    const formFieldSource = readFileSync('src/components/FormField/src/index.vue', 'utf8')
+    const formComponentSource = readFileSync('src/components/FormComponent/src/index.vue', 'utf8')
+
+    expect(existsSync(formItemPath)).toBe(true)
+
+    const formItemSource = readFileSync(formItemPath, 'utf8')
+    expect(formItemSource).toContain('ctx.errors')
+    expect(formItemSource).toContain('formItemProps')
+    expect(formItemSource).toContain('<slot />')
+    expect(formItemSource).toContain('field: string')
+    expect(formItemSource).not.toContain('ResolvedField')
+    expect(formItemSource).not.toContain('name="error"')
+    expect(formFieldSource).not.toContain('fieldRootAttrs')
+    expect(formFieldSource).not.toContain('resolveLabelWidth')
+    expect(formComponentSource).not.toContain('control-attrs')
   })
 
   it('keeps FormComponent props narrowed to resolved fields without local casts', () => {

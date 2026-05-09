@@ -24,8 +24,8 @@ describe('form runtime', () => {
     expect(Object.getOwnPropertySymbols(defaults)).toEqual([])
     expect(defaults).toEqual({
       blurTrigger: 'blur',
+      formItemProps: {},
       props: {},
-      rootProps: {},
       span: 24,
       submitWhenDisabled: true,
       submitWhenHidden: false,
@@ -54,9 +54,8 @@ describe('form runtime', () => {
                 width: '44px',
               },
             },
-            rootProps: {
-              ...('rootProps' in field ? field.rootProps : {}),
-              'data-plugin-root': 'yes',
+            formItemProps: {
+              'data-origin': 'plugin',
               'style': {
                 color: 'blue',
                 width: '44px',
@@ -72,14 +71,14 @@ describe('form runtime', () => {
     const resolved = runtime.transformField(defineField({
       component: 'input',
       field: 'name',
-      props: {
-        style: {
+      formItemProps: {
+        'data-origin': 'user',
+        'style': {
           width: '80px',
         },
       },
-      rootProps: {
-        'data-user-root': 'yes',
-        'style': {
+      props: {
+        style: {
           width: '80px',
         },
       },
@@ -95,9 +94,8 @@ describe('form runtime', () => {
         width: '80px',
       },
     })
-    expect(resolved.rootProps).toEqual({
-      'data-plugin-root': 'yes',
-      'data-user-root': 'yes',
+    expect(resolved.formItemProps).toEqual({
+      'data-origin': 'user',
       'style': {
         color: 'blue',
         width: '80px',
@@ -131,6 +129,23 @@ describe('form runtime', () => {
     expect(transformed.trigger).toBe('change')
     expect(transformed.valueProp).toBe('value')
     expect(transformed.blurTrigger).toBe('blur')
+  })
+
+  it('rejects FormItem root props that conflict with field semantics', () => {
+    const runtime = createFormRuntime()
+
+    expect(() => runtime.transformField(defineField({
+      component: 'input',
+      field: 'name',
+      formItemProps: { field: 'other' },
+    }))).toThrow(/formItemProps\.field conflicts/)
+
+    expect(() => runtime.transformField(defineField({
+      component: 'input',
+      field: 'name',
+      formItemProps: { label: 'Other' },
+      label: 'Name',
+    }))).toThrow(/formItemProps\.label conflicts/)
   })
 
   it('resolves registered components and rejects missing uppercase component keys', () => {

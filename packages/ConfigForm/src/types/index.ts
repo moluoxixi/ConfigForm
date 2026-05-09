@@ -53,8 +53,6 @@ export type SlotContent = DefinedFormNodeConfig | DefinedFormNodeConfig[]
 export interface FieldConfig extends ComponentNodeConfig {
   /** 当前字段控制的表单值 key。 */
   field: string
-  /** 传给 FormField 外层根节点的 props；不会透传给实际字段组件。 */
-  rootProps?: Record<string, unknown>
   /** 字段标签文本。 */
   label?: RuntimeText
   /** 字段校验使用的 Zod schema。 */
@@ -79,6 +77,8 @@ export interface FieldConfig extends ComponentNodeConfig {
   disabled?: FieldCondition<FormValues>
   /** 提交校验通过后执行的字段值映射。 */
   transform?: (value: unknown, allValues: FormValues) => unknown
+  /** 传给内部 FormItem 根节点的属性；用于调试定位、样式和数据标记，不会下发给真实控件。 */
+  formItemProps?: Record<string, unknown>
   /** 隐藏时仍参与 submit 输出，默认 false */
   submitWhenHidden?: boolean
   /** 禁用时仍参与 submit 输出，默认 false */
@@ -99,15 +99,15 @@ export interface NormalizedNodeConfig extends Omit<ComponentNodeConfig, 'props'>
 /** 已补全默认值并规范化标量选项后的字段配置。 */
 export interface NormalizedFieldConfig extends Omit<
   FieldConfig,
-  'blurTrigger' | 'props' | 'rootProps' | 'span' | 'submitWhenDisabled' | 'submitWhenHidden' | 'trigger' | 'validateOn' | 'valueProp'
+  'blurTrigger' | 'formItemProps' | 'props' | 'span' | 'submitWhenDisabled' | 'submitWhenHidden' | 'trigger' | 'validateOn' | 'valueProp'
 >, NormalizedNodeConfig {
   field: string
-  rootProps: Record<string, unknown>
   span: number
   valueProp: string
   trigger: string
   blurTrigger: string
   validateOn: ValidateTrigger[]
+  formItemProps: Record<string, unknown>
   submitWhenHidden: boolean
   submitWhenDisabled: boolean
 }

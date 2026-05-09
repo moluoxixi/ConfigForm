@@ -27,11 +27,10 @@ function resolveFieldEventValue(field: ResolvedField, args: unknown[]): unknown 
  * 统一生成真实字段组件需要消费的 attrs 和 listeners。
  *
  * 该 hook 只处理已解析字段的值绑定、禁用态、事件回写和字段级校验触发；
- * label、error、aria 等外包装细节仍由具体渲染组件自行补充。
+ * label 和 error 外包装由 FormItem 独立处理。
  */
 export function useFieldBinding(
   field: ComputedRef<ResolvedField>,
-  extraAttrs?: ComputedRef<Record<string, unknown>>,
 ): FieldBinding {
   const ctx = useFormContext()
   const modelValue = computed(() => ctx.getValue(field.value.field))
@@ -40,7 +39,6 @@ export function useFieldBinding(
   const attrs = computed<Record<string, unknown>>(() => {
     const next = {
       ...field.value.props,
-      ...(extraAttrs?.value ?? {}),
     }
 
     if (disabled.value)
