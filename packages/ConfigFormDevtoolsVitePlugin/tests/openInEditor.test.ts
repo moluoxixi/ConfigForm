@@ -105,6 +105,24 @@ function withPlatform<T>(platform: NodeJS.Platform, callback: () => T): T {
   }
 }
 
+/**
+ * 让动态导入的 openInEditor 模块使用 POSIX 宿主 path 语义。
+ *
+ * 用于在 Windows 本机复现 Linux CI 对 D:/... 路径的解析差异；测试结束后必须重置模块缓存。
+ */
+function mockPosixPathHost() {
+  vi.doMock('node:path', async () => {
+    const actual = await vi.importActual<typeof import('node:path')>('node:path')
+    return {
+      ...actual,
+      basename: actual.posix.basename,
+      isAbsolute: actual.posix.isAbsolute,
+      relative: actual.posix.relative,
+      resolve: actual.posix.resolve,
+    }
+  })
+}
+
 describe('open in editor helpers', () => {
   it('creates non-Windows code-compatible editor commands through launch-editor mappings', () => {
     withPlatform('linux', () => {
@@ -208,6 +226,25 @@ describe('open in editor helpers', () => {
       file: 'D:/project-new/Other/demo.vue',
       root: 'D:/project-new/ConfigForm',
     }).replace(/\\/g, '/')).toBe('D:/project-new/Other/demo.vue')
+  })
+
+  it('keeps Windows absolute paths stable when host path semantics are POSIX', async () => {
+    vi.resetModules()
+    mockPosixPathHost()
+
+    try {
+      const { resolveAllowedFile: resolveAllowedFileWithPosixHost } = await import('../src/openInEditor')
+
+      expect(resolveAllowedFileWithPosixHost({
+        allowRoots: ['D:/project-new/Other'],
+        file: 'D:/project-new/Other/demo.vue',
+        root: 'D:/project-new/ConfigForm',
+      }).replace(/\\/g, '/')).toBe('D:/project-new/Other/demo.vue')
+    }
+    finally {
+      vi.doUnmock('node:path')
+      vi.resetModules()
+    }
   })
 
   it('creates webstorm and custom editor commands', () => {

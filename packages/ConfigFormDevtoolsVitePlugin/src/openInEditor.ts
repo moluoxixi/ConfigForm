@@ -10,7 +10,7 @@ import { Buffer } from 'node:buffer'
 import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { createRequire } from 'node:module'
-import { basename, isAbsolute, relative, resolve } from 'node:path'
+import { basename, isAbsolute, relative, resolve, win32 } from 'node:path'
 import process from 'node:process'
 import { ConfigFormDevtoolsHttpError } from './types'
 
@@ -38,14 +38,30 @@ function normalizePath(input: string): string {
   return input.replace(/\\/g, '/')
 }
 
+/** 判断路径字符串是否是 Windows 盘符或 UNC 绝对路径。 */
+function isWindowsAbsolutePath(input: string): boolean {
+  return /^[A-Z]:[\\/]/i.test(input) || /^(?:\\\\|\/\/)[^\\/]+[\\/][^\\/]+/.test(input)
+}
+
+/**
+ * 解析用于访问控制比较的路径。
+ *
+ * 当浏览器传入 Windows 绝对路径而服务进程运行在 POSIX 宿主时，必须使用 win32 语义，
+ * 避免 D:/... 被当前工作目录前缀错误拼接。
+ */
+function resolveAccessPath(input: string, useWindowsPath: boolean): string {
+  return useWindowsPath ? win32.resolve(input) : resolve(input)
+}
+
 /**
  * 判断文件是否位于允许根目录内。
  *
  * 使用 path.relative 判断边界，避免简单前缀匹配误放行相邻目录。
  */
-function isInsideRoot(file: string, root: string): boolean {
-  const relativePath = relative(root, file)
-  return relativePath === '' || (!relativePath.startsWith('..') && !isAbsolute(relativePath))
+function isInsideRoot(file: string, root: string, useWindowsPath: boolean): boolean {
+  const relativePath = useWindowsPath ? win32.relative(root, file) : relative(root, file)
+  const relativeIsAbsolute = useWindowsPath ? win32.isAbsolute(relativePath) : isAbsolute(relativePath)
+  return relativePath === '' || (!relativePath.startsWith('..') && !relativeIsAbsolute)
 }
 
 /** 判断用户传入的编辑器字符串是否已经是具体 launcher 路径或文件名。 */
@@ -97,6 +113,16 @@ function shouldUseShell(command: string): boolean {
   return !basename(command).toLowerCase().endsWith('.exe')
 }
 
+/**
+ * 生成传给 launch-editor 参数映射的编辑器名称。
+ *
+ * launch-editor/get-args 内部使用宿主 path.basename；这里先用 win32.basename 归一化，
+ * 确保 Linux CI 也能识别 D:\...\webstorm64.exe 这类 Windows 可执行路径。
+ */
+function getEditorArgumentResolverName(command: string): string {
+  return win32.basename(command).replace(/\.(?:exe|cmd|bat)$/i, '')
+}
+
 /** 校验并规范化浏览器 devtools client 发送的 JSON payload。 */
 export function parseOpenInEditorPayload(input: unknown): OpenInEditorPayload {
   if (!input || typeof input !== 'object')
@@ -122,10 +148,12 @@ export function parseOpenInEditorPayload(input: unknown): OpenInEditorPayload {
 
 /** 解析请求文件，并拒绝配置根目录之外的路径。 */
 export function resolveAllowedFile(input: ResolveAllowedFileInput): string {
-  const file = resolve(input.file)
-  const roots = [input.root, ...(input.allowRoots ?? [])].map(root => resolve(root))
+  const rawRoots = [input.root, ...(input.allowRoots ?? [])]
+  const useWindowsPath = [input.file, ...rawRoots].some(isWindowsAbsolutePath)
+  const file = resolveAccessPath(input.file, useWindowsPath)
+  const roots = rawRoots.map(root => resolveAccessPath(root, useWindowsPath))
 
-  if (!roots.some(root => isInsideRoot(file, root))) {
+  if (!roots.some(root => isInsideRoot(file, root, useWindowsPath))) {
     throw new ConfigFormDevtoolsHttpError(
       403,
       `File is outside the allowed roots: ${normalizePath(file)}`,
@@ -142,7 +170,7 @@ export function createEditorCommand(input: EditorCommandInput): EditorCommand {
 
   const executable = resolveEditorExecutable(input.editor)
   const locationArgs = getArgumentsForPosition(
-    executable.command,
+    getEditorArgumentResolverName(executable.command),
     input.file,
     String(input.line),
     String(input.column),
