@@ -43,7 +43,7 @@ export function createFieldPipeline(
 
   /** 转换单个 slot 节点配置；遇到非配置值时直接抛错，避免旧 render slot 语义继续生效。 */
   function transformSlotNode(value: unknown, path: string): ResolvedFormNode {
-    if (!isTransformableNode(value))
+    if (!isFormNodeConfig(value))
       throw new TypeError(`Slot "${path}" must be a field config or an array of field configs`)
 
     return transformField(value)
@@ -211,9 +211,4 @@ function readOptionalPlainRecord(value: unknown, optionName: string): PlainRecor
 /** 判断值是否可安全递归合并；VNode 作为完整值替换，不能按普通对象拆开。 */
 function isMergeableRecord(value: unknown): value is PlainRecord {
   return isPlainRecord(value) && !isVNode(value)
-}
-
-/** 判断 slot 值是否是需要继续递归转换的表单节点。 */
-function isTransformableNode(value: unknown): value is FormNodeConfig {
-  return isFormNodeConfig(value)
 }
