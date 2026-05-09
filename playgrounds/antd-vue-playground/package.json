@@ -10,9 +10,9 @@
   "dependencies": {
     "@moluoxixi/config-form": "workspace:*",
     "@moluoxixi/config-form-plugin-antd-vue": "workspace:*",
-    "@moluoxixi/config-form-plugin-i18n": "workspace:*",
     "ant-design-vue": "catalog:ui",
     "vue": "catalog:build",
+    "vue-i18n": "catalog:build",
     "zod": "catalog:dev"
   },
   "devDependencies": {

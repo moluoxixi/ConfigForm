@@ -209,40 +209,19 @@ defineField({
 
 ```vue
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { FormRuntimeOptions } from '@moluoxixi/config-form'
 import { ConfigForm, defineField } from '@moluoxixi/config-form'
-import { createI18nPlugin } from '@moluoxixi/config-form-plugin-i18n'
+import { useI18n } from 'vue-i18n'
 import MyInput from './MyInput.vue'
+
+const { t } = useI18n()
 
 const runtimeOptions = {
   components: {
     MyInput,
   },
   plugins: [
-    createI18nPlugin({
-      locale: 'zh-CN',
-      messages: {
-        'zh-CN': {
-          'field.username': '用户名{required}',
-          'field.username.placeholder': '请输入用户名',
-        },
-      },
-      fields: {
-        username: {
-          label: {
-            key: 'field.username',
-            defaultMessage: '用户名',
-            params: { required: ' *' },
-          },
-          props: {
-            placeholder: {
-              key: 'field.username.placeholder',
-              defaultMessage: '请输入用户名',
-            },
-          },
-        },
-      },
-    }),
     {
       name: 'audit',
       transformField: field => 'field' in field
@@ -258,13 +237,17 @@ const runtimeOptions = {
   ],
 } satisfies FormRuntimeOptions
 
-const fields = [
+const fields = computed(() => [
   defineField({
     field: 'username',
+    label: t('field.username'),
     component: 'MyInput',
+    props: {
+      placeholder: t('field.username.placeholder'),
+    },
     visible: values => values.role !== 'guest',
   }),
-]
+])
 </script>
 
 <template>
@@ -279,7 +262,7 @@ const fields = [
 - `components`：注册字符串组件 key，字段中可直接写 `component: 'MyInput'`；大写 key 未注册会抛错，原生标签如 `'input'` 可直接使用。
 - `plugins`：按用户注册顺序收集组件和 `transformField(field)` hook；hook 只接收已补齐内置默认值的 field，不接收 values/errors/slot scope。
 - 字段转换：插件可返回新的字段配置或 `undefined`；返回非法值、修改字段 key、重复插件名或重复组件 key 都会直接抛错。
-- 官方插件包：例如 `@moluoxixi/config-form-plugin-i18n`，通过插件 `fields` 映射补 label 和 props 文案；没有命中当前语言文案或默认文案时会抛错，`missing` 仅用于通知/诊断。
+- 多语言：在上层 Vue 应用中使用 `vue-i18n` 等成熟库生成 `label`、`props.placeholder`、选项文案和校验消息；`ConfigForm` 只消费最终字段配置，不内置 i18n 插件，也不会递归解析 message key。
 
 ## 样式
 

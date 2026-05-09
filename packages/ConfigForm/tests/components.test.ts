@@ -4,7 +4,7 @@ import type { ConfigFormExpose, DefinedFormNodeConfig, FormNodeConfig, ResolvedF
 import { existsSync, readFileSync } from 'node:fs'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
-import { defineComponent, h, inject, markRaw, nextTick } from 'vue'
+import { computed, defineComponent, h, inject, markRaw, nextTick, shallowRef } from 'vue'
 import { z } from 'zod'
 import FormComponent from '../src/components/FormComponent/src/index.vue'
 import FormField from '../src/components/FormField/src/index.vue'
@@ -21,6 +21,7 @@ const TextInput = markRaw(defineComponent({
   props: {
     disabled: Boolean,
     modelValue: { type: String, default: '' },
+    placeholder: String,
   },
   emits: ['update:modelValue', 'blur'],
   setup(props, { attrs, emit, slots }) {
@@ -29,6 +30,7 @@ const TextInput = markRaw(defineComponent({
       h('input', {
         ...attrs,
         disabled: props.disabled,
+        placeholder: props.placeholder,
         value: props.modelValue,
         onBlur: () => emit('blur'),
         onInput: (event: Event) => {
@@ -258,6 +260,64 @@ describe('config form component', () => {
 
     expect(api.getValues()).toEqual({ username: 'Ada' })
     expect(wrapper.text()).toContain('用户名至少 4 个字符')
+  })
+
+  it('reactively renders app-owned translated field configs without i18n runtime plugins', async () => {
+    const messages = {
+      'en-US': {
+        label: 'Username',
+        placeholder: 'Enter username',
+      },
+      'zh-CN': {
+        label: '用户名',
+        placeholder: '请输入用户名',
+      },
+    } satisfies Record<string, { label: string, placeholder: string }>
+
+    const Harness = defineComponent({
+      name: 'TranslatedConfigHarness',
+      setup() {
+        const locale = shallowRef<'zh-CN' | 'en-US'>('zh-CN')
+        const fields = computed<FormNodeConfig[]>(() => [
+          defineField({
+            component: TextInput,
+            field: 'username',
+            label: messages[locale.value].label,
+            props: {
+              placeholder: messages[locale.value].placeholder,
+            },
+          }),
+        ])
+
+        /**
+         * 切换上层应用语言。
+         *
+         * ConfigForm 只接收 computed 产出的最终字段文案，不依赖 runtime i18n 插件。
+         */
+        function switchLocale() {
+          locale.value = 'en-US'
+        }
+
+        return () => h('div', [
+          h(ConfigForm, {
+            defaultValues: {},
+            fields: fields.value,
+          }),
+          h('button', { onClick: switchLocale, type: 'button' }, 'switch locale'),
+        ])
+      },
+    })
+
+    const wrapper = mount(Harness)
+
+    expect(wrapper.get('label').text()).toBe('用户名')
+    expect(wrapper.get('input').attributes('placeholder')).toBe('请输入用户名')
+
+    await wrapper.get('button').trigger('click')
+    await nextTick()
+
+    expect(wrapper.get('label').text()).toBe('Username')
+    expect(wrapper.get('input').attributes('placeholder')).toBe('Enter username')
   })
 
   it('applies container visibility to rendered subtrees and submit behavior', async () => {
