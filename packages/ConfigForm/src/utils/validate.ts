@@ -2,6 +2,7 @@ import type { ZodIssue, ZodTypeAny } from 'zod'
 import type { FieldCondition, FieldConfig, FieldValidator, FormErrors, FormValues, NormalizedFieldConfig, ValidateTrigger } from '@/types'
 import { applyFieldDefaults } from '@/plugins/builtInFieldDefaults'
 import { shouldValidateOn } from '@/utils/field'
+import { resolveValue } from '@/utils/resolvable'
 
 /** 校验单个字段值（纯 Zod 调用）。 */
 export function validateField(
@@ -42,7 +43,7 @@ export async function validateFieldRules(
   required?: FieldCondition,
   requiredMessage = '必填',
 ): Promise<string[]> {
-  if (resolveCondition(required, allValues, false) && isEmptyRequiredValue(value))
+  if (resolveValue(required, allValues, false) && isEmptyRequiredValue(value))
     return [requiredMessage]
 
   let validatorValue = value
@@ -76,9 +77,9 @@ export async function validateForm(
     const shouldValidateHidden = trigger === 'submit' && field.submitWhenHidden
     const shouldValidateDisabled = trigger === 'submit' && field.submitWhenDisabled
 
-    if (!resolveCondition(field.visible, values, true) && !shouldValidateHidden)
+    if (!resolveValue(field.visible, values, true) && !shouldValidateHidden)
       continue
-    if (resolveCondition(field.disabled, values, false) && !shouldValidateDisabled)
+    if (resolveValue(field.disabled, values, false) && !shouldValidateDisabled)
       continue
     if (!shouldValidateOn(field, trigger))
       continue
@@ -106,17 +107,4 @@ function isEmptyRequiredValue(value: unknown): boolean {
   if (Array.isArray(value))
     return value.length === 0
   return false
-}
-
-/** 解析字段显隐/禁用条件；函数条件的异常按原语义向调用方抛出。 */
-function resolveCondition(
-  condition: FieldCondition | undefined,
-  values: FormValues,
-  defaultValue: boolean,
-): boolean {
-  if (condition == null)
-    return defaultValue
-  if (typeof condition === 'boolean')
-    return condition
-  return condition(values)
 }

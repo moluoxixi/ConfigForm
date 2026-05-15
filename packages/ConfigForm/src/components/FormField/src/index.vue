@@ -4,6 +4,7 @@ import { computed } from 'vue'
 import FormComponent from '@/components/FormComponent'
 import FormItem from '@/components/FormItem'
 import { useFormContext } from '@/composables/useFormContext'
+import { resolveValue } from '@/utils/resolvable'
 
 /**
  * FormField 组合 FormItem 与 FormComponent，保留带 label 字段的公共入口。
@@ -23,9 +24,7 @@ const formItemComponentProps = computed(() => ({
   field: props.field.field,
   formItemProps: props.field.formItemProps,
   label: props.field.label,
-  required: typeof props.field.required === 'function'
-    ? props.field.required(ctx.values)
-    : props.field.required,
+  required: resolveValue(props.field.required, ctx.values, false),
   span: props.field.span,
 }))
 </script>

@@ -1,8 +1,9 @@
 import type { Ref } from 'vue'
-import type { FieldCondition, FieldConfig, FieldKey, FormErrors, FormValues, NormalizedFieldConfig, ResolvedFormNode, ResolvedSlotContent, ValidateTrigger } from '@/types'
+import type { FieldConfig, FieldKey, FormErrors, FormValues, NormalizedFieldConfig, ResolvedFormNode, ResolvedSlotContent, ValidateTrigger } from '@/types'
 import { computed, reactive, ref, toRaw, unref, watch } from 'vue'
 import { applyFieldTransform, shouldValidateOn } from '@/utils/field'
 import { collectFieldConfigs, isFieldConfig, isFormNodeConfig } from '@/utils/node'
+import { resolveValue } from '@/utils/resolvable'
 import { validateFieldRules } from '@/utils/validate'
 
 /** 无头表单控制器选项，驱动值状态、校验和提交流程。 */
@@ -208,7 +209,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     if (!isFieldConfig(field))
       return false
 
-    return resolveCondition(field.disabled, valueStore, false)
+    return resolveValue(field.disabled, valueStore, false)
   }
 
   /** 按字段名读取有效可见性，供校验和提交流程复用同一套父链规则。 */
@@ -366,7 +367,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
 
     if (
       (!fieldVisible && !shouldValidateHidden)
-      || (resolveCondition(field.disabled, valuesSnapshot, false) && !shouldValidateDisabled)
+      || (resolveValue(field.disabled, valuesSnapshot, false) && !shouldValidateDisabled)
     ) {
       clearFieldError(fieldName)
       return true
@@ -438,7 +439,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     for (const field of fieldConfigs.value) {
       if (!isFieldVisible(field.field, valuesSnapshot) && !field.submitWhenHidden)
         continue
-      if (resolveCondition(field.disabled, valuesSnapshot, false) && !field.submitWhenDisabled)
+      if (resolveValue(field.disabled, valuesSnapshot, false) && !field.submitWhenDisabled)
         continue
       submitValues[field.field] = applyFieldTransform(field, valuesSnapshot[field.field], valuesSnapshot)
     }
@@ -551,7 +552,7 @@ function resolveNodeVisibility(
   const chain = collectNodeChain(node, topology)
 
   for (const current of chain) {
-    if (!resolveCondition(current.visible, values, true))
+    if (!resolveValue(current.visible, values, true))
       return false
   }
 
@@ -569,17 +570,4 @@ function collectNodeChain(node: ResolvedFormNode, topology: NodeTopology): Resol
   }
 
   return chain.reverse()
-}
-
-/** 解析字段显隐/禁用条件；函数条件的异常按原语义向调用方抛出。 */
-function resolveCondition(
-  condition: FieldCondition | undefined,
-  values: FormValues,
-  defaultValue: boolean,
-): boolean {
-  if (condition == null)
-    return defaultValue
-  if (typeof condition === 'boolean')
-    return condition
-  return condition(values)
 }
