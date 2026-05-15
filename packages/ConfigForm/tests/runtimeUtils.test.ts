@@ -6,7 +6,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { computed, defineComponent, h } from 'vue'
 import { normalizeFormRuntime, provideRuntime, useRuntime } from '../src/composables/useRuntime'
 import { createFormRuntime } from '../src/runtime'
-import { readFormItemProps } from '../src/runtime/formItem'
 import { hasFieldBinding, isComponent, isContainer, isField } from '../src/runtime/utils'
 import { applyFieldTransform, normalizeField, shouldValidateOn } from '../src/utils/field'
 import {
@@ -37,7 +36,6 @@ describe('runtime utilities', () => {
 
     expect(field).toMatchObject({
       blurTrigger: 'blur',
-      formItemProps: {},
       props: {},
       required: false,
       requiredMessage: '必填',
@@ -58,19 +56,6 @@ describe('runtime utilities', () => {
       field: 'bad',
       trigger: 'change',
     })).toThrow(/cannot use the same event/)
-  })
-
-  it('validates FormItem root props as plain non-conflicting objects', () => {
-    const nullProtoProps = Object.create(null)
-    nullProtoProps['data-root'] = 'field-root'
-
-    expect(readFormItemProps(undefined)).toEqual({})
-    expect(readFormItemProps(nullProtoProps)['data-root']).toBe('field-root')
-    expect(() => readFormItemProps([])).toThrow(/formItemProps must be a plain object/)
-    expect(() => readFormItemProps('invalid')).toThrow(/formItemProps must be a plain object/)
-    expect(() => readFormItemProps({ field: 'name' })).toThrow(/formItemProps\.field conflicts/)
-    expect(() => readFormItemProps({ required: true })).toThrow(/formItemProps\.required conflicts/)
-    expect(() => readFormItemProps({ requiredMessage: 'Required' })).toThrow(/formItemProps\.requiredMessage conflicts/)
   })
 
   it('deep merges plain objects while replacing arrays and vnode-shaped values as whole units', () => {
@@ -126,30 +111,30 @@ describe('runtime utilities', () => {
     const field = {
       component,
       field: 'name',
-      formItemProps: { labelCol: { span: 6 } },
       props: { placeholder: 'Name' },
       slots: { suffix: { component: 'span', props: { text: '!' } } },
     }
 
-    const cloned = cloneRecordWithChildren(field, ['props', 'formItemProps', 'slots'])
+    const cloned = cloneRecordWithChildren(field, ['props', 'slots'])
 
     expect(cloned).toEqual(field)
     expect(cloned).not.toBe(field)
     expect(cloned.component).toBe(component)
     expect(cloned.props).not.toBe(field.props)
-    expect(cloned.formItemProps).not.toBe(field.formItemProps)
     expect(cloned.slots).not.toBe(field.slots)
-    expect(cloned.formItemProps.labelCol).toBe(field.formItemProps.labelCol)
   })
 
   it('classifies runtime nodes by binding and label presence', () => {
     const labelled = { component: 'input', field: 'name', label: '姓名' }
     const unlabelled = { component: 'input', field: 'status' }
+    const identified = { component: 'input', field: 'email', id: 'source-email' }
     const container = { component: 'section' }
 
     expect(hasFieldBinding(labelled)).toBe(true)
     expect(isField(labelled)).toBe(true)
+    expect(isField(identified)).toBe(false)
     expect(isComponent(unlabelled)).toBe(true)
+    expect(isComponent(identified)).toBe(true)
     expect(isContainer(container)).toBe(true)
     expect(hasFieldBinding(container)).toBe(false)
   })
@@ -167,6 +152,12 @@ describe('runtime utilities', () => {
       field: 'status',
       props: {},
     } as ResolvedFormNode
+    const identifiedField = {
+      component: 'input',
+      field: 'email',
+      id: 'source-email',
+      props: {},
+    } as ResolvedFormNode
 
     expect(isFormNodeConfig(container)).toBe(true)
     expect(isFormNodeConfig(null)).toBe(false)
@@ -177,7 +168,9 @@ describe('runtime utilities', () => {
     expect(isResolvedFormNodeConfig(field)).toBe(true)
     expect(isResolvedFieldConfig(field)).toBe(true)
     expect(isResolvedField(field)).toBe(true)
-    expect(isResolvedComponent(componentField)).toBe(true)
+    expect(isResolvedField(identifiedField)).toBe(false)
+    expect(isResolvedComponent(identifiedField)).toBe(true)
+    expect(isResolvedFieldConfig(componentField)).toBe(true)
     expect(isResolvedContainer(container)).toBe(true)
   })
 
@@ -257,7 +250,6 @@ describe('runtime utilities', () => {
     expect(createFormRuntime().getFieldDefaults({ component: 'input', field: 'plain' }))
       .toEqual({
         blurTrigger: 'blur',
-        formItemProps: {},
         props: {},
         required: false,
         requiredMessage: '必填',

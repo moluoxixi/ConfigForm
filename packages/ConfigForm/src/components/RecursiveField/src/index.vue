@@ -10,7 +10,7 @@ import { isResolvedComponent, isResolvedField } from '@/utils/node'
 /**
  * RecursiveField 基于 runtime 守卫做三路分派，并在递归入口剪枝不可见节点。
  *
- * - Field（有 field + 有 label）→ FormField（label + error + 值绑定）
+ * - Field（有 field + 有 label）→ FormField（外壳 + 可选 label/error + 值绑定）
  * - Component（有 field + 无 label）→ FormComponent（值绑定）
  * - Container（无 field）→ FormNode（纯容器）
  *

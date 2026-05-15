@@ -98,7 +98,7 @@ interface FieldConfigBase<
   disabled?: FieldCondition<TValues>
   transform?: (value: TValue, allValues: TValues) => unknown
   getValueFromEvent?: (...args: unknown[]) => TValue
-  formItemProps?: Record<string, unknown>
+  id?: string
   submitWhenHidden?: boolean
   submitWhenDisabled?: boolean
   slots?: Record<string, SlotContent>

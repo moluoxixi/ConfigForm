@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { CSSProperties, StyleValue } from 'vue'
+import type { CSSProperties } from 'vue'
 import { computed } from 'vue'
 import { useFormContext } from '@/composables/useFormContext'
 import { useBem, useNamespace } from '@/composables/useNamespace'
-import { mergeStyle, readStyleValue, resolveLabelWidth } from '@/utils/style'
+import { resolveLabelWidth } from '@/utils/style'
 
 /**
- * FormItem 统一管理真实字段的外壳、label、error 和根节点透传属性。
+ * FormItem 统一管理真实字段的外壳、label、error 和字段根节点 id。
  *
  * 真实字段组件由默认插槽渲染；FormItem 不参与控件绑定属性计算。
  */
@@ -14,12 +14,11 @@ defineOptions({ name: 'FormItem' })
 
 const props = withDefaults(defineProps<{
   field: string
-  formItemProps?: Record<string, unknown>
+  id?: string
   label?: string
   required?: boolean
   span: number
 }>(), {
-  formItemProps: () => ({}),
   required: false,
 })
 
@@ -42,28 +41,19 @@ const formItemBaseStyle = computed<CSSProperties | undefined>(() => {
   return { gridColumn: `span ${props.span}` }
 })
 
-/** 根节点透传属性去掉 class/style，避免覆盖内置外壳合并策略。 */
-const formItemRootAttrs = computed(() => {
-  const { class: _class, style: _style, ...attrs } = props.formItemProps
-  return attrs
-})
-
-/** 生成 field 根节点类名，并合并用户传给 FormItem 根节点的 class。 */
+/** 生成 field 根节点类名；字段外壳不再接受任意透传属性。 */
 const fieldRootClass = computed(() => [
   b('field'),
   { [m('field', 'inline')]: ctx.inline },
-  props.formItemProps.class,
 ])
 
-/** 合并字段布局样式和用户传给 FormItem 根节点的 Vue style 值。 */
-const fieldRootStyle = computed<StyleValue | undefined>(() =>
-  mergeStyle(formItemBaseStyle.value, readStyleValue(props.formItemProps.style, 'formItemProps.style')),
-)
+/** 字段外壳样式仅由布局语义生成，避免外部属性通道改写根节点。 */
+const fieldRootStyle = computed<CSSProperties | undefined>(() => formItemBaseStyle.value)
 </script>
 
 <template>
   <div
-    v-bind="formItemRootAttrs"
+    :id="id"
     :class="fieldRootClass"
     :style="fieldRootStyle"
   >

@@ -28,7 +28,7 @@ export interface FieldPipelineContext {
 type PipelineNode = NormalizedFieldConfig | NormalizedNodeConfig
 type PluginField = DefinedFormNodeConfig | NormalizedNodeConfig
 const FORBIDDEN_DEFAULT_FIELD_KEYS = new Set(['component', 'field', 'slots'])
-const PLUGIN_CLONE_CHILD_KEYS = ['formItemProps', 'props', 'slots']
+const PLUGIN_CLONE_CHILD_KEYS = ['props', 'slots']
 
 /** 创建字段配置管线，负责默认值、插件、用户优先级、组件解析和 slot 递归编排。 */
 export function createFieldPipeline(

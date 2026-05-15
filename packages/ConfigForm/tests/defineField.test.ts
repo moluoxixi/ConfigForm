@@ -84,9 +84,11 @@ describe('defineField typing', () => {
   it('rejects devtools source metadata in public defineField inputs', () => {
     type FieldConfigHasSource = HasKey<FieldConfig, '__source'>
     type FieldConfigHasPlugins = HasKey<FieldConfig, 'plugins'>
+    type FieldConfigHasFormItemProps = HasKey<FieldConfig, 'formItemProps'>
 
     expectTypeOf<FieldConfigHasSource>().toEqualTypeOf<false>()
     expectTypeOf<FieldConfigHasPlugins>().toEqualTypeOf<false>()
+    expectTypeOf<FieldConfigHasFormItemProps>().toEqualTypeOf<false>()
 
     const fieldConfig: FieldConfig = {
       component: 'input',
@@ -147,20 +149,17 @@ describe('defineField typing', () => {
     })
   })
 
-  it('accepts FormItem root props separately from control props', () => {
+  it('accepts a field root id separately from control props', () => {
     const field = defineField({
       field: 'keyword',
       component: 'input',
-      formItemProps: {
-        'data-cf-devtools-source-id': 'source-keyword',
-        'class': 'field-root',
-      },
+      id: 'source-keyword',
       props: {
         placeholder: '请输入关键词',
       },
     })
 
-    expect(field.formItemProps?.['data-cf-devtools-source-id']).toBe('source-keyword')
+    expect(field.id).toBe('source-keyword')
     expect(field.props?.placeholder).toBe('请输入关键词')
   })
 

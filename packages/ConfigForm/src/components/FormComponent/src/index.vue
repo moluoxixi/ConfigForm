@@ -16,7 +16,7 @@ const props = defineProps<{
   field: ResolvedField
 }>()
 
-/** 当前组件字段配置；RecursiveField 只会把无 label 的 ResolvedField 分派到本组件。 */
+/** 当前组件字段配置；RecursiveField 只会把无外壳语义的 ResolvedField 分派到本组件。 */
 const resolvedField = computed(() => props.field)
 
 const { attrs: componentAttrs, listeners: componentListeners } = useFieldBinding(resolvedField)

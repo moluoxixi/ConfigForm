@@ -24,7 +24,6 @@ describe('form runtime', () => {
     expect(Object.getOwnPropertySymbols(defaults)).toEqual([])
     expect(defaults).toEqual({
       blurTrigger: 'blur',
-      formItemProps: {},
       props: {},
       required: false,
       requiredMessage: '必填',
@@ -54,13 +53,6 @@ describe('form runtime', () => {
                 width: '44px',
               },
             },
-            formItemProps: {
-              'data-origin': 'plugin',
-              'style': {
-                color: 'blue',
-                width: '44px',
-              },
-            },
             trigger: 'update:value',
             valueProp: 'value',
           }),
@@ -71,12 +63,6 @@ describe('form runtime', () => {
     const resolved = runtime.transformField(defineField({
       component: 'input',
       field: 'name',
-      formItemProps: {
-        'data-origin': 'user',
-        'style': {
-          width: '80px',
-        },
-      },
       props: {
         style: {
           width: '80px',
@@ -90,13 +76,6 @@ describe('form runtime', () => {
     expect(resolved.props).toEqual({
       addon: 'plugin',
       style: {
-        color: 'blue',
-        width: '80px',
-      },
-    })
-    expect(resolved.formItemProps).toEqual({
-      'data-origin': 'user',
-      'style': {
         color: 'blue',
         width: '80px',
       },
@@ -211,37 +190,6 @@ describe('form runtime', () => {
       }).transformField(defineField({ component: 'input', field: 'name' })))
         .toThrow(`Plugin bad-${key} getDefaultField cannot return "${key}"`)
     }
-  })
-
-  it('rejects FormItem root props that conflict with field semantics', () => {
-    const runtime = createFormRuntime()
-
-    expect(() => runtime.transformField(defineField({
-      component: 'input',
-      field: 'name',
-      formItemProps: { field: 'other' },
-    }))).toThrow(/formItemProps\.field conflicts/)
-
-    expect(() => runtime.transformField(defineField({
-      component: 'input',
-      field: 'name',
-      formItemProps: { label: 'Other' },
-      label: 'Name',
-    }))).toThrow(/formItemProps\.label conflicts/)
-
-    expect(() => runtime.transformField(defineField({
-      component: 'input',
-      field: 'name',
-      formItemProps: { required: true },
-      required: true,
-    }))).toThrow(/formItemProps\.required conflicts/)
-
-    expect(() => runtime.transformField(defineField({
-      component: 'input',
-      field: 'name',
-      formItemProps: { requiredMessage: 'Required' },
-      requiredMessage: 'Required',
-    }))).toThrow(/formItemProps\.requiredMessage conflicts/)
   })
 
   it('resolves registered components and rejects missing uppercase component keys', () => {

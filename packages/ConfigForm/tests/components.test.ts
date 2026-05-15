@@ -174,17 +174,12 @@ describe('config form component', () => {
     expect(card.attributes('data-cf-devtools-source-id')).toBeUndefined()
   })
 
-  it('passes FormItem root props without leaking them to controls', () => {
+  it('passes field id to FormItem root without leaking it to controls', () => {
     const fields: FormNodeConfig[] = [
       {
         component: TextInput,
         field: 'username',
-        formItemProps: {
-          'data-cf-devtools-source-id': 'source-username',
-          'data-field-root': 'username-root',
-          'class': 'custom-field-root',
-          'style': { backgroundColor: 'white' },
-        },
+        id: 'source-username',
         label: '用户名',
         props: {
           'data-control': 'username-input',
@@ -204,13 +199,9 @@ describe('config form component', () => {
     const input = wrapper.get('input')
 
     expect(field.attributes('style')).toContain('grid-column: span 8')
-    expect(field.attributes('style')).toContain('background-color: white')
-    expect(field.attributes('data-cf-devtools-source-id')).toBe('source-username')
-    expect(field.attributes('data-field-root')).toBe('username-root')
-    expect(field.classes()).toContain('custom-field-root')
+    expect(field.attributes('id')).toBe('source-username')
     expect(input.attributes('data-control')).toBe('username-input')
-    expect(input.attributes('data-cf-devtools-source-id')).toBeUndefined()
-    expect(input.attributes('data-field-root')).toBeUndefined()
+    expect(input.attributes('id')).not.toBe('source-username')
   })
 
   it('renders component containers around real fields without binding container values', async () => {
@@ -736,7 +727,7 @@ describe('form field component', () => {
     expect(formFieldSource).not.toContain('resolveSlotNodes')
   })
 
-  it('keeps field chrome inside explicit FormItem props without control binding coupling', () => {
+  it('keeps field chrome inside explicit FormItem fields without arbitrary root attrs', () => {
     const formItemPath = 'src/components/FormItem/src/index.vue'
     const formFieldSource = readFileSync('src/components/FormField/src/index.vue', 'utf8')
     const formComponentSource = readFileSync('src/components/FormComponent/src/index.vue', 'utf8')
@@ -745,10 +736,12 @@ describe('form field component', () => {
 
     const formItemSource = readFileSync(formItemPath, 'utf8')
     expect(formItemSource).toContain('ctx.errors')
-    expect(formItemSource).toContain('formItemProps')
     expect(formItemSource).toContain('<slot />')
+    expect(formItemSource).toContain('id?: string')
     expect(formItemSource).toContain('field: string')
     expect(formItemSource).not.toContain('ResolvedField')
+    expect(formItemSource).not.toContain('formItemProps')
+    expect(formItemSource).not.toContain('v-bind')
     expect(formItemSource).not.toContain('name="error"')
     expect(formFieldSource).not.toContain('fieldRootAttrs')
     expect(formFieldSource).not.toContain('resolveLabelWidth')
@@ -1020,6 +1013,33 @@ describe('form field component', () => {
     expect(wrapper.find('[data-role="slot-child"]').exists()).toBe(true)
     expect(wrapper.find('.cf-field').exists()).toBe(false)
   })
+
+  it('keeps unlabelled field ids out of FormItem classification', () => {
+    const fields = [
+      defineField({
+        component: TextInput,
+        field: 'username',
+        id: 'source-username',
+        props: {
+          placeholder: '用户名',
+        },
+      }),
+    ]
+
+    const wrapper = mount(ConfigForm, {
+      props: {
+        fields,
+        defaultValues: {},
+      },
+    })
+
+    const input = wrapper.get('input')
+
+    expect(wrapper.find('label').exists()).toBe(false)
+    expect(wrapper.find('.cf-field').exists()).toBe(false)
+    expect(input.attributes('placeholder')).toBe('用户名')
+    expect(input.attributes('id')).not.toBe('source-username')
+  })
 })
 
 describe('recursive field component', () => {
@@ -1098,7 +1118,6 @@ describe('form component component', () => {
     })
 
     expect(wrapper.get('button').text()).toBe('ready')
-    expect(wrapper.find('.cf-field').exists()).toBe(false)
 
     await wrapper.get('button').trigger('click')
     await wrapper.get('button').trigger('focusout')

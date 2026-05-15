@@ -12,7 +12,7 @@ interface DevtoolsFieldConfig {
 interface DevtoolsFormNodeConfig {
   component?: unknown
   field?: unknown
-  formItemProps?: Record<string, unknown>
+  id?: string
   label?: unknown
   props?: Record<string, unknown>
   slots?: Record<string, unknown>
@@ -98,10 +98,10 @@ function selectBestSourceElement(candidates: HTMLElement[]): HTMLElement | null 
   return visibleCandidates[0]?.element ?? candidates[0]
 }
 
-/** 在指定根节点内查询带源码 id 的元素。 */
+/** 在指定根节点内查询带源码 id 的元素；字段根节点使用 id，容器节点使用 data 属性。 */
 function querySourceElements(root: ParentNode, sourceId: string): HTMLElement[] {
   return [...root.querySelectorAll<HTMLElement>(
-    `[${SOURCE_ID_ATTRIBUTE}="${escapeAttributeValue(sourceId)}"]`,
+    `[id="${escapeAttributeValue(sourceId)}"],[${SOURCE_ID_ATTRIBUTE}="${escapeAttributeValue(sourceId)}"]`,
   )]
 }
 
@@ -416,15 +416,25 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
       }
 
       /**
-       * 给字段外壳根节点属性注入源码定位标记。
+       * 给字段配置写入源码定位 id。
        *
-       * 真实控件仍只接收 node.props；source 标记通过 formItemProps 落到 FormItem 根节点。
+       * 真实控件仍只接收 node.props；字段 id 由核心 FormItem 落到根节点。
        */
-      function withDevtoolsFieldFormItemProps(node: DevtoolsFormNodeConfig): Record<string, unknown> | undefined {
+      function withDevtoolsFieldId(node: DevtoolsFormNodeConfig): string | undefined {
         if (!isFieldNodeConfig(node))
-          return node.formItemProps
+          return node.id
 
-        return withDevtoolsSourceProps(node, node.formItemProps ?? {})
+        const sourceId = resolveDevtoolsSourceId(node)
+        if (!sourceId)
+          return node.id
+
+        if (node.id !== undefined && node.id !== sourceId) {
+          throw new Error(
+            `Conflicting field id: expected ${sourceId}, received ${node.id}`,
+          )
+        }
+
+        return sourceId
       }
 
       /**
@@ -505,9 +515,9 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         const id = isFieldNodeConfig(node) ? `${formId}:${node.field}` : `${formId}:${nodePath}`
         const next = cloneFormNodeConfig(node)
         next.props = withDevtoolsNodeProps(id, node)
-        const formItemProps = withDevtoolsFieldFormItemProps(node)
-        if (formItemProps !== undefined)
-          next.formItemProps = formItemProps
+        const fieldId = withDevtoolsFieldId(node)
+        if (fieldId !== undefined)
+          next.id = fieldId
 
         if (node.slots) {
           next.slots = Object.fromEntries(

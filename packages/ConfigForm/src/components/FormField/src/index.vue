@@ -22,7 +22,7 @@ const ctx = useFormContext()
 /** 生成内置 FormItem 的轻量 props，避免把完整字段配置传给外壳组件。 */
 const formItemComponentProps = computed(() => ({
   field: props.field.field,
-  formItemProps: props.field.formItemProps,
+  id: props.field.id,
   label: props.field.label,
   required: resolveValue(props.field.required, ctx.values, false),
   span: props.field.span,

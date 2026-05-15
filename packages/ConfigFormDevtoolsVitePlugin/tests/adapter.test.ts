@@ -14,7 +14,7 @@ const source = {
 interface FieldStub {
   component: unknown
   field?: string
-  formItemProps?: Record<string, unknown>
+  id?: string
   label?: unknown
   props?: Record<string, unknown>
   slots?: Record<string, unknown>
@@ -51,7 +51,7 @@ const CoreConfigForm = defineComponent({
       const config = field as FieldStub
       return h('div', {
         class: `${props.namespace}-field`,
-        ...(config.formItemProps ?? {}),
+        id: config.id,
       }, [
         h('input', {
           ...(config.props ?? {}),
@@ -130,8 +130,8 @@ describe('configForm devtools adapter', () => {
       source,
     }), fieldRoot)
     const sourceElement = document.querySelector('[data-cf-devtools-source-id="source-1"]')
-    expect(sourceElement).toBeInstanceOf(HTMLDivElement)
-    expect(sourceElement).toBe(fieldRoot)
+    expect(sourceElement).toBeNull()
+    expect(fieldRoot?.id).toBe('source-1')
     expect(document.getElementById('demo-name-field')?.getAttribute('data-cf-devtools-source-id')).toBeNull()
     expect(bridge.recordSync).toHaveBeenCalledWith(expect.objectContaining({
       duration: expect.any(Number),
@@ -175,7 +175,7 @@ describe('configForm devtools adapter', () => {
     ])).toThrow(/Conflicting data-cf-devtools-source-id/)
   })
 
-  it('throws when field FormItem props conflict with the injected devtools source id', () => {
+  it('throws when field id conflicts with the injected devtools source id', () => {
     const bridge = createBridge()
     vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
@@ -185,11 +185,9 @@ describe('configForm devtools adapter', () => {
         __source: source,
         component: 'input',
         field: 'name',
-        formItemProps: {
-          'data-cf-devtools-source-id': 'different-source',
-        },
+        id: 'different-source',
       },
-    ])).toThrow(/Conflicting data-cf-devtools-source-id/)
+    ])).toThrow(/Conflicting field id/)
   })
 
   it('keeps field source markers out of control props', async () => {
@@ -209,7 +207,7 @@ describe('configForm devtools adapter', () => {
     await nextTick()
     await nextTick()
 
-    expect(document.querySelector('.demo-field')?.getAttribute('data-cf-devtools-source-id')).toBe('source-1')
+    expect(document.querySelector('.demo-field')?.id).toBe('source-1')
     expect(document.getElementById('demo-name-field')?.getAttribute('data-control')).toBe('name-input')
     expect(document.getElementById('demo-name-field')?.getAttribute('data-cf-devtools-source-id')).toBeNull()
   })

@@ -1,13 +1,13 @@
 import type { ComponentNodeConfig, DefinedFormNodeConfig, FieldConfig, FormNodeConfig } from '@/types'
 
-/** 有值绑定 + 有标签 → 字段节点 */
+/** 有值绑定 + 有 label → 字段节点；id 仅透传给插件或字段外壳，不参与分类。 */
 export function isField(node: FormNodeConfig): node is FieldConfig {
-  return hasFieldBinding(node) && 'label' in node && (node as FieldConfig).label != null
+  return hasFieldBinding(node) && (node as FieldConfig).label != null
 }
 
-/** 有值绑定 + 无标签 → 组件节点 */
+/** 有值绑定 + 无 label → 组件节点；id 不改变节点语义。 */
 export function isComponent(node: FormNodeConfig): node is FieldConfig {
-  return hasFieldBinding(node) && ((node as FieldConfig).label == null)
+  return hasFieldBinding(node) && !isField(node)
 }
 
 /** 无值绑定 → 容器节点 */

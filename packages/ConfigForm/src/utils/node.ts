@@ -68,14 +68,14 @@ export function isResolvedFieldConfig(value: unknown): value is ResolvedField {
   return isResolvedFormNodeConfig(value) && isFieldConfig(value)
 }
 
-/** 已解析节点：有 field 绑定 + 有 label → Field 类型。 */
+/** 已解析节点：有 field 绑定 + 有 label → Field 类型；id 不参与分类。 */
 export function isResolvedField(value: ResolvedFormNode): value is ResolvedField {
   return isFieldConfig(value) && (value as ResolvedField).label != null
 }
 
-/** 已解析节点：有 field 绑定 + 无 label → Component 类型。 */
+/** 已解析节点：有 field 绑定 + 无 label → Component 类型；id 不改变节点语义。 */
 export function isResolvedComponent(value: ResolvedFormNode): value is ResolvedField {
-  return isFieldConfig(value) && !(value as ResolvedField).label
+  return isFieldConfig(value) && !isResolvedField(value)
 }
 
 /** 已解析节点：无 field 绑定 → Container 类型。 */
