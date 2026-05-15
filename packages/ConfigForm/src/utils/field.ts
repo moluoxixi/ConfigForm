@@ -90,6 +90,8 @@ interface FieldConfigBase<
   valueProp?: string
   trigger?: string
   blurTrigger?: string
+  required?: FieldCondition<TValues>
+  requiredMessage?: RuntimeText
   validateOn?: ValidateTrigger | ValidateTrigger[]
   validator?: FieldValidator<TValues, TValue>
   visible?: FieldCondition<TValues>

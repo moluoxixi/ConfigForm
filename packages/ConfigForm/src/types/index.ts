@@ -55,6 +55,10 @@ export interface FieldConfig extends ComponentNodeConfig {
   field: string
   /** 字段标签文本。 */
   label?: RuntimeText
+  /** 字段是否必填；函数形式可基于当前表单值动态计算。 */
+  required?: FieldCondition<FormValues>
+  /** 必填校验失败时展示的错误文案，默认 "必填"。 */
+  requiredMessage?: RuntimeText
   /** 字段校验使用的 Zod schema。 */
   schema?: ZodTypeAny
   /** 栅格跨度，由具体 UI 适配层消费。 */
@@ -99,7 +103,7 @@ export interface NormalizedNodeConfig extends Omit<ComponentNodeConfig, 'props'>
 /** 已补全默认值并规范化标量选项后的字段配置。 */
 export interface NormalizedFieldConfig extends Omit<
   FieldConfig,
-  'blurTrigger' | 'formItemProps' | 'props' | 'span' | 'submitWhenDisabled' | 'submitWhenHidden' | 'trigger' | 'validateOn' | 'valueProp'
+  'blurTrigger' | 'formItemProps' | 'props' | 'required' | 'requiredMessage' | 'span' | 'submitWhenDisabled' | 'submitWhenHidden' | 'trigger' | 'validateOn' | 'valueProp'
 >, NormalizedNodeConfig {
   field: string
   span: number
@@ -107,6 +111,8 @@ export interface NormalizedFieldConfig extends Omit<
   trigger: string
   blurTrigger: string
   validateOn: ValidateTrigger[]
+  required: FieldCondition<FormValues>
+  requiredMessage: RuntimeText
   formItemProps: Record<string, unknown>
   submitWhenHidden: boolean
   submitWhenDisabled: boolean

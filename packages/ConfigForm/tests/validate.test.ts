@@ -44,9 +44,31 @@ describe('validate utils', () => {
     ).resolves.toEqual(['已收到解析后的数字'])
   })
 
+  it('runs explicit required checks before schema and custom validators', async () => {
+    await expect(
+      validateFieldRules('', z.string().min(2, '姓名至少 2 个字符'), { name: '' }, () => {
+        throw new Error('validator should not run')
+      }, true, '请输入姓名'),
+    ).resolves.toEqual(['请输入姓名'])
+
+    await expect(
+      validateFieldRules([], undefined, { tags: [] }, undefined, values => Array.isArray(values.tags), '请选择标签'),
+    ).resolves.toEqual(['请选择标签'])
+
+    await expect(
+      validateFieldRules(false, undefined, { agreed: false }, undefined, true),
+    ).resolves.toEqual([])
+  })
+
   it('validates forms by trigger and respects hidden or disabled submit opt-in', async () => {
     const fields = [
       defineField({ field: 'plain', component: 'input', defaultValue: 'skip' }),
+      defineField({
+        field: 'requiredOnly',
+        component: 'input',
+        required: true,
+        requiredMessage: '请输入必填字段',
+      }),
       defineField({
         field: 'name',
         component: 'input',
@@ -88,6 +110,7 @@ describe('validate utils', () => {
       hiddenSkipped: '',
       name: '',
       plain: 'skip',
+      requiredOnly: '',
     }
 
     await expect(validateForm(values, fields, 'change')).resolves.toEqual({})
@@ -98,6 +121,7 @@ describe('validate utils', () => {
       disabledKept: ['禁用字段参与提交校验'],
       hiddenKept: ['隐藏字段参与提交校验'],
       name: ['姓名至少 2 个字符'],
+      requiredOnly: ['请输入必填字段'],
     })
   })
 })

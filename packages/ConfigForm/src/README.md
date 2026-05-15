@@ -8,6 +8,7 @@
 - `defineField` 返回普通配置对象，不写入 symbol、隐藏属性或 defineProperty 标记；字段默认值、组件解析和插件转换统一由 `ConfigForm` 根组件的 runtime 管线完成。
 - 表单初始值通过 `defaultValues` 传入；组件不再提供 `v-model` 双向同步。
 - 默认值来自 `defaultValues` 初始快照和字段 `defaultValue`；外部对象后续替换不会覆盖内部编辑态。
+- `required` 只表达必填标识和空值校验；字符串会先 trim 再判断空值，更复杂的格式、长度或跨字段规则继续放在 `schema` / `validator`。
 - `validator(value, values)` 可用于跨字段或异步校验。
 - 非标准组件事件通过 `getValueFromEvent(...args)` 显式提取字段值，默认只取第一个事件参数。
 - 隐藏和禁用字段默认不进入 submit 输出，可用 `submitWhenHidden` / `submitWhenDisabled` 开启。

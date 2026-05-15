@@ -243,6 +243,8 @@ describe('defineField typing', () => {
       field: 'username',
       component: 'input',
       defaultValue: '',
+      required: values => values.remember,
+      requiredMessage: '请输入用户名',
       validator: (value, values) => {
         expectTypeOf(value).toEqualTypeOf<string>()
         expectTypeOf(values.age).toEqualTypeOf<number>()

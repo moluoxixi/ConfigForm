@@ -39,6 +39,8 @@ const fields = [
   defineField<LoginForm>({
     field: 'username',
     label: '用户名',
+    required: true,
+    requiredMessage: '请输入用户名',
     schema: z.string().min(2, '至少 2 个字符'),
     span: 12,
     component: MyInput,
@@ -140,6 +142,8 @@ const fields = [
 |-----|------|---------|-------------|
 | `field` | `string` | - | 字段名，作为 values 的 key |
 | `label` | `RuntimeText` | - | 字段标签字符串 |
+| `required` | `boolean \| (values) => boolean` | `false` | 是否显示必填标识并执行空值校验 |
+| `requiredMessage` | `RuntimeText` | `必填` | 必填校验失败时展示的错误文案 |
 | `schema` | `ZodTypeAny` | - | 字段 Zod 校验 |
 | `validator` | `(value, values) => string \| string[] \| void \| Promise` | - | 自定义校验，可访问全量 values |
 | `span` | `number` | `24` | 非 inline 模式下的 24 栅格跨度 |
@@ -166,6 +170,8 @@ slot 内容与顶层 `fields` 采用同一声明模式，不支持文本、VNode
 defineField({
   field: 'gender',
   label: '性别',
+  required: true,
+  requiredMessage: '请选择性别',
   component: RadioGroup,
   slots: {
     default: [

@@ -39,7 +39,12 @@ export async function validateFieldRules(
   schema: ZodTypeAny | undefined,
   allValues: FormValues,
   validator?: FieldValidator,
+  required?: FieldCondition,
+  requiredMessage = '必填',
 ): Promise<string[]> {
+  if (resolveCondition(required, allValues, false) && isEmptyRequiredValue(value))
+    return [requiredMessage]
+
   let validatorValue = value
   if (schema) {
     const result = schema.safeParse(value)
@@ -66,7 +71,7 @@ export async function validateForm(
   const errors: FormErrors = {}
   for (const config of fields) {
     const field = applyFieldDefaults(config) as NormalizedFieldConfig
-    if (!field.schema && !field.validator)
+    if (!field.required && !field.schema && !field.validator)
       continue
     const shouldValidateHidden = trigger === 'submit' && field.submitWhenHidden
     const shouldValidateDisabled = trigger === 'submit' && field.submitWhenDisabled
@@ -78,11 +83,29 @@ export async function validateForm(
     if (!shouldValidateOn(field, trigger))
       continue
 
-    const errs = await validateFieldRules(values[field.field], field.schema, values, field.validator)
+    const errs = await validateFieldRules(
+      values[field.field],
+      field.schema,
+      values,
+      field.validator,
+      field.required,
+      field.requiredMessage,
+    )
     if (errs.length > 0)
       errors[field.field] = errs
   }
   return errors
+}
+
+/** 必填语义只拦截真实空值，保留 0、false 和非空数组这类有效输入。 */
+function isEmptyRequiredValue(value: unknown): boolean {
+  if (value == null)
+    return true
+  if (typeof value === 'string')
+    return value.trim().length === 0
+  if (Array.isArray(value))
+    return value.length === 0
+  return false
 }
 
 /** 解析字段显隐/禁用条件；函数条件的异常按原语义向调用方抛出。 */

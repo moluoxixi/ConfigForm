@@ -475,6 +475,41 @@ describe('config form component', () => {
     expect(api.getValues()).toEqual({ username: 'Ada' })
   })
 
+  it('renders required marks and keeps validation error space reserved', async () => {
+    const fields = [
+      defineField({
+        field: 'username',
+        label: '用户名',
+        component: TextInput,
+        required: true,
+        requiredMessage: '请输入用户名',
+      }),
+      defineField({
+        field: 'nickname',
+        label: '昵称',
+        component: TextInput,
+      }),
+    ]
+
+    const wrapper = mount(ConfigForm, {
+      props: {
+        fields,
+        defaultValues: {},
+      },
+    })
+
+    expect(wrapper.findAll('.cf-field__error')).toHaveLength(2)
+    expect(wrapper.findAll('.cf-field__required')).toHaveLength(1)
+    expect(wrapper.get('label').text()).toBe('*用户名')
+    expect(wrapper.findAll('label')[1].text()).toBe('昵称')
+
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('请输入用户名')
+    expect(wrapper.findAll('.cf-field__error')).toHaveLength(2)
+  })
+
   it('keeps root form context inline and labelWidth reactive after prop updates', async () => {
     const fields = [
       defineField({

@@ -26,6 +26,8 @@ describe('form runtime', () => {
       blurTrigger: 'blur',
       formItemProps: {},
       props: {},
+      required: false,
+      requiredMessage: '必填',
       span: 24,
       submitWhenDisabled: true,
       submitWhenHidden: false,
@@ -226,6 +228,20 @@ describe('form runtime', () => {
       formItemProps: { label: 'Other' },
       label: 'Name',
     }))).toThrow(/formItemProps\.label conflicts/)
+
+    expect(() => runtime.transformField(defineField({
+      component: 'input',
+      field: 'name',
+      formItemProps: { required: true },
+      required: true,
+    }))).toThrow(/formItemProps\.required conflicts/)
+
+    expect(() => runtime.transformField(defineField({
+      component: 'input',
+      field: 'name',
+      formItemProps: { requiredMessage: 'Required' },
+      requiredMessage: 'Required',
+    }))).toThrow(/formItemProps\.requiredMessage conflicts/)
   })
 
   it('resolves registered components and rejects missing uppercase component keys', () => {

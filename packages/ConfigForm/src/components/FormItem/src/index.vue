@@ -16,9 +16,11 @@ const props = withDefaults(defineProps<{
   field: string
   formItemProps?: Record<string, unknown>
   label?: string
+  required?: boolean
   span: number
 }>(), {
   formItemProps: () => ({}),
+  required: false,
 })
 
 defineSlots<{
@@ -70,13 +72,14 @@ const fieldRootStyle = computed<StyleValue | undefined>(() =>
       :class="e('field', 'label')"
       :style="{ width: resolveLabelWidth(ctx.labelWidth) }"
     >
-      {{ label }}
+      <span v-if="required" :class="e('field', 'required')">*</span>
+      <span>{{ label }}</span>
     </label>
 
     <div :class="e('field', 'control')">
       <slot />
 
-      <div v-if="error?.length" :class="e('field', 'error')">
+      <div :class="e('field', 'error')" aria-live="polite">
         <span v-for="(msg, i) in error" :key="i">{{ msg }}</span>
       </div>
     </div>

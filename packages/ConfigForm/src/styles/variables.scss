@@ -13,5 +13,6 @@ $label-line-height: 32px !default;
 // 字段错误提示样式变量。
 $error-font-size: 12px !default;
 $error-color: #f56c6c !default;
-$error-line-height: 1.4 !default;
+$error-line-height: 18px !default;
 $error-margin-top: 4px !default;
+$error-reserved-height: $error-line-height !default;

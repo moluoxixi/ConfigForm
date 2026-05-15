@@ -354,7 +354,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
   ): Promise<boolean> {
     const config = fieldConfigs.value.find(f => f.field === fieldName)
     const field = config as NormalizedFieldConfig | undefined
-    if (!field?.schema && !field?.validator) {
+    if (!field?.required && !field?.schema && !field?.validator) {
       clearFieldError(fieldName)
       return true
     }
@@ -375,7 +375,14 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     if (!shouldValidateOn(field, trigger))
       return true
 
-    const fieldErrors = await validateFieldRules(valuesSnapshot[fieldName], field.schema, valuesSnapshot, field.validator)
+    const fieldErrors = await validateFieldRules(
+      valuesSnapshot[fieldName],
+      field.schema,
+      valuesSnapshot,
+      field.validator,
+      field.required,
+      field.requiredMessage,
+    )
     if (fieldErrors.length > 0) {
       errors.value = { ...errors.value, [fieldName]: fieldErrors }
     }

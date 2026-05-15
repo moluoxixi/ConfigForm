@@ -39,6 +39,8 @@ describe('runtime utilities', () => {
       blurTrigger: 'blur',
       formItemProps: {},
       props: {},
+      required: false,
+      requiredMessage: '必填',
       span: 24,
       submitWhenDisabled: true,
       submitWhenHidden: false,
@@ -67,6 +69,8 @@ describe('runtime utilities', () => {
     expect(() => readFormItemProps([])).toThrow(/formItemProps must be a plain object/)
     expect(() => readFormItemProps('invalid')).toThrow(/formItemProps must be a plain object/)
     expect(() => readFormItemProps({ field: 'name' })).toThrow(/formItemProps\.field conflicts/)
+    expect(() => readFormItemProps({ required: true })).toThrow(/formItemProps\.required conflicts/)
+    expect(() => readFormItemProps({ requiredMessage: 'Required' })).toThrow(/formItemProps\.requiredMessage conflicts/)
   })
 
   it('deep merges plain objects while replacing arrays and vnode-shaped values as whole units', () => {
@@ -255,6 +259,8 @@ describe('runtime utilities', () => {
         blurTrigger: 'blur',
         formItemProps: {},
         props: {},
+        required: false,
+        requiredMessage: '必填',
         span: 24,
         submitWhenDisabled: true,
         submitWhenHidden: false,

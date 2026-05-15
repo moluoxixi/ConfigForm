@@ -18,13 +18,22 @@
     white-space: nowrap;
   }
 
+  &__required {
+    margin-right: 4px;
+    color: $error-color;
+    font-size: $label-font-size;
+    line-height: inherit;
+  }
+
   &--inline &__label {
     line-height: normal;
   }
 
   &__control {
+    position: relative;
     flex: 1;
     min-width: 0;
+    padding-bottom: calc(#{$error-margin-top} + #{$error-reserved-height});
 
     /* 非内联模式下，默认让内部组件撑满控制区（解决 Select 等组件在 Grid 模式下宽度不足的问题） */
     > :first-child {
@@ -40,13 +49,22 @@
   }
 
   &__error {
-    margin-top: $error-margin-top;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: $error-reserved-height;
+    margin: 0;
+    overflow: hidden;
     font-size: $error-font-size;
     color: $error-color;
     line-height: $error-line-height;
 
     span {
       display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
   }
 }

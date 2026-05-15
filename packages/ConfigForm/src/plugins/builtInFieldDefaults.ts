@@ -18,6 +18,10 @@ export interface FieldDefaultConfig {
   blurTrigger?: string
   /** 字段校验触发默认值，仅对有 field 绑定的节点返回。 */
   validateOn?: ValidateTrigger[]
+  /** 字段默认非必填，仅对有 field 绑定的节点返回。 */
+  required?: FieldConfig['required']
+  /** 必填失败文案默认值，仅对有 field 绑定的节点返回。 */
+  requiredMessage?: FieldConfig['requiredMessage']
   /** FormItem 根节点透传属性默认值，仅对有 field 绑定的节点返回。 */
   formItemProps?: Record<string, unknown>
   /** 隐藏字段默认不参与提交，仅对有 field 绑定的节点返回。 */
@@ -61,7 +65,7 @@ type DefaultedFieldInput<TSlot extends SlotContent | ResolvedSlotContent = SlotC
     & { field: string }
     & Partial<Pick<
       FieldConfig,
-      'blurTrigger' | 'formItemProps' | 'submitWhenDisabled' | 'submitWhenHidden' | 'trigger' | 'validateOn' | 'valueProp'
+      'blurTrigger' | 'formItemProps' | 'required' | 'requiredMessage' | 'submitWhenDisabled' | 'submitWhenHidden' | 'trigger' | 'validateOn' | 'valueProp'
     >>
 
 /** 返回字段的内置默认配置片段，不合并用户声明，也不执行用户插件。 */
@@ -78,6 +82,8 @@ export function getFieldDefaults(field: FormNodeConfig): FieldDefaultConfig {
     ...defaults,
     blurTrigger: 'blur',
     formItemProps: {},
+    required: false,
+    requiredMessage: '必填',
     submitWhenDisabled: true,
     submitWhenHidden: false,
     trigger: 'update:modelValue',
@@ -132,6 +138,8 @@ function applyBindingDefaults<TSlot extends SlotContent | ResolvedSlotContent>(
     ...field,
     blurTrigger,
     formItemProps: readFormItemProps(field.formItemProps),
+    required: field.required ?? false,
+    requiredMessage: field.requiredMessage ?? '必填',
     submitWhenDisabled: field.submitWhenDisabled ?? true,
     submitWhenHidden: field.submitWhenHidden ?? false,
     trigger,

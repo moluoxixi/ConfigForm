@@ -3,6 +3,8 @@ import { readPlainRecord } from '@/utils/object'
 const FORM_ITEM_PROP_CONFLICT_MESSAGES: Record<string, string> = {
   field: 'formItemProps.field conflicts with field config; declare field on the field config instead',
   label: 'formItemProps.label conflicts with field.label; declare label on the field config instead',
+  required: 'formItemProps.required conflicts with field.required; declare required on the field config instead',
+  requiredMessage: 'formItemProps.requiredMessage conflicts with field.requiredMessage; declare requiredMessage on the field config instead',
 }
 
 /** 校验 FormItem 根节点透传属性不能覆盖字段配置派生的核心语义。 */
