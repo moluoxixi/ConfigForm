@@ -418,7 +418,8 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
       /**
        * 给字段配置写入源码定位 id。
        *
-       * 真实控件仍只接收 node.props；字段 id 由核心 FormItem 落到根节点。
+       * 真实控件仍只接收 node.props；id 不改变核心字段/组件分类。
+       * 当核心因 label 渲染 FormItem 时，该 id 才会落到字段外壳根节点。
        */
       function withDevtoolsFieldId(node: DevtoolsFormNodeConfig): string | undefined {
         if (!isFieldNodeConfig(node))

@@ -51,7 +51,7 @@ export type SlotContent = DefinedFormNodeConfig | DefinedFormNodeConfig[]
 
 /** 字段节点配置：渲染组件并绑定一个表单值 key。 */
 export interface FieldConfig extends ComponentNodeConfig {
-  /** 字段外壳 DOM id；主要供开发期插件标记和定位字段根节点。 */
+  /** 字段 DOM id 透传通道；仅供插件定位，不参与字段或组件分类。 */
   id?: string
   /** 当前字段控制的表单值 key。 */
   field: string

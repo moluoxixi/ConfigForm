@@ -199,6 +199,7 @@ describe('configForm devtools adapter', () => {
         __source: source,
         component: 'input',
         field: 'name',
+        label: 'Name',
         props: {
           'data-control': 'name-input',
         },
