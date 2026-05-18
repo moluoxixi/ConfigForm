@@ -40,7 +40,7 @@ describe('runtime utilities', () => {
       required: false,
       requiredMessage: '必填',
       span: 24,
-      submitWhenDisabled: true,
+      submitWhenDisabled: false,
       submitWhenHidden: false,
       trigger: 'update:modelValue',
       validateOn: ['blur', 'submit'],
@@ -106,13 +106,13 @@ describe('runtime utilities', () => {
     expect((merged.props as Record<string, unknown>).icon).toBe(UserIcon)
   })
 
-  it('clones config records with selected child records while preserving component references', () => {
+  it('clones nested child records recursively while preserving component references', () => {
     const component = { name: 'RuntimeInput', setup: () => () => h('input') }
     const field = {
       component,
       field: 'name',
-      props: { placeholder: 'Name' },
-      slots: { suffix: { component: 'span', props: { text: '!' } } },
+      props: { nested: { placeholder: 'Name' } },
+      slots: { suffix: { component: 'span', props: { style: { color: 'red' }, text: '!' } } },
     }
 
     const cloned = cloneRecordWithChildren(field, ['props', 'slots'])
@@ -121,7 +121,9 @@ describe('runtime utilities', () => {
     expect(cloned).not.toBe(field)
     expect(cloned.component).toBe(component)
     expect(cloned.props).not.toBe(field.props)
+    expect((cloned.props as { nested: object }).nested).not.toBe((field.props as { nested: object }).nested)
     expect(cloned.slots).not.toBe(field.slots)
+    expect((cloned.slots as { suffix: { props: object } }).suffix.props).not.toBe((field.slots as { suffix: { props: object } }).suffix.props)
   })
 
   it('classifies runtime nodes by binding and label presence', () => {
@@ -254,7 +256,7 @@ describe('runtime utilities', () => {
         required: false,
         requiredMessage: '必填',
         span: 24,
-        submitWhenDisabled: true,
+        submitWhenDisabled: false,
         submitWhenHidden: false,
         trigger: 'update:modelValue',
         validateOn: ['submit'],

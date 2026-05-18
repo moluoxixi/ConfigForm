@@ -187,6 +187,47 @@ describe('useForm', () => {
     })
   })
 
+  it('validates submit fields concurrently while preserving per-field serialization', async () => {
+    const calls: string[] = []
+    let active = 0
+    let maxActive = 0
+    const fields = createResolvedFieldRef([
+      defineField({
+        field: 'first',
+        component: 'input',
+        validator: async () => {
+          calls.push('first:start')
+          active += 1
+          maxActive = Math.max(maxActive, active)
+          await new Promise(resolve => setTimeout(resolve, 20))
+          active -= 1
+          calls.push('first:end')
+          return undefined
+        },
+      }),
+      defineField({
+        field: 'second',
+        component: 'input',
+        validator: async () => {
+          calls.push('second:start')
+          active += 1
+          maxActive = Math.max(maxActive, active)
+          await new Promise(resolve => setTimeout(resolve, 20))
+          active -= 1
+          calls.push('second:end')
+          return undefined
+        },
+      }),
+    ])
+
+    const form = useForm({ fields })
+
+    await expect(form.validate()).resolves.toBe(true)
+    expect(maxActive).toBe(2)
+    expect(calls).toContain('first:start')
+    expect(calls).toContain('second:start')
+  })
+
   it('validates hidden or disabled fields when they opt into submit output', async () => {
     const fields = createResolvedFieldRef([
       defineField({

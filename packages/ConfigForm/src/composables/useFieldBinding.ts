@@ -1,5 +1,5 @@
 import type { ComputedRef } from 'vue'
-import type { ResolvedField } from '@/types'
+import type { ResolvedBoundNode } from '@/types'
 import { computed } from 'vue'
 import { useFormContext } from '@/composables/useFormContext'
 
@@ -17,7 +17,7 @@ export interface FieldBinding {
  *
  * 默认采用组件事件的第一个参数；字段声明提供 getValueFromEvent 时交给调用方自定义解析。
  */
-function resolveFieldEventValue(field: ResolvedField, args: unknown[]): unknown {
+function resolveFieldEventValue(field: ResolvedBoundNode, args: unknown[]): unknown {
   return field.getValueFromEvent
     ? field.getValueFromEvent(...args)
     : args[0]
@@ -30,7 +30,7 @@ function resolveFieldEventValue(field: ResolvedField, args: unknown[]): unknown 
  * label 和 error 外包装由 FormItem 独立处理。
  */
 export function useFieldBinding(
-  field: ComputedRef<ResolvedField>,
+  field: ComputedRef<ResolvedBoundNode>,
 ): FieldBinding {
   const ctx = useFormContext()
   const modelValue = computed(() => ctx.getValue(field.value.field))

@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="T extends object = Record<string, unknown>">
 import { computed } from 'vue'
 import type { CSSProperties } from 'vue'
-import type { ConfigFormEmits, ConfigFormExpose, ConfigFormProps } from '@/types'
+import type { ConfigFormEmits, ConfigFormExpose, ConfigFormProps, ResolvedFormNode } from '@/types'
 import RecursiveField from '@/components/RecursiveField'
 import { useForm } from '@/composables/useForm'
 import { provideFormContext } from '@/composables/useFormContext'
@@ -71,25 +71,24 @@ provideFormContext({
   isDisabled,
   setValue,
   setValues: (nextValues, replace) => setValues(nextValues as Partial<T>, replace),
-  validateField: (field, trigger) => validateSingleField(field, trigger as 'blur' | 'change' | 'submit'),
+  validateField: validateSingleField,
 })
 
-/**
- * 生成递归节点列表的稳定 key。
- *
- * 字段节点优先使用 field；容器节点没有业务 key 时退回组件名和声明顺序。
- */
-function fieldKey(field: typeof resolvedFields.value[number], index: number): string {
+/** 为字段与容器节点生成稳定渲染 key。 */
+function getNodeKey(field: ResolvedFormNode, index: number): string {
   if ('field' in field)
     return String(field.field)
 
-  return `${String(field.component)}-${index}`
+  if (field.id)
+    return `node:${field.id}`
+
+  return `node:${index}`
 }
 
 const keyedResolvedFields = computed(() =>
   resolvedFields.value.map((field, index) => ({
     field,
-    key: fieldKey(field, index),
+    key: getNodeKey(field, index),
   })),
 )
 

@@ -1,6 +1,6 @@
 import type { FormContext } from '../src/composables/useFormContext'
 import type { FormRuntimeOptions } from '../src/runtime'
-import type { ConfigFormExpose, DefinedFormNodeConfig, FormNodeConfig, ResolvedField } from '../src/types'
+import type { ConfigFormExpose, DefinedFormNodeConfig, FormNodeConfig, ResolvedBoundNode } from '../src/types'
 import { existsSync, readFileSync } from 'node:fs'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
@@ -124,9 +124,9 @@ const ContextProbe = markRaw(defineComponent({
  *
  * 只为 FormField 单测提供最小 ResolvedField，不包含外部插件和动态表单值。
  */
-function resolveTestField(field: DefinedFormNodeConfig): ResolvedField {
+function resolveTestField(field: DefinedFormNodeConfig): ResolvedBoundNode {
   const runtime = createFormRuntime()
-  return runtime.transformField(field) as ResolvedField
+  return runtime.transformField(field) as ResolvedBoundNode
 }
 
 /** 等待字段交互校验的节流窗口和后续异步校验 Promise 完成。 */
@@ -748,10 +748,10 @@ describe('form field component', () => {
     expect(formComponentSource).not.toContain('control-attrs')
   })
 
-  it('keeps FormComponent props narrowed to resolved fields without local casts', () => {
+  it('keeps FormComponent props narrowed to resolved bound nodes without local casts', () => {
     const formComponentSource = readFileSync('src/components/FormComponent/src/index.vue', 'utf8')
 
-    expect(formComponentSource).toContain('field: ResolvedField')
+    expect(formComponentSource).toContain('field: ResolvedBoundNode')
     expect(formComponentSource).not.toContain('ResolvedFormNode')
     expect(formComponentSource).not.toContain('as ResolvedField')
   })

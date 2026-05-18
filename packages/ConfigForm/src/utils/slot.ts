@@ -9,6 +9,17 @@ export interface ResolvedSlotNode {
   key: string
 }
 
+/** 将 slot 路径转换为稳定渲染 key；优先使用业务 field 或显式 id。 */
+function getSlotNodeKey(field: ResolvedFormNode, slotName: string, path: string): string {
+  if ('field' in field)
+    return `field:${field.field}`
+
+  if (field.id)
+    return `node:${field.id}`
+
+  return `slot:${slotName}:${path}`
+}
+
 /**
  * 将 runtime 已处理的 slot 配置转换为递归渲染节点。
  *
@@ -26,6 +37,6 @@ export function resolveSlotNodes(value: ResolvedSlotContent, slotName: string, p
 
   return [{
     field: value,
-    key: `field-${slotName}-${path}`,
+    key: getSlotNodeKey(value, slotName, path),
   }]
 }

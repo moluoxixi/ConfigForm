@@ -36,6 +36,8 @@ export type FieldCondition<T extends object = FormValues> = boolean | ((values: 
 export interface ComponentNodeConfig {
   /** Vue 组件、function component、原生标签或 runtime 注册的组件 key。 */
   component: Component | FunctionalFieldComponent | string
+  /** 节点 DOM id / 稳定 key 透传通道；可供容器和字段节点复用。 */
+  id?: string
   /** 栅格跨度；容器节点默认占满 24 列。 */
   span?: number
   /** 节点显隐条件；容器隐藏时其子树字段也按隐藏语义处理。 */
@@ -51,8 +53,6 @@ export type SlotContent = DefinedFormNodeConfig | DefinedFormNodeConfig[]
 
 /** 字段节点配置：渲染组件并绑定一个表单值 key。 */
 export interface FieldConfig extends ComponentNodeConfig {
-  /** 字段 DOM id 透传通道；仅供插件定位，不参与字段或组件分类。 */
-  id?: string
   /** 当前字段控制的表单值 key。 */
   field: string
   /** 字段标签文本。 */
@@ -81,12 +81,12 @@ export interface FieldConfig extends ComponentNodeConfig {
   validator?: FieldValidator<FormValues, unknown>
   /** 字段禁用条件；禁用字段默认跳过校验和提交。 */
   disabled?: FieldCondition<FormValues>
+  /** 提交前是否仍保留隐藏字段，默认 false。 */
+  submitWhenHidden?: boolean
+  /** 提交前是否仍保留禁用字段，默认 false。 */
+  submitWhenDisabled?: boolean
   /** 提交校验通过后执行的字段值映射。 */
   transform?: (value: unknown, allValues: FormValues) => unknown
-  /** 隐藏时仍参与 submit 输出，默认 false */
-  submitWhenHidden?: boolean
-  /** 禁用时仍参与 submit 输出，默认 false */
-  submitWhenDisabled?: boolean
 }
 
 /** ConfigForm 顶层节点，可以是真实字段节点或容器节点。 */
@@ -120,25 +120,32 @@ export interface NormalizedFieldConfig extends Omit<
 /** runtime 处理完成后的 slot 内容，只包含可直接递归渲染的节点。 */
 export type ResolvedSlotContent = ResolvedFormNode | ResolvedFormNode[]
 
-/** 组件、props 和 slots 全部处理后的可渲染容器节点基类。 */
-export interface ResolvedNodeBase extends Omit<NormalizedNodeConfig, 'slots'> {
+/** 组件、props 和 slots 全部处理后的可渲染容器节点。 */
+export interface ResolvedComponentNode extends Omit<NormalizedNodeConfig, 'slots'> {
   props: Record<string, unknown>
   /** runtime 已递归处理完毕的 slot 节点。 */
   slots?: Record<string, ResolvedSlotContent>
 }
 
-/** 组件、props、slots 和 label 全部处理后的可渲染字段节点。 */
-export interface ResolvedField extends Omit<NormalizedFieldConfig, 'label' | 'slots'> {
+/** 组件、props、slots 和字段绑定全部处理后的可渲染绑定节点基类。 */
+export interface ResolvedBoundNode extends Omit<NormalizedFieldConfig, 'label' | 'slots'> {
   label?: string
   /** runtime 已递归处理完毕的 slot 节点。 */
   slots?: Record<string, ResolvedSlotContent>
 }
 
-/** 组件、props 和 slots 全部处理后的可渲染容器节点。 */
-export interface ResolvedComponentNode extends ResolvedNodeBase {}
+/** 已解析节点：有 field 绑定 + 有 label → Field 类型。 */
+export interface ResolvedField extends ResolvedBoundNode {
+  label: string
+}
+
+/** 已解析节点：有 field 绑定 + 无 label → Component 类型。 */
+export interface ResolvedComponentField extends ResolvedBoundNode {
+  label?: undefined
+}
 
 /** FormRuntime.transformField(...) 返回的节点类型。 */
-export type ResolvedFormNode = ResolvedField | ResolvedComponentNode
+export type ResolvedFormNode = ResolvedField | ResolvedComponentField | ResolvedComponentNode
 
 /** 类型化表单模型中可用的字符串 key。 */
 export type FieldKey<T extends object> = Extract<keyof T, string>

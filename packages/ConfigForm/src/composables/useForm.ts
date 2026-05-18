@@ -53,6 +53,11 @@ interface NodeTopology {
   fieldNodeMap: Map<string, ResolvedFormNode>
 }
 
+interface VisibilitySnapshot {
+  byField: Map<string, boolean>
+  byNode: WeakMap<ResolvedFormNode, boolean>
+}
+
 /**
  * 创建 ConfigForm 的无头状态控制器。
  *
@@ -69,6 +74,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
   const validationStates = new Map<string, FieldValidationState>()
   const nodeTopology = computed(() => createNodeTopology(fields.value))
   const fieldConfigs = computed(() => collectFieldConfigs(fields.value) as NormalizedFieldConfig[])
+  const fieldConfigMap = computed(() => new Map(fieldConfigs.value.map(field => [field.field, field] as const)))
   const fieldTopologyKey = computed(() => fieldConfigs.value.map(field => field.field).join('\0'))
 
   // 先同步校验初始字段拓扑，避免 Vue watcher 注册后才暴露重复 field 等配置错误。
@@ -213,12 +219,9 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
   }
 
   /** 按字段名读取有效可见性，供校验和提交流程复用同一套父链规则。 */
-  function isFieldVisible(fieldName: string, valuesSnapshot: FormValues): boolean {
-    const node = nodeTopology.value.fieldNodeMap.get(fieldName)
-    if (!node)
-      return true
-
-    return resolveNodeVisibility(node, valuesSnapshot, nodeTopology.value)
+  function isFieldVisible(fieldName: string, valuesSnapshot: FormValues, visibility = createVisibilitySnapshot(valuesSnapshot, nodeTopology.value)): boolean {
+    const visible = visibility.byField.get(fieldName)
+    return visible ?? true
   }
 
   /** 获取字段校验状态，没有状态时创建独立队列。 */
@@ -353,7 +356,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     trigger: ValidateTrigger,
     valuesSnapshot: FormValues,
   ): Promise<boolean> {
-    const config = fieldConfigs.value.find(f => f.field === fieldName)
+    const config = fieldConfigMap.value.get(fieldName)
     const field = config as NormalizedFieldConfig | undefined
     if (!field?.required && !field?.schema && !field?.validator) {
       clearFieldError(fieldName)
@@ -363,7 +366,8 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     const shouldValidateHidden = trigger === 'submit' && field.submitWhenHidden
     const shouldValidateDisabled = trigger === 'submit' && field.submitWhenDisabled
 
-    const fieldVisible = isFieldVisible(fieldName, valuesSnapshot)
+    const visibility = createVisibilitySnapshot(valuesSnapshot, nodeTopology.value)
+    const fieldVisible = isFieldVisible(fieldName, valuesSnapshot, visibility)
 
     if (
       (!fieldVisible && !shouldValidateHidden)
@@ -410,8 +414,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
    */
   async function validate(): Promise<boolean> {
     const currentFields = fieldConfigs.value
-    for (const field of currentFields)
-      await queueFieldValidation(field.field, 'submit', 0)
+    await Promise.all(currentFields.map(field => queueFieldValidation(field.field, 'submit', 0)))
 
     const currentFieldNames = new Set(currentFields.map(field => field.field))
     const formErrors = Object.fromEntries(
@@ -435,9 +438,10 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
       return false
 
     const valuesSnapshot = { ...values }
+    const visibility = createVisibilitySnapshot(valuesSnapshot, nodeTopology.value)
     const submitValues: FormValues = {}
     for (const field of fieldConfigs.value) {
-      if (!isFieldVisible(field.field, valuesSnapshot) && !field.submitWhenHidden)
+      if (!isFieldVisible(field.field, valuesSnapshot, visibility) && !field.submitWhenHidden)
         continue
       if (resolveValue(field.disabled, valuesSnapshot, false) && !field.submitWhenDisabled)
         continue
@@ -543,31 +547,39 @@ function collectSlotTopology(
   collectNodeTopology(slot, parent, path, topology, stack)
 }
 
+/** 为当前 values 快照预计算所有节点可见性，避免提交/校验阶段重复遍历父链。 */
+function createVisibilitySnapshot(values: FormValues, topology: NodeTopology): VisibilitySnapshot {
+  const byField = new Map<string, boolean>()
+  const byNode = new WeakMap<ResolvedFormNode, boolean>()
+
+  for (const [fieldName, node] of topology.fieldNodeMap.entries()) {
+    const visible = resolveNodeVisibility(node, values, topology, byNode)
+    byField.set(fieldName, visible)
+  }
+
+  return { byField, byNode }
+}
+
 /** 沿父链即时解析节点可见性；父节点隐藏时不再执行后代 visible 条件。 */
 function resolveNodeVisibility(
   node: ResolvedFormNode,
   values: FormValues,
   topology: NodeTopology,
+  cache?: WeakMap<ResolvedFormNode, boolean>,
 ): boolean {
-  const chain = collectNodeChain(node, topology)
+  const cached = cache?.get(node)
+  if (cached !== undefined)
+    return cached
 
-  for (const current of chain) {
-    if (!resolveValue(current.visible, values, true))
-      return false
+  const parent = topology.parentMap.get(node)
+  if (parent && !resolveNodeVisibility(parent, values, topology, cache)) {
+    cache?.set(node, false)
+    return false
   }
 
-  return true
+  const visible = resolveValue(node.visible, values, true)
+  cache?.set(node, visible)
+  return visible
 }
 
-/** 读取节点从根到自身的父链，调用方必须确保 node 属于当前拓扑。 */
-function collectNodeChain(node: ResolvedFormNode, topology: NodeTopology): ResolvedFormNode[] {
-  const chain: ResolvedFormNode[] = []
-  let current: ResolvedFormNode | undefined = node
 
-  while (current) {
-    chain.push(current)
-    current = topology.parentMap.get(current)
-  }
-
-  return chain.reverse()
-}

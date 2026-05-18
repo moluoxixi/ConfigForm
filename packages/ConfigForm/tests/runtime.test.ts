@@ -28,7 +28,7 @@ describe('form runtime', () => {
       required: false,
       requiredMessage: '必填',
       span: 24,
-      submitWhenDisabled: true,
+      submitWhenDisabled: false,
       submitWhenHidden: false,
       trigger: 'update:modelValue',
       validateOn: ['submit'],

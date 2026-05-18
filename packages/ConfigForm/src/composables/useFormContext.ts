@@ -1,4 +1,10 @@
-import type { FormErrors, FormValues, ResolvedField, ResolvedFormNode } from '@/types'
+import type {
+  FormErrors,
+  FormValues,
+  ResolvedBoundNode,
+  ResolvedFormNode,
+  ValidateTrigger,
+} from '@/types'
 import { inject, provide } from 'vue'
 
 export interface FormContext {
@@ -9,10 +15,10 @@ export interface FormContext {
   getValue: (field: string) => unknown
   getValues: () => FormValues
   isVisible: (field: ResolvedFormNode) => boolean
-  isDisabled: (field: ResolvedField) => boolean
+  isDisabled: (field: ResolvedBoundNode) => boolean
   setValue: (field: string, value: unknown) => void
   setValues: (values: FormValues, replace?: boolean) => void
-  validateField: (field: string, trigger: string) => Promise<boolean>
+  validateField: (field: string, trigger: ValidateTrigger) => Promise<boolean>
 }
 
 export const FORM_CONTEXT_KEY = Symbol.for('moluoxixi.config-form.form-context')

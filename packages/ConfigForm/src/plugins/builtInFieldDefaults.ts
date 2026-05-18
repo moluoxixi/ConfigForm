@@ -23,7 +23,7 @@ export interface FieldDefaultConfig {
   requiredMessage?: FieldConfig['requiredMessage']
   /** 隐藏字段默认不参与提交，仅对有 field 绑定的节点返回。 */
   submitWhenHidden?: boolean
-  /** 禁用字段默认参与提交，仅对有 field 绑定的节点返回。 */
+  /** 禁用字段默认不参与提交，仅对有 field 绑定的节点返回。 */
   submitWhenDisabled?: boolean
 }
 
@@ -80,7 +80,7 @@ export function getFieldDefaults(field: FormNodeConfig): FieldDefaultConfig {
     blurTrigger: 'blur',
     required: false,
     requiredMessage: '必填',
-    submitWhenDisabled: true,
+    submitWhenDisabled: false,
     submitWhenHidden: false,
     trigger: 'update:modelValue',
     validateOn: ['submit'],
@@ -135,7 +135,7 @@ function applyBindingDefaults<TSlot extends SlotContent | ResolvedSlotContent>(
     blurTrigger,
     required: field.required ?? false,
     requiredMessage: field.requiredMessage ?? '必填',
-    submitWhenDisabled: field.submitWhenDisabled ?? true,
+    submitWhenDisabled: field.submitWhenDisabled ?? false,
     submitWhenHidden: field.submitWhenHidden ?? false,
     trigger,
     validateOn: normalizeValidateOn(field.validateOn),

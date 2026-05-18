@@ -20,7 +20,7 @@ export function readPlainRecord(value: unknown, optionName: string): PlainRecord
   throw new TypeError(`${optionName} must be a plain object`)
 }
 
-/** 浅复制配置记录，并对指定子记录追加一层浅复制；组件、VNode 和非普通对象保持原引用。 */
+/** 浅复制配置记录，并对指定子记录做递归复制；组件、VNode 和非普通对象保持原引用。 */
 export function cloneRecordWithChildren<TRecord extends object>(
   source: TRecord,
   childKeys: readonly string[] = [],
@@ -29,12 +29,23 @@ export function cloneRecordWithChildren<TRecord extends object>(
   const record = source as PlainRecord
 
   for (const key of childKeys) {
-    const value = record[key]
-    if (isPlainRecord(value))
-      clone[key] = { ...value }
+    clone[key] = clonePlainData(record[key])
   }
 
   return clone as TRecord
+}
+
+/** 递归复制纯数据对象与数组；组件、VNode 与实例对象保持原引用。 */
+function clonePlainData<T>(value: T): T {
+  if (Array.isArray(value))
+    return value.map(item => clonePlainData(item)) as T
+
+  if (!isPlainRecord(value) || isVNode(value) || isVueComponentObject(value))
+    return value
+
+  return Object.fromEntries(
+    Object.entries(value).map(([key, child]) => [key, clonePlainData(child)]),
+  ) as T
 }
 
 /** 深合并普通对象；右侧对象优先，数组、VNode 和组件对象保持整体替换。 */

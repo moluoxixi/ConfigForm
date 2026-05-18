@@ -20,6 +20,8 @@ export type {
   FormValues,
   FunctionalFieldComponent,
   NormalizedFieldConfig,
+  ResolvedBoundNode,
+  ResolvedComponentField,
   ResolvedComponentNode,
   ResolvedField,
   ResolvedFormNode,
