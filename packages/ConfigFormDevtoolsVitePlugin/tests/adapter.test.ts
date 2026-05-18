@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
-import type {Component, VNodeChild} from 'vue'
-import {createApp, defineComponent, h, nextTick, ref} from 'vue'
-import {afterEach, describe, expect, it, vi} from 'vitest'
-import {createDevtoolsConfigFormAdapter} from '../src/adapter'
+import type { Component, VNodeChild } from 'vue'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { createApp, defineComponent, h, nextTick, ref } from 'vue'
+import { createDevtoolsConfigFormAdapter } from '../src/adapter'
 
 const source = {
   column: 3,
