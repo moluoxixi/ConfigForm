@@ -29,6 +29,7 @@ type PipelineNode = NormalizedFieldConfig | NormalizedNodeConfig
 type PluginField = DefinedFormNodeConfig | NormalizedNodeConfig
 const FORBIDDEN_DEFAULT_FIELD_KEYS = new Set(['component', 'field', 'slots'])
 const PLUGIN_CLONE_CHILD_KEYS = ['props', 'slots']
+const HTML_TAG_NAME_RE = /^[a-z][a-z0-9-]*$/
 
 /** 创建字段配置管线，负责默认值、插件、用户优先级、组件解析和 slot 递归编排。 */
 export function createFieldPipeline(
@@ -42,14 +43,19 @@ export function createFieldPipeline(
    * 将字段里的字符串组件 key 解析成真实组件。
    *
    * 这里不再处理“谁能覆盖谁”的注册冲突，那件事已经在 createFormRuntime() 组装注册表时完成；
-   * 当前阶段只负责消费最终注册表，并在字段引用了不存在的大写组件 key 时给出明确错误。
+   * 当前阶段只负责消费最终注册表，并对未知组件 key 直接报错。
    */
   function resolveComponent(component: NormalizedNodeConfig['component']): NormalizedNodeConfig['component'] {
-    if (typeof component === 'string' && Object.hasOwn(components, component))
+    if (typeof component !== 'string')
+      return component
+
+    if (Object.hasOwn(components, component))
       return components[component]
-    if (typeof component === 'string' && /^[A-Z]/.test(component))
-      throw new Error(`Unknown component key: ${component}`)
-    return component
+
+    if (HTML_TAG_NAME_RE.test(component))
+      return component
+
+    throw new Error(`Unknown component key: ${component}`)
   }
 
   /** 收集内置和用户插件的默认字段片段；右侧片段在对象合并时具备更高优先级。 */

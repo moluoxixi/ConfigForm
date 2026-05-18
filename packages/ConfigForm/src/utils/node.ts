@@ -142,8 +142,22 @@ export function collectFieldConfigs(nodes: readonly TraversableFormNode[]): Fiel
 /**
  * 生成节点错误定位路径。
  *
- * 字段节点使用 field 作为稳定路径，容器节点使用通用名称避免伪造不存在的字段 key。
+ * 字段节点使用 field 作为稳定路径；容器节点优先使用 id，再使用组件标识，
+ * 避免大型字段树里出现无法区分的通用错误路径。
  */
 function nodePath(node: FormNodeConfig): string {
-  return isFieldConfig(node) ? node.field : 'component node'
+  if (isFieldConfig(node))
+    return node.field
+
+  if (node.id)
+    return `component#${node.id}`
+
+  if (typeof node.component === 'string')
+    return `component:${node.component}`
+
+  const componentName = (node.component as { name?: unknown }).name
+  if (typeof componentName === 'string' && componentName)
+    return `component:${componentName}`
+
+  return 'component node'
 }

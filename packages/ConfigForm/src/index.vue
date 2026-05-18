@@ -1,12 +1,13 @@
 <script setup lang="ts" generic="T extends object = Record<string, unknown>">
 import { computed } from 'vue'
 import type { CSSProperties } from 'vue'
-import type { ConfigFormEmits, ConfigFormExpose, ConfigFormProps, ResolvedFormNode } from '@/types'
+import type { ConfigFormEmits, ConfigFormExpose, ConfigFormProps } from '@/types'
 import RecursiveField from '@/components/RecursiveField'
 import { useForm } from '@/composables/useForm'
 import { provideFormContext } from '@/composables/useFormContext'
 import { provideNamespace, useBem } from '@/composables/useNamespace'
 import { normalizeFormRuntime } from '@/composables/useRuntime'
+import { getResolvedNodeRenderKey } from '@/utils/slot'
 import { resolveLabelWidth } from '@/utils/style'
 
 /**
@@ -74,21 +75,10 @@ provideFormContext({
   validateField: validateSingleField,
 })
 
-/** 为字段与容器节点生成稳定渲染 key。 */
-function getNodeKey(field: ResolvedFormNode, index: number): string {
-  if ('field' in field)
-    return String(field.field)
-
-  if (field.id)
-    return `node:${field.id}`
-
-  return `node:${index}`
-}
-
 const keyedResolvedFields = computed(() =>
   resolvedFields.value.map((field, index) => ({
     field,
-    key: getNodeKey(field, index),
+    key: getResolvedNodeRenderKey(field, `fields.${index}`),
   })),
 )
 

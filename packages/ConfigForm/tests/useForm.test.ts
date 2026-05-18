@@ -1,5 +1,4 @@
 import type { FormNodeConfig, NormalizedFieldConfig, ResolvedFormNode } from '../src/types'
-import { readFileSync } from 'node:fs'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
 import { z } from 'zod'
@@ -24,19 +23,24 @@ describe('useForm', () => {
     vi.useRealTimers()
   })
 
-  it('does not apply field defaults inside the form controller', () => {
-    const source = readFileSync('src/composables/useForm.ts', 'utf8')
+  it('throws when the same resolved node object is reused in multiple positions', () => {
+    const reusedNode = resolveTestFields([
+      defineField({ component: 'section' }),
+    ])[0]
+    const fields = ref<ResolvedFormNode[]>([reusedNode, reusedNode])
 
-    expect(source).not.toContain('applyFieldDefaults')
+    expect(() => useForm({ fields })).toThrow(/Duplicate field node reference at fields\.1/)
   })
 
-  it('throws when multiple real fields use the same field key', () => {
-    const fields = createResolvedFieldRef([
-      defineField({ component: 'input', field: 'duplicate' }),
-      defineField({ component: 'input', field: 'duplicate' }),
-    ])
+  it('fails fast when resolved nodes contain a circular slot reference', () => {
+    const child = resolveTestFields([
+      defineField({ component: 'section' }),
+    ])[0] as ResolvedFormNode & { slots?: Record<string, unknown> }
+    child.slots = { default: child }
 
-    expect(() => useForm({ fields })).toThrow(/Duplicate field key: duplicate/)
+    expect(() => resolveTestFields([
+      defineField({ component: 'section', slots: { default: child as never } }),
+    ])).toThrow(/contains a circular plain-object reference/)
   })
 
   it('collects real fields from nested component containers', async () => {
@@ -174,6 +178,7 @@ describe('useForm', () => {
         component: 'input',
         defaultValue: 'keep',
         disabled: () => true,
+        submitWhenDisabled: true,
       }),
     ])
 
@@ -507,42 +512,56 @@ describe('useForm', () => {
     expect(form.errors.value).toEqual({})
   })
 
-  it('computes visibility only for the requested node chain', () => {
-    let firstVisibleCalls = 0
-    let secondVisibleCalls = 0
-    const firstContainer = defineField({
-      component: 'section',
-      visible: () => {
-        firstVisibleCalls += 1
-        return true
-      },
-      slots: {
-        default: defineField({
-          component: 'input',
-          field: 'firstName',
-        }),
-      },
-    })
-    const secondContainer = defineField({
-      component: 'section',
-      visible: () => {
-        secondVisibleCalls += 1
-        return true
-      },
-      slots: {
-        default: defineField({
-          component: 'input',
-          field: 'secondName',
-        }),
-      },
-    })
-    const fields = createResolvedFieldRef([firstContainer, secondContainer])
+  it('propagates validator exceptions without converting them into successful validation', async () => {
+    const syncFailure = new Error('sync validator failed')
+    const asyncFailure = new Error('async validator failed')
+    const fields = createResolvedFieldRef([
+      defineField({
+        field: 'syncFailure',
+        component: 'input',
+        validator: () => {
+          throw syncFailure
+        },
+      }),
+      defineField({
+        field: 'asyncFailure',
+        component: 'input',
+        validator: async () => {
+          throw asyncFailure
+        },
+      }),
+    ])
 
     const form = useForm({ fields })
 
-    expect(form.isVisible(fields.value[0])).toBe(true)
-    expect(firstVisibleCalls).toBe(1)
-    expect(secondVisibleCalls).toBe(0)
+    await expect(form.validateSingleField('syncFailure', 'submit')).rejects.toThrow('sync validator failed')
+    await expect(form.validateSingleField('asyncFailure', 'submit')).rejects.toThrow('async validator failed')
+    expect(form.errors.value).toEqual({})
+  })
+
+  it('short-circuits child visible predicates when a parent container is hidden', () => {
+    let childVisibleCalls = 0
+    const fields = createResolvedFieldRef([
+      defineField({
+        component: 'section',
+        visible: () => false,
+        slots: {
+          default: defineField({
+            component: 'input',
+            field: 'secret',
+            visible: () => {
+              childVisibleCalls += 1
+              return true
+            },
+          }),
+        },
+      }),
+    ])
+
+    const form = useForm({ fields })
+
+    expect(form.isVisible(fields.value[0])).toBe(false)
+    expect(childVisibleCalls).toBe(0)
   })
 
   it('uses field predicates for visibility, disabled, validation skips, and submit output', async () => {

@@ -124,6 +124,25 @@ describe('runtime utilities', () => {
     expect((cloned.props as { nested: object }).nested).not.toBe((field.props as { nested: object }).nested)
     expect(cloned.slots).not.toBe(field.slots)
     expect((cloned.slots as { suffix: { props: object } }).suffix.props).not.toBe((field.slots as { suffix: { props: object } }).suffix.props)
+
+    const cyclicProps: Record<string, unknown> = {}
+    cyclicProps.self = cyclicProps
+
+    expect(() => cloneRecordWithChildren({ component, props: cyclicProps }, ['props']))
+      .toThrow(/contains a circular plain-object reference/)
+  })
+
+  it('keeps cyclic plain objects as opaque replacements when no deep merge is required', () => {
+    const cyclic: Record<string, unknown> = {}
+    cyclic.self = cyclic
+
+    const merged = mergeRecords(
+      { props: { nested: cyclic } },
+      { props: { list: ['right'] } },
+    )
+
+    expect((merged.props as { nested?: object }).nested).toBe(cyclic)
+    expect((merged.props as { list?: string[] }).list).toEqual(['right'])
   })
 
   it('classifies runtime nodes by binding and label presence', () => {
@@ -201,9 +220,10 @@ describe('runtime utilities', () => {
     expect(() => collectFieldConfigs([
       {
         component: 'section',
+        id: 'profile-card',
         slots: { default: 'plain text' as never },
       },
-    ])).toThrow(/Slot "component node\.slots\.default" must be a field config or an array of field configs/)
+    ])).toThrow(/Slot "component#profile-card\.slots\.default" must be a field config or an array of field configs/)
     expect(() => collectFieldConfigs([
       { component: 'input', field: 'dup' },
       { component: 'input', field: 'dup' },

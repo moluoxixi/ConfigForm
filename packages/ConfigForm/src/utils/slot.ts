@@ -9,15 +9,15 @@ export interface ResolvedSlotNode {
   key: string
 }
 
-/** 将 slot 路径转换为稳定渲染 key；优先使用业务 field 或显式 id。 */
-function getSlotNodeKey(field: ResolvedFormNode, slotName: string, path: string): string {
+/** 生成节点渲染 key，优先使用业务 field 或显式 id，否则回退到结构路径。 */
+export function getResolvedNodeRenderKey(field: ResolvedFormNode, path: string): string {
   if ('field' in field)
-    return `field:${field.field}`
+    return `field:${field.field}:path:${path}`
 
   if (field.id)
-    return `node:${field.id}`
+    return `node:${field.id}:path:${path}`
 
-  return `slot:${slotName}:${path}`
+  return `node:path:${path}`
 }
 
 /**
@@ -25,10 +25,10 @@ function getSlotNodeKey(field: ResolvedFormNode, slotName: string, path: string)
  *
  * slot 只接受与顶层 fields 一致的节点配置；非配置值直接抛错，避免旧 render slot 语义静默生效。
  */
-export function resolveSlotNodes(value: ResolvedSlotContent, slotName: string, path = '0'): ResolvedSlotNode[] {
+export function resolveSlotNodes(value: ResolvedSlotContent, slotName: string, path = slotName): ResolvedSlotNode[] {
   if (Array.isArray(value)) {
     return value.flatMap((item, index) =>
-      resolveSlotNodes(item, slotName, `${path}-${index}`),
+      resolveSlotNodes(item, slotName, `${path}.${index}`),
     )
   }
 
@@ -37,6 +37,6 @@ export function resolveSlotNodes(value: ResolvedSlotContent, slotName: string, p
 
   return [{
     field: value,
-    key: getSlotNodeKey(value, slotName, path),
+    key: getResolvedNodeRenderKey(value, `${slotName}.${path}`),
   }]
 }

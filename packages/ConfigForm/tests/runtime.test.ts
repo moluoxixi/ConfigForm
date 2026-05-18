@@ -192,7 +192,7 @@ describe('form runtime', () => {
     }
   })
 
-  it('resolves registered components and rejects missing uppercase component keys', () => {
+  it('resolves registered components and rejects unknown non-native string component keys', () => {
     const runtime = createFormRuntime({
       components: {
         RuntimeInput,
@@ -213,6 +213,10 @@ describe('form runtime', () => {
       component: 'MissingInput',
       field: 'missing',
     }))).toThrow(/Unknown component key: MissingInput/)
+    expect(() => runtime.transformField(defineField({
+      component: 'runtimeInput',
+      field: 'missingLowercase',
+    }))).toThrow(/Unknown component key: runtimeInput/)
   })
 
   it('recursively transforms raw slot configs and rejects non-field slot values', () => {
@@ -263,6 +267,10 @@ describe('form runtime', () => {
       components: { RuntimeInput },
       plugins: [{ components: { RuntimeInput: AlternateInput }, name: 'ui' }],
     })).toThrow(/Component key conflict: RuntimeInput/)
+
+    expect(() => createFormRuntime({
+      plugins: [{ components: { FormLayout: AlternateInput }, name: 'built-in-conflict' }],
+    })).toThrow(/Component key conflict: FormLayout/)
   })
 
   it('rejects transforms that return invalid values or change field keys', () => {

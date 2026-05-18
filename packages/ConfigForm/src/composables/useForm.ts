@@ -103,10 +103,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
    * 字段拓扑变化时调用，避免已移除字段继续向视图暴露过期错误。
    */
   function syncErrorsToFields(fields: readonly Pick<FieldConfig, 'field'>[]) {
-    const fieldNames = new Set(fields.map(field => field.field))
-    const nextErrors = Object.fromEntries(
-      Object.entries(errors.value).filter(([field]) => fieldNames.has(field)),
-    )
+    const nextErrors = filterErrorsByFieldNames(errors.value, fields.map(field => field.field))
 
     if (Object.keys(nextErrors).length !== Object.keys(errors.value).length)
       errors.value = nextErrors
@@ -119,26 +116,10 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
    * pruneToFields 为 true 时移除不属于当前真实字段拓扑的值，用于字段树变化后的状态收敛。
    */
   function initValues(source: FormValues = initialDefaultValues, pruneToFields = false) {
-    const transformedFields = fieldConfigs.value
-    const fieldNames = new Set(transformedFields.map(field => field.field))
-    const next: FormValues = pruneToFields
-      ? Object.fromEntries(Object.entries(source).filter(([key]) => fieldNames.has(key)))
-      : { ...source }
-
-    for (const field of transformedFields) {
-      if (!Object.hasOwn(next, field.field))
-        next[field.field] = field.defaultValue !== undefined ? field.defaultValue : undefined
-    }
+    const next = buildNextFormValues(source, fieldConfigs.value, pruneToFields)
 
     // 浅层同步 reactive 表单值：只增删改顶层字段，保留 Date、Dayjs 等实例引用。
-    for (const key of Object.keys(values)) {
-      if (!Object.hasOwn(next, key))
-        delete valueStore[key]
-    }
-    for (const [key, val] of Object.entries(next)) {
-      if (valueStore[key] !== val)
-        valueStore[key] = val
-    }
+    syncValueStore(valueStore, next)
   }
 
   initValues()
@@ -416,10 +397,7 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     const currentFields = fieldConfigs.value
     await Promise.all(currentFields.map(field => queueFieldValidation(field.field, 'submit', 0)))
 
-    const currentFieldNames = new Set(currentFields.map(field => field.field))
-    const formErrors = Object.fromEntries(
-      Object.entries(errors.value).filter(([field]) => currentFieldNames.has(field)),
-    )
+    const formErrors = filterErrorsByFieldNames(errors.value, currentFields.map(field => field.field))
     errors.value = formErrors
     if (Object.keys(formErrors).length > 0) {
       onError?.(formErrors)
@@ -475,6 +453,43 @@ export function useForm<T extends object = FormValues>(options: UseFormOptions<T
     getValue,
     getValues,
     clearFieldError,
+  }
+}
+
+function filterErrorsByFieldNames(errors: FormErrors, fieldNames: readonly string[]): FormErrors {
+  const allowedFields = new Set(fieldNames)
+  return Object.fromEntries(
+    Object.entries(errors).filter(([field]) => allowedFields.has(field)),
+  )
+}
+
+function buildNextFormValues(
+  source: FormValues,
+  fields: readonly Pick<NormalizedFieldConfig, 'defaultValue' | 'field'>[],
+  pruneToFields: boolean,
+): FormValues {
+  const fieldNames = new Set(fields.map(field => field.field))
+  const next: FormValues = pruneToFields
+    ? Object.fromEntries(Object.entries(source).filter(([key]) => fieldNames.has(key)))
+    : { ...source }
+
+  for (const field of fields) {
+    if (!Object.hasOwn(next, field.field))
+      next[field.field] = field.defaultValue !== undefined ? field.defaultValue : undefined
+  }
+
+  return next
+}
+
+function syncValueStore(store: FormValues, next: FormValues): void {
+  for (const key of Object.keys(store)) {
+    if (!Object.hasOwn(next, key))
+      delete store[key]
+  }
+
+  for (const [key, val] of Object.entries(next)) {
+    if (store[key] !== val)
+      store[key] = val
   }
 }
 
@@ -581,5 +596,3 @@ function resolveNodeVisibility(
   cache?.set(node, visible)
   return visible
 }
-
-

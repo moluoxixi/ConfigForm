@@ -99,6 +99,7 @@ describe('validate utils', () => {
         field: 'disabledKept',
         component: 'input',
         disabled: () => true,
+        submitWhenDisabled: true,
         validator: () => '禁用字段参与提交校验',
       }),
     ]

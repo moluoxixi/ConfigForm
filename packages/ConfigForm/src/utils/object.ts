@@ -27,45 +27,44 @@ export function cloneRecordWithChildren<TRecord extends object>(
 ): TRecord {
   const clone = { ...source } as PlainRecord
   const record = source as PlainRecord
+  const seen = new WeakSet<object>()
 
   for (const key of childKeys) {
-    clone[key] = clonePlainData(record[key])
+    clone[key] = clonePlainData(record[key], seen, `cloneRecordWithChildren(${key})`)
   }
 
   return clone as TRecord
 }
 
 /** 递归复制纯数据对象与数组；组件、VNode 与实例对象保持原引用。 */
-function clonePlainData<T>(value: T): T {
-  if (Array.isArray(value))
-    return value.map(item => clonePlainData(item)) as T
+function clonePlainData<T>(value: T, seen: WeakSet<object>, path: string): T {
+  if (Array.isArray(value)) {
+    if (seen.has(value))
+      throw new TypeError(`${path} contains a circular array reference`)
+
+    seen.add(value)
+    const cloned = value.map((item, index) => clonePlainData(item, seen, `${path}[${index}]`)) as T
+    seen.delete(value)
+    return cloned
+  }
 
   if (!isPlainRecord(value) || isVNode(value) || isVueComponentObject(value))
     return value
 
-  return Object.fromEntries(
-    Object.entries(value).map(([key, child]) => [key, clonePlainData(child)]),
+  if (seen.has(value))
+    throw new TypeError(`${path} contains a circular plain-object reference`)
+
+  seen.add(value)
+  const cloned = Object.fromEntries(
+    Object.entries(value).map(([key, child]) => [key, clonePlainData(child, seen, `${path}.${key}`)]),
   ) as T
+  seen.delete(value)
+  return cloned
 }
 
 /** 深合并普通对象；右侧对象优先，数组、VNode 和组件对象保持整体替换。 */
 export function mergeRecords(...sources: Array<object | undefined>): PlainRecord {
-  const result: PlainRecord = {}
-  for (const source of sources) {
-    if (source === undefined)
-      continue
-
-    const record = readPlainRecord(source, 'mergeRecords source')
-    for (const [key, value] of Object.entries(record)) {
-      const previous = result[key]
-      if (canMergeValue(key, previous, value)) {
-        result[key] = mergeRecords(previous, value as PlainRecord)
-        continue
-      }
-      result[key] = value
-    }
-  }
-  return result
+  return mergeRecordsInternal(new WeakSet<object>(), 'mergeRecords', ...sources)
 }
 
 /** 判断当前字段是否可以递归合并；组件入口必须保持引用整体替换。 */
@@ -86,4 +85,38 @@ function isVueComponentObject(value: PlainRecord): boolean {
     || typeof value.__name === 'string'
     || typeof value.__file === 'string'
     || isPlainRecord(value.__vccOpts)
+}
+
+function mergeRecordsInternal(
+  seen: WeakSet<object>,
+  path: string,
+  ...sources: Array<object | undefined>
+): PlainRecord {
+  const result: PlainRecord = {}
+
+  for (const source of sources) {
+    if (source === undefined)
+      continue
+
+    const record = readPlainRecord(source, `${path} source`)
+    if (seen.has(record))
+      throw new TypeError(`${path} contains a circular plain-object reference`)
+
+    seen.add(record)
+    try {
+      for (const [key, value] of Object.entries(record)) {
+        const previous = result[key]
+        if (canMergeValue(key, previous, value)) {
+          result[key] = mergeRecordsInternal(seen, `${path}.${key}`, previous, value as PlainRecord)
+          continue
+        }
+        result[key] = value
+      }
+    }
+    finally {
+      seen.delete(record)
+    }
+  }
+
+  return result
 }

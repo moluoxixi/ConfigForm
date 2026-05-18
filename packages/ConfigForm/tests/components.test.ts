@@ -1,7 +1,6 @@
 import type { FormContext } from '../src/composables/useFormContext'
 import type { FormRuntimeOptions } from '../src/runtime'
-import type { ConfigFormExpose, DefinedFormNodeConfig, FormNodeConfig, ResolvedBoundNode } from '../src/types'
-import { existsSync, readFileSync } from 'node:fs'
+import type { ConfigFormExpose, DefinedFormNodeConfig, FormNodeConfig, ResolvedBoundNode, ResolvedField } from '../src/types'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import { computed, defineComponent, h, inject, markRaw, nextTick, shallowRef } from 'vue'
@@ -410,9 +409,7 @@ describe('config form component', () => {
     expect(probes[1].attributes('style')).toContain('background-color: white')
   })
 
-  it('uses built-in field defaults for container span instead of FormNode fallbacks', () => {
-    const formNodeSource = readFileSync('src/components/FormNode/src/index.vue', 'utf8')
-    const defaultsSource = readFileSync('src/plugins/builtInFieldDefaults.ts', 'utf8')
+  it('uses built-in field defaults for container span', () => {
     const resolved = createFormRuntime().transformField(defineField({ component: LayoutProbe }))
     const wrapper = mount(ConfigForm, {
       props: {
@@ -421,8 +418,6 @@ describe('config form component', () => {
       },
     })
 
-    expect(formNodeSource).not.toContain('?? 24')
-    expect(defaultsSource).not.toContain('?? 24')
     expect(resolved.span).toBe(24)
     expect(wrapper.get('[data-testid="layout-probe"]').attributes('style')).toContain('grid-column: span 24')
   })
@@ -562,6 +557,7 @@ describe('config form component', () => {
         component: TextInput,
         defaultValue: 'keep-disabled',
         disabled: () => true,
+        submitWhenDisabled: true,
       }),
     ]
 
@@ -696,93 +692,57 @@ describe('config form component', () => {
 })
 
 describe('form field component', () => {
-  it('renders fields without depending on FormNode container logic', () => {
-    const source = readFileSync('src/components/FormField/src/index.vue', 'utf8')
+  it('renders labelled fields through FormItem and FormComponent composition', () => {
+    const field = resolveTestField(defineField({
+      component: TextInput,
+      field: 'username',
+      label: '用户名',
+    })) as ResolvedField
 
-    expect(source).not.toContain('@/components/FormNode')
-    expect(source).not.toContain('<FormNode')
-  })
+    const wrapper = mount(FormField, {
+      props: {
+        field,
+      },
+      global: {
+        provide: {
+          [FORM_CONTEXT_KEY]: {
+            values: { username: 'Ada' },
+            errors: { username: ['名称错误'] },
+            getValue: (field: string) => ({ username: 'Ada' } as Record<string, unknown>)[field],
+            getValues: () => ({ username: 'Ada' }),
+            isVisible: () => true,
+            isDisabled: () => false,
+            setValue: vi.fn(),
+            setValues: vi.fn(),
+            validateField: vi.fn(),
+          },
+        },
+      },
+    })
 
-  it('keeps shared component attrs and listeners in the component binding layer', () => {
-    const formFieldSource = readFileSync('src/components/FormField/src/index.vue', 'utf8')
-    const formComponentSource = readFileSync('src/components/FormComponent/src/index.vue', 'utf8')
-
-    expect(formComponentSource).toContain('@/composables/useFieldBinding')
-    expect(formFieldSource).not.toContain('getValueFromEvent')
-    expect(formComponentSource).not.toContain('getValueFromEvent')
-  })
-
-  it('composes FormField from FormItem and FormComponent without binding or error slot duplication', () => {
-    const formFieldSource = readFileSync('src/components/FormField/src/index.vue', 'utf8')
-
-    expect(formFieldSource).toContain('@/components/FormItem')
-    expect(formFieldSource).toContain('@/components/FormComponent')
-    expect(formFieldSource).toContain('formItemComponentProps')
-    expect(formFieldSource).toContain('v-bind="formItemComponentProps"')
-    expect(formFieldSource).not.toContain('@/composables/useFieldBinding')
-    expect(formFieldSource).not.toContain('@/components/RecursiveField')
-    expect(formFieldSource).not.toContain('defineSlots')
-    expect(formFieldSource).not.toContain('$slots.error')
-    expect(formFieldSource).not.toContain('<component')
-    expect(formFieldSource).not.toContain('resolveSlotNodes')
-  })
-
-  it('keeps field chrome inside explicit FormItem fields without arbitrary root attrs', () => {
-    const formItemPath = 'src/components/FormItem/src/index.vue'
-    const formFieldSource = readFileSync('src/components/FormField/src/index.vue', 'utf8')
-    const formComponentSource = readFileSync('src/components/FormComponent/src/index.vue', 'utf8')
-
-    expect(existsSync(formItemPath)).toBe(true)
-
-    const formItemSource = readFileSync(formItemPath, 'utf8')
-    expect(formItemSource).toContain('ctx.errors')
-    expect(formItemSource).toContain('<slot />')
-    expect(formItemSource).toContain('id?: string')
-    expect(formItemSource).toContain('field: string')
-    expect(formItemSource).not.toContain('ResolvedField')
-    expect(formItemSource).not.toContain('formItemProps')
-    expect(formItemSource).not.toContain('v-bind')
-    expect(formItemSource).not.toContain('name="error"')
-    expect(formFieldSource).not.toContain('fieldRootAttrs')
-    expect(formFieldSource).not.toContain('resolveLabelWidth')
-    expect(formComponentSource).not.toContain('control-attrs')
-  })
-
-  it('keeps FormComponent props narrowed to resolved bound nodes without local casts', () => {
-    const formComponentSource = readFileSync('src/components/FormComponent/src/index.vue', 'utf8')
-
-    expect(formComponentSource).toContain('field: ResolvedBoundNode')
-    expect(formComponentSource).not.toContain('ResolvedFormNode')
-    expect(formComponentSource).not.toContain('as ResolvedField')
-  })
-
-  it('uses resolved slot content types after runtime transforms', () => {
-    const typesSource = readFileSync('src/types/index.ts', 'utf8')
-    const slotSource = readFileSync('src/utils/slot.ts', 'utf8')
-    const transformSource = readFileSync('src/runtime/transform.ts', 'utf8')
-
-    expect(typesSource).toContain('ResolvedSlotContent')
-    expect(slotSource).toContain('ResolvedSlotContent')
-    expect(slotSource).not.toContain('as SlotContent')
-    expect(slotSource).not.toContain('as ResolvedFormNode')
-    expect(transformSource).toContain('ResolvedSlotContent')
+    expect(wrapper.findComponent(FormComponent).exists()).toBe(true)
+    expect(wrapper.find('label').text()).toBe('用户名')
+    expect(wrapper.text()).toContain('名称错误')
+    expect(wrapper.find('.cf-field').exists()).toBe(true)
+    expect(wrapper.find('input').exists()).toBe(true)
   })
 
   it('emits custom value and blur triggers through the public field contract', async () => {
-    const field = defineField({
+    const field = resolveTestField(defineField({
       blurTrigger: 'focusout',
       component: CustomControl,
       field: 'status',
+      label: '状态',
       trigger: 'commit',
       valueProp: 'current',
-    })
+    })) as ResolvedField
 
     const setValue = vi.fn()
     const validateField = vi.fn()
 
     const wrapper = mount(FormField, {
       props: {
-        field: resolveTestField(field),
+        field,
       },
       global: {
         provide: {
@@ -812,19 +772,20 @@ describe('form field component', () => {
   })
 
   it('extracts component values from custom event payloads', async () => {
-    const field = defineField({
+    const field = resolveTestField(defineField({
       component: 'input',
       field: 'nativeInput',
       getValueFromEvent: event => ((event as Event).target as HTMLInputElement).value,
+      label: '原生输入',
       trigger: 'input',
-    })
+    })) as ResolvedField
 
     const setValue = vi.fn()
     const validateField = vi.fn()
 
     const wrapper = mount(FormField, {
       props: {
-        field: resolveTestField(field),
+        field,
       },
       global: {
         provide: {
@@ -1043,16 +1004,6 @@ describe('form field component', () => {
 })
 
 describe('recursive field component', () => {
-  it('keeps visibility pruning centralized in RecursiveField', () => {
-    const recursiveFieldSource = readFileSync('src/components/RecursiveField/src/index.vue', 'utf8')
-    const formFieldSource = readFileSync('src/components/FormField/src/index.vue', 'utf8')
-    const formNodeSource = readFileSync('src/components/FormNode/src/index.vue', 'utf8')
-
-    expect(recursiveFieldSource).toContain('ctx.isVisible')
-    expect(formFieldSource).not.toContain('ctx.isVisible')
-    expect(formNodeSource).not.toContain('ctx.isVisible')
-  })
-
   it('prunes invisible nodes before dispatching to node components', () => {
     const field = resolveTestField(defineField({
       component: TextInput,
