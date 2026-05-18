@@ -36,3 +36,19 @@ export function mergeStyle(
     return { ...baseStyle, ...existingStyle }
   return [baseStyle, existingStyle]
 }
+
+/** 按顺序合并多个 Vue style 值；后面的 style 拥有更高优先级。 */
+export function mergeStyleValues(
+  ...styles: Array<StyleValue | undefined>
+): StyleValue | undefined {
+  const validStyles = styles.filter(style => style !== undefined)
+
+  if (validStyles.length === 0)
+    return undefined
+
+  if (validStyles.every(isStyleObject)) {
+    return Object.assign({}, ...validStyles)
+  }
+
+  return validStyles
+}

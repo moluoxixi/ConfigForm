@@ -8,6 +8,14 @@ import { defineField } from '../src/utils/field'
 const RuntimeInput = markRaw({ name: 'RuntimeInput' })
 const AlternateInput = markRaw({ name: 'AlternateInput' })
 
+/** 断言 runtime 返回真实字段节点，同时让后续断言通过守卫完成类型收窄。 */
+function expectResolvedField(node: ReturnType<ReturnType<typeof createFormRuntime>['transformField']>) {
+  if (!('field' in node))
+    throw new Error('Expected resolved field node')
+
+  return node
+}
+
 describe('form runtime', () => {
   it('returns built-in default fragments without mutating field configs or merging user config', () => {
     const runtime = createFormRuntime()
@@ -138,6 +146,42 @@ describe('form runtime', () => {
         width: '80px',
       },
       transformed: true,
+    })
+  })
+
+  it('restores user-declared top-level values after transform hooks', () => {
+    const runtime = createFormRuntime({
+      plugins: [
+        {
+          name: 'binding-transform',
+          transformField: field => ({
+            ...field,
+            props: {
+              ...field.props,
+              placeholder: 'plugin placeholder',
+              size: 'middle',
+            },
+            trigger: 'update:value',
+            valueProp: 'value',
+          }),
+        },
+      ],
+    })
+
+    const resolved = expectResolvedField(runtime.transformField(defineField({
+      component: 'input',
+      field: 'name',
+      props: {
+        placeholder: 'user placeholder',
+      },
+      valueProp: 'customValue',
+    })))
+
+    expect(resolved.valueProp).toBe('customValue')
+    expect(resolved.trigger).toBe('update:value')
+    expect(resolved.props).toEqual({
+      placeholder: 'user placeholder',
+      size: 'middle',
     })
   })
 

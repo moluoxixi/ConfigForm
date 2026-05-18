@@ -5,7 +5,7 @@ import { computed } from 'vue'
 import RecursiveField from '@/components/RecursiveField'
 import { useFormContext } from '@/composables/useFormContext'
 import { resolveSlotNodes } from '@/utils/slot'
-import { mergeStyle, readStyleValue } from '@/utils/style'
+import { mergeStyleValues, readStyleValue } from '@/utils/style'
 
 /**
  * FormNode 渲染已经解析过的节点组件，slot 中的 defineField 节点交给 RecursiveField 递归处理。
@@ -30,10 +30,11 @@ const containerStyle = computed<CSSProperties | undefined>(() => {
 const attrs = computed(() => {
   const baseStyle = containerStyle.value
   const existingStyle = readStyleValue(props.field.props?.style)
+  const componentStyle = readStyleValue(props.componentAttrs?.style, 'componentAttrs.style')
   return {
     ...props.field.props,
     ...(props.componentAttrs ?? {}),
-    style: mergeStyle(baseStyle, existingStyle),
+    style: mergeStyleValues(baseStyle, existingStyle, componentStyle),
   }
 })
 

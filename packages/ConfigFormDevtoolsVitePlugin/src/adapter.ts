@@ -19,6 +19,10 @@ interface DevtoolsFormNodeConfig {
   __source?: FieldSourceMeta
 }
 
+interface DevtoolsCollectedFields {
+  byReference: WeakSet<object>
+}
+
 export interface DevtoolsConfigFormAdapterOptions {
   /** 开发服务中要包裹的核心 ConfigForm 组件。 */
   ConfigForm: Component
@@ -234,6 +238,25 @@ function isFormNodeConfig(value: unknown): value is DevtoolsFormNodeConfig {
 /** 判断节点配置是否是绑定表单值的真实字段节点。 */
 function isFieldNodeConfig(value: DevtoolsFormNodeConfig): value is DevtoolsFormNodeConfig & { field: string } {
   return typeof value.field === 'string'
+}
+
+/** 将核心字段拓扑收集结果转成快速索引，devtools 字段语义以核心收集器为准。 */
+function createCollectedFieldIndex(fields: readonly DevtoolsFieldConfig[]): DevtoolsCollectedFields {
+  const byReference = new WeakSet<object>()
+
+  for (const field of fields)
+    byReference.add(field)
+
+  return { byReference }
+}
+
+/** 判断节点是否是核心拓扑收集器确认过的真实字段。 */
+function isCollectedFieldNode(
+  node: DevtoolsFormNodeConfig,
+  fields: DevtoolsCollectedFields,
+): node is DevtoolsFormNodeConfig & { field: string } {
+  return isFieldNodeConfig(node)
+    && fields.byReference.has(node)
 }
 
 /**
@@ -465,6 +488,7 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
         formLabel: string | undefined,
         parentId: string | undefined,
         path: string,
+        collectedFields: DevtoolsCollectedFields,
         slotName?: string,
       ): FormDevtoolsNode[] {
         // devtools 树必须按用户声明顺序展示，不能依赖 slot 子节点可能变化的 Vue 挂载时序。
@@ -473,7 +497,7 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
             return []
 
           const nodePath = `${path}.${index}`
-          const isField = isFieldNodeConfig(node)
+          const isField = isCollectedFieldNode(node, collectedFields)
           const id = isField ? `${formId}:${node.field}` : `${formId}:${nodePath}`
           const current: FormDevtoolsNode = {
             component: resolveComponentName(node.component),
@@ -492,7 +516,7 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
           const children = Object.entries(node.slots ?? {}).flatMap(([childSlotName, slot]) => {
             const content = resolveSlotContent(slot)
             const childNodes = Array.isArray(content) ? content : [content]
-            return collectNodeTree(childNodes, formLabel, id, `${nodePath}.slots.${childSlotName}`, childSlotName)
+            return collectNodeTree(childNodes, formLabel, id, `${nodePath}.slots.${childSlotName}`, collectedFields, childSlotName)
           })
 
           return [current, ...children]
@@ -556,7 +580,8 @@ export function createDevtoolsConfigFormAdapter(options: DevtoolsConfigFormAdapt
 
       /** 基于当前 props.fields 和宿主 DOM 收集完整节点快照。 */
       function collectNodes(): FormDevtoolsNode[] {
-        return collectNodeTree(props.fields, resolveFormLabel(hostRef.value), undefined, 'fields')
+        const collectedFields = createCollectedFieldIndex(options.collectFieldConfigs(props.fields))
+        return collectNodeTree(props.fields, resolveFormLabel(hostRef.value), undefined, 'fields', collectedFields)
       }
 
       const instrumentedFields = computed(() => instrumentNodeTree(props.fields, 'fields'))

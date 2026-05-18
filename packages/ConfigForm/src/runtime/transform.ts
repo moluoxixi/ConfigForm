@@ -89,7 +89,7 @@ export function createFieldPipeline(
     for (const hook of transformHooks)
       current = runTransformHook(hook, current)
 
-    return resolveFinalField(current)
+    return resolveFinalField(restoreUserFieldPriority(current, field))
   }
 
   /** 执行单个 transformField hook，并在继续后续 hook 前重新规范化字段。 */
@@ -103,6 +103,18 @@ export function createFieldPipeline(
     assertFieldKeyStable(hook.pluginName, current, next)
 
     return applyFieldDefaults(next) as PipelineNode
+  }
+
+  /**
+   * transformField 可以补充或派生字段配置，但用户显式声明始终是最高优先级。
+   *
+   * 这里在所有 transform hook 结束后恢复用户片段，既让插件能读取已合并输入，
+   * 又避免插件覆盖调用方直接写在字段上的绑定、props 和拓扑声明。
+   */
+  function restoreUserFieldPriority(current: PipelineNode, field: FormNodeConfig): PipelineNode {
+    return applyFieldDefaults(
+      mergeRecords(current, field) as unknown as FormNodeConfig,
+    ) as PipelineNode
   }
 
   /** 解析组件和 slot，产出渲染层可直接消费的最终节点。 */

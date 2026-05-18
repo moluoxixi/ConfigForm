@@ -1,4 +1,4 @@
-import type { FormContext } from '../src/composables/useFormContext'
+import type { FormContext } from '../src/composables'
 import type { FormRuntimeOptions } from '../src/runtime'
 import type { ConfigFormExpose, DefinedFormNodeConfig, FormNodeConfig, ResolvedBoundNode, ResolvedField } from '../src/types'
 import { flushPromises, mount } from '@vue/test-utils'
@@ -8,9 +8,11 @@ import { z } from 'zod'
 import FormComponent from '../src/components/FormComponent/src/index.vue'
 import FormField from '../src/components/FormField/src/index.vue'
 import FormLayout from '../src/components/FormLayout/src/index.vue'
+import FormNode from '../src/components/FormNode/src/index.vue'
 import RecursiveField from '../src/components/RecursiveField/src/index.vue'
 import { VALIDATION_THROTTLE_MS } from '../src/composables/useForm'
 import { FORM_CONTEXT_KEY } from '../src/composables/useFormContext'
+import { useRuntime } from '../src/composables'
 import ConfigForm from '../src/index.vue'
 import { createFormRuntime } from '../src/runtime'
 import { defineField } from '../src/utils/field'
@@ -115,6 +117,25 @@ const ContextProbe = markRaw(defineComponent({
       String(ctx.values.name),
       ctx.errors.name?.[0],
     ].join('|'))
+  },
+}))
+
+const RuntimeProbe = markRaw(defineComponent({
+  name: 'RuntimeProbe',
+  setup() {
+    const runtime = useRuntime()
+
+    return () => {
+      const transformed = runtime.value.transformField(defineField({
+        component: 'input',
+        field: 'runtimeProbe',
+      }))
+
+      return h('span', {
+        'data-testid': 'runtime-probe',
+        'data-value-prop': 'field' in transformed ? transformed.valueProp : undefined,
+      }, 'runtime')
+    }
   },
 }))
 
@@ -409,6 +430,51 @@ describe('config form component', () => {
     expect(probes[1].attributes('style')).toContain('background-color: white')
   })
 
+  it('lets componentAttrs.style override container span and field props style', () => {
+    const field = createFormRuntime().transformField(defineField({
+      component: LayoutProbe,
+      props: {
+        style: {
+          color: 'blue',
+          gridColumn: 'span 10',
+        },
+      },
+      span: 12,
+    }))
+
+    const wrapper = mount(FormNode, {
+      props: {
+        field,
+        componentAttrs: {
+          style: {
+            color: 'green',
+            gridColumn: 'span 6',
+          },
+        },
+      },
+      global: {
+        provide: {
+          [FORM_CONTEXT_KEY]: {
+            errors: {},
+            getValue: () => undefined,
+            getValues: () => ({}),
+            inline: false,
+            isDisabled: () => false,
+            isVisible: () => true,
+            setValue: () => {},
+            setValues: () => {},
+            validateField: async () => true,
+            values: {},
+          } satisfies FormContext,
+        },
+      },
+    })
+
+    const style = wrapper.get('[data-testid="layout-probe"]').attributes('style')
+    expect(style).toContain('grid-column: span 6')
+    expect(style).toContain('color: green')
+  })
+
   it('uses built-in field defaults for container span', () => {
     const resolved = createFormRuntime().transformField(defineField({ component: LayoutProbe }))
     const wrapper = mount(ConfigForm, {
@@ -688,6 +754,35 @@ describe('config form component', () => {
     await nextTick()
 
     expect(wrapper.text()).not.toContain('昵称')
+  })
+
+  it('provides the normalized runtime to rendered field components', () => {
+    const fields = [
+      defineField({
+        component: RuntimeProbe,
+      }),
+    ]
+    const runtime = {
+      plugins: [
+        {
+          name: 'probe-binding',
+          transformField: field => ({
+            ...field,
+            valueProp: 'value',
+          }),
+        },
+      ],
+    } satisfies FormRuntimeOptions
+
+    const wrapper = mount(ConfigForm, {
+      props: {
+        fields,
+        defaultValues: {},
+        runtime,
+      },
+    })
+
+    expect(wrapper.get('[data-testid="runtime-probe"]').attributes('data-value-prop')).toBe('value')
   })
 })
 
@@ -1000,6 +1095,59 @@ describe('form field component', () => {
     expect(wrapper.find('.cf-field').exists()).toBe(false)
     expect(input.attributes('placeholder')).toBe('用户名')
     expect(input.attributes('id')).not.toBe('source-username')
+  })
+
+  it('applies grid span to unlabelled field controls', () => {
+    const fields = [
+      defineField({
+        component: TextInput,
+        field: 'username',
+        props: {
+          placeholder: '用户名',
+        },
+        span: 8,
+      }),
+    ]
+
+    const wrapper = mount(ConfigForm, {
+      props: {
+        fields,
+        defaultValues: {},
+      },
+    })
+
+    expect(wrapper.find('.cf-field').exists()).toBe(false)
+    expect(wrapper.get('[data-cf-bound-field="username"]').attributes('style')).toContain('grid-column: span 8')
+  })
+
+  it('does not add an extra wrapper around unlabelled slot fields', () => {
+    const fields = [
+      defineField({
+        component: SlotHost,
+        slots: {
+          default: [
+            defineField({
+              component: TextInput,
+              field: 'username',
+              props: {
+                placeholder: '用户名',
+              },
+              span: 8,
+            }),
+          ],
+        },
+      }),
+    ]
+
+    const wrapper = mount(ConfigForm, {
+      props: {
+        fields,
+        defaultValues: {},
+      },
+    })
+
+    expect(wrapper.get('input').attributes('placeholder')).toBe('用户名')
+    expect(wrapper.find('[data-testid="slot-host"] > [data-cf-bound-field="username"] > div > input').exists()).toBe(false)
   })
 })
 

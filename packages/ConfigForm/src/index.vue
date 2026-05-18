@@ -6,7 +6,7 @@ import RecursiveField from '@/components/RecursiveField'
 import { useForm } from '@/composables/useForm'
 import { provideFormContext } from '@/composables/useFormContext'
 import { provideNamespace, useBem } from '@/composables/useNamespace'
-import { normalizeFormRuntime } from '@/composables/useRuntime'
+import { normalizeFormRuntime, provideRuntime } from '@/composables/useRuntime'
 import { getResolvedNodeRenderKey } from '@/utils/slot'
 import { resolveLabelWidth } from '@/utils/style'
 
@@ -28,6 +28,7 @@ const { b } = useBem(namespaceRef)
 const rawFields = computed(() => props.fields)
 const defaultValues = computed(() => props.defaultValues)
 const runtimeRef = computed(() => normalizeFormRuntime(props.runtime))
+provideRuntime(runtimeRef)
 const resolvedFields = computed(() => rawFields.value.map(field => runtimeRef.value.transformField(field)))
 
 const {

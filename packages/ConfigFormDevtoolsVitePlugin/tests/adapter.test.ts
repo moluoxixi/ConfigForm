@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
-import type { Component, VNodeChild } from 'vue'
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { createApp, defineComponent, h, nextTick, ref } from 'vue'
-import { createDevtoolsConfigFormAdapter } from '../src/adapter'
+import type {Component, VNodeChild} from 'vue'
+import {createApp, defineComponent, h, nextTick, ref} from 'vue'
+import {afterEach, describe, expect, it, vi} from 'vitest'
+import {createDevtoolsConfigFormAdapter} from '../src/adapter'
 
 const source = {
   column: 3,
@@ -21,6 +21,10 @@ interface FieldStub {
   __source?: typeof source
 }
 
+interface FieldNodeStub extends FieldStub {
+  field: string
+}
+
 /**
  * 创建 devtools bridge mock。
  *
@@ -34,6 +38,46 @@ function createBridge() {
     unregisterField: vi.fn(),
     updateField: vi.fn(),
   }
+}
+
+/** 判断未知值是否是测试用的声明式节点配置。 */
+function isFieldStub(value: unknown): value is FieldStub {
+  return Boolean(
+    value
+    && typeof value === 'object'
+    && !Array.isArray(value)
+    && 'component' in value,
+  )
+}
+
+/** 判断节点是否绑定真实字段 key。 */
+function isFieldNodeStub(value: FieldStub): value is FieldNodeStub {
+  return typeof value.field === 'string'
+}
+
+/** 递归收集测试字段树，保持 adapter 单测与核心 collectFieldConfigs 拓扑语义一致。 */
+function collectFieldStubs(nodes: readonly unknown[]): FieldNodeStub[] {
+  return nodes.flatMap((node) => {
+    if (!isFieldStub(node))
+      return []
+
+    const nested = Object.values(node.slots ?? {}).flatMap(collectSlotFieldStubs)
+    return isFieldNodeStub(node) ? [node, ...nested] : nested
+  })
+}
+
+/** adapter 单测只收集可识别的声明节点，函数 slot 保持不执行。 */
+function collectSlotFieldStubs(slot: unknown): FieldNodeStub[] {
+  if (slot === undefined)
+    return []
+
+  if (Array.isArray(slot))
+    return slot.flatMap(collectSlotFieldStubs)
+
+  if (!isFieldStub(slot))
+    return []
+
+  return collectFieldStubs([slot])
 }
 
 const CoreConfigForm = defineComponent({
@@ -71,7 +115,7 @@ const CoreConfigForm = defineComponent({
 function mountAdapter(fields: FieldStub[]) {
   const Adapter = createDevtoolsConfigFormAdapter({
     ConfigForm: CoreConfigForm as Component,
-    collectFieldConfigs: nodes => nodes as never,
+    collectFieldConfigs: collectFieldStubs,
   })
   const root = document.createElement('div')
   document.body.append(root)
@@ -94,7 +138,7 @@ function mountAdapter(fields: FieldStub[]) {
 function createAdapter() {
   return createDevtoolsConfigFormAdapter({
     ConfigForm: CoreConfigForm as Component,
-    collectFieldConfigs: nodes => nodes as never,
+    collectFieldConfigs: collectFieldStubs,
   })
 }
 
@@ -137,6 +181,48 @@ describe('configForm devtools adapter', () => {
       duration: expect.any(Number),
       timestamp: expect.any(Number),
     }))
+  })
+
+  it('collects devtools field nodes through the core topology collector', async () => {
+    const bridge = createBridge()
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
+    const collectFieldConfigs = vi.fn(collectFieldStubs)
+    const Adapter = createDevtoolsConfigFormAdapter({
+      ConfigForm: CoreConfigForm as Component,
+      collectFieldConfigs,
+    })
+    const root = document.createElement('div')
+    document.body.append(root)
+
+    createApp({
+      render: () => h(Adapter, {
+        fields: [
+          {
+            component: 'section',
+            slots: {
+              default: [
+                {
+                  __source: source,
+                  component: 'input',
+                  field: 'slotName',
+                  label: 'Slot name',
+                },
+              ],
+            },
+          },
+        ],
+        namespace: 'demo',
+      }),
+    }).mount(root)
+    await nextTick()
+    await nextTick()
+
+    expect(collectFieldConfigs).toHaveBeenCalled()
+    expect(bridge.registerField).toHaveBeenCalledWith(expect.objectContaining({
+      field: 'slotName',
+      kind: 'field',
+      label: 'Slot name',
+    }), null)
   })
 
   it('does not resolve field id elements without a source marker', async () => {
@@ -191,8 +277,7 @@ describe('configForm devtools adapter', () => {
   })
 
   it('keeps field source markers out of control props', async () => {
-    const bridge = createBridge()
-    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = bridge
+    window.__CONFIG_FORM_DEVTOOLS_BRIDGE__ = createBridge()
 
     mountAdapter([
       {
@@ -279,7 +364,7 @@ describe('configForm devtools adapter', () => {
     })
     const Adapter = createDevtoolsConfigFormAdapter({
       ConfigForm: CoreWithConfiguredComponents as Component,
-      collectFieldConfigs: nodes => nodes as never,
+      collectFieldConfigs: collectFieldStubs,
     })
     const root = document.createElement('div')
     document.body.append(root)
@@ -360,8 +445,7 @@ describe('configForm devtools adapter', () => {
 
         return () => h('form', props.fields.map((field) => {
           const config = field as FieldStub
-          const slot = config.slots?.default
-          const content = slot
+          const content = config.slots?.default
           const children = Array.isArray(content)
             ? content.map(renderConfigNode)
             : [renderConfigNode(content)]
@@ -372,7 +456,7 @@ describe('configForm devtools adapter', () => {
     })
     const Adapter = createDevtoolsConfigFormAdapter({
       ConfigForm: CoreWithConfigSlots as Component,
-      collectFieldConfigs: nodes => nodes as never,
+      collectFieldConfigs: collectFieldStubs,
     })
     const root = document.createElement('div')
     document.body.append(root)
@@ -567,7 +651,7 @@ describe('configForm devtools adapter', () => {
     })
     const Adapter = createDevtoolsConfigFormAdapter({
       ConfigForm: CoreWithContainer as Component,
-      collectFieldConfigs: nodes => nodes as never,
+      collectFieldConfigs: collectFieldStubs,
     })
     const root = document.createElement('div')
     document.body.append(root)
@@ -642,7 +726,7 @@ describe('configForm devtools adapter', () => {
     })
     const Adapter = createDevtoolsConfigFormAdapter({
       ConfigForm: CoreWithVisibleContainer as Component,
-      collectFieldConfigs: nodes => nodes as never,
+      collectFieldConfigs: collectFieldStubs,
     })
     const root = document.createElement('div')
     document.body.append(root)
